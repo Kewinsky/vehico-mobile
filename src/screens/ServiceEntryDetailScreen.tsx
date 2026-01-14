@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -9,122 +9,147 @@ import {
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import * as ImagePicker from "expo-image-picker";
+import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import type { Attachment, AttachmentType } from "../types/domain";
+import type { Attachment } from "../types/domain";
 import {
   createSignedUrl,
   listAttachments,
-  uploadAttachment,
 } from "../services/attachments/attachmentsRepo";
+import {
+  deleteServiceEntry,
+  getServiceEntry,
+} from "../services/serviceEntries/serviceEntriesRepo";
 import { Button } from "../ui/components/Button";
+import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
-import { theme } from "../ui/theme";
+import { useTheme } from "../ui/ThemeProvider";
+import { useUserSettings } from "../app/providers/UserSettingsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryDetail">;
 
-function labelForType(type: AttachmentType) {
-  if (type === "receipt") return "Receipt";
-  if (type === "invoice") return "Invoice";
-  return "Photo";
-}
-
-export function ServiceEntryDetailScreen({ route }: Props) {
+export function ServiceEntryDetailScreen({ route, navigation }: Props) {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const { settings } = useUserSettings();
+  const styles = makeStyles(theme);
   const { entryId, vehicleId } = route.params;
+  const [entry, setEntry] = useState<any>(null);
   const [items, setItems] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState<AttachmentType | null>(null);
+  const distanceUnit = settings?.distance_unit ?? "km";
+  const currency = settings?.currency ?? "PLN";
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
+      const e = await getServiceEntry(entryId);
+      setEntry(e);
       const data = await listAttachments(entryId);
       setItems(data);
     } catch (e: any) {
-      Alert.alert("Error", e?.message ?? String(e));
+      Alert.alert(t("common.error"), e?.message ?? String(e));
     } finally {
       setLoading(false);
     }
-  }, [entryId]);
+  }, [entryId, t]);
 
   useEffect(() => {
     void load();
   }, [load]);
-
-  const canUpload = useMemo(() => uploading == null, [uploading]);
-
-  async function pickAndUpload(type: AttachmentType) {
-    try {
-      setUploading(type);
-      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) throw new Error("Media library permission denied");
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        quality: 1,
-      });
-
-      if (result.canceled) return;
-      const asset = result.assets[0];
-      if (!asset?.uri) throw new Error("No file selected");
-
-      await uploadAttachment({
-        serviceEntryId: entryId,
-        vehicleId,
-        type,
-        fileUri: asset.uri,
-      });
-
-      await load();
-    } catch (e: any) {
-      Alert.alert("Error", e?.message ?? String(e));
-    } finally {
-      setUploading(null);
-    }
-  }
 
   async function openAttachment(att: Attachment) {
     try {
       const url = await createSignedUrl(att.storage_bucket, att.storage_path);
       await Linking.openURL(url);
     } catch (e: any) {
-      Alert.alert("Error", e?.message ?? String(e));
+      Alert.alert(t("common.error"), e?.message ?? String(e));
     }
+  }
+
+  function onDeleteEntry() {
+    Alert.alert(t("entryDetail.deleteTitle"), t("entryDetail.deleteBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteServiceEntry(entryId);
+            navigation.goBack();
+          } catch (e: any) {
+            Alert.alert(t("common.error"), e?.message ?? String(e));
+          }
+        },
+      },
+    ]);
   }
 
   return (
     <Screen padding={false}>
+      <AppHeader onBack={() => navigation.goBack()} />
       <View style={styles.top}>
-        <Text style={styles.title}>Attachments</Text>
-        <Text style={styles.sub}>
-          Keep supporting documents tidy and verifiable.
-        </Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.title}>{t("entryDetail.title")}</Text>
+          <Pressable
+            onPress={() =>
+              navigation.navigate("ServiceEntryForm", { vehicleId, entryId })
+            }
+            hitSlop={10}
+          >
+            <Text style={styles.editLink}>{t("common.edit")}</Text>
+          </Pressable>
+        </View>
+
+        {entry ? (
+          <View style={styles.detailsCard}>
+            <Text style={styles.detailsTitle}>{entry.title}</Text>
+            <View style={{ height: 12 }} />
+            <View style={styles.row}>
+              <Text style={styles.label}>
+                {t("entryDetail.labels.serviceDate")}
+              </Text>
+              <Text style={styles.value}>
+                {String(entry.service_date).slice(0, 10)}
+              </Text>
+            </View>
+            {entry.mileage != null ? (
+              <View style={styles.row}>
+                <Text style={styles.label}>
+                  {t("entryDetail.labels.mileage")}
+                </Text>
+                <Text style={styles.value}>
+                  {entry.mileage} {distanceUnit}
+                </Text>
+              </View>
+            ) : null}
+            {entry.cost != null ? (
+              <View style={styles.row}>
+                <Text style={styles.label}>{t("entryDetail.labels.cost")}</Text>
+                <Text style={styles.value}>
+                  {entry.cost} {currency}
+                </Text>
+              </View>
+            ) : null}
+            {entry.description ? (
+              <>
+                <View style={styles.row} />
+                <Text style={styles.label}>
+                  {t("entryDetail.labels.description")}
+                </Text>
+                <Text style={styles.bodyValue}>
+                  {String(entry.description)}
+                </Text>
+              </>
+            ) : null}
+          </View>
+        ) : null}
       </View>
 
-      <View style={styles.actions}>
-        <Button
-          onPress={() => void pickAndUpload("receipt")}
-          disabled={!canUpload}
-        >
-          {uploading === "receipt" ? "Uploading…" : "Add receipt"}
-        </Button>
-        <View style={{ height: 10 }} />
-        <Button
-          onPress={() => void pickAndUpload("invoice")}
-          variant="ghost"
-          disabled={!canUpload}
-        >
-          {uploading === "invoice" ? "Uploading…" : "Add invoice"}
-        </Button>
-        <View style={{ height: 10 }} />
-        <Button
-          onPress={() => void pickAndUpload("photo")}
-          variant="ghost"
-          disabled={!canUpload}
-        >
-          {uploading === "photo" ? "Uploading…" : "Add photo"}
-        </Button>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.h2}>{t("attachments.title")}</Text>
+        <Text style={styles.muted}>{t("attachments.subtitle")}</Text>
       </View>
 
       <FlatList
@@ -135,85 +160,119 @@ export function ServiceEntryDetailScreen({ route }: Props) {
         onRefresh={load}
         ListEmptyComponent={
           !loading ? (
-            <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>No attachments yet</Text>
-              <Text style={styles.emptyBody}>
-                Add a receipt, invoice, or photo to support this entry.
-              </Text>
-            </View>
+            <Text style={styles.muted}>
+              {t("entryDetail.attachmentsEmptyTitle")}
+            </Text>
           ) : null
         }
         renderItem={({ item }) => (
-          <Pressable
-            onPress={() => void openAttachment(item)}
-            style={styles.card}
-          >
-            <Text style={styles.cardTitle}>{labelForType(item.type)}</Text>
-            <Text style={styles.cardMeta}>
-              {item.storage_bucket}/{item.storage_path.split("/").slice(-1)[0]}
-            </Text>
-          </Pressable>
+          <View style={styles.card}>
+            <View style={styles.cardRow}>
+              <Pressable
+                style={{ flex: 1 }}
+                onPress={() => void openAttachment(item)}
+              >
+                <Text style={styles.cardTitle}>
+                  {t("attachments.attachmentLabel")}
+                </Text>
+                <Text style={styles.cardMeta}>
+                  {item.storage_bucket}/
+                  {item.storage_path.split("/").slice(-1)[0]}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
         )}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
       />
+
+      <View style={styles.actions}>
+        <Button onPress={onDeleteEntry} variant="destructive">
+          {t("common.delete")}
+        </Button>
+      </View>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  top: {
-    paddingTop: theme.spacing.xl,
-    paddingHorizontal: theme.spacing.md,
-    paddingBottom: theme.spacing.sm,
-    backgroundColor: theme.colors.bg,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: theme.colors.fg,
-  },
-  sub: {
-    marginTop: 6,
-    color: theme.colors.muted,
-    lineHeight: 20,
-  },
-  actions: {
-    paddingHorizontal: theme.spacing.md,
-    paddingTop: theme.spacing.sm,
-    paddingBottom: theme.spacing.md,
-  },
-  list: {
-    paddingHorizontal: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
-  },
-  empty: {
-    paddingTop: theme.spacing.lg,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: theme.colors.fg,
-  },
-  emptyBody: {
-    marginTop: 6,
-    color: theme.colors.muted,
-    lineHeight: 20,
-  },
-  card: {
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius.md,
-    padding: theme.spacing.md,
-    gap: 6,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: theme.colors.fg,
-  },
-  cardMeta: {
-    fontSize: theme.typography.small,
-    color: theme.colors.muted,
-  },
-});
+const makeStyles = (theme: any) =>
+  StyleSheet.create({
+    h2: { fontSize: 18, fontWeight: "800", color: theme.colors.fg },
+    top: {
+      paddingTop: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md,
+      paddingBottom: theme.spacing.sm,
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    editLink: { color: theme.colors.muted, fontWeight: "800" },
+    title: {
+      fontSize: 22,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
+    detailsCard: {
+      marginTop: 12,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.card,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
+      gap: 6,
+    },
+    detailsTitle: { fontSize: 18, fontWeight: "800", color: theme.colors.fg },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 12,
+    },
+    label: {
+      fontSize: theme.typography.small,
+      fontWeight: "800",
+      color: theme.colors.muted,
+    },
+    value: {
+      fontSize: theme.typography.small,
+      fontWeight: "400",
+      color: theme.colors.fg,
+    },
+    bodyValue: { marginTop: 6, color: theme.colors.fg, lineHeight: 20 },
+    sectionHeader: {
+      paddingHorizontal: theme.spacing.md,
+      paddingTop: theme.spacing.md,
+      paddingBottom: theme.spacing.sm,
+    },
+    sectionTitle: { fontSize: 16, fontWeight: "800", color: theme.colors.fg },
+    actions: {
+      paddingHorizontal: theme.spacing.md,
+      paddingTop: theme.spacing.sm,
+      paddingBottom: theme.spacing.md,
+    },
+    list: {
+      paddingHorizontal: theme.spacing.md,
+      paddingBottom: theme.spacing.lg,
+    },
+    muted: { marginTop: 6, color: theme.colors.muted, lineHeight: 20 },
+    card: {
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.card,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
+      gap: 6,
+    },
+    cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+    cardTitle: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
+    cardMeta: {
+      fontSize: theme.typography.small,
+      color: theme.colors.muted,
+    },
+  });

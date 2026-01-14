@@ -62,6 +62,82 @@ create table if not exists public.public_pages (
 
 create index if not exists public_pages_vehicle_id_idx on public.public_pages(vehicle_id);
 
+-- ==============================
+-- Phase 2 tables (prompt_2)
+-- ==============================
+
+-- Fueling entries (lightweight)
+create table if not exists public.fueling_entries (
+  id uuid primary key default gen_random_uuid(),
+  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
+  date date not null,
+  distance numeric not null,
+  fuel_amount numeric not null,
+  fuel_cost numeric not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists fueling_entries_vehicle_id_idx on public.fueling_entries(vehicle_id);
+create index if not exists fueling_entries_date_idx on public.fueling_entries(date desc);
+
+-- Reminders (time-based or mileage-based)
+create table if not exists public.reminders (
+  id uuid primary key default gen_random_uuid(),
+  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
+  type text not null check (type in ('time', 'mileage')),
+  due_date date,
+  due_mileage integer,
+  note text,
+  channel_email boolean not null default true,
+  channel_push boolean not null default true,
+  enabled boolean not null default true,
+  delivered_at timestamptz,
+  created_at timestamptz not null default now(),
+  constraint reminders_due_check check (
+    (type = 'time' and due_date is not null and due_mileage is null)
+    or
+    (type = 'mileage' and due_mileage is not null and due_date is null)
+  )
+);
+
+create index if not exists reminders_vehicle_id_idx on public.reminders(vehicle_id);
+
+-- User settings (persist per user)
+create table if not exists public.user_settings (
+  user_id uuid primary key default auth.uid(),
+  currency text not null default 'PLN' check (currency in ('PLN', 'EUR')),
+  distance_unit text not null default 'km' check (distance_unit in ('km', 'miles')),
+  fuel_unit text not null default 'liters' check (fuel_unit in ('liters', 'gallons')),
+  theme text not null default 'system' check (theme in ('system', 'light', 'dark')),
+  language text not null default 'en' check (language in ('en', 'pl')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Vehicle photos (separate from service attachments)
+create table if not exists public.vehicle_photos (
+  id uuid primary key default gen_random_uuid(),
+  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
+  storage_bucket text not null check (storage_bucket in ('images')),
+  storage_path text not null,
+  created_at timestamptz not null default now(),
+  -- hard delete only (no deleted_at)
+);
+
+create index if not exists vehicle_photos_vehicle_id_idx on public.vehicle_photos(vehicle_id);
+
+-- Vehicle documents (not tied to service entries)
+create table if not exists public.vehicle_documents (
+  id uuid primary key default gen_random_uuid(),
+  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
+  storage_bucket text not null check (storage_bucket in ('images', 'documents')),
+  storage_path text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists vehicle_documents_vehicle_id_idx on public.vehicle_documents(vehicle_id);
+create index if not exists vehicle_documents_created_at_idx on public.vehicle_documents(created_at desc);
+
 -- ================
 -- Row Level Security (RLS)
 -- ================
@@ -70,6 +146,11 @@ alter table public.vehicles enable row level security;
 alter table public.service_entries enable row level security;
 alter table public.attachments enable row level security;
 alter table public.public_pages enable row level security;
+alter table public.fueling_entries enable row level security;
+alter table public.reminders enable row level security;
+alter table public.user_settings enable row level security;
+alter table public.vehicle_photos enable row level security;
+alter table public.vehicle_documents enable row level security;
 
 -- Vehicles: owner can CRUD
 drop policy if exists vehicles_select_own on public.vehicles;
@@ -179,6 +260,8 @@ with check (
     join public.vehicles v on v.id = se.vehicle_id
     where se.id = attachments.service_entry_id
       and v.owner_id = auth.uid()
+      and v.deleted_at is null
+      and se.deleted_at is null
   )
 );
 
@@ -193,6 +276,8 @@ using (
     join public.vehicles v on v.id = se.vehicle_id
     where se.id = attachments.service_entry_id
       and v.owner_id = auth.uid()
+      and v.deleted_at is null
+      and se.deleted_at is null
   )
 );
 
@@ -217,6 +302,212 @@ with check (
   exists (
     select 1 from public.vehicles v
     where v.id = public_pages.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- Fueling entries: allowed if vehicle belongs to user (and not deleted)
+drop policy if exists fueling_entries_select_own_vehicle on public.fueling_entries;
+create policy fueling_entries_select_own_vehicle
+on public.fueling_entries for select
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = fueling_entries.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists fueling_entries_insert_own_vehicle on public.fueling_entries;
+create policy fueling_entries_insert_own_vehicle
+on public.fueling_entries for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = fueling_entries.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists fueling_entries_update_own_vehicle on public.fueling_entries;
+create policy fueling_entries_update_own_vehicle
+on public.fueling_entries for update
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = fueling_entries.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = fueling_entries.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists fueling_entries_delete_own_vehicle on public.fueling_entries;
+create policy fueling_entries_delete_own_vehicle
+on public.fueling_entries for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = fueling_entries.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- Reminders: allowed if vehicle belongs to user (and not deleted)
+drop policy if exists reminders_select_own_vehicle on public.reminders;
+create policy reminders_select_own_vehicle
+on public.reminders for select
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = reminders.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists reminders_insert_own_vehicle on public.reminders;
+create policy reminders_insert_own_vehicle
+on public.reminders for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = reminders.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists reminders_update_own_vehicle on public.reminders;
+create policy reminders_update_own_vehicle
+on public.reminders for update
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = reminders.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = reminders.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists reminders_delete_own_vehicle on public.reminders;
+create policy reminders_delete_own_vehicle
+on public.reminders for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = reminders.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- User settings: owner can read/upsert own row
+drop policy if exists user_settings_select_own on public.user_settings;
+create policy user_settings_select_own
+on public.user_settings for select
+to authenticated
+using (user_id = auth.uid());
+
+drop policy if exists user_settings_insert_own on public.user_settings;
+create policy user_settings_insert_own
+on public.user_settings for insert
+to authenticated
+with check (user_id = auth.uid());
+
+drop policy if exists user_settings_update_own on public.user_settings;
+create policy user_settings_update_own
+on public.user_settings for update
+to authenticated
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+-- Vehicle photos: allowed if vehicle belongs to user (and not deleted)
+drop policy if exists vehicle_photos_select_own_vehicle on public.vehicle_photos;
+create policy vehicle_photos_select_own_vehicle
+on public.vehicle_photos for select
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_photos.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- Vehicle documents: allowed if vehicle belongs to user
+drop policy if exists vehicle_documents_select_own_vehicle on public.vehicle_documents;
+create policy vehicle_documents_select_own_vehicle
+on public.vehicle_documents for select
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_documents.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists vehicle_documents_insert_own_vehicle on public.vehicle_documents;
+create policy vehicle_documents_insert_own_vehicle
+on public.vehicle_documents for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_documents.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists vehicle_documents_delete_own_vehicle on public.vehicle_documents;
+create policy vehicle_documents_delete_own_vehicle
+on public.vehicle_documents for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_documents.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists vehicle_photos_insert_own_vehicle on public.vehicle_photos;
+create policy vehicle_photos_insert_own_vehicle
+on public.vehicle_photos for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_photos.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists vehicle_photos_delete_own_vehicle on public.vehicle_photos;
+create policy vehicle_photos_delete_own_vehicle
+on public.vehicle_photos for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_photos.vehicle_id
       and v.owner_id = auth.uid()
   )
 );

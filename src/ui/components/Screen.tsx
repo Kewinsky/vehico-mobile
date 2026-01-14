@@ -2,7 +2,7 @@ import type { PropsWithChildren } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { theme } from '../theme';
+import { useTheme } from '../ThemeProvider';
 
 type ScreenProps = PropsWithChildren<{
   padding?: boolean;
@@ -10,6 +10,7 @@ type ScreenProps = PropsWithChildren<{
 
 export function Screen({ children, padding = true }: ScreenProps) {
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
 
   return (
     <View
@@ -17,6 +18,7 @@ export function Screen({ children, padding = true }: ScreenProps) {
         styles.root,
         { paddingTop: insets.top, paddingBottom: insets.bottom },
         padding && styles.padded,
+        { backgroundColor: theme.colors.bg },
       ]}
     >
       {children}
@@ -27,10 +29,9 @@ export function Screen({ children, padding = true }: ScreenProps) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: theme.colors.bg,
   },
   padded: {
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: 16,
   },
 });
 

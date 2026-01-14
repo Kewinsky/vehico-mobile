@@ -4,12 +4,14 @@ import { useTranslation } from 'react-i18next';
 
 import { supabase } from '../services/supabase/client';
 import { Button } from '../ui/components/Button';
-import { Screen } from '../ui/components/Screen';
+import { AppHeader } from '../ui/components/AppHeader';
+import { FormScreen } from '../ui/components/FormScreen';
 import { TextField } from '../ui/components/TextField';
-import { theme } from '../ui/theme';
+import { useTheme } from '../ui/ThemeProvider';
 
 export function AuthScreen() {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,15 +40,15 @@ export function AuthScreen() {
   }
 
   return (
-    <Screen>
+    <FormScreen header={<AppHeader />}>
       <View style={styles.header}>
-        <Text style={styles.appName}>{t('common.appName')}</Text>
-        <Text style={styles.title}>{t('auth.title')}</Text>
+        <Text style={[styles.title, { color: theme.colors.fg }]}>{t('auth.title')}</Text>
       </View>
 
       <View style={styles.form}>
-        <Text style={styles.label}>{t('auth.emailLabel')}</Text>
         <TextField
+          noMarginTop
+          label={t('auth.emailLabel')}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -55,8 +57,8 @@ export function AuthScreen() {
           placeholder={t('auth.emailPlaceholder')}
           editable={!isSubmitting}
         />
-        <Text style={styles.label}>{t('auth.passwordLabel')}</Text>
         <TextField
+          label={t('auth.passwordLabel')}
           value={password}
           onChangeText={setPassword}
           autoCapitalize="none"
@@ -71,38 +73,25 @@ export function AuthScreen() {
           </Button>
         </View>
       </View>
-    </Screen>
+    </FormScreen>
   );
 }
 
 const styles = StyleSheet.create({
   header: {
-    paddingTop: theme.spacing.xl,
-    paddingBottom: theme.spacing.lg,
+    paddingTop: 24,
+    paddingBottom: 18,
     gap: 8,
-  },
-  appName: {
-    fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    color: theme.colors.muted,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: theme.colors.fg,
   },
   form: {
     gap: 10,
   },
-  label: {
-    fontSize: theme.typography.small,
-    fontWeight: '600',
-    color: theme.colors.muted,
-  },
   actions: {
-    paddingTop: theme.spacing.sm,
+    paddingTop: 12,
   },
 });
 

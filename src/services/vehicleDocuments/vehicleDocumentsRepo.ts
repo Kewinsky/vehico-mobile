@@ -1,4 +1,4 @@
-import type { Attachment } from '../../types/domain';
+import type { VehicleDocument } from '../../types/domain';
 import { supabase } from '../supabase/client';
 
 function inferContentType(params: { uri: string; mimeType?: string | null; fileName?: string | null }): string {
@@ -26,31 +26,26 @@ function randomId(): string {
   return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
 }
 
-export async function listAttachments(serviceEntryId: string): Promise<Attachment[]> {
+export async function listVehicleDocuments(vehicleId: string): Promise<VehicleDocument[]> {
   const { data, error } = await supabase
-    .from('attachments')
+    .from('vehicle_documents')
     .select('*')
-    .eq('service_entry_id', serviceEntryId)
+    .eq('vehicle_id', vehicleId)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return (data ?? []) as Attachment[];
+  return (data ?? []) as VehicleDocument[];
 }
 
-export async function uploadAttachment(params: {
-  serviceEntryId: string;
+export async function uploadVehicleDocument(params: {
   vehicleId: string;
   fileUri: string;
   mimeType?: string | null;
   fileName?: string | null;
-}): Promise<Attachment> {
-  const contentType = inferContentType({
-    uri: params.fileUri,
-    mimeType: params.mimeType,
-    fileName: params.fileName,
-  });
+}): Promise<VehicleDocument> {
+  const contentType = inferContentType({ uri: params.fileUri, mimeType: params.mimeType, fileName: params.fileName });
   const bucket = contentType.startsWith('image/') ? 'images' : 'documents';
   const ext = inferExtension({ uri: params.fileUri, contentType, fileName: params.fileName });
-  const storagePath = `${params.vehicleId}/${params.serviceEntryId}/${Date.now()}-${randomId()}.${ext}`;
+  const storagePath = `${params.vehicleId}/vehicle_documents/${Date.now()}-${randomId()}.${ext}`;
 
   const res = await fetch(params.fileUri);
   const blob = await res.blob();
@@ -61,54 +56,23 @@ export async function uploadAttachment(params: {
   if (uploadError) throw uploadError;
 
   const { data, error } = await supabase
-    .from('attachments')
+    .from('vehicle_documents')
     .insert({
-      service_entry_id: params.serviceEntryId,
-      // Keep a constant type to satisfy the DB CHECK constraint.
-      // UI treats attachments as generic (no receipt/invoice/photo).
-      type: 'photo',
+      vehicle_id: params.vehicleId,
       storage_bucket: bucket,
       storage_path: storagePath,
     })
     .select('*')
     .single();
   if (error) throw error;
-
-  return data as Attachment;
+  return data as VehicleDocument;
 }
 
-export async function createSignedUrl(bucket: string, path: string, expiresInSec = 60 * 10) {
-  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresInSec);
-  if (error) throw error;
-  return data.signedUrl;
-}
-
-
-export async function deleteAttachment(att: Attachment): Promise<void> {
-  const { error: storageError } = await supabase.storage
-    .from(att.storage_bucket)
-    .remove([att.storage_path]);
+export async function deleteVehicleDocument(doc: VehicleDocument): Promise<void> {
+  const { error: storageError } = await supabase.storage.from(doc.storage_bucket).remove([doc.storage_path]);
   if (storageError) throw storageError;
 
-  const { error } = await supabase.from('attachments').delete().eq('id', att.id);
+  const { error } = await supabase.from('vehicle_documents').delete().eq('id', doc.id);
   if (error) throw error;
 }
 
-
-export async function listVehicleAttachments(vehicleId: string): Promise<Attachment[]> {
-  // Join via service_entries to filter by vehicle_id
-  const { data, error } = await supabase
-    .from('attachments')
-    .select('*, service_entries!inner(vehicle_id,title)')
-    .eq('service_entries.vehicle_id', vehicleId)
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return (data ?? []).map((row: any) => {
-    // keep service entry title for Documents UI (non-domain field)
-    const { service_entries, ...rest } = row;
-    return {
-      ...rest,
-      service_entry_title: service_entries?.title ?? null,
-    };
-  }) as any;
-}

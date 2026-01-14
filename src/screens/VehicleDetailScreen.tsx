@@ -1,18 +1,26 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTranslation } from 'react-i18next';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
-import type { AppStackParamList } from '../app/navigation/RootNavigator';
-import type { ServiceEntry } from '../types/domain';
-import { listServiceEntries } from '../services/serviceEntries/serviceEntriesRepo';
-import { getOrCreatePublicPage } from '../services/publicPages/publicPagesRepo';
-import { Button } from '../ui/components/Button';
-import { Screen } from '../ui/components/Screen';
-import { TimelineItem } from '../ui/components/TimelineItem';
-import { theme } from '../ui/theme';
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { ServiceEntry } from "../types/domain";
+import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
+import { Button } from "../ui/components/Button";
+import { AppHeader } from "../ui/components/AppHeader";
+import { Screen } from "../ui/components/Screen";
+import { TimelineItem } from "../ui/components/TimelineItem";
+import { useTheme } from "../ui/ThemeProvider";
+import { useUserSettings } from "../app/providers/UserSettingsProvider";
 
-type Props = NativeStackScreenProps<AppStackParamList, 'VehicleDetail'>;
+type Props = NativeStackScreenProps<AppStackParamList, "VehicleDetail">;
 
 function formatDate(iso: string) {
   // Keep simple (trustworthy, document-like): YYYY-MM-DD
@@ -21,10 +29,14 @@ function formatDate(iso: string) {
 
 export function VehicleDetailScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const { settings } = useUserSettings();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sharing, setSharing] = useState(false);
+  const distanceUnit = settings?.distance_unit ?? "km";
+  const currency = settings?.currency ?? "PLN";
 
   const load = useCallback(async () => {
     try {
@@ -32,14 +44,16 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
       const data = await listServiceEntries(vehicleId);
       setItems(data);
     } catch (e: any) {
-      Alert.alert(t('common.error'), e?.message ?? String(e));
+      Alert.alert(t("common.error"), e?.message ?? String(e));
     } finally {
       setLoading(false);
     }
   }, [vehicleId, t]);
 
   useEffect(() => {
-    const unsub = navigation.addListener('focus', () => void load());
+    // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
+    void load();
+    const unsub = navigation.addListener("focus", () => void load());
     return unsub;
   }, [navigation, load]);
 
@@ -47,32 +61,17 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
     return (
       <View style={{ paddingTop: 14 }}>
         <Button
-          onPress={async () => {
-            try {
-              setSharing(true);
-              const page = await getOrCreatePublicPage(vehicleId);
-              Alert.alert('Public link', `Public ID: ${page.public_id}\n\n${t('public.note')}`);
-            } catch (e: any) {
-              Alert.alert(t('common.error'), e?.message ?? String(e));
-            } finally {
-              setSharing(false);
-            }
-          }}
-          variant="ghost"
-          disabled={sharing}
+          onPress={() => navigation.navigate("ServiceEntryForm", { vehicleId })}
         >
-          {sharing ? 'Working…' : t('public.generate')}
-        </Button>
-        <View style={{ height: 10 }} />
-        <Button onPress={() => navigation.navigate('ServiceEntryForm', { vehicleId })}>
-          {t('timeline.addEntry')}
+          {t("timeline.addEntry")}
         </Button>
       </View>
     );
-  }, [navigation, t, vehicleId, sharing]);
+  }, [navigation, t, vehicleId]);
 
   return (
     <Screen padding={false}>
+      <AppHeader onBack={() => navigation.goBack()} />
       <FlatList
         data={items}
         keyExtractor={(e) => e.id}
@@ -81,36 +80,54 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         onRefresh={load}
         ListHeaderComponent={
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>{route.params.title}</Text>
+            <View style={styles.headerRow}>
+              <Text style={styles.title}>
+                {t("dashboard.tiles.serviceTitle")}
+              </Text>
+            </View>
           </View>
         }
         ListEmptyComponent={
           !loading ? (
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>{t('timeline.emptyTitle')}</Text>
-              <Text style={styles.emptyBody}>{t('timeline.emptyBody')}</Text>
+              <Text style={[styles.emptyTitle, { color: theme.colors.fg }]}>
+                {t("timeline.emptyTitle")}
+              </Text>
+              <Text style={[styles.emptyBody, { color: theme.colors.muted }]}>
+                {t("timeline.emptyBody")}
+              </Text>
               <View style={{ height: 16 }} />
-              <Button onPress={() => navigation.navigate('ServiceEntryForm', { vehicleId })}>
-                {t('timeline.addEntry')}
+              <Button
+                onPress={() =>
+                  navigation.navigate("ServiceEntryForm", { vehicleId })
+                }
+              >
+                {t("timeline.addEntry")}
               </Button>
             </View>
           ) : null
         }
         renderItem={({ item }) => (
           <Pressable
+            style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
             onPress={() =>
-              navigation.navigate('ServiceEntryDetail', { entryId: item.id, vehicleId })
+              navigation.navigate("ServiceEntryDetail", {
+                entryId: item.id,
+                vehicleId,
+              })
             }
           >
             <TimelineItem
               dateLabel={formatDate(item.service_date)}
               title={item.title}
               subtitle={[
-                item.mileage ? `${item.mileage.toLocaleString()} km` : null,
-                item.cost != null ? `${item.cost}` : null,
+                item.mileage
+                  ? `${item.mileage.toLocaleString()} ${distanceUnit}`
+                  : null,
+                item.cost != null ? `${item.cost} ${currency}` : null,
               ]
                 .filter(Boolean)
-                .join(' · ')}
+                .join(" · ")}
             />
           </Pressable>
         )}
@@ -121,32 +138,35 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  list: {
-    paddingTop: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
-  },
-  header: {
-    paddingBottom: theme.spacing.sm,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: theme.colors.muted,
-  },
-  empty: {
-    paddingTop: theme.spacing.xl,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: theme.colors.fg,
-  },
-  emptyBody: {
-    marginTop: 8,
-    color: theme.colors.muted,
-    lineHeight: 22,
-  },
-});
-
+const makeStyles = (theme: any) =>
+  StyleSheet.create({
+    list: {
+      paddingTop: 16,
+      paddingHorizontal: 16,
+      paddingBottom: 32,
+    },
+    header: {
+      paddingBottom: 12,
+      gap: 12,
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    title: { fontSize: 22, fontWeight: "800", color: theme.colors.fg },
+    editLink: { color: theme.colors.muted, fontWeight: "800" },
+    empty: {
+      paddingTop: 32,
+    },
+    emptyTitle: {
+      fontSize: 20,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
+    emptyBody: {
+      marginTop: 8,
+      lineHeight: 22,
+      color: theme.colors.muted,
+    },
+  });

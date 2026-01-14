@@ -1,5 +1,5 @@
-import 'react-native-gesture-handler';
+import "react-native-gesture-handler";
 
-import { Root } from './src/app/Root';
+import { Root } from "./src/app/Root";
 
 export default Root;

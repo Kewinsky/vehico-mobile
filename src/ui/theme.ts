@@ -1,4 +1,34 @@
-export const theme = {
+export type ThemeMode = 'light' | 'dark';
+
+export type AppTheme = {
+  colors: {
+    bg: string;
+    fg: string;
+    muted: string;
+    border: string;
+    card: string;
+    accent: string;
+    danger: string;
+  };
+  spacing: {
+    xs: number;
+    sm: number;
+    md: number;
+    lg: number;
+    xl: number;
+  };
+  radius: {
+    sm: number;
+    md: number;
+  };
+  typography: {
+    title: number;
+    body: number;
+    small: number;
+  };
+};
+
+export const lightTheme: AppTheme = {
   colors: {
     bg: '#FFFFFF',
     fg: '#0B0B0B',
@@ -24,5 +54,25 @@ export const theme = {
     body: 16,
     small: 13,
   },
-} as const;
+};
+
+export const darkTheme: AppTheme = {
+  colors: {
+    bg: '#0B0B0B',
+    fg: '#FFFFFF',
+    muted: '#B0B0B0',
+    border: '#222222',
+    card: '#111111',
+    accent: '#FFB803',
+    danger: '#FF4D4D',
+  },
+  spacing: lightTheme.spacing,
+  radius: lightTheme.radius,
+  typography: lightTheme.typography,
+};
+
+export function getTheme(mode: ThemeMode): AppTheme {
+  return mode === 'dark' ? darkTheme : lightTheme;
+}
+
 

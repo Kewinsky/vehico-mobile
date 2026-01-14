@@ -1,62 +1,64 @@
-import type { PropsWithChildren } from 'react';
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import type { Session, User } from '@supabase/supabase-js';
+import type { PropsWithChildren } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { Session, User } from "@supabase/supabase-js";
 
-import { supabase } from '../../services/supabase/client';
+import { supabase } from "../../services/supabase/client";
 
 type AuthContextValue = {
-  isLoading: boolean;
   session: Session | null;
   user: User | null;
+  isLoading: boolean;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: PropsWithChildren) {
-  const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let isMounted = true;
+    let alive = true;
 
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (!isMounted) return;
-      if (error) {
-        setSession(null);
-      } else {
-        setSession(data.session ?? null);
+    (async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        if (alive) setSession(data.session);
+      } finally {
+        if (alive) setIsLoading(false);
       }
-      setIsLoading(false);
-    });
+    })();
 
-    const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession ?? null);
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
     });
 
     return () => {
-      isMounted = false;
-      data.subscription.unsubscribe();
+      alive = false;
+      sub.subscription.unsubscribe();
     };
   }, []);
 
-  const value = useMemo<AuthContextValue>(() => {
-    return {
-      isLoading,
+  const value = useMemo<AuthContextValue>(
+    () => ({
       session,
       user: session?.user ?? null,
+      isLoading,
       signOut: async () => {
-        await supabase.auth.signOut();
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
       },
-    };
-  }, [isLoading, session]);
+    }),
+    [session, isLoading],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
 

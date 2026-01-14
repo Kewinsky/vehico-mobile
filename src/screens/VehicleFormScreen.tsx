@@ -7,14 +7,16 @@ import type { AppStackParamList } from '../app/navigation/RootNavigator';
 import type { VehicleType } from '../types/domain';
 import { createVehicle } from '../services/vehicles/vehiclesRepo';
 import { Button } from '../ui/components/Button';
-import { Screen } from '../ui/components/Screen';
+import { AppHeader } from '../ui/components/AppHeader';
+import { FormScreen } from '../ui/components/FormScreen';
 import { TextField } from '../ui/components/TextField';
-import { theme } from '../ui/theme';
+import { useTheme } from '../ui/ThemeProvider';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'VehicleForm'>;
 
 export function VehicleFormScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const [type, setType] = useState<VehicleType>('car');
   const [title, setTitle] = useState('');
   const [vin, setVin] = useState('');
@@ -51,26 +53,40 @@ export function VehicleFormScreen({ navigation }: Props) {
   }
 
   return (
-    <Screen>
+    <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
+      <View style={{ height: theme.spacing.md }} />
       <View style={styles.group}>
-        <Text style={styles.label}>{t('vehicleForm.type')}</Text>
+        <Text style={[styles.label, { color: theme.colors.muted }]}>{t('vehicleForm.type')}</Text>
         <View style={styles.typeRow}>
           <Pressable
             onPress={() => setType('car')}
-            style={[styles.typeChip, type === 'car' && styles.typeChipActive]}
+            style={[
+              styles.typeChip,
+              { borderColor: theme.colors.border, backgroundColor: theme.colors.card },
+              type === 'car' && { borderColor: theme.colors.fg },
+            ]}
           >
-            <Text style={[styles.typeChipText, type === 'car' && styles.typeChipTextActive]}>
+            <Text
+              style={[
+                styles.typeChipText,
+                { color: type === 'car' ? theme.colors.fg : theme.colors.muted },
+              ]}
+            >
               {t('vehicleForm.car')}
             </Text>
           </Pressable>
           <Pressable
             onPress={() => setType('motorcycle')}
-            style={[styles.typeChip, type === 'motorcycle' && styles.typeChipActive]}
+            style={[
+              styles.typeChip,
+              { borderColor: theme.colors.border, backgroundColor: theme.colors.card },
+              type === 'motorcycle' && { borderColor: theme.colors.fg },
+            ]}
           >
             <Text
               style={[
                 styles.typeChipText,
-                type === 'motorcycle' && styles.typeChipTextActive,
+                { color: type === 'motorcycle' ? theme.colors.fg : theme.colors.muted },
               ]}
             >
               {t('vehicleForm.motorcycle')}
@@ -79,30 +95,21 @@ export function VehicleFormScreen({ navigation }: Props) {
         </View>
       </View>
 
-      <View style={styles.group}>
-        <Text style={styles.label}>{t('vehicleForm.titleLabel')}</Text>
-        <TextField value={title} onChangeText={setTitle} placeholder={t('vehicleForm.titlePlaceholder')} />
-      </View>
+      <TextField
+        noMarginTop
+        label={t('vehicleForm.titleLabel')}
+        value={title}
+        onChangeText={setTitle}
+        placeholder={type === 'car' ? 'BMW 530d 2019' : 'Yamaha MT-07 2020'}
+      />
 
-      <View style={styles.group}>
-        <Text style={styles.label}>{t('vehicleForm.vinLabel')}</Text>
-        <TextField value={vin} onChangeText={setVin} autoCapitalize="characters" />
-      </View>
+      <TextField label={t('vehicleForm.vinLabel')} value={vin} onChangeText={setVin} autoCapitalize="characters" />
 
-      <View style={styles.group}>
-        <Text style={styles.label}>{t('vehicleForm.makeLabel')}</Text>
-        <TextField value={make} onChangeText={setMake} />
-      </View>
+      <TextField label={t('vehicleForm.makeLabel')} value={make} onChangeText={setMake} />
 
-      <View style={styles.group}>
-        <Text style={styles.label}>{t('vehicleForm.modelLabel')}</Text>
-        <TextField value={model} onChangeText={setModel} />
-      </View>
+      <TextField label={t('vehicleForm.modelLabel')} value={model} onChangeText={setModel} />
 
-      <View style={styles.group}>
-        <Text style={styles.label}>{t('vehicleForm.yearLabel')}</Text>
-        <TextField value={year} onChangeText={setYear} keyboardType="number-pad" maxLength={4} />
-      </View>
+      <TextField label={t('vehicleForm.yearLabel')} value={year} onChangeText={setYear} keyboardType="number-pad" maxLength={4} />
 
       <View style={{ height: 16 }} />
       <Button onPress={onSave} disabled={!canSave || saving}>
@@ -112,7 +119,7 @@ export function VehicleFormScreen({ navigation }: Props) {
       <Button onPress={() => navigation.goBack()} variant="ghost" disabled={saving}>
         {t('common.cancel')}
       </Button>
-    </Screen>
+    </FormScreen>
   );
 }
 
@@ -122,9 +129,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   label: {
-    fontSize: theme.typography.small,
+    fontSize: 13,
     fontWeight: '700',
-    color: theme.colors.muted,
   },
   typeRow: {
     flexDirection: 'row',
@@ -134,21 +140,12 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 44,
     borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.card,
-  },
-  typeChipActive: {
-    borderColor: theme.colors.fg,
   },
   typeChipText: {
-    color: theme.colors.muted,
     fontWeight: '700',
-  },
-  typeChipTextActive: {
-    color: theme.colors.fg,
   },
 });
 
