@@ -1,9 +1,6 @@
 import type { VehiclePhoto } from '../../types/domain';
 import { supabase } from '../supabase/client';
-
-function randomId(): string {
-  return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
-}
+import { fetchBlob, randomId } from '../storage/uploadUtils';
 
 export async function listVehiclePhotos(vehicleId: string): Promise<VehiclePhoto[]> {
   const { data, error } = await supabase
@@ -19,8 +16,7 @@ export async function uploadVehiclePhoto(params: { vehicleId: string; fileUri: s
   const bucket = 'images';
   const storagePath = `${params.vehicleId}/vehicle_photos/${Date.now()}-${randomId()}.jpg`;
 
-  const res = await fetch(params.fileUri);
-  const blob = await res.blob();
+  const blob = await fetchBlob(params.fileUri);
 
   const { error: uploadError } = await supabase.storage
     .from(bucket)

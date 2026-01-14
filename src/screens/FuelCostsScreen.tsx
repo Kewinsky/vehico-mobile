@@ -32,8 +32,8 @@ export function FuelCostsScreen({ route, navigation }: Props) {
   const [loading, setLoading] = useState(true);
 
   const currency = settings?.currency ?? "PLN";
-  const distanceUnit = settings?.distance_unit ?? "km";
-  const fuelUnit = settings?.fuel_unit ?? "liters";
+  const distanceUnit = settings?.distanceUnit ?? "km";
+  const fuelUnit = settings?.fuelUnit ?? "liters";
 
   const load = useCallback(async () => {
     try {

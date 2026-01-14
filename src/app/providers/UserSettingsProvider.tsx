@@ -14,16 +14,16 @@ import { useAuth } from "./AuthProvider";
 
 export type UserSettings = {
   currency: "PLN" | "EUR";
-  distance_unit: "km" | "miles";
-  fuel_unit: "liters" | "gallons";
+  distanceUnit: "km" | "miles";
+  fuelUnit: "liters" | "gallons";
   theme: "system" | "light" | "dark";
   language: SupportedLanguage;
 };
 
 const DEFAULT_SETTINGS: UserSettings = {
   currency: "PLN",
-  distance_unit: "km",
-  fuel_unit: "liters",
+  distanceUnit: "km",
+  fuelUnit: "liters",
   theme: "system",
   language: "en",
 };
@@ -57,8 +57,23 @@ export function UserSettingsProvider({ children }: PropsWithChildren) {
     (async () => {
       try {
         const raw = await AsyncStorage.getItem(key);
-        const parsed = raw ? (JSON.parse(raw) as Partial<UserSettings>) : null;
-        const merged: UserSettings = { ...DEFAULT_SETTINGS, ...(parsed ?? {}) };
+        const parsed = raw ? (JSON.parse(raw) as Record<string, unknown>) : null;
+
+        // Migration note:
+        // Older builds stored snake_case keys (distance_unit/fuel_unit). Keep reading them
+        // to avoid silently resetting user preferences.
+        const merged: UserSettings = {
+          ...DEFAULT_SETTINGS,
+          ...(parsed ?? {}),
+          distanceUnit:
+            (parsed?.distanceUnit as UserSettings["distanceUnit"] | undefined) ??
+            (parsed?.distance_unit as UserSettings["distanceUnit"] | undefined) ??
+            DEFAULT_SETTINGS.distanceUnit,
+          fuelUnit:
+            (parsed?.fuelUnit as UserSettings["fuelUnit"] | undefined) ??
+            (parsed?.fuel_unit as UserSettings["fuelUnit"] | undefined) ??
+            DEFAULT_SETTINGS.fuelUnit,
+        };
 
         if (alive) setSettingsState(merged);
         // Apply language immediately when loading settings

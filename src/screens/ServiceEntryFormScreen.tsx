@@ -41,7 +41,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { settings } = useUserSettings();
   const { vehicleId, entryId } = route.params as any;
-  const distanceUnit = settings?.distance_unit ?? "km";
+  const distanceUnit = settings?.distanceUnit ?? "km";
 
   const [serviceDate, setServiceDate] = useState(() =>
     new Date().toISOString().slice(0, 10)

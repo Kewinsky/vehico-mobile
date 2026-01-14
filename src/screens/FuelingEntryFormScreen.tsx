@@ -24,8 +24,8 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const { settings } = useUserSettings();
   const styles = makeStyles(theme);
   const { vehicleId, entryId } = route.params;
-  const distanceUnit = settings?.distance_unit ?? "km";
-  const fuelUnit = settings?.fuel_unit ?? "liters";
+  const distanceUnit = settings?.distanceUnit ?? "km";
+  const fuelUnit = settings?.fuelUnit ?? "liters";
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [distance, setDistance] = useState("");

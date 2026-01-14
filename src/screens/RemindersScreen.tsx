@@ -30,7 +30,7 @@ export function RemindersScreen({ route, navigation }: Props) {
   const { settings } = useUserSettings();
   const [items, setItems] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
-  const distanceUnit = settings?.distance_unit ?? "km";
+  const distanceUnit = settings?.distanceUnit ?? "km";
 
   const load = useCallback(async () => {
     try {

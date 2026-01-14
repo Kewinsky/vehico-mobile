@@ -26,6 +26,7 @@ import {
   createSignedUrl,
   deleteAttachment,
   listVehicleAttachments,
+  type VehicleAttachment,
 } from "../services/attachments/attachmentsRepo";
 import {
   deleteVehiclePhoto,
@@ -46,10 +47,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
   const { theme } = useTheme();
   const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
   const [vehicleDocs, setVehicleDocs] = useState<VehicleDocument[]>([]);
-  type VehicleAttachmentRow = Attachment & {
-    service_entry_title?: string | null;
-  };
-  const [attachments, setAttachments] = useState<VehicleAttachmentRow[]>([]);
+  const [attachments, setAttachments] = useState<VehicleAttachment[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
@@ -63,7 +61,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       ]);
       setPhotos(p);
       setVehicleDocs(d);
-      setAttachments(a as any);
+      setAttachments(a);
     } catch (e: any) {
       Alert.alert(t("common.error"), e?.message ?? String(e));
     } finally {
@@ -496,8 +494,8 @@ export function DocumentsScreen({ route, navigation }: Props) {
                   }
                 >
                   <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
-                    {item.service_entry_title
-                      ? item.service_entry_title
+                    {item.serviceEntryTitle
+                      ? item.serviceEntryTitle
                       : t("documents.attachmentLabel")}
                   </Text>
                   <Text style={{ color: theme.colors.muted, marginTop: 4 }}>

@@ -120,7 +120,7 @@ create table if not exists public.vehicle_photos (
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   storage_bucket text not null check (storage_bucket in ('images')),
   storage_path text not null,
-  created_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
   -- hard delete only (no deleted_at)
 );
 
@@ -260,8 +260,6 @@ with check (
     join public.vehicles v on v.id = se.vehicle_id
     where se.id = attachments.service_entry_id
       and v.owner_id = auth.uid()
-      and v.deleted_at is null
-      and se.deleted_at is null
   )
 );
 
@@ -276,8 +274,6 @@ using (
     join public.vehicles v on v.id = se.vehicle_id
     where se.id = attachments.service_entry_id
       and v.owner_id = auth.uid()
-      and v.deleted_at is null
-      and se.deleted_at is null
   )
 );
 
@@ -299,6 +295,18 @@ create policy public_pages_insert_own_vehicle
 on public.public_pages for insert
 to authenticated
 with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = public_pages.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists public_pages_delete_own_vehicle on public.public_pages;
+create policy public_pages_delete_own_vehicle
+on public.public_pages for delete
+to authenticated
+using (
   exists (
     select 1 from public.vehicles v
     where v.id = public_pages.vehicle_id
@@ -520,24 +528,106 @@ using (
 -- - images
 -- - documents
 --
--- After creating buckets, add permissive dev policies (tighten later):
---   Dashboard → Storage → Policies → New policy (for each bucket)
+-- Vehico convention:
+-- - All uploaded objects are stored under a path that starts with the vehicle UUID:
+--   <vehicle_id>/<...>
+-- This lets us enforce storage access by checking vehicle ownership.
 --
--- Example SQL policies (requires access to storage schema):
--- 1) Allow authenticated to read/write objects in these buckets.
---    (If these statements fail in hosted Supabase due to permissions, create policies via UI instead.)
+-- IMPORTANT: You may need to create these policies in the Dashboard if your project
+-- restricts SQL access to the storage schema.
 --
--- -- Read
--- drop policy if exists "storage_read_images_documents" on storage.objects;
--- create policy "storage_read_images_documents"
--- on storage.objects for select
--- to authenticated
--- using (bucket_id in ('images', 'documents'));
---
--- -- Write
--- drop policy if exists "storage_write_images_documents" on storage.objects;
--- create policy "storage_write_images_documents"
--- on storage.objects for insert
--- to authenticated
--- with check (bucket_id in ('images', 'documents'));
+-- Read: authenticated can read objects for vehicles they own
+drop policy if exists "storage_read_vehicle_scoped" on storage.objects;
+create policy "storage_read_vehicle_scoped"
+on storage.objects for select
+to authenticated
+using (
+  bucket_id in ('images', 'documents')
+  and exists (
+    select 1
+    from public.vehicles v
+    where v.id::text = split_part(name, '/', 1)
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- Write: authenticated can write objects only under vehicles they own
+drop policy if exists "storage_write_vehicle_scoped" on storage.objects;
+create policy "storage_write_vehicle_scoped"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id in ('images', 'documents')
+  and exists (
+    select 1
+    from public.vehicles v
+    where v.id::text = split_part(name, '/', 1)
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- Delete: authenticated can delete objects only under vehicles they own
+drop policy if exists "storage_delete_vehicle_scoped" on storage.objects;
+create policy "storage_delete_vehicle_scoped"
+on storage.objects for delete
+to authenticated
+using (
+  bucket_id in ('images', 'documents')
+  and exists (
+    select 1
+    from public.vehicles v
+    where v.id::text = split_part(name, '/', 1)
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- ================
+-- Storage cleanup on row delete (prevents orphaned files)
+-- ================
+-- These triggers delete the underlying storage object when metadata rows are deleted.
+-- (App code also attempts deletion; this is a safety net for GDPR-style hard deletes.)
+
+create or replace function public.delete_storage_object(bucket text, path text)
+returns void
+language plpgsql
+security definer
+set search_path = public, storage
+as $$
+begin
+  delete from storage.objects
+  where bucket_id = bucket
+    and name = path;
+end;
+$$;
+
+revoke all on function public.delete_storage_object(bucket text, path text) from public;
+
+create or replace function public.delete_storage_object_trigger()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, storage
+as $$
+begin
+  perform public.delete_storage_object(old.storage_bucket, old.storage_path);
+  return old;
+end;
+$$;
+
+revoke all on function public.delete_storage_object_trigger() from public;
+
+drop trigger if exists attachments_delete_storage on public.attachments;
+create trigger attachments_delete_storage
+after delete on public.attachments
+for each row execute function public.delete_storage_object_trigger();
+
+drop trigger if exists vehicle_photos_delete_storage on public.vehicle_photos;
+create trigger vehicle_photos_delete_storage
+after delete on public.vehicle_photos
+for each row execute function public.delete_storage_object_trigger();
+
+drop trigger if exists vehicle_documents_delete_storage on public.vehicle_documents;
+create trigger vehicle_documents_delete_storage
+after delete on public.vehicle_documents
+for each row execute function public.delete_storage_object_trigger();
 

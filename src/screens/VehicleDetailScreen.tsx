@@ -35,7 +35,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   const { vehicleId } = route.params;
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const distanceUnit = settings?.distance_unit ?? "km";
+  const distanceUnit = settings?.distanceUnit ?? "km";
   const currency = settings?.currency ?? "PLN";
 
   const load = useCallback(async () => {

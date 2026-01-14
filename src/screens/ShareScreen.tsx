@@ -1,0 +1,72 @@
+import { Alert, StyleSheet, Text, View } from "react-native";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
+
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import { AppHeader } from "../ui/components/AppHeader";
+import { Button } from "../ui/components/Button";
+import { Screen } from "../ui/components/Screen";
+import { useTheme } from "../ui/ThemeProvider";
+
+type Props = NativeStackScreenProps<AppStackParamList, "Share">;
+
+export function ShareScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
+  const { title } = route.params;
+
+  function notAvailable() {
+    Alert.alert(t("share.notAvailableTitle"), t("share.notAvailableBody"));
+  }
+
+  return (
+    <Screen padding={false}>
+      <AppHeader onBack={() => navigation.goBack()} />
+      <View style={styles.wrap}>
+        <Text style={styles.h1}>{t("share.title")}</Text>
+        <Text style={styles.subtitle}>
+          {t("share.subtitle", { vehicleTitle: title })}
+        </Text>
+
+        <View style={{ height: 16 }} />
+        <Button onPress={notAvailable}>{t("share.pdfReport")}</Button>
+        <View style={{ height: 10 }} />
+        <Button onPress={notAvailable} variant="ghost">
+          {t("share.onlineReport")}
+        </Button>
+        <View style={{ height: 10 }} />
+        <Button onPress={notAvailable} variant="ghost">
+          {t("share.marketplacePost")}
+        </Button>
+
+        <View style={{ height: 12 }} />
+        <Button onPress={() => navigation.goBack()} variant="ghost">
+          {t("common.cancel")}
+        </Button>
+      </View>
+    </Screen>
+  );
+}
+
+const makeStyles = (theme: any) =>
+  StyleSheet.create({
+    wrap: {
+      paddingHorizontal: theme.spacing.md,
+      paddingTop: theme.spacing.lg,
+      paddingBottom: theme.spacing.lg,
+    },
+    h1: {
+      fontSize: 22,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
+    subtitle: {
+      marginTop: 8,
+      color: theme.colors.muted,
+      lineHeight: 22,
+    },
+  });
+

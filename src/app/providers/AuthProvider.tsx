@@ -25,6 +25,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
         const { data, error } = await supabase.auth.getSession();
         if (error) throw error;
         if (alive) setSession(data.session);
+      } catch {
+        // Treat auth bootstrap errors as signed-out (e.g. corrupted local session).
+        if (alive) setSession(null);
       } finally {
         if (alive) setIsLoading(false);
       }

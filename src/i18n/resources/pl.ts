@@ -91,8 +91,8 @@ export const pl = {
       docsSubtitle: 'Załączniki i zdjęcia',
       remindersTitle: 'Przypomnienia',
       remindersSubtitle: 'Czas lub przebieg',
-      shareTitle: 'Strona publiczna / Udostępnij',
-      shareSubtitle: 'Link dla kupujących',
+      shareTitle: 'Udostępnij',
+      shareSubtitle: 'Raporty i linki',
       manageTitle: 'Zarządzaj pojazdem',
       manageSubtitle: 'Edycja i usuwanie',
       dataTitle: 'Eksport / Import',
@@ -244,6 +244,15 @@ export const pl = {
     importInvalid: 'CSV musi zawierać nagłówek i co najmniej jeden wiersz danych.',
     importMissingColumns: 'CSV musi zawierać co najmniej: service_date,title',
     importNothing: 'Nie znaleziono poprawnych wierszy do importu.',
+  },
+  share: {
+    title: 'Udostępnij',
+    subtitle: 'Wybierz sposób udostępnienia pojazdu: {{vehicleTitle}}.',
+    pdfReport: 'Raport PDF',
+    onlineReport: 'Link do raportu online',
+    marketplacePost: 'Ogłoszenie na marketplace',
+    notAvailableTitle: 'Jeszcze niedostępne',
+    notAvailableBody: 'Ta funkcja nie jest jeszcze dostępna. Pracujemy nad tym.',
   },
 };
 

@@ -1,19 +1,24 @@
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 
+import type { AppStackParamList } from '../app/navigation/RootNavigator';
 import { AppHeader } from '../ui/components/AppHeader';
 import { Screen } from '../ui/components/Screen';
+import type { UserSettings } from '../app/providers/UserSettingsProvider';
 import { useUserSettings } from '../app/providers/UserSettingsProvider';
 import { useTheme } from '../ui/ThemeProvider';
 
-export function SettingsScreen({ navigation }: any) {
+type Props = NativeStackScreenProps<AppStackParamList, 'Settings'>;
+
+export function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings, setSettings } = useUserSettings();
 
-  async function pick<K extends keyof NonNullable<typeof settings>>(key: K, value: any) {
+  async function pick<K extends keyof UserSettings>(key: K, value: UserSettings[K]) {
     try {
-      await setSettings({ [key]: value } as any);
+      await setSettings({ [key]: value } as Partial<UserSettings>);
     } catch (e: any) {
       Alert.alert(t('common.error'), e?.message ?? String(e));
     }
@@ -25,7 +30,12 @@ export function SettingsScreen({ navigation }: any) {
       <View style={{ paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.md }}>
         <Text style={[styles.title, { color: theme.colors.fg }]}>{t('settings.title')}</Text>
 
-      <View style={[styles.box, { borderColor: theme.colors.border, backgroundColor: theme.colors.card }]}>
+        {!settings ? (
+          <View style={{ paddingTop: 24, alignItems: 'center' }}>
+            <ActivityIndicator />
+          </View>
+        ) : (
+          <View style={[styles.box, { borderColor: theme.colors.border, backgroundColor: theme.colors.card }]}>
           <Text style={[styles.section, { color: theme.colors.muted }]}>{t('settings.currency')}</Text>
         <View style={styles.row}>
           {(['PLN', 'EUR'] as const).map((c) => (
@@ -51,14 +61,14 @@ export function SettingsScreen({ navigation }: any) {
           {(['km', 'miles'] as const).map((u) => (
             <Pressable
               key={u}
-              onPress={() => void pick('distance_unit', u)}
+              onPress={() => void pick('distanceUnit', u)}
               style={[
                 styles.choice,
                 { borderColor: theme.colors.border },
-                settings?.distance_unit === u && { borderColor: theme.colors.fg },
+                settings?.distanceUnit === u && { borderColor: theme.colors.fg },
               ]}
             >
-              <Text style={{ color: settings?.distance_unit === u ? theme.colors.fg : theme.colors.muted, fontWeight: '800' }}>
+              <Text style={{ color: settings?.distanceUnit === u ? theme.colors.fg : theme.colors.muted, fontWeight: '800' }}>
                 {u}
               </Text>
             </Pressable>
@@ -71,14 +81,14 @@ export function SettingsScreen({ navigation }: any) {
           {(['liters', 'gallons'] as const).map((u) => (
             <Pressable
               key={u}
-              onPress={() => void pick('fuel_unit', u)}
+              onPress={() => void pick('fuelUnit', u)}
               style={[
                 styles.choice,
                 { borderColor: theme.colors.border },
-                settings?.fuel_unit === u && { borderColor: theme.colors.fg },
+                settings?.fuelUnit === u && { borderColor: theme.colors.fg },
               ]}
             >
-              <Text style={{ color: settings?.fuel_unit === u ? theme.colors.fg : theme.colors.muted, fontWeight: '800' }}>
+              <Text style={{ color: settings?.fuelUnit === u ? theme.colors.fg : theme.colors.muted, fontWeight: '800' }}>
                 {u}
               </Text>
             </Pressable>
@@ -125,6 +135,7 @@ export function SettingsScreen({ navigation }: any) {
           ))}
           </View>
         </View>
+        )}
       </View>
     </Screen>
   );

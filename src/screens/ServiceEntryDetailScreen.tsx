@@ -38,7 +38,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
   const [entry, setEntry] = useState<any>(null);
   const [items, setItems] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
-  const distanceUnit = settings?.distance_unit ?? "km";
+  const distanceUnit = settings?.distanceUnit ?? "km";
   const currency = settings?.currency ?? "PLN";
 
   const load = useCallback(async () => {

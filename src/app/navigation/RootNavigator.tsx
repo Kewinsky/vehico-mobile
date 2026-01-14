@@ -20,6 +20,7 @@ import { ServiceEntryFormScreen } from "../../screens/ServiceEntryFormScreen";
 import { SettingsScreen } from "../../screens/SettingsScreen";
 import { DataPortabilityScreen } from "../../screens/DataPortabilityScreen";
 import { AddAttachmentScreen } from "../../screens/AddAttachmentScreen";
+import { ShareScreen } from "../../screens/ShareScreen";
 
 export type AppStackParamList = {
   Auth: undefined;
@@ -31,6 +32,7 @@ export type AppStackParamList = {
   Documents: { vehicleId: string; title: string };
   FuelCosts: { vehicleId: string; title: string };
   Reminders: { vehicleId: string; title: string };
+  Share: { vehicleId: string; title: string };
   ManageVehicle: { vehicleId: string; title: string };
   ManageVehicleEdit: { vehicleId: string };
   DataPortability: { vehicleId: string; title: string };
@@ -63,22 +65,40 @@ export function RootNavigator() {
           <Stack.Screen name="Vehicles" component={VehiclesScreen} />
           <Stack.Screen name="VehicleForm" component={VehicleFormScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
-          <Stack.Screen name="VehicleDashboard" component={VehicleDashboardScreen} />
+          <Stack.Screen
+            name="VehicleDashboard"
+            component={VehicleDashboardScreen}
+          />
           <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
           <Stack.Screen name="Documents" component={DocumentsScreen} />
           <Stack.Screen name="FuelCosts" component={FuelCostsScreen} />
-          <Stack.Screen name="FuelingEntryForm" component={FuelingEntryFormScreen} />
+          <Stack.Screen
+            name="FuelingEntryForm"
+            component={FuelingEntryFormScreen}
+          />
           <Stack.Screen name="Reminders" component={RemindersScreen} />
           <Stack.Screen name="ReminderForm" component={ReminderFormScreen} />
+          <Stack.Screen name="Share" component={ShareScreen} />
           <Stack.Screen name="ManageVehicle" component={ManageVehicleScreen} />
-          <Stack.Screen name="ManageVehicleEdit" component={ManageVehicleEditScreen} />
-          <Stack.Screen name="DataPortability" component={DataPortabilityScreen} />
+          <Stack.Screen
+            name="ManageVehicleEdit"
+            component={ManageVehicleEditScreen}
+          />
+          <Stack.Screen
+            name="DataPortability"
+            component={DataPortabilityScreen}
+          />
           <Stack.Screen name="AddAttachment" component={AddAttachmentScreen} />
-          <Stack.Screen name="ServiceEntryDetail" component={ServiceEntryDetailScreen} />
-          <Stack.Screen name="ServiceEntryForm" component={ServiceEntryFormScreen} />
+          <Stack.Screen
+            name="ServiceEntryDetail"
+            component={ServiceEntryDetailScreen}
+          />
+          <Stack.Screen
+            name="ServiceEntryForm"
+            component={ServiceEntryFormScreen}
+          />
         </>
       )}
     </Stack.Navigator>
   );
 }
-

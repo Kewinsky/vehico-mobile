@@ -21,7 +21,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const { settings } = useUserSettings();
   const styles = makeStyles(theme);
   const { vehicleId, reminderId } = route.params;
-  const distanceUnit = settings?.distance_unit ?? 'km';
+  const distanceUnit = settings?.distanceUnit ?? 'km';
 
   const [title, setTitle] = useState('');
   const [type, setType] = useState<ReminderType>('time');
