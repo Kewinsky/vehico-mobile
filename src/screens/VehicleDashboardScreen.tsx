@@ -1,13 +1,13 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTranslation } from 'react-i18next';
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
-import type { AppStackParamList } from '../app/navigation/RootNavigator';
-import { AppHeader } from '../ui/components/AppHeader';
-import { Screen } from '../ui/components/Screen';
-import { useTheme } from '../ui/ThemeProvider';
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import { AppHeader } from "../ui/components/AppHeader";
+import { Screen } from "../ui/components/Screen";
+import { useTheme } from "../ui/ThemeProvider";
 
-type Props = NativeStackScreenProps<AppStackParamList, 'VehicleDashboard'>;
+type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
 type Tile = {
   key: string;
@@ -24,46 +24,47 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
   const tiles: Tile[] = [
     {
-      key: 'service',
-      title: t('dashboard.tiles.serviceTitle'),
-      subtitle: t('dashboard.tiles.serviceSubtitle'),
-      onPress: () => navigation.navigate('VehicleDetail', { vehicleId, title }),
+      key: "service",
+      title: t("dashboard.tiles.serviceTitle"),
+      subtitle: t("dashboard.tiles.serviceSubtitle"),
+      onPress: () => navigation.navigate("VehicleDetail", { vehicleId, title }),
     },
     {
-      key: 'fuel',
-      title: t('dashboard.tiles.fuelTitle'),
-      subtitle: t('dashboard.tiles.fuelSubtitle'),
-      onPress: () => navigation.navigate('FuelCosts', { vehicleId, title }),
+      key: "fuel",
+      title: t("dashboard.tiles.fuelTitle"),
+      subtitle: t("dashboard.tiles.fuelSubtitle"),
+      onPress: () => navigation.navigate("FuelCosts", { vehicleId, title }),
     },
     {
-      key: 'docs',
-      title: t('dashboard.tiles.docsTitle'),
-      subtitle: t('dashboard.tiles.docsSubtitle'),
-      onPress: () => navigation.navigate('Documents', { vehicleId, title }),
+      key: "docs",
+      title: t("dashboard.tiles.docsTitle"),
+      subtitle: t("dashboard.tiles.docsSubtitle"),
+      onPress: () => navigation.navigate("Documents", { vehicleId, title }),
     },
     {
-      key: 'reminders',
-      title: t('dashboard.tiles.remindersTitle'),
-      subtitle: t('dashboard.tiles.remindersSubtitle'),
-      onPress: () => navigation.navigate('Reminders', { vehicleId, title }),
+      key: "reminders",
+      title: t("dashboard.tiles.remindersTitle"),
+      subtitle: t("dashboard.tiles.remindersSubtitle"),
+      onPress: () => navigation.navigate("Reminders", { vehicleId, title }),
     },
     {
-      key: 'share',
-      title: t('dashboard.tiles.shareTitle'),
-      subtitle: t('dashboard.tiles.shareSubtitle'),
-      onPress: () => navigation.navigate('Share', { vehicleId, title }),
+      key: "share",
+      title: t("dashboard.tiles.shareTitle"),
+      subtitle: t("dashboard.tiles.shareSubtitle"),
+      onPress: () => navigation.navigate("Share", { vehicleId, title }),
     },
     {
-      key: 'data',
-      title: t('dashboard.tiles.dataTitle'),
-      subtitle: t('dashboard.tiles.dataSubtitle'),
-      onPress: () => navigation.navigate('DataPortability', { vehicleId, title }),
+      key: "data",
+      title: t("dashboard.tiles.dataTitle"),
+      subtitle: t("dashboard.tiles.dataSubtitle"),
+      onPress: () =>
+        navigation.navigate("DataPortability", { vehicleId, title }),
     },
     {
-      key: 'manage',
-      title: t('dashboard.tiles.manageTitle'),
-      subtitle: t('dashboard.tiles.manageSubtitle'),
-      onPress: () => navigation.navigate('ManageVehicle', { vehicleId, title }),
+      key: "manage",
+      title: t("dashboard.tiles.manageTitle"),
+      subtitle: t("dashboard.tiles.manageSubtitle"),
+      onPress: () => navigation.navigate("ManageVehicle", { vehicleId, title }),
     },
   ];
 
@@ -71,7 +72,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
       <View style={styles.header}>
-        <Text style={styles.kicker}>{t('dashboard.kicker')}</Text>
+        <Text style={styles.kicker}>{t("dashboard.kicker")}</Text>
         <Text style={styles.title}>{title}</Text>
       </View>
 
@@ -93,13 +94,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             <Text style={styles.tileSubtitle}>{item.subtitle}</Text>
           </Pressable>
         )}
-        ListFooterComponent={
-          <View style={styles.footer}>
-            <Pressable onPress={() => navigation.navigate('Vehicles')} hitSlop={10}>
-              <Text style={styles.backLink}>{t('dashboard.backToVehicles')}</Text>
-            </Pressable>
-          </View>
-        }
       />
     </Screen>
   );
@@ -116,14 +110,14 @@ const makeStyles = (theme: any) =>
     kicker: {
       color: theme.colors.muted,
       fontSize: theme.typography.small,
-      fontWeight: '700',
+      fontWeight: "700",
       letterSpacing: 1,
-      textTransform: 'uppercase',
+      textTransform: "uppercase",
     },
     title: {
       color: theme.colors.fg,
       fontSize: 22,
-      fontWeight: '800',
+      fontWeight: "800",
     },
     grid: {
       paddingHorizontal: theme.spacing.md,
@@ -142,7 +136,7 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
       gap: 8,
-      justifyContent: 'space-between',
+      justifyContent: "space-between",
     },
     tilePressed: {
       opacity: 0.9,
@@ -150,20 +144,11 @@ const makeStyles = (theme: any) =>
     tileTitle: {
       color: theme.colors.fg,
       fontSize: 16,
-      fontWeight: '800',
+      fontWeight: "800",
     },
     tileSubtitle: {
       color: theme.colors.muted,
       fontSize: theme.typography.small,
       lineHeight: 18,
     },
-    footer: {
-      paddingTop: 18,
-      alignItems: 'center',
-    },
-    backLink: {
-      color: theme.colors.muted,
-      fontWeight: '700',
-    },
   });
-

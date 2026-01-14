@@ -35,18 +35,21 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   const { vehicleId } = route.params;
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const distanceUnit = settings?.distanceUnit ?? "km";
   const currency = settings?.currency ?? "PLN";
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (opts?: { refreshing?: boolean }) => {
     try {
-      setLoading(true);
+      if (opts?.refreshing) setRefreshing(true);
+      else setLoading(true);
       const data = await listServiceEntries(vehicleId);
       setItems(data);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {
-      setLoading(false);
+      if (opts?.refreshing) setRefreshing(false);
+      else setLoading(false);
     }
   }, [vehicleId, t]);
 
@@ -76,8 +79,8 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         data={items}
         keyExtractor={(e) => e.id}
         contentContainerStyle={styles.list}
-        refreshing={loading}
-        onRefresh={load}
+        refreshing={refreshing}
+        onRefresh={() => void load({ refreshing: true })}
         ListHeaderComponent={
           <View style={styles.header}>
             <View style={styles.headerRow}>

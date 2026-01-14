@@ -33,7 +33,9 @@ export function ShareScreen({ navigation, route }: Props) {
         </Text>
 
         <View style={{ height: 16 }} />
-        <Button onPress={notAvailable}>{t("share.pdfReport")}</Button>
+        <Button onPress={notAvailable} variant="ghost">
+          {t("share.pdfReport")}
+        </Button>
         <View style={{ height: 10 }} />
         <Button onPress={notAvailable} variant="ghost">
           {t("share.onlineReport")}
@@ -41,11 +43,6 @@ export function ShareScreen({ navigation, route }: Props) {
         <View style={{ height: 10 }} />
         <Button onPress={notAvailable} variant="ghost">
           {t("share.marketplacePost")}
-        </Button>
-
-        <View style={{ height: 12 }} />
-        <Button onPress={() => navigation.goBack()} variant="ghost">
-          {t("common.cancel")}
         </Button>
       </View>
     </Screen>

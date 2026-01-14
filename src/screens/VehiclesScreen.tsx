@@ -29,6 +29,7 @@ export function VehiclesScreen({ navigation }: Props) {
   const { signOut } = useAuth();
   const [items, setItems] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   function onSignOut() {
     signOut().catch((e: any) => {
@@ -36,15 +37,17 @@ export function VehiclesScreen({ navigation }: Props) {
     });
   }
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (opts?: { refreshing?: boolean }) => {
     try {
-      setLoading(true);
+      if (opts?.refreshing) setRefreshing(true);
+      else setLoading(true);
       const data = await listVehicles();
       setItems(data);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {
-      setLoading(false);
+      if (opts?.refreshing) setRefreshing(false);
+      else setLoading(false);
     }
   }, [t]);
 
@@ -89,8 +92,8 @@ export function VehiclesScreen({ navigation }: Props) {
               data={items}
               keyExtractor={(v) => v.id}
               contentContainerStyle={styles.list}
-              refreshing={loading}
-              onRefresh={load}
+              refreshing={refreshing}
+              onRefresh={() => void load({ refreshing: true })}
               renderItem={({ item }) => (
                 <Pressable
                   onPress={() =>

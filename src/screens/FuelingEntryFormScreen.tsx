@@ -11,6 +11,7 @@ import {
 } from "../services/fuel/fuelingEntriesRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
+import { DateField } from "../ui/components/DateField";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
@@ -86,12 +87,12 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       </Text>
 
       <View style={{ height: 14 }} />
-      <TextField
+      <DateField
         noMarginTop
         label={t("fuelingForm.date")}
         value={date}
-        onChangeText={setDate}
-        placeholder="YYYY-MM-DD"
+        onChange={setDate}
+        disabled={saving}
       />
 
       <TextField

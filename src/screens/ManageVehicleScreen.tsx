@@ -160,9 +160,11 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
               </View>
             )}
             ListEmptyComponent={
-              !loading ? (
+              loading ? (
+                <Text style={styles.muted}>{t("common.loading")}</Text>
+              ) : (
                 <Text style={styles.muted}>{t("documents.noPhotos")}</Text>
-              ) : null
+              )
             }
           />
 

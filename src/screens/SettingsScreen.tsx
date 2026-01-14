@@ -99,7 +99,7 @@ export function SettingsScreen({ navigation }: Props) {
         <View style={{ height: 12 }} />
           <Text style={[styles.section, { color: theme.colors.muted }]}>{t('settings.theme')}</Text>
         <View style={styles.row}>
-          {(['system', 'light', 'dark'] as const).map((m) => (
+          {(['light', 'dark'] as const).map((m) => (
             <Pressable
               key={m}
               onPress={() => void pick('theme', m)}
@@ -152,12 +152,15 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   section: { fontWeight: '800' },
+  // Two-column grid (wraps as needed).
   row: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', marginTop: 8 },
   choice: {
     borderWidth: 1,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 12,
+    width: '48%',
+    alignItems: 'center',
   },
 });
 

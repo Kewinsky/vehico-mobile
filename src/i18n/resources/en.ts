@@ -3,6 +3,7 @@ export const en = {
     appName: "Vehico",
     continue: "Continue",
     cancel: "Cancel",
+    done: "Done",
     save: "Save",
     delete: "Delete",
     remove: "Remove",
@@ -228,16 +229,21 @@ export const en = {
   },
   dataPortability: {
     title: "Export / Import",
-    subtitle:
-      "Export your vehicle data as JSON, or import service entries from CSV.",
     shareTitle: "Vehico export",
-    exportAction: "Share JSON export",
+    exportTitle: "Export",
+    exportSubtitle: "Choose a format. CSV exports service entries only.",
+    exportJsonAction: "Share JSON",
+    exportCsvAction: "Share CSV",
     importTitle: "Import (CSV)",
     importSubtitle:
       "Paste CSV rows for service entries. Required columns: service_date,title.",
+    importPasteLabel: "Paste CSV",
+    importColumnsHint:
+      "Required columns: service_date,title (optional: description,mileage,cost).",
     importPlaceholder:
       "service_date,title,description,mileage,cost\n2026-01-14,Oil change,Engine oil and filter,120000,250",
     importAction: "Import service entries",
+    clearAction: "Clear",
     importConfirmTitle: "Import entries?",
     importConfirmBody:
       "This will add {{count}} service entries to this vehicle.",

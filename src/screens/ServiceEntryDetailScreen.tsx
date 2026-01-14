@@ -39,22 +39,28 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
   const [entry, setEntry] = useState<any>(null);
   const [items, setItems] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const distanceUnit = settings?.distanceUnit ?? "km";
   const currency = settings?.currency ?? "PLN";
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const e = await getServiceEntry(entryId);
-      setEntry(e);
-      const data = await listAttachments(entryId);
-      setItems(data);
-    } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [entryId, t]);
+  const load = useCallback(
+    async (opts?: { refreshing?: boolean }) => {
+      try {
+        if (opts?.refreshing) setRefreshing(true);
+        else setLoading(true);
+        const e = await getServiceEntry(entryId);
+        setEntry(e);
+        const data = await listAttachments(entryId);
+        setItems(data);
+      } catch (e: any) {
+        toastError(t("common.error"), e?.message ?? String(e));
+      } finally {
+        if (opts?.refreshing) setRefreshing(false);
+        else setLoading(false);
+      }
+    },
+    [entryId, t]
+  );
 
   useEffect(() => {
     void load();
@@ -157,14 +163,16 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
         data={items}
         keyExtractor={(a) => a.id}
         contentContainerStyle={styles.list}
-        refreshing={loading}
-        onRefresh={load}
+        refreshing={refreshing}
+        onRefresh={() => void load({ refreshing: true })}
         ListEmptyComponent={
-          !loading ? (
+          loading ? (
+            <Text style={styles.muted}>{t("common.loading")}</Text>
+          ) : (
             <Text style={styles.muted}>
               {t("entryDetail.attachmentsEmptyTitle")}
             </Text>
-          ) : null
+          )
         }
         renderItem={({ item }) => (
           <View style={styles.card}>

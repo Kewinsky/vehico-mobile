@@ -25,17 +25,20 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
 
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (opts?: { refreshing?: boolean }) => {
     try {
-      setLoading(true);
+      if (opts?.refreshing) setRefreshing(true);
+      else setLoading(true);
       const data = await listServiceEntries(vehicleId);
       setItems(data);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {
-      setLoading(false);
+      if (opts?.refreshing) setRefreshing(false);
+      else setLoading(false);
     }
   }, [vehicleId, t]);
 
@@ -137,8 +140,8 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         <FlatList
           data={items}
           keyExtractor={(x) => x.id}
-          refreshing={loading}
-          onRefresh={load}
+          refreshing={refreshing}
+          onRefresh={() => void load({ refreshing: true })}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
           renderItem={({ item }) => (
             <View style={[styles.card, { borderColor: theme.colors.border, backgroundColor: theme.colors.card }]}>

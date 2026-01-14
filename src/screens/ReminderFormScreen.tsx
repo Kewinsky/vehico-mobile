@@ -1,20 +1,25 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTranslation } from 'react-i18next';
+import { useEffect, useMemo, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
-import type { AppStackParamList } from '../app/navigation/RootNavigator';
-import type { ReminderType } from '../types/domain';
-import { createReminder, getReminder, updateReminder } from '../services/reminders/remindersRepo';
-import { AppHeader } from '../ui/components/AppHeader';
-import { Button } from '../ui/components/Button';
-import { FormScreen } from '../ui/components/FormScreen';
-import { TextField } from '../ui/components/TextField';
-import { useTheme } from '../ui/ThemeProvider';
-import { useUserSettings } from '../app/providers/UserSettingsProvider';
-import { toastError } from '../ui/toast/toast';
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { ReminderType } from "../types/domain";
+import {
+  createReminder,
+  getReminder,
+  updateReminder,
+} from "../services/reminders/remindersRepo";
+import { AppHeader } from "../ui/components/AppHeader";
+import { Button } from "../ui/components/Button";
+import { DateField } from "../ui/components/DateField";
+import { FormScreen } from "../ui/components/FormScreen";
+import { TextField } from "../ui/components/TextField";
+import { useTheme } from "../ui/ThemeProvider";
+import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { toastError } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<AppStackParamList, 'ReminderForm'>;
+type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
 
 export function ReminderFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -22,12 +27,14 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const { settings } = useUserSettings();
   const styles = makeStyles(theme);
   const { vehicleId, reminderId } = route.params;
-  const distanceUnit = settings?.distanceUnit ?? 'km';
+  const distanceUnit = settings?.distanceUnit ?? "km";
 
-  const [title, setTitle] = useState('');
-  const [type, setType] = useState<ReminderType>('time');
-  const [dueDate, setDueDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [dueMileage, setDueMileage] = useState('');
+  const [title, setTitle] = useState("");
+  const [type, setType] = useState<ReminderType>("time");
+  const [dueDate, setDueDate] = useState(() =>
+    new Date().toISOString().slice(0, 10)
+  );
+  const [dueMileage, setDueMileage] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -36,18 +43,19 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       try {
         const r = await getReminder(reminderId);
         setType(r.type);
-        if (r.type === 'time' && r.due_date) setDueDate(r.due_date);
-        if (r.type === 'mileage' && r.due_mileage != null) setDueMileage(String(r.due_mileage));
-        setTitle(r.note ?? '');
+        if (r.type === "time" && r.due_date) setDueDate(r.due_date);
+        if (r.type === "mileage" && r.due_mileage != null)
+          setDueMileage(String(r.due_mileage));
+        setTitle(r.note ?? "");
       } catch (err: any) {
-        toastError(t('common.error'), err?.message ?? String(err));
+        toastError(t("common.error"), err?.message ?? String(err));
       }
     })();
   }, [reminderId, t]);
 
   const canSave = useMemo(() => {
     const okTitle = title.trim().length > 0;
-    if (type === 'time') return okTitle && dueDate.trim().length === 10;
+    if (type === "time") return okTitle && dueDate.trim().length === 10;
     return okTitle && Number(dueMileage) > 0;
   }, [type, dueDate, dueMileage, title]);
 
@@ -57,8 +65,8 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       const payload = {
         vehicle_id: vehicleId,
         type,
-        due_date: type === 'time' ? dueDate.trim() : null,
-        due_mileage: type === 'mileage' ? Number(dueMileage) : null,
+        due_date: type === "time" ? dueDate.trim() : null,
+        due_mileage: type === "mileage" ? Number(dueMileage) : null,
         // Map "Title" to the existing DB `note` field (no schema change needed)
         note: title.trim(),
         channel_email: true,
@@ -69,7 +77,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       else await createReminder(payload);
       navigation.goBack();
     } catch (e: any) {
-      toastError(t('common.error'), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setSaving(false);
     }
@@ -79,16 +87,21 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={{ height: theme.spacing.lg }} />
       <Text style={styles.h1}>
-        {reminderId ? t('reminderForm.editTitle') : t('reminderForm.addTitle')}
+        {reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle")}
       </Text>
 
       <View style={{ height: 14 }} />
-      <TextField noMarginTop label={t('reminderForm.titleLabel')} value={title} onChangeText={setTitle} />
+      <TextField
+        noMarginTop
+        label={t("reminderForm.titleLabel")}
+        value={title}
+        onChangeText={setTitle}
+      />
 
       <View style={{ height: 14 }} />
-      <Text style={styles.label}>{t('reminderForm.type')}</Text>
+      <Text style={styles.label}>{t("reminderForm.type")}</Text>
       <View style={styles.row}>
-        {(['time', 'mileage'] as const).map((kind) => (
+        {(["time", "mileage"] as const).map((kind) => (
           <Pressable
             key={kind}
             onPress={() => setType(kind)}
@@ -98,29 +111,36 @@ export function ReminderFormScreen({ navigation, route }: Props) {
               type === kind && { borderColor: theme.colors.fg },
             ]}
           >
-            <Text style={{ color: type === kind ? theme.colors.fg : theme.colors.muted, fontWeight: '800' }}>
-              {kind === 'time' ? t('reminderForm.time') : t('reminderForm.mileage')}
+            <Text
+              style={{
+                color: type === kind ? theme.colors.fg : theme.colors.muted,
+                fontWeight: "800",
+              }}
+            >
+              {kind === "time"
+                ? t("reminderForm.time")
+                : t("reminderForm.mileage")}
             </Text>
           </Pressable>
         ))}
       </View>
 
       <View style={{ height: 12 }} />
-      {type === 'time' ? (
+      {type === "time" ? (
         <>
-          <TextField
+          <DateField
             noMarginTop
-            label={t('reminderForm.dueDate')}
+            label={t("reminderForm.dueDate")}
             value={dueDate}
-            onChangeText={setDueDate}
-            placeholder="YYYY-MM-DD"
+            onChange={setDueDate}
+            disabled={saving}
           />
         </>
       ) : (
         <>
           <TextField
             noMarginTop
-            label={t('reminderForm.dueMileage', { unit: distanceUnit })}
+            label={t("reminderForm.dueMileage", { unit: distanceUnit })}
             value={dueMileage}
             onChangeText={setDueMileage}
             keyboardType="number-pad"
@@ -130,11 +150,15 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
       <View style={{ height: 16 }} />
       <Button onPress={onSave} disabled={!canSave || saving}>
-        {t('common.save')}
+        {t("common.save")}
       </Button>
       <View style={{ height: 10 }} />
-      <Button onPress={() => navigation.goBack()} variant="ghost" disabled={saving}>
-        {t('common.cancel')}
+      <Button
+        onPress={() => navigation.goBack()}
+        variant="ghost"
+        disabled={saving}
+      >
+        {t("common.cancel")}
       </Button>
     </FormScreen>
   );
@@ -142,9 +166,16 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    h1: { fontSize: 22, fontWeight: '800', color: theme.colors.fg },
-    label: { fontSize: 13, fontWeight: '800', color: theme.colors.muted },
-    row: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', marginTop: 8 },
-    choice: { borderWidth: 1, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 12 },
+    h1: { fontSize: 22, fontWeight: "800", color: theme.colors.fg },
+    label: { fontSize: 13, fontWeight: "800", color: theme.colors.muted },
+    // One row, two columns for reminder type selection
+    row: { flexDirection: "row", gap: 10, marginTop: 8 },
+    choice: {
+      borderWidth: 1,
+      borderRadius: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 12,
+      flex: 1,
+      alignItems: "center",
+    },
   });
-

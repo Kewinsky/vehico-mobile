@@ -3,6 +3,7 @@ export const pl = {
     appName: "Vehico",
     continue: "Dalej",
     cancel: "Anuluj",
+    done: "Gotowe",
     save: "Zapisz",
     delete: "Usuń",
     remove: "Usuń",
@@ -228,16 +229,21 @@ export const pl = {
   },
   dataPortability: {
     title: "Eksport / Import",
-    subtitle:
-      "Wyeksportuj dane pojazdu do JSON albo zaimportuj wpisy serwisowe z CSV.",
     shareTitle: "Eksport Vehico",
-    exportAction: "Udostępnij eksport JSON",
+    exportTitle: "Eksport",
+    exportSubtitle: "Wybierz format. CSV eksportuje tylko wpisy serwisowe.",
+    exportJsonAction: "Udostępnij JSON",
+    exportCsvAction: "Udostępnij CSV",
     importTitle: "Import (CSV)",
     importSubtitle:
       "Wklej CSV dla wpisów serwisowych. Wymagane kolumny: service_date,title.",
+    importPasteLabel: "Wklej CSV",
+    importColumnsHint:
+      "Wymagane: service_date,title (opcjonalnie: description,mileage,cost).",
     importPlaceholder:
       "service_date,title,description,mileage,cost\n2026-01-14,Wymiana oleju,Olej i filtr,120000,250",
     importAction: "Importuj wpisy serwisowe",
+    clearAction: "Wyczyść",
     importConfirmTitle: "Zaimportować wpisy?",
     importConfirmBody: "To doda {{count}} wpisów serwisowych do tego pojazdu.",
     importDoneTitle: "Zaimportowano",

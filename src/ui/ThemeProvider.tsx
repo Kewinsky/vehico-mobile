@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useMemo } from 'react';
 import { useColorScheme } from 'react-native';
 
 import type { AppTheme, ThemeMode } from './theme';
@@ -15,7 +15,16 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: PropsWithChildren) {
   const systemScheme = useColorScheme();
-  const { settings } = useUserSettings();
+  const { settings, setSettings } = useUserSettings();
+
+  // Migration: we no longer expose "system" in Settings UI.
+  // If a user previously had theme="system", convert it to the current system theme once.
+  useEffect(() => {
+    if (!settings) return;
+    if (settings.theme !== 'system') return;
+    const next: ThemeMode = systemScheme === 'dark' ? 'dark' : 'light';
+    void setSettings({ theme: next });
+  }, [settings, setSettings, systemScheme]);
 
   const mode: ThemeMode = useMemo(() => {
     const pref = settings?.theme ?? 'system';

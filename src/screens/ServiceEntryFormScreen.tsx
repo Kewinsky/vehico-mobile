@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -29,6 +29,7 @@ import {
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { Button } from "../ui/components/Button";
 import { AppHeader } from "../ui/components/AppHeader";
+import { DateField } from "../ui/components/DateField";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
@@ -54,9 +55,20 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [attachmentsLoading, setAttachmentsLoading] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<
     { uri: string; mimeType?: string | null; fileName?: string | null }[]
   >([]);
+
+  const reloadAttachments = useCallback(async (id: string) => {
+    setAttachmentsLoading(true);
+    try {
+      const atts = await listAttachments(id);
+      setAttachments(atts);
+    } finally {
+      setAttachmentsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!entryId) return;
@@ -68,13 +80,12 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         setTitle(e.title);
         setDescription(e.description ?? "");
         setCost(e.cost != null ? String(e.cost) : "");
-        const atts = await listAttachments(entryId);
-        setAttachments(atts);
+        await reloadAttachments(entryId);
       } catch (err: any) {
         toastError(t("common.error"), err?.message ?? String(err));
       }
     })();
-  }, [entryId, t]);
+  }, [entryId, reloadAttachments, t]);
 
   async function openAttachment(att: Attachment) {
     try {
@@ -146,8 +157,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           mimeType: asset.mimeType,
           fileName: asset.fileName,
         });
-        const atts = await listAttachments(entryId);
-        setAttachments(atts);
+        await reloadAttachments(entryId);
       } else {
         setPendingFiles((prev) => [
           ...prev,
@@ -187,8 +197,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           mimeType: asset.mimeType,
           fileName: asset.fileName,
         });
-        const atts = await listAttachments(entryId);
-        setAttachments(atts);
+        await reloadAttachments(entryId);
       } else {
         setPendingFiles((prev) => [
           ...prev,
@@ -226,8 +235,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           mimeType: asset.mimeType,
           fileName: asset.name,
         });
-        const atts = await listAttachments(entryId);
-        setAttachments(atts);
+        await reloadAttachments(entryId);
       } else {
         setPendingFiles((prev) => [
           ...prev,
@@ -290,12 +298,12 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         <Text style={styles.noticeText}>{t("entryForm.ocrDisclaimer")}</Text>
       </View>
 
-      <TextField
+      <DateField
         noMarginTop
         label={t("entryForm.serviceDate")}
         value={serviceDate}
-        onChangeText={setServiceDate}
-        placeholder="YYYY-MM-DD"
+        onChange={setServiceDate}
+        disabled={saving || uploading}
       />
 
       <TextField
@@ -373,7 +381,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               </View>
             )}
             ListEmptyComponent={
-              !uploading && attachments.length === 0 ? (
+              attachmentsLoading ? (
+                <Text style={styles.muted}>{t("common.loading")}</Text>
+              ) : !uploading && attachments.length === 0 ? (
                 <Text style={styles.muted}>
                   {t("entryForm.attachmentsEmpty")}
                 </Text>

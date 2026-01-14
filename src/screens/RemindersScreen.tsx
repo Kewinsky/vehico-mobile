@@ -31,17 +31,20 @@ export function RemindersScreen({ route, navigation }: Props) {
   const { settings } = useUserSettings();
   const [items, setItems] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const distanceUnit = settings?.distanceUnit ?? "km";
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (opts?: { refreshing?: boolean }) => {
     try {
-      setLoading(true);
+      if (opts?.refreshing) setRefreshing(true);
+      else setLoading(true);
       const data = await listReminders(route.params.vehicleId);
       setItems(data);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {
-      setLoading(false);
+      if (opts?.refreshing) setRefreshing(false);
+      else setLoading(false);
     }
   }, [route.params.vehicleId, t]);
 
@@ -98,8 +101,8 @@ export function RemindersScreen({ route, navigation }: Props) {
         <FlatList
           data={items}
           keyExtractor={(r) => r.id}
-          refreshing={loading}
-          onRefresh={load}
+          refreshing={refreshing}
+          onRefresh={() => void load({ refreshing: true })}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
           renderItem={({ item }) => (
             <View

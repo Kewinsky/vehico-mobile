@@ -1,4 +1,12 @@
-import { Alert, FlatList, Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  FlatList,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
@@ -328,6 +336,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
               title: route.params.title,
             })
           }
+          variant="ghost"
         >
           {t("documents.addAttachment")}
         </Button>
@@ -393,11 +402,15 @@ export function DocumentsScreen({ route, navigation }: Props) {
             </View>
           )}
           ListEmptyComponent={
-            !loading ? (
+            loading ? (
+              <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+                {t("common.loading")}
+              </Text>
+            ) : (
               <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
                 {t("documents.noPhotos")}
               </Text>
-            ) : null
+            )
           }
         />
 
@@ -451,11 +464,15 @@ export function DocumentsScreen({ route, navigation }: Props) {
             </View>
           )}
           ListEmptyComponent={
-            !loading ? (
+            loading ? (
+              <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+                {t("common.loading")}
+              </Text>
+            ) : (
               <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
                 {t("documents.noVehicleDocuments")}
               </Text>
-            ) : null
+            )
           }
         />
 
@@ -510,11 +527,15 @@ export function DocumentsScreen({ route, navigation }: Props) {
             </View>
           )}
           ListEmptyComponent={
-            !loading ? (
+            loading ? (
+              <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+                {t("common.loading")}
+              </Text>
+            ) : (
               <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
                 {t("documents.noAttachments")}
               </Text>
-            ) : null
+            )
           }
         />
       </View>
