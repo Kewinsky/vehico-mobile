@@ -1,0 +1,61 @@
+export const en = {
+  common: {
+    appName: 'Vehico',
+    continue: 'Continue',
+    cancel: 'Cancel',
+    save: 'Save',
+    signOut: 'Sign out',
+    loading: 'Loading…',
+    error: 'Something went wrong',
+  },
+  auth: {
+    title: 'Sign in',
+    emailLabel: 'Email',
+    emailPlaceholder: 'you@example.com',
+    passwordLabel: 'Password',
+    passwordPlaceholder: 'Your password',
+    signIn: 'Sign in',
+  },
+  vehicles: {
+    title: 'Vehicles',
+    emptyTitle: 'No vehicles yet',
+    emptyBody: 'Add your first car or motorcycle to start building a proof of care.',
+    addVehicle: 'Add vehicle',
+  },
+  vehicleForm: {
+    title: 'New vehicle',
+    type: 'Type',
+    car: 'Car',
+    motorcycle: 'Motorcycle',
+    titleLabel: 'Title',
+    titlePlaceholder: 'e.g. BMW 530d 2019',
+    vinLabel: 'VIN (optional)',
+    makeLabel: 'Make',
+    modelLabel: 'Model',
+    yearLabel: 'Production year',
+  },
+  timeline: {
+    addEntry: 'Add service entry',
+    emptyTitle: 'No service entries yet',
+    emptyBody: 'Add entries to build a trusted, chronological history.',
+  },
+  public: {
+    generate: 'Generate public link',
+    note: 'Not indexed by search engines (noindex). Anyone with the link can view it.',
+  },
+  paid: {
+    pdf: 'Generate PDF report (paid)',
+    ai: 'Generate resale listing (paid)',
+    ocr: 'Scan document with OCR (paid)',
+  },
+  entryForm: {
+    title: 'New service entry',
+    serviceDate: 'Service date',
+    mileage: 'Mileage (optional)',
+    entryTitle: 'Title',
+    description: 'Description',
+    cost: 'Cost (optional)',
+    ocrDisclaimer: 'OCR data may be inaccurate. Please review carefully.',
+  },
+};
+

@@ -1,0 +1,252 @@
+-- Vehico (MVP) schema for hosted Supabase
+-- Run this in Supabase Dashboard → SQL Editor.
+
+-- Extensions (needed for gen_random_uuid)
+create extension if not exists "pgcrypto";
+
+-- ================
+-- Tables
+-- ================
+
+-- Vehicles (cars + motorcycles)
+create table if not exists public.vehicles (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null default auth.uid(),
+  type text not null check (type in ('car', 'motorcycle')),
+  title text not null,
+  vin text,
+  make text not null,
+  model text not null,
+  production_year integer not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists vehicles_owner_id_idx on public.vehicles(owner_id);
+create index if not exists vehicles_created_at_idx on public.vehicles(created_at desc);
+
+-- Service entries (timeline)
+create table if not exists public.service_entries (
+  id uuid primary key default gen_random_uuid(),
+  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
+  service_date date not null,
+  mileage integer,
+  title text not null,
+  description text not null default '',
+  cost numeric,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists service_entries_vehicle_id_idx on public.service_entries(vehicle_id);
+create index if not exists service_entries_service_date_idx on public.service_entries(service_date desc);
+
+-- Attachments (receipts/invoices/photos) metadata
+create table if not exists public.attachments (
+  id uuid primary key default gen_random_uuid(),
+  service_entry_id uuid not null references public.service_entries(id) on delete cascade,
+  type text not null check (type in ('receipt', 'invoice', 'photo')),
+  storage_bucket text not null check (storage_bucket in ('images', 'documents')),
+  storage_path text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists attachments_service_entry_id_idx on public.attachments(service_entry_id);
+
+-- Public pages (share link stub)
+create table if not exists public.public_pages (
+  id uuid primary key default gen_random_uuid(),
+  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
+  public_id text not null default replace(gen_random_uuid()::text, '-', ''),
+  created_at timestamptz not null default now(),
+  unique (public_id)
+);
+
+create index if not exists public_pages_vehicle_id_idx on public.public_pages(vehicle_id);
+
+-- ================
+-- Row Level Security (RLS)
+-- ================
+
+alter table public.vehicles enable row level security;
+alter table public.service_entries enable row level security;
+alter table public.attachments enable row level security;
+alter table public.public_pages enable row level security;
+
+-- Vehicles: owner can CRUD
+drop policy if exists vehicles_select_own on public.vehicles;
+create policy vehicles_select_own
+on public.vehicles for select
+to authenticated
+using (owner_id = auth.uid());
+
+drop policy if exists vehicles_insert_own on public.vehicles;
+create policy vehicles_insert_own
+on public.vehicles for insert
+to authenticated
+with check (owner_id = auth.uid());
+
+drop policy if exists vehicles_update_own on public.vehicles;
+create policy vehicles_update_own
+on public.vehicles for update
+to authenticated
+using (owner_id = auth.uid())
+with check (owner_id = auth.uid());
+
+drop policy if exists vehicles_delete_own on public.vehicles;
+create policy vehicles_delete_own
+on public.vehicles for delete
+to authenticated
+using (owner_id = auth.uid());
+
+-- Service entries: allowed if the vehicle belongs to the user
+drop policy if exists service_entries_select_own_vehicle on public.service_entries;
+create policy service_entries_select_own_vehicle
+on public.service_entries for select
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = service_entries.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists service_entries_insert_own_vehicle on public.service_entries;
+create policy service_entries_insert_own_vehicle
+on public.service_entries for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = service_entries.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists service_entries_update_own_vehicle on public.service_entries;
+create policy service_entries_update_own_vehicle
+on public.service_entries for update
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = service_entries.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = service_entries.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists service_entries_delete_own_vehicle on public.service_entries;
+create policy service_entries_delete_own_vehicle
+on public.service_entries for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = service_entries.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- Attachments: allowed if the service entry belongs to a vehicle owned by user
+drop policy if exists attachments_select_own on public.attachments;
+create policy attachments_select_own
+on public.attachments for select
+to authenticated
+using (
+  exists (
+    select 1
+    from public.service_entries se
+    join public.vehicles v on v.id = se.vehicle_id
+    where se.id = attachments.service_entry_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists attachments_insert_own on public.attachments;
+create policy attachments_insert_own
+on public.attachments for insert
+to authenticated
+with check (
+  exists (
+    select 1
+    from public.service_entries se
+    join public.vehicles v on v.id = se.vehicle_id
+    where se.id = attachments.service_entry_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists attachments_delete_own on public.attachments;
+create policy attachments_delete_own
+on public.attachments for delete
+to authenticated
+using (
+  exists (
+    select 1
+    from public.service_entries se
+    join public.vehicles v on v.id = se.vehicle_id
+    where se.id = attachments.service_entry_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- Public pages: only owner can create/read (public read can be added later)
+drop policy if exists public_pages_select_own_vehicle on public.public_pages;
+create policy public_pages_select_own_vehicle
+on public.public_pages for select
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = public_pages.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists public_pages_insert_own_vehicle on public.public_pages;
+create policy public_pages_insert_own_vehicle
+on public.public_pages for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = public_pages.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- ================
+-- Storage (buckets + policies)
+-- ================
+-- NOTE: Creating buckets is often easiest in the Dashboard (Storage → New bucket).
+-- Buckets required by the app:
+-- - images
+-- - documents
+--
+-- After creating buckets, add permissive dev policies (tighten later):
+--   Dashboard → Storage → Policies → New policy (for each bucket)
+--
+-- Example SQL policies (requires access to storage schema):
+-- 1) Allow authenticated to read/write objects in these buckets.
+--    (If these statements fail in hosted Supabase due to permissions, create policies via UI instead.)
+--
+-- -- Read
+-- drop policy if exists "storage_read_images_documents" on storage.objects;
+-- create policy "storage_read_images_documents"
+-- on storage.objects for select
+-- to authenticated
+-- using (bucket_id in ('images', 'documents'));
+--
+-- -- Write
+-- drop policy if exists "storage_write_images_documents" on storage.objects;
+-- create policy "storage_write_images_documents"
+-- on storage.objects for insert
+-- to authenticated
+-- with check (bucket_id in ('images', 'documents'));
+

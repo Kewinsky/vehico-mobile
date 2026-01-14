@@ -1,0 +1,61 @@
+export const pl = {
+  common: {
+    appName: 'Vehico',
+    continue: 'Dalej',
+    cancel: 'Anuluj',
+    save: 'Zapisz',
+    signOut: 'Wyloguj',
+    loading: 'Ładowanie…',
+    error: 'Coś poszło nie tak',
+  },
+  auth: {
+    title: 'Zaloguj się',
+    emailLabel: 'E-mail',
+    emailPlaceholder: 'ty@przyklad.com',
+    passwordLabel: 'Hasło',
+    passwordPlaceholder: 'Twoje hasło',
+    signIn: 'Zaloguj się',
+  },
+  vehicles: {
+    title: 'Pojazdy',
+    emptyTitle: 'Brak pojazdów',
+    emptyBody: 'Dodaj pierwszy samochód lub motocykl, aby budować historię dbałości.',
+    addVehicle: 'Dodaj pojazd',
+  },
+  vehicleForm: {
+    title: 'Nowy pojazd',
+    type: 'Typ',
+    car: 'Samochód',
+    motorcycle: 'Motocykl',
+    titleLabel: 'Tytuł',
+    titlePlaceholder: 'np. BMW 530d 2019',
+    vinLabel: 'VIN (opcjonalnie)',
+    makeLabel: 'Marka',
+    modelLabel: 'Model',
+    yearLabel: 'Rok produkcji',
+  },
+  timeline: {
+    addEntry: 'Dodaj wpis serwisowy',
+    emptyTitle: 'Brak wpisów serwisowych',
+    emptyBody: 'Dodaj wpisy, aby zbudować zaufaną, chronologiczną historię.',
+  },
+  public: {
+    generate: 'Generuj link publiczny',
+    note: 'Nie jest indeksowane przez wyszukiwarki (noindex). Każdy z linkiem może to zobaczyć.',
+  },
+  paid: {
+    pdf: 'Generuj raport PDF (płatne)',
+    ai: 'Generuj opis sprzedażowy (płatne)',
+    ocr: 'Skanuj dokument OCR (płatne)',
+  },
+  entryForm: {
+    title: 'Nowy wpis serwisowy',
+    serviceDate: 'Data serwisu',
+    mileage: 'Przebieg (opcjonalnie)',
+    entryTitle: 'Tytuł',
+    description: 'Opis',
+    cost: 'Koszt (opcjonalnie)',
+    ocrDisclaimer: 'Dane z OCR mogą być niedokładne. Sprawdź je uważnie.',
+  },
+};
+

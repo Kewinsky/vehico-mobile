@@ -1,0 +1,10 @@
+- tracker i statystyki wydatkow/spalania/tankowania
+- import/export danych json/csv
+- przypomnienia
+- ustawienia (waluta, jednostka, tryb jasny/ciemny)
+- poprawic nawigacje dla inputow, klikajac na zewnatrz inputa powinno wylaczyc focus
+- usuwanie vehicles, uplodaded photos
+- widok kafelek col-2 z ikonami
+- mozliwosc podgladu zdjecia
+- dodawanie zdjecia swojego auta
+- dla niedostepnych jeszcze funkcji np. ocr, ai generator, pdf report generator zwroc odpowiednia wiadomosc
