@@ -13,6 +13,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
+import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "AddAttachment">;
 
@@ -32,7 +33,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       const data = await listServiceEntries(vehicleId);
       setItems(data);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setLoading(false);
     }
@@ -82,7 +83,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       await uploadTo(serviceEntryId, { uri: asset.uri, mimeType: asset.mimeType, fileName: asset.fileName });
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setUploading(false);
     }
@@ -100,7 +101,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       await uploadTo(serviceEntryId, { uri: asset.uri, mimeType: asset.mimeType, fileName: asset.fileName });
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setUploading(false);
     }
@@ -120,7 +121,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       await uploadTo(serviceEntryId, { uri: asset.uri, mimeType: asset.mimeType, fileName: asset.name });
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setUploading(false);
     }

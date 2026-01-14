@@ -1,12 +1,4 @@
-import {
-  Alert,
-  FlatList,
-  Linking,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, FlatList, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
@@ -39,6 +31,7 @@ import {
   uploadVehicleDocument,
 } from "../services/vehicleDocuments/vehicleDocumentsRepo";
 import { Button } from "../ui/components/Button";
+import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
@@ -63,7 +56,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       setVehicleDocs(d);
       setAttachments(a);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setLoading(false);
     }
@@ -81,7 +74,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       const url = await createSignedUrl(bucket, path);
       await Linking.openURL(url);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     }
   }
 
@@ -141,7 +134,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setUploading(false);
     }
@@ -166,7 +159,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setUploading(false);
     }
@@ -190,7 +183,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setUploading(false);
     }
@@ -217,7 +210,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setUploading(false);
     }
@@ -242,7 +235,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setUploading(false);
     }
@@ -262,7 +255,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
               await deleteVehicleDocument(doc);
               setVehicleDocs((prev) => prev.filter((x) => x.id !== doc.id));
             } catch (e: any) {
-              Alert.alert(t("common.error"), e?.message ?? String(e));
+              toastError(t("common.error"), e?.message ?? String(e));
             }
           },
         },
@@ -284,7 +277,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
               await deleteVehiclePhoto(photo);
               setPhotos((prev) => prev.filter((x) => x.id !== photo.id));
             } catch (e: any) {
-              Alert.alert(t("common.error"), e?.message ?? String(e));
+              toastError(t("common.error"), e?.message ?? String(e));
             }
           },
         },
@@ -306,7 +299,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
               await deleteAttachment(att);
               setAttachments((prev) => prev.filter((x) => x.id !== att.id));
             } catch (e: any) {
-              Alert.alert(t("common.error"), e?.message ?? String(e));
+              toastError(t("common.error"), e?.message ?? String(e));
             }
           },
         },

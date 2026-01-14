@@ -13,6 +13,7 @@ import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
+import { toastError, toastSuccess } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "DataPortability">;
 
@@ -76,7 +77,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
         message: json,
       });
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setExporting(false);
     }
@@ -135,9 +136,9 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
                   });
                 }
                 setCsv("");
-                Alert.alert(t("dataPortability.importDoneTitle"), t("dataPortability.importDoneBody"));
+                toastSuccess(t("dataPortability.importDoneTitle"), t("dataPortability.importDoneBody"));
               } catch (err: any) {
-                Alert.alert(t("common.error"), err?.message ?? String(err));
+                toastError(t("common.error"), err?.message ?? String(err));
               } finally {
                 setImporting(false);
               }
@@ -146,7 +147,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
         ],
       );
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     }
   }
 

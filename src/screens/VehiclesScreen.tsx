@@ -18,6 +18,7 @@ import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { AppHeader } from "../ui/components/AppHeader";
 import { useTheme } from "../ui/ThemeProvider";
+import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 
@@ -29,13 +30,19 @@ export function VehiclesScreen({ navigation }: Props) {
   const [items, setItems] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
 
+  function onSignOut() {
+    signOut().catch((e: any) => {
+      toastError(t("common.error"), e?.message ?? String(e));
+    });
+  }
+
   const load = useCallback(async () => {
     try {
       setLoading(true);
       const data = await listVehicles();
       setItems(data);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setLoading(false);
     }
@@ -60,7 +67,7 @@ export function VehiclesScreen({ navigation }: Props) {
           >
             <Text style={styles.actionText}>{t("common.settings")}</Text>
           </Pressable>
-          <Pressable onPress={() => void signOut()} hitSlop={10}>
+          <Pressable onPress={onSignOut} hitSlop={10}>
             <Text style={styles.actionText}>{t("common.signOut")}</Text>
           </Pressable>
         </View>

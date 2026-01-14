@@ -21,6 +21,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FuelingEntry } from "../types/domain";
 import { Button } from "../ui/components/Button";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "FuelCosts">;
 
@@ -41,7 +42,7 @@ export function FuelCostsScreen({ route, navigation }: Props) {
       const f = await listFuelingEntries(route.params.vehicleId);
       setFueling(f);
     } catch (err: any) {
-      Alert.alert(t("common.error"), err?.message ?? String(err));
+      toastError(t("common.error"), err?.message ?? String(err));
     } finally {
       setLoading(false);
     }
@@ -73,7 +74,7 @@ export function FuelCostsScreen({ route, navigation }: Props) {
               await deleteFuelingEntry(id);
               setFueling((prev) => prev.filter((x) => x.id !== id));
             } catch (err: any) {
-              Alert.alert(t("common.error"), err?.message ?? String(err));
+              toastError(t("common.error"), err?.message ?? String(err));
             }
           },
         },

@@ -26,6 +26,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryDetail">;
 
@@ -49,7 +50,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
       const data = await listAttachments(entryId);
       setItems(data);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setLoading(false);
     }
@@ -64,7 +65,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
       const url = await createSignedUrl(att.storage_bucket, att.storage_path);
       await Linking.openURL(url);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     }
   }
 
@@ -79,7 +80,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
             await deleteServiceEntry(entryId);
             navigation.goBack();
           } catch (e: any) {
-            Alert.alert(t("common.error"), e?.message ?? String(e));
+            toastError(t("common.error"), e?.message ?? String(e));
           }
         },
       },

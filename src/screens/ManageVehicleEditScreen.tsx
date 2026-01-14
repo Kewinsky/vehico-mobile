@@ -26,6 +26,7 @@ import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
+import { toastError, toastSuccess } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicleEdit">;
 
@@ -59,7 +60,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       const p = await listVehiclePhotos(vehicleId);
       setPhotos(p);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setLoading(false);
     }
@@ -91,13 +92,9 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
         production_year,
       });
       setVehicle(updated);
-      Alert.alert(
-        t("manageVehicle.saveSuccessTitle"),
-        t("manageVehicle.saveSuccessBody")
-      );
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setSaving(false);
     }
@@ -118,7 +115,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       const p = await listVehiclePhotos(vehicleId);
       setPhotos(p);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     }
   }
 
@@ -130,7 +127,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       );
       await Linking.openURL(url);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     }
   }
 
@@ -148,7 +145,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
               await deleteVehiclePhoto(photo);
               setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
             } catch (e: any) {
-              Alert.alert(t("common.error"), e?.message ?? String(e));
+              toastError(t("common.error"), e?.message ?? String(e));
             }
           },
         },

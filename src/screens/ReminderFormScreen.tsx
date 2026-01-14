@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +12,7 @@ import { FormScreen } from '../ui/components/FormScreen';
 import { TextField } from '../ui/components/TextField';
 import { useTheme } from '../ui/ThemeProvider';
 import { useUserSettings } from '../app/providers/UserSettingsProvider';
+import { toastError } from '../ui/toast/toast';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'ReminderForm'>;
 
@@ -39,7 +40,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         if (r.type === 'mileage' && r.due_mileage != null) setDueMileage(String(r.due_mileage));
         setTitle(r.note ?? '');
       } catch (err: any) {
-        Alert.alert(t('common.error'), err?.message ?? String(err));
+        toastError(t('common.error'), err?.message ?? String(err));
       }
     })();
   }, [reminderId, t]);
@@ -68,7 +69,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       else await createReminder(payload);
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert(t('common.error'), e?.message ?? String(e));
+      toastError(t('common.error'), e?.message ?? String(e));
     } finally {
       setSaving(false);
     }

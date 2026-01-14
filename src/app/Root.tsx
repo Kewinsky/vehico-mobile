@@ -6,6 +6,7 @@ import { RootNavigator } from "./navigation/RootNavigator";
 import { AuthProvider } from "./providers/AuthProvider";
 import { UserSettingsProvider } from "./providers/UserSettingsProvider";
 import { ThemeProvider } from "../ui/ThemeProvider";
+import { AppToasts } from "../ui/toast/AppToasts";
 
 export function Root() {
   return (
@@ -15,6 +16,7 @@ export function Root() {
           <NavigationContainer>
             <RootNavigator />
           </NavigationContainer>
+          <AppToasts />
         </ThemeProvider>
       </UserSettingsProvider>
     </AuthProvider>

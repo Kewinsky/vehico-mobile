@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +15,7 @@ import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "FuelingEntryForm">;
 
@@ -43,7 +44,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         setFuelAmount(String(e.fuel_amount));
         setFuelCost(String(e.fuel_cost));
       } catch (err: any) {
-        Alert.alert(t("common.error"), err?.message ?? String(err));
+        toastError(t("common.error"), err?.message ?? String(err));
       }
     })();
   }, [entryId, t]);
@@ -71,7 +72,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       else await createFuelingEntry(payload as any);
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setSaving(false);
     }

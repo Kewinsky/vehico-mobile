@@ -196,8 +196,6 @@ export const en = {
     makeLabel: "Make",
     modelLabel: "Model",
     yearLabel: "Production year",
-    saveSuccessTitle: "Saved",
-    saveSuccessBody: "Vehicle updated.",
     photosTitle: "Vehicle photos",
     photosSubtitle: "These are separate from service entry attachments.",
     addPhoto: "Add photo",

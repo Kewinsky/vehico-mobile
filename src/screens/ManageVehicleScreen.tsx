@@ -20,6 +20,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
+import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicle">;
 
@@ -41,7 +42,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
       const p = await listVehiclePhotos(vehicleId);
       setPhotos(p);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setLoading(false);
     }
@@ -65,7 +66,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
               await deleteVehicle(vehicleId);
               navigation.popToTop();
             } catch (e: any) {
-              Alert.alert(t("common.error"), e?.message ?? String(e));
+              toastError(t("common.error"), e?.message ?? String(e));
             }
           },
         },
@@ -81,7 +82,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
       );
       await Linking.openURL(url);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     }
   }
 
@@ -100,12 +101,6 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
           <Text style={styles.editLink}>{t("common.edit")}</Text>
         </Pressable>
       </View>
-      {vehicle?.title ? (
-        <Text style={styles.headerSubtitle}>{vehicle.title}</Text>
-      ) : null}
-      {!!loading && (
-        <Text style={styles.muted}>{t("manageVehicle.loading")}</Text>
-      )}
 
       {vehicle ? (
         <>

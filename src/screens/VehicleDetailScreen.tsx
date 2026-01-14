@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Alert,
   FlatList,
   Pressable,
   StyleSheet,
@@ -19,6 +18,7 @@ import { Screen } from "../ui/components/Screen";
 import { TimelineItem } from "../ui/components/TimelineItem";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDetail">;
 
@@ -44,7 +44,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
       const data = await listServiceEntries(vehicleId);
       setItems(data);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setLoading(false);
     }

@@ -21,6 +21,7 @@ import {
 } from "../services/reminders/remindersRepo";
 import { Button } from "../ui/components/Button";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Reminders">;
 
@@ -38,7 +39,7 @@ export function RemindersScreen({ route, navigation }: Props) {
       const data = await listReminders(route.params.vehicleId);
       setItems(data);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setLoading(false);
     }
@@ -62,7 +63,7 @@ export function RemindersScreen({ route, navigation }: Props) {
             await deleteReminder(id);
             setItems((prev) => prev.filter((x) => x.id !== id));
           } catch (err: any) {
-            Alert.alert(t("common.error"), err?.message ?? String(err));
+            toastError(t("common.error"), err?.message ?? String(err));
           }
         },
       },

@@ -32,6 +32,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
+import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryForm">;
 
@@ -70,7 +71,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         const atts = await listAttachments(entryId);
         setAttachments(atts);
       } catch (err: any) {
-        Alert.alert(t("common.error"), err?.message ?? String(err));
+        toastError(t("common.error"), err?.message ?? String(err));
       }
     })();
   }, [entryId, t]);
@@ -80,7 +81,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       const url = await createSignedUrl(att.storage_bucket, att.storage_path);
       await Linking.openURL(url);
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      toastError(t("common.error"), e?.message ?? String(e));
     }
   }
 
@@ -98,7 +99,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               await deleteAttachment(att);
               setAttachments((prev) => prev.filter((x) => x.id !== att.id));
             } catch (e: any) {
-              Alert.alert(t("common.error"), e?.message ?? String(e));
+              toastError(t("common.error"), e?.message ?? String(e));
             }
           },
         },

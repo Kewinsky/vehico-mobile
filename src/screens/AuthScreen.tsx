@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { supabase } from '../services/supabase/client';
@@ -8,6 +8,7 @@ import { AppHeader } from '../ui/components/AppHeader';
 import { FormScreen } from '../ui/components/FormScreen';
 import { TextField } from '../ui/components/TextField';
 import { useTheme } from '../ui/ThemeProvider';
+import { toastError } from '../ui/toast/toast';
 
 export function AuthScreen() {
   const { t } = useTranslation();
@@ -33,7 +34,7 @@ export function AuthScreen() {
 
       if (error) throw error;
     } catch (e: any) {
-      Alert.alert(t('common.error'), e?.message ?? String(e));
+      toastError(t('common.error'), e?.message ?? String(e));
     } finally {
       setIsSubmitting(false);
     }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 
@@ -11,6 +11,7 @@ import { AppHeader } from '../ui/components/AppHeader';
 import { FormScreen } from '../ui/components/FormScreen';
 import { TextField } from '../ui/components/TextField';
 import { useTheme } from '../ui/ThemeProvider';
+import { toastError } from '../ui/toast/toast';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'VehicleForm'>;
 
@@ -46,7 +47,7 @@ export function VehicleFormScreen({ navigation }: Props) {
 
       navigation.replace('VehicleDetail', { vehicleId: created.id, title: created.title });
     } catch (e: any) {
-      Alert.alert(t('common.error'), e?.message ?? String(e));
+      toastError(t('common.error'), e?.message ?? String(e));
     } finally {
       setSaving(false);
     }

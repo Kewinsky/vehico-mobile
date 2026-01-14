@@ -8,6 +8,7 @@ import { Screen } from '../ui/components/Screen';
 import type { UserSettings } from '../app/providers/UserSettingsProvider';
 import { useUserSettings } from '../app/providers/UserSettingsProvider';
 import { useTheme } from '../ui/ThemeProvider';
+import { toastError } from '../ui/toast/toast';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Settings'>;
 
@@ -20,7 +21,7 @@ export function SettingsScreen({ navigation }: Props) {
     try {
       await setSettings({ [key]: value } as Partial<UserSettings>);
     } catch (e: any) {
-      Alert.alert(t('common.error'), e?.message ?? String(e));
+      toastError(t('common.error'), e?.message ?? String(e));
     }
   }
 
