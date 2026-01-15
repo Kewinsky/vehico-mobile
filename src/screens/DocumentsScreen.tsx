@@ -42,6 +42,7 @@ import { Button } from "../ui/components/Button";
 import { toastError } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
+import { TextField } from "../ui/components/TextField";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
@@ -53,6 +54,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
   const [attachments, setAttachments] = useState<VehicleAttachment[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -331,6 +333,16 @@ export function DocumentsScreen({ route, navigation }: Props) {
         </Text>
 
         <View style={{ height: 12 }} />
+        <TextField
+          noMarginTop
+          value={query}
+          onChangeText={setQuery}
+          placeholder={t("documents.searchPlaceholder")}
+          autoCapitalize="none"
+          autoCorrect={false}
+          clearButtonMode="while-editing"
+        />
+        <View style={{ height: 12 }} />
         <Button
           onPress={() =>
             navigation.navigate("AddAttachment", {
@@ -361,7 +373,12 @@ export function DocumentsScreen({ route, navigation }: Props) {
         </Text>
         <View style={{ height: theme.spacing.sm }} />
         <FlatList
-          data={photos}
+          data={photos.filter((p) => {
+            const q = query.trim().toLowerCase();
+            if (!q.length) return true;
+            const name = p.storage_path.split("/").slice(-1)[0] ?? "";
+            return name.toLowerCase().includes(q);
+          })}
           keyExtractor={(p) => p.id}
           scrollEnabled={false}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
@@ -414,7 +431,13 @@ export function DocumentsScreen({ route, navigation }: Props) {
         </Text>
         <View style={{ height: theme.spacing.sm }} />
         <FlatList
-          data={vehicleDocs}
+          data={vehicleDocs.filter((d) => {
+            const q = query.trim().toLowerCase();
+            if (!q.length) return true;
+            const name = d.storage_path.split("/").slice(-1)[0] ?? "";
+            const hay = `${d.storage_bucket}/${name}`.toLowerCase();
+            return hay.includes(q);
+          })}
           keyExtractor={(d) => d.id}
           scrollEnabled={false}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
@@ -468,7 +491,13 @@ export function DocumentsScreen({ route, navigation }: Props) {
         </Text>
         <View style={{ height: theme.spacing.sm }} />
         <FlatList
-          data={attachments}
+          data={attachments.filter((a) => {
+            const q = query.trim().toLowerCase();
+            if (!q.length) return true;
+            const file = a.storage_path.split("/").slice(-1)[0] ?? "";
+            const hay = `${a.serviceEntryTitle ?? ""}\n${file}`.toLowerCase();
+            return hay.includes(q);
+          })}
           keyExtractor={(a) => a.id}
           scrollEnabled={false}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}

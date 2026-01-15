@@ -24,6 +24,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
+import { TextField } from "../ui/components/TextField";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Reminders">;
 
@@ -35,6 +36,7 @@ export function RemindersScreen({ route, navigation }: Props) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const distanceUnit = settings?.distanceUnit ?? "km";
+  const [query, setQuery] = useState("");
 
   const load = useCallback(async (opts?: { refreshing?: boolean }) => {
     try {
@@ -89,6 +91,16 @@ export function RemindersScreen({ route, navigation }: Props) {
         </Text>
 
         <View style={{ height: 12 }} />
+        <TextField
+          noMarginTop
+          value={query}
+          onChangeText={setQuery}
+          placeholder={t("reminders.searchPlaceholder")}
+          autoCapitalize="none"
+          autoCorrect={false}
+          clearButtonMode="while-editing"
+        />
+        <View style={{ height: 12 }} />
         <Button
           onPress={() =>
             navigation.navigate("ReminderForm", {
@@ -101,7 +113,12 @@ export function RemindersScreen({ route, navigation }: Props) {
 
         <View style={{ height: 14 }} />
         <FlatList
-          data={items}
+          data={items.filter((r) => {
+            const q = query.trim().toLowerCase();
+            if (!q.length) return true;
+            const hay = `${r.title ?? ""}\n${r.notes ?? ""}`.toLowerCase();
+            return hay.includes(q);
+          })}
           keyExtractor={(r) => r.id}
           refreshing={refreshing}
           onRefresh={() => void load({ refreshing: true })}
@@ -120,14 +137,14 @@ export function RemindersScreen({ route, navigation }: Props) {
                 <Pressable
                   style={{ flex: 1 }}
                   onPress={() =>
-                    navigation.navigate("ReminderForm", {
+                    navigation.navigate("ReminderDetail", {
                       vehicleId: route.params.vehicleId,
                       reminderId: item.id,
                     })
                   }
                 >
                   <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
-                    {item.note ?? ""}
+                    {item.title ?? ""}
                   </Text>
                   <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
                     {item.type === "time"
@@ -137,6 +154,14 @@ export function RemindersScreen({ route, navigation }: Props) {
                           unit: distanceUnit,
                         })}
                   </Text>
+                  {item.notes ? (
+                    <Text
+                      style={{ color: theme.colors.muted, marginTop: 6, lineHeight: 18 }}
+                      numberOfLines={3}
+                    >
+                      {item.notes}
+                    </Text>
+                  ) : null}
                 </Pressable>
                 <IconButton onPress={() => confirmDelete(item.id)} variant="danger">
                   <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />

@@ -7,24 +7,42 @@ export function TimelineItem({
   title,
   subtitle,
   chevron = true,
+  tone = 'default',
 }: {
   dateLabel: string;
   title: string;
   subtitle?: string;
   chevron?: boolean;
+  tone?: 'default' | 'reminder';
 }) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
+  const isReminder = tone === 'reminder';
   return (
     <View style={styles.row}>
       <View style={styles.rail}>
-        <View style={styles.dot} />
+        <View
+          style={[
+            styles.dot,
+            isReminder ? { backgroundColor: theme.colors.muted } : null,
+          ]}
+        />
         <View style={styles.line} />
       </View>
       <View style={styles.card}>
         <View style={styles.cardRow}>
           <View style={styles.cardMain}>
-            <View style={styles.datePill}>
+            <View
+              style={[
+                styles.datePill,
+                isReminder
+                  ? {
+                      backgroundColor: theme.colors.card,
+                      borderColor: theme.colors.muted,
+                    }
+                  : null,
+              ]}
+            >
               <Text style={styles.date}>{dateLabel}</Text>
             </View>
             <Text style={styles.title}>{title}</Text>

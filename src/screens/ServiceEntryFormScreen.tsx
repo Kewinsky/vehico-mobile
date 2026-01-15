@@ -14,7 +14,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import type { Attachment } from "../types/domain";
+import type { Attachment, ServiceEntryCategory } from "../types/domain";
 import {
   createServiceEntry,
   getServiceEntry,
@@ -51,6 +51,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     new Date().toISOString().slice(0, 10)
   );
   const [mileage, setMileage] = useState("");
+  const [category, setCategory] = useState<ServiceEntryCategory | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [cost, setCost] = useState("");
@@ -79,6 +80,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         const e = await getServiceEntry(entryId);
         setServiceDate(e.service_date);
         setMileage(e.mileage != null ? String(e.mileage) : "");
+        setCategory((e.category as ServiceEntryCategory | null) ?? "other");
         setTitle(e.title);
         setDescription(e.description ?? "");
         setCost(e.cost != null ? String(e.cost) : "");
@@ -121,8 +123,12 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }
 
   const canSave = useMemo(() => {
-    return serviceDate.trim().length === 10 && title.trim().length > 0;
-  }, [serviceDate, title]);
+    return (
+      serviceDate.trim().length === 10 &&
+      title.trim().length > 0 &&
+      category != null
+    );
+  }, [serviceDate, title, category]);
 
   function pickAttachment() {
     Alert.alert(
@@ -254,10 +260,12 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   async function onSave() {
     try {
       setSaving(true);
+      if (!category) throw new Error(t("entryForm.categoryRequired"));
       const payload = {
         vehicle_id: vehicleId,
         service_date: serviceDate.trim(),
         mileage: mileage.trim().length ? Number(mileage) : null,
+        category,
         title: title.trim(),
         description: description.trim(),
         cost: cost.trim().length ? Number(cost) : null,
@@ -307,6 +315,44 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         onChange={setServiceDate}
         disabled={saving || uploading}
       />
+
+      <View style={{ height: 12 }} />
+      <Text style={styles.label}>{t("entryForm.category")}</Text>
+      <View style={styles.categoryGrid}>
+        {(
+          [
+            "maintenance",
+            "repair",
+            "inspection",
+            "upgrade",
+            "other",
+          ] as const
+        ).map((c) => {
+          const selected = category === c;
+          const borderColor =
+            category == null ? theme.colors.danger : theme.colors.border;
+          return (
+            <Pressable
+              key={c}
+              onPress={() => setCategory(c)}
+              style={[
+                styles.categoryChip,
+                { borderColor },
+                selected && { borderColor: theme.colors.fg },
+              ]}
+            >
+              <Text
+                style={{
+                  color: selected ? theme.colors.fg : theme.colors.muted,
+                  fontWeight: "800",
+                }}
+              >
+                {t(`entryForm.categories.${c}` as any)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
       <TextField
         label={`${t("entryForm.mileage")} (${distanceUnit})`}
@@ -433,6 +479,7 @@ const makeStyles = (theme: any) =>
       marginBottom: 12,
       color: theme.colors.fg,
     },
+    label: { fontSize: 13, fontWeight: "800", color: theme.colors.muted },
     h2: { fontSize: 16, fontWeight: "800", color: theme.colors.fg },
     sectionHeader: { gap: 6 },
     muted: { marginTop: 6, color: theme.colors.muted, lineHeight: 20 },
@@ -469,5 +516,18 @@ const makeStyles = (theme: any) =>
       height: 96,
       paddingTop: 12,
       textAlignVertical: "top",
+    },
+    categoryGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 10,
+      marginTop: 8,
+    },
+    categoryChip: {
+      borderWidth: 1,
+      borderRadius: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      backgroundColor: theme.colors.card,
     },
   });

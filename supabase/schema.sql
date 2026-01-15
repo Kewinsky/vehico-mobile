@@ -30,6 +30,7 @@ create table if not exists public.service_entries (
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   service_date date not null,
   mileage integer,
+  category text not null default 'other',
   title text not null,
   description text not null default '',
   cost numeric,
@@ -87,7 +88,8 @@ create table if not exists public.reminders (
   type text not null check (type in ('time', 'mileage')),
   due_date date,
   due_mileage integer,
-  note text,
+  title text,
+  notes text,
   channel_email boolean not null default true,
   channel_push boolean not null default true,
   enabled boolean not null default true,
@@ -101,6 +103,33 @@ create table if not exists public.reminders (
 );
 
 create index if not exists reminders_vehicle_id_idx on public.reminders(vehicle_id);
+
+-- Backfill / migrate: note -> title (rename only if needed)
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'reminders'
+      and column_name = 'note'
+  ) and not exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'reminders'
+      and column_name = 'title'
+  ) then
+    alter table public.reminders rename column note to title;
+  end if;
+end $$;
+
+-- Ensure optional notes + title exist even if table already existed
+alter table public.reminders
+  add column if not exists title text;
+
+alter table public.reminders
+  add column if not exists notes text;
 
 -- User settings (persist per user)
 create table if not exists public.user_settings (

@@ -1,10 +1,11 @@
 import { supabase } from '../supabase/client';
-import type { ServiceEntry } from '../../types/domain';
+import type { ServiceEntry, ServiceEntryCategory } from '../../types/domain';
 
 type NewServiceEntryInput = {
   vehicle_id: string;
   service_date: string;
   mileage: number | null;
+  category: ServiceEntryCategory;
   title: string;
   description: string;
   cost: number | null;

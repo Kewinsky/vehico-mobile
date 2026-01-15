@@ -30,6 +30,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const distanceUnit = settings?.distanceUnit ?? "km";
 
   const [title, setTitle] = useState("");
+  const [notes, setNotes] = useState("");
   const [type, setType] = useState<ReminderType>("time");
   const [dueDate, setDueDate] = useState(() =>
     new Date().toISOString().slice(0, 10)
@@ -46,7 +47,8 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         if (r.type === "time" && r.due_date) setDueDate(r.due_date);
         if (r.type === "mileage" && r.due_mileage != null)
           setDueMileage(String(r.due_mileage));
-        setTitle(r.note ?? "");
+        setTitle(r.title ?? "");
+        setNotes(r.notes ?? "");
       } catch (err: any) {
         toastError(t("common.error"), err?.message ?? String(err));
       }
@@ -67,8 +69,8 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         type,
         due_date: type === "time" ? dueDate.trim() : null,
         due_mileage: type === "mileage" ? Number(dueMileage) : null,
-        // Map "Title" to the existing DB `note` field (no schema change needed)
-        note: title.trim(),
+        title: title.trim(),
+        notes: notes.trim().length ? notes.trim() : null,
         channel_email: true,
         channel_push: true,
         enabled: true,
@@ -96,6 +98,16 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         label={t("reminderForm.titleLabel")}
         value={title}
         onChangeText={setTitle}
+      />
+
+      <View style={{ height: 14 }} />
+      <TextField
+        noMarginTop
+        label={t("reminderForm.notesLabel")}
+        value={notes}
+        onChangeText={setNotes}
+        multiline
+        style={styles.multiline}
       />
 
       <View style={{ height: 14 }} />
@@ -168,6 +180,11 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     h1: { fontSize: 22, fontWeight: "800", color: theme.colors.fg },
     label: { fontSize: 13, fontWeight: "800", color: theme.colors.muted },
+    multiline: {
+      height: 84,
+      paddingTop: 12,
+      textAlignVertical: "top",
+    },
     // One row, two columns for reminder type selection
     row: { flexDirection: "row", gap: 10, marginTop: 8 },
     choice: {

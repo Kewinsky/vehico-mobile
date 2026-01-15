@@ -108,6 +108,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
 
       const header = [
         "service_date",
+        "category",
         "title",
         "description",
         "mileage",
@@ -115,6 +116,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
       ];
       const rows = serviceEntries.map((e) => [
         csvEscape(String(e.service_date).slice(0, 10)),
+        csvEscape((e as any).category ?? "other"),
         csvEscape(e.title ?? ""),
         csvEscape(e.description ?? ""),
         csvEscape(e.mileage ?? ""),
@@ -148,6 +150,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
       const header = parseCsvLine(lines[0] ?? "").map((x) => x.toLowerCase());
       const idx = (name: string) => header.indexOf(name);
       const iDate = idx("service_date");
+      const iCategory = idx("category");
       const iTitle = idx("title");
       const iDesc = idx("description");
       const iMileage = idx("mileage");
@@ -159,6 +162,10 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
       const toCreate = rows
         .map((r) => ({
           service_date: r[iDate] ?? "",
+          category:
+            iCategory >= 0 && (r[iCategory] ?? "").trim().length
+              ? (r[iCategory] ?? "").trim().toLowerCase()
+              : "other",
           title: r[iTitle] ?? "",
           description: iDesc >= 0 ? r[iDesc] ?? "" : "",
           mileage:
@@ -192,6 +199,15 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
                     mileage: Number.isFinite(e.mileage as any)
                       ? (e.mileage as any)
                       : null,
+                    category: ([
+                      "maintenance",
+                      "repair",
+                      "inspection",
+                      "upgrade",
+                      "other",
+                    ] as const).includes(e.category as any)
+                      ? (e.category as any)
+                      : "other",
                     title: e.title.trim(),
                     description: (e.description ?? "").trim(),
                     cost: Number.isFinite(e.cost as any)

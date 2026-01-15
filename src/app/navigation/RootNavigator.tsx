@@ -15,6 +15,7 @@ import { FuelCostsScreen } from "../../screens/FuelCostsScreen";
 import { FuelingEntryFormScreen } from "../../screens/FuelingEntryFormScreen";
 import { RemindersScreen } from "../../screens/RemindersScreen";
 import { ReminderFormScreen } from "../../screens/ReminderFormScreen";
+import { ReminderDetailScreen } from "../../screens/ReminderDetailScreen";
 import { ServiceEntryDetailScreen } from "../../screens/ServiceEntryDetailScreen";
 import { ServiceEntryFormScreen } from "../../screens/ServiceEntryFormScreen";
 import { SettingsScreen } from "../../screens/SettingsScreen";
@@ -41,6 +42,7 @@ export type AppStackParamList = {
   ServiceEntryDetail: { vehicleId: string; entryId: string };
   FuelingEntryForm: { vehicleId: string; entryId?: string };
   ReminderForm: { vehicleId: string; reminderId?: string };
+  ReminderDetail: { vehicleId: string; reminderId: string };
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -78,6 +80,7 @@ export function RootNavigator() {
           />
           <Stack.Screen name="Reminders" component={RemindersScreen} />
           <Stack.Screen name="ReminderForm" component={ReminderFormScreen} />
+          <Stack.Screen name="ReminderDetail" component={ReminderDetailScreen} />
           <Stack.Screen name="Share" component={ShareScreen} />
           <Stack.Screen name="ManageVehicle" component={ManageVehicleScreen} />
           <Stack.Screen

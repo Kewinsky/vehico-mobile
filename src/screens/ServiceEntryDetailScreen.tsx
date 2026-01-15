@@ -121,6 +121,14 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
                 {String(entry.service_date).slice(0, 10)}
               </Text>
             </View>
+            {entry.category ? (
+              <View style={styles.row}>
+                <Text style={styles.label}>{t("entryDetail.labels.category")}</Text>
+                <Text style={styles.value}>
+                  {t(`entryForm.categories.${entry.category}` as any)}
+                </Text>
+              </View>
+            ) : null}
             {entry.mileage != null ? (
               <View style={styles.row}>
                 <Text style={styles.label}>

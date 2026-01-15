@@ -17,11 +17,19 @@ export type ServiceEntry = {
   vehicle_id: string;
   service_date: string; // ISO date
   mileage: number | null;
+  category: ServiceEntryCategory | null;
   title: string;
   description: string;
   cost: number | null;
   created_at: string;
 };
+
+export type ServiceEntryCategory =
+  | 'maintenance'
+  | 'repair'
+  | 'inspection'
+  | 'upgrade'
+  | 'other';
 
 export type AttachmentType = 'receipt' | 'invoice' | 'photo';
 
@@ -98,7 +106,8 @@ export type Reminder = {
   type: ReminderType;
   due_date: string | null;
   due_mileage: number | null;
-  note: string | null;
+  title: string | null;
+  notes: string | null;
   channel_email: boolean;
   channel_push: boolean;
   enabled: boolean;
