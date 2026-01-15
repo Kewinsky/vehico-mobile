@@ -22,6 +22,8 @@ import type { FuelingEntry } from "../types/domain";
 import { Button } from "../ui/components/Button";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
+import { IconButton } from "../ui/components/IconButton";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "FuelCosts">;
 
@@ -162,17 +164,9 @@ export function FuelCostsScreen({ route, navigation }: Props) {
                     {Number(item.fuel_cost).toFixed(2)} {currency}
                   </Text>
                 </Pressable>
-                <Pressable
-                  onPress={() => confirmDeleteFueling(item.id)}
-                  hitSlop={10}
-                  style={styles.trash}
-                >
-                  <Text
-                    style={{ color: theme.colors.danger, fontWeight: "900" }}
-                  >
-                    🗑
-                  </Text>
-                </Pressable>
+                <IconButton onPress={() => confirmDeleteFueling(item.id)} variant="danger">
+                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
+                </IconButton>
               </View>
             </View>
           )}
@@ -204,11 +198,4 @@ const styles = StyleSheet.create({
   value: { fontWeight: "800" },
   card: { borderWidth: 1, borderRadius: 12, padding: 16 },
   cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  trash: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
 });

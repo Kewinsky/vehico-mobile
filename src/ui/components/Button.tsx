@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text } from 'react-native';
 
 import { useTheme } from '../ThemeProvider';
 
@@ -47,26 +47,45 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     base: {
       height: 48,
-      borderRadius: 10,
+      borderRadius: theme.radius.md,
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1,
+      alignSelf: 'stretch',
+      width: '100%',
     },
     primary: {
       backgroundColor: theme.colors.fg,
       borderColor: theme.colors.fg,
+      ...(Platform.OS === 'ios'
+        ? {
+            shadowColor: '#000',
+            shadowOpacity: 0.12,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 6 },
+          }
+        : { elevation: 2 }),
     },
     ghost: {
-      backgroundColor: 'transparent',
+      backgroundColor: theme.colors.card,
       borderColor: theme.colors.border,
     },
     destructive: {
       backgroundColor: theme.colors.danger,
       borderColor: theme.colors.danger,
+      ...(Platform.OS === 'ios'
+        ? {
+            shadowColor: '#000',
+            shadowOpacity: 0.12,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 6 },
+          }
+        : { elevation: 2 }),
     },
     text: {
       fontSize: theme.typography.body,
-      fontWeight: '600',
+      fontWeight: '700',
+      letterSpacing: 0.2,
     },
     textPrimary: {
       color: theme.colors.bg,
@@ -81,7 +100,7 @@ const makeStyles = (theme: any) =>
       opacity: 0.5,
     },
     pressed: {
-      opacity: 0.9,
+      transform: [{ scale: 0.99 }],
     },
   });
 

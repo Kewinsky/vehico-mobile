@@ -22,6 +22,8 @@ import {
 import { Button } from "../ui/components/Button";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
+import { IconButton } from "../ui/components/IconButton";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Reminders">;
 
@@ -136,17 +138,9 @@ export function RemindersScreen({ route, navigation }: Props) {
                         })}
                   </Text>
                 </Pressable>
-                <Pressable
-                  onPress={() => confirmDelete(item.id)}
-                  hitSlop={10}
-                  style={styles.trash}
-                >
-                  <Text
-                    style={{ color: theme.colors.danger, fontWeight: "900" }}
-                  >
-                    🗑
-                  </Text>
-                </Pressable>
+                <IconButton onPress={() => confirmDelete(item.id)} variant="danger">
+                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
+                </IconButton>
               </View>
             </View>
           )}
@@ -168,11 +162,4 @@ const styles = StyleSheet.create({
   body: { marginTop: 8, lineHeight: 22 },
   card: { borderWidth: 1, borderRadius: 12, padding: 16 },
   cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  trash: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
 });

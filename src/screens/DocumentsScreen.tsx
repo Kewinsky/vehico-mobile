@@ -40,6 +40,8 @@ import {
 } from "../services/vehicleDocuments/vehicleDocumentsRepo";
 import { Button } from "../ui/components/Button";
 import { toastError } from "../ui/toast/toast";
+import { IconButton } from "../ui/components/IconButton";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
@@ -387,17 +389,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
                     {item.storage_path.split("/").slice(-1)[0]}
                   </Text>
                 </Pressable>
-                <Pressable
-                  onPress={() => confirmDeletePhoto(item)}
-                  hitSlop={10}
-                  style={styles.trash}
-                >
-                  <Text
-                    style={{ color: theme.colors.danger, fontWeight: "900" }}
-                  >
-                    🗑
-                  </Text>
-                </Pressable>
+                <IconButton onPress={() => confirmDeletePhoto(item)} variant="danger">
+                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
+                </IconButton>
               </View>
             </View>
           )}
@@ -449,17 +443,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
                     {item.storage_path.split("/").slice(-1)[0]}
                   </Text>
                 </Pressable>
-                <Pressable
-                  onPress={() => confirmDeleteVehicleDoc(item)}
-                  hitSlop={10}
-                  style={styles.trash}
-                >
-                  <Text
-                    style={{ color: theme.colors.danger, fontWeight: "900" }}
-                  >
-                    🗑
-                  </Text>
-                </Pressable>
+                <IconButton onPress={() => confirmDeleteVehicleDoc(item)} variant="danger">
+                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
+                </IconButton>
               </View>
             </View>
           )}
@@ -512,17 +498,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
                     {item.storage_path.split("/").slice(-1)[0]}
                   </Text>
                 </Pressable>
-                <Pressable
-                  onPress={() => confirmDeleteAttachment(item)}
-                  hitSlop={10}
-                  style={styles.trash}
-                >
-                  <Text
-                    style={{ color: theme.colors.danger, fontWeight: "900" }}
-                  >
-                    🗑
-                  </Text>
-                </Pressable>
+                <IconButton onPress={() => confirmDeleteAttachment(item)} variant="danger">
+                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
+                </IconButton>
               </View>
             </View>
           )}

@@ -27,6 +27,8 @@ import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
+import { IconButton } from "../ui/components/IconButton";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicleEdit">;
 
@@ -230,13 +232,9 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                       {item.storage_path.split("/").slice(-1)[0]}
                     </Text>
                   </Pressable>
-                  <Pressable
-                    onPress={() => void removePhoto(item)}
-                    hitSlop={10}
-                    style={styles.trash}
-                  >
-                    <Text style={styles.trashText}>🗑</Text>
-                  </Pressable>
+                  <IconButton onPress={() => void removePhoto(item)} variant="danger">
+                    <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
+                  </IconButton>
                 </View>
               </View>
             )}
@@ -283,12 +281,4 @@ const makeStyles = (theme: any) =>
     cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
     cardTitle: { color: theme.colors.fg, fontWeight: "800" },
     cardMeta: { marginTop: 4, color: theme.colors.muted },
-    trash: {
-      width: 44,
-      height: 44,
-      borderRadius: 12,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    trashText: { color: theme.colors.danger, fontWeight: "900" },
   });

@@ -30,13 +30,14 @@ export type AppTheme = {
 
 export const lightTheme: AppTheme = {
   colors: {
-    bg: '#FFFFFF',
-    fg: '#0B0B0B',
-    muted: '#6B6B6B',
-    border: '#E6E6E6',
+    // Modern "startup" neutrals
+    bg: '#F8FAFC',      // slate-50
+    fg: '#0F172A',      // slate-900
+    muted: '#64748B',   // slate-500
+    border: '#E2E8F0',  // slate-200
     card: '#FFFFFF',
-    accent: '#FFB803',
-    danger: '#C1121F',
+    accent: '#2563EB',  // blue-600
+    danger: '#EF4444',  // red-500
   },
   spacing: {
     xs: 8,
@@ -47,7 +48,7 @@ export const lightTheme: AppTheme = {
   },
   radius: {
     sm: 8,
-    md: 12,
+    md: 14,
   },
   typography: {
     title: 20,
@@ -58,13 +59,13 @@ export const lightTheme: AppTheme = {
 
 export const darkTheme: AppTheme = {
   colors: {
-    bg: '#0B0B0B',
-    fg: '#FFFFFF',
-    muted: '#B0B0B0',
-    border: '#222222',
-    card: '#111111',
-    accent: '#FFB803',
-    danger: '#FF4D4D',
+    bg: '#0B1220',      // deep slate/navy
+    fg: '#F8FAFC',      // slate-50
+    muted: '#94A3B8',   // slate-400
+    border: '#1E293B',  // slate-800
+    card: '#0F172A',    // slate-900
+    accent: '#3B82F6',  // blue-500
+    danger: '#F87171',  // red-400
   },
   spacing: lightTheme.spacing,
   radius: lightTheme.radius,

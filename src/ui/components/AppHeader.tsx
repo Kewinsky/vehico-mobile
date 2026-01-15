@@ -1,31 +1,37 @@
-import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import type { ReactNode } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Ionicons } from "@expo/vector-icons";
 
-import { useTheme } from '../ThemeProvider';
+import { useTheme } from "../ThemeProvider";
+import { IconButton } from "./IconButton";
 
 export function AppHeader({
   onBack,
   right,
+  title,
 }: {
   onBack?: () => void;
   right?: ReactNode;
+  title?: string;
 }) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = makeStyles(theme);
 
   return (
     <View style={styles.root}>
       <View style={styles.left}>
         {onBack ? (
-          <Pressable onPress={onBack} hitSlop={10}>
-            <Text style={styles.back}>Back</Text>
-          </Pressable>
-        ) : (
-          <View style={{ width: 48 }} />
-        )}
+          <IconButton onPress={onBack}>
+            <Ionicons name="chevron-back" size={20} color={theme.colors.muted} />
+          </IconButton>
+        ) : null}
       </View>
-      <Text style={styles.title}>Vehico</Text>
-      <View style={styles.right}>{right ?? <View style={{ width: 48 }} />}</View>
+      <Text style={styles.title} numberOfLines={1}>
+        {title ?? t("common.appName")}
+      </Text>
+      <View style={styles.right}>{right ?? null}</View>
     </View>
   );
 }
@@ -43,15 +49,12 @@ const makeStyles = (theme: any) =>
       backgroundColor: theme.colors.bg,
     },
     left: { width: 48 },
-    right: { width: 48, alignItems: 'flex-end' },
+    right: { width: 48, alignItems: "flex-end", justifyContent: "center" },
     title: {
       color: theme.colors.fg,
       fontWeight: '800',
       letterSpacing: 0.2,
-    },
-    back: {
-      color: theme.colors.muted,
-      fontWeight: '700',
+      fontSize: 15,
     },
   });
 
