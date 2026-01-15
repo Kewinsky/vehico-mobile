@@ -103,11 +103,37 @@ export const en = {
   dashboard: {
     kicker: "Vehicle",
     backToVehicles: "Back to vehicles",
+    stats: {
+      title: "Statistics",
+      empty: "No data for this period.",
+      periods: {
+        "1m": "1M",
+        "3m": "3M",
+        "6m": "6M",
+        "1y": "1Y",
+        all: "All",
+      },
+      categories: {
+        fuel: "Fuel",
+      },
+      metrics: {
+        totalExpenses: "Total expenses",
+        avgMonthlyFuelCost: "Avg monthly fuel cost",
+        avgFuelConsumption: "Avg fuel consumption",
+        costPer100: "Cost per 100",
+      },
+      charts: {
+        expensesOverTime: "Expenses over time",
+        expensesByCategory: "Expenses by category",
+      },
+    },
     tiles: {
       serviceTitle: "Service History",
       serviceSubtitle: "Document-like timeline",
       fuelTitle: "Fuel",
       fuelSubtitle: "Tracking",
+      statsTitle: "Statistics",
+      statsSubtitle: "Costs, categories & trends",
       docsTitle: "Documents",
       docsSubtitle: "Attachments & photos",
       remindersTitle: "Reminders",

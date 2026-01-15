@@ -103,11 +103,37 @@ export const pl = {
   dashboard: {
     kicker: "Pojazd",
     backToVehicles: "Wróć do pojazdów",
+    stats: {
+      title: "Statystyki",
+      empty: "Brak danych dla tego okresu.",
+      periods: {
+        "1m": "1M",
+        "3m": "3M",
+        "6m": "6M",
+        "1y": "1R",
+        all: "Wszystko",
+      },
+      categories: {
+        fuel: "Paliwo",
+      },
+      metrics: {
+        totalExpenses: "Wydatki razem",
+        avgMonthlyFuelCost: "Śr. miesięczny koszt paliwa",
+        avgFuelConsumption: "Śr. spalanie",
+        costPer100: "Koszt na 100",
+      },
+      charts: {
+        expensesOverTime: "Wydatki w czasie",
+        expensesByCategory: "Wydatki wg kategorii",
+      },
+    },
     tiles: {
       serviceTitle: "Historia serwisowa",
       serviceSubtitle: "Oś czasu",
       fuelTitle: "Paliwo",
       fuelSubtitle: "Śledzenie",
+      statsTitle: "Statystyki",
+      statsSubtitle: "Koszty, kategorie i trendy",
       docsTitle: "Dokumenty",
       docsSubtitle: "Załączniki i zdjęcia",
       remindersTitle: "Przypomnienia",

@@ -87,98 +87,106 @@ export function FuelCostsScreen({ route, navigation }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
-      <View
-        style={{
+      <FlatList
+        data={fueling}
+        keyExtractor={(x) => x.id}
+        contentContainerStyle={{
           paddingHorizontal: theme.spacing.md,
           paddingTop: theme.spacing.lg,
+          paddingBottom: 32,
         }}
-      >
-        <Text style={[styles.title, { color: theme.colors.fg }]}>
-          {t("fuelCosts.title")}
-        </Text>
+        ListHeaderComponent={
+          <View>
+            <Text style={[styles.title, { color: theme.colors.fg }]}>
+              {t("fuelCosts.title")}
+            </Text>
 
-        <View
-          style={[
-            styles.box,
-            {
-              borderColor: theme.colors.border,
-              backgroundColor: theme.colors.card,
-            },
-          ]}
-        >
-          <Text style={[styles.muted, { color: theme.colors.muted }]}>
-            {t("fuelCosts.totalFuel")}
-          </Text>
-          <Text style={[styles.value, { color: theme.colors.fg }]}>
-            {totals.fuel.toFixed(2)} {currency}
-          </Text>
-        </View>
-
-        <View style={{ height: 18 }} />
-        <Button
-          onPress={() =>
-            navigation.navigate("FuelingEntryForm", {
-              vehicleId: route.params.vehicleId,
-            })
-          }
-        >
-          {t("fuelCosts.addFueling")}
-        </Button>
-
-        <View style={{ height: 18 }} />
-        <Text style={[styles.section, { color: theme.colors.fg }]}>
-          {t("fuelCosts.fuelingSection")}
-        </Text>
-        <View style={{ height: theme.spacing.sm }} />
-        <FlatList
-          data={fueling}
-          keyExtractor={(x) => x.id}
-          scrollEnabled={false}
-          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          renderItem={({ item }) => (
             <View
               style={[
-                styles.card,
+                styles.box,
                 {
                   borderColor: theme.colors.border,
                   backgroundColor: theme.colors.card,
                 },
               ]}
             >
-              <View style={styles.cardRow}>
-                <Pressable
-                  style={{ flex: 1 }}
-                  onPress={() =>
-                    navigation.navigate("FuelingEntryForm", {
-                      vehicleId: route.params.vehicleId,
-                      entryId: item.id,
-                    })
-                  }
-                >
-                  <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
-                    {item.date}
-                  </Text>
-                  <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
-                    {Number(item.distance).toFixed(1)} {distanceUnit} ·{" "}
-                    {Number(item.fuel_amount).toFixed(1)} {fuelUnit} ·{" "}
-                    {Number(item.fuel_cost).toFixed(2)} {currency}
-                  </Text>
-                </Pressable>
-                <IconButton onPress={() => confirmDeleteFueling(item.id)} variant="danger">
-                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
-                </IconButton>
-              </View>
-            </View>
-          )}
-          ListEmptyComponent={
-            !loading ? (
-              <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
-                {t("fuelCosts.noFueling")}
+              <Text style={[styles.muted, { color: theme.colors.muted }]}>
+                {t("fuelCosts.totalFuel")}
               </Text>
-            ) : null
-          }
-        />
-      </View>
+              <Text style={[styles.value, { color: theme.colors.fg }]}>
+                {totals.fuel.toFixed(2)} {currency}
+              </Text>
+            </View>
+
+            <View style={{ height: 18 }} />
+            <Button
+              onPress={() =>
+                navigation.navigate("FuelingEntryForm", {
+                  vehicleId: route.params.vehicleId,
+                })
+              }
+            >
+              {t("fuelCosts.addFueling")}
+            </Button>
+
+            <View style={{ height: 18 }} />
+            <Text style={[styles.section, { color: theme.colors.fg }]}>
+              {t("fuelCosts.fuelingSection")}
+            </Text>
+            <View style={{ height: theme.spacing.sm }} />
+          </View>
+        }
+        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+        renderItem={({ item }) => (
+          <View
+            style={[
+              styles.card,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <View style={styles.cardRow}>
+              <Pressable
+                style={{ flex: 1 }}
+                onPress={() =>
+                  navigation.navigate("FuelingEntryForm", {
+                    vehicleId: route.params.vehicleId,
+                    entryId: item.id,
+                  })
+                }
+              >
+                <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
+                  {item.date}
+                </Text>
+                <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
+                  {Number(item.distance).toFixed(1)} {distanceUnit} ·{" "}
+                  {Number(item.fuel_amount).toFixed(1)} {fuelUnit} ·{" "}
+                  {Number(item.fuel_cost).toFixed(2)} {currency}
+                </Text>
+              </Pressable>
+              <IconButton
+                onPress={() => confirmDeleteFueling(item.id)}
+                variant="danger"
+              >
+                <Ionicons
+                  name="trash-outline"
+                  size={18}
+                  color={theme.colors.danger}
+                />
+              </IconButton>
+            </View>
+          </View>
+        )}
+        ListEmptyComponent={
+          !loading ? (
+            <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+              {t("fuelCosts.noFueling")}
+            </Text>
+          ) : null
+        }
+      />
     </Screen>
   );
 }

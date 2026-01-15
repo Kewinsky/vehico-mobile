@@ -36,6 +36,12 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       onPress: () => navigation.navigate("FuelCosts", { vehicleId, title }),
     },
     {
+      key: "stats",
+      title: t("dashboard.tiles.statsTitle"),
+      subtitle: t("dashboard.tiles.statsSubtitle"),
+      onPress: () => navigation.navigate("Statistics", { vehicleId, title }),
+    },
+    {
       key: "docs",
       title: t("dashboard.tiles.docsTitle"),
       subtitle: t("dashboard.tiles.docsSubtitle"),
@@ -71,17 +77,20 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
-      <View style={styles.header}>
-        <Text style={styles.kicker}>{t("dashboard.kicker")}</Text>
-        <Text style={styles.title}>{title}</Text>
-      </View>
-
       <FlatList
         data={tiles}
         numColumns={2}
         keyExtractor={(t) => t.key}
-        contentContainerStyle={styles.grid}
+        contentContainerStyle={styles.list}
         columnWrapperStyle={styles.row}
+        ListHeaderComponent={
+          <View style={styles.listHeader}>
+            <View style={styles.header}>
+              <Text style={styles.kicker}>{t("dashboard.kicker")}</Text>
+              <Text style={styles.title}>{title}</Text>
+            </View>
+          </View>
+        }
         renderItem={({ item }) => (
           <Pressable
             onPress={item.onPress}
@@ -103,7 +112,6 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     header: {
       paddingTop: 16,
-      paddingHorizontal: theme.spacing.md,
       paddingBottom: 16,
       gap: 6,
     },
@@ -119,10 +127,13 @@ const makeStyles = (theme: any) =>
       fontSize: 22,
       fontWeight: "800",
     },
-    grid: {
+    list: {
       paddingHorizontal: theme.spacing.md,
       paddingBottom: theme.spacing.xl,
       gap: 12,
+    },
+    listHeader: {
+      width: "100%",
     },
     row: {
       gap: 12,

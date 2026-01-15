@@ -38,19 +38,22 @@ export function RemindersScreen({ route, navigation }: Props) {
   const distanceUnit = settings?.distanceUnit ?? "km";
   const [query, setQuery] = useState("");
 
-  const load = useCallback(async (opts?: { refreshing?: boolean }) => {
-    try {
-      if (opts?.refreshing) setRefreshing(true);
-      else setLoading(true);
-      const data = await listReminders(route.params.vehicleId);
-      setItems(data);
-    } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
-    } finally {
-      if (opts?.refreshing) setRefreshing(false);
-      else setLoading(false);
-    }
-  }, [route.params.vehicleId, t]);
+  const load = useCallback(
+    async (opts?: { refreshing?: boolean }) => {
+      try {
+        if (opts?.refreshing) setRefreshing(true);
+        else setLoading(true);
+        const data = await listReminders(route.params.vehicleId);
+        setItems(data);
+      } catch (e: any) {
+        toastError(t("common.error"), e?.message ?? String(e));
+      } finally {
+        if (opts?.refreshing) setRefreshing(false);
+        else setLoading(false);
+      }
+    },
+    [route.params.vehicleId, t]
+  );
 
   useEffect(() => {
     // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
@@ -80,104 +83,136 @@ export function RemindersScreen({ route, navigation }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
-      <View
-        style={{
+      <FlatList
+        data={items.filter((r) => {
+          const q = query.trim().toLowerCase();
+          if (!q.length) return true;
+          const hay = `${r.title ?? ""}\n${r.notes ?? ""}`.toLowerCase();
+          return hay.includes(q);
+        })}
+        keyExtractor={(r) => r.id}
+        contentContainerStyle={{
           paddingHorizontal: theme.spacing.md,
           paddingTop: theme.spacing.md,
+          paddingBottom: 32,
         }}
-      >
-        <Text style={[styles.title, { color: theme.colors.fg }]}>
-          {t("reminders.title")}
-        </Text>
+        refreshing={refreshing}
+        onRefresh={() => void load({ refreshing: true })}
+        ListHeaderComponent={
+          <View>
+            <Text style={[styles.title, { color: theme.colors.fg }]}>
+              {t("reminders.title")}
+            </Text>
 
-        <View style={{ height: 12 }} />
-        <TextField
-          noMarginTop
-          value={query}
-          onChangeText={setQuery}
-          placeholder={t("reminders.searchPlaceholder")}
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-        />
-        <View style={{ height: 12 }} />
-        <Button
-          onPress={() =>
-            navigation.navigate("ReminderForm", {
-              vehicleId: route.params.vehicleId,
-            })
-          }
-        >
-          {t("reminders.add")}
-        </Button>
-
-        <View style={{ height: 14 }} />
-        <FlatList
-          data={items.filter((r) => {
-            const q = query.trim().toLowerCase();
-            if (!q.length) return true;
-            const hay = `${r.title ?? ""}\n${r.notes ?? ""}`.toLowerCase();
-            return hay.includes(q);
-          })}
-          keyExtractor={(r) => r.id}
-          refreshing={refreshing}
-          onRefresh={() => void load({ refreshing: true })}
-          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          renderItem={({ item }) => (
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.cardRow}>
-                <Pressable
-                  style={{ flex: 1 }}
-                  onPress={() =>
-                    navigation.navigate("ReminderDetail", {
-                      vehicleId: route.params.vehicleId,
-                      reminderId: item.id,
-                    })
-                  }
+            <View style={{ height: 12 }} />
+            <View style={styles.searchRow}>
+              <View style={{ flex: 1 }}>
+                <TextField
+                  noMarginTop
+                  value={query}
+                  onChangeText={setQuery}
+                  placeholder={t("reminders.searchPlaceholder")}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  clearButtonMode="while-editing"
+                />
+              </View>
+              <View style={{ marginLeft: 10 }}>
+                <View
+                  style={[
+                    styles.addButton,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                  ]}
                 >
-                  <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
-                    {item.title ?? ""}
-                  </Text>
-                  <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
-                    {item.type === "time"
-                      ? t("reminders.dueTime", { date: item.due_date ?? "" })
-                      : t("reminders.dueMileage", {
-                          mileage: item.due_mileage ?? "",
-                          unit: distanceUnit,
-                        })}
-                  </Text>
-                  {item.notes ? (
-                    <Text
-                      style={{ color: theme.colors.muted, marginTop: 6, lineHeight: 18 }}
-                      numberOfLines={3}
-                    >
-                      {item.notes}
-                    </Text>
-                  ) : null}
-                </Pressable>
-                <IconButton onPress={() => confirmDelete(item.id)} variant="danger">
-                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
-                </IconButton>
+                  <Pressable
+                    onPress={() =>
+                      navigation.navigate("ReminderForm", {
+                        vehicleId: route.params.vehicleId,
+                      })
+                    }
+                    style={({ pressed }) => [
+                      styles.addButtonInner,
+                      pressed && { opacity: 0.9 },
+                    ]}
+                  >
+                    <Ionicons name="add" size={24} color={theme.colors.fg} />
+                  </Pressable>
+                </View>
               </View>
             </View>
-          )}
-          ListEmptyComponent={
-            !loading ? (
-              <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
-                {t("reminders.noItems")}
-              </Text>
-            ) : null
-          }
-        />
-      </View>
+
+            <View style={{ height: 14 }} />
+          </View>
+        }
+        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+        renderItem={({ item }) => (
+          <View
+            style={[
+              styles.card,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <View style={styles.cardRow}>
+              <Pressable
+                style={{ flex: 1 }}
+                onPress={() =>
+                  navigation.navigate("ReminderDetail", {
+                    vehicleId: route.params.vehicleId,
+                    reminderId: item.id,
+                  })
+                }
+              >
+                <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
+                  {item.title ?? ""}
+                </Text>
+                <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
+                  {item.type === "time"
+                    ? t("reminders.dueTime", { date: item.due_date ?? "" })
+                    : t("reminders.dueMileage", {
+                        mileage: item.due_mileage ?? "",
+                        unit: distanceUnit,
+                      })}
+                </Text>
+                {item.notes ? (
+                  <Text
+                    style={{
+                      color: theme.colors.muted,
+                      marginTop: 6,
+                      lineHeight: 18,
+                    }}
+                    numberOfLines={3}
+                  >
+                    {item.notes}
+                  </Text>
+                ) : null}
+              </Pressable>
+              <IconButton
+                onPress={() => confirmDelete(item.id)}
+                variant="danger"
+              >
+                <Ionicons
+                  name="trash-outline"
+                  size={18}
+                  color={theme.colors.danger}
+                />
+              </IconButton>
+            </View>
+          </View>
+        )}
+        ListEmptyComponent={
+          !loading ? (
+            <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+              {t("reminders.noItems")}
+            </Text>
+          ) : null
+        }
+      />
     </Screen>
   );
 }
@@ -187,4 +222,19 @@ const styles = StyleSheet.create({
   body: { marginTop: 8, lineHeight: 22 },
   card: { borderWidth: 1, borderRadius: 12, padding: 16 },
   cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  searchRow: { flexDirection: "row", alignItems: "center" },
+  addButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addButtonInner: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });

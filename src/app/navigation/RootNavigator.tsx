@@ -22,6 +22,7 @@ import { SettingsScreen } from "../../screens/SettingsScreen";
 import { DataPortabilityScreen } from "../../screens/DataPortabilityScreen";
 import { AddAttachmentScreen } from "../../screens/AddAttachmentScreen";
 import { ShareScreen } from "../../screens/ShareScreen";
+import { StatisticsScreen } from "../../screens/StatisticsScreen";
 
 export type AppStackParamList = {
   Auth: undefined;
@@ -32,6 +33,7 @@ export type AppStackParamList = {
   VehicleDetail: { vehicleId: string; title: string };
   Documents: { vehicleId: string; title: string };
   FuelCosts: { vehicleId: string; title: string };
+  Statistics: { vehicleId: string; title: string };
   Reminders: { vehicleId: string; title: string };
   Share: { vehicleId: string; title: string };
   ManageVehicle: { vehicleId: string; title: string };
@@ -74,6 +76,7 @@ export function RootNavigator() {
           <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
           <Stack.Screen name="Documents" component={DocumentsScreen} />
           <Stack.Screen name="FuelCosts" component={FuelCostsScreen} />
+          <Stack.Screen name="Statistics" component={StatisticsScreen} />
           <Stack.Screen
             name="FuelingEntryForm"
             component={FuelingEntryFormScreen}

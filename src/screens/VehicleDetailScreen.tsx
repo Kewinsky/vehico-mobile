@@ -1,16 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import type { Reminder, ServiceEntry, ServiceEntryCategory } from "../types/domain";
+import type {
+  Reminder,
+  ServiceEntry,
+  ServiceEntryCategory,
+} from "../types/domain";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { listReminders } from "../services/reminders/remindersRepo";
 import { Button } from "../ui/components/Button";
@@ -22,6 +20,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { TextField } from "../ui/components/TextField";
 import { DateField } from "../ui/components/DateField";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDetail">;
 
@@ -53,23 +52,26 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   const [minCost, setMinCost] = useState("");
   const [maxCost, setMaxCost] = useState("");
 
-  const load = useCallback(async (opts?: { refreshing?: boolean }) => {
-    try {
-      if (opts?.refreshing) setRefreshing(true);
-      else setLoading(true);
-      const [data, rs] = await Promise.all([
-        listServiceEntries(vehicleId),
-        listReminders(vehicleId),
-      ]);
-      setItems(data);
-      setReminders(rs);
-    } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
-    } finally {
-      if (opts?.refreshing) setRefreshing(false);
-      else setLoading(false);
-    }
-  }, [vehicleId, t]);
+  const load = useCallback(
+    async (opts?: { refreshing?: boolean }) => {
+      try {
+        if (opts?.refreshing) setRefreshing(true);
+        else setLoading(true);
+        const [data, rs] = await Promise.all([
+          listServiceEntries(vehicleId),
+          listReminders(vehicleId),
+        ]);
+        setItems(data);
+        setReminders(rs);
+      } catch (e: any) {
+        toastError(t("common.error"), e?.message ?? String(e));
+      } finally {
+        if (opts?.refreshing) setRefreshing(false);
+        else setLoading(false);
+      }
+    },
+    [vehicleId, t]
+  );
 
   useEffect(() => {
     // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
@@ -77,18 +79,6 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
     const unsub = navigation.addListener("focus", () => void load());
     return unsub;
   }, [navigation, load]);
-
-  const footer = useMemo(() => {
-    return (
-      <View style={{ paddingTop: 14 }}>
-        <Button
-          onPress={() => navigation.navigate("ServiceEntryForm", { vehicleId })}
-        >
-          {t("timeline.addEntry")}
-        </Button>
-      </View>
-    );
-  }, [navigation, t, vehicleId]);
 
   const hasActiveFilters = useMemo(() => {
     return (
@@ -197,15 +187,42 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 {t("dashboard.tiles.serviceTitle")}
               </Text>
             </View>
-            <TextField
-              noMarginTop
-              value={query}
-              onChangeText={setQuery}
-              placeholder={t("timeline.searchPlaceholder")}
-              autoCapitalize="none"
-              autoCorrect={false}
-              clearButtonMode="while-editing"
-            />
+            <View style={styles.searchRow}>
+              <View style={{ flex: 1 }}>
+                <TextField
+                  noMarginTop
+                  value={query}
+                  onChangeText={setQuery}
+                  placeholder={t("timeline.searchPlaceholder")}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  clearButtonMode="while-editing"
+                />
+              </View>
+              <View style={{ marginLeft: 10 }}>
+                <View
+                  style={[
+                    styles.addButton,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                  ]}
+                >
+                  <Pressable
+                    onPress={() =>
+                      navigation.navigate("ServiceEntryForm", { vehicleId })
+                    }
+                    style={({ pressed }) => [
+                      styles.addButtonInner,
+                      pressed && { opacity: 0.9 },
+                    ]}
+                  >
+                    <Ionicons name="add" size={24} color={theme.colors.fg} />
+                  </Pressable>
+                </View>
+              </View>
+            </View>
             <View style={styles.filtersRow}>
               <Pressable
                 onPress={() => setFiltersOpen((v) => !v)}
@@ -246,37 +263,42 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                   {t("timeline.filterCategory")}
                 </Text>
                 <View style={styles.categoryRow}>
-                  {(["all", "maintenance", "repair", "inspection", "upgrade", "other"] as const).map(
-                    (c) => {
-                      const selected = categoryFilter === c;
-                      return (
-                        <Pressable
-                          key={c}
-                          onPress={() =>
-                            setCategoryFilter(c as any)
-                          }
-                          style={[
-                            styles.chip,
-                            { borderColor: theme.colors.border },
-                            selected && { borderColor: theme.colors.fg },
-                          ]}
+                  {(
+                    [
+                      "all",
+                      "maintenance",
+                      "repair",
+                      "inspection",
+                      "upgrade",
+                      "other",
+                    ] as const
+                  ).map((c) => {
+                    const selected = categoryFilter === c;
+                    return (
+                      <Pressable
+                        key={c}
+                        onPress={() => setCategoryFilter(c as any)}
+                        style={[
+                          styles.chip,
+                          { borderColor: theme.colors.border },
+                          selected && { borderColor: theme.colors.fg },
+                        ]}
+                      >
+                        <Text
+                          style={{
+                            color: selected
+                              ? theme.colors.fg
+                              : theme.colors.muted,
+                            fontWeight: "800",
+                          }}
                         >
-                          <Text
-                            style={{
-                              color: selected
-                                ? theme.colors.fg
-                                : theme.colors.muted,
-                              fontWeight: "800",
-                            }}
-                          >
-                            {c === "all"
-                              ? t("common.all")
-                              : t(`entryForm.categories.${c}` as any)}
-                          </Text>
-                        </Pressable>
-                      );
-                    }
-                  )}
+                          {c === "all"
+                            ? t("common.all")
+                            : t(`entryForm.categories.${c}` as any)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
                 </View>
 
                 <View style={{ height: 12 }} />
@@ -390,7 +412,9 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 title={e.title}
                 subtitle={[
                   t(`entryForm.categories.${cat}` as any),
-                  e.mileage ? `${e.mileage.toLocaleString()} ${distanceUnit}` : null,
+                  e.mileage
+                    ? `${e.mileage.toLocaleString()} ${distanceUnit}`
+                    : null,
                   e.cost != null ? `${e.cost} ${currency}` : null,
                 ]
                   .filter(Boolean)
@@ -400,7 +424,6 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
           );
         }}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        ListFooterComponent={footer}
       />
     </Screen>
   );
@@ -424,6 +447,21 @@ const makeStyles = (theme: any) =>
     },
     title: { fontSize: 22, fontWeight: "800", color: theme.colors.fg },
     editLink: { color: theme.colors.muted, fontWeight: "800" },
+    searchRow: { flexDirection: "row", alignItems: "center" },
+    addButton: {
+      width: 50,
+      height: 50,
+      borderRadius: theme.radius.md,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    addButtonInner: {
+      width: "100%",
+      height: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+    },
     filtersRow: { flexDirection: "row", gap: 10 },
     filtersAction: {
       borderWidth: 1,
@@ -440,7 +478,11 @@ const makeStyles = (theme: any) =>
       padding: theme.spacing.md,
       gap: 10,
     },
-    filtersLabel: { fontSize: 13, fontWeight: "800", color: theme.colors.muted },
+    filtersLabel: {
+      fontSize: 13,
+      fontWeight: "800",
+      color: theme.colors.muted,
+    },
     categoryRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
     chip: {
       borderWidth: 1,
