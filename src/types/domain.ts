@@ -100,6 +100,8 @@ export type ExpenseCategory = 'service' | 'parts' | 'insurance' | 'other';
 
 export type ReminderType = 'time' | 'mileage';
 
+export type ReminderStatus = 'active' | 'done';
+
 export type Reminder = {
   id: string;
   vehicle_id: string;
@@ -109,6 +111,7 @@ export type Reminder = {
   days_before: number | null; // Only for type 'time', number of days before due_date to send reminder
   title: string | null;
   notes: string | null;
+  status: ReminderStatus;
   channel_email: boolean;
   channel_push: boolean;
   enabled: boolean;

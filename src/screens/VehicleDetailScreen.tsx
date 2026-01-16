@@ -333,26 +333,33 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                   />
                 </Pressable>
               </View>
+              {hasActiveFilters ? (
+                <View
+                  style={[
+                    styles.addButton,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                  ]}
+                >
+                  <Pressable
+                    onPress={resetFilters}
+                    style={({ pressed }) => [
+                      styles.addButtonInner,
+                      pressed && { opacity: 0.9 },
+                    ]}
+                  >
+                    <Ionicons
+                      name="refresh-outline"
+                      size={24}
+                      color={theme.colors.fg}
+                    />
+                  </Pressable>
+                </View>
+              ) : null}
             </View>
           </View>
-          {hasActiveFilters ? (
-            <View style={styles.filtersRow}>
-              <Pressable
-                onPress={resetFilters}
-                style={[
-                  styles.filtersAction,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
-                  {t("timeline.reset")}
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
 
           {filtersOpen ? (
             <View style={styles.filtersCard}>

@@ -75,6 +75,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         days_before: type === "time" ? Number(daysBefore) || null : null,
         title: title.trim(),
         notes: notes.trim().length ? notes.trim() : null,
+        status: "active" as const,
         channel_email: true,
         channel_push: true,
         enabled: true,

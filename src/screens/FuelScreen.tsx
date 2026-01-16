@@ -225,7 +225,7 @@ export function FuelScreen({ route, navigation }: Props) {
                 {t("fuelCosts.addFueling")}
               </Button>
             </View>
-            <View style={{ marginLeft: 10 }}>
+            <View style={{ marginLeft: 10, flexDirection: "row", gap: 10 }}>
               <View
                 style={[
                   styles.filterButton,
@@ -254,26 +254,33 @@ export function FuelScreen({ route, navigation }: Props) {
                   />
                 </Pressable>
               </View>
+              {hasActiveFilters ? (
+                <View
+                  style={[
+                    styles.filterButton,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                  ]}
+                >
+                  <Pressable
+                    onPress={resetFilters}
+                    style={({ pressed }) => [
+                      styles.filterButtonInner,
+                      pressed && { opacity: 0.9 },
+                    ]}
+                  >
+                    <Ionicons
+                      name="refresh-outline"
+                      size={24}
+                      color={theme.colors.fg}
+                    />
+                  </Pressable>
+                </View>
+              ) : null}
             </View>
           </View>
-          {hasActiveFilters ? (
-            <View style={styles.filtersRow}>
-              <Pressable
-                onPress={resetFilters}
-                style={[
-                  styles.filtersAction,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <Text style={{ color: theme.colors.fg, fontWeight: "700" }}>
-                  {t("timeline.reset")}
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
 
           {filtersOpen ? (
             <View

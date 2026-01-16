@@ -21,6 +21,7 @@ import type { Reminder } from "../types/domain";
 import {
   deleteReminder,
   listReminders,
+  updateReminder,
 } from "../services/reminders/remindersRepo";
 import { Button } from "../ui/components/Button";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
@@ -88,6 +89,9 @@ export function RemindersScreen({ route, navigation }: Props) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "done">(
+    "all"
+  );
 
   const load = useCallback(
     async (opts?: { refreshing?: boolean }) => {
@@ -113,6 +117,18 @@ export function RemindersScreen({ route, navigation }: Props) {
     return unsub;
   }, [navigation, load]);
 
+  async function toggleStatus(reminderId: string, currentStatus: string) {
+    try {
+      const newStatus = currentStatus === "active" ? "done" : "active";
+      await updateReminder(reminderId, { status: newStatus });
+      setItems((prev) =>
+        prev.map((r) => (r.id === reminderId ? { ...r, status: newStatus } : r))
+      );
+    } catch (err: any) {
+      toastError(t("common.error"), err?.message ?? String(err));
+    }
+  }
+
   function confirmDelete(id: string) {
     Alert.alert(t("reminders.deleteTitle"), t("reminders.deleteBody"), [
       { text: t("common.cancel"), style: "cancel" },
@@ -132,12 +148,17 @@ export function RemindersScreen({ route, navigation }: Props) {
   }
 
   const hasActiveFilters = useMemo(() => {
-    return dateFrom.trim().length > 0 || dateTo.trim().length > 0;
-  }, [dateFrom, dateTo]);
+    return (
+      dateFrom.trim().length > 0 ||
+      dateTo.trim().length > 0 ||
+      statusFilter !== "all"
+    );
+  }, [dateFrom, dateTo, statusFilter]);
 
   function resetFilters() {
     setDateFrom("");
     setDateTo("");
+    setStatusFilter("all");
   }
 
   const filteredItemsWithSeparators = useMemo(() => {
@@ -150,6 +171,9 @@ export function RemindersScreen({ route, navigation }: Props) {
         const hay = `${r.title ?? ""}\n${r.notes ?? ""}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
+
+      // Filter by status
+      if (statusFilter !== "all" && r.status !== statusFilter) return false;
 
       // Filter by date - only for time-based reminders
       if (r.type === "time" && r.due_date) {
@@ -207,7 +231,7 @@ export function RemindersScreen({ route, navigation }: Props) {
     }
 
     return grouped;
-  }, [items, query, dateFrom, dateTo]);
+  }, [items, query, dateFrom, dateTo, statusFilter]);
 
   return (
     <Screen padding={false}>
@@ -283,26 +307,33 @@ export function RemindersScreen({ route, navigation }: Props) {
                   />
                 </Pressable>
               </View>
+              {hasActiveFilters ? (
+                <View
+                  style={[
+                    styles.addButton,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                  ]}
+                >
+                  <Pressable
+                    onPress={resetFilters}
+                    style={({ pressed }) => [
+                      styles.addButtonInner,
+                      pressed && { opacity: 0.9 },
+                    ]}
+                  >
+                    <Ionicons
+                      name="refresh-outline"
+                      size={24}
+                      color={theme.colors.fg}
+                    />
+                  </Pressable>
+                </View>
+              ) : null}
             </View>
           </View>
-          {hasActiveFilters ? (
-            <View style={styles.filtersRow}>
-              <Pressable
-                onPress={resetFilters}
-                style={[
-                  styles.filtersAction,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <Text style={{ color: theme.colors.fg, fontWeight: "700" }}>
-                  {t("timeline.reset")}
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
           {filtersOpen ? (
             <View
               style={[
@@ -313,6 +344,41 @@ export function RemindersScreen({ route, navigation }: Props) {
                 },
               ]}
             >
+              <Text style={[styles.filterLabel, { color: theme.colors.muted }]}>
+                {t("reminders.filterStatus")}
+              </Text>
+              <View style={styles.filterRow}>
+                {(["all", "active", "done"] as const).map((status) => (
+                  <Pressable
+                    key={status}
+                    onPress={() => setStatusFilter(status)}
+                    style={[
+                      styles.filterChoice,
+                      { borderColor: theme.colors.border },
+                      statusFilter === status && {
+                        borderColor: theme.colors.fg,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        color:
+                          statusFilter === status
+                            ? theme.colors.fg
+                            : theme.colors.muted,
+                        fontWeight: "800",
+                      }}
+                    >
+                      {status === "all"
+                        ? t("reminders.filterAll")
+                        : status === "active"
+                        ? t("reminderDetail.status.active")
+                        : t("reminderDetail.status.done")}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              <View style={{ height: 14 }} />
               <DateField
                 label={t("timeline.filterFrom")}
                 value={dateFrom}
@@ -369,6 +435,7 @@ export function RemindersScreen({ route, navigation }: Props) {
           }
 
           const reminder = item.item;
+          const isDone = reminder.status === "done";
           return (
             <View
               style={[
@@ -377,6 +444,7 @@ export function RemindersScreen({ route, navigation }: Props) {
                   borderColor: theme.colors.border,
                   backgroundColor: theme.colors.card,
                 },
+                isDone && styles.cardDone,
               ]}
             >
               <View style={styles.cardRow}>
@@ -389,10 +457,20 @@ export function RemindersScreen({ route, navigation }: Props) {
                     })
                   }
                 >
-                  <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
+                  <Text
+                    style={[
+                      { color: theme.colors.fg, fontWeight: "800" },
+                      isDone && { color: theme.colors.muted },
+                    ]}
+                  >
                     {reminder.title ?? ""}
                   </Text>
-                  <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
+                  <Text
+                    style={[
+                      { color: theme.colors.muted, marginTop: 4 },
+                      isDone && { opacity: 0.6 },
+                    ]}
+                  >
                     {reminder.type === "time"
                       ? t("reminders.dueTime", {
                           date: reminder.due_date ?? "",
@@ -404,27 +482,50 @@ export function RemindersScreen({ route, navigation }: Props) {
                   </Text>
                   {reminder.notes ? (
                     <Text
-                      style={{
-                        color: theme.colors.muted,
-                        marginTop: 6,
-                        lineHeight: 18,
-                      }}
+                      style={[
+                        {
+                          color: theme.colors.muted,
+                          marginTop: 6,
+                          lineHeight: 18,
+                        },
+                        isDone && { opacity: 0.6 },
+                      ]}
                       numberOfLines={3}
                     >
                       {reminder.notes}
                     </Text>
                   ) : null}
                 </Pressable>
-                <IconButton
-                  onPress={() => confirmDelete(reminder.id)}
-                  variant="danger"
-                >
-                  <Ionicons
-                    name="trash-outline"
-                    size={18}
-                    color={theme.colors.danger}
-                  />
-                </IconButton>
+                <View style={styles.cardActions}>
+                  <IconButton
+                    onPress={() => toggleStatus(reminder.id, reminder.status)}
+                    variant="ghost"
+                  >
+                    <Ionicons
+                      name={
+                        reminder.status === "active"
+                          ? "checkmark-circle"
+                          : "checkmark-circle-outline"
+                      }
+                      size={18}
+                      color={
+                        reminder.status === "active"
+                          ? theme.colors.accent
+                          : theme.colors.muted
+                      }
+                    />
+                  </IconButton>
+                  <IconButton
+                    onPress={() => confirmDelete(reminder.id)}
+                    variant="danger"
+                  >
+                    <Ionicons
+                      name="trash-outline"
+                      size={18}
+                      color={theme.colors.danger}
+                    />
+                  </IconButton>
+                </View>
               </View>
             </View>
           );
@@ -457,7 +558,13 @@ const makeStyles = (theme: any) =>
     title: { fontSize: 20, fontWeight: "800" },
     body: { marginTop: 8, lineHeight: 22 },
     card: { borderWidth: 1, borderRadius: 14, padding: 12 },
+    cardDone: { opacity: 0.6 },
     cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+    cardActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
     searchRow: { flexDirection: "row", alignItems: "center" },
     addButton: {
       width: 50,
@@ -486,6 +593,24 @@ const makeStyles = (theme: any) =>
       borderWidth: 1,
       borderRadius: 14,
       padding: 12,
+    },
+    filterLabel: {
+      fontSize: 13,
+      fontWeight: "800",
+      marginBottom: 8,
+    },
+    filterRow: {
+      flexDirection: "row",
+      gap: 10,
+      marginBottom: 4,
+    },
+    filterChoice: {
+      borderWidth: 1,
+      borderRadius: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      flex: 1,
+      alignItems: "center",
     },
     separator: {
       marginTop: 20,

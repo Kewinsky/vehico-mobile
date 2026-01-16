@@ -211,6 +211,8 @@ export const en = {
     deleteBody: "This action cannot be undone.",
     dueTime: "Due {{date}}",
     dueMileage: "Due at {{mileage}} {{unit}}",
+    filterStatus: "Status",
+    filterAll: "All",
   },
   reminderDetail: {
     title: "Reminder",
@@ -221,8 +223,13 @@ export const en = {
       due: "Due",
       daysBefore: "Remind before",
       notes: "Notes",
+      status: "Status",
     },
     daysBeforeValue: "{{days}} days",
+    status: {
+      active: "Active",
+      done: "Done",
+    },
   },
   reminderForm: {
     addTitle: "Add reminder",

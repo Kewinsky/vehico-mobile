@@ -9,6 +9,7 @@ type NewReminder = {
   days_before: number | null; // Only for type 'time'
   title: string | null;
   notes: string | null;
+  status?: 'active' | 'done';
   channel_email: boolean;
   channel_push: boolean;
   enabled: boolean;

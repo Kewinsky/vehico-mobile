@@ -91,6 +91,7 @@ create table if not exists public.reminders (
   days_before integer,
   title text,
   notes text,
+  status text not null default 'active' check (status in ('active', 'done')),
   channel_email boolean not null default true,
   channel_push boolean not null default true,
   enabled boolean not null default true,
@@ -146,6 +147,21 @@ end $$;
 
 -- Add comment to document the column
 comment on column public.reminders.days_before is 'Number of days before due_date to send reminder (only for type = time)';
+
+-- Add status column for reminders (active or done)
+alter table public.reminders
+  add column if not exists status text not null default 'active' check (status in ('active', 'done'));
+
+-- Set default value for existing reminders
+do $$
+begin
+  update public.reminders
+  set status = 'active'
+  where status is null;
+end $$;
+
+-- Add comment to document the column
+comment on column public.reminders.status is 'Status of the reminder: active or done';
 
 -- User settings (persist per user)
 create table if not exists public.user_settings (

@@ -52,6 +52,7 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
     void load();
   }, [load]);
 
+
   function onDelete() {
     Alert.alert(t("reminderDetail.deleteTitle"), t("reminderDetail.deleteBody"), [
       { text: t("common.cancel"), style: "cancel" },
@@ -128,6 +129,14 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
                 </Text>
               </View>
             ) : null}
+            <View style={styles.row}>
+              <Text style={styles.label}>{t("reminderDetail.labels.status")}</Text>
+              <Text style={styles.value}>
+                {reminder.status === "active"
+                  ? t("reminderDetail.status.active")
+                  : t("reminderDetail.status.done")}
+              </Text>
+            </View>
 
             {reminder.notes ? (
               <>

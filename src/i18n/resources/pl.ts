@@ -211,6 +211,8 @@ export const pl = {
     deleteBody: "Tej operacji nie można cofnąć.",
     dueTime: "Termin {{date}}",
     dueMileage: "Termin przy {{mileage}} {{unit}}",
+    filterStatus: "Status",
+    filterAll: "Wszystkie",
   },
   reminderDetail: {
     title: "Przypomnienie",
@@ -221,8 +223,13 @@ export const pl = {
       due: "Termin",
       daysBefore: "Przypomnij przed",
       notes: "Notatki",
+      status: "Status",
     },
     daysBeforeValue: "{{days}} dni",
+    status: {
+      active: "Aktywne",
+      done: "Zakończone",
+    },
   },
   reminderForm: {
     addTitle: "Dodaj przypomnienie",
