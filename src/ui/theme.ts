@@ -30,13 +30,12 @@ export type AppTheme = {
 
 export const lightTheme: AppTheme = {
   colors: {
-    // Modern "startup" neutrals
-    bg: '#F8FAFC',      // slate-50
-    fg: '#0F172A',      // slate-900
-    muted: '#64748B',   // slate-500
-    border: '#E2E8F0',  // slate-200
+    bg: '#FFFFFF',      // pure white
+    fg: '#000000',      // pure black
+    muted: '#666666',   // gray
+    border: '#E5E5E5',  // light gray
     card: '#FFFFFF',
-    accent: '#2563EB',  // blue-600
+    accent: '#FFB803',  // orange/yellow
     danger: '#EF4444',  // red-500
   },
   spacing: {
@@ -59,12 +58,12 @@ export const lightTheme: AppTheme = {
 
 export const darkTheme: AppTheme = {
   colors: {
-    bg: '#0B1220',      // deep slate/navy
-    fg: '#F8FAFC',      // slate-50
-    muted: '#94A3B8',   // slate-400
-    border: '#1E293B',  // slate-800
-    card: '#0F172A',    // slate-900
-    accent: '#3B82F6',  // blue-500
+    bg: '#000000',      // pure black
+    fg: '#FFFFFF',      // pure white
+    muted: '#999999',   // light gray
+    border: '#333333',  // dark gray
+    card: '#000000',    // pure black
+    accent: '#FFB803',  // orange/yellow
     danger: '#F87171',  // red-400
   },
   spacing: lightTheme.spacing,

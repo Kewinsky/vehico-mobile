@@ -30,7 +30,16 @@ export async function uploadVehicleProfilePhoto(params: {
       contentType: "image/jpeg",
       upsert: false,
     });
-  if (uploadError) throw uploadError;
+  
+  if (uploadError) {
+    // If bucket doesn't exist, provide helpful error message
+    if (uploadError.message?.includes("not found") || uploadError.message?.includes("bucket")) {
+      throw new Error(
+        `Storage bucket "${bucket}" not found. Please create it in Supabase Dashboard → Storage → New bucket.`
+      );
+    }
+    throw uploadError;
+  }
 
   // Get signed URL for the uploaded photo with high quality (no compression)
   // Using getPublicUrl would be better for quality, but requires public bucket

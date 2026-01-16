@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
-  Pressable,
   StyleSheet,
   Text,
   View,
@@ -146,6 +145,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
     );
   }
 
+
   return (
     <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={{ height: theme.spacing.md }} />
@@ -160,6 +160,62 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       {vehicle ? (
         <>
           <View style={{ height: theme.spacing.md }} />
+          
+          {/* Profile Photo Section */}
+          {vehicle.profile_photo_url ? (
+            <View style={styles.profilePhotoCard}>
+              <View style={styles.profilePhotoImageContainer}>
+                <Image
+                  source={{ uri: vehicle.profile_photo_url }}
+                  style={styles.profilePhotoImage}
+                  contentFit="cover"
+                  transition={200}
+                />
+                <View style={styles.profilePhotoMenuButton}>
+                  <IconButton
+                    onPress={() => {
+                      Alert.alert(
+                        t("manageVehicle.profilePhotoTitle"),
+                        "",
+                        [
+                          { text: t("common.cancel"), style: "cancel" },
+                          {
+                            text: t("manageVehicle.changeProfilePhoto"),
+                            onPress: () => void pickProfilePhoto(),
+                          },
+                          {
+                            text: t("manageVehicle.removeProfilePhoto"),
+                            style: "destructive",
+                            onPress: () => void removeProfilePhoto(),
+                          },
+                        ]
+                      );
+                    }}
+                    variant="ghost"
+                    disabled={saving || uploadingPhoto}
+                  >
+                    <Ionicons
+                      name="ellipsis-horizontal"
+                      size={20}
+                      color={theme.colors.fg}
+                    />
+                  </IconButton>
+                </View>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.profilePhotoCard}>
+              <Button
+                onPress={() => void pickProfilePhoto()}
+                variant="ghost"
+                disabled={saving || uploadingPhoto}
+              >
+                {t("manageVehicle.addProfilePhoto")}
+              </Button>
+            </View>
+          )}
+
+          <View style={{ height: 24 }} />
           <TextField
             noMarginTop
             label={t("manageVehicle.titleLabel")}
@@ -189,62 +245,6 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             keyboardType="number-pad"
             maxLength={4}
           />
-
-          <View style={{ height: 24 }} />
-          <View style={styles.sectionHeader}>
-            <Text style={styles.h2}>{t("manageVehicle.profilePhotoTitle")}</Text>
-            <Text style={styles.muted}>
-              {t("manageVehicle.profilePhotoSubtitle")}
-            </Text>
-          </View>
-          <View style={{ height: 10 }} />
-          {vehicle.profile_photo_url ? (
-            <>
-              <View style={styles.profilePhotoContainer}>
-                <Pressable
-                  onPress={() => void Linking.openURL(vehicle.profile_photo_url!)}
-                  style={[
-                    styles.profilePhotoPreview,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
-                  <Image
-                    source={{ uri: vehicle.profile_photo_url }}
-                    style={styles.profilePhotoImage}
-                    contentFit="cover"
-                    transition={200}
-                  />
-                </Pressable>
-              </View>
-              <View style={{ height: 10 }} />
-              <Button
-                onPress={() => void pickProfilePhoto()}
-                variant="ghost"
-                disabled={saving || uploadingPhoto}
-              >
-                {t("manageVehicle.changeProfilePhoto")}
-              </Button>
-              <View style={{ height: 10 }} />
-              <Button
-                onPress={() => void removeProfilePhoto()}
-                variant="ghost"
-                disabled={saving || uploadingPhoto}
-              >
-                {t("manageVehicle.removeProfilePhoto")}
-              </Button>
-            </>
-          ) : (
-            <Button
-              onPress={() => void pickProfilePhoto()}
-              variant="ghost"
-              disabled={saving || uploadingPhoto}
-            >
-              {t("manageVehicle.addProfilePhoto")}
-            </Button>
-          )}
 
           <View style={{ height: 16 }} />
           <Button onPress={onSave} disabled={!canSave || saving}>
@@ -280,20 +280,30 @@ const makeStyles = (theme: any) =>
     cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
     cardTitle: { color: theme.colors.fg, fontWeight: "800" },
     cardMeta: { marginTop: 4, color: theme.colors.muted },
-    profilePhotoContainer: {
-      alignItems: "center",
-      marginVertical: 12,
-    },
-    profilePhotoPreview: {
-      width: 120,
-      height: 120,
+    profilePhotoCard: {
       borderRadius: theme.radius.md,
-      borderWidth: 1,
       overflow: "hidden",
+      backgroundColor: theme.colors.card,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    profilePhotoImageContainer: {
+      position: "relative",
+      height: 220,
+      width: "100%",
     },
     profilePhotoImage: {
       width: "100%",
       height: "100%",
+      backgroundColor: theme.colors.card,
+    },
+    profilePhotoMenuButton: {
+      position: "absolute",
+      top: theme.spacing.sm,
+      right: theme.spacing.sm,
     },
     loadingContainer: {
       paddingTop: 40,
