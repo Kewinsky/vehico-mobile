@@ -40,11 +40,11 @@ export async function uploadVehicleDocument(params: {
     params.vehicleId
   }/vehicle_documents/${Date.now()}-${randomId()}.${ext}`;
 
-  const blob = await fetchBlob(params.fileUri);
+  const fileData = await fetchBlob(params.fileUri);
 
   const { error: uploadError } = await supabase.storage
     .from(bucket)
-    .upload(storagePath, blob, { contentType, upsert: false });
+    .upload(storagePath, fileData, { contentType, upsert: false });
   if (uploadError) throw uploadError;
 
   const { data, error } = await supabase

@@ -1,14 +1,42 @@
+import * as FileSystem from "expo-file-system/legacy";
+
 export function randomId(): string {
   // Non-cryptographic id is sufficient for collision avoidance in filenames.
   return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
 }
 
-export async function fetchBlob(fileUri: string): Promise<Blob> {
-  const res = await fetch(fileUri);
-  if (!res.ok) {
-    throw new Error(`Failed to read file for upload (HTTP ${res.status})`);
+export async function fetchBlob(fileUri: string): Promise<Blob | ArrayBuffer> {
+  // In React Native, we need to use expo-file-system to read files
+  // because standard fetch() doesn't work with file:// URIs from ImagePicker
+  try {
+    const base64 = await FileSystem.readAsStringAsync(fileUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    
+    // Convert base64 to ArrayBuffer (React Native doesn't support Blob from ArrayBuffer)
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    // Return ArrayBuffer instead of Blob for React Native compatibility
+    // Supabase Storage accepts ArrayBuffer in React Native
+    return bytes.buffer;
+  } catch (error) {
+    // Fallback to fetch for remote URIs (http/https)
+    if (fileUri.startsWith("http://") || fileUri.startsWith("https://")) {
+      const res = await fetch(fileUri);
+      if (!res.ok) {
+        throw new Error(`Failed to read file for upload (HTTP ${res.status})`);
+      }
+      // For remote URIs, we can use blob() which works in web environments
+      return await res.blob();
+    }
+    throw new Error(
+      `Failed to read file: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
-  return await res.blob();
 }
 
 export function inferContentType(params: {

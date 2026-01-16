@@ -47,11 +47,11 @@ export async function uploadAttachment(params: {
     params.serviceEntryId
   }/${Date.now()}-${randomId()}.${ext}`;
 
-  const blob = await fetchBlob(params.fileUri);
+  const fileData = await fetchBlob(params.fileUri);
 
   const { error: uploadError } = await supabase.storage
     .from(bucket)
-    .upload(storagePath, blob, { contentType, upsert: false });
+    .upload(storagePath, fileData, { contentType, upsert: false });
   if (uploadError) throw uploadError;
 
   const { data, error } = await supabase

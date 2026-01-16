@@ -16,11 +16,11 @@ export async function uploadVehiclePhoto(params: { vehicleId: string; fileUri: s
   const bucket = 'images';
   const storagePath = `${params.vehicleId}/vehicle_photos/${Date.now()}-${randomId()}.jpg`;
 
-  const blob = await fetchBlob(params.fileUri);
+  const fileData = await fetchBlob(params.fileUri);
 
   const { error: uploadError } = await supabase.storage
     .from(bucket)
-    .upload(storagePath, blob, { contentType: 'image/jpeg', upsert: false });
+    .upload(storagePath, fileData, { contentType: 'image/jpeg', upsert: false });
   if (uploadError) throw uploadError;
 
   const { data, error } = await supabase
