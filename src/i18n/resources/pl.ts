@@ -42,6 +42,11 @@ export const pl = {
     makeLabel: "Marka",
     modelLabel: "Model",
     yearLabel: "Rok produkcji",
+    profilePhotoTitle: "Zdjęcie profilowe",
+    profilePhotoSubtitle: "Dodaj zdjęcie, aby zidentyfikować ten pojazd.",
+    profilePhotoPreview: "Zdjęcie wybrane",
+    addProfilePhoto: "Dodaj zdjęcie profilowe",
+    changeProfilePhoto: "Zmień zdjęcie",
   },
   timeline: {
     addEntry: "Dodaj wpis serwisowy",

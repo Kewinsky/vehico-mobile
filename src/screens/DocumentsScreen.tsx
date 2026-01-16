@@ -21,7 +21,6 @@ import { useCallback, useEffect, useState } from "react";
 import type {
   Attachment,
   VehicleDocument,
-  VehiclePhoto,
 } from "../types/domain";
 import {
   createSignedUrl,
@@ -29,11 +28,6 @@ import {
   listVehicleAttachments,
   type VehicleAttachment,
 } from "../services/attachments/attachmentsRepo";
-import {
-  deleteVehiclePhoto,
-  listVehiclePhotos,
-  uploadVehiclePhoto,
-} from "../services/vehiclePhotos/vehiclePhotosRepo";
 import {
   deleteVehicleDocument,
   listVehicleDocuments,
@@ -50,7 +44,6 @@ type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 export function DocumentsScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
   const [vehicleDocs, setVehicleDocs] = useState<VehicleDocument[]>([]);
   const [attachments, setAttachments] = useState<VehicleAttachment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,12 +53,10 @@ export function DocumentsScreen({ route, navigation }: Props) {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [p, d, a] = await Promise.all([
-        listVehiclePhotos(route.params.vehicleId),
+      const [d, a] = await Promise.all([
         listVehicleDocuments(route.params.vehicleId),
         listVehicleAttachments(route.params.vehicleId),
       ]);
-      setPhotos(p);
       setVehicleDocs(d);
       setAttachments(a);
     } catch (e: any) {
@@ -111,71 +102,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
         },
       ]
     );
-  }
-
-  function pickVehiclePhoto() {
-    Alert.alert(
-      t("documents.addVehiclePhoto"),
-      t("attachments.addPickerBody"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("attachments.camera"),
-          onPress: () => void pickPhotoFromCamera(),
-        },
-        {
-          text: t("attachments.photos"),
-          onPress: () => void pickPhotoFromGallery(),
-        },
-      ]
-    );
-  }
-
-  async function pickPhotoFromCamera() {
-    try {
-      setUploading(true);
-      const perm = await ImagePicker.requestCameraPermissionsAsync();
-      if (!perm.granted)
-        throw new Error(t("attachments.cameraPermissionDenied"));
-      const result = await ImagePicker.launchCameraAsync({ quality: 0.9 });
-      if (result.canceled) return;
-      const asset = result.assets?.[0];
-      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-      await uploadVehiclePhoto({
-        vehicleId: route.params.vehicleId,
-        fileUri: asset.uri,
-      });
-      await load();
-    } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  async function pickPhotoFromGallery() {
-    try {
-      setUploading(true);
-      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted)
-        throw new Error(t("attachments.galleryPermissionDenied"));
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        quality: 1,
-      });
-      if (result.canceled) return;
-      const asset = result.assets?.[0];
-      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-      await uploadVehiclePhoto({
-        vehicleId: route.params.vehicleId,
-        fileUri: asset.uri,
-      });
-      await load();
-    } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
-    } finally {
-      setUploading(false);
-    }
   }
 
   async function pickDocFromCamera() {
@@ -276,28 +202,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
     );
   }
 
-  function confirmDeletePhoto(photo: VehiclePhoto) {
-    Alert.alert(
-      t("documents.removePhotoTitle"),
-      t("documents.removePhotoBody"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("common.remove"),
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteVehiclePhoto(photo);
-              setPhotos((prev) => prev.filter((x) => x.id !== photo.id));
-            } catch (e: any) {
-              toastError(t("common.error"), e?.message ?? String(e));
-            }
-          },
-        },
-      ]
-    );
-  }
-
   function confirmDeleteAttachment(att: Attachment) {
     Alert.alert(
       t("documents.removeAttachmentTitle"),
@@ -357,10 +261,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
           {t("documents.addAttachment")}
         </Button>
         <View style={{ height: 10 }} />
-        <Button onPress={pickVehiclePhoto} variant="ghost" disabled={uploading}>
-          {t("documents.addVehiclePhoto")}
-        </Button>
-        <View style={{ height: 10 }} />
         <Button
           onPress={pickVehicleDocument}
           variant="ghost"
@@ -368,64 +268,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
         >
           {t("documents.addVehicleDocument")}
         </Button>
-
-        <View style={{ height: 18 }} />
-        <Text style={[styles.section, { color: theme.colors.fg }]}>
-          {t("documents.vehiclePhotos")}
-        </Text>
-        <View style={{ height: theme.spacing.sm }} />
-        <FlatList
-          data={photos.filter((p) => {
-            const q = query.trim().toLowerCase();
-            if (!q.length) return true;
-            const name = p.storage_path.split("/").slice(-1)[0] ?? "";
-            return name.toLowerCase().includes(q);
-          })}
-          keyExtractor={(p) => p.id}
-          scrollEnabled={false}
-          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          renderItem={({ item }) => (
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.cardRow}>
-                <Pressable
-                  style={{ flex: 1 }}
-                  onPress={() =>
-                    void openStorage(item.storage_bucket, item.storage_path)
-                  }
-                >
-                  <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
-                    {t("documents.photoLabel")}
-                  </Text>
-                  <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
-                    {item.storage_path.split("/").slice(-1)[0]}
-                  </Text>
-                </Pressable>
-                <IconButton onPress={() => confirmDeletePhoto(item)} variant="danger">
-                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
-                </IconButton>
-              </View>
-            </View>
-          )}
-          ListEmptyComponent={
-            loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={theme.colors.accent} />
-              </View>
-            ) : (
-              <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
-                {t("documents.noPhotos")}
-              </Text>
-            )
-          }
-        />
 
         <View style={{ height: 18 }} />
         <Text style={[styles.section, { color: theme.colors.fg }]}>

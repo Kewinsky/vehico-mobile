@@ -9,6 +9,7 @@ export type Vehicle = {
   make: string;
   model: string;
   production_year: number;
+  profile_photo_url: string | null; // URL to profile photo in storage
   created_at: string;
 };
 

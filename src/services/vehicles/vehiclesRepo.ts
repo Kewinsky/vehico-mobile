@@ -8,6 +8,7 @@ type NewVehicleInput = {
   make: string;
   model: string;
   production_year: number;
+  profile_photo_url?: string | null;
 };
 
 type UpdateVehicleInput = Partial<NewVehicleInput>;

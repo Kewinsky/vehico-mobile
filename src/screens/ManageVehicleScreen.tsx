@@ -2,21 +2,18 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
-  Linking,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import type { Vehicle, VehiclePhoto } from "../types/domain";
+import type { Vehicle } from "../types/domain";
 import { deleteVehicle, getVehicle } from "../services/vehicles/vehiclesRepo";
-import { createSignedUrl } from "../services/attachments/attachmentsRepo";
-import { listVehiclePhotos } from "../services/vehiclePhotos/vehiclePhotosRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
@@ -32,7 +29,6 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   const { vehicleId } = route.params;
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
-  const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -40,8 +36,6 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
       setLoading(true);
       const v = await getVehicle(vehicleId);
       setVehicle(v);
-      const p = await listVehiclePhotos(vehicleId);
-      setPhotos(p);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {
@@ -75,18 +69,6 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
     );
   }
 
-  async function openPhoto(photo: VehiclePhoto) {
-    try {
-      const url = await createSignedUrl(
-        photo.storage_bucket,
-        photo.storage_path
-      );
-      await Linking.openURL(url);
-    } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
-    }
-  }
-
   return (
     <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={{ height: theme.spacing.md }} />
@@ -107,7 +89,23 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
         <>
           <View style={{ height: theme.spacing.md }} />
           <View style={styles.detailsCard}>
-            <Text style={styles.detailsTitle}>{vehicle.title}</Text>
+            <View style={styles.titleRow}>
+              {vehicle.profile_photo_url ? (
+                <Image
+                  source={{ uri: vehicle.profile_photo_url }}
+                  style={styles.profilePhoto}
+                  contentFit="cover"
+                  transition={200}
+                />
+              ) : (
+                <View style={styles.profilePhotoPlaceholder}>
+                  <Text style={styles.profilePhotoPlaceholderText}>
+                    {vehicle.type === "car" ? "🚗" : "🏍️"}
+                  </Text>
+                </View>
+              )}
+              <Text style={styles.detailsTitle}>{vehicle.title}</Text>
+            </View>
             <View style={{ height: 12 }} />
             <View style={styles.row}>
               <Text style={styles.label}>{t("vehicleForm.makeLabel")}</Text>
@@ -132,44 +130,6 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
               </View>
             ) : null}
           </View>
-
-          <View style={{ height: 24 }} />
-          <Text style={styles.h2}>{t("manageVehicle.photosTitle")}</Text>
-          <Text style={styles.muted}>{t("manageVehicle.photosSubtitle")}</Text>
-
-          <View style={{ height: 12 }} />
-          <FlatList
-            data={photos}
-            keyExtractor={(p) => p.id}
-            scrollEnabled={false}
-            ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-            renderItem={({ item }) => (
-              <View style={styles.card}>
-                <View style={styles.cardRow}>
-                  <Pressable
-                    style={{ flex: 1 }}
-                    onPress={() => void openPhoto(item)}
-                  >
-                    <Text style={styles.cardTitle}>
-                      {t("documents.photoLabel")}
-                    </Text>
-                    <Text style={styles.cardMeta}>
-                      {item.storage_path.split("/").slice(-1)[0]}
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            )}
-            ListEmptyComponent={
-              loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={theme.colors.accent} />
-                </View>
-              ) : (
-                <Text style={styles.muted}>{t("documents.noPhotos")}</Text>
-              )
-            }
-          />
 
           <View style={{ height: 28 }} />
           <Button onPress={onDeleteVehicle} variant="destructive">
@@ -213,10 +173,35 @@ const makeStyles = (theme: any) =>
       padding: theme.spacing.sm,
       gap: 8,
     },
+    titleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    profilePhoto: {
+      width: 80,
+      height: 80,
+      borderRadius: theme.radius.md,
+      backgroundColor: theme.colors.card,
+    },
+    profilePhotoPlaceholder: {
+      width: 80,
+      height: 80,
+      borderRadius: theme.radius.md,
+      backgroundColor: theme.colors.card,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    profilePhotoPlaceholderText: {
+      fontSize: 32,
+    },
     detailsTitle: {
       fontSize: 18,
       fontWeight: "800",
       color: theme.colors.fg,
+      flex: 1,
     },
     row: {
       flexDirection: "row",

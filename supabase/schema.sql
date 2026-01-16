@@ -18,6 +18,7 @@ create table if not exists public.vehicles (
   make text not null,
   model text not null,
   production_year integer not null,
+  profile_photo_url text,
   created_at timestamptz not null default now()
 );
 
@@ -175,18 +176,6 @@ create table if not exists public.user_settings (
   updated_at timestamptz not null default now()
 );
 
--- Vehicle photos (separate from service attachments)
-create table if not exists public.vehicle_photos (
-  id uuid primary key default gen_random_uuid(),
-  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
-  storage_bucket text not null check (storage_bucket in ('images')),
-  storage_path text not null,
-  created_at timestamptz not null default now()
-  -- hard delete only (no deleted_at)
-);
-
-create index if not exists vehicle_photos_vehicle_id_idx on public.vehicle_photos(vehicle_id);
-
 -- Vehicle documents (not tied to service entries)
 create table if not exists public.vehicle_documents (
   id uuid primary key default gen_random_uuid(),
@@ -210,7 +199,6 @@ alter table public.public_pages enable row level security;
 alter table public.fueling_entries enable row level security;
 alter table public.reminders enable row level security;
 alter table public.user_settings enable row level security;
-alter table public.vehicle_photos enable row level security;
 alter table public.vehicle_documents enable row level security;
 
 -- Vehicles: owner can CRUD
@@ -507,19 +495,6 @@ to authenticated
 using (user_id = auth.uid())
 with check (user_id = auth.uid());
 
--- Vehicle photos: allowed if vehicle belongs to user (and not deleted)
-drop policy if exists vehicle_photos_select_own_vehicle on public.vehicle_photos;
-create policy vehicle_photos_select_own_vehicle
-on public.vehicle_photos for select
-to authenticated
-using (
-  exists (
-    select 1 from public.vehicles v
-    where v.id = vehicle_photos.vehicle_id
-      and v.owner_id = auth.uid()
-  )
-);
-
 -- Vehicle documents: allowed if vehicle belongs to user
 drop policy if exists vehicle_documents_select_own_vehicle on public.vehicle_documents;
 create policy vehicle_documents_select_own_vehicle
@@ -553,30 +528,6 @@ using (
   exists (
     select 1 from public.vehicles v
     where v.id = vehicle_documents.vehicle_id
-      and v.owner_id = auth.uid()
-  )
-);
-
-drop policy if exists vehicle_photos_insert_own_vehicle on public.vehicle_photos;
-create policy vehicle_photos_insert_own_vehicle
-on public.vehicle_photos for insert
-to authenticated
-with check (
-  exists (
-    select 1 from public.vehicles v
-    where v.id = vehicle_photos.vehicle_id
-      and v.owner_id = auth.uid()
-  )
-);
-
-drop policy if exists vehicle_photos_delete_own_vehicle on public.vehicle_photos;
-create policy vehicle_photos_delete_own_vehicle
-on public.vehicle_photos for delete
-to authenticated
-using (
-  exists (
-    select 1 from public.vehicles v
-    where v.id = vehicle_photos.vehicle_id
       and v.owner_id = auth.uid()
   )
 );
@@ -617,6 +568,30 @@ drop policy if exists "storage_write_vehicle_scoped" on storage.objects;
 create policy "storage_write_vehicle_scoped"
 on storage.objects for insert
 to authenticated
+with check (
+  bucket_id in ('images', 'documents')
+  and exists (
+    select 1
+    from public.vehicles v
+    where v.id::text = split_part(name, '/', 1)
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- Update: authenticated can update objects only under vehicles they own
+drop policy if exists "storage_update_vehicle_scoped" on storage.objects;
+create policy "storage_update_vehicle_scoped"
+on storage.objects for update
+to authenticated
+using (
+  bucket_id in ('images', 'documents')
+  and exists (
+    select 1
+    from public.vehicles v
+    where v.id::text = split_part(name, '/', 1)
+      and v.owner_id = auth.uid()
+  )
+)
 with check (
   bucket_id in ('images', 'documents')
   and exists (
@@ -680,11 +655,6 @@ revoke all on function public.delete_storage_object_trigger() from public;
 drop trigger if exists attachments_delete_storage on public.attachments;
 create trigger attachments_delete_storage
 after delete on public.attachments
-for each row execute function public.delete_storage_object_trigger();
-
-drop trigger if exists vehicle_photos_delete_storage on public.vehicle_photos;
-create trigger vehicle_photos_delete_storage
-after delete on public.vehicle_photos
 for each row execute function public.delete_storage_object_trigger();
 
 drop trigger if exists vehicle_documents_delete_storage on public.vehicle_documents;

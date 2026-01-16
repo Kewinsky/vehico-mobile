@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -117,20 +118,29 @@ export function VehiclesScreen({ navigation }: Props) {
                     pressed && styles.vehicleCardPressed,
                   ]}
                 >
-                  <View style={styles.vehicleTopRow}>
-                    <View style={styles.vehicleTitleRow}>
-                      <View style={styles.accentBar} />
-                      <Text style={styles.vehicleTitle} numberOfLines={1}>
+                  <View style={styles.vehicleImageContainer}>
+                    {item.profile_photo_url ? (
+                      <Image
+                        source={{ uri: item.profile_photo_url }}
+                        style={styles.vehicleImage}
+                        contentFit="cover"
+                        transition={200}
+                      />
+                    ) : (
+                      <View style={styles.vehicleImagePlaceholder}>
+                        <Text style={styles.vehicleImagePlaceholderText}>
+                          {item.type === "car" ? "🚗" : "🏍️"}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={styles.vehicleImageContent}>
+                      <Text style={styles.vehicleTitle} numberOfLines={2}>
                         {item.title}
                       </Text>
+                      <Text style={styles.vehicleMeta} numberOfLines={1}>
+                        {item.make} {item.model} · {item.production_year}
+                      </Text>
                     </View>
-                    <Text style={styles.chevron}>›</Text>
-                  </View>
-
-                  <View style={styles.metaRow}>
-                    <Text style={styles.vehicleMeta} numberOfLines={1}>
-                      {item.make} {item.model} · {item.production_year}
-                    </Text>
                   </View>
                 </Pressable>
               )}
@@ -191,44 +201,63 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       gap: 8,
     },
     vehicleCard: {
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
-      padding: theme.spacing.sm,
-      gap: 8,
+      overflow: "hidden",
+      backgroundColor: theme.colors.card,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
     },
     vehicleCardPressed: {
-      opacity: 0.92,
+      opacity: 0.95,
     },
-    vehicleTopRow: {
-      flexDirection: "row",
+    vehicleImageContainer: {
+      position: "relative",
+      height: 220,
+      width: "100%",
+    },
+    vehicleImage: {
+      width: "100%",
+      height: "100%",
+      backgroundColor: theme.colors.card,
+    },
+    vehicleImagePlaceholder: {
+      width: "100%",
+      height: "100%",
+      backgroundColor: theme.colors.border,
       alignItems: "center",
-      justifyContent: "space-between",
-      gap: 10,
+      justifyContent: "center",
     },
-    vehicleTitleRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 10,
-      flex: 1,
-      minWidth: 0,
+    vehicleImagePlaceholderText: {
+      fontSize: 64,
     },
-    accentBar: {
-      width: 3,
-      height: 18,
-      borderRadius: 2,
-      backgroundColor: theme.colors.accent,
+    vehicleImageContent: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      padding: theme.spacing.md,
+      paddingBottom: theme.spacing.sm + 4,
     },
     vehicleTitle: {
-      fontSize: 18,
+      fontSize: 22,
       fontWeight: "800",
-      color: theme.colors.fg,
-      flex: 1,
-      minWidth: 0,
+      color: "#FFFFFF",
+      textShadowColor: "rgba(0, 0, 0, 0.5)",
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 4,
+      marginBottom: 4,
     },
-    chevron: { fontSize: 18, color: theme.colors.muted, fontWeight: "900" },
-    metaRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+    vehicleMeta: {
+      fontSize: 14,
+      color: "#FFFFFF",
+      textShadowColor: "rgba(0, 0, 0, 0.5)",
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 4,
+      opacity: 0.95,
+    },
     pill: {
       paddingHorizontal: 10,
       paddingVertical: 6,
@@ -238,10 +267,4 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       backgroundColor: theme.colors.bg,
     },
     pillText: { fontSize: 12, fontWeight: "800", color: theme.colors.muted },
-    vehicleMeta: {
-      fontSize: 13,
-      color: theme.colors.muted,
-      flex: 1,
-      minWidth: 0,
-    },
   });

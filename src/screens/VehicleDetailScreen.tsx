@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { i18n } from "../i18n/i18n";
@@ -17,9 +18,11 @@ import type {
   Reminder,
   ServiceEntry,
   ServiceEntryCategory,
+  Vehicle,
 } from "../types/domain";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { listReminders } from "../services/reminders/remindersRepo";
+import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import { Button } from "../ui/components/Button";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
@@ -87,6 +90,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const { vehicleId } = route.params;
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,10 +114,12 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
       try {
         if (opts?.refreshing) setRefreshing(true);
         else setLoading(true);
-        const [data, rs] = await Promise.all([
+        const [v, data, rs] = await Promise.all([
+          getVehicle(vehicleId),
           listServiceEntries(vehicleId),
           listReminders(vehicleId),
         ]);
+        setVehicle(v);
         setItems(data);
         setReminders(rs);
       } catch (e: any) {
@@ -267,6 +273,20 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
           <View style={styles.headerRow}>
+            {vehicle?.profile_photo_url ? (
+              <Image
+                source={{ uri: vehicle.profile_photo_url }}
+                style={styles.headerProfilePhoto}
+                contentFit="cover"
+                transition={200}
+              />
+            ) : (
+              <View style={styles.headerProfilePhotoPlaceholder}>
+                <Text style={styles.headerProfilePhotoPlaceholderText}>
+                  {vehicle?.type === "car" ? "🚗" : "🏍️"}
+                </Text>
+              </View>
+            )}
             <Text style={styles.title}>
               {t("dashboard.tiles.serviceTitle")}
             </Text>
@@ -608,9 +628,28 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     headerRow: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
+      gap: 12,
     },
-    title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
+    headerProfilePhoto: {
+      width: 80,
+      height: 80,
+      borderRadius: theme.radius.md,
+      backgroundColor: theme.colors.card,
+    },
+    headerProfilePhotoPlaceholder: {
+      width: 80,
+      height: 80,
+      borderRadius: theme.radius.md,
+      backgroundColor: theme.colors.card,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerProfilePhotoPlaceholderText: {
+      fontSize: 32,
+    },
+    title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg, flex: 1 },
     editLink: { color: theme.colors.muted, fontWeight: "800" },
     searchRow: { flexDirection: "row", alignItems: "center" },
     addButton: {

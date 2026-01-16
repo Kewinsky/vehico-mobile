@@ -2,26 +2,25 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Linking,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import type { Vehicle, VehiclePhoto } from "../types/domain";
+import type { Vehicle } from "../types/domain";
 import { getVehicle, updateVehicle } from "../services/vehicles/vehiclesRepo";
-import { createSignedUrl } from "../services/attachments/attachmentsRepo";
 import {
-  deleteVehiclePhoto,
-  listVehiclePhotos,
-  uploadVehiclePhoto,
-} from "../services/vehiclePhotos/vehiclePhotosRepo";
+  deleteVehicleProfilePhoto,
+  uploadVehicleProfilePhoto,
+} from "../services/vehicles/uploadProfilePhoto";
+import { createSignedUrl } from "../services/attachments/attachmentsRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
@@ -40,9 +39,9 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const { vehicleId } = route.params;
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
-  const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const [title, setTitle] = useState("");
   const [vin, setVin] = useState("");
@@ -60,8 +59,6 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       setMake(v.make);
       setModel(v.model);
       setYear(String(v.production_year));
-      const p = await listVehiclePhotos(vehicleId);
-      setPhotos(p);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {
@@ -103,8 +100,9 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
     }
   }
 
-  async function addPhoto() {
+  async function pickProfilePhoto() {
     try {
+      setUploadingPhoto(true);
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) throw new Error("Media library permission denied");
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -114,27 +112,18 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       if (result.canceled) return;
       const uri = result.assets[0]?.uri;
       if (!uri) throw new Error("No file selected");
-      await uploadVehiclePhoto({ vehicleId, fileUri: uri });
-      const p = await listVehiclePhotos(vehicleId);
-      setPhotos(p);
+      
+      const photoUrl = await uploadVehicleProfilePhoto({ vehicleId, fileUri: uri });
+      await updateVehicle(vehicleId, { profile_photo_url: photoUrl });
+      await load();
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
+    } finally {
+      setUploadingPhoto(false);
     }
   }
 
-  async function openPhoto(photo: VehiclePhoto) {
-    try {
-      const url = await createSignedUrl(
-        photo.storage_bucket,
-        photo.storage_path
-      );
-      await Linking.openURL(url);
-    } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
-    }
-  }
-
-  async function removePhoto(photo: VehiclePhoto) {
+  async function removeProfilePhoto() {
     Alert.alert(
       t("manageVehicle.removePhotoTitle"),
       t("manageVehicle.removePhotoBody"),
@@ -145,8 +134,9 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
           style: "destructive",
           onPress: async () => {
             try {
-              await deleteVehiclePhoto(photo);
-              setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+              await deleteVehicleProfilePhoto(vehicleId);
+              await updateVehicle(vehicleId, { profile_photo_url: null });
+              await load();
             } catch (e: any) {
               toastError(t("common.error"), e?.message ?? String(e));
             }
@@ -202,55 +192,59 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
 
           <View style={{ height: 24 }} />
           <View style={styles.sectionHeader}>
-            <Text style={styles.h2}>{t("manageVehicle.photosTitle")}</Text>
+            <Text style={styles.h2}>{t("manageVehicle.profilePhotoTitle")}</Text>
             <Text style={styles.muted}>
-              {t("manageVehicle.photosSubtitle")}
+              {t("manageVehicle.profilePhotoSubtitle")}
             </Text>
           </View>
           <View style={{ height: 10 }} />
-          <Button
-            onPress={() => void addPhoto()}
-            variant="ghost"
-            disabled={saving}
-          >
-            {t("manageVehicle.addPhoto")}
-          </Button>
-          <View style={{ height: 10 }} />
-          <FlatList
-            data={photos}
-            keyExtractor={(p) => p.id}
-            scrollEnabled={false}
-            ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-            renderItem={({ item }) => (
-              <View style={styles.card}>
-                <View style={styles.cardRow}>
-                  <Pressable
-                    style={{ flex: 1 }}
-                    onPress={() => void openPhoto(item)}
-                  >
-                    <Text style={styles.cardTitle}>
-                      {t("documents.photoLabel")}
-                    </Text>
-                    <Text style={styles.cardMeta}>
-                      {item.storage_path.split("/").slice(-1)[0]}
-                    </Text>
-                  </Pressable>
-                  <IconButton onPress={() => void removePhoto(item)} variant="danger">
-                    <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
-                  </IconButton>
-                </View>
+          {vehicle.profile_photo_url ? (
+            <>
+              <View style={styles.profilePhotoContainer}>
+                <Pressable
+                  onPress={() => void Linking.openURL(vehicle.profile_photo_url!)}
+                  style={[
+                    styles.profilePhotoPreview,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                  ]}
+                >
+                  <Image
+                    source={{ uri: vehicle.profile_photo_url }}
+                    style={styles.profilePhotoImage}
+                    contentFit="cover"
+                    transition={200}
+                  />
+                </Pressable>
               </View>
-            )}
-            ListEmptyComponent={
-              loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={theme.colors.accent} />
-                </View>
-              ) : (
-                <Text style={styles.muted}>{t("documents.noPhotos")}</Text>
-              )
-            }
-          />
+              <View style={{ height: 10 }} />
+              <Button
+                onPress={() => void pickProfilePhoto()}
+                variant="ghost"
+                disabled={saving || uploadingPhoto}
+              >
+                {t("manageVehicle.changeProfilePhoto")}
+              </Button>
+              <View style={{ height: 10 }} />
+              <Button
+                onPress={() => void removeProfilePhoto()}
+                variant="ghost"
+                disabled={saving || uploadingPhoto}
+              >
+                {t("manageVehicle.removeProfilePhoto")}
+              </Button>
+            </>
+          ) : (
+            <Button
+              onPress={() => void pickProfilePhoto()}
+              variant="ghost"
+              disabled={saving || uploadingPhoto}
+            >
+              {t("manageVehicle.addProfilePhoto")}
+            </Button>
+          )}
 
           <View style={{ height: 16 }} />
           <Button onPress={onSave} disabled={!canSave || saving}>
@@ -286,6 +280,21 @@ const makeStyles = (theme: any) =>
     cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
     cardTitle: { color: theme.colors.fg, fontWeight: "800" },
     cardMeta: { marginTop: 4, color: theme.colors.muted },
+    profilePhotoContainer: {
+      alignItems: "center",
+      marginVertical: 12,
+    },
+    profilePhotoPreview: {
+      width: 120,
+      height: 120,
+      borderRadius: theme.radius.md,
+      borderWidth: 1,
+      overflow: "hidden",
+    },
+    profilePhotoImage: {
+      width: "100%",
+      height: "100%",
+    },
     loadingContainer: {
       paddingTop: 40,
       paddingBottom: 40,
