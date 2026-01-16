@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Linking,
@@ -161,7 +162,9 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
             )}
             ListEmptyComponent={
               loading ? (
-                <Text style={styles.muted}>{t("common.loading")}</Text>
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color={theme.colors.accent} />
+                </View>
               ) : (
                 <Text style={styles.muted}>{t("documents.noPhotos")}</Text>
               )
@@ -180,7 +183,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    h1: { fontSize: 26, fontWeight: "800", color: theme.colors.fg },
+    h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
     headerSubtitle: { marginTop: 6, color: theme.colors.muted, lineHeight: 20 },
     h2: { fontSize: 18, fontWeight: "800", color: theme.colors.fg },
     headerRow: {
@@ -196,7 +199,7 @@ const makeStyles = (theme: any) =>
       borderColor: theme.colors.border,
       backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
+      padding: theme.spacing.sm,
       gap: 6,
     },
     cardTitle: { fontSize: 15, fontWeight: "800", color: theme.colors.fg },
@@ -207,7 +210,7 @@ const makeStyles = (theme: any) =>
       borderColor: theme.colors.border,
       backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
+      padding: theme.spacing.sm,
       gap: 8,
     },
     detailsTitle: {
@@ -230,5 +233,11 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.small,
       fontWeight: "400",
       color: theme.colors.fg,
+    },
+    loadingContainer: {
+      paddingTop: 40,
+      paddingBottom: 40,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });

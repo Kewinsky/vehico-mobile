@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Pressable,
@@ -9,6 +10,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Vehicle } from "../types/domain";
@@ -25,7 +27,8 @@ type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 export function VehiclesScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const { signOut } = useAuth();
   const [items, setItems] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,19 +40,22 @@ export function VehiclesScreen({ navigation }: Props) {
     });
   }
 
-  const load = useCallback(async (opts?: { refreshing?: boolean }) => {
-    try {
-      if (opts?.refreshing) setRefreshing(true);
-      else setLoading(true);
-      const data = await listVehicles();
-      setItems(data);
-    } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
-    } finally {
-      if (opts?.refreshing) setRefreshing(false);
-      else setLoading(false);
-    }
-  }, [t]);
+  const load = useCallback(
+    async (opts?: { refreshing?: boolean }) => {
+      try {
+        if (opts?.refreshing) setRefreshing(true);
+        else setLoading(true);
+        const data = await listVehicles();
+        setItems(data);
+      } catch (e: any) {
+        toastError(t("common.error"), e?.message ?? String(e));
+      } finally {
+        if (opts?.refreshing) setRefreshing(false);
+        else setLoading(false);
+      }
+    },
+    [t]
+  );
 
   useEffect(() => {
     // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
@@ -77,7 +83,11 @@ export function VehiclesScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.body}>
-        {items.length === 0 && !loading ? (
+        {loading && items.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.colors.accent} />
+          </View>
+        ) : items.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyTitle}>{t("vehicles.emptyTitle")}</Text>
             <Text style={styles.emptyBody}>{t("vehicles.emptyBody")}</Text>
@@ -139,17 +149,17 @@ export function VehiclesScreen({ navigation }: Props) {
   );
 }
 
-const makeStyles = (theme: any) =>
+const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     top: {
       paddingHorizontal: theme.spacing.md,
-      paddingTop: theme.spacing.md,
-      paddingBottom: 8,
+      paddingTop: 12,
+      paddingBottom: 12,
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
     },
-    title: { fontSize: 26, fontWeight: "800", color: theme.colors.fg },
+    title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
     actions: { flexDirection: "row", alignItems: "center", gap: 14 },
     actionText: { fontWeight: "800", color: theme.colors.muted },
     body: {
@@ -171,16 +181,21 @@ const makeStyles = (theme: any) =>
       lineHeight: 22,
       color: theme.colors.muted,
     },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
     list: {
-      paddingBottom: 32,
-      gap: 12,
+      paddingBottom: insets.bottom + 32,
+      gap: 8,
     },
     vehicleCard: {
       borderWidth: 1,
       borderColor: theme.colors.border,
       backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
+      padding: theme.spacing.sm,
       gap: 8,
     },
     vehicleCardPressed: {

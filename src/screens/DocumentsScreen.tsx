@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Linking,
@@ -325,7 +326,8 @@ export function DocumentsScreen({ route, navigation }: Props) {
       <View
         style={{
           paddingHorizontal: theme.spacing.md,
-          paddingTop: theme.spacing.md,
+          paddingTop: 12,
+          paddingBottom: 12,
         }}
       >
         <Text style={[styles.title, { color: theme.colors.fg }]}>
@@ -414,9 +416,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
           )}
           ListEmptyComponent={
             loading ? (
-              <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
-                {t("common.loading")}
-              </Text>
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.colors.accent} />
+              </View>
             ) : (
               <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
                 {t("documents.noPhotos")}
@@ -474,9 +476,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
           )}
           ListEmptyComponent={
             loading ? (
-              <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
-                {t("common.loading")}
-              </Text>
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.colors.accent} />
+              </View>
             ) : (
               <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
                 {t("documents.noVehicleDocuments")}
@@ -535,9 +537,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
           )}
           ListEmptyComponent={
             loading ? (
-              <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
-                {t("common.loading")}
-              </Text>
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.colors.accent} />
+              </View>
             ) : (
               <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
                 {t("documents.noAttachments")}
@@ -551,11 +553,17 @@ export function DocumentsScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 22, fontWeight: "800" },
+  title: { fontSize: 20, fontWeight: "800" },
   body: { marginTop: 8, lineHeight: 22 },
   section: { marginTop: 10, fontSize: 16, fontWeight: "800" },
-  card: { borderWidth: 1, borderRadius: 12, padding: 16 },
+  card: { borderWidth: 1, borderRadius: 14, padding: 12 },
   cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  loadingContainer: {
+    paddingTop: 40,
+    paddingBottom: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   trash: {
     width: 44,
     height: 44,

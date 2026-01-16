@@ -11,7 +11,7 @@ import { VehicleFormScreen } from "../../screens/VehicleFormScreen";
 import { ManageVehicleScreen } from "../../screens/ManageVehicleScreen";
 import { ManageVehicleEditScreen } from "../../screens/ManageVehicleEditScreen";
 import { DocumentsScreen } from "../../screens/DocumentsScreen";
-import { FuelCostsScreen } from "../../screens/FuelCostsScreen";
+import { FuelScreen } from "../../screens/FuelScreen";
 import { FuelingEntryFormScreen } from "../../screens/FuelingEntryFormScreen";
 import { RemindersScreen } from "../../screens/RemindersScreen";
 import { ReminderFormScreen } from "../../screens/ReminderFormScreen";
@@ -32,7 +32,7 @@ export type AppStackParamList = {
   VehicleDashboard: { vehicleId: string; title: string };
   VehicleDetail: { vehicleId: string; title: string };
   Documents: { vehicleId: string; title: string };
-  FuelCosts: { vehicleId: string; title: string };
+  Fuel: { vehicleId: string; title: string };
   Statistics: { vehicleId: string; title: string };
   Reminders: { vehicleId: string; title: string };
   Share: { vehicleId: string; title: string };
@@ -75,7 +75,7 @@ export function RootNavigator() {
           />
           <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
           <Stack.Screen name="Documents" component={DocumentsScreen} />
-          <Stack.Screen name="FuelCosts" component={FuelCostsScreen} />
+          <Stack.Screen name="Fuel" component={FuelScreen} />
           <Stack.Screen name="Statistics" component={StatisticsScreen} />
           <Stack.Screen
             name="FuelingEntryForm"
@@ -83,7 +83,10 @@ export function RootNavigator() {
           />
           <Stack.Screen name="Reminders" component={RemindersScreen} />
           <Stack.Screen name="ReminderForm" component={ReminderFormScreen} />
-          <Stack.Screen name="ReminderDetail" component={ReminderDetailScreen} />
+          <Stack.Screen
+            name="ReminderDetail"
+            component={ReminderDetailScreen}
+          />
           <Stack.Screen name="Share" component={ShareScreen} />
           <Stack.Screen name="ManageVehicle" component={ManageVehicleScreen} />
           <Stack.Screen

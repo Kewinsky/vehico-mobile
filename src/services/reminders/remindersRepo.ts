@@ -6,6 +6,7 @@ type NewReminder = {
   type: ReminderType;
   due_date: string | null;
   due_mileage: number | null;
+  days_before: number | null; // Only for type 'time'
   title: string | null;
   notes: string | null;
   channel_email: boolean;

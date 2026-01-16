@@ -16,7 +16,7 @@ export function Screen({ children, padding = true }: ScreenProps) {
     <View
       style={[
         styles.root,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        { paddingTop: insets.top },
         padding && styles.padded,
         { backgroundColor: theme.colors.bg },
       ]}

@@ -71,6 +71,81 @@ function fmtMoney(amount: number, currency: string) {
   return `${v.toFixed(2)} ${currency}`;
 }
 
+function fmtMoneyRounded(amount: number, currency: string) {
+  const v = clampNonNeg(amount);
+  // Special case for zero
+  if (v === 0) {
+    return `0 ${currency}`;
+  }
+  // Round to nearest integer if value is >= 10, otherwise show 1 decimal
+  if (v >= 10) {
+    return `${Math.round(v)} ${currency}`;
+  }
+  return `${v.toFixed(1)} ${currency}`;
+}
+
+// Calculate nice rounded max value for Y-axis
+function niceMaxValue(max: number): number {
+  if (max <= 0) return 100;
+
+  // Find the order of magnitude
+  const magnitude = Math.pow(10, Math.floor(Math.log10(max)));
+  const normalized = max / magnitude;
+
+  // Round up to a nice number (1, 2, 5, 10)
+  let niceNormalized: number;
+  if (normalized <= 1) niceNormalized = 1;
+  else if (normalized <= 2) niceNormalized = 2;
+  else if (normalized <= 5) niceNormalized = 5;
+  else niceNormalized = 10;
+
+  return niceNormalized * magnitude;
+}
+
+// Round a number to a nice value (multiple of 1, 2, 5, 10, 20, 50, 100, etc.)
+function roundToNice(value: number): number {
+  if (value <= 0) return 0;
+
+  const magnitude = Math.pow(10, Math.floor(Math.log10(value)));
+  const normalized = value / magnitude;
+
+  // Round to nearest nice number (1, 2, 5, 10)
+  let niceNormalized: number;
+  if (normalized <= 1.5) niceNormalized = 1;
+  else if (normalized <= 3.5) niceNormalized = 2;
+  else if (normalized <= 7.5) niceNormalized = 5;
+  else niceNormalized = 10;
+
+  return niceNormalized * magnitude;
+}
+
+// Generate nice tick values
+function generateNiceTicks(max: number): number[] {
+  const niceMax = niceMaxValue(max);
+  const ticks: number[] = [0];
+
+  // Determine step size - try to get 4-5 ticks
+  const targetTicks = 5;
+  const rawStep = niceMax / targetTicks;
+  const niceStep = roundToNice(rawStep);
+
+  // Generate ticks with nice step
+  for (let i = niceStep; i <= niceMax; i += niceStep) {
+    ticks.push(i);
+  }
+
+  // If we have too few ticks, add more
+  if (ticks.length < 4) {
+    const smallerStep = niceStep / 2;
+    ticks.length = 1; // Keep 0
+    for (let i = smallerStep; i <= niceMax; i += smallerStep) {
+      ticks.push(i);
+    }
+  }
+
+  return ticks;
+}
+
 function fmtPct(pct: number) {
   if (!Number.isFinite(pct)) return "—";
   return `${Math.round(pct)}%`;
@@ -129,26 +204,32 @@ function SimpleLineChart({
   textColor: string;
   currency: string;
 }) {
-  const padding = 40; // Increased padding for labels
+  // Responsive padding - adjust based on available width
+  // More padding for Y-axis labels (to fit full currency values)
+  const paddingLeft = Math.max(65, Math.min(75, width * 0.15)); // 15% of width, min 65, max 75
+  const paddingRight = 20; // More space for rightmost X-axis labels (dates)
+  const paddingTop = 10;
+  const paddingBottom = 35; // More space for X-axis labels (dates)
   const w = width;
   const h = height;
   const maxY = Math.max(1, ...data.map((d) => clampNonNeg(d.y)));
+  const niceMaxY = niceMaxValue(maxY);
 
-  const plotW = w - padding * 2;
-  const plotH = h - padding * 2;
+  const plotW = w - paddingLeft - paddingRight;
+  const plotH = h - paddingTop - paddingBottom;
 
   const points = data.map((d, i) => {
     const x =
-      padding +
+      paddingLeft +
       (data.length === 1 ? plotW / 2 : (i / (data.length - 1)) * plotW);
-    const y = padding + (1 - clampNonNeg(d.y) / maxY) * plotH;
+    const y = paddingTop + (1 - clampNonNeg(d.y) / niceMaxY) * plotH;
     return { x, y, label: d.x, value: d.y };
   });
 
-  // Generate Y-axis ticks (0, 25%, 50%, 75%, 100% of max)
-  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((ratio) => {
-    const value = maxY * ratio;
-    const y = padding + (1 - ratio) * plotH;
+  // Generate Y-axis ticks with nice rounded values
+  const tickValues = generateNiceTicks(maxY);
+  const yTicks = tickValues.map((value) => {
+    const y = paddingTop + (1 - value / niceMaxY) * plotH;
     return { value, y };
   });
 
@@ -183,21 +264,51 @@ function SimpleLineChart({
 
   return (
     <Svg width={w} height={h}>
+      {/* Grid lines - horizontal */}
+      {yTicks.map((tick, i) => (
+        <SvgLine
+          key={`grid-y-${i}`}
+          x1={paddingLeft}
+          y1={tick.y}
+          x2={paddingLeft + plotW}
+          y2={tick.y}
+          stroke={grid}
+          strokeWidth={1}
+          strokeDasharray="2,2"
+          opacity={0.5}
+        />
+      ))}
+
+      {/* Grid lines - vertical */}
+      {xTicks.map((tick, i) => (
+        <SvgLine
+          key={`grid-x-${i}`}
+          x1={tick.x}
+          y1={paddingTop}
+          x2={tick.x}
+          y2={paddingTop + plotH}
+          stroke={grid}
+          strokeWidth={1}
+          strokeDasharray="2,2"
+          opacity={0.5}
+        />
+      ))}
+
       {/* Y-axis */}
       <SvgLine
-        x1={padding}
-        y1={padding}
-        x2={padding}
-        y2={padding + plotH}
+        x1={paddingLeft}
+        y1={paddingTop}
+        x2={paddingLeft}
+        y2={paddingTop + plotH}
         stroke={grid}
         strokeWidth={1}
       />
       {/* X-axis */}
       <SvgLine
-        x1={padding}
-        y1={padding + plotH}
-        x2={padding + plotW}
-        y2={padding + plotH}
+        x1={paddingLeft}
+        y1={paddingTop + plotH}
+        x2={paddingLeft + plotW}
+        y2={paddingTop + plotH}
         stroke={grid}
         strokeWidth={1}
       />
@@ -206,26 +317,59 @@ function SimpleLineChart({
       {yTicks.map((tick, i) => (
         <SvgLine
           key={`y-${i}`}
-          x1={padding - 4}
+          x1={paddingLeft - 4}
           y1={tick.y}
-          x2={padding}
+          x2={paddingLeft}
           y2={tick.y}
           stroke={grid}
           strokeWidth={1}
         />
       ))}
 
+      {/* Y-axis labels */}
+      {yTicks.map((tick, i) => {
+        const formattedValue = fmtMoneyRounded(tick.value, currency);
+        return (
+          <SvgText
+            key={`y-label-${i}`}
+            x={paddingLeft - 10}
+            y={tick.y + 4}
+            fontSize={9}
+            fill={textColor}
+            textAnchor="end"
+            alignmentBaseline="middle"
+          >
+            {formattedValue}
+          </SvgText>
+        );
+      })}
+
       {/* X-axis ticks */}
       {xTicks.map((tick, i) => (
         <SvgLine
           key={`x-${i}`}
           x1={tick.x}
-          y1={padding + plotH}
+          y1={paddingTop + plotH}
           x2={tick.x}
-          y2={padding + plotH + 4}
+          y2={paddingTop + plotH + 4}
           stroke={grid}
           strokeWidth={1}
         />
+      ))}
+
+      {/* X-axis labels */}
+      {xTicks.map((tick, i) => (
+        <SvgText
+          key={`x-label-${i}`}
+          x={tick.x}
+          y={paddingTop + plotH + 20}
+          fontSize={9}
+          fill={textColor}
+          textAnchor="middle"
+          alignmentBaseline="hanging"
+        >
+          {tick.label}
+        </SvgText>
       ))}
 
       {/* Line chart */}
@@ -439,18 +583,11 @@ export function StatisticsCard({ vehicleId }: Props) {
       add(cat, Number(s.cost ?? 0));
     }
 
-    const order: (ServiceEntryCategory | "fuel")[] = [
-      "fuel",
-      "maintenance",
-      "repair",
-      "inspection",
-      "upgrade",
-      "other",
-    ];
-
-    const items = order
-      .map((k) => ({ key: k, value: acc[k] ?? 0 }))
-      .filter((x) => x.value > 0);
+    // Get all categories with values
+    const items = Object.entries(acc)
+      .map(([key, value]) => ({ key, value: value ?? 0 }))
+      .filter((x) => x.value > 0)
+      .sort((a, b) => b.value - a.value); // Sort from highest to lowest
 
     const label = (k: string) => {
       if (k === "fuel") return t("dashboard.stats.categories.fuel");
@@ -496,7 +633,13 @@ export function StatisticsCard({ vehicleId }: Props) {
   }, [filtered.service, filtered.fueling, totals.fuelCost]);
 
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const chartWidth = Math.max(300, windowWidth - theme.spacing.md * 4);
+  // Chart width with proper margins to fit in card
+  // Reduce width slightly to ensure labels fit properly
+  const cardPadding = theme.spacing.md * 2; // Left + right padding of card
+  const chartWidth = Math.max(
+    280,
+    windowWidth - cardPadding - theme.spacing.md * 2 - 20
+  );
 
   const palette = useMemo(
     () => [
@@ -635,20 +778,12 @@ export function StatisticsCard({ vehicleId }: Props) {
                 <SimpleLineChart
                   data={monthlySeries.data}
                   width={chartWidth}
-                  height={200}
+                  height={220}
                   stroke={theme.colors.accent}
                   grid={theme.colors.border}
                   textColor={theme.colors.muted}
                   currency={currency}
                 />
-                <View style={styles.axisHintRow}>
-                  <Text style={styles.axisHint}>
-                    {monthlySeries.data[0]?.x?.replace("-", "/")} →{" "}
-                    {monthlySeries.data[
-                      monthlySeries.data.length - 1
-                    ]?.x?.replace("-", "/")}
-                  </Text>
-                </View>
               </View>
             ) : (
               <Text style={styles.empty}>{t("dashboard.stats.empty")}</Text>
@@ -775,8 +910,6 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    axisHintRow: { marginTop: 6, width: "100%" },
-    axisHint: { color: theme.colors.muted, fontSize: 12, fontWeight: "700" },
     pieBox: {
       borderWidth: 1,
       borderColor: theme.colors.border,

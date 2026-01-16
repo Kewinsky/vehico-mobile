@@ -297,7 +297,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    h1: { fontSize: 22, fontWeight: "800", color: theme.colors.fg },
+    h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
     h2: { fontSize: 16, fontWeight: "800", color: theme.colors.fg },
     body: { marginTop: 8, lineHeight: 22, color: theme.colors.muted },
     multiline: {

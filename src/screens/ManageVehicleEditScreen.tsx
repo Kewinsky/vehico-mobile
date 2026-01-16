@@ -161,7 +161,9 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
 
       <Text style={styles.h1}>{t("manageVehicle.editTitle")}</Text>
       {!!loading && (
-        <Text style={styles.muted}>{t("manageVehicle.loading")}</Text>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.accent} />
+        </View>
       )}
 
       {vehicle ? (
@@ -240,7 +242,9 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             )}
             ListEmptyComponent={
               loading ? (
-                <Text style={styles.muted}>{t("common.loading")}</Text>
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color={theme.colors.accent} />
+                </View>
               ) : (
                 <Text style={styles.muted}>{t("documents.noPhotos")}</Text>
               )
@@ -267,7 +271,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    h1: { fontSize: 22, fontWeight: "800", color: theme.colors.fg },
+    h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
     h2: { fontSize: 16, fontWeight: "800", color: theme.colors.fg },
     muted: { marginTop: 6, color: theme.colors.muted, lineHeight: 20 },
     sectionHeader: { gap: 6 },
@@ -281,4 +285,10 @@ const makeStyles = (theme: any) =>
     cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
     cardTitle: { color: theme.colors.fg, fontWeight: "800" },
     cardMeta: { marginTop: 4, color: theme.colors.muted },
+    loadingContainer: {
+      paddingTop: 40,
+      paddingBottom: 40,
+      alignItems: "center",
+      justifyContent: "center",
+    },
   });

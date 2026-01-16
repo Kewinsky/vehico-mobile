@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Linking,
@@ -304,9 +305,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       <Text style={styles.h1}>
         {entryId ? t("entryForm.editTitle") : t("entryForm.title")}
       </Text>
-      <View style={styles.notice}>
-        <Text style={styles.noticeText}>{t("entryForm.ocrDisclaimer")}</Text>
-      </View>
 
       <DateField
         noMarginTop
@@ -382,77 +380,96 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         keyboardType="decimal-pad"
       />
 
+      <View style={{ height: 12 }} />
+      <View style={styles.sectionHeader}>
+        <Text style={styles.h2}>{t("attachments.title")}</Text>
+        <Text style={styles.muted}>{t("attachments.subtitle")}</Text>
+      </View>
+      <View style={{ height: 10 }} />
+      <Button
+        onPress={pickAttachment}
+        variant="ghost"
+        disabled={saving || uploading}
+      >
+        {t("entryForm.addAttachment")}
+      </Button>
+      <View style={{ height: 10 }} />
+      
       {entryId ? (
-        <>
-          <View style={{ height: 12 }} />
-          <View style={styles.sectionHeader}>
-            <Text style={styles.h2}>{t("attachments.title")}</Text>
-            <Text style={styles.muted}>{t("attachments.subtitle")}</Text>
-          </View>
-          <View style={{ height: 10 }} />
-          <Button
-            onPress={pickAttachment}
-            variant="ghost"
-            disabled={saving || uploading}
-          >
-            {t("entryForm.addAttachment")}
-          </Button>
-          <View style={{ height: 10 }} />
-          <FlatList
-            data={attachments}
-            keyExtractor={(a) => a.id}
-            scrollEnabled={false}
-            ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-            renderItem={({ item }) => (
-              <View style={styles.card}>
-                <View style={styles.cardRow}>
-                  <Pressable
-                    style={{ flex: 1 }}
-                    onPress={() => void openAttachment(item)}
-                  >
-                    <Text style={styles.cardTitle}>
-                      {t("attachments.attachmentLabel")}
-                    </Text>
-                    <Text style={styles.cardMeta}>
-                      {item.storage_bucket}/
-                      {item.storage_path.split("/").slice(-1)[0]}
-                    </Text>
-                  </Pressable>
-                  <IconButton onPress={() => confirmDeleteAttachment(item)} variant="danger">
-                    <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
-                  </IconButton>
-                </View>
+        <FlatList
+          data={attachments}
+          keyExtractor={(a) => a.id}
+          scrollEnabled={false}
+          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <View style={styles.cardRow}>
+                <Pressable
+                  style={{ flex: 1 }}
+                  onPress={() => void openAttachment(item)}
+                >
+                  <Text style={styles.cardTitle}>
+                    {t("attachments.attachmentLabel")}
+                  </Text>
+                  <Text style={styles.cardMeta}>
+                    {item.storage_bucket}/
+                    {item.storage_path.split("/").slice(-1)[0]}
+                  </Text>
+                </Pressable>
+                <IconButton onPress={() => confirmDeleteAttachment(item)} variant="danger">
+                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
+                </IconButton>
               </View>
-            )}
-            ListEmptyComponent={
-              attachmentsLoading ? (
-                <Text style={styles.muted}>{t("common.loading")}</Text>
-              ) : !uploading && attachments.length === 0 ? (
-                <Text style={styles.muted}>
-                  {t("entryForm.attachmentsEmpty")}
-                </Text>
-              ) : null
-            }
-          />
-        </>
+            </View>
+          )}
+          ListEmptyComponent={
+            attachmentsLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.colors.accent} />
+              </View>
+            ) : !uploading && attachments.length === 0 ? (
+              <Text style={styles.muted}>
+                {t("entryForm.attachmentsEmpty")}
+              </Text>
+            ) : null
+          }
+        />
       ) : (
-        <>
-          <View style={{ height: 10 }} />
-          <Button
-            onPress={pickAttachment}
-            variant="ghost"
-            disabled={saving || uploading}
-          >
-            {t("entryForm.addAttachment")}
-          </Button>
-          {pendingFiles.length ? (
-            <Text style={styles.pending}>
-              {t("entryForm.pendingAttachments", {
-                count: pendingFiles.length,
-              })}
-            </Text>
-          ) : null}
-        </>
+        <FlatList
+          data={pendingFiles}
+          keyExtractor={(_, index) => `pending-${index}`}
+          scrollEnabled={false}
+          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+          renderItem={({ item, index }) => (
+            <View style={styles.card}>
+              <View style={styles.cardRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardTitle}>
+                    {item.fileName || t("attachments.attachmentLabel")}
+                  </Text>
+                  <Text style={styles.cardMeta}>
+                    {t("entryForm.pendingAttachments", { count: 1 })}
+                  </Text>
+                </View>
+                <IconButton
+                  onPress={() => {
+                    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+                  }}
+                  variant="danger"
+                >
+                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
+                </IconButton>
+              </View>
+            </View>
+          )}
+          ListEmptyComponent={
+            pendingFiles.length === 0 ? (
+              <Text style={styles.muted}>
+                {t("entryForm.attachmentsEmpty")}
+              </Text>
+            ) : null
+          }
+        />
       )}
 
       <View style={{ height: 16 }} />
@@ -474,7 +491,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     h1: {
-      fontSize: 22,
+      fontSize: 20,
       fontWeight: "800",
       marginBottom: 12,
       color: theme.colors.fg,
@@ -529,5 +546,11 @@ const makeStyles = (theme: any) =>
       paddingVertical: 10,
       paddingHorizontal: 12,
       backgroundColor: theme.colors.card,
+    },
+    loadingContainer: {
+      paddingTop: 40,
+      paddingBottom: 40,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });

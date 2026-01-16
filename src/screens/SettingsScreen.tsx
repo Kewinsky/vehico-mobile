@@ -28,7 +28,7 @@ export function SettingsScreen({ navigation }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
-      <View style={{ paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.md }}>
+      <View style={{ paddingHorizontal: theme.spacing.md, paddingTop: 12, paddingBottom: 12 }}>
         <Text style={[styles.title, { color: theme.colors.fg }]}>{t('settings.title')}</Text>
 
         {!settings ? (
@@ -143,13 +143,13 @@ export function SettingsScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 22, fontWeight: '800' },
+  title: { fontSize: 20, fontWeight: '800' },
   body: { marginTop: 8, lineHeight: 22 },
   box: {
     marginTop: 16,
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 14,
+    padding: 12,
   },
   section: { fontWeight: '800' },
   // Two-column grid (wraps as needed).

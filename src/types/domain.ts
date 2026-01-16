@@ -106,6 +106,7 @@ export type Reminder = {
   type: ReminderType;
   due_date: string | null;
   due_mileage: number | null;
+  days_before: number | null; // Only for type 'time', number of days before due_date to send reminder
   title: string | null;
   notes: string | null;
   channel_email: boolean;

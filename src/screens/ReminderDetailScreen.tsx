@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
@@ -109,10 +116,18 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
                   : reminder.due_mileage ?? ""}
               </Text>
             </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>{t("reminderDetail.labels.status")}</Text>
-              <Text style={styles.value}>{dueLabel}</Text>
-            </View>
+            {reminder.type === "time" && reminder.days_before != null ? (
+              <View style={styles.row}>
+                <Text style={styles.label}>
+                  {t("reminderDetail.labels.daysBefore")}
+                </Text>
+                <Text style={styles.value}>
+                  {t("reminderDetail.daysBeforeValue", {
+                    days: reminder.days_before,
+                  })}
+                </Text>
+              </View>
+            ) : null}
 
             {reminder.notes ? (
               <>
@@ -123,7 +138,9 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
             ) : null}
           </View>
         ) : loading ? (
-          <Text style={styles.muted}>{t("common.loading")}</Text>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.colors.accent} />
+          </View>
         ) : null}
       </View>
 
@@ -150,7 +167,7 @@ const makeStyles = (theme: any) =>
     },
     editLink: { color: theme.colors.muted, fontWeight: "800" },
     title: {
-      fontSize: 22,
+      fontSize: 20,
       fontWeight: "800",
       color: theme.colors.fg,
     },
@@ -188,6 +205,12 @@ const makeStyles = (theme: any) =>
       paddingHorizontal: theme.spacing.md,
       paddingTop: theme.spacing.sm,
       paddingBottom: theme.spacing.md,
+    },
+    loadingContainer: {
+      paddingTop: 60,
+      paddingBottom: 60,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });
 

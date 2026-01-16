@@ -134,6 +134,6 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    h1: { fontSize: 22, fontWeight: "800", color: theme.colors.fg },
+    h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
     label: { fontSize: 13, fontWeight: "800", color: theme.colors.muted },
   });

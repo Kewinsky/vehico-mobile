@@ -83,7 +83,7 @@ const makeStyles = (theme: any) =>
       borderWidth: 1,
       borderColor: theme.colors.border,
       borderRadius: theme.radius.md,
-      padding: 14,
+      padding: theme.spacing.sm,
       backgroundColor: theme.colors.card,
     },
     cardRow: {

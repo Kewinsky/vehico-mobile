@@ -1,4 +1,12 @@
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -152,7 +160,15 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
             </View>
           )}
           ListEmptyComponent={
-            !loading ? <Text style={{ color: theme.colors.muted }}>{t("documents.noServiceEntries")}</Text> : null
+            loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.colors.accent} />
+              </View>
+            ) : (
+              <Text style={{ color: theme.colors.muted }}>
+                {t("documents.noServiceEntries")}
+              </Text>
+            )
           }
         />
 
@@ -167,9 +183,15 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    h1: { fontSize: 22, fontWeight: "800", color: theme.colors.fg },
-    card: { borderWidth: 1, borderRadius: theme.radius.md, padding: theme.spacing.md },
+    h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
+    card: { borderWidth: 1, borderRadius: theme.radius.md, padding: theme.spacing.sm },
     cardTitle: { color: theme.colors.fg, fontWeight: "800" },
-    cardMeta: { marginTop: 4, color: theme.colors.muted },
-  });
+  cardMeta: { marginTop: 4, color: theme.colors.muted },
+  loadingContainer: {
+    paddingTop: 40,
+    paddingBottom: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
 

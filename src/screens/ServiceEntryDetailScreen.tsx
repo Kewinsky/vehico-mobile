@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Linking,
@@ -10,6 +11,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Attachment } from "../types/domain";
@@ -34,7 +36,8 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
-  const styles = makeStyles(theme);
+  const insets = useSafeAreaInsets();
+  const styles = makeStyles(theme, insets);
   const { entryId, vehicleId } = route.params;
   const [entry, setEntry] = useState<any>(null);
   const [items, setItems] = useState<Attachment[]>([]);
@@ -175,7 +178,9 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
         onRefresh={() => void load({ refreshing: true })}
         ListEmptyComponent={
           loading ? (
-            <Text style={styles.muted}>{t("common.loading")}</Text>
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={theme.colors.accent} />
+            </View>
           ) : (
             <Text style={styles.muted}>
               {t("entryDetail.attachmentsEmptyTitle")}
@@ -212,7 +217,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
   );
 }
 
-const makeStyles = (theme: any) =>
+const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     h2: { fontSize: 18, fontWeight: "800", color: theme.colors.fg },
     top: {
@@ -227,7 +232,7 @@ const makeStyles = (theme: any) =>
     },
     editLink: { color: theme.colors.muted, fontWeight: "800" },
     title: {
-      fontSize: 22,
+      fontSize: 20,
       fontWeight: "800",
       color: theme.colors.fg,
     },
@@ -271,7 +276,13 @@ const makeStyles = (theme: any) =>
     },
     list: {
       paddingHorizontal: theme.spacing.md,
-      paddingBottom: theme.spacing.lg,
+      paddingBottom: insets.bottom + theme.spacing.lg,
+    },
+    loadingContainer: {
+      paddingTop: 40,
+      paddingBottom: 40,
+      alignItems: "center",
+      justifyContent: "center",
     },
     muted: { marginTop: 6, color: theme.colors.muted, lineHeight: 20 },
     card: {

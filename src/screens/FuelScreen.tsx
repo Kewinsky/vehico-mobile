@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
+import { useMemo } from "react";
 import { i18n } from "../i18n/i18n";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -16,21 +17,21 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Reminder } from "../types/domain";
 import {
-  deleteReminder,
-  listReminders,
-} from "../services/reminders/remindersRepo";
+  listFuelingEntries,
+  deleteFuelingEntry,
+} from "../services/fuel/fuelingEntriesRepo";
+import { useCallback, useEffect, useState } from "react";
+import type { FuelingEntry } from "../types/domain";
 import { Button } from "../ui/components/Button";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
-import { TextField } from "../ui/components/TextField";
 import { DateField } from "../ui/components/DateField";
+import { TextField } from "../ui/components/TextField";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Reminders">;
+type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
 
 function formatMonthYear(dateStr: string): string {
   // dateStr is YYYY-MM-DD
@@ -74,37 +75,35 @@ function formatMonthYearPL(dateStr: string): string {
   return `${monthNames[monthIndex]} ${year}`;
 }
 
-export function RemindersScreen({ route, navigation }: Props) {
+export function FuelScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const [items, setItems] = useState<Reminder[]>([]);
+  const [fueling, setFueling] = useState<FuelingEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const distanceUnit = settings?.distanceUnit ?? "km";
-  const [query, setQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [minCost, setMinCost] = useState("");
+  const [maxCost, setMaxCost] = useState("");
 
-  const load = useCallback(
-    async (opts?: { refreshing?: boolean }) => {
-      try {
-        if (opts?.refreshing) setRefreshing(true);
-        else setLoading(true);
-        const data = await listReminders(route.params.vehicleId);
-        setItems(data);
-      } catch (e: any) {
-        toastError(t("common.error"), e?.message ?? String(e));
-      } finally {
-        if (opts?.refreshing) setRefreshing(false);
-        else setLoading(false);
-      }
-    },
-    [route.params.vehicleId, t]
-  );
+  const currency = settings?.currency ?? "PLN";
+  const distanceUnit = settings?.distanceUnit ?? "km";
+  const fuelUnit = settings?.fuelUnit ?? "liters";
+
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      const f = await listFuelingEntries(route.params.vehicleId);
+      setFueling(f);
+    } catch (err: any) {
+      toastError(t("common.error"), err?.message ?? String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [route.params.vehicleId, t]);
 
   useEffect(() => {
     // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
@@ -113,101 +112,96 @@ export function RemindersScreen({ route, navigation }: Props) {
     return unsub;
   }, [navigation, load]);
 
-  function confirmDelete(id: string) {
-    Alert.alert(t("reminders.deleteTitle"), t("reminders.deleteBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("common.delete"),
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteReminder(id);
-            setItems((prev) => prev.filter((x) => x.id !== id));
-          } catch (err: any) {
-            toastError(t("common.error"), err?.message ?? String(err));
-          }
-        },
-      },
-    ]);
-  }
-
   const hasActiveFilters = useMemo(() => {
-    return dateFrom.trim().length > 0 || dateTo.trim().length > 0;
-  }, [dateFrom, dateTo]);
+    return (
+      dateFrom.trim().length > 0 ||
+      dateTo.trim().length > 0 ||
+      minCost.trim().length > 0 ||
+      maxCost.trim().length > 0
+    );
+  }, [dateFrom, dateTo, minCost, maxCost]);
 
   function resetFilters() {
     setDateFrom("");
     setDateTo("");
+    setMinCost("");
+    setMaxCost("");
   }
 
-  const filteredItemsWithSeparators = useMemo(() => {
+  const filteredFuelingWithSeparators = useMemo(() => {
+    const min = minCost.trim().length ? Number(minCost) : null;
+    const max = maxCost.trim().length ? Number(maxCost) : null;
     const from = dateFrom.trim().length === 10 ? dateFrom.trim() : null;
     const to = dateTo.trim().length === 10 ? dateTo.trim() : null;
 
-    const filtered = items.filter((r) => {
-      const q = query.trim().toLowerCase();
-      if (q.length) {
-        const hay = `${r.title ?? ""}\n${r.notes ?? ""}`.toLowerCase();
-        if (!hay.includes(q)) return false;
+    const filtered = fueling.filter((f) => {
+      const d = String(f.date).slice(0, 10);
+      if (from && d < from) return false;
+      if (to && d > to) return false;
+      if (min != null) {
+        const cost = Number(f.fuel_cost ?? 0);
+        if (cost < min) return false;
       }
-
-      // Filter by date - only for time-based reminders
-      if (r.type === "time" && r.due_date) {
-        const reminderDate = String(r.due_date).slice(0, 10);
-        if (from && reminderDate < from) return false;
-        if (to && reminderDate > to) return false;
+      if (max != null) {
+        const cost = Number(f.fuel_cost ?? 0);
+        if (cost > max) return false;
       }
-
       return true;
     });
 
-    // Sort by date (time-based reminders) or mileage (mileage-based reminders)
+    // Sort by date descending
     const sorted = [...filtered].sort((a, b) => {
-      if (a.type === "time" && b.type === "time") {
-        const dateA = a.due_date
-          ? String(a.due_date).slice(0, 10)
-          : "9999-12-31";
-        const dateB = b.due_date
-          ? String(b.due_date).slice(0, 10)
-          : "9999-12-31";
-        return dateB.localeCompare(dateA); // Descending
-      }
-      if (a.type === "mileage" && b.type === "mileage") {
-        const mileageA = a.due_mileage ?? 0;
-        const mileageB = b.due_mileage ?? 0;
-        return mileageB - mileageA; // Descending
-      }
-      // Time-based reminders come before mileage-based
-      return a.type === "time" ? -1 : 1;
+      const dateA = String(a.date).slice(0, 10);
+      const dateB = String(b.date).slice(0, 10);
+      return dateB.localeCompare(dateA);
     });
 
-    // Group by month/year and add separators (only for time-based reminders)
+    // Group by month/year and add separators
     const grouped: Array<
       | { type: "separator"; monthYear: string; monthYearKey: string }
-      | { type: "item"; item: Reminder }
+      | { type: "item"; item: FuelingEntry }
     > = [];
     let currentMonthYear: string | null = null;
 
-    for (const reminder of sorted) {
-      if (reminder.type === "time" && reminder.due_date) {
-        const monthYearKey = String(reminder.due_date).slice(0, 7); // YYYY-MM
-        if (monthYearKey !== currentMonthYear) {
-          currentMonthYear = monthYearKey;
-          grouped.push({
-            type: "separator",
-            monthYear: monthYearKey,
-            monthYearKey,
-          });
-        }
-        grouped.push({ type: "item", item: reminder });
-      } else {
-        // Mileage-based reminders don't have separators
-        grouped.push({ type: "item", item: reminder });
+    for (const entry of sorted) {
+      const dateStr = String(entry.date).slice(0, 10);
+      const monthYearKey = dateStr.slice(0, 7); // YYYY-MM
+
+      if (monthYearKey !== currentMonthYear) {
+        currentMonthYear = monthYearKey;
+        grouped.push({
+          type: "separator",
+          monthYear: monthYearKey,
+          monthYearKey,
+        });
       }
+      grouped.push({ type: "item", item: entry });
     }
 
     return grouped;
-  }, [items, query, dateFrom, dateTo]);
+  }, [fueling, dateFrom, dateTo, minCost, maxCost]);
+
+  function confirmDeleteFueling(id: string) {
+    Alert.alert(
+      t("fuelCosts.deleteFuelingTitle"),
+      t("fuelCosts.deleteFuelingBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteFuelingEntry(id);
+              setFueling((prev) => prev.filter((x) => x.id !== id));
+            } catch (err: any) {
+              toastError(t("common.error"), err?.message ?? String(err));
+            }
+          },
+        },
+      ]
+    );
+  }
 
   return (
     <Screen padding={false}>
@@ -215,49 +209,26 @@ export function RemindersScreen({ route, navigation }: Props) {
       <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
         <View>
           <Text style={[styles.title, { color: theme.colors.fg }]}>
-            {t("reminders.title")}
+            {t("fuelCosts.title")}
           </Text>
 
-          <View style={{ height: 12 }} />
-          <View style={styles.searchRow}>
+          <View style={{ height: 18 }} />
+          <View style={styles.actionsRow}>
             <View style={{ flex: 1 }}>
-              <TextField
-                noMarginTop
-                value={query}
-                onChangeText={setQuery}
-                placeholder={t("reminders.searchPlaceholder")}
-                autoCapitalize="none"
-                autoCorrect={false}
-                clearButtonMode="while-editing"
-              />
-            </View>
-            <View style={{ marginLeft: 10, flexDirection: "row", gap: 10 }}>
-              <View
-                style={[
-                  styles.addButton,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
+              <Button
+                onPress={() =>
+                  navigation.navigate("FuelingEntryForm", {
+                    vehicleId: route.params.vehicleId,
+                  })
+                }
               >
-                <Pressable
-                  onPress={() =>
-                    navigation.navigate("ReminderForm", {
-                      vehicleId: route.params.vehicleId,
-                    })
-                  }
-                  style={({ pressed }) => [
-                    styles.addButtonInner,
-                    pressed && { opacity: 0.9 },
-                  ]}
-                >
-                  <Ionicons name="add" size={24} color={theme.colors.fg} />
-                </Pressable>
-              </View>
+                {t("fuelCosts.addFueling")}
+              </Button>
+            </View>
+            <View style={{ marginLeft: 10 }}>
               <View
                 style={[
-                  styles.addButton,
+                  styles.filterButton,
                   {
                     borderColor: theme.colors.border,
                     backgroundColor: theme.colors.card,
@@ -270,7 +241,7 @@ export function RemindersScreen({ route, navigation }: Props) {
                 <Pressable
                   onPress={() => setFiltersOpen((v) => !v)}
                   style={({ pressed }) => [
-                    styles.addButtonInner,
+                    styles.filterButtonInner,
                     pressed && { opacity: 0.9 },
                   ]}
                 >
@@ -303,6 +274,7 @@ export function RemindersScreen({ route, navigation }: Props) {
               </Pressable>
             </View>
           ) : null}
+
           {filtersOpen ? (
             <View
               style={[
@@ -324,14 +296,32 @@ export function RemindersScreen({ route, navigation }: Props) {
                 value={dateTo}
                 onChange={setDateTo}
               />
+
+              <View style={{ height: 12 }} />
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <View style={{ flex: 1 }}>
+                  <TextField
+                    label={t("timeline.filterMinCost")}
+                    value={minCost}
+                    onChangeText={setMinCost}
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <TextField
+                    label={t("timeline.filterMaxCost")}
+                    value={maxCost}
+                    onChangeText={setMaxCost}
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+              </View>
             </View>
           ) : null}
-
-          <View style={{ height: 14 }} />
         </View>
       </View>
       <FlatList
-        data={filteredItemsWithSeparators}
+        data={filteredFuelingWithSeparators}
         keyExtractor={(item, index) => {
           if (item.type === "separator") {
             return `separator-${item.monthYearKey}`;
@@ -343,8 +333,6 @@ export function RemindersScreen({ route, navigation }: Props) {
           paddingTop: 12,
           paddingBottom: insets.bottom + 32,
         }}
-        refreshing={refreshing}
-        onRefresh={() => void load({ refreshing: true })}
         ItemSeparatorComponent={({ leadingItem }) => {
           if (leadingItem && leadingItem.type === "separator") {
             return null;
@@ -368,7 +356,7 @@ export function RemindersScreen({ route, navigation }: Props) {
             );
           }
 
-          const reminder = item.item;
+          const entry = item.item;
           return (
             <View
               style={[
@@ -383,40 +371,23 @@ export function RemindersScreen({ route, navigation }: Props) {
                 <Pressable
                   style={{ flex: 1 }}
                   onPress={() =>
-                    navigation.navigate("ReminderDetail", {
+                    navigation.navigate("FuelingEntryForm", {
                       vehicleId: route.params.vehicleId,
-                      reminderId: reminder.id,
+                      entryId: entry.id,
                     })
                   }
                 >
                   <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
-                    {reminder.title ?? ""}
+                    {entry.date}
                   </Text>
                   <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
-                    {reminder.type === "time"
-                      ? t("reminders.dueTime", {
-                          date: reminder.due_date ?? "",
-                        })
-                      : t("reminders.dueMileage", {
-                          mileage: reminder.due_mileage ?? "",
-                          unit: distanceUnit,
-                        })}
+                    {Number(entry.distance).toFixed(1)} {distanceUnit} ·{" "}
+                    {Number(entry.fuel_amount).toFixed(1)} {fuelUnit} ·{" "}
+                    {Number(entry.fuel_cost).toFixed(2)} {currency}
                   </Text>
-                  {reminder.notes ? (
-                    <Text
-                      style={{
-                        color: theme.colors.muted,
-                        marginTop: 6,
-                        lineHeight: 18,
-                      }}
-                      numberOfLines={3}
-                    >
-                      {reminder.notes}
-                    </Text>
-                  ) : null}
                 </Pressable>
                 <IconButton
-                  onPress={() => confirmDelete(reminder.id)}
+                  onPress={() => confirmDeleteFueling(entry.id)}
                   variant="danger"
                 >
                   <Ionicons
@@ -436,7 +407,7 @@ export function RemindersScreen({ route, navigation }: Props) {
             </View>
           ) : (
             <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
-              {t("reminders.noItems")}
+              {t("fuelCosts.noFueling")}
             </Text>
           )
         }
@@ -456,10 +427,14 @@ const makeStyles = (theme: any) =>
     },
     title: { fontSize: 20, fontWeight: "800" },
     body: { marginTop: 8, lineHeight: 22 },
+    section: { marginTop: 10, fontSize: 16, fontWeight: "800" },
     card: { borderWidth: 1, borderRadius: 14, padding: 12 },
     cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-    searchRow: { flexDirection: "row", alignItems: "center" },
-    addButton: {
+    actionsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    filterButton: {
       width: 50,
       height: 50,
       borderRadius: 12,
@@ -467,7 +442,7 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    addButtonInner: {
+    filterButtonInner: {
       width: "100%",
       height: "100%",
       alignItems: "center",

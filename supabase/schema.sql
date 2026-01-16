@@ -88,6 +88,7 @@ create table if not exists public.reminders (
   type text not null check (type in ('time', 'mileage')),
   due_date date,
   due_mileage integer,
+  days_before integer,
   title text,
   notes text,
   channel_email boolean not null default true,
@@ -130,6 +131,21 @@ alter table public.reminders
 
 alter table public.reminders
   add column if not exists notes text;
+
+-- Add days_before column for time-based reminders (how many days before due_date to send reminder)
+alter table public.reminders
+  add column if not exists days_before integer;
+
+-- Set default value for existing time-based reminders (7 days)
+do $$
+begin
+  update public.reminders
+  set days_before = 7
+  where type = 'time' and days_before is null;
+end $$;
+
+-- Add comment to document the column
+comment on column public.reminders.days_before is 'Number of days before due_date to send reminder (only for type = time)';
 
 -- User settings (persist per user)
 create table if not exists public.user_settings (

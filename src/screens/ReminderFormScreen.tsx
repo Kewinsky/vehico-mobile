@@ -36,6 +36,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     new Date().toISOString().slice(0, 10)
   );
   const [dueMileage, setDueMileage] = useState("");
+  const [daysBefore, setDaysBefore] = useState("7");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -47,6 +48,8 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         if (r.type === "time" && r.due_date) setDueDate(r.due_date);
         if (r.type === "mileage" && r.due_mileage != null)
           setDueMileage(String(r.due_mileage));
+        if (r.type === "time" && r.days_before != null)
+          setDaysBefore(String(r.days_before));
         setTitle(r.title ?? "");
         setNotes(r.notes ?? "");
       } catch (err: any) {
@@ -69,6 +72,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         type,
         due_date: type === "time" ? dueDate.trim() : null,
         due_mileage: type === "mileage" ? Number(dueMileage) : null,
+        days_before: type === "time" ? Number(daysBefore) || null : null,
         title: title.trim(),
         notes: notes.trim().length ? notes.trim() : null,
         channel_email: true,
@@ -147,6 +151,15 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             onChange={setDueDate}
             disabled={saving}
           />
+          <View style={{ height: 14 }} />
+          <TextField
+            noMarginTop
+            label={t("reminderForm.daysBefore")}
+            value={daysBefore}
+            onChangeText={setDaysBefore}
+            keyboardType="number-pad"
+            placeholder="7"
+          />
         </>
       ) : (
         <>
@@ -178,7 +191,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    h1: { fontSize: 22, fontWeight: "800", color: theme.colors.fg },
+    h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
     label: { fontSize: 13, fontWeight: "800", color: theme.colors.muted },
     multiline: {
       height: 84,
