@@ -1,15 +1,20 @@
-import type { PropsWithChildren } from 'react';
-import { Platform, Pressable, StyleSheet, Text } from 'react-native';
+import type { PropsWithChildren } from "react";
+import { Platform, Pressable, StyleSheet, Text } from "react-native";
 
-import { useTheme } from '../ThemeProvider';
+import { useTheme } from "../ThemeProvider";
 
 type ButtonProps = PropsWithChildren<{
   onPress: () => void;
   disabled?: boolean;
-  variant?: 'primary' | 'ghost' | 'destructive';
+  variant?: "primary" | "ghost" | "destructive";
 }>;
 
-export function Button({ onPress, disabled, variant = 'primary', children }: ButtonProps) {
+export function Button({
+  onPress,
+  disabled,
+  variant = "primary",
+  children,
+}: ButtonProps) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
   return (
@@ -18,11 +23,11 @@ export function Button({ onPress, disabled, variant = 'primary', children }: But
       disabled={disabled}
       style={({ pressed }) => [
         styles.base,
-        variant === 'primary'
+        variant === "primary"
           ? styles.primary
-          : variant === 'destructive'
-            ? styles.destructive
-            : styles.ghost,
+          : variant === "destructive"
+          ? styles.destructive
+          : styles.ghost,
         disabled && styles.disabled,
         pressed && !disabled && styles.pressed,
       ]}
@@ -30,11 +35,11 @@ export function Button({ onPress, disabled, variant = 'primary', children }: But
       <Text
         style={[
           styles.text,
-          variant === 'primary'
+          variant === "primary"
             ? styles.textPrimary
-            : variant === 'destructive'
-              ? styles.textDestructive
-              : styles.textGhost,
+            : variant === "destructive"
+            ? styles.textDestructive
+            : styles.textGhost,
         ]}
       >
         {children}
@@ -48,18 +53,18 @@ const makeStyles = (theme: any) =>
     base: {
       height: 48,
       borderRadius: theme.radius.md,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       borderWidth: 1,
-      alignSelf: 'stretch',
-      width: '100%',
+      alignSelf: "stretch",
+      width: "100%",
     },
     primary: {
-      backgroundColor: theme.colors.fg,
-      borderColor: theme.colors.fg,
-      ...(Platform.OS === 'ios'
+      backgroundColor: theme.colors.accent,
+      borderColor: theme.colors.accent,
+      ...(Platform.OS === "ios"
         ? {
-            shadowColor: '#000',
+            shadowColor: "#000",
             shadowOpacity: 0.12,
             shadowRadius: 12,
             shadowOffset: { width: 0, height: 6 },
@@ -73,9 +78,9 @@ const makeStyles = (theme: any) =>
     destructive: {
       backgroundColor: theme.colors.danger,
       borderColor: theme.colors.danger,
-      ...(Platform.OS === 'ios'
+      ...(Platform.OS === "ios"
         ? {
-            shadowColor: '#000',
+            shadowColor: "#000",
             shadowOpacity: 0.12,
             shadowRadius: 12,
             shadowOffset: { width: 0, height: 6 },
@@ -84,11 +89,11 @@ const makeStyles = (theme: any) =>
     },
     text: {
       fontSize: theme.typography.body,
-      fontWeight: '700',
+      fontWeight: "700",
       letterSpacing: 0.2,
     },
     textPrimary: {
-      color: theme.colors.bg,
+      color: "#000000", // Always black on accent background
     },
     textGhost: {
       color: theme.colors.fg,
@@ -103,4 +108,3 @@ const makeStyles = (theme: any) =>
       transform: [{ scale: 0.99 }],
     },
   });
-

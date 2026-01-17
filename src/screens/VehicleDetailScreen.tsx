@@ -393,7 +393,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 >
                   <Text
                     style={{
-                      color: showReminders ? "#FFFFFF" : theme.colors.muted,
+                      color: showReminders ? "#000000" : theme.colors.muted,
                       fontWeight: "800",
                       fontSize: 12,
                     }}

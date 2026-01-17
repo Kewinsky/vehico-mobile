@@ -872,12 +872,12 @@ const makeStyles = (theme: any) =>
       borderRadius: 999,
     },
     chipActive: {
-      backgroundColor: theme.colors.fg,
-      borderColor: theme.colors.fg,
+      backgroundColor: theme.colors.accent,
+      borderColor: theme.colors.accent,
     },
     chipPressed: { opacity: 0.92 },
     chipText: { color: theme.colors.fg, fontSize: 12, fontWeight: "800" },
-    chipTextActive: { color: theme.colors.bg },
+    chipTextActive: { color: "#000000" }, // Always black on accent background
     loading: {
       alignItems: "center",
       justifyContent: "center",

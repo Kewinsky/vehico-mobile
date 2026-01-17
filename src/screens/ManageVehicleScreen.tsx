@@ -116,7 +116,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                     <View
                       style={[
                         styles.detailIconContainer,
-                        { backgroundColor: theme.colors.accent + "15" },
+                        { backgroundColor: theme.colors.accent + "25" },
                       ]}
                     >
                       <Ionicons
@@ -136,7 +136,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                     <View
                       style={[
                         styles.detailIconContainer,
-                        { backgroundColor: theme.colors.accent + "15" },
+                        { backgroundColor: theme.colors.accent + "25" },
                       ]}
                     >
                       <Ionicons
@@ -156,7 +156,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                     <View
                       style={[
                         styles.detailIconContainer,
-                        { backgroundColor: theme.colors.accent + "15" },
+                        { backgroundColor: theme.colors.accent + "25" },
                       ]}
                     >
                       <Ionicons
@@ -179,7 +179,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       <View
                         style={[
                           styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "15" },
+                          { backgroundColor: theme.colors.accent + "25" },
                         ]}
                       >
                         <Ionicons
@@ -214,7 +214,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       <View
                         style={[
                           styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "15" },
+                          { backgroundColor: theme.colors.accent + "25" },
                         ]}
                       >
                         <Ionicons
@@ -236,7 +236,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       <View
                         style={[
                           styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "15" },
+                          { backgroundColor: theme.colors.accent + "25" },
                         ]}
                       >
                         <Ionicons
@@ -260,7 +260,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       <View
                         style={[
                           styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "15" },
+                          { backgroundColor: theme.colors.accent + "25" },
                         ]}
                       >
                         <Ionicons
@@ -284,7 +284,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       <View
                         style={[
                           styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "15" },
+                          { backgroundColor: theme.colors.accent + "25" },
                         ]}
                       >
                         <Ionicons
@@ -324,7 +324,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                     <View
                       style={[
                         styles.detailIconContainer,
-                        { backgroundColor: theme.colors.accent + "15" },
+                        { backgroundColor: theme.colors.accent + "25" },
                       ]}
                     >
                       <Ionicons
@@ -369,7 +369,11 @@ const makeStyles = (theme: any) =>
     },
     editLink: { color: theme.colors.muted, fontWeight: "800" },
     muted: { marginTop: 6, color: theme.colors.muted, lineHeight: 20 },
-    cardRow: { flexDirection: "row", alignItems: "center", gap: theme.spacing.sm },
+    cardRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
     card: {
       borderWidth: 1,
       borderColor: theme.colors.border,

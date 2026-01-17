@@ -306,7 +306,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               ],
             }}
           >
-            <Ionicons name="add" size={24} color="#FFFFFF" />
+            <Ionicons name="add" size={24} color="#000000" />
           </Animated.View>
         </Pressable>
       </View>
@@ -435,7 +435,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       width: 32,
       height: 32,
       borderRadius: 8,
-      backgroundColor: theme.colors.accent + "15",
+      backgroundColor: theme.colors.accent + "25",
       alignItems: "center",
       justifyContent: "center",
     },
