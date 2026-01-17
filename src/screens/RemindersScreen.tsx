@@ -242,7 +242,7 @@ export function RemindersScreen({ route, navigation }: Props) {
             {t("reminders.title")}
           </Text>
 
-          <View style={{ height: 12 }} />
+          <View style={{ height: theme.spacing.sm }} />
           <View style={styles.searchRow}>
             <View style={{ flex: 1 }}>
               <TextField
@@ -255,7 +255,13 @@ export function RemindersScreen({ route, navigation }: Props) {
                 clearButtonMode="while-editing"
               />
             </View>
-            <View style={{ marginLeft: 10, flexDirection: "row", gap: 10 }}>
+            <View
+              style={{
+                marginLeft: theme.spacing.sm,
+                flexDirection: "row",
+                gap: theme.spacing.sm,
+              }}
+            >
               <View
                 style={[
                   styles.addButton,
@@ -378,13 +384,13 @@ export function RemindersScreen({ route, navigation }: Props) {
                   </Pressable>
                 ))}
               </View>
-              <View style={{ height: 14 }} />
+              <View style={{ height: theme.spacing.sm + 2 }} />
               <DateField
                 label={t("timeline.filterFrom")}
                 value={dateFrom}
                 onChange={setDateFrom}
               />
-              <View style={{ height: 10 }} />
+              <View style={{ height: theme.spacing.sm }} />
               <DateField
                 label={t("timeline.filterTo")}
                 value={dateTo}
@@ -393,7 +399,7 @@ export function RemindersScreen({ route, navigation }: Props) {
             </View>
           ) : null}
 
-          <View style={{ height: 14 }} />
+          <View style={{ height: theme.spacing.sm + 2 }} />
         </View>
       </View>
       <FlatList
@@ -406,8 +412,8 @@ export function RemindersScreen({ route, navigation }: Props) {
         }}
         contentContainerStyle={{
           paddingHorizontal: theme.spacing.md,
-          paddingTop: 12,
-          paddingBottom: insets.bottom + 32,
+          paddingTop: theme.spacing.sm,
+          paddingBottom: insets.bottom + theme.spacing.xl,
         }}
         refreshing={refreshing}
         onRefresh={() => void load({ refreshing: true })}
@@ -415,7 +421,7 @@ export function RemindersScreen({ route, navigation }: Props) {
           if (leadingItem && leadingItem.type === "separator") {
             return null;
           }
-          return <View style={{ height: 10 }} />;
+          return <View style={{ height: theme.spacing.sm }} />;
         }}
         renderItem={({ item }) => {
           if (item.type === "separator") {
@@ -467,7 +473,10 @@ export function RemindersScreen({ route, navigation }: Props) {
                   </Text>
                   <Text
                     style={[
-                      { color: theme.colors.muted, marginTop: 4 },
+                      {
+                        color: theme.colors.muted,
+                        marginTop: theme.spacing.xs / 2,
+                      },
                       isDone && { opacity: 0.6 },
                     ]}
                   >
@@ -485,7 +494,7 @@ export function RemindersScreen({ route, navigation }: Props) {
                       style={[
                         {
                           color: theme.colors.muted,
-                          marginTop: 6,
+                          marginTop: theme.spacing.xs - 2,
                           lineHeight: 18,
                         },
                         isDone && { opacity: 0.6 },
@@ -536,7 +545,9 @@ export function RemindersScreen({ route, navigation }: Props) {
               <ActivityIndicator size="large" color={theme.colors.accent} />
             </View>
           ) : (
-            <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+            <Text
+              style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}
+            >
               {t("reminders.noItems")}
             </Text>
           )
@@ -549,21 +560,28 @@ export function RemindersScreen({ route, navigation }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingTop: 12,
-      paddingBottom: 12,
-      paddingHorizontal: 16,
+      paddingTop: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
     title: { fontSize: 20, fontWeight: "800" },
-    body: { marginTop: 8, lineHeight: 22 },
-    card: { borderWidth: 1, borderRadius: 14, padding: 12 },
+    body: { marginTop: theme.spacing.xs, lineHeight: 22 },
+    card: {
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.sm,
+    },
     cardDone: { opacity: 0.6 },
-    cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+    cardRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
     cardActions: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 8,
+      gap: theme.spacing.xs,
     },
     searchRow: { flexDirection: "row", alignItems: "center" },
     addButton: {
@@ -580,42 +598,46 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    filtersRow: { flexDirection: "row", gap: 10, marginTop: 12 },
+    filtersRow: {
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+      marginTop: theme.spacing.sm,
+    },
     filtersAction: {
       borderWidth: 1,
-      borderRadius: 12,
-      paddingVertical: 10,
-      paddingHorizontal: 12,
+      borderRadius: theme.radius.md - 2,
+      paddingVertical: theme.spacing.sm - 2,
+      paddingHorizontal: theme.spacing.sm,
       alignSelf: "flex-start",
     },
     filtersCard: {
-      marginTop: 12,
+      marginTop: theme.spacing.sm,
       borderWidth: 1,
-      borderRadius: 14,
-      padding: 12,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.sm,
     },
     filterLabel: {
       fontSize: 13,
       fontWeight: "800",
-      marginBottom: 8,
+      marginBottom: theme.spacing.xs,
     },
     filterRow: {
       flexDirection: "row",
-      gap: 10,
-      marginBottom: 4,
+      gap: theme.spacing.sm,
+      marginBottom: theme.spacing.xs / 2,
     },
     filterChoice: {
       borderWidth: 1,
-      borderRadius: 12,
-      paddingVertical: 10,
-      paddingHorizontal: 12,
+      borderRadius: theme.radius.md - 2,
+      paddingVertical: theme.spacing.sm - 2,
+      paddingHorizontal: theme.spacing.sm,
       flex: 1,
       alignItems: "center",
     },
     separator: {
-      marginTop: 20,
-      marginBottom: 8,
-      paddingVertical: 8,
+      marginTop: theme.spacing.md + 4,
+      marginBottom: theme.spacing.xs,
+      paddingVertical: theme.spacing.xs,
     },
     separatorText: {
       fontSize: 14,
@@ -624,8 +646,8 @@ const makeStyles = (theme: any) =>
       letterSpacing: 0.5,
     },
     loadingContainer: {
-      paddingTop: 60,
-      paddingBottom: 60,
+      paddingTop: theme.spacing.lg * 2.5,
+      paddingBottom: theme.spacing.lg * 2.5,
       alignItems: "center",
       justifyContent: "center",
     },

@@ -250,7 +250,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      gap: 12,
+      gap: theme.spacing.sm,
     },
     label: {
       fontSize: theme.typography.small,
@@ -279,8 +279,8 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingBottom: insets.bottom + theme.spacing.lg,
     },
     loadingContainer: {
-      paddingTop: 40,
-      paddingBottom: 40,
+      paddingTop: theme.spacing.xl + theme.spacing.xs,
+      paddingBottom: theme.spacing.xl + theme.spacing.xs,
       alignItems: "center",
       justifyContent: "center",
     },

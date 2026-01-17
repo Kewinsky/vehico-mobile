@@ -34,7 +34,7 @@ const makeStyles = (theme: any) =>
       paddingHorizontal: theme.spacing.md,
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.xl,
-      gap: 12,
+      gap: theme.spacing.sm,
     },
   });
 

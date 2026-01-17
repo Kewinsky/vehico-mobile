@@ -18,6 +18,11 @@ create table if not exists public.vehicles (
   make text not null,
   model text not null,
   production_year integer not null,
+  engine_capacity integer, -- in cm³
+  power_hp integer, -- horsepower
+  fuel_type text check (fuel_type in ('petrol', 'diesel', 'hybrid', 'electric', 'lpg')),
+  transmission text check (transmission in ('manual', 'automatic')),
+  notes text,
   profile_photo_url text,
   created_at timestamptz not null default now()
 );

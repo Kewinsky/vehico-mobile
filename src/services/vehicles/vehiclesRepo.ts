@@ -8,6 +8,11 @@ type NewVehicleInput = {
   make: string;
   model: string;
   production_year: number;
+  engine_capacity?: number | null;
+  power_hp?: number | null;
+  fuel_type?: 'petrol' | 'diesel' | 'hybrid' | 'electric' | 'lpg' | null;
+  transmission?: 'manual' | 'automatic' | null;
+  notes?: string | null;
   profile_photo_url?: string | null;
 };
 

@@ -7,7 +7,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { i18n } from "../i18n/i18n";
@@ -197,6 +196,8 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
     const reminderRows = showReminders
       ? reminders
           .filter((r) => {
+            // Only show active reminders
+            if (r.status !== "active") return false;
             const sortKey =
               r.type === "mileage"
                 ? "9999-12-31"
@@ -273,20 +274,6 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
           <View style={styles.headerRow}>
-            {vehicle?.profile_photo_url ? (
-              <Image
-                source={{ uri: vehicle.profile_photo_url }}
-                style={styles.headerProfilePhoto}
-                contentFit="cover"
-                transition={200}
-              />
-            ) : (
-              <View style={styles.headerProfilePhotoPlaceholder}>
-                <Text style={styles.headerProfilePhotoPlaceholderText}>
-                  {vehicle?.type === "car" ? "🚗" : "🏍️"}
-                </Text>
-              </View>
-            )}
             <Text style={styles.title}>
               {t("dashboard.tiles.serviceTitle")}
             </Text>
@@ -303,7 +290,13 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 clearButtonMode="while-editing"
               />
             </View>
-            <View style={{ marginLeft: 10, flexDirection: "row", gap: 10 }}>
+            <View
+              style={{
+                marginLeft: theme.spacing.sm,
+                flexDirection: "row",
+                gap: theme.spacing.sm,
+              }}
+            >
               <View
                 style={[
                   styles.addButton,
@@ -380,7 +373,6 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
               ) : null}
             </View>
           </View>
-
           {filtersOpen ? (
             <View style={styles.filtersCard}>
               <View style={styles.toggleRow}>
@@ -453,14 +445,14 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 })}
               </View>
 
-              <View style={{ height: 12 }} />
+              <View style={{ height: theme.spacing.sm }} />
               <DateField
                 noMarginTop
                 label={t("timeline.filterFrom")}
                 value={dateFrom}
                 onChange={setDateFrom}
               />
-              <View style={{ height: 10 }} />
+              <View style={{ height: theme.spacing.sm }} />
               <DateField
                 noMarginTop
                 label={t("timeline.filterTo")}
@@ -468,7 +460,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 onChange={setDateTo}
               />
 
-              <View style={{ height: 12 }} />
+              <View style={{ height: theme.spacing.sm }} />
               <View style={styles.rangeRow}>
                 <View style={{ flex: 1 }}>
                   <TextField
@@ -510,7 +502,9 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
               <ActivityIndicator size="large" color={theme.colors.accent} />
             </View>
           ) : (
-            <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+            <Text
+              style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}
+            >
               {t("timeline.noServiceEntries")}
             </Text>
           )
@@ -599,7 +593,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
           if (leadingItem && leadingItem.type === "separator") {
             return null;
           }
-          return <View style={{ height: 12 }} />;
+          return <View style={{ height: theme.spacing.sm }} />;
         }}
       />
     </Screen>
@@ -609,45 +603,24 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingTop: 12,
-      paddingBottom: 12,
-      paddingHorizontal: 16,
+      paddingTop: theme.spacing.sm,
+      paddingBottom: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
       backgroundColor: theme.colors.bg,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
     list: {
-      paddingTop: 12,
-      paddingHorizontal: 16,
-      paddingBottom: insets.bottom + 32,
+      paddingTop: insets.bottom,
+      paddingHorizontal: theme.spacing.md,
+      paddingBottom: insets.bottom + theme.spacing.xl,
     },
     header: {
-      paddingBottom: 12,
-      gap: 12,
+      gap: theme.spacing.sm,
     },
     headerRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 12,
-    },
-    headerProfilePhoto: {
-      width: 80,
-      height: 80,
-      borderRadius: theme.radius.md,
-      backgroundColor: theme.colors.card,
-    },
-    headerProfilePhotoPlaceholder: {
-      width: 80,
-      height: 80,
-      borderRadius: theme.radius.md,
-      backgroundColor: theme.colors.card,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    headerProfilePhotoPlaceholderText: {
-      fontSize: 32,
     },
     title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg, flex: 1 },
     editLink: { color: theme.colors.muted, fontWeight: "800" },
@@ -671,7 +644,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       borderWidth: 1,
       borderRadius: 12,
       paddingVertical: 10,
-      paddingHorizontal: 12,
+      paddingHorizontal: theme.spacing.sm,
       alignSelf: "flex-start",
     },
     filtersCard: {
@@ -696,25 +669,25 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       borderWidth: 1,
       borderRadius: 12,
       paddingVertical: 6,
-      paddingHorizontal: 12,
+      paddingHorizontal: theme.spacing.sm,
     },
     categoryRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
     chip: {
       borderWidth: 1,
       borderRadius: 12,
       paddingVertical: 10,
-      paddingHorizontal: 12,
+      paddingHorizontal: theme.spacing.sm,
       backgroundColor: theme.colors.card,
     },
     rangeRow: { flexDirection: "row", gap: 10 },
     loadingContainer: {
-      paddingTop: 60,
-      paddingBottom: 60,
+      paddingTop: theme.spacing.lg * 2.5,
+      paddingBottom: theme.spacing.lg * 2.5,
       alignItems: "center",
       justifyContent: "center",
     },
     empty: {
-      paddingTop: 32,
+      paddingTop: theme.spacing.xl,
     },
     emptyTitle: {
       fontSize: 20,
@@ -722,14 +695,14 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       color: theme.colors.fg,
     },
     emptyBody: {
-      marginTop: 8,
+      marginTop: theme.spacing.xs,
       lineHeight: 22,
       color: theme.colors.muted,
     },
     separator: {
-      marginTop: 20,
-      marginBottom: 8,
-      paddingVertical: 8,
+      marginTop: theme.spacing.md + 4,
+      marginBottom: theme.spacing.xs,
+      paddingVertical: theme.spacing.xs,
     },
     separatorText: {
       fontSize: 14,

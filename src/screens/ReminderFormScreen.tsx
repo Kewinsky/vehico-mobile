@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import type { ReminderType } from "../types/domain";
+import type { ReminderType, ReminderStatus } from "../types/domain";
 import {
   createReminder,
   getReminder,
@@ -32,6 +32,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [type, setType] = useState<ReminderType>("time");
+  const [status, setStatus] = useState<ReminderStatus>("active");
   const [dueDate, setDueDate] = useState(() =>
     new Date().toISOString().slice(0, 10)
   );
@@ -45,6 +46,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       try {
         const r = await getReminder(reminderId);
         setType(r.type);
+        setStatus(r.status);
         if (r.type === "time" && r.due_date) setDueDate(r.due_date);
         if (r.type === "mileage" && r.due_mileage != null)
           setDueMileage(String(r.due_mileage));
@@ -75,7 +77,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         days_before: type === "time" ? Number(daysBefore) || null : null,
         title: title.trim(),
         notes: notes.trim().length ? notes.trim() : null,
-        status: "active" as const,
+        status: status,
         channel_email: true,
         channel_push: true,
         enabled: true,
@@ -97,7 +99,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         {reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle")}
       </Text>
 
-      <View style={{ height: 14 }} />
+      <View style={{ height: theme.spacing.sm + 2 }} />
       <TextField
         noMarginTop
         label={t("reminderForm.titleLabel")}
@@ -105,7 +107,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         onChangeText={setTitle}
       />
 
-      <View style={{ height: 14 }} />
+      <View style={{ height: theme.spacing.sm + 2 }} />
       <TextField
         noMarginTop
         label={t("reminderForm.notesLabel")}
@@ -115,7 +117,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         style={styles.multiline}
       />
 
-      <View style={{ height: 14 }} />
+      <View style={{ height: theme.spacing.sm + 2 }} />
       <Text style={styles.label}>{t("reminderForm.type")}</Text>
       <View style={styles.row}>
         {(["time", "mileage"] as const).map((kind) => (
@@ -142,7 +144,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         ))}
       </View>
 
-      <View style={{ height: 12 }} />
+      <View style={{ height: theme.spacing.sm }} />
       {type === "time" ? (
         <>
           <DateField
@@ -152,7 +154,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             onChange={setDueDate}
             disabled={saving}
           />
-          <View style={{ height: 14 }} />
+          <View style={{ height: theme.spacing.sm + 2 }} />
           <TextField
             noMarginTop
             label={t("reminderForm.daysBefore")}
@@ -174,11 +176,42 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         </>
       )}
 
-      <View style={{ height: 16 }} />
+      {reminderId ? (
+        <>
+          <View style={{ height: 14 }} />
+          <Text style={styles.label}>{t("reminderForm.status")}</Text>
+          <View style={styles.row}>
+            {(["active", "done"] as const).map((st) => (
+              <Pressable
+                key={st}
+                onPress={() => setStatus(st)}
+                style={[
+                  styles.choice,
+                  { borderColor: theme.colors.border },
+                  status === st && { borderColor: theme.colors.fg },
+                ]}
+              >
+                <Text
+                  style={{
+                    color: status === st ? theme.colors.fg : theme.colors.muted,
+                    fontWeight: "800",
+                  }}
+                >
+                  {st === "active"
+                    ? t("reminderForm.statusActive")
+                    : t("reminderForm.statusDone")}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </>
+      ) : null}
+
+      <View style={{ height: theme.spacing.md }} />
       <Button onPress={onSave} disabled={!canSave || saving}>
         {t("common.save")}
       </Button>
-      <View style={{ height: 10 }} />
+      <View style={{ height: theme.spacing.sm }} />
       <Button
         onPress={() => navigation.goBack()}
         variant="ghost"
@@ -196,16 +229,16 @@ const makeStyles = (theme: any) =>
     label: { fontSize: 13, fontWeight: "800", color: theme.colors.muted },
     multiline: {
       height: 84,
-      paddingTop: 12,
+      paddingTop: theme.spacing.sm,
       textAlignVertical: "top",
     },
     // One row, two columns for reminder type selection
-    row: { flexDirection: "row", gap: 10, marginTop: 8 },
+    row: { flexDirection: "row", gap: theme.spacing.sm, marginTop: theme.spacing.xs },
     choice: {
       borderWidth: 1,
-      borderRadius: 12,
-      paddingVertical: 12,
-      paddingHorizontal: 12,
+      borderRadius: theme.radius.md - 2,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.sm,
       flex: 1,
       alignItems: "center",
     },

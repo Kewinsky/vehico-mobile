@@ -33,9 +33,15 @@ type Props = {
   noMarginTop?: boolean;
 };
 
-export function DateField({ label, value, onChange, disabled, noMarginTop }: Props) {
+export function DateField({
+  label,
+  value,
+  onChange,
+  disabled,
+  noMarginTop,
+}: Props) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [open, setOpen] = useState(false);
 
@@ -46,7 +52,9 @@ export function DateField({ label, value, onChange, disabled, noMarginTop }: Pro
       <Pressable
         onPress={() => setOpen(true)}
         disabled={disabled}
-        style={({ pressed }) => [pressed && !disabled ? { opacity: 0.95 } : null]}
+        style={({ pressed }) => [
+          pressed && !disabled ? { opacity: 0.95 } : null,
+        ]}
       >
         <TextField
           noMarginTop={noMarginTop}
@@ -63,6 +71,9 @@ export function DateField({ label, value, onChange, disabled, noMarginTop }: Pro
             value={dateValue}
             mode="date"
             display={Platform.OS === "ios" ? "spinner" : "default"}
+            themeVariant={mode === "dark" ? "dark" : "light"}
+            textColor={theme.colors.fg}
+            accentColor={theme.colors.accent}
             onChange={(event, selected) => {
               if (Platform.OS !== "ios") {
                 // Android closes on selection/dismiss.
@@ -104,4 +115,3 @@ const makeStyles = (theme: any) =>
       paddingTop: 0,
     },
   });
-

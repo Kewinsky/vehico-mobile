@@ -212,7 +212,7 @@ export function FuelScreen({ route, navigation }: Props) {
             {t("fuelCosts.title")}
           </Text>
 
-          <View style={{ height: 18 }} />
+          <View style={{ height: theme.spacing.md + 2 }} />
           <View style={styles.actionsRow}>
             <View style={{ flex: 1 }}>
               <Button
@@ -225,7 +225,7 @@ export function FuelScreen({ route, navigation }: Props) {
                 {t("fuelCosts.addFueling")}
               </Button>
             </View>
-            <View style={{ marginLeft: 10, flexDirection: "row", gap: 10 }}>
+            <View style={{ marginLeft: theme.spacing.sm, flexDirection: "row", gap: theme.spacing.sm }}>
               <View
                 style={[
                   styles.filterButton,
@@ -304,8 +304,8 @@ export function FuelScreen({ route, navigation }: Props) {
                 onChange={setDateTo}
               />
 
-              <View style={{ height: 12 }} />
-              <View style={{ flexDirection: "row", gap: 10 }}>
+              <View style={{ height: theme.spacing.sm }} />
+              <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
                 <View style={{ flex: 1 }}>
                   <TextField
                     label={t("timeline.filterMinCost")}
@@ -337,14 +337,14 @@ export function FuelScreen({ route, navigation }: Props) {
         }}
         contentContainerStyle={{
           paddingHorizontal: theme.spacing.md,
-          paddingTop: 12,
-          paddingBottom: insets.bottom + 32,
+          paddingTop: theme.spacing.sm,
+          paddingBottom: insets.bottom + theme.spacing.xl,
         }}
         ItemSeparatorComponent={({ leadingItem }) => {
           if (leadingItem && leadingItem.type === "separator") {
             return null;
           }
-          return <View style={{ height: 10 }} />;
+          return <View style={{ height: theme.spacing.sm }} />;
         }}
         renderItem={({ item }) => {
           if (item.type === "separator") {
@@ -387,7 +387,7 @@ export function FuelScreen({ route, navigation }: Props) {
                   <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
                     {entry.date}
                   </Text>
-                  <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
+                  <Text style={{ color: theme.colors.muted, marginTop: theme.spacing.xs / 2 }}>
                     {Number(entry.distance).toFixed(1)} {distanceUnit} ·{" "}
                     {Number(entry.fuel_amount).toFixed(1)} {fuelUnit} ·{" "}
                     {Number(entry.fuel_cost).toFixed(2)} {currency}
@@ -413,7 +413,7 @@ export function FuelScreen({ route, navigation }: Props) {
               <ActivityIndicator size="large" color={theme.colors.accent} />
             </View>
           ) : (
-            <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+            <Text style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}>
               {t("fuelCosts.noFueling")}
             </Text>
           )
@@ -426,17 +426,17 @@ export function FuelScreen({ route, navigation }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingTop: 12,
-      paddingBottom: 12,
-      paddingHorizontal: 16,
+      paddingTop: theme.spacing.sm,
+      paddingBottom: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
     title: { fontSize: 20, fontWeight: "800" },
-    body: { marginTop: 8, lineHeight: 22 },
-    section: { marginTop: 10, fontSize: 16, fontWeight: "800" },
-    card: { borderWidth: 1, borderRadius: 14, padding: 12 },
-    cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+    body: { marginTop: theme.spacing.xs, lineHeight: 22 },
+    section: { marginTop: theme.spacing.sm - 2, fontSize: 16, fontWeight: "800" },
+    card: { borderWidth: 1, borderRadius: 14, padding: theme.spacing.sm },
+    cardRow: { flexDirection: "row", alignItems: "center", gap: theme.spacing.sm },
     actionsRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -455,24 +455,24 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    filtersRow: { flexDirection: "row", gap: 10, marginTop: 12 },
+    filtersRow: { flexDirection: "row", gap: theme.spacing.sm, marginTop: theme.spacing.sm },
     filtersAction: {
       borderWidth: 1,
-      borderRadius: 12,
-      paddingVertical: 10,
-      paddingHorizontal: 12,
+      borderRadius: theme.radius.md - 2,
+      paddingVertical: theme.spacing.sm - 2,
+      paddingHorizontal: theme.spacing.sm,
       alignSelf: "flex-start",
     },
     filtersCard: {
-      marginTop: 12,
+      marginTop: theme.spacing.sm,
       borderWidth: 1,
-      borderRadius: 14,
-      padding: 12,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.sm,
     },
     separator: {
-      marginTop: 20,
-      marginBottom: 8,
-      paddingVertical: 8,
+      marginTop: theme.spacing.md + 4,
+      marginBottom: theme.spacing.xs,
+      paddingVertical: theme.spacing.xs,
     },
     separatorText: {
       fontSize: 14,
@@ -481,8 +481,8 @@ const makeStyles = (theme: any) =>
       letterSpacing: 0.5,
     },
     loadingContainer: {
-      paddingTop: 60,
-      paddingBottom: 60,
+      paddingTop: theme.spacing.lg * 2.5,
+      paddingBottom: theme.spacing.lg * 2.5,
       alignItems: "center",
       justifyContent: "center",
     },

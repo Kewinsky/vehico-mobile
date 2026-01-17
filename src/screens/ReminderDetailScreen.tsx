@@ -194,7 +194,7 @@ const makeStyles = (theme: any) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      gap: 12,
+      gap: theme.spacing.sm,
     },
     label: {
       fontSize: theme.typography.small,
@@ -216,8 +216,8 @@ const makeStyles = (theme: any) =>
       paddingBottom: theme.spacing.md,
     },
     loadingContainer: {
-      paddingTop: 60,
-      paddingBottom: 60,
+      paddingTop: theme.spacing.lg * 2.5,
+      paddingBottom: theme.spacing.lg * 2.5,
       alignItems: "center",
       justifyContent: "center",
     },

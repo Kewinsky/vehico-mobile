@@ -1,5 +1,8 @@
 export type VehicleType = 'car' | 'motorcycle';
 
+export type FuelType = 'petrol' | 'diesel' | 'hybrid' | 'electric' | 'lpg';
+export type TransmissionType = 'manual' | 'automatic';
+
 export type Vehicle = {
   id: string;
   owner_id: string;
@@ -9,6 +12,11 @@ export type Vehicle = {
   make: string;
   model: string;
   production_year: number;
+  engine_capacity: number | null; // in cm³
+  power_hp: number | null; // horsepower
+  fuel_type: FuelType | null;
+  transmission: TransmissionType | null;
+  notes: string | null;
   profile_photo_url: string | null; // URL to profile photo in storage
   created_at: string;
 };

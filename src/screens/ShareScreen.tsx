@@ -53,8 +53,8 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     wrap: {
       paddingHorizontal: theme.spacing.md,
-      paddingTop: 12,
-      paddingBottom: 12,
+      paddingTop: theme.spacing.sm,
+      paddingBottom: theme.spacing.sm,
     },
     h1: {
       fontSize: 20,

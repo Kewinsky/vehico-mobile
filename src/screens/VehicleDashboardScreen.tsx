@@ -317,9 +317,9 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     header: {
-      paddingTop: 12,
-      paddingBottom: 12,
-      gap: 4,
+      paddingTop: theme.spacing.sm,
+      paddingBottom: theme.spacing.sm,
+      gap: theme.spacing.xs / 2,
     },
     kicker: {
       color: theme.colors.muted,
@@ -361,7 +361,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       width: 40,
       height: 40,
       borderRadius: 10,
-      backgroundColor: theme.colors.accent + "15",
+      backgroundColor: theme.colors.accent + "25",
       alignItems: "center",
       justifyContent: "center",
       marginBottom: 2,

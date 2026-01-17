@@ -172,7 +172,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
           }
         />
 
-        <View style={{ height: 12 }} />
+        <View style={{ height: theme.spacing.sm }} />
         <Button onPress={() => navigation.goBack()} variant="ghost">
           {t("common.cancel")}
         </Button>
@@ -187,11 +187,11 @@ const makeStyles = (theme: any) =>
     card: { borderWidth: 1, borderRadius: theme.radius.md, padding: theme.spacing.sm },
     cardTitle: { color: theme.colors.fg, fontWeight: "800" },
   cardMeta: { marginTop: 4, color: theme.colors.muted },
-  loadingContainer: {
-    paddingTop: 40,
-    paddingBottom: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    loadingContainer: {
+      paddingTop: theme.spacing.xl + theme.spacing.xs,
+      paddingBottom: theme.spacing.xl + theme.spacing.xs,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 });
 

@@ -1,6 +1,7 @@
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
+import { useMemo } from 'react';
 
 import type { AppStackParamList } from '../app/navigation/RootNavigator';
 import { AppHeader } from '../ui/components/AppHeader';
@@ -16,6 +17,7 @@ export function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings, setSettings } = useUserSettings();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   async function pick<K extends keyof UserSettings>(key: K, value: UserSettings[K]) {
     try {
@@ -28,11 +30,11 @@ export function SettingsScreen({ navigation }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
-      <View style={{ paddingHorizontal: theme.spacing.md, paddingTop: 12, paddingBottom: 12 }}>
+      <View style={{ paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.sm, paddingBottom: theme.spacing.sm }}>
         <Text style={[styles.title, { color: theme.colors.fg }]}>{t('settings.title')}</Text>
 
         {!settings ? (
-          <View style={{ paddingTop: 24, alignItems: 'center' }}>
+          <View style={{ paddingTop: theme.spacing.lg, alignItems: 'center' }}>
             <ActivityIndicator />
           </View>
         ) : (
@@ -56,7 +58,7 @@ export function SettingsScreen({ navigation }: Props) {
           ))}
         </View>
 
-        <View style={{ height: 12 }} />
+        <View style={{ height: theme.spacing.sm }} />
           <Text style={[styles.section, { color: theme.colors.muted }]}>{t('settings.distanceUnit')}</Text>
         <View style={styles.row}>
           {(['km', 'miles'] as const).map((u) => (
@@ -76,7 +78,7 @@ export function SettingsScreen({ navigation }: Props) {
           ))}
         </View>
 
-        <View style={{ height: 12 }} />
+        <View style={{ height: theme.spacing.sm }} />
           <Text style={[styles.section, { color: theme.colors.muted }]}>{t('settings.fuelUnit')}</Text>
         <View style={styles.row}>
           {(['liters', 'gallons'] as const).map((u) => (
@@ -142,25 +144,26 @@ export function SettingsScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  title: { fontSize: 20, fontWeight: '800' },
-  body: { marginTop: 8, lineHeight: 22 },
-  box: {
-    marginTop: 16,
-    borderWidth: 1,
-    borderRadius: 14,
-    padding: 12,
-  },
-  section: { fontWeight: '800' },
-  // Two-column grid (wraps as needed).
-  row: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', marginTop: 8 },
-  choice: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    width: '48%',
-    alignItems: 'center',
-  },
-});
+const makeStyles = (theme: any) =>
+  StyleSheet.create({
+    title: { fontSize: 20, fontWeight: '800' },
+    body: { marginTop: theme.spacing.xs, lineHeight: 22 },
+    box: {
+      marginTop: theme.spacing.md,
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.sm,
+    },
+    section: { fontWeight: '800' },
+    // Two-column grid (wraps as needed).
+    row: { flexDirection: 'row', gap: theme.spacing.sm, flexWrap: 'wrap', marginTop: theme.spacing.xs },
+    choice: {
+      borderWidth: 1,
+      borderRadius: theme.radius.md - 2,
+      paddingVertical: theme.spacing.sm - 2,
+      paddingHorizontal: theme.spacing.sm,
+      width: '48%',
+      alignItems: 'center',
+    },
+  });
 

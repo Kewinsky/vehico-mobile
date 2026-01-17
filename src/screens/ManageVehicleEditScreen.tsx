@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -13,7 +14,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import type { Vehicle } from "../types/domain";
+import type { Vehicle, VehicleType, FuelType, TransmissionType } from "../types/domain";
 import { getVehicle, updateVehicle } from "../services/vehicles/vehiclesRepo";
 import {
   deleteVehicleProfilePhoto,
@@ -24,6 +25,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
+import { PickerField } from "../ui/components/PickerField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
@@ -42,22 +44,34 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
+  const [type, setType] = useState<VehicleType>('car');
   const [title, setTitle] = useState("");
   const [vin, setVin] = useState("");
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
+  const [engineCapacity, setEngineCapacity] = useState("");
+  const [powerHp, setPowerHp] = useState("");
+  const [fuelType, setFuelType] = useState<FuelType | null>(null);
+  const [transmission, setTransmission] = useState<TransmissionType | null>(null);
+  const [notes, setNotes] = useState("");
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
       const v = await getVehicle(vehicleId);
       setVehicle(v);
+      setType(v.type);
       setTitle(v.title);
       setVin(v.vin ?? "");
       setMake(v.make);
       setModel(v.model);
       setYear(String(v.production_year));
+      setEngineCapacity(v.engine_capacity ? String(v.engine_capacity) : "");
+      setPowerHp(v.power_hp ? String(v.power_hp) : "");
+      setFuelType(v.fuel_type);
+      setTransmission(v.transmission);
+      setNotes(v.notes ?? "");
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {
@@ -84,11 +98,17 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       const production_year = Number(year);
       if (!Number.isFinite(production_year)) throw new Error("Invalid year");
       const updated = await updateVehicle(vehicleId, {
+        type,
         title: title.trim(),
         vin: vin.trim().length ? vin.trim() : null,
         make: make.trim(),
         model: model.trim(),
         production_year,
+        engine_capacity: engineCapacity.trim().length ? Number(engineCapacity) : null,
+        power_hp: powerHp.trim().length ? Number(powerHp) : null,
+        fuel_type: fuelType,
+        transmission: transmission,
+        notes: notes.trim().length ? notes.trim() : null,
       });
       setVehicle(updated);
       navigation.goBack();
@@ -123,26 +143,13 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   }
 
   async function removeProfilePhoto() {
-    Alert.alert(
-      t("manageVehicle.removePhotoTitle"),
-      t("manageVehicle.removePhotoBody"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("common.remove"),
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteVehicleProfilePhoto(vehicleId);
-              await updateVehicle(vehicleId, { profile_photo_url: null });
-              await load();
-            } catch (e: any) {
-              toastError(t("common.error"), e?.message ?? String(e));
-            }
-          },
-        },
-      ]
-    );
+    try {
+      await deleteVehicleProfilePhoto(vehicleId);
+      await updateVehicle(vehicleId, { profile_photo_url: null });
+      await load();
+    } catch (e: any) {
+      toastError(t("common.error"), e?.message ?? String(e));
+    }
   }
 
 
@@ -215,7 +222,48 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             </View>
           )}
 
-          <View style={{ height: 24 }} />
+          <View style={{ height: theme.spacing.sm }} />
+          <View style={styles.group}>
+            <Text style={[styles.label, { color: theme.colors.muted }]}>{t("vehicleForm.type")}</Text>
+            <View style={styles.typeRow}>
+              <Pressable
+                onPress={() => setType('car')}
+                style={[
+                  styles.typeChip,
+                  { borderColor: theme.colors.border, backgroundColor: theme.colors.card },
+                  type === 'car' && { borderColor: theme.colors.fg },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.typeChipText,
+                    { color: type === 'car' ? theme.colors.fg : theme.colors.muted },
+                  ]}
+                >
+                  {t('vehicleForm.car')}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setType('motorcycle')}
+                style={[
+                  styles.typeChip,
+                  { borderColor: theme.colors.border, backgroundColor: theme.colors.card },
+                  type === 'motorcycle' && { borderColor: theme.colors.fg },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.typeChipText,
+                    { color: type === 'motorcycle' ? theme.colors.fg : theme.colors.muted },
+                  ]}
+                >
+                  {t('vehicleForm.motorcycle')}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+
+          <View style={{ height: theme.spacing.sm }} />
           <TextField
             noMarginTop
             label={t("manageVehicle.titleLabel")}
@@ -245,12 +293,66 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             keyboardType="number-pad"
             maxLength={4}
           />
+          <TextField
+            label={t("vehicleForm.engineCapacityLabel")}
+            value={engineCapacity}
+            onChangeText={setEngineCapacity}
+            keyboardType="number-pad"
+          />
+          <TextField
+            label={t("vehicleForm.powerHpLabel")}
+            value={powerHp}
+            onChangeText={setPowerHp}
+            keyboardType="number-pad"
+          />
+          <PickerField
+            label={t("vehicleForm.fuelTypeLabel")}
+            value={fuelType}
+            options={['petrol', 'diesel', 'hybrid', 'electric', 'lpg'] as const}
+            getLabel={(value) =>
+              t(`vehicleForm.fuelType${value.charAt(0).toUpperCase() + value.slice(1)}` as 'vehicleForm.fuelTypePetrol' | 'vehicleForm.fuelTypeDiesel' | 'vehicleForm.fuelTypeHybrid' | 'vehicleForm.fuelTypeElectric' | 'vehicleForm.fuelTypeLpg')
+            }
+            onChange={setFuelType}
+            placeholder={t("vehicleForm.fuelTypeLabel")}
+          />
+          <View style={styles.group}>
+            <Text style={[styles.label, { color: theme.colors.muted }]}>{t("vehicleForm.transmissionLabel")}</Text>
+            <View style={styles.typeRow}>
+              {(['manual', 'automatic'] as const).map((tr) => (
+                <Pressable
+                  key={tr}
+                  onPress={() => setTransmission(tr)}
+                  style={[
+                    styles.typeChip,
+                    { borderColor: theme.colors.border, backgroundColor: theme.colors.card },
+                    transmission === tr && { borderColor: theme.colors.fg },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.typeChipText,
+                      { color: transmission === tr ? theme.colors.fg : theme.colors.muted },
+                    ]}
+                  >
+                    {t(`vehicleForm.transmission${tr.charAt(0).toUpperCase() + tr.slice(1)}` as 'vehicleForm.transmissionManual' | 'vehicleForm.transmissionAutomatic')}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+          <TextField
+            label={t("vehicleForm.notesLabel")}
+            value={notes}
+            onChangeText={setNotes}
+            multiline
+            numberOfLines={4}
+          />
 
-          <View style={{ height: 16 }} />
+          <View style={{ height: theme.spacing.md }} />
           <Button onPress={onSave} disabled={!canSave || saving}>
             {t("common.save")}
           </Button>
-          <View style={{ height: 10 }} />
+          <View style={{ height: theme.spacing.sm }} />
           <Button
             onPress={() => navigation.goBack()}
             variant="ghost"
@@ -277,7 +379,7 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
     },
-    cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+    cardRow: { flexDirection: "row", alignItems: "center", gap: theme.spacing.sm },
     cardTitle: { color: theme.colors.fg, fontWeight: "800" },
     cardMeta: { marginTop: 4, color: theme.colors.muted },
     profilePhotoCard: {
@@ -306,9 +408,36 @@ const makeStyles = (theme: any) =>
       right: theme.spacing.sm,
     },
     loadingContainer: {
-      paddingTop: 40,
-      paddingBottom: 40,
+      paddingTop: theme.spacing.xl + theme.spacing.xs,
+      paddingBottom: theme.spacing.xl + theme.spacing.xs,
       alignItems: "center",
       justifyContent: "center",
+    },
+    group: {
+      gap: 8,
+      marginTop: theme.spacing.sm,
+      marginBottom: 4,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: "700",
+    },
+    typeRow: {
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+      flexWrap: "wrap",
+    },
+    typeChip: {
+      flex: 1,
+      minWidth: 80,
+      height: 44,
+      borderWidth: 1,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    typeChipText: {
+      fontWeight: "700",
+      fontSize: 13,
     },
   });

@@ -13,6 +13,7 @@ import { toastError } from '../ui/toast/toast';
 export function AuthScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,21 +79,22 @@ export function AuthScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    paddingTop: 24,
-    paddingBottom: 18,
-    gap: 8,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  form: {
-    gap: 10,
-  },
-  actions: {
-    paddingTop: 12,
-  },
-});
+const makeStyles = (theme: any) =>
+  StyleSheet.create({
+    header: {
+      paddingTop: theme.spacing.lg,
+      paddingBottom: theme.spacing.md + 2,
+      gap: theme.spacing.xs,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: '700',
+    },
+    form: {
+      gap: theme.spacing.sm,
+    },
+    actions: {
+      paddingTop: theme.spacing.sm,
+    },
+  });
 

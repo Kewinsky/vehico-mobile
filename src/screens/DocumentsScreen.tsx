@@ -17,7 +17,7 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
   Attachment,
   VehicleDocument,
@@ -44,6 +44,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 export function DocumentsScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [vehicleDocs, setVehicleDocs] = useState<VehicleDocument[]>([]);
   const [attachments, setAttachments] = useState<VehicleAttachment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -230,8 +231,8 @@ export function DocumentsScreen({ route, navigation }: Props) {
       <View
         style={{
           paddingHorizontal: theme.spacing.md,
-          paddingTop: 12,
-          paddingBottom: 12,
+          paddingTop: theme.spacing.sm,
+          paddingBottom: theme.spacing.sm,
         }}
       >
         <Text style={[styles.title, { color: theme.colors.fg }]}>
@@ -394,18 +395,19 @@ export function DocumentsScreen({ route, navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  title: { fontSize: 20, fontWeight: "800" },
-  body: { marginTop: 8, lineHeight: 22 },
-  section: { marginTop: 10, fontSize: 16, fontWeight: "800" },
-  card: { borderWidth: 1, borderRadius: 14, padding: 12 },
-  cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  loadingContainer: {
-    paddingTop: 40,
-    paddingBottom: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+const makeStyles = (theme: any) =>
+  StyleSheet.create({
+    title: { fontSize: 20, fontWeight: "800" },
+    body: { marginTop: theme.spacing.xs, lineHeight: 22 },
+    section: { marginTop: theme.spacing.sm - 2, fontSize: 16, fontWeight: "800" },
+    card: { borderWidth: 1, borderRadius: theme.radius.md, padding: theme.spacing.sm },
+    cardRow: { flexDirection: "row", alignItems: "center", gap: theme.spacing.sm },
+    loadingContainer: {
+      paddingTop: theme.spacing.xl + theme.spacing.xs,
+      paddingBottom: theme.spacing.xl + theme.spacing.xs,
+      alignItems: "center",
+      justifyContent: "center",
+    },
   trash: {
     width: 44,
     height: 44,

@@ -138,7 +138,8 @@ export function VehiclesScreen({ navigation }: Props) {
                         {item.title}
                       </Text>
                       <Text style={styles.vehicleMeta} numberOfLines={1}>
-                        {item.make} {item.model} · {item.production_year}
+                        {item.make} {item.model} · {item.production_year} ·{" "}
+                        {item.power_hp}KM
                       </Text>
                     </View>
                   </View>
@@ -163,19 +164,19 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     top: {
       paddingHorizontal: theme.spacing.md,
-      paddingTop: 12,
-      paddingBottom: 12,
+      paddingTop: theme.spacing.sm,
+      paddingBottom: theme.spacing.sm,
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
     },
     title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
-    actions: { flexDirection: "row", alignItems: "center", gap: 14 },
+    actions: { flexDirection: "row", alignItems: "center", gap: theme.spacing.sm + 2 },
     actionText: { fontWeight: "800", color: theme.colors.muted },
     body: {
       flex: 1,
       paddingHorizontal: theme.spacing.md,
-      paddingTop: 12,
+      paddingTop: theme.spacing.sm,
     },
     empty: {
       flex: 1,

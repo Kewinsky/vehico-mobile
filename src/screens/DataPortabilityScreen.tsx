@@ -302,7 +302,7 @@ const makeStyles = (theme: any) =>
     body: { marginTop: 8, lineHeight: 22, color: theme.colors.muted },
     multiline: {
       height: 160,
-      paddingTop: 12,
+      paddingTop: theme.spacing.sm,
       textAlignVertical: "top",
     },
   });
