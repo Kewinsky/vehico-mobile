@@ -275,7 +275,6 @@ function SimpleLineChart({
           stroke={grid}
           strokeWidth={1}
           strokeDasharray="2,2"
-          opacity={0.5}
         />
       ))}
 
@@ -290,7 +289,6 @@ function SimpleLineChart({
           stroke={grid}
           strokeWidth={1}
           strokeDasharray="2,2"
-          opacity={0.5}
         />
       ))}
 
@@ -643,13 +641,13 @@ export function StatisticsCard({ vehicleId }: Props) {
 
   const palette = useMemo(
     () => [
-      theme.colors.accent,
-      "#10B981", // emerald-500
-      "#F59E0B", // amber-500
-      "#A78BFA", // violet-400
-      "#F97316", // orange-500
-      "#06B6D4", // cyan-500
-      "#EF4444", // red-500
+      theme.colors.accent, // #FFB803 - yellow (for fuel)
+      "#10B981", // emerald-500 - green
+      "#EC4899", // pink-500 - pink (replaces amber)
+      "#3B82F6", // blue-500 - blue (replaces orange)
+      "#A78BFA", // violet-400 - violet
+      "#06B6D4", // cyan-500 - cyan
+      "#EF4444", // red-500 - red
     ],
     [theme.colors.accent]
   );
