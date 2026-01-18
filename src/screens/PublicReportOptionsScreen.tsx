@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Linking } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -29,21 +29,34 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
     }
   }
 
+  async function handleOpenInBrowser() {
+    try {
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        toastError(t("common.error"), t("share.cannotOpenUrl"));
+      }
+    } catch (e: any) {
+      toastError(t("common.error"), e?.message ?? String(e));
+    }
+  }
+
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
       <View style={styles.wrap}>
         <Text style={styles.h1}>{t("share.onlineReport")}</Text>
-        <Text style={styles.subtitle}>
-          {t("share.qrCodeSubtitle")}
-        </Text>
+        <Text style={styles.subtitle}>{t("share.qrCodeSubtitle")}</Text>
+
+        <View style={{ height: 16 }} />
 
         <View style={styles.qrContainer}>
           <View
             style={[
               styles.qrWrapper,
-              { 
-                backgroundColor: theme.colors.card, 
+              {
+                backgroundColor: theme.colors.card,
                 borderColor: theme.colors.border,
               },
             ]}
@@ -57,16 +70,16 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
           </View>
         </View>
 
-        <View style={styles.urlContainer}>
-          <Text style={[styles.urlText, { color: theme.colors.muted }]} numberOfLines={2}>
-            {url}
-          </Text>
-        </View>
-
-        <View style={{ height: theme.spacing.md }} />
+        <View style={{ height: 16 }} />
 
         <Button onPress={handleCopyLink} variant="ghost">
           {t("share.copyLink")}
+        </Button>
+
+        <View style={{ height: 10 }} />
+
+        <Button onPress={handleOpenInBrowser} variant="ghost">
+          {t("share.openInBrowser")}
         </Button>
       </View>
     </Screen>
@@ -76,30 +89,23 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     wrap: {
-      flex: 1,
       paddingHorizontal: theme.spacing.md,
       paddingTop: theme.spacing.sm,
       paddingBottom: theme.spacing.sm,
-      alignItems: "center",
     },
     h1: {
       fontSize: 20,
       fontWeight: "800",
       color: theme.colors.fg,
-      textAlign: "center",
-      marginBottom: 8,
     },
     subtitle: {
       marginTop: 8,
       color: theme.colors.muted,
       lineHeight: 22,
-      textAlign: "center",
-      marginBottom: theme.spacing.lg,
     },
     qrContainer: {
       alignItems: "center",
       justifyContent: "center",
-      marginVertical: theme.spacing.xl,
     },
     qrWrapper: {
       padding: theme.spacing.md,
@@ -107,15 +113,5 @@ const makeStyles = (theme: any) =>
       borderWidth: 1,
       alignItems: "center",
       justifyContent: "center",
-    },
-    urlContainer: {
-      width: "100%",
-      paddingHorizontal: theme.spacing.md,
-      marginTop: theme.spacing.md,
-    },
-    urlText: {
-      fontSize: 12,
-      textAlign: "center",
-      fontFamily: "monospace",
     },
   });

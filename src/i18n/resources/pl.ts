@@ -370,8 +370,10 @@ export const pl = {
     notAvailableBody:
       "Ta funkcja nie jest jeszcze dostępna. Pracujemy nad tym.",
     copyLink: "Kopiuj link",
+    openInBrowser: "Otwórz w przeglądarce",
     showQRCode: "Pokaż kod QR",
     linkCopied: "Link skopiowany do schowka",
+    cannotOpenUrl: "Nie można otworzyć linku",
     generatingLink: "Generowanie linku...",
     qrCodeTitle: "Zeskanuj, aby zobaczyć raport",
     qrCodeSubtitle: "Każdy może zeskanować ten kod QR, aby zobaczyć raport pojazdu",
