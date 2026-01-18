@@ -27,4 +27,5 @@ export const ENV = {
   APP_ENV: getAppEnv(),
   SUPABASE_URL: getRequiredEnv("EXPO_PUBLIC_SUPABASE_URL"),
   SUPABASE_ANON_KEY: getRequiredEnv("EXPO_PUBLIC_SUPABASE_ANON_KEY"),
+  REPORTS_APP_URL: getRequiredEnv("EXPO_PUBLIC_REPORTS_APP_URL"),
 };

@@ -26,6 +26,7 @@ import { StatisticsScreen } from "../../screens/StatisticsScreen";
 import { MarketplacePostScreen } from "../../screens/MarketplacePostScreen";
 import { MarketplacePostHistoryScreen } from "../../screens/MarketplacePostHistoryScreen";
 import { MarketplacePostEditScreen } from "../../screens/MarketplacePostEditScreen";
+import { PublicReportOptionsScreen } from "../../screens/PublicReportOptionsScreen";
 
 export type AppStackParamList = {
   Auth: undefined;
@@ -42,6 +43,7 @@ export type AppStackParamList = {
   MarketplacePost: { vehicleId: string; title: string };
   MarketplacePostHistory: { vehicleId: string; title: string };
   MarketplacePostEdit: { postId: string };
+  PublicReportOptions: { url: string; vehicleTitle: string };
   ManageVehicle: { vehicleId: string; title: string };
   ManageVehicleEdit: { vehicleId: string };
   DataPortability: { vehicleId: string; title: string };
@@ -105,6 +107,10 @@ export function RootNavigator() {
           <Stack.Screen
             name="MarketplacePostEdit"
             component={MarketplacePostEditScreen}
+          />
+          <Stack.Screen
+            name="PublicReportOptions"
+            component={PublicReportOptionsScreen}
           />
           <Stack.Screen name="ManageVehicle" component={ManageVehicleScreen} />
           <Stack.Screen

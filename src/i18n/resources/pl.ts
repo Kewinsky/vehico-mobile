@@ -369,6 +369,12 @@ export const pl = {
     notAvailableTitle: "Jeszcze niedostępne",
     notAvailableBody:
       "Ta funkcja nie jest jeszcze dostępna. Pracujemy nad tym.",
+    copyLink: "Kopiuj link",
+    showQRCode: "Pokaż kod QR",
+    linkCopied: "Link skopiowany do schowka",
+    generatingLink: "Generowanie linku...",
+    qrCodeTitle: "Zeskanuj, aby zobaczyć raport",
+    qrCodeSubtitle: "Każdy może zeskanować ten kod QR, aby zobaczyć raport pojazdu",
   },
   marketplace: {
     title: "Generuj ogłoszenie",

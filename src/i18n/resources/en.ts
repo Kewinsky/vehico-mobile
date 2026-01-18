@@ -365,6 +365,12 @@ export const en = {
     marketplacePost: "Marketplace post",
     notAvailableTitle: "Not available yet",
     notAvailableBody: "This feature isn't available yet. We're working on it.",
+    copyLink: "Copy link",
+    showQRCode: "Show QR code",
+    linkCopied: "Link copied to clipboard",
+    generatingLink: "Generating link...",
+    qrCodeTitle: "Scan to view report",
+    qrCodeSubtitle: "Anyone can scan this QR code to view the vehicle report",
   },
   marketplace: {
     title: "Generate marketplace post",
