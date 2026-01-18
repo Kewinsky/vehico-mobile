@@ -26,7 +26,7 @@ import { toastError } from "../ui/toast/toast";
 type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 
 export function VehiclesScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
@@ -138,8 +138,12 @@ export function VehiclesScreen({ navigation }: Props) {
                         {item.title}
                       </Text>
                       <Text style={styles.vehicleMeta} numberOfLines={1}>
-                        {item.make} {item.model} · {item.production_year} ·{" "}
-                        {item.power_hp}KM
+                        {item.make} {item.model} · {item.production_year}
+                        {item.power_hp
+                          ? ` · ${item.power_hp}${
+                              i18n.language === "pl" ? "KM" : "HP"
+                            }`
+                          : ""}
                       </Text>
                     </View>
                   </View>
@@ -171,7 +175,11 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       alignItems: "center",
     },
     title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
-    actions: { flexDirection: "row", alignItems: "center", gap: theme.spacing.sm + 2 },
+    actions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm + 2,
+    },
     actionText: { fontWeight: "800", color: theme.colors.muted },
     body: {
       flex: 1,

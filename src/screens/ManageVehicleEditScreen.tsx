@@ -14,7 +14,12 @@ import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import type { Vehicle, VehicleType, FuelType, TransmissionType } from "../types/domain";
+import type {
+  Vehicle,
+  VehicleType,
+  FuelType,
+  TransmissionType,
+} from "../types/domain";
 import { getVehicle, updateVehicle } from "../services/vehicles/vehiclesRepo";
 import {
   deleteVehicleProfilePhoto,
@@ -44,7 +49,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
-  const [type, setType] = useState<VehicleType>('car');
+  const [type, setType] = useState<VehicleType>("car");
   const [title, setTitle] = useState("");
   const [vin, setVin] = useState("");
   const [make, setMake] = useState("");
@@ -53,7 +58,9 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const [engineCapacity, setEngineCapacity] = useState("");
   const [powerHp, setPowerHp] = useState("");
   const [fuelType, setFuelType] = useState<FuelType | null>(null);
-  const [transmission, setTransmission] = useState<TransmissionType | null>(null);
+  const [transmission, setTransmission] = useState<TransmissionType | null>(
+    null
+  );
   const [notes, setNotes] = useState("");
 
   const load = useCallback(async () => {
@@ -104,7 +111,9 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
         make: make.trim(),
         model: model.trim(),
         production_year,
-        engine_capacity: engineCapacity.trim().length ? Number(engineCapacity) : null,
+        engine_capacity: engineCapacity.trim().length
+          ? Number(engineCapacity)
+          : null,
         power_hp: powerHp.trim().length ? Number(powerHp) : null,
         fuel_type: fuelType,
         transmission: transmission,
@@ -131,8 +140,11 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       if (result.canceled) return;
       const uri = result.assets[0]?.uri;
       if (!uri) throw new Error("No file selected");
-      
-      const photoUrl = await uploadVehicleProfilePhoto({ vehicleId, fileUri: uri });
+
+      const photoUrl = await uploadVehicleProfilePhoto({
+        vehicleId,
+        fileUri: uri,
+      });
       await updateVehicle(vehicleId, { profile_photo_url: photoUrl });
       await load();
     } catch (e: any) {
@@ -152,7 +164,6 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
     }
   }
 
-
   return (
     <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={{ height: theme.spacing.md }} />
@@ -167,7 +178,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       {vehicle ? (
         <>
           <View style={{ height: theme.spacing.md }} />
-          
+
           {/* Profile Photo Section */}
           {vehicle.profile_photo_url ? (
             <View style={styles.profilePhotoCard}>
@@ -181,22 +192,18 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                 <View style={styles.profilePhotoMenuButton}>
                   <IconButton
                     onPress={() => {
-                      Alert.alert(
-                        t("manageVehicle.profilePhotoTitle"),
-                        "",
-                        [
-                          { text: t("common.cancel"), style: "cancel" },
-                          {
-                            text: t("manageVehicle.changeProfilePhoto"),
-                            onPress: () => void pickProfilePhoto(),
-                          },
-                          {
-                            text: t("manageVehicle.removeProfilePhoto"),
-                            style: "destructive",
-                            onPress: () => void removeProfilePhoto(),
-                          },
-                        ]
-                      );
+                      Alert.alert(t("manageVehicle.profilePhotoTitle"), "", [
+                        { text: t("common.cancel"), style: "cancel" },
+                        {
+                          text: t("manageVehicle.changeProfilePhoto"),
+                          onPress: () => void pickProfilePhoto(),
+                        },
+                        {
+                          text: t("manageVehicle.removeProfilePhoto"),
+                          style: "destructive",
+                          onPress: () => void removeProfilePhoto(),
+                        },
+                      ]);
                     }}
                     variant="ghost"
                     disabled={saving || uploadingPhoto}
@@ -224,40 +231,56 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
 
           <View style={{ height: theme.spacing.sm }} />
           <View style={styles.group}>
-            <Text style={[styles.label, { color: theme.colors.muted }]}>{t("vehicleForm.type")}</Text>
+            <Text style={[styles.label, { color: theme.colors.muted }]}>
+              {t("vehicleForm.type")}
+            </Text>
             <View style={styles.typeRow}>
               <Pressable
-                onPress={() => setType('car')}
+                onPress={() => setType("car")}
                 style={[
                   styles.typeChip,
-                  { borderColor: theme.colors.border, backgroundColor: theme.colors.card },
-                  type === 'car' && { borderColor: theme.colors.fg },
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                  type === "car" && { borderColor: theme.colors.accent },
                 ]}
               >
                 <Text
                   style={[
                     styles.typeChipText,
-                    { color: type === 'car' ? theme.colors.fg : theme.colors.muted },
+                    {
+                      color:
+                        type === "car" ? theme.colors.fg : theme.colors.muted,
+                    },
                   ]}
                 >
-                  {t('vehicleForm.car')}
+                  {t("vehicleForm.car")}
                 </Text>
               </Pressable>
               <Pressable
-                onPress={() => setType('motorcycle')}
+                onPress={() => setType("motorcycle")}
                 style={[
                   styles.typeChip,
-                  { borderColor: theme.colors.border, backgroundColor: theme.colors.card },
-                  type === 'motorcycle' && { borderColor: theme.colors.fg },
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                  type === "motorcycle" && { borderColor: theme.colors.accent },
                 ]}
               >
                 <Text
                   style={[
                     styles.typeChipText,
-                    { color: type === 'motorcycle' ? theme.colors.fg : theme.colors.muted },
+                    {
+                      color:
+                        type === "motorcycle"
+                          ? theme.colors.fg
+                          : theme.colors.muted,
+                    },
                   ]}
                 >
-                  {t('vehicleForm.motorcycle')}
+                  {t("vehicleForm.motorcycle")}
                 </Text>
               </Pressable>
             </View>
@@ -308,33 +331,58 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
           <PickerField
             label={t("vehicleForm.fuelTypeLabel")}
             value={fuelType}
-            options={['petrol', 'diesel', 'hybrid', 'electric', 'lpg'] as const}
+            options={["petrol", "diesel", "hybrid", "electric", "lpg"] as const}
             getLabel={(value) =>
-              t(`vehicleForm.fuelType${value.charAt(0).toUpperCase() + value.slice(1)}` as 'vehicleForm.fuelTypePetrol' | 'vehicleForm.fuelTypeDiesel' | 'vehicleForm.fuelTypeHybrid' | 'vehicleForm.fuelTypeElectric' | 'vehicleForm.fuelTypeLpg')
+              t(
+                `vehicleForm.fuelType${
+                  value.charAt(0).toUpperCase() + value.slice(1)
+                }` as
+                  | "vehicleForm.fuelTypePetrol"
+                  | "vehicleForm.fuelTypeDiesel"
+                  | "vehicleForm.fuelTypeHybrid"
+                  | "vehicleForm.fuelTypeElectric"
+                  | "vehicleForm.fuelTypeLpg"
+              )
             }
             onChange={setFuelType}
             placeholder={t("vehicleForm.fuelTypeLabel")}
           />
           <View style={styles.group}>
-            <Text style={[styles.label, { color: theme.colors.muted }]}>{t("vehicleForm.transmissionLabel")}</Text>
+            <Text style={[styles.label, { color: theme.colors.muted }]}>
+              {t("vehicleForm.transmissionLabel")}
+            </Text>
             <View style={styles.typeRow}>
-              {(['manual', 'automatic'] as const).map((tr) => (
+              {(["manual", "automatic"] as const).map((tr) => (
                 <Pressable
                   key={tr}
                   onPress={() => setTransmission(tr)}
                   style={[
                     styles.typeChip,
-                    { borderColor: theme.colors.border, backgroundColor: theme.colors.card },
-                    transmission === tr && { borderColor: theme.colors.fg },
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                    transmission === tr && { borderColor: theme.colors.accent },
                   ]}
                 >
                   <Text
                     style={[
                       styles.typeChipText,
-                      { color: transmission === tr ? theme.colors.fg : theme.colors.muted },
+                      {
+                        color:
+                          transmission === tr
+                            ? theme.colors.fg
+                            : theme.colors.muted,
+                      },
                     ]}
                   >
-                    {t(`vehicleForm.transmission${tr.charAt(0).toUpperCase() + tr.slice(1)}` as 'vehicleForm.transmissionManual' | 'vehicleForm.transmissionAutomatic')}
+                    {t(
+                      `vehicleForm.transmission${
+                        tr.charAt(0).toUpperCase() + tr.slice(1)
+                      }` as
+                        | "vehicleForm.transmissionManual"
+                        | "vehicleForm.transmissionAutomatic"
+                    )}
                   </Text>
                 </Pressable>
               ))}
@@ -379,7 +427,11 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
     },
-    cardRow: { flexDirection: "row", alignItems: "center", gap: theme.spacing.sm },
+    cardRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
     cardTitle: { color: theme.colors.fg, fontWeight: "800" },
     cardMeta: { marginTop: 4, color: theme.colors.muted },
     profilePhotoCard: {

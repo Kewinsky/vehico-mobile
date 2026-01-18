@@ -30,7 +30,8 @@ export async function uploadVehicleDocument(params: {
     mimeType: params.mimeType,
     fileName: params.fileName,
   });
-  const bucket = contentType.startsWith("image/") ? "images" : "documents";
+  // All vehicle documents (photos, PDFs, etc.) go to "documents" bucket
+  const bucket = "documents";
   const ext = inferExtension({
     uri: params.fileUri,
     contentType,
@@ -57,6 +58,21 @@ export async function uploadVehicleDocument(params: {
     .select("*")
     .single();
   if (error) throw error;
+  return data as VehicleDocument;
+}
+
+export async function updateVehicleDocument(
+  docId: string,
+  description: string | null
+): Promise<VehicleDocument> {
+  const { data, error } = await supabase
+    .from("vehicle_documents")
+    .update({ description })
+    .eq("id", docId)
+    .select("*")
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error("Document not found");
   return data as VehicleDocument;
 }
 

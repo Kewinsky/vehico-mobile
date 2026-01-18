@@ -362,7 +362,7 @@ export function RemindersScreen({ route, navigation }: Props) {
                       styles.filterChoice,
                       { borderColor: theme.colors.border },
                       statusFilter === status && {
-                        borderColor: theme.colors.fg,
+                        borderColor: theme.colors.accent,
                       },
                     ]}
                   >

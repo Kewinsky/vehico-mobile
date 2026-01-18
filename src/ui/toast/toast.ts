@@ -30,4 +30,3 @@ export function toastError(title: string, description?: string) {
     useModal: false,
   });
 }
-

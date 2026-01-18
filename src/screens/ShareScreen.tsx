@@ -34,14 +34,18 @@ export function ShareScreen({ navigation, route }: Props) {
 
         <View style={{ height: 16 }} />
         <Button onPress={notAvailable} variant="ghost">
-          {t("share.pdfReport")}
-        </Button>
-        <View style={{ height: 10 }} />
-        <Button onPress={notAvailable} variant="ghost">
           {t("share.onlineReport")}
         </Button>
         <View style={{ height: 10 }} />
-        <Button onPress={notAvailable} variant="ghost">
+        <Button
+          onPress={() =>
+            navigation.navigate("MarketplacePost", {
+              vehicleId: route.params.vehicleId,
+              title: route.params.title,
+            })
+          }
+          variant="ghost"
+        >
           {t("share.marketplacePost")}
         </Button>
       </View>

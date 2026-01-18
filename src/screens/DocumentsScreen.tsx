@@ -2,8 +2,10 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Keyboard,
   Linking,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -18,10 +20,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type {
-  Attachment,
-  VehicleDocument,
-} from "../types/domain";
+import type { Attachment, VehicleDocument } from "../types/domain";
 import {
   createSignedUrl,
   deleteAttachment,
@@ -31,10 +30,11 @@ import {
 import {
   deleteVehicleDocument,
   listVehicleDocuments,
+  updateVehicleDocument,
   uploadVehicleDocument,
 } from "../services/vehicleDocuments/vehicleDocumentsRepo";
 import { Button } from "../ui/components/Button";
-import { toastError } from "../ui/toast/toast";
+import { toastError, toastSuccess } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { TextField } from "../ui/components/TextField";
@@ -42,7 +42,7 @@ import { TextField } from "../ui/components/TextField";
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
 export function DocumentsScreen({ route, navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [vehicleDocs, setVehicleDocs] = useState<VehicleDocument[]>([]);
@@ -181,6 +181,30 @@ export function DocumentsScreen({ route, navigation }: Props) {
     }
   }
 
+  async function editDocumentDescription(doc: VehicleDocument) {
+    Alert.prompt(
+      t("documents.editDescriptionTitle"),
+      t("documents.editDescriptionBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.save"),
+          onPress: async (description: string | undefined) => {
+            try {
+              await updateVehicleDocument(doc.id, description || null);
+              await load();
+              toastSuccess(t("documents.descriptionUpdated"));
+            } catch (e: any) {
+              toastError(t("common.error"), e?.message ?? String(e));
+            }
+          },
+        },
+      ],
+      "plain-text",
+      doc.description || ""
+    );
+  }
+
   function confirmDeleteVehicleDoc(doc: VehicleDocument) {
     Alert.alert(
       t("documents.removeAttachmentTitle"),
@@ -228,191 +252,273 @@ export function DocumentsScreen({ route, navigation }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
-      <View
-        style={{
+      <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
+        <View>
+          <Text style={[styles.title, { color: theme.colors.fg }]}>
+            {t("documents.title")}
+          </Text>
+
+          <View style={{ height: theme.spacing.sm }} />
+          <TextField
+            noMarginTop
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t("documents.searchPlaceholder")}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+            blurOnSubmit={true}
+          />
+          <View style={{ height: theme.spacing.sm }} />
+          <View style={styles.buttonsRow}>
+            <View style={{ flex: 1 }}>
+              <Button
+                onPress={pickVehicleDocument}
+                variant="ghost"
+                disabled={uploading}
+              >
+                {t("documents.addVehicleDocument")}
+              </Button>
+            </View>
+            <View style={{ width: theme.spacing.sm }} />
+            <View style={{ flex: 1 }}>
+              <Button
+                onPress={() =>
+                  navigation.navigate("AddAttachment", {
+                    vehicleId: route.params.vehicleId,
+                    title: route.params.title,
+                  })
+                }
+                variant="ghost"
+              >
+                {t("documents.addAttachment")}
+              </Button>
+            </View>
+          </View>
+
+          <View style={{ height: theme.spacing.sm + 2 }} />
+        </View>
+      </View>
+      <ScrollView
+        contentContainerStyle={{
           paddingHorizontal: theme.spacing.md,
           paddingTop: theme.spacing.sm,
-          paddingBottom: theme.spacing.sm,
+          paddingBottom: theme.spacing.xl,
         }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
-        <Text style={[styles.title, { color: theme.colors.fg }]}>
-          {t("documents.title")}
-        </Text>
-
-        <View style={{ height: 12 }} />
-        <TextField
-          noMarginTop
-          value={query}
-          onChangeText={setQuery}
-          placeholder={t("documents.searchPlaceholder")}
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-        />
-        <View style={{ height: 12 }} />
-        <Button
-          onPress={() =>
-            navigation.navigate("AddAttachment", {
-              vehicleId: route.params.vehicleId,
-              title: route.params.title,
-            })
-          }
-          variant="ghost"
-        >
-          {t("documents.addAttachment")}
-        </Button>
-        <View style={{ height: 10 }} />
-        <Button
-          onPress={pickVehicleDocument}
-          variant="ghost"
-          disabled={uploading}
-        >
-          {t("documents.addVehicleDocument")}
-        </Button>
-
-        <View style={{ height: 18 }} />
         <Text style={[styles.section, { color: theme.colors.fg }]}>
           {t("documents.vehicleDocuments")}
         </Text>
         <View style={{ height: theme.spacing.sm }} />
-        <FlatList
-          data={vehicleDocs.filter((d) => {
+        {vehicleDocs
+          .filter((d) => {
             const q = query.trim().toLowerCase();
             if (!q.length) return true;
-            const name = d.storage_path.split("/").slice(-1)[0] ?? "";
-            const hay = `${d.storage_bucket}/${name}`.toLowerCase();
-            return hay.includes(q);
-          })}
-          keyExtractor={(d) => d.id}
-          scrollEnabled={false}
-          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          renderItem={({ item }) => (
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.cardRow}>
-                <Pressable
-                  style={{ flex: 1 }}
-                  onPress={() =>
-                    void openStorage(item.storage_bucket, item.storage_path)
-                  }
-                >
-                  <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
-                    {t("documents.attachmentLabel")}
-                  </Text>
-                  <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
-                    {item.storage_bucket}/
-                    {item.storage_path.split("/").slice(-1)[0]}
-                  </Text>
-                </Pressable>
-                <IconButton onPress={() => confirmDeleteVehicleDoc(item)} variant="danger">
-                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
-                </IconButton>
+            const description = d.description || "";
+            return description.toLowerCase().includes(q);
+          })
+          .map((item) => (
+            <View key={item.id} style={{ marginBottom: 10 }}>
+              <View
+                style={[
+                  styles.card,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                ]}
+              >
+                <View style={styles.cardRow}>
+                  <Pressable
+                    style={{ flex: 1 }}
+                    onPress={() =>
+                      void openStorage(item.storage_bucket, item.storage_path)
+                    }
+                  >
+                    <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
+                      {item.description || t("documents.documentLabel")}
+                    </Text>
+                    <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
+                      {(() => {
+                        const fileName = item.storage_path
+                          .split("/")
+                          .slice(-1)[0];
+                        const ext =
+                          fileName.split(".").pop()?.toUpperCase() || "FILE";
+                        const date = new Date(item.created_at);
+                        const formattedDate = date.toLocaleDateString(
+                          i18n.language === "pl" ? "pl-PL" : "en-US",
+                          { day: "2-digit", month: "2-digit", year: "numeric" }
+                        );
+                        return `${ext} · ${formattedDate}`;
+                      })()}
+                    </Text>
+                  </Pressable>
+                  <View style={{ flexDirection: "row", gap: theme.spacing.xs }}>
+                    <IconButton
+                      onPress={() => editDocumentDescription(item)}
+                      variant="ghost"
+                    >
+                      <Ionicons
+                        name="pencil-outline"
+                        size={18}
+                        color={theme.colors.accent}
+                      />
+                    </IconButton>
+                    <IconButton
+                      onPress={() => confirmDeleteVehicleDoc(item)}
+                      variant="danger"
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={18}
+                        color={theme.colors.danger}
+                      />
+                    </IconButton>
+                  </View>
+                </View>
               </View>
             </View>
-          )}
-          ListEmptyComponent={
-            loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={theme.colors.accent} />
-              </View>
-            ) : (
-              <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
-                {t("documents.noVehicleDocuments")}
-              </Text>
-            )
-          }
-        />
+          ))}
+        {loading && vehicleDocs.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.colors.accent} />
+          </View>
+        ) : vehicleDocs.filter((d) => {
+            const q = query.trim().toLowerCase();
+            if (!q.length) return true;
+            const description = d.description || "";
+            return description.toLowerCase().includes(q);
+          }).length === 0 ? (
+          <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+            {t("documents.noVehicleDocuments")}
+          </Text>
+        ) : null}
 
         <View style={{ height: 18 }} />
         <Text style={[styles.section, { color: theme.colors.fg }]}>
           {t("documents.serviceAttachments")}
         </Text>
         <View style={{ height: theme.spacing.sm }} />
-        <FlatList
-          data={attachments.filter((a) => {
+        {attachments
+          .filter((a) => {
             const q = query.trim().toLowerCase();
             if (!q.length) return true;
-            const file = a.storage_path.split("/").slice(-1)[0] ?? "";
-            const hay = `${a.serviceEntryTitle ?? ""}\n${file}`.toLowerCase();
-            return hay.includes(q);
-          })}
-          keyExtractor={(a) => a.id}
-          scrollEnabled={false}
-          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          renderItem={({ item }) => (
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.cardRow}>
-                <Pressable
-                  style={{ flex: 1 }}
-                  onPress={() =>
-                    void openStorage(item.storage_bucket, item.storage_path)
-                  }
-                >
-                  <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
-                    {item.serviceEntryTitle
-                      ? item.serviceEntryTitle
-                      : t("documents.attachmentLabel")}
-                  </Text>
-                  <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
-                    {item.storage_path.split("/").slice(-1)[0]}
-                  </Text>
-                </Pressable>
-                <IconButton onPress={() => confirmDeleteAttachment(item)} variant="danger">
-                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
-                </IconButton>
+            const title = a.serviceEntryTitle || "";
+            return title.toLowerCase().includes(q);
+          })
+          .map((item) => (
+            <View key={item.id} style={{ marginBottom: 10 }}>
+              <View
+                style={[
+                  styles.card,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                ]}
+              >
+                <View style={styles.cardRow}>
+                  <Pressable
+                    style={{ flex: 1 }}
+                    onPress={() =>
+                      void openStorage(item.storage_bucket, item.storage_path)
+                    }
+                  >
+                    <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
+                      {item.serviceEntryTitle
+                        ? item.serviceEntryTitle
+                        : t("documents.attachmentLabel")}
+                    </Text>
+                    <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
+                      {(() => {
+                        const fileName = item.storage_path
+                          .split("/")
+                          .slice(-1)[0];
+                        const ext =
+                          fileName.split(".").pop()?.toUpperCase() || "FILE";
+                        const date = new Date(item.created_at);
+                        const formattedDate = date.toLocaleDateString(
+                          i18n.language === "pl" ? "pl-PL" : "en-US",
+                          { day: "2-digit", month: "2-digit", year: "numeric" }
+                        );
+                        return `${t(
+                          "documents.added"
+                        )} ${formattedDate} · ${ext}`;
+                      })()}
+                    </Text>
+                  </Pressable>
+                  <IconButton
+                    onPress={() => confirmDeleteAttachment(item)}
+                    variant="danger"
+                  >
+                    <Ionicons
+                      name="trash-outline"
+                      size={18}
+                      color={theme.colors.danger}
+                    />
+                  </IconButton>
+                </View>
               </View>
             </View>
-          )}
-          ListEmptyComponent={
-            loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={theme.colors.accent} />
-              </View>
-            ) : (
-              <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
-                {t("documents.noAttachments")}
-              </Text>
-            )
-          }
-        />
-      </View>
+          ))}
+        {attachments.filter((a) => {
+          const q = query.trim().toLowerCase();
+          if (!q.length) return true;
+          const title = a.serviceEntryTitle || "";
+          return title.toLowerCase().includes(q);
+        }).length === 0 && !loading ? (
+          <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+            {t("documents.noAttachments")}
+          </Text>
+        ) : null}
+      </ScrollView>
     </Screen>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
+    fixedHeader: {
+      paddingTop: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
     title: { fontSize: 20, fontWeight: "800" },
     body: { marginTop: theme.spacing.xs, lineHeight: 22 },
-    section: { marginTop: theme.spacing.sm - 2, fontSize: 16, fontWeight: "800" },
-    card: { borderWidth: 1, borderRadius: theme.radius.md, padding: theme.spacing.sm },
-    cardRow: { flexDirection: "row", alignItems: "center", gap: theme.spacing.sm },
+    section: {
+      marginTop: theme.spacing.sm - 2,
+      fontSize: 16,
+      fontWeight: "800",
+    },
+    buttonsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    card: {
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.sm,
+    },
+    cardRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
     loadingContainer: {
       paddingTop: theme.spacing.xl + theme.spacing.xs,
       paddingBottom: theme.spacing.xl + theme.spacing.xs,
       alignItems: "center",
       justifyContent: "center",
     },
-  trash: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+    trash: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+  });

@@ -90,6 +90,7 @@ export type VehicleDocument = {
   vehicle_id: string;
   storage_bucket: 'images' | 'documents';
   storage_path: string;
+  description: string | null;
   created_at: string;
 };
 
@@ -126,4 +127,18 @@ export type Reminder = {
   enabled: boolean;
   delivered_at: string | null;
   created_at: string;
+};
+
+export type MarketplacePlatform = 'olx' | 'facebook' | 'generic';
+
+export type MarketplacePost = {
+  id: string;
+  vehicle_id: string;
+  user_id: string;
+  platform: MarketplacePlatform;
+  language: Language;
+  price: number | null;
+  content: string;
+  created_at: string;
+  updated_at: string;
 };

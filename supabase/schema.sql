@@ -187,11 +187,33 @@ create table if not exists public.vehicle_documents (
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   storage_bucket text not null check (storage_bucket in ('images', 'documents')),
   storage_path text not null,
+  description text,
   created_at timestamptz not null default now()
 );
 
 create index if not exists vehicle_documents_vehicle_id_idx on public.vehicle_documents(vehicle_id);
 create index if not exists vehicle_documents_created_at_idx on public.vehicle_documents(created_at desc);
+
+-- Add description column to vehicle_documents (migration for existing databases)
+alter table public.vehicle_documents
+  add column if not exists description text;
+
+-- Marketplace posts (generated listings)
+create table if not exists public.marketplace_posts (
+  id uuid primary key default gen_random_uuid(),
+  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
+  user_id uuid not null default auth.uid(),
+  platform text not null default 'generic' check (platform in ('olx', 'facebook', 'generic')),
+  language text not null default 'pl' check (language in ('en', 'pl')),
+  price numeric,
+  content text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists marketplace_posts_vehicle_id_idx on public.marketplace_posts(vehicle_id);
+create index if not exists marketplace_posts_user_id_idx on public.marketplace_posts(user_id);
+create index if not exists marketplace_posts_created_at_idx on public.marketplace_posts(created_at desc);
 
 -- ================
 -- Row Level Security (RLS)
@@ -205,6 +227,7 @@ alter table public.fueling_entries enable row level security;
 alter table public.reminders enable row level security;
 alter table public.user_settings enable row level security;
 alter table public.vehicle_documents enable row level security;
+alter table public.marketplace_posts enable row level security;
 
 -- Vehicles: owner can CRUD
 drop policy if exists vehicles_select_own on public.vehicles;
@@ -525,6 +548,25 @@ with check (
   )
 );
 
+drop policy if exists vehicle_documents_update_own_vehicle on public.vehicle_documents;
+create policy vehicle_documents_update_own_vehicle
+on public.vehicle_documents for update
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_documents.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_documents.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
 drop policy if exists vehicle_documents_delete_own_vehicle on public.vehicle_documents;
 create policy vehicle_documents_delete_own_vehicle
 on public.vehicle_documents for delete
@@ -536,6 +578,32 @@ using (
       and v.owner_id = auth.uid()
   )
 );
+
+-- Marketplace posts: owner can CRUD own posts
+drop policy if exists marketplace_posts_select_own on public.marketplace_posts;
+create policy marketplace_posts_select_own
+on public.marketplace_posts for select
+to authenticated
+using (user_id = auth.uid());
+
+drop policy if exists marketplace_posts_insert_own on public.marketplace_posts;
+create policy marketplace_posts_insert_own
+on public.marketplace_posts for insert
+to authenticated
+with check (user_id = auth.uid());
+
+drop policy if exists marketplace_posts_update_own on public.marketplace_posts;
+create policy marketplace_posts_update_own
+on public.marketplace_posts for update
+to authenticated
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+drop policy if exists marketplace_posts_delete_own on public.marketplace_posts;
+create policy marketplace_posts_delete_own
+on public.marketplace_posts for delete
+to authenticated
+using (user_id = auth.uid());
 
 -- ================
 -- Storage (buckets + policies)

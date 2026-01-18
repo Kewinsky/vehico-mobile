@@ -425,7 +425,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                       style={[
                         styles.chip,
                         { borderColor: theme.colors.border },
-                        selected && { borderColor: theme.colors.fg },
+                        selected && { borderColor: theme.colors.accent },
                       ]}
                     >
                       <Text

@@ -23,6 +23,9 @@ import { DataPortabilityScreen } from "../../screens/DataPortabilityScreen";
 import { AddAttachmentScreen } from "../../screens/AddAttachmentScreen";
 import { ShareScreen } from "../../screens/ShareScreen";
 import { StatisticsScreen } from "../../screens/StatisticsScreen";
+import { MarketplacePostScreen } from "../../screens/MarketplacePostScreen";
+import { MarketplacePostHistoryScreen } from "../../screens/MarketplacePostHistoryScreen";
+import { MarketplacePostEditScreen } from "../../screens/MarketplacePostEditScreen";
 
 export type AppStackParamList = {
   Auth: undefined;
@@ -36,6 +39,9 @@ export type AppStackParamList = {
   Statistics: { vehicleId: string; title: string };
   Reminders: { vehicleId: string; title: string };
   Share: { vehicleId: string; title: string };
+  MarketplacePost: { vehicleId: string; title: string };
+  MarketplacePostHistory: { vehicleId: string; title: string };
+  MarketplacePostEdit: { postId: string };
   ManageVehicle: { vehicleId: string; title: string };
   ManageVehicleEdit: { vehicleId: string };
   DataPortability: { vehicleId: string; title: string };
@@ -88,6 +94,18 @@ export function RootNavigator() {
             component={ReminderDetailScreen}
           />
           <Stack.Screen name="Share" component={ShareScreen} />
+          <Stack.Screen
+            name="MarketplacePost"
+            component={MarketplacePostScreen}
+          />
+          <Stack.Screen
+            name="MarketplacePostHistory"
+            component={MarketplacePostHistoryScreen}
+          />
+          <Stack.Screen
+            name="MarketplacePostEdit"
+            component={MarketplacePostEditScreen}
+          />
           <Stack.Screen name="ManageVehicle" component={ManageVehicleScreen} />
           <Stack.Screen
             name="ManageVehicleEdit"

@@ -127,7 +127,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             style={[
               styles.choice,
               { borderColor: theme.colors.border },
-              type === kind && { borderColor: theme.colors.fg },
+              type === kind && { borderColor: theme.colors.accent },
             ]}
           >
             <Text
@@ -188,7 +188,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                 style={[
                   styles.choice,
                   { borderColor: theme.colors.border },
-                  status === st && { borderColor: theme.colors.fg },
+                  status === st && { borderColor: theme.colors.accent },
                 ]}
               >
                 <Text

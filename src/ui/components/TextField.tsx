@@ -10,7 +10,7 @@ type Props = ComponentProps<typeof TextInput> & {
 };
 
 export function TextField(props: Props) {
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const styles = makeStyles(theme);
   const { label, helperText, noMarginTop, style, ...inputProps } = props;
   return (
@@ -19,6 +19,7 @@ export function TextField(props: Props) {
       <View style={styles.wrap}>
         <TextInput
           placeholderTextColor={theme.colors.muted}
+          keyboardAppearance={mode === "dark" ? "dark" : "light"}
           {...inputProps}
           style={[styles.input, style]}
         />

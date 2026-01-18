@@ -41,7 +41,7 @@ import { Ionicons } from "@expo/vector-icons";
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryForm">;
 
 export function ServiceEntryFormScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { settings } = useUserSettings();
@@ -318,13 +318,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       <Text style={styles.label}>{t("entryForm.category")}</Text>
       <View style={styles.categoryGrid}>
         {(
-          [
-            "maintenance",
-            "repair",
-            "inspection",
-            "upgrade",
-            "other",
-          ] as const
+          ["maintenance", "repair", "inspection", "upgrade", "other"] as const
         ).map((c) => {
           const selected = category === c;
           const borderColor =
@@ -336,7 +330,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               style={[
                 styles.categoryChip,
                 { borderColor },
-                selected && { borderColor: theme.colors.fg },
+                selected && { borderColor: theme.colors.accent },
               ]}
             >
               <Text
@@ -383,7 +377,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       <View style={{ height: 12 }} />
       <View style={styles.sectionHeader}>
         <Text style={styles.h2}>{t("attachments.title")}</Text>
-        <Text style={styles.muted}>{t("attachments.subtitle")}</Text>
       </View>
       <View style={{ height: 10 }} />
       <Button
@@ -394,7 +387,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         {t("entryForm.addAttachment")}
       </Button>
       <View style={{ height: 10 }} />
-      
+
       {entryId ? (
         <FlatList
           data={attachments}
@@ -412,12 +405,32 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     {t("attachments.attachmentLabel")}
                   </Text>
                   <Text style={styles.cardMeta}>
-                    {item.storage_bucket}/
-                    {item.storage_path.split("/").slice(-1)[0]}
+                    {(() => {
+                      const fileName = item.storage_path
+                        .split("/")
+                        .slice(-1)[0];
+                      const ext =
+                        fileName.split(".").pop()?.toUpperCase() || "FILE";
+                      const date = new Date(item.created_at);
+                      const formattedDate = date.toLocaleDateString(
+                        i18n.language === "pl" ? "pl-PL" : "en-US",
+                        { day: "2-digit", month: "2-digit", year: "numeric" }
+                      );
+                      return `${t(
+                        "documents.added"
+                      )} ${formattedDate} · ${ext}`;
+                    })()}
                   </Text>
                 </Pressable>
-                <IconButton onPress={() => confirmDeleteAttachment(item)} variant="danger">
-                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
+                <IconButton
+                  onPress={() => confirmDeleteAttachment(item)}
+                  variant="danger"
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={18}
+                    color={theme.colors.danger}
+                  />
                 </IconButton>
               </View>
             </View>
@@ -453,11 +466,17 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 </View>
                 <IconButton
                   onPress={() => {
-                    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+                    setPendingFiles((prev) =>
+                      prev.filter((_, i) => i !== index)
+                    );
                   }}
                   variant="danger"
                 >
-                  <Ionicons name="trash-outline" size={18} color={theme.colors.danger} />
+                  <Ionicons
+                    name="trash-outline"
+                    size={18}
+                    color={theme.colors.danger}
+                  />
                 </IconButton>
               </View>
             </View>
@@ -526,7 +545,11 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
     },
-    cardRow: { flexDirection: "row", alignItems: "center", gap: theme.spacing.sm },
+    cardRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
     cardTitle: { fontWeight: "800", color: theme.colors.fg },
     cardMeta: { marginTop: 4, fontSize: 13, color: theme.colors.muted },
     multiline: {

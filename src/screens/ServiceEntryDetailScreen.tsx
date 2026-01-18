@@ -33,7 +33,7 @@ import { toastError } from "../ui/toast/toast";
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryDetail">;
 
 export function ServiceEntryDetailScreen({ route, navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const insets = useSafeAreaInsets();
@@ -126,7 +126,9 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
             </View>
             {entry.category ? (
               <View style={styles.row}>
-                <Text style={styles.label}>{t("entryDetail.labels.category")}</Text>
+                <Text style={styles.label}>
+                  {t("entryDetail.labels.category")}
+                </Text>
                 <Text style={styles.value}>
                   {t(`entryForm.categories.${entry.category}` as any)}
                 </Text>
@@ -167,7 +169,6 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
 
       <View style={styles.sectionHeader}>
         <Text style={styles.h2}>{t("attachments.title")}</Text>
-        <Text style={styles.muted}>{t("attachments.subtitle")}</Text>
       </View>
 
       <FlatList
@@ -198,8 +199,17 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
                   {t("attachments.attachmentLabel")}
                 </Text>
                 <Text style={styles.cardMeta}>
-                  {item.storage_bucket}/
-                  {item.storage_path.split("/").slice(-1)[0]}
+                  {(() => {
+                    const fileName = item.storage_path.split("/").slice(-1)[0];
+                    const ext =
+                      fileName.split(".").pop()?.toUpperCase() || "FILE";
+                    const date = new Date(item.created_at);
+                    const formattedDate = date.toLocaleDateString(
+                      i18n.language === "pl" ? "pl-PL" : "en-US",
+                      { day: "2-digit", month: "2-digit", year: "numeric" }
+                    );
+                    return `${t("documents.added")} ${formattedDate} · ${ext}`;
+                  })()}
                 </Text>
               </Pressable>
             </View>
