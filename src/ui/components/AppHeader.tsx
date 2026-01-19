@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -14,9 +15,15 @@ export function AppHeader({
   right?: ReactNode;
   title?: string;
 }) {
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const { t } = useTranslation();
   const styles = makeStyles(theme);
+
+  // Choose logo based on theme mode
+  const logoSource =
+    mode === "dark"
+      ? require("../../../assets/icon-dark-no-bg.png")
+      : require("../../../assets/icon-light-no-bg.png");
 
   return (
     <View style={styles.root}>
@@ -34,9 +41,20 @@ export function AppHeader({
           </Pressable>
         ) : null}
       </View>
-      <Text style={styles.title} numberOfLines={1}>
-        {title ?? t("common.appName")}
-      </Text>
+      {title ? (
+        <Text style={styles.title} numberOfLines={1}>
+          {title}
+        </Text>
+      ) : (
+        <View style={styles.logoContainer}>
+          <Image
+            source={logoSource}
+            style={styles.logo}
+            contentFit="contain"
+            transition={200}
+          />
+        </View>
+      )}
       <View style={styles.right}>{right ?? null}</View>
     </View>
   );
@@ -70,5 +88,14 @@ const makeStyles = (theme: any) =>
       fontWeight: "800",
       letterSpacing: 0.2,
       fontSize: 15,
+    },
+    logoContainer: {
+      height: 32,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    logo: {
+      width: 100,
+      height: 32,
     },
   });
