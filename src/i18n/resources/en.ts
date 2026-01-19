@@ -299,6 +299,7 @@ export const en = {
     makeLabel: "Make",
     modelLabel: "Model",
     yearLabel: "Production year",
+    notesLabel: "Notes",
     profilePhotoTitle: "Profile photo",
     profilePhotoSubtitle: "A photo to identify this vehicle.",
     profilePhotoPreview: "Photo preview",
@@ -372,7 +373,7 @@ export const en = {
     cannotOpenUrl: "Cannot open URL",
     generatingLink: "Generating link...",
     qrCodeTitle: "Scan to view report",
-    qrCodeSubtitle: "Anyone can scan this QR code to view the vehicle report",
+    qrCodeSubtitle: "Anyone can scan this QR code to view the vehicle report.",
   },
   marketplace: {
     title: "Generate marketplace post",

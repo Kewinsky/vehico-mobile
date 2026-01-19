@@ -21,7 +21,8 @@
       "icon": {
         "light": "./assets/icon-light.png",
         "dark": "./assets/icon-dark.png"
-      }
+      },
+      "bundleIdentifier": "com.anonymous.vehico"
     },
     "android": {
       "adaptiveIcon": {
@@ -30,11 +31,15 @@
         "monochromeImage": "./assets/adaptive-icon.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.vehico"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-localization", "@react-native-community/datetimepicker"]
+    "plugins": [
+      "expo-localization",
+      "@react-native-community/datetimepicker"
+    ]
   }
 }

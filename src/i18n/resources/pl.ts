@@ -299,6 +299,7 @@ export const pl = {
     makeLabel: "Marka",
     modelLabel: "Model",
     yearLabel: "Rok produkcji",
+    notesLabel: "Notatki",
     profilePhotoTitle: "Zdjęcie profilowe",
     profilePhotoSubtitle: "Zdjęcie do identyfikacji tego pojazdu.",
     profilePhotoPreview: "Podgląd zdjęcia",
@@ -376,7 +377,8 @@ export const pl = {
     cannotOpenUrl: "Nie można otworzyć linku",
     generatingLink: "Generowanie linku...",
     qrCodeTitle: "Zeskanuj, aby zobaczyć raport",
-    qrCodeSubtitle: "Każdy może zeskanować ten kod QR, aby zobaczyć raport pojazdu",
+    qrCodeSubtitle:
+      "Każdy może zeskanować ten kod QR, aby zobaczyć raport pojazdu.",
   },
   marketplace: {
     title: "Generuj ogłoszenie",

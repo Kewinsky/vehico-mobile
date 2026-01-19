@@ -55,7 +55,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       date.trim().length === 10 &&
       Number(distance) > 0 &&
       Number(fuelAmount) > 0 &&
-      Number(fuelCost) >= 0
+      Number(fuelCost) > 0
     );
   }, [date, distance, fuelAmount, fuelCost]);
 

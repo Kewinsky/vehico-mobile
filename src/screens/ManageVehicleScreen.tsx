@@ -1,12 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -174,152 +167,6 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       </Text>
                     </View>
                   </View>
-                  {vehicle.transmission ? (
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="settings-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("vehicleForm.transmissionLabel")}
-                        </Text>
-                        <Text style={styles.detailValue}>
-                          {t(
-                            `vehicleForm.transmission${
-                              vehicle.transmission.charAt(0).toUpperCase() +
-                              vehicle.transmission.slice(1)
-                            }` as
-                              | "vehicleForm.transmissionManual"
-                              | "vehicleForm.transmissionAutomatic"
-                          )}
-                        </Text>
-                      </View>
-                    </View>
-                  ) : null}
-                </View>
-
-                {/* Column B: VIN, Engine Capacity, Power, Fuel Type */}
-                <View style={styles.detailsColumn}>
-                  {vehicle.vin ? (
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="barcode-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>VIN</Text>
-                        <Text style={styles.detailValue} numberOfLines={1}>
-                          {vehicle.vin}
-                        </Text>
-                      </View>
-                    </View>
-                  ) : null}
-                  {vehicle.engine_capacity ? (
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="speedometer-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("vehicleForm.engineCapacityLabel")}
-                        </Text>
-                        <Text style={styles.detailValue}>
-                          {vehicle.engine_capacity} cm³
-                        </Text>
-                      </View>
-                    </View>
-                  ) : null}
-                  {vehicle.power_hp ? (
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="flash-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("vehicleForm.powerHpLabel")}
-                        </Text>
-                        <Text style={styles.detailValue}>
-                          {vehicle.power_hp} HP
-                        </Text>
-                      </View>
-                    </View>
-                  ) : null}
-                  {vehicle.fuel_type ? (
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="water-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("vehicleForm.fuelTypeLabel")}
-                        </Text>
-                        <Text style={styles.detailValue}>
-                          {t(
-                            `vehicleForm.fuelType${
-                              vehicle.fuel_type.charAt(0).toUpperCase() +
-                              vehicle.fuel_type.slice(1)
-                            }` as
-                              | "vehicleForm.fuelTypePetrol"
-                              | "vehicleForm.fuelTypeDiesel"
-                              | "vehicleForm.fuelTypeHybrid"
-                              | "vehicleForm.fuelTypeElectric"
-                              | "vehicleForm.fuelTypeLpg"
-                          )}
-                        </Text>
-                      </View>
-                    </View>
-                  ) : null}
-                </View>
-              </View>
-
-              {/* Notes: Full width */}
-              {vehicle.notes ? (
-                <>
-                  <View style={{ height: theme.spacing.md }} />
                   <View style={styles.detailItem}>
                     <View
                       style={[
@@ -328,22 +175,160 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       ]}
                     >
                       <Ionicons
-                        name="document-text-outline"
+                        name="settings-outline"
                         size={18}
                         color={theme.colors.accent}
                       />
                     </View>
                     <View style={styles.detailContent}>
                       <Text style={styles.detailLabel}>
-                        {t("vehicleForm.notesLabel")}
+                        {t("vehicleForm.transmissionLabel")}
                       </Text>
-                      <Text style={styles.detailValue} numberOfLines={3}>
-                        {vehicle.notes}
+                      <Text style={styles.detailValue}>
+                        {vehicle.transmission
+                          ? t(
+                              `vehicleForm.transmission${
+                                vehicle.transmission.charAt(0).toUpperCase() +
+                                vehicle.transmission.slice(1)
+                              }` as
+                                | "vehicleForm.transmissionManual"
+                                | "vehicleForm.transmissionAutomatic"
+                            )
+                          : "N/A"}
                       </Text>
                     </View>
                   </View>
-                </>
-              ) : null}
+                </View>
+
+                {/* Column B: VIN, Engine Capacity, Power, Fuel Type */}
+                <View style={styles.detailsColumn}>
+                  <View style={styles.detailItem}>
+                    <View
+                      style={[
+                        styles.detailIconContainer,
+                        { backgroundColor: theme.colors.accent + "25" },
+                      ]}
+                    >
+                      <Ionicons
+                        name="barcode-outline"
+                        size={18}
+                        color={theme.colors.accent}
+                      />
+                    </View>
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>VIN</Text>
+                      <Text style={styles.detailValue} numberOfLines={1}>
+                        {vehicle.vin || "N/A"}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.detailItem}>
+                    <View
+                      style={[
+                        styles.detailIconContainer,
+                        { backgroundColor: theme.colors.accent + "25" },
+                      ]}
+                    >
+                      <Ionicons
+                        name="speedometer-outline"
+                        size={18}
+                        color={theme.colors.accent}
+                      />
+                    </View>
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>
+                        {t("vehicleForm.engineCapacityLabel")}
+                      </Text>
+                      <Text style={styles.detailValue}>
+                        {vehicle.engine_capacity
+                          ? `${vehicle.engine_capacity} cm³`
+                          : "N/A"}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.detailItem}>
+                    <View
+                      style={[
+                        styles.detailIconContainer,
+                        { backgroundColor: theme.colors.accent + "25" },
+                      ]}
+                    >
+                      <Ionicons
+                        name="flash-outline"
+                        size={18}
+                        color={theme.colors.accent}
+                      />
+                    </View>
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>
+                        {t("vehicleForm.powerHpLabel")}
+                      </Text>
+                      <Text style={styles.detailValue}>
+                        {vehicle.power_hp ? `${vehicle.power_hp} HP` : "N/A"}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.detailItem}>
+                    <View
+                      style={[
+                        styles.detailIconContainer,
+                        { backgroundColor: theme.colors.accent + "25" },
+                      ]}
+                    >
+                      <Ionicons
+                        name="water-outline"
+                        size={18}
+                        color={theme.colors.accent}
+                      />
+                    </View>
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>
+                        {t("vehicleForm.fuelTypeLabel")}
+                      </Text>
+                      <Text style={styles.detailValue}>
+                        {vehicle.fuel_type
+                          ? t(
+                              `vehicleForm.fuelType${
+                                vehicle.fuel_type.charAt(0).toUpperCase() +
+                                vehicle.fuel_type.slice(1)
+                              }` as
+                                | "vehicleForm.fuelTypePetrol"
+                                | "vehicleForm.fuelTypeDiesel"
+                                | "vehicleForm.fuelTypeHybrid"
+                                | "vehicleForm.fuelTypeElectric"
+                                | "vehicleForm.fuelTypeLpg"
+                            )
+                          : "N/A"}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Notes: Full width */}
+              <View style={{ height: theme.spacing.md }} />
+              <View style={styles.detailItem}>
+                <View
+                  style={[
+                    styles.detailIconContainer,
+                    { backgroundColor: theme.colors.accent + "25" },
+                  ]}
+                >
+                  <Ionicons
+                    name="document-text-outline"
+                    size={18}
+                    color={theme.colors.accent}
+                  />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>
+                    {t("manageVehicle.notesLabel")}
+                  </Text>
+                  <Text style={styles.detailValue} numberOfLines={3}>
+                    {vehicle.notes || "N/A"}
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
 
