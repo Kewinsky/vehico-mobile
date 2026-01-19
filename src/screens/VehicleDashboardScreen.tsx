@@ -10,13 +10,17 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Clipboard from "expo-clipboard";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { Vehicle } from "../types/domain";
+import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
+import { toastError, toastSuccess } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
@@ -34,11 +38,34 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, insets);
   const { vehicleId, title } = route.params;
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const menuOpacity = useRef(new Animated.Value(0)).current;
   const menuTranslateY = useRef(new Animated.Value(20)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const iconRotation = useRef(new Animated.Value(0)).current;
+
+  const load = useCallback(async () => {
+    try {
+      const v = await getVehicle(vehicleId);
+      setVehicle(v);
+    } catch (e: any) {
+      toastError(t("common.error"), e?.message ?? String(e));
+    }
+  }, [vehicleId, t]);
+
+  useEffect(() => {
+    void load();
+    const unsub = navigation.addListener("focus", () => void load());
+    return unsub;
+  }, [navigation, load]);
+
+  async function onCopyVin() {
+    if (vehicle?.vin) {
+      await Clipboard.setStringAsync(vehicle.vin);
+      toastSuccess(t("common.copied"), t("manageVehicle.vinCopied"));
+    }
+  }
 
   const tiles: Tile[] = [
     {
@@ -181,6 +208,20 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             <View style={styles.header}>
               <Text style={styles.kicker}>{t("dashboard.kicker")}</Text>
               <Text style={styles.title}>{title}</Text>
+              {vehicle?.vin && (
+                <Pressable
+                  onPress={onCopyVin}
+                  style={styles.vinRow}
+                  hitSlop={10}
+                >
+                  <Text style={styles.vinText}>{vehicle.vin}</Text>
+                  <Ionicons
+                    name="copy-outline"
+                    size={16}
+                    color={theme.colors.muted}
+                  />
+                </Pressable>
+              )}
             </View>
           </View>
         }
@@ -332,6 +373,17 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       color: theme.colors.fg,
       fontSize: 20,
       fontWeight: "800",
+    },
+    vinRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      marginTop: theme.spacing.xs,
+    },
+    vinText: {
+      fontSize: theme.typography.small,
+      color: theme.colors.muted,
+      fontWeight: "600",
     },
     list: {
       paddingHorizontal: theme.spacing.md,

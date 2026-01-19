@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import type { VehicleType, FuelType, TransmissionType } from "../types/domain";
+import type { VehicleType, FuelType, TransmissionType, DriveType } from "../types/domain";
 import { createVehicle } from "../services/vehicles/vehiclesRepo";
 import { uploadVehicleProfilePhoto } from "../services/vehicles/uploadProfilePhoto";
 import { Button } from "../ui/components/Button";
@@ -37,6 +37,7 @@ export function VehicleFormScreen({ navigation }: Props) {
   const [transmission, setTransmission] = useState<TransmissionType | null>(
     null
   );
+  const [driveType, setDriveType] = useState<DriveType | null>(null);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [profilePhotoUri, setProfilePhotoUri] = useState<string | null>(null);
@@ -90,6 +91,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         power_hp: powerHp.trim().length ? Number(powerHp) : null,
         fuel_type: fuelType,
         transmission: transmission,
+        drive_type: driveType,
         notes: notes.trim().length ? notes.trim() : null,
       });
 
@@ -276,18 +278,6 @@ export function VehicleFormScreen({ navigation }: Props) {
         keyboardType="number-pad"
         maxLength={4}
       />
-      <TextField
-        label={t("vehicleForm.engineCapacityLabel")}
-        value={engineCapacity}
-        onChangeText={setEngineCapacity}
-        keyboardType="number-pad"
-      />
-      <TextField
-        label={t("vehicleForm.powerHpLabel")}
-        value={powerHp}
-        onChangeText={setPowerHp}
-        keyboardType="number-pad"
-      />
       <PickerField
         label={t("vehicleForm.fuelTypeLabel")}
         value={fuelType}
@@ -306,6 +296,18 @@ export function VehicleFormScreen({ navigation }: Props) {
         }
         onChange={setFuelType}
         placeholder={t("vehicleForm.fuelTypeLabel")}
+      />
+      <TextField
+        label={t("vehicleForm.engineCapacityLabel")}
+        value={engineCapacity}
+        onChangeText={setEngineCapacity}
+        keyboardType="number-pad"
+      />
+      <TextField
+        label={t("vehicleForm.powerHpLabel")}
+        value={powerHp}
+        onChangeText={setPowerHp}
+        keyboardType="number-pad"
       />
       <View style={styles.group}>
         <Text style={[styles.label, { color: theme.colors.muted }]}>
@@ -343,6 +345,39 @@ export function VehicleFormScreen({ navigation }: Props) {
                     | "vehicleForm.transmissionManual"
                     | "vehicleForm.transmissionAutomatic"
                 )}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+      <View style={styles.group}>
+        <Text style={[styles.label, { color: theme.colors.muted }]}>
+          {t("vehicleForm.driveTypeLabel")}
+        </Text>
+        <View style={styles.typeRow}>
+          {(["FWD", "RWD", "AWD"] as const).map((dt) => (
+            <Pressable
+              key={dt}
+              onPress={() => setDriveType(dt)}
+              style={[
+                styles.typeChip,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+                driveType === dt && { borderColor: theme.colors.fg },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.typeChipText,
+                  {
+                    color:
+                      driveType === dt ? theme.colors.fg : theme.colors.muted,
+                  },
+                ]}
+              >
+                {dt}
               </Text>
             </Pressable>
           ))}

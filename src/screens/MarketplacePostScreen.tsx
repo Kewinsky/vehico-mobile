@@ -171,8 +171,8 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
       <Button onPress={handleGenerate} disabled={generating || saving}>
         {generating ? (
           <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color="#000000" />
-            <Text style={[styles.buttonText, { color: "#000000" }]}>
+            <ActivityIndicator size="small" color={theme.colors.accent} />
+            <Text style={[styles.buttonText, { color: theme.colors.accent }]}>
               {t("marketplace.generating")}
             </Text>
           </View>
@@ -221,7 +221,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
             <View style={{ flex: 1 }}>
               <Button onPress={handleSave} disabled={saving || generating}>
                 {saving ? (
-                  <ActivityIndicator size="small" color="#000000" />
+                  <ActivityIndicator size="small" color={theme.colors.accent} />
                 ) : (
                   t("common.save")
                 )}

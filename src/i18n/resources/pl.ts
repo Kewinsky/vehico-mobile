@@ -15,6 +15,7 @@ export const pl = {
     error: "Coś poszło nie tak",
     on: "Wł.",
     off: "Wył.",
+    copied: "Skopiowano",
   },
   auth: {
     title: "Zaloguj się",
@@ -53,6 +54,7 @@ export const pl = {
     transmissionLabel: "Skrzynia biegów",
     transmissionManual: "Manualna",
     transmissionAutomatic: "Automatyczna",
+    driveTypeLabel: "Napęd",
     notesLabel: "Notatki (opcjonalnie)",
     profilePhotoTitle: "Zdjęcie profilowe",
     profilePhotoSubtitle: "Dodaj zdjęcie, aby zidentyfikować ten pojazd.",
@@ -312,6 +314,7 @@ export const pl = {
     deleteVehicle: "Usuń pojazd",
     deleteVehicleTitle: "Usunąć pojazd?",
     deleteVehicleBody: "To ukryje pojazd i wszystkie jego dane.",
+    vinCopied: "VIN skopiowany do schowka",
     removePhotoTitle: "Usunąć zdjęcie?",
     removePhotoBody: "Tej operacji nie można cofnąć.",
   },

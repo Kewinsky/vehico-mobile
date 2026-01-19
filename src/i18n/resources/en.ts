@@ -15,6 +15,7 @@ export const en = {
     error: "Something went wrong",
     on: "On",
     off: "Off",
+    copied: "Copied",
   },
   auth: {
     title: "Sign in",
@@ -53,6 +54,7 @@ export const en = {
     transmissionLabel: "Transmission",
     transmissionManual: "Manual",
     transmissionAutomatic: "Automatic",
+    driveTypeLabel: "Drive type",
     notesLabel: "Notes (optional)",
     profilePhotoTitle: "Profile photo",
     profilePhotoSubtitle: "Add a photo to identify this vehicle.",
@@ -309,6 +311,7 @@ export const en = {
     deleteVehicle: "Delete vehicle",
     deleteVehicleTitle: "Delete vehicle?",
     deleteVehicleBody: "This will hide the vehicle and all its data.",
+    vinCopied: "VIN copied to clipboard",
     removePhotoTitle: "Remove photo?",
     removePhotoBody: "This cannot be undone.",
   },

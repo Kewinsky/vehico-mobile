@@ -19,6 +19,7 @@ import type {
   VehicleType,
   FuelType,
   TransmissionType,
+  DriveType,
 } from "../types/domain";
 import { getVehicle, updateVehicle } from "../services/vehicles/vehiclesRepo";
 import {
@@ -61,6 +62,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const [transmission, setTransmission] = useState<TransmissionType | null>(
     null
   );
+  const [driveType, setDriveType] = useState<DriveType | null>(null);
   const [notes, setNotes] = useState("");
 
   const load = useCallback(async () => {
@@ -78,6 +80,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       setPowerHp(v.power_hp ? String(v.power_hp) : "");
       setFuelType(v.fuel_type);
       setTransmission(v.transmission);
+      setDriveType(v.drive_type);
       setNotes(v.notes ?? "");
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
@@ -117,6 +120,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
         power_hp: powerHp.trim().length ? Number(powerHp) : null,
         fuel_type: fuelType,
         transmission: transmission,
+        drive_type: driveType,
         notes: notes.trim().length ? notes.trim() : null,
       });
       setVehicle(updated);
@@ -316,18 +320,6 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             keyboardType="number-pad"
             maxLength={4}
           />
-          <TextField
-            label={t("vehicleForm.engineCapacityLabel")}
-            value={engineCapacity}
-            onChangeText={setEngineCapacity}
-            keyboardType="number-pad"
-          />
-          <TextField
-            label={t("vehicleForm.powerHpLabel")}
-            value={powerHp}
-            onChangeText={setPowerHp}
-            keyboardType="number-pad"
-          />
           <PickerField
             label={t("vehicleForm.fuelTypeLabel")}
             value={fuelType}
@@ -346,6 +338,18 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             }
             onChange={setFuelType}
             placeholder={t("vehicleForm.fuelTypeLabel")}
+          />
+          <TextField
+            label={t("vehicleForm.engineCapacityLabel")}
+            value={engineCapacity}
+            onChangeText={setEngineCapacity}
+            keyboardType="number-pad"
+          />
+          <TextField
+            label={t("vehicleForm.powerHpLabel")}
+            value={powerHp}
+            onChangeText={setPowerHp}
+            keyboardType="number-pad"
           />
           <View style={styles.group}>
             <Text style={[styles.label, { color: theme.colors.muted }]}>
@@ -383,6 +387,39 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                         | "vehicleForm.transmissionManual"
                         | "vehicleForm.transmissionAutomatic"
                     )}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+          <View style={styles.group}>
+            <Text style={[styles.label, { color: theme.colors.muted }]}>
+              {t("vehicleForm.driveTypeLabel")}
+            </Text>
+            <View style={styles.typeRow}>
+              {(["FWD", "RWD", "AWD"] as const).map((dt) => (
+                <Pressable
+                  key={dt}
+                  onPress={() => setDriveType(dt)}
+                  style={[
+                    styles.typeChip,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                    driveType === dt && { borderColor: theme.colors.accent },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.typeChipText,
+                      {
+                        color:
+                          driveType === dt ? theme.colors.fg : theme.colors.muted,
+                      },
+                    ]}
+                  >
+                    {dt}
                   </Text>
                 </Pressable>
               ))}

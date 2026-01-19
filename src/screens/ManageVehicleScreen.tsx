@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Vehicle } from "../types/domain";
@@ -12,7 +13,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
-import { toastError } from "../ui/toast/toast";
+import { toastError, toastSuccess } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicle">;
 
@@ -38,8 +39,18 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   }, [vehicleId, t]);
 
   useEffect(() => {
+    // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
     void load();
-  }, [load]);
+    const unsub = navigation.addListener("focus", () => void load());
+    return unsub;
+  }, [navigation, load]);
+
+  async function onCopyVin() {
+    if (vehicle?.vin) {
+      await Clipboard.setStringAsync(vehicle.vin);
+      toastSuccess(t("common.copied"), t("manageVehicle.vinCopied"));
+    }
+  }
 
   async function onDeleteVehicle() {
     Alert.alert(
@@ -101,9 +112,23 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
             </View>
             <View style={styles.detailsContent}>
               <Text style={styles.detailsTitle}>{vehicle.title}</Text>
+              {vehicle.vin && (
+                <Pressable
+                  onPress={onCopyVin}
+                  style={styles.vinRow}
+                  hitSlop={10}
+                >
+                  <Text style={styles.vinText}>{vehicle.vin}</Text>
+                  <Ionicons
+                    name="copy-outline"
+                    size={16}
+                    color={theme.colors.muted}
+                  />
+                </Pressable>
+              )}
               <View style={styles.divider} />
               <View style={styles.detailsGrid}>
-                {/* Column A: Make, Model, Year, Transmission */}
+                {/* Column A: Make, Model, Year, Fuel Type */}
                 <View style={styles.detailsColumn}>
                   <View style={styles.detailItem}>
                     <View
@@ -175,24 +200,27 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       ]}
                     >
                       <Ionicons
-                        name="settings-outline"
+                        name="water-outline"
                         size={18}
                         color={theme.colors.accent}
                       />
                     </View>
                     <View style={styles.detailContent}>
                       <Text style={styles.detailLabel}>
-                        {t("vehicleForm.transmissionLabel")}
+                        {t("vehicleForm.fuelTypeLabel")}
                       </Text>
                       <Text style={styles.detailValue}>
-                        {vehicle.transmission
+                        {vehicle.fuel_type
                           ? t(
-                              `vehicleForm.transmission${
-                                vehicle.transmission.charAt(0).toUpperCase() +
-                                vehicle.transmission.slice(1)
+                              `vehicleForm.fuelType${
+                                vehicle.fuel_type.charAt(0).toUpperCase() +
+                                vehicle.fuel_type.slice(1)
                               }` as
-                                | "vehicleForm.transmissionManual"
-                                | "vehicleForm.transmissionAutomatic"
+                                | "vehicleForm.fuelTypePetrol"
+                                | "vehicleForm.fuelTypeDiesel"
+                                | "vehicleForm.fuelTypeHybrid"
+                                | "vehicleForm.fuelTypeElectric"
+                                | "vehicleForm.fuelTypeLpg"
                             )
                           : "N/A"}
                       </Text>
@@ -200,28 +228,8 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                   </View>
                 </View>
 
-                {/* Column B: VIN, Engine Capacity, Power, Fuel Type */}
+                {/* Column B: Engine Capacity, Power, Transmission, Drive Type */}
                 <View style={styles.detailsColumn}>
-                  <View style={styles.detailItem}>
-                    <View
-                      style={[
-                        styles.detailIconContainer,
-                        { backgroundColor: theme.colors.accent + "25" },
-                      ]}
-                    >
-                      <Ionicons
-                        name="barcode-outline"
-                        size={18}
-                        color={theme.colors.accent}
-                      />
-                    </View>
-                    <View style={styles.detailContent}>
-                      <Text style={styles.detailLabel}>VIN</Text>
-                      <Text style={styles.detailValue} numberOfLines={1}>
-                        {vehicle.vin || "N/A"}
-                      </Text>
-                    </View>
-                  </View>
                   <View style={styles.detailItem}>
                     <View
                       style={[
@@ -276,29 +284,48 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       ]}
                     >
                       <Ionicons
-                        name="water-outline"
+                        name="settings-outline"
                         size={18}
                         color={theme.colors.accent}
                       />
                     </View>
                     <View style={styles.detailContent}>
                       <Text style={styles.detailLabel}>
-                        {t("vehicleForm.fuelTypeLabel")}
+                        {t("vehicleForm.transmissionLabel")}
                       </Text>
                       <Text style={styles.detailValue}>
-                        {vehicle.fuel_type
+                        {vehicle.transmission
                           ? t(
-                              `vehicleForm.fuelType${
-                                vehicle.fuel_type.charAt(0).toUpperCase() +
-                                vehicle.fuel_type.slice(1)
+                              `vehicleForm.transmission${
+                                vehicle.transmission.charAt(0).toUpperCase() +
+                                vehicle.transmission.slice(1)
                               }` as
-                                | "vehicleForm.fuelTypePetrol"
-                                | "vehicleForm.fuelTypeDiesel"
-                                | "vehicleForm.fuelTypeHybrid"
-                                | "vehicleForm.fuelTypeElectric"
-                                | "vehicleForm.fuelTypeLpg"
+                                | "vehicleForm.transmissionManual"
+                                | "vehicleForm.transmissionAutomatic"
                             )
                           : "N/A"}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.detailItem}>
+                    <View
+                      style={[
+                        styles.detailIconContainer,
+                        { backgroundColor: theme.colors.accent + "25" },
+                      ]}
+                    >
+                      <Ionicons
+                        name="git-branch-outline"
+                        size={18}
+                        color={theme.colors.accent}
+                      />
+                    </View>
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>
+                        {t("vehicleForm.driveTypeLabel")}
+                      </Text>
+                      <Text style={styles.detailValue}>
+                        {vehicle.drive_type || "N/A"}
                       </Text>
                     </View>
                   </View>
@@ -306,7 +333,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
               </View>
 
               {/* Notes: Full width */}
-              <View style={{ height: theme.spacing.md }} />
+              <View style={{ height: theme.spacing.sm }} />
               <View style={styles.detailItem}>
                 <View
                   style={[
@@ -409,7 +436,18 @@ const makeStyles = (theme: any) =>
       fontSize: 24,
       fontWeight: "800",
       color: theme.colors.fg,
+      marginBottom: theme.spacing.xs,
+    },
+    vinRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
       marginBottom: theme.spacing.md,
+    },
+    vinText: {
+      fontSize: theme.typography.small,
+      color: theme.colors.muted,
+      fontWeight: "600",
     },
     divider: {
       height: 1,

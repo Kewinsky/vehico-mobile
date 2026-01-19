@@ -138,7 +138,7 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
                 <View style={{ flex: 1 }}>
                   <Button onPress={handleSave} disabled={saving}>
                     {saving ? (
-                      <ActivityIndicator size="small" color="#000000" />
+                      <ActivityIndicator size="small" color={theme.colors.accent} />
                     ) : (
                       t("common.save")
                     )}

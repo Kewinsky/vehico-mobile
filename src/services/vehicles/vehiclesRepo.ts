@@ -12,6 +12,7 @@ type NewVehicleInput = {
   power_hp?: number | null;
   fuel_type?: 'petrol' | 'diesel' | 'hybrid' | 'electric' | 'lpg' | null;
   transmission?: 'manual' | 'automatic' | null;
+  drive_type?: 'FWD' | 'RWD' | 'AWD' | null;
   notes?: string | null;
   profile_photo_url?: string | null;
 };

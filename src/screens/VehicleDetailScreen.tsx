@@ -22,6 +22,7 @@ import type {
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { listReminders } from "../services/reminders/remindersRepo";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
+import { listVehicleAttachments } from "../services/attachments/attachmentsRepo";
 import { Button } from "../ui/components/Button";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
@@ -92,6 +93,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [attachmentsCount, setAttachmentsCount] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const distanceUnit = settings?.distanceUnit ?? "km";
@@ -113,14 +115,25 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
       try {
         if (opts?.refreshing) setRefreshing(true);
         else setLoading(true);
-        const [v, data, rs] = await Promise.all([
+        const [v, data, rs, attachments] = await Promise.all([
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
           listReminders(vehicleId),
+          listVehicleAttachments(vehicleId),
         ]);
         setVehicle(v);
         setItems(data);
         setReminders(rs);
+        
+        // Count attachments per service entry
+        const countMap: Record<string, number> = {};
+        for (const entry of data) {
+          const entryAttachments = attachments.filter(
+            (att) => att.service_entry_id === entry.id
+          );
+          countMap[entry.id] = entryAttachments.length;
+        }
+        setAttachmentsCount(countMap);
       } catch (e: any) {
         toastError(t("common.error"), e?.message ?? String(e));
       } finally {
@@ -581,6 +594,9 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                     ? `${e.mileage.toLocaleString()} ${distanceUnit}`
                     : null,
                   e.cost != null ? `${e.cost} ${currency}` : null,
+                  attachmentsCount[e.id] > 0
+                    ? `${attachmentsCount[e.id]} ${attachmentsCount[e.id] === 1 ? t("attachments.attachmentLabel") : t("attachments.title").toLowerCase()}`
+                    : null,
                 ]
                   .filter(Boolean)
                   .join(" · ")}

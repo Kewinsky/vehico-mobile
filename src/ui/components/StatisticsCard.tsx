@@ -712,7 +712,7 @@ export function StatisticsCard({ vehicleId }: Props) {
 
       {loading ? (
         <View style={styles.loading}>
-          <ActivityIndicator />
+          <ActivityIndicator color={theme.colors.accent} />
           <Text style={styles.loadingText}>{t("common.loading")}</Text>
         </View>
       ) : (

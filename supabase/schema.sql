@@ -22,6 +22,7 @@ create table if not exists public.vehicles (
   power_hp integer, -- horsepower
   fuel_type text check (fuel_type in ('petrol', 'diesel', 'hybrid', 'electric', 'lpg')),
   transmission text check (transmission in ('manual', 'automatic')),
+  drive_type text check (drive_type in ('FWD', 'RWD', 'AWD')),
   notes text,
   profile_photo_url text,
   created_at timestamptz not null default now()
@@ -197,6 +198,10 @@ create index if not exists vehicle_documents_created_at_idx on public.vehicle_do
 -- Add description column to vehicle_documents (migration for existing databases)
 alter table public.vehicle_documents
   add column if not exists description text;
+
+-- Add drive_type column to vehicles (migration for existing databases)
+alter table public.vehicles
+  add column if not exists drive_type text check (drive_type in ('FWD', 'RWD', 'AWD'));
 
 -- Marketplace posts (generated listings)
 create table if not exists public.marketplace_posts (
