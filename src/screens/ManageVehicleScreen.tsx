@@ -77,22 +77,26 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   return (
     <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={{ height: theme.spacing.md }} />
-
-      <View style={styles.headerRow}>
-        <Text style={styles.h1}>{t("manageVehicle.title")}</Text>
-        <Pressable
-          onPress={() =>
-            navigation.navigate("ManageVehicleEdit", { vehicleId })
-          }
-          hitSlop={10}
-        >
-          <Text style={styles.editLink}>{t("common.edit")}</Text>
-        </Pressable>
+      <View style={styles.headerSection}>
+        <View style={styles.headerRow}>
+          <Text style={styles.h1}>{t("dashboard.tiles.manageTitle")}</Text>
+          <Pressable
+            onPress={() =>
+              navigation.navigate("ManageVehicleEdit", { vehicleId })
+            }
+            hitSlop={10}
+          >
+            <Text style={styles.editLink}>{t("common.edit")}</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.subtitle}>
+          {t("dashboard.tiles.manageSubtitle")}
+        </Text>
       </View>
+      <View style={{ height: theme.spacing.md }} />
 
       {vehicle ? (
         <>
-          <View style={{ height: theme.spacing.md }} />
           <View style={styles.detailsCard}>
             <View style={styles.vehicleImageContainer}>
               {vehicle.profile_photo_url ? (
@@ -371,7 +375,11 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
+    headerSection: {
+      gap: theme.spacing.xs / 2,
+    },
     h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
+    subtitle: { fontSize: 13, color: theme.colors.muted },
     headerSubtitle: { marginTop: 6, color: theme.colors.muted, lineHeight: 20 },
     h2: { fontSize: 18, fontWeight: "800", color: theme.colors.fg },
     headerRow: {

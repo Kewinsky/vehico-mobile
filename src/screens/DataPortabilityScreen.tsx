@@ -237,9 +237,13 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
   return (
     <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={{ height: theme.spacing.md }} />
-      <Text style={styles.h1}>{t("dataPortability.title")}</Text>
-
-      <View style={{ height: 18 }} />
+      <View style={styles.headerSection}>
+        <Text style={styles.h1}>{t("dashboard.tiles.dataTitle")}</Text>
+        <Text style={styles.subtitle}>
+          {t("dashboard.tiles.dataSubtitle")}
+        </Text>
+      </View>
+      <View style={{ height: theme.spacing.md }} />
       <Text style={styles.h2}>{t("dataPortability.exportTitle")}</Text>
       <Text style={styles.body}>{t("dataPortability.exportSubtitle")}</Text>
 
@@ -296,7 +300,11 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
+    headerSection: {
+      gap: theme.spacing.xs / 2,
+    },
     h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
+    subtitle: { fontSize: 13, color: theme.colors.muted },
     h2: { fontSize: 16, fontWeight: "800", color: theme.colors.fg },
     body: { marginTop: 8, lineHeight: 22, color: theme.colors.muted },
   });

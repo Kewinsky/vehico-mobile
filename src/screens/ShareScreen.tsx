@@ -43,13 +43,16 @@ export function ShareScreen({ navigation, route }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
+      <View style={styles.fixedHeader}>
+        <View style={styles.header}>
+          <Text style={styles.h1}>{t("dashboard.tiles.shareTitle")}</Text>
+          <Text style={styles.subtitle}>
+            {t("dashboard.tiles.shareSubtitle")}
+          </Text>
+        </View>
+      </View>
       <View style={styles.wrap}>
-        <Text style={styles.h1}>{t("share.title")}</Text>
-        <Text style={styles.subtitle}>
-          {t("share.subtitle", { vehicleTitle: title })}
-        </Text>
-
-        <View style={{ height: 16 }} />
+        <View style={{ height: theme.spacing.md }} />
         <Button
           onPress={handleOnlineReport}
           variant="ghost"
@@ -80,9 +83,20 @@ export function ShareScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
+    fixedHeader: {
+      paddingTop: theme.spacing.sm,
+      paddingBottom: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+      backgroundColor: theme.colors.bg,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
+    header: {
+      gap: theme.spacing.xs / 2,
+    },
     wrap: {
       paddingHorizontal: theme.spacing.md,
-      paddingTop: theme.spacing.sm,
+      paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.sm,
     },
     h1: {
@@ -91,8 +105,7 @@ const makeStyles = (theme: any) =>
       color: theme.colors.fg,
     },
     subtitle: {
-      marginTop: 8,
+      fontSize: 13,
       color: theme.colors.muted,
-      lineHeight: 22,
     },
   });

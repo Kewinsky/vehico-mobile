@@ -2,7 +2,6 @@ import { useIsFocused } from "@react-navigation/native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Pressable,
   StyleSheet,
   Text,
   View,
@@ -32,6 +31,7 @@ type PeriodKey = "1m" | "3m" | "6m" | "1y" | "all";
 
 type Props = {
   vehicleId: string;
+  period: PeriodKey;
 };
 
 type XY = { x: string; y: number };
@@ -440,7 +440,7 @@ function SimplePieChart({
   );
 }
 
-export function StatisticsCard({ vehicleId }: Props) {
+export function StatisticsCard({ vehicleId, period }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
@@ -450,8 +450,6 @@ export function StatisticsCard({ vehicleId }: Props) {
   const currency = settings?.currency ?? "PLN";
   const distanceUnit = settings?.distanceUnit ?? "km";
   const fuelUnit = settings?.fuelUnit ?? "liters";
-
-  const [period, setPeriod] = useState<PeriodKey>("3m");
   const [loading, setLoading] = useState(true);
   const [service, setService] = useState<ServiceEntry[]>([]);
   const [fueling, setFueling] = useState<FuelingEntry[]>([]);
@@ -652,16 +650,6 @@ export function StatisticsCard({ vehicleId }: Props) {
     [theme.colors.accent]
   );
 
-  const periodOptions: { key: PeriodKey; label: string }[] = useMemo(
-    () => [
-      { key: "1m", label: t("dashboard.stats.periods.1m") },
-      { key: "3m", label: t("dashboard.stats.periods.3m") },
-      { key: "6m", label: t("dashboard.stats.periods.6m") },
-      { key: "1y", label: t("dashboard.stats.periods.1y") },
-      { key: "all", label: t("dashboard.stats.periods.all") },
-    ],
-    [t]
-  );
 
   const categorySeries = useMemo(
     () =>
@@ -680,36 +668,7 @@ export function StatisticsCard({ vehicleId }: Props) {
   const isNarrow = windowWidth < 380;
 
   return (
-    <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <Text style={styles.title}>{t("dashboard.stats.title")}</Text>
-        <View style={styles.periodRow}>
-          {periodOptions.map((p) => {
-            const active = p.key === period;
-            return (
-              <Pressable
-                key={p.key}
-                onPress={() => setPeriod(p.key)}
-                style={({ pressed }) => [
-                  styles.chip,
-                  active ? styles.chipActive : null,
-                  pressed ? styles.chipPressed : null,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    active ? styles.chipTextActive : null,
-                  ]}
-                >
-                  {p.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-
+    <View style={styles.container}>
       {loading ? (
         <View style={styles.loading}>
           <ActivityIndicator />
@@ -840,42 +799,9 @@ export function StatisticsCard({ vehicleId }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    card: {
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
+    container: {
       gap: 14,
     },
-    headerRow: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      justifyContent: "space-between",
-      gap: 12,
-    },
-    title: { color: theme.colors.fg, fontSize: 16, fontWeight: "900" },
-    periodRow: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      justifyContent: "flex-end",
-      gap: 6,
-    },
-    chip: {
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: 999,
-    },
-    chipActive: {
-      backgroundColor: theme.colors.accent,
-      borderColor: theme.colors.accent,
-    },
-    chipPressed: { opacity: 0.92 },
-    chipText: { color: theme.colors.fg, fontSize: 12, fontWeight: "800" },
-    chipTextActive: { color: "#000000" }, // Always black on accent background
     loading: {
       alignItems: "center",
       justifyContent: "center",

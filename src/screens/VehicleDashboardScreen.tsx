@@ -27,7 +27,6 @@ type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 type Tile = {
   key: string;
   title: string;
-  subtitle: string;
   icon: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
 };
@@ -71,49 +70,42 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     {
       key: "service",
       title: t("dashboard.tiles.serviceTitle"),
-      subtitle: t("dashboard.tiles.serviceSubtitle"),
       icon: "construct",
       onPress: () => navigation.navigate("VehicleDetail", { vehicleId, title }),
     },
     {
       key: "fuel",
       title: t("dashboard.tiles.fuelTitle"),
-      subtitle: t("dashboard.tiles.fuelSubtitle"),
       icon: "car",
       onPress: () => navigation.navigate("Fuel", { vehicleId, title }),
     },
     {
       key: "stats",
       title: t("dashboard.tiles.statsTitle"),
-      subtitle: t("dashboard.tiles.statsSubtitle"),
       icon: "stats-chart",
       onPress: () => navigation.navigate("Statistics", { vehicleId, title }),
     },
     {
       key: "docs",
       title: t("dashboard.tiles.docsTitle"),
-      subtitle: t("dashboard.tiles.docsSubtitle"),
       icon: "document-text",
       onPress: () => navigation.navigate("Documents", { vehicleId, title }),
     },
     {
       key: "reminders",
       title: t("dashboard.tiles.remindersTitle"),
-      subtitle: t("dashboard.tiles.remindersSubtitle"),
       icon: "notifications",
       onPress: () => navigation.navigate("Reminders", { vehicleId, title }),
     },
     {
       key: "share",
       title: t("dashboard.tiles.shareTitle"),
-      subtitle: t("dashboard.tiles.shareSubtitle"),
       icon: "share",
       onPress: () => navigation.navigate("Share", { vehicleId, title }),
     },
     {
       key: "data",
       title: t("dashboard.tiles.dataTitle"),
-      subtitle: t("dashboard.tiles.dataSubtitle"),
       icon: "download",
       onPress: () =>
         navigation.navigate("DataPortability", { vehicleId, title }),
@@ -121,7 +113,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     {
       key: "manage",
       title: t("dashboard.tiles.manageTitle"),
-      subtitle: t("dashboard.tiles.manageSubtitle"),
       icon: "settings",
       onPress: () => navigation.navigate("ManageVehicle", { vehicleId, title }),
     },
@@ -233,17 +224,12 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               pressed && styles.tilePressed,
             ]}
           >
-            <View style={styles.tileIconContainer}>
-              <Ionicons
-                name={item.icon}
-                size={24}
-                color={theme.colors.accent}
-              />
-            </View>
-            <View style={styles.tileContent}>
-              <Text style={styles.tileTitle}>{item.title}</Text>
-              <Text style={styles.tileSubtitle}>{item.subtitle}</Text>
-            </View>
+            <Ionicons
+              name={item.icon}
+              size={32}
+              color={theme.colors.accent}
+            />
+            <Text style={styles.tileTitle}>{item.title}</Text>
           </Pressable>
         )}
       />
@@ -398,39 +384,24 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     tile: {
       flex: 1,
-      minHeight: 110,
+      minHeight: 130,
       borderWidth: 1,
       borderColor: theme.colors.border,
       backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
-      padding: theme.spacing.sm,
-      gap: 8,
+      padding: theme.spacing.md,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: theme.spacing.sm,
     },
     tilePressed: {
       opacity: 0.9,
     },
-    tileIconContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
-      backgroundColor: theme.colors.accent + "25",
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: 2,
-    },
-    tileContent: {
-      flex: 1,
-      gap: 4,
-    },
     tileTitle: {
       color: theme.colors.fg,
-      fontSize: 15,
+      fontSize: 14,
       fontWeight: "800",
-    },
-    tileSubtitle: {
-      color: theme.colors.muted,
-      fontSize: theme.typography.small,
-      lineHeight: 16,
+      textAlign: "center",
     },
     menuOverlay: {
       position: "absolute",
@@ -484,10 +455,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       gap: theme.spacing.sm,
     },
     menuItemIconContainer: {
-      width: 32,
-      height: 32,
-      borderRadius: 8,
-      backgroundColor: theme.colors.accent + "25",
       alignItems: "center",
       justifyContent: "center",
     },

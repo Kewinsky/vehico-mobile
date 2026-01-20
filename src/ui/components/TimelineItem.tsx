@@ -6,18 +6,23 @@ export function TimelineItem({
   dateLabel,
   title,
   subtitle,
+  badge,
+  badgeVariant = 'accent',
   chevron = true,
   tone = 'default',
 }: {
   dateLabel: string;
   title: string;
   subtitle?: string;
+  badge?: string;
+  badgeVariant?: 'accent' | 'muted';
   chevron?: boolean;
   tone?: 'default' | 'reminder';
 }) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
   const isReminder = tone === 'reminder';
+  const isMutedBadge = badgeVariant === 'muted';
   return (
     <View style={styles.row}>
       <View style={styles.rail}>
@@ -32,18 +37,29 @@ export function TimelineItem({
       <View style={styles.card}>
         <View style={styles.cardRow}>
           <View style={styles.cardMain}>
-            <View
-              style={[
-                styles.datePill,
-                isReminder
-                  ? {
-                      backgroundColor: theme.colors.card,
-                      borderColor: theme.colors.muted,
-                    }
-                  : null,
-              ]}
-            >
-              <Text style={styles.date}>{dateLabel}</Text>
+            <View style={styles.pillsRow}>
+              {!isReminder && (
+                <View style={styles.datePill}>
+                  <Text style={styles.date}>{dateLabel}</Text>
+                </View>
+              )}
+              {badge && (
+                <View
+                  style={[
+                    styles.badge,
+                    isMutedBadge ? styles.badgeMuted : styles.badgeAccent,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.badgeText,
+                      isMutedBadge ? styles.badgeTextMuted : null,
+                    ]}
+                  >
+                    {badge}
+                  </Text>
+                </View>
+              )}
             </View>
             <Text style={styles.title}>{title}</Text>
             {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
@@ -95,14 +111,42 @@ const makeStyles = (theme: any) =>
       flex: 1,
       gap: 6,
     },
+    pillsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      flexWrap: 'wrap',
+    },
     datePill: {
-      alignSelf: 'flex-start',
       paddingHorizontal: 10,
       paddingVertical: 6,
       borderRadius: 999,
       borderWidth: 1,
       borderColor: theme.colors.border,
       backgroundColor: theme.colors.bg,
+    },
+    badge: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 999,
+      borderWidth: 1,
+    },
+    badgeAccent: {
+      borderColor: theme.colors.accent,
+      backgroundColor: theme.colors.accent,
+    },
+    badgeMuted: {
+      borderColor: theme.colors.muted,
+      backgroundColor: theme.colors.muted,
+    },
+    badgeText: {
+      fontSize: theme.typography.small,
+      fontWeight: '700',
+      color: '#000000',
+      letterSpacing: 0.3,
+    },
+    badgeTextMuted: {
+      color: '#000000',
     },
     date: {
       fontSize: theme.typography.small,

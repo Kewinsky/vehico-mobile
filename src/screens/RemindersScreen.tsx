@@ -237,12 +237,15 @@ export function RemindersScreen({ route, navigation }: Props) {
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
       <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
-        <View>
+        <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.fg }]}>
-            {t("reminders.title")}
+            {t("dashboard.tiles.remindersTitle")}
           </Text>
-
-          <View style={{ height: theme.spacing.sm }} />
+          <Text style={styles.subtitle}>
+            {t("dashboard.tiles.remindersSubtitle")}
+          </Text>
+        </View>
+        <View style={{ height: theme.spacing.sm }} />
           <View style={styles.searchRow}>
             <View style={{ flex: 1 }}>
               <TextField
@@ -384,7 +387,6 @@ export function RemindersScreen({ route, navigation }: Props) {
                   </Pressable>
                 ))}
               </View>
-              <View style={{ height: theme.spacing.sm + 2 }} />
               <DateField
                 label={t("timeline.filterFrom")}
                 value={dateFrom}
@@ -398,9 +400,6 @@ export function RemindersScreen({ route, navigation }: Props) {
               />
             </View>
           ) : null}
-
-          <View style={{ height: theme.spacing.sm + 2 }} />
-        </View>
       </View>
       <FlatList
         data={filteredItemsWithSeparators}
@@ -561,11 +560,17 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
       paddingTop: theme.spacing.sm,
+      paddingBottom: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
+      backgroundColor: theme.colors.bg,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
-    title: { fontSize: 20, fontWeight: "800" },
+    header: {
+      gap: theme.spacing.xs / 2,
+    },
+    title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
+    subtitle: { fontSize: 13, color: theme.colors.muted },
     body: { marginTop: theme.spacing.xs, lineHeight: 22 },
     card: {
       borderWidth: 1,

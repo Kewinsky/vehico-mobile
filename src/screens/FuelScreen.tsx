@@ -207,13 +207,14 @@ export function FuelScreen({ route, navigation }: Props) {
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
       <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
-        <View>
-          <Text style={[styles.title, { color: theme.colors.fg }]}>
-            {t("fuelCosts.title")}
+        <View style={styles.header}>
+          <Text style={styles.title}>{t("dashboard.tiles.fuelTitle")}</Text>
+          <Text style={styles.subtitle}>
+            {t("dashboard.tiles.fuelSubtitle")}
           </Text>
-
-          <View style={{ height: theme.spacing.md + 2 }} />
-          <View style={styles.actionsRow}>
+        </View>
+        <View style={{ height: theme.spacing.sm }} />
+        <View style={styles.actionsRow}>
             <View style={{ flex: 1 }}>
               <Button
                 onPress={() =>
@@ -325,7 +326,6 @@ export function FuelScreen({ route, navigation }: Props) {
               </View>
             </View>
           ) : null}
-        </View>
       </View>
       <FlatList
         data={filteredFuelingWithSeparators}
@@ -432,7 +432,11 @@ const makeStyles = (theme: any) =>
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
-    title: { fontSize: 20, fontWeight: "800" },
+    header: {
+      gap: theme.spacing.xs / 2,
+    },
+    title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
+    subtitle: { fontSize: 13, color: theme.colors.muted },
     body: { marginTop: theme.spacing.xs, lineHeight: 22 },
     section: { marginTop: theme.spacing.sm - 2, fontSize: 16, fontWeight: "800" },
     card: { borderWidth: 1, borderRadius: 14, padding: theme.spacing.sm },

@@ -350,12 +350,15 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
       <AppHeader onBack={() => navigation.goBack()} />
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
-          <View style={styles.headerRow}>
-            <Text style={styles.title}>
-              {t("dashboard.tiles.serviceTitle")}
-            </Text>
-          </View>
-          <View style={styles.searchRow}>
+          <Text style={styles.title}>
+            {t("dashboard.tiles.serviceTitle")}
+          </Text>
+          <Text style={styles.subtitle}>
+            {t("dashboard.tiles.serviceSubtitle")}
+          </Text>
+        </View>
+        <View style={{ height: theme.spacing.sm }} />
+        <View style={styles.searchRow}>
             <View style={{ flex: 1 }}>
               <TextField
                 noMarginTop
@@ -451,7 +454,9 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
             </View>
           </View>
           {filtersOpen ? (
-            <View style={styles.filtersCard}>
+            <>
+              <View style={{ height: theme.spacing.sm }} />
+              <View style={styles.filtersCard}>
               <View style={styles.toggleRow}>
                 <Text style={styles.filtersLabel}>
                   {t("timeline.showReminders")}
@@ -548,8 +553,8 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 </View>
               </View>
             </View>
+            </>
           ) : null}
-        </View>
       </View>
       <FlatList
         data={timelineRows}
@@ -620,6 +625,8 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                   tone="reminder"
                   dateLabel={dateLabel}
                   title={r.title ?? t("reminders.title")}
+                  badge={t("reminderDetail.title")}
+                  badgeVariant="muted"
                   subtitle={dueText}
                 />
               </Pressable>
@@ -641,8 +648,9 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
               <TimelineItem
                 dateLabel={formatDate(e.service_date)}
                 title={e.title}
+                badge={t(`entryForm.categories.${cat}` as any)}
+                badgeVariant="accent"
                 subtitle={[
-                  t(`entryForm.categories.${cat}` as any),
                   e.mileage
                     ? `${e.mileage.toLocaleString()} ${distanceUnit}`
                     : null,
@@ -685,13 +693,14 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingBottom: insets.bottom + theme.spacing.xl,
     },
     header: {
-      gap: theme.spacing.sm,
+      gap: theme.spacing.xs / 2,
     },
     headerRow: {
       flexDirection: "row",
       alignItems: "center",
     },
-    title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg, flex: 1 },
+    title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
+    subtitle: { fontSize: 13, color: theme.colors.muted },
     editLink: { color: theme.colors.muted, fontWeight: "800" },
     searchRow: { flexDirection: "row", alignItems: "center" },
     addButton: {

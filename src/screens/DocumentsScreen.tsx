@@ -253,12 +253,15 @@ export function DocumentsScreen({ route, navigation }: Props) {
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
       <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
-        <View>
+        <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.fg }]}>
-            {t("documents.title")}
+            {t("dashboard.tiles.docsTitle")}
           </Text>
-
-          <View style={{ height: theme.spacing.sm }} />
+          <Text style={styles.subtitle}>
+            {t("dashboard.tiles.docsSubtitle")}
+          </Text>
+        </View>
+        <View style={{ height: theme.spacing.sm }} />
           <TextField
             noMarginTop
             value={query}
@@ -295,9 +298,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
               </Button>
             </View>
           </View>
-
-          <View style={{ height: theme.spacing.sm + 2 }} />
-        </View>
       </View>
       <ScrollView
         contentContainerStyle={{
@@ -483,11 +483,17 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
       paddingTop: theme.spacing.sm,
+      paddingBottom: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
+      backgroundColor: theme.colors.bg,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
-    title: { fontSize: 20, fontWeight: "800" },
+    header: {
+      gap: theme.spacing.xs / 2,
+    },
+    title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
+    subtitle: { fontSize: 13, color: theme.colors.muted },
     body: { marginTop: theme.spacing.xs, lineHeight: 22 },
     section: {
       marginTop: theme.spacing.sm - 2,
