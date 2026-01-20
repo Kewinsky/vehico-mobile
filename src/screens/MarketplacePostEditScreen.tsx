@@ -23,8 +23,6 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
-import { Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplacePostEdit">;
 
@@ -88,40 +86,7 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
 
   return (
     <Screen padding={false}>
-      <AppHeader
-        onBack={() => navigation.goBack()}
-        right={
-          !loading ? (
-            <Pressable
-              onPress={() => {
-                if (!saving && content.trim()) {
-                  void handleSave();
-                }
-              }}
-              hitSlop={10}
-              style={({ pressed }) => [
-                {
-                  width: 40,
-                  height: 40,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity: saving || !content.trim() ? 0.5 : pressed ? 0.6 : 1,
-                },
-              ]}
-            >
-              {saving ? (
-                <ActivityIndicator size="small" color={theme.colors.accent} />
-              ) : (
-                <Ionicons
-                  name="save-outline"
-                  size={24}
-                  color={theme.colors.accent}
-                />
-              )}
-            </Pressable>
-          ) : null
-        }
-      />
+      <AppHeader onBack={() => navigation.goBack()} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -163,9 +128,37 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
 
               <View style={{ height: theme.spacing.md }} />
 
-              <Button onPress={handleCopy} variant="ghost" disabled={saving}>
-                {t("marketplace.copyToClipboard")}
-              </Button>
+              <View style={styles.actionsRow}>
+                <View style={{ flex: 1 }}>
+                  <Button
+                    onPress={handleCopy}
+                    variant="ghost"
+                    disabled={saving}
+                  >
+                    {t("marketplace.copyToClipboard")}
+                  </Button>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Button
+                    onPress={() => {
+                      if (!saving && content.trim()) {
+                        void handleSave();
+                      }
+                    }}
+                    disabled={saving || !content.trim()}
+                  >
+                    {saving ? (
+                      <View style={styles.loadingRow}>
+                        <Text style={[styles.buttonText, { color: "#000000", marginLeft: theme.spacing.xs }]}>
+                          {t("marketplace.saving")}
+                        </Text>
+                      </View>
+                    ) : (
+                      t("marketplace.savePost")
+                    )}
+                  </Button>
+                </View>
+              </View>
             </>
           )}
         </ScrollView>
@@ -205,5 +198,15 @@ const makeStyles = (theme: any) =>
     },
     actionsRow: {
       flexDirection: "row",
+      gap: theme.spacing.sm,
+    },
+    loadingRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+    },
+    buttonText: {
+      fontSize: 15,
+      fontWeight: "700",
     },
   });

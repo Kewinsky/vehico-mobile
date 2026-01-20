@@ -426,6 +426,8 @@ export const pl = {
     contentLabel: "Treść ogłoszenia",
     contentPlaceholder: "Wygenerowane ogłoszenie pojawi się tutaj...",
     copyToClipboard: "Kopiuj do schowka",
+    savePost: "Zapisz ogłoszenie",
+    saving: "Zapisywanie...",
     regenerate: "Wygeneruj ponownie",
     regenerateTitle: "Wygenerować ponownie?",
     regenerateBody: "To zastąpi obecną treść nowym wygenerowanym ogłoszeniem.",

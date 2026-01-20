@@ -422,6 +422,8 @@ export const en = {
     contentLabel: "Post content",
     contentPlaceholder: "Generated post will appear here...",
     copyToClipboard: "Copy to clipboard",
+    savePost: "Save post",
+    saving: "Saving...",
     regenerate: "Regenerate",
     regenerateTitle: "Regenerate post?",
     regenerateBody:

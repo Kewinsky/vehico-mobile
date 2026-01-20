@@ -25,8 +25,6 @@ import { PickerField } from "../ui/components/PickerField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
-import { Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplacePost">;
 
@@ -129,42 +127,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
 
   return (
     <FormScreen
-      header={
-        <AppHeader
-          onBack={() => navigation.goBack()}
-          right={
-            content ? (
-              <Pressable
-                onPress={() => {
-                  if (!saving && !generating) {
-                    void handleSave();
-                  }
-                }}
-                hitSlop={10}
-                style={({ pressed }) => [
-                  {
-                    width: 40,
-                    height: 40,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    opacity: saving || generating ? 0.5 : pressed ? 0.6 : 1,
-                  },
-                ]}
-              >
-                {saving ? (
-                  <ActivityIndicator size="small" color={theme.colors.accent} />
-                ) : (
-                  <Ionicons
-                    name="save-outline"
-                    size={24}
-                    color={theme.colors.accent}
-                  />
-                )}
-              </Pressable>
-            ) : null
-          }
-        />
-      }
+      header={<AppHeader onBack={() => navigation.goBack()} />}
     >
       <View style={{ height: theme.spacing.md }} />
 
@@ -194,7 +157,9 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
         getLabel={(value) =>
           value === "en" ? t("marketplace.languageEn") : t("marketplace.languagePl")
         }
-        onChange={setLanguage}
+        onChange={(value) => {
+          if (value) setLanguage(value);
+        }}
       />
 
       <TextField
@@ -249,6 +214,40 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
 
           <View style={{ height: theme.spacing.sm }} />
 
+          <View style={styles.actionsRow}>
+            <View style={{ flex: 1 }}>
+              <Button
+                onPress={handleCopy}
+                variant="ghost"
+                disabled={generating || saving}
+              >
+                {t("marketplace.copyToClipboard")}
+              </Button>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button
+                onPress={() => {
+                  if (!saving && !generating) {
+                    void handleSave();
+                  }
+                }}
+                disabled={generating || saving}
+              >
+                {saving ? (
+                  <View style={styles.loadingRow}>
+                    <Text style={[styles.buttonText, { color: "#000000", marginLeft: theme.spacing.xs }]}>
+                      {t("marketplace.saving")}
+                    </Text>
+                  </View>
+                ) : (
+                  t("marketplace.savePost")
+                )}
+              </Button>
+            </View>
+          </View>
+
+          <View style={{ height: theme.spacing.sm }} />
+
           <Button
             onPress={handleRegenerate}
             variant="ghost"
@@ -290,6 +289,7 @@ const makeStyles = (theme: any) =>
     },
     actionsRow: {
       flexDirection: "row",
+      gap: theme.spacing.sm,
     },
     loadingRow: {
       flexDirection: "row",
