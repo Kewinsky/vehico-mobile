@@ -133,7 +133,38 @@ export function VehicleFormScreen({ navigation }: Props) {
   }
 
   return (
-    <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <FormScreen
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          right={
+            <Pressable
+              onPress={() => {
+                if (canSave && !saving) {
+                  void onSave();
+                }
+              }}
+              hitSlop={10}
+              style={({ pressed }) => [
+                {
+                  width: 40,
+                  height: 40,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: !canSave || saving ? 0.5 : pressed ? 0.6 : 1,
+                },
+              ]}
+            >
+              <Ionicons
+                name="save-outline"
+                size={24}
+                color={theme.colors.accent}
+              />
+            </Pressable>
+          }
+        />
+      }
+    >
       <View style={{ height: theme.spacing.md }} />
 
       <Text style={styles.h1}>{t("vehicleForm.title")}</Text>
@@ -184,8 +215,9 @@ export function VehicleFormScreen({ navigation }: Props) {
             onPress={() => void pickProfilePhoto()}
             variant="ghost"
             disabled={saving || uploadingPhoto}
+            style={styles.profilePhotoButton}
           >
-            {t("vehicleForm.addProfilePhoto")}
+            {t("vehicleForm.addPhoto")}
           </Button>
         </View>
       )}
@@ -252,7 +284,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         label={t("vehicleForm.titleLabel")}
         value={title}
         onChangeText={setTitle}
-        placeholder={type === "car" ? "BMW 530d 2019" : "Yamaha MT-07 2020"}
+        placeholder={t("vehicleForm.titlePlaceholder")}
       />
 
       <TextField
@@ -260,16 +292,19 @@ export function VehicleFormScreen({ navigation }: Props) {
         value={vin}
         onChangeText={setVin}
         autoCapitalize="characters"
+        placeholder={t("vehicleForm.placeholderVin")}
       />
       <TextField
         label={t("vehicleForm.makeLabel")}
         value={make}
         onChangeText={setMake}
+        placeholder={t("vehicleForm.placeholderMake")}
       />
       <TextField
         label={t("vehicleForm.modelLabel")}
         value={model}
         onChangeText={setModel}
+        placeholder={t("vehicleForm.placeholderModel")}
       />
       <TextField
         label={t("vehicleForm.yearLabel")}
@@ -277,6 +312,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         onChangeText={setYear}
         keyboardType="number-pad"
         maxLength={4}
+        placeholder={t("vehicleForm.placeholderYear")}
       />
       <PickerField
         label={t("vehicleForm.fuelTypeLabel")}
@@ -302,12 +338,14 @@ export function VehicleFormScreen({ navigation }: Props) {
         value={engineCapacity}
         onChangeText={setEngineCapacity}
         keyboardType="number-pad"
+        placeholder={t("vehicleForm.placeholderEngineCapacity")}
       />
       <TextField
         label={t("vehicleForm.powerHpLabel")}
         value={powerHp}
         onChangeText={setPowerHp}
         keyboardType="number-pad"
+        placeholder={t("vehicleForm.placeholderPowerHp")}
       />
       <View style={styles.group}>
         <Text style={[styles.label, { color: theme.colors.muted }]}>
@@ -388,21 +426,8 @@ export function VehicleFormScreen({ navigation }: Props) {
         value={notes}
         onChangeText={setNotes}
         multiline
-        numberOfLines={4}
+        placeholder={t("vehicleForm.placeholderNotes")}
       />
-
-      <View style={{ height: theme.spacing.md }} />
-      <Button onPress={onSave} disabled={!canSave || saving}>
-        {t("common.save")}
-      </Button>
-      <View style={{ height: theme.spacing.sm }} />
-      <Button
-        onPress={() => navigation.goBack()}
-        variant="ghost"
-        disabled={saving}
-      >
-        {t("common.cancel")}
-      </Button>
     </FormScreen>
   );
 }
@@ -460,5 +485,8 @@ const makeStyles = (theme: any) =>
       position: "absolute",
       top: theme.spacing.sm,
       right: theme.spacing.sm,
+    },
+    profilePhotoButton: {
+      borderWidth: 0,
     },
   });

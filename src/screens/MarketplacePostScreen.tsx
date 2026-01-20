@@ -25,6 +25,8 @@ import { PickerField } from "../ui/components/PickerField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplacePost">;
 
@@ -126,7 +128,44 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
   }
 
   return (
-    <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <FormScreen
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          right={
+            content ? (
+              <Pressable
+                onPress={() => {
+                  if (!saving && !generating) {
+                    void handleSave();
+                  }
+                }}
+                hitSlop={10}
+                style={({ pressed }) => [
+                  {
+                    width: 40,
+                    height: 40,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity: saving || generating ? 0.5 : pressed ? 0.6 : 1,
+                  },
+                ]}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color={theme.colors.accent} />
+                ) : (
+                  <Ionicons
+                    name="save-outline"
+                    size={24}
+                    color={theme.colors.accent}
+                  />
+                )}
+              </Pressable>
+            ) : null
+          }
+        />
+      }
+    >
       <View style={{ height: theme.spacing.md }} />
 
       <Text style={styles.h1}>{t("marketplace.title")}</Text>
@@ -171,8 +210,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
       <Button onPress={handleGenerate} disabled={generating || saving}>
         {generating ? (
           <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color={theme.colors.accent} />
-            <Text style={[styles.buttonText, { color: theme.colors.accent }]}>
+            <Text style={[styles.buttonText, { color: "#000000" }]}>
               {t("marketplace.generating")}
             </Text>
           </View>
@@ -207,26 +245,6 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
               placeholderTextColor={theme.colors.muted}
               keyboardAppearance={mode === "dark" ? "dark" : "light"}
             />
-          </View>
-
-          <View style={{ height: theme.spacing.sm }} />
-
-          <View style={styles.actionsRow}>
-            <View style={{ flex: 1 }}>
-              <Button onPress={handleCopy} variant="ghost" disabled={saving}>
-                {t("marketplace.copyToClipboard")}
-              </Button>
-            </View>
-            <View style={{ width: theme.spacing.sm }} />
-            <View style={{ flex: 1 }}>
-              <Button onPress={handleSave} disabled={saving || generating}>
-                {saving ? (
-                  <ActivityIndicator size="small" color={theme.colors.accent} />
-                ) : (
-                  t("common.save")
-                )}
-              </Button>
-            </View>
           </View>
 
           <View style={{ height: theme.spacing.sm }} />

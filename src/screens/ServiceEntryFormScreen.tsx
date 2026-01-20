@@ -33,6 +33,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { DateField } from "../ui/components/DateField";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
+import { PickerField } from "../ui/components/PickerField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
@@ -300,7 +301,38 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }
 
   return (
-    <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <FormScreen
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          right={
+            <Pressable
+              onPress={() => {
+                if (canSave && !saving) {
+                  void onSave();
+                }
+              }}
+              hitSlop={10}
+              style={({ pressed }) => [
+                {
+                  width: 40,
+                  height: 40,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: !canSave || saving ? 0.5 : pressed ? 0.6 : 1,
+                },
+              ]}
+            >
+              <Ionicons
+                name="save-outline"
+                size={24}
+                color={theme.colors.accent}
+              />
+            </Pressable>
+          }
+        />
+      }
+    >
       <View style={{ height: theme.spacing.lg }} />
       <Text style={styles.h1}>
         {entryId ? t("entryForm.editTitle") : t("entryForm.title")}
@@ -314,49 +346,31 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         disabled={saving || uploading}
       />
 
-      <View style={{ height: 12 }} />
-      <Text style={styles.label}>{t("entryForm.category")}</Text>
-      <View style={styles.categoryGrid}>
-        {(
-          ["maintenance", "repair", "inspection", "upgrade", "other"] as const
-        ).map((c) => {
-          const selected = category === c;
-          const borderColor =
-            category == null ? theme.colors.danger : theme.colors.border;
-          return (
-            <Pressable
-              key={c}
-              onPress={() => setCategory(c)}
-              style={[
-                styles.categoryChip,
-                { borderColor },
-                selected && { borderColor: theme.colors.accent },
-              ]}
-            >
-              <Text
-                style={{
-                  color: selected ? theme.colors.fg : theme.colors.muted,
-                  fontWeight: "800",
-                }}
-              >
-                {t(`entryForm.categories.${c}` as any)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <PickerField
+        label={t("entryForm.category")}
+        value={category}
+        options={["maintenance", "repair", "inspection", "upgrade", "other"] as const}
+        getLabel={(value) =>
+          t(`entryForm.categories.${value}` as any)
+        }
+        onChange={(value) => setCategory(value)}
+        placeholder={t("entryForm.category")}
+        disabled={saving || uploading}
+      />
 
       <TextField
         label={`${t("entryForm.mileage")} (${distanceUnit})`}
         value={mileage}
         onChangeText={setMileage}
         keyboardType="number-pad"
+        placeholder={t("entryForm.placeholderMileage")}
       />
 
       <TextField
         label={t("entryForm.entryTitle")}
         value={title}
         onChangeText={setTitle}
+        placeholder={t("entryForm.placeholderTitle")}
       />
 
       <TextField
@@ -364,7 +378,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         value={description}
         onChangeText={setDescription}
         multiline
-        style={styles.multiline}
+        placeholder={t("entryForm.placeholderDescription")}
       />
 
       <TextField
@@ -372,6 +386,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         value={cost}
         onChangeText={setCost}
         keyboardType="decimal-pad"
+        placeholder={t("entryForm.placeholderCost")}
       />
 
       <View style={{ height: 12 }} />
@@ -490,19 +505,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           }
         />
       )}
-
-      <View style={{ height: 16 }} />
-      <Button onPress={onSave} disabled={!canSave || saving}>
-        {t("common.save")}
-      </Button>
-      <View style={{ height: 10 }} />
-      <Button
-        onPress={() => navigation.goBack()}
-        variant="ghost"
-        disabled={saving}
-      >
-        {t("common.cancel")}
-      </Button>
     </FormScreen>
   );
 }
@@ -552,24 +554,6 @@ const makeStyles = (theme: any) =>
     },
     cardTitle: { fontWeight: "800", color: theme.colors.fg },
     cardMeta: { marginTop: 4, fontSize: 13, color: theme.colors.muted },
-    multiline: {
-      height: 96,
-      paddingTop: theme.spacing.sm,
-      textAlignVertical: "top",
-    },
-    categoryGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: theme.spacing.sm,
-      marginTop: theme.spacing.xs,
-    },
-    categoryChip: {
-      borderWidth: 1,
-      borderRadius: 12,
-      paddingVertical: 10,
-      paddingHorizontal: theme.spacing.sm,
-      backgroundColor: theme.colors.card,
-    },
     loadingContainer: {
       paddingTop: theme.spacing.xl + theme.spacing.xs,
       paddingBottom: theme.spacing.xl + theme.spacing.xs,

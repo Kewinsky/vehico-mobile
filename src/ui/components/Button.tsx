@@ -7,6 +7,7 @@ type ButtonProps = PropsWithChildren<{
   onPress: () => void;
   disabled?: boolean;
   variant?: "primary" | "ghost" | "destructive";
+  style?: any;
 }>;
 
 export function Button({
@@ -14,6 +15,7 @@ export function Button({
   disabled,
   variant = "primary",
   children,
+  style,
 }: ButtonProps) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
@@ -30,6 +32,7 @@ export function Button({
           : styles.ghost,
         disabled && styles.disabled,
         pressed && !disabled && styles.pressed,
+        style,
       ]}
     >
       <Text

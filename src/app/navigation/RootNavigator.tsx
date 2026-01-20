@@ -3,7 +3,6 @@ import { ActivityIndicator, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { useAuth } from "../providers/AuthProvider";
-import { useTheme } from "../../ui/ThemeProvider";
 import { AuthScreen } from "../../screens/AuthScreen";
 import { VehiclesScreen } from "../../screens/VehiclesScreen";
 import { VehicleDashboardScreen } from "../../screens/VehicleDashboardScreen";
@@ -60,12 +59,11 @@ const Stack = createNativeStackNavigator<AppStackParamList>();
 
 export function RootNavigator() {
   const { session, isLoading } = useAuth();
-  const { theme } = useTheme();
 
   if (isLoading) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator color={theme.colors.accent} />
+        <ActivityIndicator />
       </View>
     );
   }

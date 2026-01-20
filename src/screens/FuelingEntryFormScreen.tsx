@@ -17,6 +17,8 @@ import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
+import { Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "FuelingEntryForm">;
 
@@ -80,7 +82,38 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   }
 
   return (
-    <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <FormScreen
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          right={
+            <Pressable
+              onPress={() => {
+                if (canSave && !saving) {
+                  void onSave();
+                }
+              }}
+              hitSlop={10}
+              style={({ pressed }) => [
+                {
+                  width: 40,
+                  height: 40,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: !canSave || saving ? 0.5 : pressed ? 0.6 : 1,
+                },
+              ]}
+            >
+              <Ionicons
+                name="save-outline"
+                size={24}
+                color={theme.colors.accent}
+              />
+            </Pressable>
+          }
+        />
+      }
+    >
       <View style={{ height: theme.spacing.md }} />
       <Text style={styles.h1}>
         {entryId ? t("fuelingForm.editTitle") : t("fuelingForm.addTitle")}
@@ -100,6 +133,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         value={distance}
         onChangeText={setDistance}
         keyboardType="decimal-pad"
+        placeholder={t("fuelingForm.placeholderDistance")}
       />
 
       <TextField
@@ -107,6 +141,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         value={fuelAmount}
         onChangeText={setFuelAmount}
         keyboardType="decimal-pad"
+        placeholder={t("fuelingForm.placeholderFuelAmount")}
       />
 
       <TextField
@@ -114,20 +149,9 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         value={fuelCost}
         onChangeText={setFuelCost}
         keyboardType="decimal-pad"
+        placeholder={t("fuelingForm.placeholderCost")}
       />
 
-      <View style={{ height: 16 }} />
-      <Button onPress={onSave} disabled={!canSave || saving}>
-        {t("common.save")}
-      </Button>
-      <View style={{ height: 10 }} />
-      <Button
-        onPress={() => navigation.goBack()}
-        variant="ghost"
-        disabled={saving}
-      >
-        {t("common.cancel")}
-      </Button>
     </FormScreen>
   );
 }

@@ -128,7 +128,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
               )}
               <View style={styles.divider} />
               <View style={styles.detailsGrid}>
-                {/* Column A: Make, Model, Year, Fuel Type */}
+                {/* Column A: Make, Engine Capacity, Year, Transmission */}
                 <View style={styles.detailsColumn}>
                   <View style={styles.detailItem}>
                     <View
@@ -150,86 +150,6 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       <Text style={styles.detailValue}>{vehicle.make}</Text>
                     </View>
                   </View>
-                  <View style={styles.detailItem}>
-                    <View
-                      style={[
-                        styles.detailIconContainer,
-                        { backgroundColor: theme.colors.accent + "25" },
-                      ]}
-                    >
-                      <Ionicons
-                        name="car-outline"
-                        size={18}
-                        color={theme.colors.accent}
-                      />
-                    </View>
-                    <View style={styles.detailContent}>
-                      <Text style={styles.detailLabel}>
-                        {t("vehicleForm.modelLabel")}
-                      </Text>
-                      <Text style={styles.detailValue}>{vehicle.model}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <View
-                      style={[
-                        styles.detailIconContainer,
-                        { backgroundColor: theme.colors.accent + "25" },
-                      ]}
-                    >
-                      <Ionicons
-                        name="calendar-outline"
-                        size={18}
-                        color={theme.colors.accent}
-                      />
-                    </View>
-                    <View style={styles.detailContent}>
-                      <Text style={styles.detailLabel}>
-                        {t("vehicleForm.yearLabel")}
-                      </Text>
-                      <Text style={styles.detailValue}>
-                        {String(vehicle.production_year)}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <View
-                      style={[
-                        styles.detailIconContainer,
-                        { backgroundColor: theme.colors.accent + "25" },
-                      ]}
-                    >
-                      <Ionicons
-                        name="water-outline"
-                        size={18}
-                        color={theme.colors.accent}
-                      />
-                    </View>
-                    <View style={styles.detailContent}>
-                      <Text style={styles.detailLabel}>
-                        {t("vehicleForm.fuelTypeLabel")}
-                      </Text>
-                      <Text style={styles.detailValue}>
-                        {vehicle.fuel_type
-                          ? t(
-                              `vehicleForm.fuelType${
-                                vehicle.fuel_type.charAt(0).toUpperCase() +
-                                vehicle.fuel_type.slice(1)
-                              }` as
-                                | "vehicleForm.fuelTypePetrol"
-                                | "vehicleForm.fuelTypeDiesel"
-                                | "vehicleForm.fuelTypeHybrid"
-                                | "vehicleForm.fuelTypeElectric"
-                                | "vehicleForm.fuelTypeLpg"
-                            )
-                          : "N/A"}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-
-                {/* Column B: Engine Capacity, Power, Transmission, Drive Type */}
-                <View style={styles.detailsColumn}>
                   <View style={styles.detailItem}>
                     <View
                       style={[
@@ -262,17 +182,17 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       ]}
                     >
                       <Ionicons
-                        name="flash-outline"
+                        name="calendar-outline"
                         size={18}
                         color={theme.colors.accent}
                       />
                     </View>
                     <View style={styles.detailContent}>
                       <Text style={styles.detailLabel}>
-                        {t("vehicleForm.powerHpLabel")}
+                        {t("vehicleForm.yearLabel")}
                       </Text>
                       <Text style={styles.detailValue}>
-                        {vehicle.power_hp ? `${vehicle.power_hp} HP` : "N/A"}
+                        {String(vehicle.production_year)}
                       </Text>
                     </View>
                   </View>
@@ -302,6 +222,86 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                               }` as
                                 | "vehicleForm.transmissionManual"
                                 | "vehicleForm.transmissionAutomatic"
+                            )
+                          : "N/A"}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Column B: Model, Power, Fuel Type, Drive Type */}
+                <View style={styles.detailsColumn}>
+                  <View style={styles.detailItem}>
+                    <View
+                      style={[
+                        styles.detailIconContainer,
+                        { backgroundColor: theme.colors.accent + "25" },
+                      ]}
+                    >
+                      <Ionicons
+                        name="car-outline"
+                        size={18}
+                        color={theme.colors.accent}
+                      />
+                    </View>
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>
+                        {t("vehicleForm.modelLabel")}
+                      </Text>
+                      <Text style={styles.detailValue}>{vehicle.model}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.detailItem}>
+                    <View
+                      style={[
+                        styles.detailIconContainer,
+                        { backgroundColor: theme.colors.accent + "25" },
+                      ]}
+                    >
+                      <Ionicons
+                        name="flash-outline"
+                        size={18}
+                        color={theme.colors.accent}
+                      />
+                    </View>
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>
+                        {t("vehicleForm.powerHpLabel")}
+                      </Text>
+                      <Text style={styles.detailValue}>
+                        {vehicle.power_hp ? `${vehicle.power_hp} HP` : "N/A"}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.detailItem}>
+                    <View
+                      style={[
+                        styles.detailIconContainer,
+                        { backgroundColor: theme.colors.accent + "25" },
+                      ]}
+                    >
+                      <Ionicons
+                        name="water-outline"
+                        size={18}
+                        color={theme.colors.accent}
+                      />
+                    </View>
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>
+                        {t("vehicleForm.fuelTypeLabel")}
+                      </Text>
+                      <Text style={styles.detailValue}>
+                        {vehicle.fuel_type
+                          ? t(
+                              `vehicleForm.fuelType${
+                                vehicle.fuel_type.charAt(0).toUpperCase() +
+                                vehicle.fuel_type.slice(1)
+                              }` as
+                                | "vehicleForm.fuelTypePetrol"
+                                | "vehicleForm.fuelTypeDiesel"
+                                | "vehicleForm.fuelTypeHybrid"
+                                | "vehicleForm.fuelTypeElectric"
+                                | "vehicleForm.fuelTypeLpg"
                             )
                           : "N/A"}
                       </Text>

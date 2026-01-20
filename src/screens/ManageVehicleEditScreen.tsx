@@ -2,8 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Linking,
-  Pressable,
   StyleSheet,
   Text,
   View,
@@ -36,6 +34,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
+import { Pressable } from "react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicleEdit">;
 
@@ -169,7 +168,38 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   }
 
   return (
-    <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <FormScreen
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          right={
+            <Pressable
+              onPress={() => {
+                if (canSave && !saving) {
+                  void onSave();
+                }
+              }}
+              hitSlop={10}
+              style={({ pressed }) => [
+                {
+                  width: 40,
+                  height: 40,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: !canSave || saving ? 0.5 : pressed ? 0.6 : 1,
+                },
+              ]}
+            >
+              <Ionicons
+                name="save-outline"
+                size={24}
+                color={theme.colors.accent}
+              />
+            </Pressable>
+          }
+        />
+      }
+    >
       <View style={{ height: theme.spacing.md }} />
 
       <Text style={styles.h1}>{t("manageVehicle.editTitle")}</Text>
@@ -227,8 +257,9 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                 onPress={() => void pickProfilePhoto()}
                 variant="ghost"
                 disabled={saving || uploadingPhoto}
+                style={styles.profilePhotoButton}
               >
-                {t("manageVehicle.addProfilePhoto")}
+                {t("vehicleForm.addPhoto")}
               </Button>
             </View>
           )}
@@ -430,21 +461,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             value={notes}
             onChangeText={setNotes}
             multiline
-            numberOfLines={4}
           />
-
-          <View style={{ height: theme.spacing.md }} />
-          <Button onPress={onSave} disabled={!canSave || saving}>
-            {t("common.save")}
-          </Button>
-          <View style={{ height: theme.spacing.sm }} />
-          <Button
-            onPress={() => navigation.goBack()}
-            variant="ghost"
-            disabled={saving}
-          >
-            {t("common.cancel")}
-          </Button>
         </>
       ) : null}
     </FormScreen>
@@ -495,6 +512,9 @@ const makeStyles = (theme: any) =>
       position: "absolute",
       top: theme.spacing.sm,
       right: theme.spacing.sm,
+    },
+    profilePhotoButton: {
+      borderWidth: 0,
     },
     loadingContainer: {
       paddingTop: theme.spacing.xl + theme.spacing.xs,

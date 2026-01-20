@@ -23,6 +23,8 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
+import { Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplacePostEdit">;
 
@@ -86,7 +88,40 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
 
   return (
     <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+      <AppHeader
+        onBack={() => navigation.goBack()}
+        right={
+          !loading ? (
+            <Pressable
+              onPress={() => {
+                if (!saving && content.trim()) {
+                  void handleSave();
+                }
+              }}
+              hitSlop={10}
+              style={({ pressed }) => [
+                {
+                  width: 40,
+                  height: 40,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: saving || !content.trim() ? 0.5 : pressed ? 0.6 : 1,
+                },
+              ]}
+            >
+              {saving ? (
+                <ActivityIndicator size="small" color={theme.colors.accent} />
+              ) : (
+                <Ionicons
+                  name="save-outline"
+                  size={24}
+                  color={theme.colors.accent}
+                />
+              )}
+            </Pressable>
+          ) : null
+        }
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -128,23 +163,9 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
 
               <View style={{ height: theme.spacing.md }} />
 
-              <View style={styles.actionsRow}>
-                <View style={{ flex: 1 }}>
-                  <Button onPress={handleCopy} variant="ghost" disabled={saving}>
-                    {t("marketplace.copyToClipboard")}
-                  </Button>
-                </View>
-                <View style={{ width: theme.spacing.sm }} />
-                <View style={{ flex: 1 }}>
-                  <Button onPress={handleSave} disabled={saving}>
-                    {saving ? (
-                      <ActivityIndicator size="small" color={theme.colors.accent} />
-                    ) : (
-                      t("common.save")
-                    )}
-                  </Button>
-                </View>
-              </View>
+              <Button onPress={handleCopy} variant="ghost" disabled={saving}>
+                {t("marketplace.copyToClipboard")}
+              </Button>
             </>
           )}
         </ScrollView>

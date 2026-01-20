@@ -35,7 +35,7 @@ export function SettingsScreen({ navigation }: Props) {
 
         {!settings ? (
           <View style={{ paddingTop: theme.spacing.lg, alignItems: 'center' }}>
-            <ActivityIndicator color={theme.colors.accent} />
+            <ActivityIndicator />
           </View>
         ) : (
           <View style={[styles.box, { borderColor: theme.colors.border, backgroundColor: theme.colors.card }]}>

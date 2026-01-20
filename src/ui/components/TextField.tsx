@@ -12,16 +12,19 @@ type Props = ComponentProps<typeof TextInput> & {
 export function TextField(props: Props) {
   const { theme, mode } = useTheme();
   const styles = makeStyles(theme);
-  const { label, helperText, noMarginTop, style, ...inputProps } = props;
+  const { label, helperText, noMarginTop, style, multiline, ...inputProps } = props;
+  const isMultiline = multiline === true;
   return (
     <View style={[styles.field, noMarginTop && styles.fieldNoTop]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <View style={styles.wrap}>
+      <View style={[styles.wrap, isMultiline && styles.wrapMultiline]}>
         <TextInput
           placeholderTextColor={theme.colors.muted}
           keyboardAppearance={mode === "dark" ? "dark" : "light"}
+          multiline={multiline}
+          textAlignVertical={isMultiline ? "top" : "center"}
           {...inputProps}
-          style={[styles.input, style]}
+          style={[isMultiline ? styles.inputMultiline : styles.input, style]}
         />
       </View>
       {helperText ? <Text style={styles.helper}>{helperText}</Text> : null}
@@ -49,11 +52,23 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       backgroundColor: theme.colors.card,
     },
+    wrapMultiline: {
+      minHeight: 120,
+      padding: theme.spacing.sm,
+    },
     input: {
       height: 48,
       paddingHorizontal: theme.spacing.md,
       fontSize: theme.typography.body,
       color: theme.colors.fg,
+    },
+    inputMultiline: {
+      minHeight: 100,
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+      fontSize: theme.typography.body,
+      color: theme.colors.fg,
+      textAlignVertical: "top",
     },
     helper: {
       marginTop: theme.spacing.xs / 2,

@@ -273,7 +273,6 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
         onChangeText={setCsv}
         placeholder={t("dataPortability.importPlaceholder")}
         multiline
-        style={styles.multiline}
         editable={!importing && !exportingKind}
       />
       <View style={{ height: 12 }} />
@@ -300,9 +299,4 @@ const makeStyles = (theme: any) =>
     h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
     h2: { fontSize: 16, fontWeight: "800", color: theme.colors.fg },
     body: { marginTop: 8, lineHeight: 22, color: theme.colors.muted },
-    multiline: {
-      height: 160,
-      paddingTop: theme.spacing.sm,
-      textAlignVertical: "top",
-    },
   });

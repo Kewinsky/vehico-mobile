@@ -32,6 +32,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { TextField } from "../ui/components/TextField";
 import { DateField } from "../ui/components/DateField";
+import { PickerField } from "../ui/components/PickerField";
 import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDetail">;
@@ -109,6 +110,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   const [minCost, setMinCost] = useState("");
   const [maxCost, setMaxCost] = useState("");
   const [showReminders, setShowReminders] = useState(true);
+  const [sortOption, setSortOption] = useState<"date-newest" | "date-oldest" | "mileage-highest" | "mileage-lowest">("date-newest");
 
   const load = useCallback(
     async (opts?: { refreshing?: boolean }) => {
@@ -169,6 +171,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
     setMinCost("");
     setMaxCost("");
     setShowReminders(true);
+    setSortOption("date-newest");
   }
 
   const timelineRows = useMemo(() => {
@@ -203,6 +206,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         kind: "service" as const,
         id: e.id,
         sortKey: String(e.service_date).slice(0, 10),
+        sortMileage: e.mileage ?? -1, // Use -1 for entries without mileage
         entry: e,
       }));
 
@@ -234,38 +238,97 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
           }))
       : [];
 
-    const allRows = [...reminderRows, ...serviceRows].sort((a, b) =>
+    // Sort service rows based on sortOption
+    const [sortBy, sortOrder] = sortOption.split("-") as [string, string];
+    const sortedServiceRows = [...serviceRows].sort((a, b) => {
+      if (sortBy === "date") {
+        // Sort by date
+        if (a.sortKey === b.sortKey) return 0;
+        if (sortOrder === "newest") {
+          return a.sortKey < b.sortKey ? 1 : -1;
+        } else {
+          return a.sortKey > b.sortKey ? 1 : -1;
+        }
+      } else {
+        // Sort by mileage
+        const aMileage = a.sortMileage ?? -1;
+        const bMileage = b.sortMileage ?? -1;
+        
+        // Entries without mileage go to the end
+        if (aMileage === -1 && bMileage === -1) return 0;
+        if (aMileage === -1) return 1;
+        if (bMileage === -1) return -1;
+        
+        if (sortOrder === "highest") {
+          return aMileage < bMileage ? 1 : -1;
+        } else {
+          return aMileage > bMileage ? 1 : -1;
+        }
+      }
+    });
+
+    // Reminders are always sorted by date (newest first)
+    const sortedReminderRows = [...reminderRows].sort((a, b) =>
       a.sortKey === b.sortKey ? 0 : a.sortKey < b.sortKey ? 1 : -1
     );
 
-    // Group by month/year and add separators
+    // Combine: if sorting by date, mix reminders with service entries
+    // If sorting by mileage, show service entries first, then reminders
+    let allRows: Array<typeof serviceRows[0] | typeof reminderRows[0]>;
+    
+    if (sortBy === "date") {
+      // Mix reminders and service entries, sort by date
+      const mixed: Array<typeof serviceRows[0] | typeof reminderRows[0]> = [...sortedReminderRows, ...sortedServiceRows];
+      allRows = mixed.sort((a, b) => {
+        if (a.sortKey === b.sortKey) return 0;
+        if (sortOrder === "newest") {
+          return a.sortKey < b.sortKey ? 1 : -1;
+        } else {
+          return a.sortKey > b.sortKey ? 1 : -1;
+        }
+      });
+    } else {
+      // Sort by mileage: service entries first (sorted by mileage), then reminders
+      allRows = [...sortedServiceRows, ...sortedReminderRows];
+    }
+
+    // Group by month/year and add separators (only when sorting by date)
     const grouped: Array<
       | { type: "separator"; monthYear: string; monthYearKey: string }
       | { type: "item"; item: (typeof allRows)[0] }
     > = [];
-    let currentMonthYear: string | null = null;
+    
+    if (sortBy === "date") {
+      // Only add separators when sorting by date
+      let currentMonthYear: string | null = null;
 
-    for (const row of allRows) {
-      // Get month/year from sortKey (YYYY-MM-DD or 9999-12-31 for mileage reminders)
-      let monthYearKey: string;
-      if (row.sortKey === "9999-12-31") {
-        // Mileage reminders - use a special key
-        monthYearKey = "future";
-      } else {
-        monthYearKey = row.sortKey.slice(0, 7); // YYYY-MM
-      }
-
-      if (monthYearKey !== currentMonthYear) {
-        currentMonthYear = monthYearKey;
-        if (monthYearKey !== "future") {
-          grouped.push({
-            type: "separator",
-            monthYear: monthYearKey,
-            monthYearKey,
-          });
+      for (const row of allRows) {
+        // Get month/year from sortKey (YYYY-MM-DD or 9999-12-31 for mileage reminders)
+        let monthYearKey: string;
+        if (row.sortKey === "9999-12-31") {
+          // Mileage reminders - use a special key
+          monthYearKey = "future";
+        } else {
+          monthYearKey = row.sortKey.slice(0, 7); // YYYY-MM
         }
+
+        if (monthYearKey !== currentMonthYear) {
+          currentMonthYear = monthYearKey;
+          if (monthYearKey !== "future") {
+            grouped.push({
+              type: "separator",
+              monthYear: monthYearKey,
+              monthYearKey,
+            });
+          }
+        }
+        grouped.push({ type: "item", item: row });
       }
-      grouped.push({ type: "item", item: row });
+    } else {
+      // When sorting by mileage, don't add separators - just add items
+      for (const row of allRows) {
+        grouped.push({ type: "item", item: row });
+      }
     }
 
     return grouped;
@@ -279,6 +342,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
     minCost,
     maxCost,
     showReminders,
+    sortOption,
   ]);
 
   return (
@@ -416,47 +480,34 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 </Pressable>
               </View>
 
-              <Text style={styles.filtersLabel}>
-                {t("timeline.filterCategory")}
-              </Text>
-              <View style={styles.categoryRow}>
-                {(
-                  [
-                    "all",
-                    "maintenance",
-                    "repair",
-                    "inspection",
-                    "upgrade",
-                    "other",
-                  ] as const
-                ).map((c) => {
-                  const selected = categoryFilter === c;
-                  return (
-                    <Pressable
-                      key={c}
-                      onPress={() => setCategoryFilter(c as any)}
-                      style={[
-                        styles.chip,
-                        { borderColor: theme.colors.border },
-                        selected && { borderColor: theme.colors.accent },
-                      ]}
-                    >
-                      <Text
-                        style={{
-                          color: selected
-                            ? theme.colors.fg
-                            : theme.colors.muted,
-                          fontWeight: "800",
-                        }}
-                      >
-                        {c === "all"
-                          ? t("common.all")
-                          : t(`entryForm.categories.${c}` as any)}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
+              <PickerField
+                noMarginTop
+                label={t("timeline.filterCategory")}
+                value={categoryFilter === "all" ? null : categoryFilter}
+                options={["maintenance", "repair", "inspection", "upgrade", "other"] as const}
+                getLabel={(value) =>
+                  t(`entryForm.categories.${value}` as any)
+                }
+                onChange={(value) => setCategoryFilter(value ?? "all")}
+                placeholder={t("common.all")}
+              />
+
+              <View style={{ height: theme.spacing.sm }} />
+              <PickerField
+                noMarginTop
+                label={t("timeline.sortBy")}
+                value={sortOption}
+                options={["date-newest", "date-oldest", "mileage-highest", "mileage-lowest"] as const}
+                getLabel={(value) => {
+                  if (value === "date-newest") return t("timeline.sortOptionDateNewest");
+                  if (value === "date-oldest") return t("timeline.sortOptionDateOldest");
+                  if (value === "mileage-highest") return t("timeline.sortOptionMileageHighest");
+                  return t("timeline.sortOptionMileageLowest");
+                }}
+                onChange={(value) => {
+                  if (value) setSortOption(value);
+                }}
+              />
 
               <View style={{ height: theme.spacing.sm }} />
               <DateField
@@ -482,6 +533,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                     value={minCost}
                     onChangeText={setMinCost}
                     keyboardType="decimal-pad"
+                    placeholder={t("timeline.placeholderMinCost")}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -491,6 +543,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                     value={maxCost}
                     onChangeText={setMaxCost}
                     keyboardType="decimal-pad"
+                    placeholder={t("timeline.placeholderMaxCost")}
                   />
                 </View>
               </View>

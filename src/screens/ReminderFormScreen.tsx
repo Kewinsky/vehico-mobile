@@ -18,6 +18,7 @@ import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
 
@@ -93,7 +94,38 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   }
 
   return (
-    <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <FormScreen
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          right={
+            <Pressable
+              onPress={() => {
+                if (canSave && !saving) {
+                  void onSave();
+                }
+              }}
+              hitSlop={10}
+              style={({ pressed }) => [
+                {
+                  width: 40,
+                  height: 40,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: !canSave || saving ? 0.5 : pressed ? 0.6 : 1,
+                },
+              ]}
+            >
+              <Ionicons
+                name="save-outline"
+                size={24}
+                color={theme.colors.accent}
+              />
+            </Pressable>
+          }
+        />
+      }
+    >
       <View style={{ height: theme.spacing.lg }} />
       <Text style={styles.h1}>
         {reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle")}
@@ -105,6 +137,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         label={t("reminderForm.titleLabel")}
         value={title}
         onChangeText={setTitle}
+        placeholder={t("reminderForm.placeholderTitle")}
       />
 
       <View style={{ height: theme.spacing.sm + 2 }} />
@@ -114,7 +147,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         value={notes}
         onChangeText={setNotes}
         multiline
-        style={styles.multiline}
+        placeholder={t("reminderForm.placeholderNotes")}
       />
 
       <View style={{ height: theme.spacing.sm + 2 }} />
@@ -172,6 +205,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             value={dueMileage}
             onChangeText={setDueMileage}
             keyboardType="number-pad"
+            placeholder={t("reminderForm.placeholderDueMileage")}
           />
         </>
       )}
@@ -207,18 +241,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         </>
       ) : null}
 
-      <View style={{ height: theme.spacing.md }} />
-      <Button onPress={onSave} disabled={!canSave || saving}>
-        {t("common.save")}
-      </Button>
-      <View style={{ height: theme.spacing.sm }} />
-      <Button
-        onPress={() => navigation.goBack()}
-        variant="ghost"
-        disabled={saving}
-      >
-        {t("common.cancel")}
-      </Button>
     </FormScreen>
   );
 }
@@ -227,11 +249,6 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
     label: { fontSize: 13, fontWeight: "800", color: theme.colors.muted },
-    multiline: {
-      height: 84,
-      paddingTop: theme.spacing.sm,
-      textAlignVertical: "top",
-    },
     // One row, two columns for reminder type selection
     row: { flexDirection: "row", gap: theme.spacing.sm, marginTop: theme.spacing.xs },
     choice: {
