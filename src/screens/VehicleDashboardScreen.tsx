@@ -346,8 +346,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     header: {
-      paddingTop: theme.spacing.sm,
-      paddingBottom: theme.spacing.sm,
+      paddingTop: theme.spacing.md,
       gap: theme.spacing.xs / 2,
     },
     title: {

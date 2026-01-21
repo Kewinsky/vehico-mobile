@@ -90,8 +90,7 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     wrap: {
       paddingHorizontal: theme.spacing.md,
-      paddingTop: theme.spacing.sm,
-      paddingBottom: theme.spacing.sm,
+      paddingTop: theme.spacing.md,
     },
     h1: {
       fontSize: 20,

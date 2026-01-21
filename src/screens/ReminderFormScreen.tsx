@@ -126,7 +126,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         />
       }
     >
-      <View style={{ height: theme.spacing.lg }} />
+      <View style={{ height: theme.spacing.md }} />
       <Text style={styles.h1}>
         {reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle")}
       </Text>

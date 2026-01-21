@@ -190,8 +190,7 @@ const makeStyles = (theme: any) =>
     wrap: {
       flex: 1,
       paddingHorizontal: theme.spacing.md,
-      paddingTop: theme.spacing.sm,
-      paddingBottom: theme.spacing.sm,
+      paddingTop: theme.spacing.md,
     },
     h1: {
       fontSize: 20,
@@ -199,7 +198,6 @@ const makeStyles = (theme: any) =>
       color: theme.colors.fg,
     },
     subtitle: {
-      marginTop: 8,
       color: theme.colors.muted,
       lineHeight: 22,
     },

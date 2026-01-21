@@ -333,7 +333,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         />
       }
     >
-      <View style={{ height: theme.spacing.lg }} />
+      <View style={{ height: theme.spacing.md }} />
       <Text style={styles.h1}>
         {entryId ? t("entryForm.editTitle") : t("entryForm.title")}
       </Text>

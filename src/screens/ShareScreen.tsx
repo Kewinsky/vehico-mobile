@@ -83,8 +83,7 @@ export function ShareScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingTop: theme.spacing.sm,
-      paddingBottom: theme.spacing.sm,
+      paddingTop: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
     },
     header: {
@@ -93,7 +92,6 @@ const makeStyles = (theme: any) =>
     wrap: {
       paddingHorizontal: theme.spacing.md,
       paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.sm,
     },
     h1: {
       fontSize: 20,

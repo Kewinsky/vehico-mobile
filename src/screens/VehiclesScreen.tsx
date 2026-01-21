@@ -277,8 +277,8 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     top: {
       paddingHorizontal: theme.spacing.md,
-      paddingTop: theme.spacing.sm,
-      paddingBottom: theme.spacing.sm,
+      paddingTop: theme.spacing.md,
+      paddingBottom: theme.spacing.md,
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
@@ -293,7 +293,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     body: {
       flex: 1,
       paddingHorizontal: theme.spacing.md,
-      paddingTop: theme.spacing.sm,
     },
     empty: {
       flex: 1,

@@ -30,7 +30,7 @@ export function SettingsScreen({ navigation }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
-      <View style={{ paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.sm, paddingBottom: theme.spacing.sm }}>
+      <View style={{ paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.md }}>
         <Text style={[styles.title, { color: theme.colors.fg }]}>{t('settings.title')}</Text>
 
         {!settings ? (
