@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
+import { DraggableGrid } from "react-native-draggable-grid";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { VehicleType, FuelType, TransmissionType, DriveType } from "../types/domain";
@@ -15,7 +16,6 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { PickerField } from "../ui/components/PickerField";
-import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
@@ -48,6 +48,7 @@ export function VehicleFormScreen({ navigation }: Props) {
   };
   const [photoUris, setPhotoUris] = useState<PhotoFile[]>([]);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const canSave = useMemo(() => {
     return (
@@ -59,7 +60,7 @@ export function VehicleFormScreen({ navigation }: Props) {
   }, [title, make, model, year]);
 
   function pickSource() {
-    const remainingSlots = 5 - photoUris.length;
+    const remainingSlots = 6 - photoUris.length;
     if (remainingSlots <= 0) {
       toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
       return;
@@ -87,7 +88,7 @@ export function VehicleFormScreen({ navigation }: Props) {
 
   async function pickFromCamera() {
     try {
-      const remainingSlots = 5 - photoUris.length;
+      const remainingSlots = 6 - photoUris.length;
       if (remainingSlots <= 0) {
         toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
         return;
@@ -116,7 +117,7 @@ export function VehicleFormScreen({ navigation }: Props) {
 
   async function pickFromGallery() {
     try {
-      const remainingSlots = 5 - photoUris.length;
+      const remainingSlots = 6 - photoUris.length;
       if (remainingSlots <= 0) {
         toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
         return;
@@ -142,7 +143,7 @@ export function VehicleFormScreen({ navigation }: Props) {
           mimeType: asset.mimeType ?? null,
           fileName: asset.fileName ?? null,
         }))
-        .filter((photo): photo is PhotoFile => !!photo.uri);
+        .filter((photo) => !!photo.uri) as PhotoFile[];
       setPhotoUris([...photoUris, ...newPhotos]);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
@@ -153,7 +154,7 @@ export function VehicleFormScreen({ navigation }: Props) {
 
   async function pickFromFiles() {
     try {
-      const remainingSlots = 5 - photoUris.length;
+      const remainingSlots = 6 - photoUris.length;
       if (remainingSlots <= 0) {
         toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
         return;
@@ -176,7 +177,7 @@ export function VehicleFormScreen({ navigation }: Props) {
           mimeType: asset.mimeType ?? null,
           fileName: asset.name ?? null,
         }))
-        .filter((photo): photo is PhotoFile => !!photo.uri);
+        .filter((photo) => !!photo.uri) as PhotoFile[];
       setPhotoUris([...photoUris, ...newPhotos]);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
@@ -188,6 +189,60 @@ export function VehicleFormScreen({ navigation }: Props) {
   function removePhoto(index: number) {
     setPhotoUris(photoUris.filter((_, i) => i !== index));
   }
+
+  type PhotoItem = {
+    key: string;
+    uri: string;
+    mimeType?: string | null;
+    fileName?: string | null;
+    index: number;
+  };
+
+  const photoItems: PhotoItem[] = useMemo(() => {
+    return photoUris.map((photo, index) => ({
+      key: photo.uri, // Use URI as unique key
+      uri: photo.uri,
+      mimeType: photo.mimeType,
+      fileName: photo.fileName,
+      index,
+    }));
+  }, [photoUris]);
+
+  const renderPhotoItem = (item: PhotoItem) => {
+    const currentIndex = photoUris.findIndex((p) => p.uri === item.uri);
+    const isMain = currentIndex === 0;
+    return (
+      <View style={styles.photoCard}>
+        <View style={styles.photoImageContainer}>
+          <Image
+            source={{ uri: item.uri }}
+            style={styles.photoImage}
+            contentFit="cover"
+            transition={200}
+          />
+          {isMain && (
+            <View style={styles.photoMainBadge}>
+              <Text style={styles.photoMainText}>
+                {t("manageVehicle.mainPhoto")}
+              </Text>
+            </View>
+          )}
+          <Pressable
+            onPress={() => removePhoto(currentIndex >= 0 ? currentIndex : item.index)}
+            disabled={saving || uploadingPhoto}
+            style={styles.photoDeleteButton}
+            hitSlop={5}
+          >
+              <Ionicons
+                name="close"
+                size={16}
+                color={theme.colors.fg}
+              />
+          </Pressable>
+        </View>
+      </View>
+    );
+  };
 
   async function onSave() {
     try {
@@ -242,6 +297,7 @@ export function VehicleFormScreen({ navigation }: Props) {
 
   return (
     <FormScreen
+      scrollEnabled={!isDragging}
       header={
         <AppHeader
           onBack={() => navigation.goBack()}
@@ -277,40 +333,34 @@ export function VehicleFormScreen({ navigation }: Props) {
 
       <Text style={styles.h1}>{t("vehicleForm.title")}</Text>
 
-      <View style={{ height: theme.spacing.md }} />
 
       {/* Photos Section */}
       <View style={styles.photosSection}>
         <Text style={[styles.label, { color: theme.colors.muted }]}>
-          {t("vehicleForm.photos")} ({photoUris.length}/5)
+          {t("vehicleForm.photos")} ({photoUris.length}/6)
         </Text>
-        <View style={styles.photosGrid}>
-          {photoUris.map((photo, index) => (
-            <View key={index} style={styles.photoCard}>
-              <View style={styles.photoImageContainer}>
-                <Image
-                  source={{ uri: photo.uri }}
-                  style={styles.photoImage}
-                  contentFit="cover"
-                  transition={200}
-                />
-                <View style={styles.photoDeleteButton}>
-                  <IconButton
-                    onPress={() => removePhoto(index)}
-                    variant="ghost"
-                    disabled={saving || uploadingPhoto}
-                  >
-                    <Ionicons
-                      name="close"
-                      size={18}
-                      color={theme.colors.fg}
-                    />
-                  </IconButton>
-                </View>
-              </View>
-            </View>
-          ))}
-          {photoUris.length < 5 && (
+        {photoItems.length > 0 ? (
+          <DraggableGrid
+            numColumns={3}
+            renderItem={renderPhotoItem}
+            data={photoItems}
+            onDragStart={() => {
+              setIsDragging(true);
+            }}
+            onDragRelease={(data) => {
+              setIsDragging(false);
+              // Map back to photoUris in new order based on uri
+              const newPhotoUris: PhotoFile[] = data.map((item) => ({
+                uri: item.uri,
+                mimeType: item.mimeType,
+                fileName: item.fileName,
+              }));
+              setPhotoUris(newPhotoUris);
+            }}
+          />
+        ) : null}
+        {photoUris.length < 6 && (
+          <View style={styles.addPhotoButtonContainer}>
             <Button
               onPress={pickSource}
               disabled={saving || uploadingPhoto}
@@ -318,11 +368,10 @@ export function VehicleFormScreen({ navigation }: Props) {
             >
               {t("vehicleForm.addPhoto")}
             </Button>
-          )}
-        </View>
+          </View>
+        )}
       </View>
 
-      <View style={{ height: theme.spacing.sm }} />
       <View style={styles.group}>
         <Text style={[styles.label, { color: theme.colors.muted }]}>
           {t("vehicleForm.type")}
@@ -570,7 +619,7 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     photoCard: {
-      width: "47%",
+      width: (Dimensions.get("window").width - theme.spacing.md * 2 - theme.spacing.sm * 2) / 3,
       aspectRatio: 1,
       borderRadius: theme.radius.md,
       overflow: "hidden",
@@ -582,6 +631,14 @@ const makeStyles = (theme: any) =>
       elevation: 4,
       borderWidth: 1,
       borderColor: theme.colors.border,
+    },
+    photoCardActive: {
+      opacity: 0.8,
+      transform: [{ scale: 1.05 }],
+      zIndex: 10,
+    },
+    addPhotoButtonContainer: {
+      marginTop: theme.spacing.sm,
     },
     photoImageContainer: {
       position: "relative",
@@ -595,7 +652,30 @@ const makeStyles = (theme: any) =>
     },
     photoDeleteButton: {
       position: "absolute",
+      top: 4,
+      right: 4,
+      width: 28,
+      height: 28,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      borderRadius: 14,
+      opacity: 0.7,
+    },
+    photoMainBadge: {
+      position: "absolute",
       top: theme.spacing.xs,
-      right: theme.spacing.xs,
+      left: theme.spacing.xs,
+      backgroundColor: theme.colors.accent,
+      borderRadius: theme.radius.sm,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    photoMainText: {
+      color: "#000000",
+      fontSize: 11,
+      fontWeight: "700",
     },
   });

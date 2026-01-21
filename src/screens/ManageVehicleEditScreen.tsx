@@ -2,15 +2,19 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   StyleSheet,
   Text,
   View,
+  Pressable,
 } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { useTranslation } from "react-i18next";
+import { DraggableGrid } from "react-native-draggable-grid";
+import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type {
@@ -26,6 +30,7 @@ import {
   uploadVehiclePhoto,
   listVehiclePhotos,
   getVehiclePhotoUrl,
+  reorderVehiclePhotos,
 } from "../services/vehicles/uploadPhoto";
 import type { VehiclePhoto } from "../types/domain";
 import { AppHeader } from "../ui/components/AppHeader";
@@ -35,9 +40,6 @@ import { TextField } from "../ui/components/TextField";
 import { PickerField } from "../ui/components/PickerField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
-import { IconButton } from "../ui/components/IconButton";
-import { Ionicons } from "@expo/vector-icons";
-import { Pressable } from "react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicleEdit">;
 
@@ -53,6 +55,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [type, setType] = useState<VehicleType>("car");
   const [title, setTitle] = useState("");
@@ -156,7 +159,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   }
 
   function pickSource() {
-    const remainingSlots = 5 - photos.length;
+    const remainingSlots = 6 - photos.length;
     if (remainingSlots <= 0) {
       toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
       return;
@@ -184,7 +187,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
 
   async function pickFromCamera() {
     try {
-      const remainingSlots = 5 - photos.length;
+      const remainingSlots = 6 - photos.length;
       if (remainingSlots <= 0) {
         toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
         return;
@@ -214,7 +217,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
 
   async function pickFromGallery() {
     try {
-      const remainingSlots = 5 - photos.length;
+      const remainingSlots = 6 - photos.length;
       if (remainingSlots <= 0) {
         toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
         return;
@@ -257,7 +260,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
 
   async function pickFromFiles() {
     try {
-      const remainingSlots = 5 - photos.length;
+      const remainingSlots = 6 - photos.length;
       if (remainingSlots <= 0) {
         toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
         return;
@@ -305,8 +308,68 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
     }
   }
 
+
+  type PhotoItem = {
+    key: string;
+    photoId: string;
+    url: string;
+    index: number;
+  };
+
+  const photoItems: PhotoItem[] = useMemo(() => {
+    return photos.map((photo, index) => ({
+      key: photo.id,
+      photoId: photo.id,
+      url: photoUrls[index] || "",
+      index,
+    })).filter((item) => item.url);
+  }, [photos, photoUrls]);
+
+  const renderPhotoItem = (item: PhotoItem) => {
+    const photo = photos.find((p) => p.id === item.photoId);
+    if (!photo) {
+      // Return empty view if photo not found
+      return <View style={styles.photoCard} />;
+    }
+    
+    const currentIndex = photos.findIndex((p) => p.id === item.photoId);
+    const isMain = currentIndex === 0;
+    return (
+      <View style={styles.photoCard}>
+        <View style={styles.photoImageContainer}>
+          <Image
+            source={{ uri: item.url }}
+            style={styles.photoImage}
+            contentFit="cover"
+            transition={200}
+          />
+          {isMain && (
+            <View style={styles.photoMainBadge}>
+              <Text style={styles.photoMainText}>
+                {t("manageVehicle.mainPhoto")}
+              </Text>
+            </View>
+          )}
+          <Pressable
+            onPress={() => void removePhoto(photo)}
+            disabled={saving || uploadingPhoto}
+            style={styles.photoDeleteButton}
+            hitSlop={5}
+          >
+              <Ionicons
+                name="close"
+                size={16}
+                color={theme.colors.fg}
+              />
+          </Pressable>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <FormScreen
+      scrollEnabled={!isDragging}
       header={
         <AppHeader
           onBack={() => navigation.goBack()}
@@ -349,58 +412,43 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
 
       {vehicle ? (
         <>
-          <View style={{ height: theme.spacing.md }} />
-
           {/* Photos Section */}
           <View style={styles.photosSection}>
             <Text style={[styles.label, { color: theme.colors.muted }]}>
-              {t("vehicleForm.photos")} ({photos.length}/5)
+              {t("vehicleForm.photos")} ({photos.length}/6)
             </Text>
-            <View style={styles.photosGrid}>
-              {photos.map((photo, index) => {
-                const url = photoUrls[index];
-                if (!url) return null;
-                return (
-                  <View key={photo.id} style={styles.photoCard}>
-                    <View style={styles.photoImageContainer}>
-                      <Image
-                        source={{ uri: url }}
-                        style={styles.photoImage}
-                        contentFit="cover"
-                        transition={200}
-                      />
-                      <View style={styles.photoDeleteButton}>
-                        <IconButton
-                          onPress={() => {
-                            Alert.alert(
-                              t("manageVehicle.photoTitle"),
-                              t("manageVehicle.removePhotoConfirm"),
-                              [
-                                { text: t("common.cancel"), style: "cancel" },
-                                {
-                                  text: t("manageVehicle.removePhoto"),
-                                  style: "destructive",
-                                  onPress: () =>
-                                    void removePhoto(photo),
-                                },
-                              ]
-                            );
-                          }}
-                          variant="ghost"
-                          disabled={saving || uploadingPhoto}
-                        >
-                          <Ionicons
-                            name="close"
-                            size={18}
-                            color={theme.colors.fg}
-                          />
-                        </IconButton>
-                      </View>
-                    </View>
-                  </View>
-                );
-              })}
-              {photos.length < 5 && (
+            {photoItems.length > 0 ? (
+              <DraggableGrid
+                numColumns={3}
+                renderItem={renderPhotoItem}
+                data={photoItems}
+                onDragStart={() => {
+                  setIsDragging(true);
+                }}
+                onDragRelease={(data) => {
+                  setIsDragging(false);
+                  // Map back to photos in new order based on photoId
+                  const newPhotos: VehiclePhoto[] = data
+                    .map((item) => photos.find((p) => p.id === item.photoId))
+                    .filter((p): p is VehiclePhoto => !!p);
+                  
+                  // Update photos state immediately
+                  setPhotos(newPhotos);
+                  
+                  // Update photoUrls in the same order (use existing URLs, just reorder)
+                  const newPhotoUrls = newPhotos.map((photo) => {
+                    const oldIndex = photos.findIndex((p) => p.id === photo.id);
+                    return photoUrls[oldIndex] || "";
+                  }).filter((url) => url !== "");
+                  setPhotoUrls(newPhotoUrls);
+                  
+                  // Update display_order in database (async, don't wait)
+                  void reorderVehiclePhotos(vehicleId, newPhotos.map((p) => p.id));
+                }}
+              />
+            ) : null}
+            {photos.length < 6 && (
+              <View style={styles.addPhotoButtonContainer}>
                 <Button
                   onPress={pickSource}
                   disabled={saving || uploadingPhoto}
@@ -408,11 +456,10 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                 >
                   {t("vehicleForm.addPhoto")}
                 </Button>
-              )}
-            </View>
+              </View>
+            )}
           </View>
 
-          <View style={{ height: theme.spacing.sm }} />
           <View style={styles.group}>
             <Text style={[styles.label, { color: theme.colors.muted }]}>
               {t("vehicleForm.type")}
@@ -647,7 +694,7 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     photoCard: {
-      width: "47%",
+      width: (Dimensions.get("window").width - theme.spacing.md * 2 - theme.spacing.sm * 2) / 3,
       aspectRatio: 1,
       borderRadius: theme.radius.md,
       overflow: "hidden",
@@ -659,6 +706,9 @@ const makeStyles = (theme: any) =>
       elevation: 4,
       borderWidth: 1,
       borderColor: theme.colors.border,
+    },
+    addPhotoButtonContainer: {
+      marginTop: theme.spacing.sm,
     },
     photoImageContainer: {
       position: "relative",
@@ -672,8 +722,31 @@ const makeStyles = (theme: any) =>
     },
     photoDeleteButton: {
       position: "absolute",
+      top: 4,
+      right: 4,
+      width: 28,
+      height: 28,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      borderRadius: 14,
+      opacity: 0.7,
+    },
+    photoMainBadge: {
+      position: "absolute",
       top: theme.spacing.xs,
-      right: theme.spacing.xs,
+      left: theme.spacing.xs,
+      backgroundColor: theme.colors.accent,
+      borderRadius: theme.radius.sm,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    photoMainText: {
+      color: "#000000",
+      fontSize: 11,
+      fontWeight: "700",
     },
     loadingContainer: {
       paddingTop: theme.spacing.xl + theme.spacing.xs,

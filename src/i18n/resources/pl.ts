@@ -70,7 +70,7 @@ export const pl = {
     addPhoto: "Dodaj zdjęcie",
     changePhoto: "Zmień zdjęcie",
     photos: "Zdjęcia",
-    maxPhotosReached: "Maksymalnie 5 zdjęć",
+    maxPhotosReached: "Maksymalnie 6 zdjęć",
   },
   timeline: {
     addEntry: "Dodaj wpis serwisowy",

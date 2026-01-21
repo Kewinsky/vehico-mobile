@@ -4,7 +4,7 @@ import { fetchBlob, randomId } from "../storage/uploadUtils";
 import { createSignedUrl } from "../attachments/attachmentsRepo";
 import * as ImageManipulator from "expo-image-manipulator";
 
-const MAX_PHOTOS = 5;
+const MAX_PHOTOS = 6;
 
 /**
  * Lists all photos for a vehicle, ordered by display_order
@@ -24,7 +24,7 @@ export async function listVehiclePhotos(
 /**
  * Uploads a photo for a vehicle and returns the VehiclePhoto
  * The photo is stored in: {vehicleId}/{timestamp}-{randomId}.jpg
- * Maximum 5 photos per vehicle
+ * Maximum 6 photos per vehicle
  * All photos are converted to JPEG format for maximum compatibility
  */
 export async function uploadVehiclePhoto(params: {
@@ -118,6 +118,27 @@ export async function deleteVehiclePhoto(
       .update({ display_order: i })
       .eq("id", remaining[i].id);
   }
+}
+
+/**
+ * Reorders vehicle photos by updating their display_order
+ * @param vehicleId The vehicle ID
+ * @param photoIds Array of photo IDs in the desired order
+ */
+export async function reorderVehiclePhotos(
+  vehicleId: string,
+  photoIds: string[]
+): Promise<void> {
+  // Update display_order for each photo based on its position in the array
+  await Promise.all(
+    photoIds.map((photoId, index) =>
+      supabase
+        .from("vehicle_photos")
+        .update({ display_order: index })
+        .eq("id", photoId)
+        .eq("vehicle_id", vehicleId)
+    )
+  );
 }
 
 /**

@@ -13,7 +13,8 @@ export function FormScreen({
   children,
   padding = true,
   header,
-}: PropsWithChildren<{ padding?: boolean; header?: ReactNode }>) {
+  scrollEnabled = true,
+}: PropsWithChildren<{ padding?: boolean; header?: ReactNode; scrollEnabled?: boolean }>) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
 
@@ -27,6 +28,8 @@ export function FormScreen({
     >
       {header}
       <ScrollView
+        scrollEnabled={scrollEnabled}
+        nestedScrollEnabled={false}
         contentContainerStyle={{
           paddingHorizontal: padding ? theme.spacing.md : 0,
           paddingBottom: insets.bottom + theme.spacing.lg,
