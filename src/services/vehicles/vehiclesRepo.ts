@@ -14,7 +14,6 @@ type NewVehicleInput = {
   transmission?: 'manual' | 'automatic' | null;
   drive_type?: 'FWD' | 'RWD' | 'AWD' | null;
   notes?: string | null;
-  profile_photo_url?: string | null;
 };
 
 type UpdateVehicleInput = Partial<NewVehicleInput>;

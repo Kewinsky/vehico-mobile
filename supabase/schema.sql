@@ -24,7 +24,6 @@ create table if not exists public.vehicles (
   transmission text check (transmission in ('manual', 'automatic')),
   drive_type text check (drive_type in ('FWD', 'RWD', 'AWD')),
   notes text,
-  profile_photo_url text,
   created_at timestamptz not null default now()
 );
 
@@ -203,6 +202,19 @@ alter table public.vehicle_documents
 alter table public.vehicles
   add column if not exists drive_type text check (drive_type in ('FWD', 'RWD', 'AWD'));
 
+-- Vehicle photos (up to 5 photos per vehicle)
+create table if not exists public.vehicle_photos (
+  id uuid primary key default gen_random_uuid(),
+  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
+  storage_bucket text not null default 'images' check (storage_bucket in ('images')),
+  storage_path text not null,
+  display_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists vehicle_photos_vehicle_id_idx on public.vehicle_photos(vehicle_id);
+create index if not exists vehicle_photos_display_order_idx on public.vehicle_photos(vehicle_id, display_order);
+
 -- Marketplace posts (generated listings)
 create table if not exists public.marketplace_posts (
   id uuid primary key default gen_random_uuid(),
@@ -232,6 +244,7 @@ alter table public.fueling_entries enable row level security;
 alter table public.reminders enable row level security;
 alter table public.user_settings enable row level security;
 alter table public.vehicle_documents enable row level security;
+alter table public.vehicle_photos enable row level security;
 alter table public.marketplace_posts enable row level security;
 
 -- Vehicles: owner can CRUD
@@ -240,6 +253,18 @@ create policy vehicles_select_own
 on public.vehicles for select
 to authenticated
 using (owner_id = auth.uid());
+
+-- Vehicles: public read access if vehicle has public page
+drop policy if exists vehicles_select_public on public.vehicles;
+create policy vehicles_select_public
+on public.vehicles for select
+to anon
+using (
+  exists (
+    select 1 from public.public_pages pp
+    where pp.vehicle_id = vehicles.id
+  )
+);
 
 drop policy if exists vehicles_insert_own on public.vehicles;
 create policy vehicles_insert_own
@@ -260,7 +285,7 @@ on public.vehicles for delete
 to authenticated
 using (owner_id = auth.uid());
 
--- Service entries: allowed if the vehicle belongs to the user
+-- Service entries: allowed if the vehicle belongs to the user OR vehicle has public page
 drop policy if exists service_entries_select_own_vehicle on public.service_entries;
 create policy service_entries_select_own_vehicle
 on public.service_entries for select
@@ -270,6 +295,18 @@ using (
     select 1 from public.vehicles v
     where v.id = service_entries.vehicle_id
       and v.owner_id = auth.uid()
+  )
+);
+
+-- Service entries: public read access if vehicle has public page
+drop policy if exists service_entries_select_public on public.service_entries;
+create policy service_entries_select_public
+on public.service_entries for select
+to anon
+using (
+  exists (
+    select 1 from public.public_pages pp
+    where pp.vehicle_id = service_entries.vehicle_id
   )
 );
 
@@ -359,7 +396,7 @@ using (
   )
 );
 
--- Public pages: only owner can create/read (public read can be added later)
+-- Public pages: owner can read, and public can read by public_id
 drop policy if exists public_pages_select_own_vehicle on public.public_pages;
 create policy public_pages_select_own_vehicle
 on public.public_pages for select
@@ -371,6 +408,13 @@ using (
       and v.owner_id = auth.uid()
   )
 );
+
+-- Public pages: public read access (for public reports)
+drop policy if exists public_pages_select_public on public.public_pages;
+create policy public_pages_select_public
+on public.public_pages for select
+to anon
+using (true);
 
 drop policy if exists public_pages_insert_own_vehicle on public.public_pages;
 create policy public_pages_insert_own_vehicle
@@ -584,6 +628,74 @@ using (
   )
 );
 
+-- Vehicle photos: allowed if vehicle belongs to user OR vehicle has public page
+drop policy if exists vehicle_photos_select_own_vehicle on public.vehicle_photos;
+create policy vehicle_photos_select_own_vehicle
+on public.vehicle_photos for select
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_photos.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- Vehicle photos: public read access if vehicle has public page
+drop policy if exists vehicle_photos_select_public on public.vehicle_photos;
+create policy vehicle_photos_select_public
+on public.vehicle_photos for select
+to anon
+using (
+  exists (
+    select 1 from public.public_pages pp
+    where pp.vehicle_id = vehicle_photos.vehicle_id
+  )
+);
+
+drop policy if exists vehicle_photos_insert_own_vehicle on public.vehicle_photos;
+create policy vehicle_photos_insert_own_vehicle
+on public.vehicle_photos for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_photos.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists vehicle_photos_update_own_vehicle on public.vehicle_photos;
+create policy vehicle_photos_update_own_vehicle
+on public.vehicle_photos for update
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_photos.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_photos.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists vehicle_photos_delete_own_vehicle on public.vehicle_photos;
+create policy vehicle_photos_delete_own_vehicle
+on public.vehicle_photos for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_photos.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
 -- Marketplace posts: owner can CRUD own posts
 drop policy if exists marketplace_posts_select_own on public.marketplace_posts;
 create policy marketplace_posts_select_own
@@ -638,6 +750,26 @@ using (
     from public.vehicles v
     where v.id::text = split_part(name, '/', 1)
       and v.owner_id = auth.uid()
+  )
+);
+
+-- Read: anon can read objects for vehicles that have public pages (images only)
+-- This policy allows public access to images for vehicles with public pages
+-- Note: Bucket must be set to PUBLIC in Supabase Dashboard → Storage → Buckets → images → Edit → Public bucket
+drop policy if exists "storage_read_public_vehicle" on storage.objects;
+create policy "storage_read_public_vehicle"
+on storage.objects for select
+to anon
+using (
+  bucket_id = 'images'
+  and (
+    -- Check if the path starts with a vehicle ID that has a public page
+    exists (
+      select 1
+      from public.vehicles v
+      join public.public_pages pp on pp.vehicle_id = v.id
+      where v.id::text = split_part(name, '/', 1)
+    )
   )
 );
 
@@ -740,3 +872,7 @@ create trigger vehicle_documents_delete_storage
 after delete on public.vehicle_documents
 for each row execute function public.delete_storage_object_trigger();
 
+drop trigger if exists vehicle_photos_delete_storage on public.vehicle_photos;
+create trigger vehicle_photos_delete_storage
+after delete on public.vehicle_photos
+for each row execute function public.delete_storage_object_trigger();

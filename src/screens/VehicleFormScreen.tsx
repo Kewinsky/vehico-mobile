@@ -4,11 +4,12 @@ import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { VehicleType, FuelType, TransmissionType, DriveType } from "../types/domain";
 import { createVehicle } from "../services/vehicles/vehiclesRepo";
-import { uploadVehicleProfilePhoto } from "../services/vehicles/uploadProfilePhoto";
+import { uploadVehiclePhoto } from "../services/vehicles/uploadPhoto";
 import { Button } from "../ui/components/Button";
 import { AppHeader } from "../ui/components/AppHeader";
 import { FormScreen } from "../ui/components/FormScreen";
@@ -40,7 +41,12 @@ export function VehicleFormScreen({ navigation }: Props) {
   const [driveType, setDriveType] = useState<DriveType | null>(null);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
-  const [profilePhotoUri, setProfilePhotoUri] = useState<string | null>(null);
+  type PhotoFile = {
+    uri: string;
+    mimeType?: string | null;
+    fileName?: string | null;
+  };
+  const [photoUris, setPhotoUris] = useState<PhotoFile[]>([]);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const canSave = useMemo(() => {
@@ -52,24 +58,135 @@ export function VehicleFormScreen({ navigation }: Props) {
     );
   }, [title, make, model, year]);
 
-  async function pickProfilePhoto() {
+  function pickSource() {
+    const remainingSlots = 5 - photoUris.length;
+    if (remainingSlots <= 0) {
+      toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+      return;
+    }
+    Alert.alert(
+      t("attachments.addPickerTitle"),
+      t("attachments.addPickerBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("attachments.camera"),
+          onPress: () => void pickFromCamera(),
+        },
+        {
+          text: t("attachments.photos"),
+          onPress: () => void pickFromGallery(),
+        },
+        {
+          text: t("attachments.files"),
+          onPress: () => void pickFromFiles(),
+        },
+      ]
+    );
+  }
+
+  async function pickFromCamera() {
     try {
+      const remainingSlots = 5 - photoUris.length;
+      if (remainingSlots <= 0) {
+        toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+        return;
+      }
       setUploadingPhoto(true);
-      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) throw new Error("Media library permission denied");
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        quality: 1,
-      });
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) throw new Error(t("attachments.cameraPermissionDenied"));
+      const result = await ImagePicker.launchCameraAsync({ quality: 1 });
       if (result.canceled) return;
-      const uri = result.assets[0]?.uri;
-      if (!uri) throw new Error("No file selected");
-      setProfilePhotoUri(uri);
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      setPhotoUris([
+        ...photoUris,
+        {
+          uri: asset.uri,
+          mimeType: asset.mimeType ?? null,
+          fileName: asset.fileName ?? null,
+        },
+      ]);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {
       setUploadingPhoto(false);
     }
+  }
+
+  async function pickFromGallery() {
+    try {
+      const remainingSlots = 5 - photoUris.length;
+      if (remainingSlots <= 0) {
+        toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+        return;
+      }
+      setUploadingPhoto(true);
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) throw new Error(t("attachments.galleryPermissionDenied"));
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 1,
+        allowsMultipleSelection: true,
+        selectionLimit: remainingSlots,
+      });
+      if (result.canceled) return;
+      if (!result.assets || result.assets.length === 0) {
+        throw new Error(t("attachments.noFileSelected"));
+      }
+      // Add all selected photos, but limit to remaining slots
+      const newPhotos = result.assets
+        .slice(0, remainingSlots)
+        .map((asset) => ({
+          uri: asset.uri,
+          mimeType: asset.mimeType ?? null,
+          fileName: asset.fileName ?? null,
+        }))
+        .filter((photo): photo is PhotoFile => !!photo.uri);
+      setPhotoUris([...photoUris, ...newPhotos]);
+    } catch (e: any) {
+      toastError(t("common.error"), e?.message ?? String(e));
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
+
+  async function pickFromFiles() {
+    try {
+      const remainingSlots = 5 - photoUris.length;
+      if (remainingSlots <= 0) {
+        toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+        return;
+      }
+      setUploadingPhoto(true);
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "image/*",
+        copyToCacheDirectory: true,
+        multiple: remainingSlots > 1,
+      });
+      if (result.canceled) return;
+      if (!result.assets || result.assets.length === 0) {
+        throw new Error(t("attachments.noFileSelected"));
+      }
+      // Add all selected files, but limit to remaining slots
+      const newPhotos = result.assets
+        .slice(0, remainingSlots)
+        .map((asset) => ({
+          uri: asset.uri,
+          mimeType: asset.mimeType ?? null,
+          fileName: asset.name ?? null,
+        }))
+        .filter((photo): photo is PhotoFile => !!photo.uri);
+      setPhotoUris([...photoUris, ...newPhotos]);
+    } catch (e: any) {
+      toastError(t("common.error"), e?.message ?? String(e));
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
+
+  function removePhoto(index: number) {
+    setPhotoUris(photoUris.filter((_, i) => i !== index));
   }
 
   async function onSave() {
@@ -95,29 +212,20 @@ export function VehicleFormScreen({ navigation }: Props) {
         notes: notes.trim().length ? notes.trim() : null,
       });
 
-      // Upload profile photo if selected
-      if (profilePhotoUri) {
+      // Upload photos if selected
+      if (photoUris.length > 0) {
         try {
-          const photoUrl = await uploadVehicleProfilePhoto({
-            vehicleId: created.id,
-            fileUri: profilePhotoUri,
-          });
-          // Update vehicle with profile photo URL
-          const { updateVehicle } = await import(
-            "../services/vehicles/vehiclesRepo"
-          );
-          const updated = await updateVehicle(created.id, {
-            profile_photo_url: photoUrl,
-          });
-          // Update navigation params with updated vehicle
-          navigation.replace("VehicleDetail", {
-            vehicleId: updated.id,
-            title: updated.title,
-          });
-          return;
+          for (const photo of photoUris) {
+            await uploadVehiclePhoto({
+              vehicleId: created.id,
+              fileUri: photo.uri,
+              mimeType: photo.mimeType,
+              fileName: photo.fileName,
+            });
+          }
         } catch (e: any) {
           // Log error but don't block navigation
-          console.error("Failed to upload profile photo:", e);
+          console.error("Failed to upload photos:", e);
         }
       }
 
@@ -171,56 +279,48 @@ export function VehicleFormScreen({ navigation }: Props) {
 
       <View style={{ height: theme.spacing.md }} />
 
-      {/* Profile Photo Section */}
-      {profilePhotoUri ? (
-        <View style={styles.profilePhotoCard}>
-          <View style={styles.profilePhotoImageContainer}>
-            <Image
-              source={{ uri: profilePhotoUri }}
-              style={styles.profilePhotoImage}
-              contentFit="cover"
-              transition={200}
-            />
-            <View style={styles.profilePhotoMenuButton}>
-              <IconButton
-                onPress={() => {
-                  Alert.alert(t("vehicleForm.profilePhotoTitle"), "", [
-                    { text: t("common.cancel"), style: "cancel" },
-                    {
-                      text: t("vehicleForm.changeProfilePhoto"),
-                      onPress: () => void pickProfilePhoto(),
-                    },
-                    {
-                      text: t("manageVehicle.removeProfilePhoto"),
-                      style: "destructive",
-                      onPress: () => setProfilePhotoUri(null),
-                    },
-                  ]);
-                }}
-                variant="ghost"
-                disabled={saving || uploadingPhoto}
-              >
-                <Ionicons
-                  name="ellipsis-horizontal"
-                  size={20}
-                  color={theme.colors.fg}
+      {/* Photos Section */}
+      <View style={styles.photosSection}>
+        <Text style={[styles.label, { color: theme.colors.muted }]}>
+          {t("vehicleForm.photos")} ({photoUris.length}/5)
+        </Text>
+        <View style={styles.photosGrid}>
+          {photoUris.map((photo, index) => (
+            <View key={index} style={styles.photoCard}>
+              <View style={styles.photoImageContainer}>
+                <Image
+                  source={{ uri: photo.uri }}
+                  style={styles.photoImage}
+                  contentFit="cover"
+                  transition={200}
                 />
-              </IconButton>
+                <View style={styles.photoDeleteButton}>
+                  <IconButton
+                    onPress={() => removePhoto(index)}
+                    variant="ghost"
+                    disabled={saving || uploadingPhoto}
+                  >
+                    <Ionicons
+                      name="close"
+                      size={18}
+                      color={theme.colors.fg}
+                    />
+                  </IconButton>
+                </View>
+              </View>
             </View>
-          </View>
+          ))}
+          {photoUris.length < 5 && (
+            <Button
+              onPress={pickSource}
+              disabled={saving || uploadingPhoto}
+              variant="ghost"
+            >
+              {t("vehicleForm.addPhoto")}
+            </Button>
+          )}
         </View>
-      ) : (
-        <View style={styles.profilePhotoCard}>
-          <Button
-            onPress={() => void pickProfilePhoto()}
-            variant="ghost"
-            disabled={saving || uploadingPhoto}
-            style={styles.profilePhotoButton}
-          >
-            {t("vehicleForm.addPhoto")}
-          </Button>
-        </View>
-      )}
+      </View>
 
       <View style={{ height: theme.spacing.sm }} />
       <View style={styles.group}>
@@ -459,7 +559,19 @@ const makeStyles = (theme: any) =>
     typeChipText: {
       fontWeight: "700",
     },
-    profilePhotoCard: {
+    photosSection: {
+      gap: 8,
+      marginTop: theme.spacing.sm,
+      marginBottom: 4,
+    },
+    photosGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: theme.spacing.sm,
+    },
+    photoCard: {
+      width: "47%",
+      aspectRatio: 1,
       borderRadius: theme.radius.md,
       overflow: "hidden",
       backgroundColor: theme.colors.card,
@@ -471,22 +583,19 @@ const makeStyles = (theme: any) =>
       borderWidth: 1,
       borderColor: theme.colors.border,
     },
-    profilePhotoImageContainer: {
+    photoImageContainer: {
       position: "relative",
-      height: 220,
       width: "100%",
+      height: "100%",
     },
-    profilePhotoImage: {
+    photoImage: {
       width: "100%",
       height: "100%",
       backgroundColor: theme.colors.card,
     },
-    profilePhotoMenuButton: {
+    photoDeleteButton: {
       position: "absolute",
-      top: theme.spacing.sm,
-      right: theme.spacing.sm,
-    },
-    profilePhotoButton: {
-      borderWidth: 0,
+      top: theme.spacing.xs,
+      right: theme.spacing.xs,
     },
   });

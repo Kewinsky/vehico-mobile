@@ -352,7 +352,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
                           i18n.language === "pl" ? "pl-PL" : "en-US",
                           { day: "2-digit", month: "2-digit", year: "numeric" }
                         );
-                        return `${ext} · ${formattedDate}`;
+                        return `${t(
+                          "documents.added"
+                        )} ${formattedDate} · ${ext}`;
                       })()}
                     </Text>
                   </Pressable>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   FlatList,
   Pressable,
   StyleSheet,
@@ -12,6 +13,8 @@ import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Carousel, { Pagination } from "react-native-reanimated-carousel";
+import { useSharedValue } from "react-native-reanimated";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Vehicle } from "../types/domain";
@@ -25,6 +28,60 @@ import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 
+type VehicleCarouselProps = {
+  photoUrls: string[];
+  width: number;
+  height: number;
+  theme: any;
+};
+
+function VehicleCarousel({ photoUrls, width, height, theme }: VehicleCarouselProps) {
+  const progress = useSharedValue(0);
+
+  if (photoUrls.length === 0) return null;
+
+  return (
+    <View style={{ position: "relative", width, height }}>
+      <Carousel
+        loop={true}
+        snapEnabled={true}
+        pagingEnabled={true}
+        data={photoUrls}
+        width={width}
+        height={height}
+        onProgressChange={(offsetProgress, absoluteProgress) => {
+          progress.value = absoluteProgress;
+        }}
+        renderItem={({ item: url }) => (
+          <Image
+            source={{ uri: url }}
+            style={{ width: "100%", height: "100%", backgroundColor: theme.colors.card }}
+            contentFit="cover"
+            transition={200}
+          />
+        )}
+      />
+      {photoUrls.length > 1 && (
+        <View
+          style={{
+            position: "absolute",
+            bottom: theme.spacing.md,
+            right: theme.spacing.md,
+          }}
+        >
+          <Pagination.Basic
+            progress={progress}
+            data={photoUrls.map((url) => ({ url }))}
+            dotStyle={{ backgroundColor: "rgba(255,255,255,0.5)", borderRadius: 50 }}
+            activeDotStyle={{ backgroundColor: theme.colors.accent, borderRadius: 50 }}
+            containerStyle={{ gap: 5 }}
+          />
+        </View>
+      )}
+    </View>
+  );
+}
+
 export function VehiclesScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
@@ -32,8 +89,11 @@ export function VehiclesScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const { signOut } = useAuth();
   const [items, setItems] = useState<Vehicle[]>([]);
+  const [photoUrlsMap, setPhotoUrlsMap] = useState<Map<string, string[]>>(new Map());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  
+  const windowWidth = Dimensions.get("window").width;
 
   function onSignOut() {
     signOut().catch((e: any) => {
@@ -48,6 +108,42 @@ export function VehiclesScreen({ navigation }: Props) {
         else setLoading(true);
         const data = await listVehicles();
         setItems(data);
+        
+        // Load all photos for each vehicle
+        const { listVehiclePhotos, getVehiclePhotoUrl } = await import(
+          "../services/vehicles/uploadPhoto"
+        );
+        const urlsMap = new Map<string, string[]>();
+        await Promise.all(
+          data.map(async (vehicle) => {
+            try {
+              const photos = await listVehiclePhotos(vehicle.id);
+              const urls = await Promise.all(
+                photos.map(async (photo) => {
+                  try {
+                    return await getVehiclePhotoUrl(photo);
+                  } catch (error) {
+                    console.error(
+                      `Failed to get URL for photo ${photo.id} (vehicle ${vehicle.id}):`,
+                      error
+                    );
+                    return null;
+                  }
+                })
+              );
+              const validUrls = urls.filter((url): url is string => url !== null);
+              if (validUrls.length > 0) {
+                urlsMap.set(vehicle.id, validUrls);
+              }
+            } catch (error) {
+              console.error(
+                `Failed to load photos for vehicle ${vehicle.id}:`,
+                error
+              );
+            }
+          })
+        );
+        setPhotoUrlsMap(urlsMap);
       } catch (e: any) {
         toastError(t("common.error"), e?.message ?? String(e));
       } finally {
@@ -119,33 +215,59 @@ export function VehiclesScreen({ navigation }: Props) {
                   ]}
                 >
                   <View style={styles.vehicleImageContainer}>
-                    {item.profile_photo_url ? (
-                      <Image
-                        source={{ uri: item.profile_photo_url }}
-                        style={styles.vehicleImage}
-                        contentFit="cover"
-                        transition={200}
-                      />
-                    ) : (
-                      <View style={styles.vehicleImagePlaceholder}>
-                        <Text style={styles.vehicleImagePlaceholderText}>
-                          {item.type === "car" ? "🚗" : "🏍️"}
-                        </Text>
-                      </View>
-                    )}
-                    <View style={styles.vehicleImageContent}>
-                      <Text style={styles.vehicleTitle} numberOfLines={2}>
-                        {item.title}
-                      </Text>
-                      <Text style={styles.vehicleMeta} numberOfLines={1}>
-                        {item.make} {item.model} · {item.production_year}
-                        {item.power_hp
-                          ? ` · ${item.power_hp}${
-                              i18n.language === "pl" ? "KM" : "HP"
-                            }`
-                          : ""}
-                      </Text>
-                    </View>
+                    {(() => {
+                      const photoUrls = photoUrlsMap.get(item.id) || [];
+                      const carouselWidth = windowWidth - theme.spacing.md * 2;
+                      
+                      if (photoUrls.length === 0) {
+                        return (
+                          <>
+                            <View style={styles.vehicleImagePlaceholder}>
+                              <Text style={styles.vehicleImagePlaceholderText}>
+                                {item.type === "car" ? "🚗" : "🏍️"}
+                              </Text>
+                            </View>
+                            <View style={styles.vehicleImageContent}>
+                              <Text style={styles.vehicleTitle} numberOfLines={2}>
+                                {item.title}
+                              </Text>
+                              <Text style={styles.vehicleMeta} numberOfLines={1}>
+                                {item.make} {item.model} · {item.production_year}
+                                {item.power_hp
+                                  ? ` · ${item.power_hp}${
+                                      i18n.language === "pl" ? "KM" : "HP"
+                                    }`
+                                  : ""}
+                              </Text>
+                            </View>
+                          </>
+                        );
+                      }
+                      
+                      return (
+                        <>
+                          <VehicleCarousel
+                            photoUrls={photoUrls}
+                            width={carouselWidth}
+                            height={220}
+                            theme={theme}
+                          />
+                          <View style={styles.vehicleImageContent}>
+                            <Text style={styles.vehicleTitle} numberOfLines={2}>
+                              {item.title}
+                            </Text>
+                            <Text style={styles.vehicleMeta} numberOfLines={1}>
+                              {item.make} {item.model} · {item.production_year}
+                              {item.power_hp
+                                ? ` · ${item.power_hp}${
+                                    i18n.language === "pl" ? "KM" : "HP"
+                                  }`
+                                : ""}
+                            </Text>
+                          </View>
+                        </>
+                      );
+                    })()}
                   </View>
                 </Pressable>
               )}

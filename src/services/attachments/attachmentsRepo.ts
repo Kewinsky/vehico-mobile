@@ -35,15 +35,16 @@ export async function uploadAttachment(params: {
     mimeType: params.mimeType,
     fileName: params.fileName,
   });
-  const bucket = contentType.startsWith("image/") ? "images" : "documents";
+  // All attachments go to documents bucket
+  const bucket = "documents";
   const attachmentType: AttachmentType =
-    bucket === "images" ? "photo" : "receipt";
+    contentType.startsWith("image/") ? "photo" : "receipt";
   const ext = inferExtension({
     uri: params.fileUri,
     contentType,
     fileName: params.fileName,
   });
-  const storagePath = `${params.vehicleId}/${
+  const storagePath = `service_entry_attachments/${params.vehicleId}/${
     params.serviceEntryId
   }/${Date.now()}-${randomId()}.${ext}`;
 

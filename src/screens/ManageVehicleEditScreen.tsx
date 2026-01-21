@@ -9,6 +9,7 @@ import {
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
@@ -21,10 +22,12 @@ import type {
 } from "../types/domain";
 import { getVehicle, updateVehicle } from "../services/vehicles/vehiclesRepo";
 import {
-  deleteVehicleProfilePhoto,
-  uploadVehicleProfilePhoto,
-} from "../services/vehicles/uploadProfilePhoto";
-import { createSignedUrl } from "../services/attachments/attachmentsRepo";
+  deleteVehiclePhoto,
+  uploadVehiclePhoto,
+  listVehiclePhotos,
+  getVehiclePhotoUrl,
+} from "../services/vehicles/uploadPhoto";
+import type { VehiclePhoto } from "../types/domain";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
@@ -45,6 +48,8 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const { vehicleId } = route.params;
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -81,6 +86,25 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       setTransmission(v.transmission);
       setDriveType(v.drive_type);
       setNotes(v.notes ?? "");
+
+      // Load photos
+      const photosList = await listVehiclePhotos(vehicleId);
+      setPhotos(photosList);
+      const urls = await Promise.all(
+        photosList.map(async (photo) => {
+          try {
+            return await getVehiclePhotoUrl(photo);
+          } catch (error) {
+            console.error(
+              `Failed to get URL for photo ${photo.id}:`,
+              error
+            );
+            return null;
+          }
+        })
+      );
+      const validUrls = urls.filter((url): url is string => url !== null);
+      setPhotoUrls(validUrls);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {
@@ -131,25 +155,56 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
     }
   }
 
-  async function pickProfilePhoto() {
-    try {
-      setUploadingPhoto(true);
-      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) throw new Error("Media library permission denied");
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        quality: 1,
-      });
-      if (result.canceled) return;
-      const uri = result.assets[0]?.uri;
-      if (!uri) throw new Error("No file selected");
+  function pickSource() {
+    const remainingSlots = 5 - photos.length;
+    if (remainingSlots <= 0) {
+      toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+      return;
+    }
+    Alert.alert(
+      t("attachments.addPickerTitle"),
+      t("attachments.addPickerBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("attachments.camera"),
+          onPress: () => void pickFromCamera(),
+        },
+        {
+          text: t("attachments.photos"),
+          onPress: () => void pickFromGallery(),
+        },
+        {
+          text: t("attachments.files"),
+          onPress: () => void pickFromFiles(),
+        },
+      ]
+    );
+  }
 
-      const photoUrl = await uploadVehicleProfilePhoto({
+  async function pickFromCamera() {
+    try {
+      const remainingSlots = 5 - photos.length;
+      if (remainingSlots <= 0) {
+        toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+        return;
+      }
+      setUploadingPhoto(true);
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) throw new Error(t("attachments.cameraPermissionDenied"));
+      const result = await ImagePicker.launchCameraAsync({ quality: 1 });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      
+      await uploadVehiclePhoto({
         vehicleId,
-        fileUri: uri,
+        fileUri: asset.uri,
+        mimeType: asset.mimeType ?? null,
+        fileName: asset.fileName ?? null,
       });
-      await updateVehicle(vehicleId, { profile_photo_url: photoUrl });
       await load();
+      toastSuccess(t("manageVehicle.photoAdded"));
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {
@@ -157,11 +212,94 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
     }
   }
 
-  async function removeProfilePhoto() {
+  async function pickFromGallery() {
     try {
-      await deleteVehicleProfilePhoto(vehicleId);
-      await updateVehicle(vehicleId, { profile_photo_url: null });
+      const remainingSlots = 5 - photos.length;
+      if (remainingSlots <= 0) {
+        toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+        return;
+      }
+      setUploadingPhoto(true);
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) throw new Error(t("attachments.galleryPermissionDenied"));
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 1,
+        allowsMultipleSelection: true,
+        selectionLimit: remainingSlots,
+      });
+      if (result.canceled) return;
+      if (!result.assets || result.assets.length === 0) {
+        throw new Error(t("attachments.noFileSelected"));
+      }
+
+      // Upload all selected photos
+      const uploadPromises = result.assets
+        .slice(0, remainingSlots)
+        .map((asset) =>
+          uploadVehiclePhoto({
+            vehicleId,
+            fileUri: asset.uri,
+            mimeType: asset.mimeType ?? null,
+            fileName: asset.fileName ?? null,
+          })
+        )
+        .filter((promise): promise is Promise<VehiclePhoto> => !!promise);
+      await Promise.all(uploadPromises);
       await load();
+      toastSuccess(t("manageVehicle.photoAdded"));
+    } catch (e: any) {
+      toastError(t("common.error"), e?.message ?? String(e));
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
+
+  async function pickFromFiles() {
+    try {
+      const remainingSlots = 5 - photos.length;
+      if (remainingSlots <= 0) {
+        toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+        return;
+      }
+      setUploadingPhoto(true);
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "image/*",
+        copyToCacheDirectory: true,
+        multiple: remainingSlots > 1,
+      });
+      if (result.canceled) return;
+      if (!result.assets || result.assets.length === 0) {
+        throw new Error(t("attachments.noFileSelected"));
+      }
+
+      // Upload all selected files
+      const uploadPromises = result.assets
+        .slice(0, remainingSlots)
+        .map((asset) =>
+          uploadVehiclePhoto({
+            vehicleId,
+            fileUri: asset.uri,
+            mimeType: asset.mimeType ?? null,
+            fileName: asset.name ?? null,
+          })
+        )
+        .filter((promise): promise is Promise<VehiclePhoto> => !!promise);
+      await Promise.all(uploadPromises);
+      await load();
+      toastSuccess(t("manageVehicle.photoAdded"));
+    } catch (e: any) {
+      toastError(t("common.error"), e?.message ?? String(e));
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
+
+  async function removePhoto(photo: VehiclePhoto) {
+    try {
+      await deleteVehiclePhoto(photo);
+      await load();
+      toastSuccess(t("manageVehicle.photoRemoved"));
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     }
@@ -213,56 +351,66 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
         <>
           <View style={{ height: theme.spacing.md }} />
 
-          {/* Profile Photo Section */}
-          {vehicle.profile_photo_url ? (
-            <View style={styles.profilePhotoCard}>
-              <View style={styles.profilePhotoImageContainer}>
-                <Image
-                  source={{ uri: vehicle.profile_photo_url }}
-                  style={styles.profilePhotoImage}
-                  contentFit="cover"
-                  transition={200}
-                />
-                <View style={styles.profilePhotoMenuButton}>
-                  <IconButton
-                    onPress={() => {
-                      Alert.alert(t("manageVehicle.profilePhotoTitle"), "", [
-                        { text: t("common.cancel"), style: "cancel" },
-                        {
-                          text: t("manageVehicle.changeProfilePhoto"),
-                          onPress: () => void pickProfilePhoto(),
-                        },
-                        {
-                          text: t("manageVehicle.removeProfilePhoto"),
-                          style: "destructive",
-                          onPress: () => void removeProfilePhoto(),
-                        },
-                      ]);
-                    }}
-                    variant="ghost"
-                    disabled={saving || uploadingPhoto}
-                  >
-                    <Ionicons
-                      name="ellipsis-horizontal"
-                      size={20}
-                      color={theme.colors.fg}
-                    />
-                  </IconButton>
-                </View>
-              </View>
+          {/* Photos Section */}
+          <View style={styles.photosSection}>
+            <Text style={[styles.label, { color: theme.colors.muted }]}>
+              {t("vehicleForm.photos")} ({photos.length}/5)
+            </Text>
+            <View style={styles.photosGrid}>
+              {photos.map((photo, index) => {
+                const url = photoUrls[index];
+                if (!url) return null;
+                return (
+                  <View key={photo.id} style={styles.photoCard}>
+                    <View style={styles.photoImageContainer}>
+                      <Image
+                        source={{ uri: url }}
+                        style={styles.photoImage}
+                        contentFit="cover"
+                        transition={200}
+                      />
+                      <View style={styles.photoDeleteButton}>
+                        <IconButton
+                          onPress={() => {
+                            Alert.alert(
+                              t("manageVehicle.photoTitle"),
+                              t("manageVehicle.removePhotoConfirm"),
+                              [
+                                { text: t("common.cancel"), style: "cancel" },
+                                {
+                                  text: t("manageVehicle.removePhoto"),
+                                  style: "destructive",
+                                  onPress: () =>
+                                    void removePhoto(photo),
+                                },
+                              ]
+                            );
+                          }}
+                          variant="ghost"
+                          disabled={saving || uploadingPhoto}
+                        >
+                          <Ionicons
+                            name="close"
+                            size={18}
+                            color={theme.colors.fg}
+                          />
+                        </IconButton>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })}
+              {photos.length < 5 && (
+                <Button
+                  onPress={pickSource}
+                  disabled={saving || uploadingPhoto}
+                  variant="ghost"
+                >
+                  {t("vehicleForm.addPhoto")}
+                </Button>
+              )}
             </View>
-          ) : (
-            <View style={styles.profilePhotoCard}>
-              <Button
-                onPress={() => void pickProfilePhoto()}
-                variant="ghost"
-                disabled={saving || uploadingPhoto}
-                style={styles.profilePhotoButton}
-              >
-                {t("vehicleForm.addPhoto")}
-              </Button>
-            </View>
-          )}
+          </View>
 
           <View style={{ height: theme.spacing.sm }} />
           <View style={styles.group}>
@@ -488,7 +636,19 @@ const makeStyles = (theme: any) =>
     },
     cardTitle: { color: theme.colors.fg, fontWeight: "800" },
     cardMeta: { marginTop: 4, color: theme.colors.muted },
-    profilePhotoCard: {
+    photosSection: {
+      gap: 8,
+      marginTop: theme.spacing.sm,
+      marginBottom: 4,
+    },
+    photosGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: theme.spacing.sm,
+    },
+    photoCard: {
+      width: "47%",
+      aspectRatio: 1,
       borderRadius: theme.radius.md,
       overflow: "hidden",
       backgroundColor: theme.colors.card,
@@ -497,24 +657,23 @@ const makeStyles = (theme: any) =>
       shadowOpacity: 0.1,
       shadowRadius: 8,
       elevation: 4,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
     },
-    profilePhotoImageContainer: {
+    photoImageContainer: {
       position: "relative",
-      height: 220,
       width: "100%",
+      height: "100%",
     },
-    profilePhotoImage: {
+    photoImage: {
       width: "100%",
       height: "100%",
       backgroundColor: theme.colors.card,
     },
-    profilePhotoMenuButton: {
+    photoDeleteButton: {
       position: "absolute",
-      top: theme.spacing.sm,
-      right: theme.spacing.sm,
-    },
-    profilePhotoButton: {
-      borderWidth: 0,
+      top: theme.spacing.xs,
+      right: theme.spacing.xs,
     },
     loadingContainer: {
       paddingTop: theme.spacing.xl + theme.spacing.xs,

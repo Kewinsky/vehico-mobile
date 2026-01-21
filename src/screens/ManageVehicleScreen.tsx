@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
+import Carousel, { Pagination } from "react-native-reanimated-carousel";
+import { useSharedValue } from "react-native-reanimated";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Vehicle } from "../types/domain";
@@ -17,6 +19,52 @@ import { toastError, toastSuccess } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicle">;
 
+type VehicleCarouselProps = {
+  photoUrls: string[];
+  width: number;
+  height: number;
+  theme: any;
+};
+
+function VehicleCarousel({ photoUrls, width, height, theme }: VehicleCarouselProps) {
+  const progress = useSharedValue(0);
+
+  if (photoUrls.length === 0) return null;
+
+  return (
+    <View>
+      <Carousel
+        loop={true}
+        snapEnabled={true}
+        pagingEnabled={true}
+        data={photoUrls}
+        width={width}
+        height={height}
+        onProgressChange={(offsetProgress, absoluteProgress) => {
+          progress.value = absoluteProgress;
+        }}
+        renderItem={({ item: url }) => (
+          <Image
+            source={{ uri: url }}
+            style={{ width: "100%", height: "100%", backgroundColor: theme.colors.card }}
+            contentFit="cover"
+            transition={200}
+          />
+        )}
+      />
+      {photoUrls.length > 1 && (
+        <Pagination.Basic
+          progress={progress}
+          data={photoUrls.map((url) => ({ url }))}
+          dotStyle={{ backgroundColor: "rgba(255,255,255,0.5)", borderRadius: 50 }}
+          activeDotStyle={{ backgroundColor: theme.colors.accent, borderRadius: 50 }}
+          containerStyle={{ gap: 5, marginTop: 10 }}
+        />
+      )}
+    </View>
+  );
+}
+
 export function ManageVehicleScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -24,13 +72,37 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   const { vehicleId } = route.params;
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const windowWidth = Dimensions.get("window").width;
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
       const v = await getVehicle(vehicleId);
       setVehicle(v);
+      
+      // Load all photos
+      const { listVehiclePhotos, getVehiclePhotoUrl } = await import(
+        "../services/vehicles/uploadPhoto"
+      );
+      const photos = await listVehiclePhotos(vehicleId);
+      const urls = await Promise.all(
+        photos.map(async (photo) => {
+          try {
+            return await getVehiclePhotoUrl(photo);
+          } catch (error) {
+            console.error(
+              `Failed to get URL for photo ${photo.id}:`,
+              error
+            );
+            return null;
+          }
+        })
+      );
+      const validUrls = urls.filter((url): url is string => url !== null);
+      setPhotoUrls(validUrls);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {
@@ -99,12 +171,12 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
         <>
           <View style={styles.detailsCard}>
             <View style={styles.vehicleImageContainer}>
-              {vehicle.profile_photo_url ? (
-                <Image
-                  source={{ uri: vehicle.profile_photo_url }}
-                  style={styles.vehicleImage}
-                  contentFit="cover"
-                  transition={200}
+              {photoUrls.length > 0 ? (
+                <VehicleCarousel
+                  photoUrls={photoUrls}
+                  width={windowWidth - theme.spacing.md * 2}
+                  height={220}
+                  theme={theme}
                 />
               ) : (
                 <View style={styles.vehicleImagePlaceholder}>

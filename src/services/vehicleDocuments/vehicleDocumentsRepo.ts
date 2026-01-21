@@ -37,9 +37,7 @@ export async function uploadVehicleDocument(params: {
     contentType,
     fileName: params.fileName,
   });
-  const storagePath = `${
-    params.vehicleId
-  }/vehicle_documents/${Date.now()}-${randomId()}.${ext}`;
+  const storagePath = `vehicle_documents/${params.vehicleId}/${Date.now()}-${randomId()}.${ext}`;
 
   const fileData = await fetchBlob(params.fileUri);
 
