@@ -20,6 +20,8 @@ import { ServiceEntryDetailScreen } from "../../screens/ServiceEntryDetailScreen
 import { ServiceEntryFormScreen } from "../../screens/ServiceEntryFormScreen";
 import { SettingsScreen } from "../../screens/SettingsScreen";
 import { DataPortabilityScreen } from "../../screens/DataPortabilityScreen";
+import { ExportScreen } from "../../screens/ExportScreen";
+import { ImportScreen } from "../../screens/ImportScreen";
 import { AddAttachmentScreen } from "../../screens/AddAttachmentScreen";
 import { ShareScreen } from "../../screens/ShareScreen";
 import { StatisticsScreen } from "../../screens/StatisticsScreen";
@@ -47,6 +49,8 @@ export type AppStackParamList = {
   ManageVehicle: { vehicleId: string; title: string };
   ManageVehicleEdit: { vehicleId: string };
   DataPortability: { vehicleId: string; title: string };
+  Export: { vehicleId: string; title: string };
+  Import: { vehicleId: string; title: string };
   AddAttachment: { vehicleId: string; title: string };
   ServiceEntryForm: { vehicleId: string; entryId?: string };
   ServiceEntryDetail: { vehicleId: string; entryId: string };
@@ -121,6 +125,8 @@ export function RootNavigator() {
             name="DataPortability"
             component={DataPortabilityScreen}
           />
+          <Stack.Screen name="Export" component={ExportScreen} />
+          <Stack.Screen name="Import" component={ImportScreen} />
           <Stack.Screen name="AddAttachment" component={AddAttachmentScreen} />
           <Stack.Screen
             name="ServiceEntryDetail"

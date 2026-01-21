@@ -67,18 +67,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   }
 
   const tiles: Tile[] = [
-    {
-      key: "service",
-      title: t("dashboard.tiles.serviceTitle"),
-      icon: "construct",
-      onPress: () => navigation.navigate("VehicleDetail", { vehicleId, title }),
-    },
-    {
-      key: "fuel",
-      title: t("dashboard.tiles.fuelTitle"),
-      icon: "car",
-      onPress: () => navigation.navigate("Fuel", { vehicleId, title }),
-    },
+    // Row 1: Statystyki + Historia serwisowa
     {
       key: "stats",
       title: t("dashboard.tiles.statsTitle"),
@@ -86,10 +75,30 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       onPress: () => navigation.navigate("Statistics", { vehicleId, title }),
     },
     {
+      key: "service",
+      title: t("dashboard.tiles.serviceTitle"),
+      icon: "construct",
+      onPress: () => navigation.navigate("VehicleDetail", { vehicleId, title }),
+    },
+    // Row 2: Zarządzaj pojazdem + Dokumenty
+    {
+      key: "manage",
+      title: t("dashboard.tiles.manageTitle"),
+      icon: "car",
+      onPress: () => navigation.navigate("ManageVehicle", { vehicleId, title }),
+    },
+    {
       key: "docs",
       title: t("dashboard.tiles.docsTitle"),
       icon: "document-text",
       onPress: () => navigation.navigate("Documents", { vehicleId, title }),
+    },
+    // Row 3: Paliwo + Przypomnienia
+    {
+      key: "fuel",
+      title: t("dashboard.tiles.fuelTitle"),
+      icon: "flash",
+      onPress: () => navigation.navigate("Fuel", { vehicleId, title }),
     },
     {
       key: "reminders",
@@ -97,6 +106,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       icon: "notifications",
       onPress: () => navigation.navigate("Reminders", { vehicleId, title }),
     },
+    // Row 4: Udostępnij + Eksport/Import
     {
       key: "share",
       title: t("dashboard.tiles.shareTitle"),
@@ -107,14 +117,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       key: "data",
       title: t("dashboard.tiles.dataTitle"),
       icon: "download",
-      onPress: () =>
-        navigation.navigate("DataPortability", { vehicleId, title }),
-    },
-    {
-      key: "manage",
-      title: t("dashboard.tiles.manageTitle"),
-      icon: "settings",
-      onPress: () => navigation.navigate("ManageVehicle", { vehicleId, title }),
+      onPress: () => navigation.navigate("DataPortability", { vehicleId, title }),
     },
   ];
 
