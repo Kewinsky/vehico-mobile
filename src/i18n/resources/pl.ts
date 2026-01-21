@@ -151,7 +151,6 @@ export const pl = {
     },
   },
   dashboard: {
-    kicker: "Pojazd",
     backToVehicles: "Wróć do pojazdów",
     stats: {
       title: "Statystyki",
@@ -349,7 +348,6 @@ export const pl = {
     removePhoto: "Usuń zdjęcie",
     photosTitle: "Zdjęcia pojazdu",
     photosSubtitle: "To osobne od załączników do wpisów serwisowych.",
-    addPhoto: "Dodaj zdjęcie",
     deleteVehicle: "Usuń pojazd",
     deleteVehicleTitle: "Usunąć pojazd?",
     deleteVehicleBody: "To ukryje pojazd i wszystkie jego dane.",

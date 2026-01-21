@@ -78,14 +78,6 @@ export type UserSettings = {
 };
 
 
-export type VehicleGalleryPhoto = {
-  id: string;
-  vehicle_id: string;
-  storage_bucket: 'images';
-  storage_path: string;
-  created_at: string;
-};
-
 export type VehiclePhoto = {
   id: string;
   vehicle_id: string;

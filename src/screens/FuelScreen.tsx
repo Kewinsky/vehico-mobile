@@ -33,47 +33,7 @@ import { TextField } from "../ui/components/TextField";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
 
-function formatMonthYear(dateStr: string): string {
-  // dateStr is YYYY-MM-DD
-  const [year, month] = dateStr.split("-");
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  const monthIndex = parseInt(month, 10) - 1;
-  return `${monthNames[monthIndex]} ${year}`;
-}
-
-function formatMonthYearPL(dateStr: string): string {
-  // dateStr is YYYY-MM-DD
-  const [year, month] = dateStr.split("-");
-  const monthNames = [
-    "Styczeń",
-    "Luty",
-    "Marzec",
-    "Kwiecień",
-    "Maj",
-    "Czerwiec",
-    "Lipiec",
-    "Sierpień",
-    "Wrzesień",
-    "Październik",
-    "Listopad",
-    "Grudzień",
-  ];
-  const monthIndex = parseInt(month, 10) - 1;
-  return `${monthNames[monthIndex]} ${year}`;
-}
+import { formatMonthYear, formatMonthYearPL } from "../utils/dateFormatting";
 
 export function FuelScreen({ route, navigation }: Props) {
   const { t } = useTranslation();

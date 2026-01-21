@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Dimensions,
   FlatList,
   Pressable,
@@ -19,6 +18,10 @@ import { useSharedValue } from "react-native-reanimated";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Vehicle } from "../types/domain";
 import { listVehicles } from "../services/vehicles/vehiclesRepo";
+import {
+  listVehiclePhotos,
+  getVehiclePhotoUrl,
+} from "../services/vehicles/uploadPhoto";
 import { useAuth } from "../app/providers/AuthProvider";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
@@ -110,30 +113,14 @@ export function VehiclesScreen({ navigation }: Props) {
         setItems(data);
         
         // Load all photos for each vehicle
-        const { listVehiclePhotos, getVehiclePhotoUrl } = await import(
-          "../services/vehicles/uploadPhoto"
-        );
         const urlsMap = new Map<string, string[]>();
         await Promise.all(
           data.map(async (vehicle) => {
             try {
               const photos = await listVehiclePhotos(vehicle.id);
-              const urls = await Promise.all(
-                photos.map(async (photo) => {
-                  try {
-                    return await getVehiclePhotoUrl(photo);
-                  } catch (error) {
-                    console.error(
-                      `Failed to get URL for photo ${photo.id} (vehicle ${vehicle.id}):`,
-                      error
-                    );
-                    return null;
-                  }
-                })
-              );
-              const validUrls = urls.filter((url): url is string => url !== null);
-              if (validUrls.length > 0) {
-                urlsMap.set(vehicle.id, validUrls);
+              const urls = photos.map((photo) => getVehiclePhotoUrl(photo));
+              if (urls.length > 0) {
+                urlsMap.set(vehicle.id, urls);
               }
             } catch (error) {
               console.error(

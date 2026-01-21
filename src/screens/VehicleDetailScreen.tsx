@@ -37,52 +37,11 @@ import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDetail">;
 
-function formatDate(iso: string) {
-  // Keep simple (trustworthy, document-like): YYYY-MM-DD
-  return iso.slice(0, 10);
-}
-
-function formatMonthYear(dateStr: string): string {
-  // dateStr is YYYY-MM-DD
-  const [year, month] = dateStr.split("-");
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  const monthIndex = parseInt(month, 10) - 1;
-  return `${monthNames[monthIndex]} ${year}`;
-}
-
-function formatMonthYearPL(dateStr: string): string {
-  // dateStr is YYYY-MM-DD
-  const [year, month] = dateStr.split("-");
-  const monthNames = [
-    "Styczeń",
-    "Luty",
-    "Marzec",
-    "Kwiecień",
-    "Maj",
-    "Czerwiec",
-    "Lipiec",
-    "Sierpień",
-    "Wrzesień",
-    "Październik",
-    "Listopad",
-    "Grudzień",
-  ];
-  const monthIndex = parseInt(month, 10) - 1;
-  return `${monthNames[monthIndex]} ${year}`;
-}
+import {
+  formatDate,
+  formatMonthYear,
+  formatMonthYearPL,
+} from "../utils/dateFormatting";
 
 export function VehicleDetailScreen({ navigation, route }: Props) {
   const { t } = useTranslation();

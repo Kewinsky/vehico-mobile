@@ -151,7 +151,6 @@ export const en = {
     },
   },
   dashboard: {
-    kicker: "Vehicle",
     backToVehicles: "Back to vehicles",
     stats: {
       title: "Statistics",

@@ -23,9 +23,7 @@ import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 
-function formatDate(iso: string) {
-  return iso.slice(0, 10);
-}
+import { formatDate } from "../utils/dateFormatting";
 
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplacePostHistory">;
 

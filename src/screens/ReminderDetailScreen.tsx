@@ -21,9 +21,7 @@ import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderDetail">;
 
-function formatDate(iso: string) {
-  return iso.slice(0, 10);
-}
+import { formatDate } from "../utils/dateFormatting";
 
 export function ReminderDetailScreen({ route, navigation }: Props) {
   const { t } = useTranslation();

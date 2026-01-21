@@ -197,7 +197,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         ListHeaderComponent={
           <View style={styles.listHeader}>
             <View style={styles.header}>
-              <Text style={styles.kicker}>{t("dashboard.kicker")}</Text>
               <Text style={styles.title}>{title}</Text>
               {vehicle?.vin && (
                 <Pressable
@@ -347,13 +346,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingTop: theme.spacing.sm,
       paddingBottom: theme.spacing.sm,
       gap: theme.spacing.xs / 2,
-    },
-    kicker: {
-      color: theme.colors.muted,
-      fontSize: theme.typography.small,
-      fontWeight: "700",
-      letterSpacing: 1,
-      textTransform: "uppercase",
     },
     title: {
       color: theme.colors.fg,

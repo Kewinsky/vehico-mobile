@@ -93,21 +93,8 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       // Load photos
       const photosList = await listVehiclePhotos(vehicleId);
       setPhotos(photosList);
-      const urls = await Promise.all(
-        photosList.map(async (photo) => {
-          try {
-            return await getVehiclePhotoUrl(photo);
-          } catch (error) {
-            console.error(
-              `Failed to get URL for photo ${photo.id}:`,
-              error
-            );
-            return null;
-          }
-        })
-      );
-      const validUrls = urls.filter((url): url is string => url !== null);
-      setPhotoUrls(validUrls);
+      const urls = photosList.map((photo) => getVehiclePhotoUrl(photo));
+      setPhotoUrls(urls);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {

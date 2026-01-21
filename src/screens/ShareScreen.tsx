@@ -52,7 +52,6 @@ export function ShareScreen({ navigation, route }: Props) {
         </View>
       </View>
       <View style={styles.wrap}>
-        <View style={{ height: theme.spacing.md }} />
         <Button
           onPress={handleOnlineReport}
           variant="ghost"
@@ -87,9 +86,6 @@ const makeStyles = (theme: any) =>
       paddingTop: theme.spacing.sm,
       paddingBottom: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
-      backgroundColor: theme.colors.bg,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
     },
     header: {
       gap: theme.spacing.xs / 2,

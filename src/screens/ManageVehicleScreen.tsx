@@ -11,6 +11,10 @@ import { useSharedValue } from "react-native-reanimated";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Vehicle } from "../types/domain";
 import { deleteVehicle, getVehicle } from "../services/vehicles/vehiclesRepo";
+import {
+  listVehiclePhotos,
+  getVehiclePhotoUrl,
+} from "../services/vehicles/uploadPhoto";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
@@ -84,25 +88,9 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
       setVehicle(v);
       
       // Load all photos
-      const { listVehiclePhotos, getVehiclePhotoUrl } = await import(
-        "../services/vehicles/uploadPhoto"
-      );
       const photos = await listVehiclePhotos(vehicleId);
-      const urls = await Promise.all(
-        photos.map(async (photo) => {
-          try {
-            return await getVehiclePhotoUrl(photo);
-          } catch (error) {
-            console.error(
-              `Failed to get URL for photo ${photo.id}:`,
-              error
-            );
-            return null;
-          }
-        })
-      );
-      const validUrls = urls.filter((url): url is string => url !== null);
-      setPhotoUrls(validUrls);
+      const urls = photos.map((photo) => getVehiclePhotoUrl(photo));
+      setPhotoUrls(urls);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {

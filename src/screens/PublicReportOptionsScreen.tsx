@@ -99,7 +99,6 @@ const makeStyles = (theme: any) =>
       color: theme.colors.fg,
     },
     subtitle: {
-      marginTop: 8,
       color: theme.colors.muted,
       lineHeight: 22,
     },

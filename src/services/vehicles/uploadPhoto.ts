@@ -1,7 +1,6 @@
 import type { VehiclePhoto } from "../../types/domain";
 import { supabase } from "../supabase/client";
 import { fetchBlob, randomId } from "../storage/uploadUtils";
-import { createSignedUrl } from "../attachments/attachmentsRepo";
 import * as ImageManipulator from "expo-image-manipulator";
 
 const MAX_PHOTOS = 6;
@@ -142,33 +141,10 @@ export async function reorderVehiclePhotos(
 }
 
 /**
- * Gets signed URL for a photo (for authenticated users)
- * Falls back to public URL if signed URL fails
+ * Gets public URL for a vehicle photo
+ * Note: Bucket is public, so we use public URLs directly
  */
-export async function getVehiclePhotoUrl(
-  photo: VehiclePhoto
-): Promise<string> {
-  try {
-    return await createSignedUrl(
-      photo.storage_bucket,
-      photo.storage_path,
-      60 * 60 * 24 * 365
-    ); // 1 year expiry
-  } catch (error) {
-    // Fallback to public URL if signed URL fails
-    console.warn(
-      `Failed to create signed URL for photo ${photo.id}, using public URL:`,
-      error
-    );
-    return getVehiclePhotoPublicUrl(photo);
-  }
-}
-
-/**
- * Gets public URL for a photo (for unauthenticated/public access)
- * Note: This requires the bucket to be public and RLS policies to allow anon access
- */
-export function getVehiclePhotoPublicUrl(photo: VehiclePhoto): string {
+export function getVehiclePhotoUrl(photo: VehiclePhoto): string {
   const { data } = supabase.storage
     .from(photo.storage_bucket)
     .getPublicUrl(photo.storage_path);
