@@ -39,11 +39,12 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
     (i18n.language as Language) || (settings?.language as Language) || "pl"
   );
   const [price, setPrice] = useState("");
+  const [currency, setCurrency] = useState<string>(
+    settings?.currency ?? "PLN"
+  );
   const [content, setContent] = useState("");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  const currency = settings?.currency ?? "PLN";
 
   async function handleGenerate() {
     try {
@@ -57,6 +58,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
         vehicleId,
         language,
         price: priceNum,
+        currency,
       });
 
       setContent(generated);
@@ -99,6 +101,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
       toastSuccess(t("marketplace.saved"));
       setContent("");
       setPrice("");
+      setCurrency(settings?.currency ?? "PLN");
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {
@@ -168,6 +171,19 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
         onChangeText={setPrice}
         keyboardType="decimal-pad"
         placeholder={t("marketplace.pricePlaceholder", { currency })}
+      />
+
+      <View style={{ height: theme.spacing.sm }} />
+
+      <PickerField
+        noMarginTop
+        label={t("settings.currency")}
+        value={currency}
+        options={["PLN", "EUR"] as const}
+        getLabel={(value) => value}
+        onChange={(value) => {
+          if (value) setCurrency(value);
+        }}
       />
 
       <View style={{ height: theme.spacing.md }} />

@@ -11,6 +11,7 @@ interface GenerateRequest {
   vehicleId: string;
   language: "en" | "pl";
   price?: number | null;
+  currency?: string;
 }
 
 interface VehicleData {
@@ -111,7 +112,8 @@ function generateMarketplacePost(
   vehicle: VehicleData,
   serviceEntries: ServiceEntry[],
   language: "en" | "pl",
-  price: number | null
+  price: number | null,
+  currency: string = "PLN"
 ): string {
   const isPL = language === "pl";
 
@@ -121,18 +123,29 @@ function generateMarketplacePost(
       .filter((e) => e.mileage !== null)
       .sort((a, b) => (b.mileage || 0) - (a.mileage || 0))[0]?.mileage || null;
 
-  // Title: SPRZEDAM: [marka] [model] · [rok_produkcji] · [moc]
+  // FOR SALE section
+  const forSaleTitle = isPL ? "=== SPRZEDAM ===" : "=== FOR SALE ===";
   const power = formatValue(vehicle.power_hp, isPL ? "moc" : "power");
   const powerUnit = isPL ? "KM" : "HP";
-  const title = isPL
-    ? `SPRZEDAM: ${vehicle.make} ${vehicle.model} · ${vehicle.production_year} · ${power} ${powerUnit}`
-    : `FOR SALE: ${vehicle.make} ${vehicle.model} · ${vehicle.production_year} · ${power} ${powerUnit}`;
+  const vehicleInfo = isPL
+    ? `${vehicle.make} ${vehicle.model} z ${vehicle.production_year} roku o mocy ${power}${powerUnit}`
+    : `${vehicle.make} ${vehicle.model} from ${vehicle.production_year} year with ${power}${powerUnit}`;
+  const vinLine = vehicle.vin ? `VIN: ${vehicle.vin}` : null;
+  const priceLine = price !== null && price > 0 
+    ? `${isPL ? "Cena" : "Price"}: ${price.toLocaleString()} ${currency}`
+    : null;
+  
+  const forSaleLines = [forSaleTitle, vehicleInfo];
+  if (vinLine) forSaleLines.push(vinLine);
+  if (priceLine) forSaleLines.push(priceLine);
+  const forSaleSection = forSaleLines.join("\n");
 
   // Technical specification
   const specTitle = isPL
     ? "SPECYFIKACJA TECHNICZNA"
     : "TECHNICAL SPECIFICATION";
-  const spec = `${specTitle}
+  const spec = `=== ${specTitle} ===
+${isPL ? "Rok produkcji" : "Production year"}: ${vehicle.production_year}
 ${isPL ? "Pojemność silnika" : "Engine capacity"}: ${formatValue(
     vehicle.engine_capacity,
     isPL ? "pojemnosc_silnika" : "engine_capacity"
@@ -156,10 +169,10 @@ ${isPL ? "Przebieg" : "Mileage"}: ${formatValue(
 
   // Service history
   const historyTitle = isPL ? "HISTORIA SERWISOWA" : "SERVICE HISTORY";
-  const history = `${historyTitle}
+  const history = `=== ${historyTitle} ===
 ${formatServiceHistory(serviceEntries, language)}`;
 
-  return [title, "", spec, "", history].join("\n");
+  return [forSaleSection, "", spec, "", history].join("\n");
 }
 
 serve(async (req) => {
@@ -192,7 +205,7 @@ serve(async (req) => {
       });
     }
 
-    const { vehicleId, language, price }: GenerateRequest = await req.json();
+    const { vehicleId, language, price, currency = "PLN" }: GenerateRequest = await req.json();
 
     if (!vehicleId || !language) {
       return new Response(
@@ -238,7 +251,8 @@ serve(async (req) => {
       vehicle as VehicleData,
       (serviceEntries || []) as ServiceEntry[],
       language,
-      price ?? null
+      price ?? null,
+      currency
     );
 
     return new Response(JSON.stringify({ content }), {

@@ -5,6 +5,7 @@ type GenerateMarketplacePostInput = {
   vehicleId: string;
   language: Language;
   price?: number | null;
+  currency?: string;
 };
 
 type SaveMarketplacePostInput = {
@@ -25,6 +26,7 @@ export async function generateMarketplacePost(
         vehicleId: input.vehicleId,
         language: input.language,
         price: input.price ?? null,
+        currency: input.currency ?? "PLN",
       },
     }
   );

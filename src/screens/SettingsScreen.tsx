@@ -72,7 +72,7 @@ export function SettingsScreen({ navigation }: Props) {
               ]}
             >
               <Text style={{ color: settings?.distanceUnit === u ? theme.colors.fg : theme.colors.muted, fontWeight: '800' }}>
-                {u}
+                {u === 'km' ? t('settings.distanceUnitKm') : t('settings.distanceUnitMiles')}
               </Text>
             </Pressable>
           ))}
@@ -92,7 +92,7 @@ export function SettingsScreen({ navigation }: Props) {
               ]}
             >
               <Text style={{ color: settings?.fuelUnit === u ? theme.colors.fg : theme.colors.muted, fontWeight: '800' }}>
-                {u}
+                {u === 'liters' ? t('settings.fuelUnitLiters') : t('settings.fuelUnitGallons')}
               </Text>
             </Pressable>
           ))}
@@ -112,7 +112,7 @@ export function SettingsScreen({ navigation }: Props) {
               ]}
             >
               <Text style={{ color: settings?.theme === m ? theme.colors.fg : theme.colors.muted, fontWeight: '800' }}>
-                {m}
+                {m === 'light' ? t('settings.themeLight') : t('settings.themeDark')}
               </Text>
             </Pressable>
           ))}
@@ -121,7 +121,7 @@ export function SettingsScreen({ navigation }: Props) {
         <View style={{ height: 12 }} />
           <Text style={[styles.section, { color: theme.colors.muted }]}>{t('settings.language')}</Text>
         <View style={styles.row}>
-          {(['en', 'pl'] as const).map((lng) => (
+          {(['pl', 'en'] as const).map((lng) => (
             <Pressable
               key={lng}
               onPress={() => void pick('language', lng)}

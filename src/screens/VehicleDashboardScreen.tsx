@@ -364,7 +364,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.xs,
-      marginTop: theme.spacing.xs,
     },
     vinText: {
       fontSize: theme.typography.small,
