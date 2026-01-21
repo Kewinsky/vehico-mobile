@@ -23,6 +23,9 @@ import {
   listReminders,
   updateReminder,
 } from "../services/reminders/remindersRepo";
+import { cancelReminderNotification } from "../services/notifications/notificationsService";
+import { scheduleRemindersForVehicle } from "../services/reminders/reminderNotifications";
+import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import { Button } from "../ui/components/Button";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
@@ -84,6 +87,18 @@ export function RemindersScreen({ route, navigation }: Props) {
       setItems((prev) =>
         prev.map((r) => (r.id === reminderId ? { ...r, status: newStatus } : r))
       );
+      
+      // Cancel or reschedule notification based on new status
+      if (newStatus === "done") {
+        await cancelReminderNotification(reminderId);
+      } else {
+        // Reschedule if reactivated
+        const reminder = items.find((r) => r.id === reminderId);
+        if (reminder) {
+          const vehicle = await getVehicle(reminder.vehicle_id);
+          await scheduleRemindersForVehicle(reminder.vehicle_id, vehicle.title);
+        }
+      }
     } catch (err: any) {
       toastError(t("common.error"), err?.message ?? String(err));
     }
@@ -99,6 +114,9 @@ export function RemindersScreen({ route, navigation }: Props) {
           try {
             await deleteReminder(id);
             setItems((prev) => prev.filter((x) => x.id !== id));
+            
+            // Cancel notification for deleted reminder
+            await cancelReminderNotification(id);
           } catch (err: any) {
             toastError(t("common.error"), err?.message ?? String(err));
           }
@@ -519,8 +537,8 @@ export function RemindersScreen({ route, navigation }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingTop: theme.spacing.sm,
-      paddingBottom: theme.spacing.sm,
+      paddingTop: theme.spacing.md,
+      paddingBottom: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
       backgroundColor: theme.colors.bg,
       borderBottomWidth: 1,

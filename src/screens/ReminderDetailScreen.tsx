@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { deleteReminder, getReminder } from "../services/reminders/remindersRepo";
+import { cancelReminderNotification } from "../services/notifications/notificationsService";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
@@ -60,6 +61,10 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
         onPress: async () => {
           try {
             await deleteReminder(reminderId);
+            
+            // Cancel notification for deleted reminder
+            await cancelReminderNotification(reminderId);
+            
             navigation.goBack();
           } catch (e: any) {
             toastError(t("common.error"), e?.message ?? String(e));

@@ -27,6 +27,7 @@ import {
   listAttachments,
   uploadAttachment,
 } from "../services/attachments/attachmentsRepo";
+import { checkMileageReminders } from "../services/reminders/checkMileageReminders";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { Button } from "../ui/components/Button";
 import { AppHeader } from "../ui/components/AppHeader";
@@ -289,6 +290,11 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             });
           }
         }
+      }
+
+      // Check mileage-based reminders if mileage was provided
+      if (payload.mileage != null) {
+        await checkMileageReminders(vehicleId, payload.mileage);
       }
 
       navigation.goBack();

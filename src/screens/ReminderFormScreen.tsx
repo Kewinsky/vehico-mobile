@@ -10,6 +10,8 @@ import {
   getReminder,
   updateReminder,
 } from "../services/reminders/remindersRepo";
+import { scheduleRemindersForVehicle } from "../services/reminders/reminderNotifications";
+import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { DateField } from "../ui/components/DateField";
@@ -83,8 +85,14 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         channel_push: true,
         enabled: true,
       };
-      if (reminderId) await updateReminder(reminderId, payload);
-      else await createReminder(payload);
+      const reminder = reminderId
+        ? await updateReminder(reminderId, payload)
+        : await createReminder(payload);
+      
+      // Schedule notification for the reminder
+      const vehicle = await getVehicle(vehicleId);
+      await scheduleRemindersForVehicle(vehicleId, vehicle.title);
+      
       navigation.goBack();
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
