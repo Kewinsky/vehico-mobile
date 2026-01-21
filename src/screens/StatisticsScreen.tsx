@@ -73,12 +73,8 @@ export function StatisticsScreen({ route, navigation }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingTop: theme.spacing.sm,
-      paddingBottom: theme.spacing.sm,
+      paddingTop: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
-      backgroundColor: theme.colors.bg,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
     },
     headerRow: {
       flexDirection: "row",
