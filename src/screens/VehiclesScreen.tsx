@@ -152,7 +152,6 @@ export function VehiclesScreen({ navigation }: Props) {
     <Screen padding={false}>
       <AppHeader />
       <View style={styles.top}>
-        <Text style={styles.title}>{t("vehicles.title")}</Text>
         <View style={styles.actions}>
           <Pressable
             onPress={() => navigation.navigate("Settings")}
@@ -172,7 +171,7 @@ export function VehiclesScreen({ navigation }: Props) {
             <ActivityIndicator size="large" color={theme.colors.accent} />
           </View>
         ) : items.length === 0 ? (
-          <View style={styles.empty}>
+          <View style={styles.emptyContainer}>
             <Text style={styles.emptyTitle}>{t("vehicles.emptyTitle")}</Text>
             <Text style={styles.emptyBody}>{t("vehicles.emptyBody")}</Text>
             <View style={{ height: 16 }} />
@@ -280,10 +279,9 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.md,
       flexDirection: "row",
-      justifyContent: "space-between",
+      justifyContent: "flex-end",
       alignItems: "center",
     },
-    title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
     actions: {
       flexDirection: "row",
       alignItems: "center",
@@ -294,9 +292,8 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flex: 1,
       paddingHorizontal: theme.spacing.md,
     },
-    empty: {
-      flex: 1,
-      justifyContent: "center",
+    emptyContainer: {
+      gap: theme.spacing.xs / 2,
     },
     emptyTitle: {
       fontSize: 20,
@@ -304,8 +301,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       color: theme.colors.fg,
     },
     emptyBody: {
-      marginTop: 8,
-      lineHeight: 22,
       color: theme.colors.muted,
     },
     loadingContainer: {

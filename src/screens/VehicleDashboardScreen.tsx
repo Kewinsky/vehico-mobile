@@ -413,7 +413,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     fab: {
       width: 50,
       height: 50,
-      borderRadius: theme.radius.md,
+      borderRadius: 25,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,

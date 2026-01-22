@@ -584,8 +584,6 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                   tone="reminder"
                   dateLabel={dateLabel}
                   title={r.title ?? t("reminders.title")}
-                  badge={t("reminderDetail.title")}
-                  badgeVariant="muted"
                   subtitle={dueText}
                 />
               </Pressable>
