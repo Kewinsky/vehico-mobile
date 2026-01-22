@@ -64,7 +64,7 @@ export const darkTheme: AppTheme = {
     border: '#333333',  // dark gray
     card: '#000000',    // pure black
     accent: '#FFB803',  // orange/yellow
-    danger: '#F87171',  // red-400
+    danger: '#EF4444',  // red-500
   },
   spacing: lightTheme.spacing,
   radius: lightTheme.radius,
