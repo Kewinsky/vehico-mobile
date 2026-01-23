@@ -950,8 +950,8 @@ using (
     select 1
     from public.vehicles v
     where (
-      -- Vehicle documents: <vehicle_id>/<...>
-      v.id::text = split_part(name, '/', 1)
+      -- Vehicle documents: vehicle_documents/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'vehicle_documents' and v.id::text = split_part(name, '/', 2))
       or
       -- Attachments: service_entry_attachments/<vehicle_id>/<...>
       (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
@@ -971,8 +971,8 @@ with check (
     select 1
     from public.vehicles v
     where (
-      -- Vehicle documents: <vehicle_id>/<...>
-      v.id::text = split_part(name, '/', 1)
+      -- Vehicle documents: vehicle_documents/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'vehicle_documents' and v.id::text = split_part(name, '/', 2))
       or
       -- Attachments: service_entry_attachments/<vehicle_id>/<...>
       (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
@@ -992,8 +992,8 @@ using (
     select 1
     from public.vehicles v
     where (
-      -- Vehicle documents: <vehicle_id>/<...>
-      v.id::text = split_part(name, '/', 1)
+      -- Vehicle documents: vehicle_documents/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'vehicle_documents' and v.id::text = split_part(name, '/', 2))
       or
       -- Attachments: service_entry_attachments/<vehicle_id>/<...>
       (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
@@ -1007,8 +1007,8 @@ with check (
     select 1
     from public.vehicles v
     where (
-      -- Vehicle documents: <vehicle_id>/<...>
-      v.id::text = split_part(name, '/', 1)
+      -- Vehicle documents: vehicle_documents/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'vehicle_documents' and v.id::text = split_part(name, '/', 2))
       or
       -- Attachments: service_entry_attachments/<vehicle_id>/<...>
       (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
@@ -1028,8 +1028,8 @@ using (
     select 1
     from public.vehicles v
     where (
-      -- Vehicle documents: <vehicle_id>/<...>
-      v.id::text = split_part(name, '/', 1)
+      -- Vehicle documents: vehicle_documents/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'vehicle_documents' and v.id::text = split_part(name, '/', 2))
       or
       -- Attachments: service_entry_attachments/<vehicle_id>/<...>
       (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
