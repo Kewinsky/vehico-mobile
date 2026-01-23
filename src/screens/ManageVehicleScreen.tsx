@@ -179,8 +179,9 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                 </View>
               )}
             </View>
+            <View style={{ height: theme.spacing.md }} />
             <View style={styles.detailsContent}>
-              <Text style={styles.detailsTitle}>{vehicle.title}</Text>
+              <Text style={styles.detailsTitle}>{`${vehicle.make} ${vehicle.model}`}</Text>
               {vehicle.vin && (
                 <Pressable
                   onPress={onCopyVin}
@@ -197,51 +198,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
               )}
               <View style={styles.divider} />
               <View style={styles.detailsGrid}>
-                {/* Row 1: Marka + Model */}
-                <View style={styles.detailsRow}>
-                  <View style={styles.detailItem}>
-                    <View
-                      style={[
-                        styles.detailIconContainer,
-                        { backgroundColor: theme.colors.accent + "25" },
-                      ]}
-                    >
-                      <Ionicons
-                        name="construct-outline"
-                        size={18}
-                        color={theme.colors.accent}
-                      />
-                    </View>
-                    <View style={styles.detailContent}>
-                      <Text style={styles.detailLabel}>
-                        {t("vehicleForm.makeLabel")}
-                      </Text>
-                      <Text style={styles.detailValue}>{vehicle.make}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <View
-                      style={[
-                        styles.detailIconContainer,
-                        { backgroundColor: theme.colors.accent + "25" },
-                      ]}
-                    >
-                      <Ionicons
-                        name="car-outline"
-                        size={18}
-                        color={theme.colors.accent}
-                      />
-                    </View>
-                    <View style={styles.detailContent}>
-                      <Text style={styles.detailLabel}>
-                        {t("vehicleForm.modelLabel")}
-                      </Text>
-                      <Text style={styles.detailValue}>{vehicle.model}</Text>
-                    </View>
-                  </View>
-                </View>
-
-                {/* Row 2: Rok + Przebieg */}
+                {/* Row 1: Rok + Przebieg */}
                 <View style={styles.detailsRow}>
                   <View style={styles.detailItem}>
                     <View
@@ -291,7 +248,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                   </View>
                 </View>
 
-                {/* Row 3: Silnik + Moc */}
+                {/* Row 2: Silnik + Moc */}
                 <View style={styles.detailsRow}>
                   <View style={styles.detailItem}>
                     <View
@@ -341,7 +298,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                   </View>
                 </View>
 
-                {/* Row 4: Skrzynia + Napęd */}
+                {/* Row 3: Skrzynia + Napęd */}
                 <View style={styles.detailsRow}>
                   <View style={styles.detailItem}>
                     <View
@@ -398,7 +355,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                   </View>
                 </View>
 
-                {/* Row 5: Rodzaj paliwa + Notatki (skrócone) */}
+                {/* Row 4: Rodzaj paliwa + Notatki (skrócone) */}
                 <View style={styles.detailsRow}>
                   <View style={styles.detailItem}>
                     <View

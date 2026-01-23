@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Alert,
   FlatList,
@@ -13,6 +13,8 @@ import * as Clipboard from "expo-clipboard";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { MarketplacePost } from "../types/domain";
+import { getVehicle } from "../services/vehicles/vehiclesRepo";
+import type { Vehicle } from "../types/domain";
 import {
   listMarketplacePosts,
   deleteMarketplacePost,
@@ -32,10 +34,25 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
-
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [posts, setPosts] = useState<MarketplacePost[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const loadVehicle = useCallback(async () => {
+    try {
+      const v = await getVehicle(vehicleId);
+      setVehicle(v);
+    } catch (e: any) {
+      toastError(t("common.error"), e?.message ?? String(e));
+    }
+  }, [vehicleId, t]);
+
+  useEffect(() => {
+    void loadVehicle();
+  }, [loadVehicle]);
+
+  const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
 
   useEffect(() => {
     void loadPosts();
@@ -109,7 +126,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
       <View style={styles.wrap}>
         <Text style={styles.h1}>{t("marketplace.historyTitle")}</Text>
         <Text style={styles.subtitle}>
-          {t("marketplace.historySubtitle", { vehicleTitle: route.params.title })}
+          {t("marketplace.historySubtitle", { vehicleTitle })}
         </Text>
 
         <View style={{ height: theme.spacing.md }} />

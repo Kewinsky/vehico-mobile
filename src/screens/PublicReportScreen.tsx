@@ -1,10 +1,12 @@
 import { StyleSheet, Text, View, ActivityIndicator, Alert } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import { getVehicle } from "../services/vehicles/vehiclesRepo";
+import type { Vehicle } from "../types/domain";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
@@ -21,9 +23,24 @@ export function PublicReportScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId, title } = route.params;
-
+  const { vehicleId } = route.params;
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [generating, setGenerating] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const v = await getVehicle(vehicleId);
+      setVehicle(v);
+    } catch (e: any) {
+      toastError(t("common.error"), e?.message ?? String(e));
+    }
+  }, [vehicleId, t]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
 
   async function handleGenerateReport() {
     Alert.alert(
@@ -40,7 +57,7 @@ export function PublicReportScreen({ navigation, route }: Props) {
               const url = await getPublicPageUrl(publicPage.public_id);
               navigation.navigate("PublicReportOptions", {
                 url,
-                vehicleTitle: title,
+                vehicleTitle,
               });
             } catch (e: any) {
               toastError(t("common.error"), e?.message ?? String(e));
@@ -60,7 +77,7 @@ export function PublicReportScreen({ navigation, route }: Props) {
         <View style={styles.header}>
           <Text style={styles.h1}>{t("publicReport.title")}</Text>
           <Text style={styles.subtitle}>
-            {t("publicReport.subtitle", { vehicleTitle: title })}
+            {t("publicReport.subtitle", { vehicleTitle })}
           </Text>
         </View>
       </View>
@@ -87,7 +104,6 @@ export function PublicReportScreen({ navigation, route }: Props) {
           onPress={() =>
             navigation.navigate("PublicReportHistory", {
               vehicleId,
-              title,
             })
           }
           variant="ghost"

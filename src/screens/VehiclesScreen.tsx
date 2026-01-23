@@ -28,6 +28,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
+import { useUserSettings } from "../app/providers/UserSettingsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 
@@ -97,7 +98,16 @@ export function VehiclesScreen({ navigation }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   
   const windowWidth = Dimensions.get("window").width;
-
+  const { settings } = useUserSettings();
+  const distanceUnit = settings?.distanceUnit ?? "km";
+  
+  // Convert mileage from km to miles if needed
+  const formatMileage = (mileage: number | null | undefined): string => {
+    if (!mileage) return "";
+    const value = distanceUnit === "miles" ? Math.round(mileage * 0.621371) : mileage;
+    return `${value.toLocaleString()} ${distanceUnit === "km" ? "km" : "miles"}`;
+  };
+  
   function onSignOut() {
     signOut().catch((e: any) => {
       toastError(t("common.error"), e?.message ?? String(e));
@@ -190,10 +200,9 @@ export function VehiclesScreen({ navigation }: Props) {
               renderItem={({ item }) => (
                 <Pressable
                   onPress={() =>
-                    navigation.navigate("VehicleDashboard", {
-                      vehicleId: item.id,
-                      title: item.title,
-                    })
+                  navigation.navigate("VehicleDashboard", {
+                    vehicleId: item.id,
+                  })
                   }
                   style={({ pressed }) => [
                     styles.vehicleCard,
@@ -215,15 +224,16 @@ export function VehiclesScreen({ navigation }: Props) {
                             </View>
                             <View style={styles.vehicleImageContent}>
                               <Text style={styles.vehicleTitle} numberOfLines={2}>
-                                {item.title}
+                                {`${item.make} ${item.model}`}
                               </Text>
                               <Text style={styles.vehicleMeta} numberOfLines={1}>
-                                {item.make} {item.model} · {item.production_year}
+                                {item.production_year}
                                 {item.power_hp
                                   ? ` · ${item.power_hp}${
                                       i18n.language === "pl" ? "KM" : "HP"
                                     }`
                                   : ""}
+                                {item.mileage ? ` · ${formatMileage(item.mileage)}` : ""}
                               </Text>
                             </View>
                           </>
@@ -240,15 +250,16 @@ export function VehiclesScreen({ navigation }: Props) {
                           />
                           <View style={styles.vehicleImageContent}>
                             <Text style={styles.vehicleTitle} numberOfLines={2}>
-                              {item.title}
+                              {`${item.make} ${item.model}`}
                             </Text>
                             <Text style={styles.vehicleMeta} numberOfLines={1}>
-                              {item.make} {item.model} · {item.production_year}
+                              {item.production_year}
                               {item.power_hp
                                 ? ` · ${item.power_hp}${
                                     i18n.language === "pl" ? "KM" : "HP"
                                   }`
                                 : ""}
+                              {item.mileage ? ` · ${formatMileage(item.mileage)}` : ""}
                             </Text>
                           </View>
                         </>

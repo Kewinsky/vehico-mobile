@@ -15,7 +15,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId, title } = route.params;
+  const { vehicleId } = route.params;
 
   return (
     <Screen padding={false}>
@@ -28,14 +28,14 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
       </View>
       <View style={styles.wrap}>
         <Button
-          onPress={() => navigation.navigate("Export", { vehicleId, title })}
+          onPress={() => navigation.navigate("Export", { vehicleId })}
           variant="ghost"
         >
           {t("dataPortability.exportButton")}
         </Button>
         <View style={{ height: 10 }} />
         <Button
-          onPress={() => navigation.navigate("Import", { vehicleId, title })}
+          onPress={() => navigation.navigate("Import", { vehicleId })}
           variant="ghost"
         >
           {t("dataPortability.importButton")}

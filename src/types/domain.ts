@@ -8,7 +8,6 @@ export type Vehicle = {
   id: string;
   owner_id: string;
   type: VehicleType;
-  title: string;
   vin: string | null;
   make: string;
   model: string;

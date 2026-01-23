@@ -289,7 +289,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
                 onPress={() =>
                   navigation.navigate("AddAttachment", {
                     vehicleId: route.params.vehicleId,
-                    title: route.params.title,
                   })
                 }
                 variant="ghost"

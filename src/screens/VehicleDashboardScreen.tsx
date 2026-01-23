@@ -37,7 +37,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, insets);
-  const { vehicleId, title } = route.params;
+  const { vehicleId } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
@@ -77,52 +77,52 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       key: "stats",
       title: t("dashboard.tiles.statsTitle"),
       icon: "stats-chart",
-      onPress: () => navigation.navigate("Statistics", { vehicleId, title }),
+      onPress: () => navigation.navigate("Statistics", { vehicleId }),
     },
     {
       key: "service",
       title: t("dashboard.tiles.serviceTitle"),
       icon: "construct",
-      onPress: () => navigation.navigate("VehicleDetail", { vehicleId, title }),
+      onPress: () => navigation.navigate("VehicleDetail", { vehicleId }),
     },
     // Row 2: Zarządzaj pojazdem + Dokumenty
     {
       key: "manage",
       title: t("dashboard.tiles.manageTitle"),
       icon: "car",
-      onPress: () => navigation.navigate("ManageVehicle", { vehicleId, title }),
+      onPress: () => navigation.navigate("ManageVehicle", { vehicleId }),
     },
     {
       key: "docs",
       title: t("dashboard.tiles.docsTitle"),
       icon: "document-text",
-      onPress: () => navigation.navigate("Documents", { vehicleId, title }),
+      onPress: () => navigation.navigate("Documents", { vehicleId }),
     },
     // Row 3: Paliwo + Przypomnienia
     {
       key: "fuel",
       title: t("dashboard.tiles.fuelTitle"),
       icon: "flash",
-      onPress: () => navigation.navigate("Fuel", { vehicleId, title }),
+      onPress: () => navigation.navigate("Fuel", { vehicleId }),
     },
     {
       key: "reminders",
       title: t("dashboard.tiles.remindersTitle"),
       icon: "notifications",
-      onPress: () => navigation.navigate("Reminders", { vehicleId, title }),
+      onPress: () => navigation.navigate("Reminders", { vehicleId }),
     },
     // Row 4: Udostępnij + Eksport/Import
     {
       key: "share",
       title: t("dashboard.tiles.shareTitle"),
       icon: "share",
-      onPress: () => navigation.navigate("Share", { vehicleId, title }),
+      onPress: () => navigation.navigate("Share", { vehicleId }),
     },
     {
       key: "data",
       title: t("dashboard.tiles.dataTitle"),
       icon: "download",
-      onPress: () => navigation.navigate("DataPortability", { vehicleId, title }),
+      onPress: () => navigation.navigate("DataPortability", { vehicleId }),
     },
   ];
 
@@ -210,7 +210,9 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         ListHeaderComponent={
           <View style={styles.listHeader}>
             <View style={styles.header}>
-              <Text style={styles.title}>{title}</Text>
+              <Text style={styles.title}>
+                {vehicle ? `${vehicle.make} ${vehicle.model}` : ""}
+              </Text>
               {vehicle?.vin && (
                 <Pressable
                   onPress={onCopyVin}

@@ -27,7 +27,6 @@ export function VehicleFormScreen({ navigation }: Props) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
   const [type, setType] = useState<VehicleType>("car");
-  const [title, setTitle] = useState("");
   const [vin, setVin] = useState("");
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
@@ -53,12 +52,11 @@ export function VehicleFormScreen({ navigation }: Props) {
 
   const canSave = useMemo(() => {
     return (
-      title.trim().length > 0 &&
       make.trim().length > 0 &&
       model.trim().length > 0 &&
       year.trim().length === 4
     );
-  }, [title, make, model, year]);
+  }, [make, model, year]);
 
   function pickSource() {
     const remainingSlots = 6 - photoUris.length;
@@ -253,7 +251,6 @@ export function VehicleFormScreen({ navigation }: Props) {
 
       const created = await createVehicle({
         type,
-        title: title.trim(),
         vin: vin.trim().length ? vin.trim() : null,
         make: make.trim(),
         model: model.trim(),
@@ -427,14 +424,6 @@ export function VehicleFormScreen({ navigation }: Props) {
       </View>
 
       <View style={{ height: theme.spacing.sm }} />
-      <TextField
-        noMarginTop
-        label={t("vehicleForm.titleLabel")}
-        value={title}
-        onChangeText={setTitle}
-        placeholder={t("vehicleForm.titlePlaceholder")}
-      />
-
       <TextField
         label={t("vehicleForm.vinLabel")}
         value={vin}

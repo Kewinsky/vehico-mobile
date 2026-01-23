@@ -18,7 +18,6 @@ create table if not exists public.vehicles (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null default auth.uid(),
   type text not null check (type in ('car', 'motorcycle')),
-  title text not null,
   vin text,
   make text not null,
   model text not null,

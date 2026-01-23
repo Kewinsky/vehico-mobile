@@ -142,7 +142,6 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
         onPress={() =>
           navigation.navigate("MarketplacePostHistory", {
             vehicleId,
-            title: route.params.title,
           })
         }
         variant="ghost"

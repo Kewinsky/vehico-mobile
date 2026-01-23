@@ -3,7 +3,6 @@ import type { Vehicle, VehicleType } from "../../types/domain";
 
 type NewVehicleInput = {
   type: VehicleType;
-  title: string;
   vin: string | null;
   make: string;
   model: string;

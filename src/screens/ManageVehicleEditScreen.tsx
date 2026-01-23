@@ -58,7 +58,6 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const [isDragging, setIsDragging] = useState(false);
 
   const [type, setType] = useState<VehicleType>("car");
-  const [title, setTitle] = useState("");
   const [vin, setVin] = useState("");
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
@@ -79,7 +78,6 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       const v = await getVehicle(vehicleId);
       setVehicle(v);
       setType(v.type);
-      setTitle(v.title);
       setVin(v.vin ?? "");
       setMake(v.make);
       setModel(v.model);
@@ -110,12 +108,11 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
 
   const canSave = useMemo(() => {
     return (
-      title.trim().length > 0 &&
       make.trim().length > 0 &&
       model.trim().length > 0 &&
       year.trim().length === 4
     );
-  }, [title, make, model, year]);
+  }, [make, model, year]);
 
   async function onSave() {
     try {
@@ -124,7 +121,6 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       if (!Number.isFinite(production_year)) throw new Error("Invalid year");
       const updated = await updateVehicle(vehicleId, {
         type,
-        title: title.trim(),
         vin: vin.trim().length ? vin.trim() : null,
         make: make.trim(),
         model: model.trim(),
@@ -509,11 +505,6 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
           <View style={{ height: theme.spacing.sm }} />
           <TextField
             noMarginTop
-            label={t("manageVehicle.titleLabel")}
-            value={title}
-            onChangeText={setTitle}
-          />
-          <TextField
             label={t("manageVehicle.vinLabel")}
             value={vin}
             onChangeText={setVin}

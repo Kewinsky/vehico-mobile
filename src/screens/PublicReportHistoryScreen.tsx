@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Alert,
   FlatList,
@@ -13,6 +13,8 @@ import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { PublicReportSnapshot } from "../types/domain";
+import { getVehicle } from "../services/vehicles/vehiclesRepo";
+import type { Vehicle } from "../types/domain";
 import {
   listPublicPages,
   deletePublicPage,
@@ -33,11 +35,26 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId, title } = route.params;
-
+  const { vehicleId } = route.params;
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [reports, setReports] = useState<PublicReportSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const loadVehicle = useCallback(async () => {
+    try {
+      const v = await getVehicle(vehicleId);
+      setVehicle(v);
+    } catch (e: any) {
+      toastError(t("common.error"), e?.message ?? String(e));
+    }
+  }, [vehicleId, t]);
+
+  useEffect(() => {
+    void loadVehicle();
+  }, [loadVehicle]);
+
+  const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
 
   useEffect(() => {
     void loadReports();
@@ -119,7 +136,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
       const url = await getPublicPageUrl(report.public_id);
       navigation.navigate("PublicReportOptions", {
         url,
-        vehicleTitle: title,
+        vehicleTitle,
       });
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
@@ -132,7 +149,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
       <View style={styles.wrap}>
         <Text style={styles.h1}>{t("share.historyTitle")}</Text>
         <Text style={styles.subtitle}>
-          {t("share.historySubtitle", { vehicleTitle: title })}
+          {t("share.historySubtitle", { vehicleTitle })}
         </Text>
 
         <View style={{ height: theme.spacing.md }} />
