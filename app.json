@@ -40,6 +40,7 @@
     "plugins": [
       "expo-localization",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "scheme": "vehico"
   }
 }

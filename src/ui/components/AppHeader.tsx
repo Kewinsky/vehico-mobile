@@ -77,7 +77,6 @@ const makeStyles = (theme: any) =>
     backButton: {
       width: 40,
       height: 40,
-      alignItems: "center",
       justifyContent: "center",
     },
     backButtonPressed: {

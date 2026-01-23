@@ -3,7 +3,12 @@ import { ActivityIndicator, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { useAuth } from "../providers/AuthProvider";
+import { LandingScreen } from "../../screens/LandingScreen";
 import { AuthScreen } from "../../screens/AuthScreen";
+import { EmailConfirmationScreen } from "../../screens/EmailConfirmationScreen";
+import { ForgotPasswordScreen } from "../../screens/ForgotPasswordScreen";
+import { TermsOfUseScreen } from "../../screens/TermsOfUseScreen";
+import { PrivacyPolicyScreen } from "../../screens/PrivacyPolicyScreen";
 import { VehiclesScreen } from "../../screens/VehiclesScreen";
 import { VehicleDashboardScreen } from "../../screens/VehicleDashboardScreen";
 import { VehicleDetailScreen } from "../../screens/VehicleDetailScreen";
@@ -31,7 +36,12 @@ import { MarketplacePostEditScreen } from "../../screens/MarketplacePostEditScre
 import { PublicReportOptionsScreen } from "../../screens/PublicReportOptionsScreen";
 
 export type AppStackParamList = {
-  Auth: undefined;
+  Landing: undefined;
+  Auth: { initialMode?: 'signIn' | 'signUp' };
+  EmailConfirmation: { email: string };
+  ForgotPassword: undefined;
+  TermsOfUse: undefined;
+  PrivacyPolicy: undefined;
   Vehicles: undefined;
   VehicleForm: undefined;
   Settings: undefined;
@@ -75,7 +85,14 @@ export function RootNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!session ? (
-        <Stack.Screen name="Auth" component={AuthScreen} />
+        <>
+          <Stack.Screen name="Landing" component={LandingScreen} />
+          <Stack.Screen name="Auth" component={AuthScreen} />
+          <Stack.Screen name="EmailConfirmation" component={EmailConfirmationScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen name="TermsOfUse" component={TermsOfUseScreen} />
+          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+        </>
       ) : (
         <>
           <Stack.Screen name="Vehicles" component={VehiclesScreen} />
