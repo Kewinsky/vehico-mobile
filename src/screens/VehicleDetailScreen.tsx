@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -34,6 +33,7 @@ import { TextField } from "../ui/components/TextField";
 import { DateField } from "../ui/components/DateField";
 import { PickerField } from "../ui/components/PickerField";
 import { Ionicons } from "@expo/vector-icons";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDetail">;
 
@@ -529,7 +529,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         ListEmptyComponent={
           loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={theme.colors.accent} />
+              <LoadingIndicator />
             </View>
           ) : (
             <Text
@@ -645,7 +645,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       borderBottomColor: theme.colors.border,
     },
     list: {
-      paddingTop: insets.bottom,
+      paddingTop: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
       paddingBottom: insets.bottom + theme.spacing.xl,
     },

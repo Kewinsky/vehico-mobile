@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Linking,
@@ -27,6 +26,7 @@ import { Button } from "../ui/components/Button";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 
@@ -180,7 +180,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
         ListEmptyComponent={
           loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={theme.colors.accent} />
+              <LoadingIndicator />
             </View>
           ) : (
             <Text style={styles.muted}>

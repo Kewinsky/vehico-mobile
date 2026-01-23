@@ -1,8 +1,11 @@
-import { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import * as AuthSession from 'expo-auth-session';
 
 import type { AppStackParamList } from '../app/navigation/RootNavigator';
 import { supabase } from '../services/supabase/client';
@@ -12,106 +15,79 @@ import { FormScreen } from '../ui/components/FormScreen';
 import { TextField } from '../ui/components/TextField';
 import { useTheme } from '../ui/ThemeProvider';
 import { toastError, toastSuccess } from '../ui/toast/toast';
-import { ENV } from '../config/env';
+
+// Complete the auth session for better UX
+WebBrowser.maybeCompleteAuthSession();
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Auth'>;
 
-export function AuthScreen({ navigation, route }: Props) {
+export function AuthScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(route.params?.initialMode === 'signUp');
   const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [sentEmail, setSentEmail] = useState('');
 
-  // Update sign up mode when route params change
-  useEffect(() => {
-    if (route.params?.initialMode === 'signUp') {
-      setIsSignUp(true);
-    } else if (route.params?.initialMode === 'signIn') {
-      setIsSignUp(false);
-    }
-  }, [route.params?.initialMode]);
+  // Reset inputs when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      setEmail('');
+      setMagicLinkSent(false);
+      setSentEmail('');
+    }, [])
+  );
 
   const emailTrimmed = useMemo(() => email.trim(), [email]);
   
-  const canSubmitSignIn = useMemo(
+  // Email validation regex
+  const isValidEmail = useMemo(() => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(emailTrimmed);
+  }, [emailTrimmed]);
+  
+  const canSubmit = useMemo(
     () =>
-      emailTrimmed.length > 3 &&
-      emailTrimmed.includes('@') &&
-      password.length >= 6 &&
+      emailTrimmed.length > 0 &&
+      isValidEmail &&
       !isSubmitting,
-    [emailTrimmed, password, isSubmitting]
+    [emailTrimmed, isValidEmail, isSubmitting]
   );
 
-  const canSubmitSignUp = useMemo(
-    () =>
-      emailTrimmed.length > 3 &&
-      emailTrimmed.includes('@') &&
-      password.length >= 6 &&
-      confirmPassword === password &&
-      acceptedTerms &&
-      !isSubmitting,
-    [emailTrimmed, password, confirmPassword, acceptedTerms, isSubmitting]
-  );
-
-  async function onSubmit() {
+  async function sendMagicLink() {
     try {
       setIsSubmitting(true);
-      
-      if (isSignUp) {
-        if (password !== confirmPassword) {
-          toastError(t('common.error'), t('auth.passwordsDoNotMatch'));
+
+      // Use makeRedirectUri() which automatically handles Expo Go (exp://) and production (vehico://)
+      const emailRedirectTo = AuthSession.makeRedirectUri({
+        path: 'auth/magic-link',
+      });
+
+      // Always allow user creation - Supabase will handle existing users automatically
+      const { error } = await supabase.auth.signInWithOtp({
+        email: emailTrimmed,
+        options: {
+          emailRedirectTo,
+          shouldCreateUser: true,
+        },
+      });
+
+      if (error) {
+        // Check for rate limit error
+        if (error.message.includes('rate limit') || error.message.includes('Rate limit')) {
+          toastError(t('auth.rateLimitExceeded'), t('auth.rateLimitMessage'));
           return;
         }
-
-        if (!acceptedTerms) {
-          toastError(t('common.error'), t('auth.mustAcceptTerms'));
-          return;
-        }
-
-        const { data, error } = await supabase.auth.signUp({
-          email: emailTrimmed,
-          password,
-          options: {
-            emailRedirectTo: `${ENV.SUPABASE_URL}/auth/v1/callback`,
-          },
-        });
-
-        if (error) throw error;
-
-        // Check if email confirmation is required
-        if (data.user && !data.session) {
-          // Email confirmation required
-          navigation.navigate('EmailConfirmation', { email: emailTrimmed });
-          toastSuccess(t('auth.signUpSuccess'), t('auth.emailConfirmationSent'));
-          return;
-        }
-
-        // If session exists, user is already confirmed (shouldn't happen in production)
-        if (data.session) {
-          toastSuccess(t('common.success'), t('auth.signUpSuccess'));
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: emailTrimmed,
-          password,
-        });
-
-        if (error) {
-          // Check if email is not confirmed
-          if (error.message.includes('email') && error.message.includes('confirm')) {
-            navigation.navigate('EmailConfirmation', { email: emailTrimmed });
-            toastError(t('auth.emailNotConfirmed'), t('auth.pleaseConfirmEmail'));
-            return;
-          }
-          throw error;
-        }
+        throw error;
       }
+
+      // Magic link sent successfully
+      setMagicLinkSent(true);
+      setSentEmail(emailTrimmed);
+      setEmail('');
+      toastSuccess(t('common.success'), t('auth.magicLinkSent'));
     } catch (e: any) {
       toastError(t('common.error'), e?.message ?? String(e));
     } finally {
@@ -119,243 +95,256 @@ export function AuthScreen({ navigation, route }: Props) {
     }
   }
 
-  async function handleForgotPassword() {
-    navigation.navigate('ForgotPassword');
+  async function handleOAuthCallback(callbackUrl: string) {
+    const hashIndex = callbackUrl.indexOf('#');
+    if (hashIndex === -1) {
+      throw new Error('No hash fragment in callback URL');
+    }
+
+    const hash = callbackUrl.substring(hashIndex + 1);
+    const params = new URLSearchParams(hash);
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+
+    if (!accessToken || !refreshToken) {
+      throw new Error('Missing tokens in callback URL');
+    }
+
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+
+    if (sessionError) throw sessionError;
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error('Session was not created');
+    }
+
+    toastSuccess(t('common.success'), t('auth.signedInSuccessfully'));
+  }
+
+  async function signInWithOAuth(provider: 'google' | 'facebook') {
+    try {
+      setIsSocialLoading(provider);
+
+      const redirectTo = AuthSession.makeRedirectUri({
+        path: 'auth/callback',
+      });
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo,
+          ...(provider === 'google' && {
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
+          }),
+        },
+      });
+
+      if (error) throw error;
+
+      if (!data?.url) {
+        throw new Error('No OAuth URL received');
+      }
+
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+
+      if (result.type === 'success') {
+        const callbackUrl = 'url' in result ? result.url : null;
+        if (callbackUrl) {
+          await handleOAuthCallback(callbackUrl);
+        } else {
+          throw new Error('No callback URL in result');
+        }
+      } else if (result.type !== 'cancel') {
+        throw new Error('Authentication failed');
+      }
+    } catch (e: any) {
+      toastError(t('common.error'), e?.message ?? String(e));
+    } finally {
+      setIsSocialLoading(null);
+    }
   }
 
   async function signInWithGoogle() {
-    // Placeholder - będzie zaimplementowane później
-    try {
-      setIsSocialLoading('google');
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      toastError(t('common.error'), t('auth.socialLoginComingSoon'));
-    } catch (e: any) {
-      toastError(t('common.error'), e?.message ?? String(e));
-    } finally {
-      setIsSocialLoading(null);
-    }
+    return signInWithOAuth('google');
   }
 
   async function signInWithFacebook() {
-    // Placeholder - będzie zaimplementowane później
+    return signInWithOAuth('facebook');
+  }
+
+  async function signInWithTestAccount() {
     try {
-      setIsSocialLoading('facebook');
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      toastError(t('common.error'), t('auth.socialLoginComingSoon'));
+      setIsSubmitting(true);
+      const { error } = await supabase.auth.signInWithPassword({
+        email: 'test@user.com',
+        password: 'testuser',
+      });
+
+      if (error) throw error;
+      toastSuccess(t('common.success'), t('auth.signedInSuccessfully'));
     } catch (e: any) {
       toastError(t('common.error'), e?.message ?? String(e));
     } finally {
-      setIsSocialLoading(null);
+      setIsSubmitting(false);
     }
   }
 
-  function handleSwitchTab(newMode: boolean) {
-    setIsSignUp(newMode);
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
-    setAcceptedTerms(false);
+  // Show magic link sent confirmation
+  if (magicLinkSent) {
+    return (
+      <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
+        <View style={styles.magicLinkContainer}>
+          <View style={styles.iconContainer}>
+            <Text style={[styles.icon, { color: theme.colors.accent }]}>✉️</Text>
+          </View>
+
+          <View style={styles.content}>
+            <Text style={[styles.title, { color: theme.colors.fg }]}>
+              {t('auth.magicLinkSentTitle')}
+            </Text>
+            <Text style={[styles.body, { color: theme.colors.muted }]}>
+              {t('auth.magicLinkSentBody', { email: sentEmail })}
+            </Text>
+            <Text style={[styles.hint, { color: theme.colors.muted }]}>
+              {t('auth.magicLinkSentHint')}
+            </Text>
+          </View>
+
+          <View style={styles.actions}>
+            <Button
+              variant="ghost"
+              onPress={() => {
+                setMagicLinkSent(false);
+                setEmail('');
+                setSentEmail('');
+              }}
+            >
+              {t('auth.sendAnotherLink')}
+            </Button>
+          </View>
+        </View>
+      </FormScreen>
+    );
   }
 
   return (
     <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
-      {/* Tab Switcher */}
-      <View style={[styles.tabContainer, { backgroundColor: theme.colors.card }]}>
-        <Pressable
-          onPress={() => handleSwitchTab(false)}
-          style={[
-            styles.tab,
-            {
-              backgroundColor: !isSignUp ? theme.colors.accent : 'transparent',
-              borderWidth: !isSignUp ? 0 : 1,
-              borderColor: !isSignUp ? 'transparent' : theme.colors.border,
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              { color: !isSignUp ? '#000000' : theme.colors.muted },
-            ]}
-          >
-            {t('auth.signIn')}
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => handleSwitchTab(true)}
-          style={[
-            styles.tab,
-            {
-              backgroundColor: isSignUp ? theme.colors.accent : 'transparent',
-              borderWidth: isSignUp ? 0 : 1,
-              borderColor: isSignUp ? 'transparent' : theme.colors.border,
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              { color: isSignUp ? '#000000' : theme.colors.muted },
-            ]}
-          >
-            {t('auth.signUp')}
-          </Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.form}>
-        <TextField
-          noMarginTop
-          label={t('auth.emailLabel')}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="email-address"
-          placeholder={t('auth.emailPlaceholder')}
-          editable={!isSubmitting && !isSocialLoading}
-        />
-        <TextField
-          label={t('auth.passwordLabel')}
-          value={password}
-          onChangeText={setPassword}
-          autoCapitalize="none"
-          autoCorrect={false}
-          secureTextEntry
-          placeholder={t('auth.passwordPlaceholder')}
-          editable={!isSubmitting && !isSocialLoading}
-        />
-
-        {isSignUp && (
+    <View style={{ height: theme.spacing.sm + 2 }} />
+      <View style={styles.container}>
+        {/* Magic Link Section */}
+        <View style={styles.magicLinkSection}>
           <TextField
-            label={t('auth.confirmPasswordLabel')}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            noMarginTop
+            label={t('auth.emailLabel')}
+            value={email}
+            onChangeText={setEmail}
             autoCapitalize="none"
             autoCorrect={false}
-            secureTextEntry
-            placeholder={t('auth.confirmPasswordPlaceholder')}
+            keyboardType="email-address"
+            placeholder={t('auth.emailPlaceholder')}
             editable={!isSubmitting && !isSocialLoading}
           />
-        )}
 
-        {!isSignUp && (
-          <Pressable
-            onPress={handleForgotPassword}
-            style={styles.forgotPassword}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={[styles.forgotPasswordText, { color: theme.colors.accent }]}>
-              {t('auth.forgotPassword')}
-            </Text>
-          </Pressable>
-        )}
-
-        {isSignUp && (
-          <View style={styles.termsContainer}>
-            <Pressable
-              onPress={() => setAcceptedTerms(!acceptedTerms)}
-              style={styles.checkboxRow}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          <View style={styles.actions}>
+            <Button
+              onPress={sendMagicLink}
+              disabled={!canSubmit}
             >
-              <View
-                style={[
-                  styles.checkbox,
-                  {
-                    backgroundColor: acceptedTerms ? theme.colors.accent : theme.colors.card,
-                    borderColor: acceptedTerms ? theme.colors.accent : theme.colors.border,
-                  },
-                ]}
-              >
-                {acceptedTerms && (
-                  <Text style={styles.checkmark}>✓</Text>
-                )}
-              </View>
-              <View style={styles.termsTextContainer}>
-                <Text style={[styles.termsText, { color: theme.colors.fg }]}>
-                  {t('auth.acceptTerms')}{' '}
-                  <Text
-                    style={[styles.termsLink, { color: theme.colors.accent }]}
-                    onPress={() => navigation.navigate('TermsOfUse')}
-                  >
-                    {t('auth.termsOfUse')}
-                  </Text>
-                  {' '}{t('common.and')}{' '}
-                  <Text
-                    style={[styles.termsLink, { color: theme.colors.accent }]}
-                    onPress={() => navigation.navigate('PrivacyPolicy')}
-                  >
-                    {t('auth.privacyPolicy')}
-                  </Text>
-                </Text>
-              </View>
-            </Pressable>
+              {isSubmitting ? t('auth.sendingLink') : t('auth.sendMagicLink')}
+            </Button>
+            
+            {/* TEMPORARY: Test account button */}
+            <View style={{ height: theme.spacing.sm }} />
+            <Button
+              onPress={signInWithTestAccount}
+              disabled={isSubmitting}
+              variant="ghost"
+            >
+              {isSubmitting ? t('common.loading') : '🧪 Test Account (test@user.com)'}
+            </Button>
           </View>
-        )}
 
-        <View style={styles.actions}>
-          <Button
-            onPress={onSubmit}
-            disabled={isSignUp ? !canSubmitSignUp : !canSubmitSignIn}
-          >
-            {isSubmitting
-              ? isSignUp
-                ? t('auth.signingUp')
-                : t('auth.signingIn')
-              : isSignUp
-              ? t('auth.signUp')
-              : t('auth.signIn')}
-          </Button>
+          <Text style={[styles.magicLinkHint, { color: theme.colors.muted }]}>
+            {t('auth.magicLinkHint')}
+          </Text>
         </View>
 
-        {!isSignUp && (
-          <>
-            <View style={styles.divider}>
-              <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
-              <Text style={[styles.dividerText, { color: theme.colors.muted }]}>
-                {t('auth.orContinueWith')}
-              </Text>
-              <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
-            </View>
+        {/* Divider */}
+        <View style={styles.divider}>
+          <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
+          <Text style={[styles.dividerText, { color: theme.colors.muted }]}>
+            {t('auth.orContinueWith')}
+          </Text>
+          <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
+        </View>
 
-            <View style={styles.socialButtons}>
-              <Pressable
-                onPress={signInWithFacebook}
-                disabled={!!isSocialLoading}
-                style={({ pressed }) => [
-                  styles.socialButton,
-                  {
-                    backgroundColor: theme.colors.card,
-                    borderColor: theme.colors.border,
-                    opacity: isSocialLoading === 'facebook' || pressed ? 0.7 : 1,
-                  },
-                ]}
-              >
-                <Ionicons name="logo-facebook" size={20} color={theme.colors.fg} />
-                <Text style={[styles.socialButtonText, { color: theme.colors.fg }]}>
-                  {isSocialLoading === 'facebook' ? t('common.loading') : t('auth.facebook')}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={signInWithGoogle}
-                disabled={!!isSocialLoading}
-                style={({ pressed }) => [
-                  styles.socialButton,
-                  {
-                    backgroundColor: theme.colors.card,
-                    borderColor: theme.colors.border,
-                    opacity: isSocialLoading === 'google' || pressed ? 0.7 : 1,
-                  },
-                ]}
-              >
-                <Ionicons name="logo-google" size={20} color={theme.colors.fg} />
-                <Text style={[styles.socialButtonText, { color: theme.colors.fg }]}>
-                  {isSocialLoading === 'google' ? t('common.loading') : t('auth.google')}
-                </Text>
-              </Pressable>
-            </View>
-          </>
-        )}
+        {/* Social Auth Section */}
+        <View style={styles.socialSection}>
+          <View style={styles.socialButtons}>
+            <Pressable
+              onPress={signInWithFacebook}
+              disabled={!!isSocialLoading}
+              style={({ pressed }) => [
+                styles.socialButton,
+                {
+                  backgroundColor: theme.colors.card,
+                  borderColor: theme.colors.border,
+                  opacity: isSocialLoading === 'facebook' || pressed ? 0.7 : 1,
+                },
+              ]}
+            >
+              <Ionicons name="logo-facebook" size={20} color={theme.colors.fg} />
+              <Text style={[styles.socialButtonText, { color: theme.colors.fg }]}>
+                {isSocialLoading === 'facebook' ? t('common.loading') : t('auth.facebook')}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={signInWithGoogle}
+              disabled={!!isSocialLoading}
+              style={({ pressed }) => [
+                styles.socialButton,
+                {
+                  backgroundColor: theme.colors.card,
+                  borderColor: theme.colors.border,
+                  opacity: isSocialLoading === 'google' || pressed ? 0.7 : 1,
+                },
+              ]}
+            >
+              <Ionicons name="logo-google" size={20} color={theme.colors.fg} />
+              <Text style={[styles.socialButtonText, { color: theme.colors.fg }]}>
+                {isSocialLoading === 'google' ? t('common.loading') : t('auth.google')}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Terms & Privacy Footer */}
+        <View style={styles.footer}>
+          <Text style={[styles.footerText, { color: theme.colors.muted }]}>
+            {t('auth.bySigningIn')}{' '}
+            <Text
+              style={[styles.footerLink, { color: theme.colors.accent }]}
+              onPress={() => navigation.navigate('TermsOfUse')}
+            >
+              {t('auth.termsOfService')}
+            </Text>
+            {' '}{t('common.and')}{' '}
+            <Text
+              style={[styles.footerLink, { color: theme.colors.accent }]}
+              onPress={() => navigation.navigate('PrivacyPolicy')}
+            >
+              {t('auth.privacyPolicy')}
+            </Text>
+            .
+          </Text>
+        </View>
       </View>
     </FormScreen>
   );
@@ -363,92 +352,18 @@ export function AuthScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    tabContainer: {
-      flexDirection: 'row',
-      backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.md,
-      padding: 4,
-      marginTop: theme.spacing.md,
-      marginBottom: theme.spacing.md,
+    container: {
+      gap: theme.spacing.md,
+    },
+    socialSection: {
       gap: theme.spacing.sm,
-    },
-    tab: {
-      flex: 1,
-      paddingVertical: theme.spacing.sm,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: theme.radius.sm,
-    },
-    tabText: {
-      fontSize: theme.typography.body,
-      fontWeight: '600',
-    },
-    form: {
-      gap: theme.spacing.sm,
-    },
-    forgotPassword: {
-      alignSelf: 'flex-end',
-      marginTop: -theme.spacing.xs,
-    },
-    forgotPasswordText: {
-      fontSize: theme.typography.small,
-      fontWeight: '600',
-    },
-    termsContainer: {
-      marginTop: theme.spacing.xs,
-      marginBottom: theme.spacing.xs,
-    },
-    checkboxRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: theme.spacing.sm,
-    },
-    checkbox: {
-      width: 20,
-      height: 20,
-      borderRadius: 4,
-      borderWidth: 2,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-    },
-    checkmark: {
-      color: '#000000',
-      fontSize: 12,
-      fontWeight: '700',
-    },
-    termsTextContainer: {
-      flex: 1,
-    },
-    termsText: {
-      fontSize: theme.typography.small,
-      lineHeight: 18,
-    },
-    termsLink: {
-      fontWeight: '600',
-      textDecorationLine: 'underline',
-    },
-    actions: {
-      paddingTop: theme.spacing.sm,
-    },
-    divider: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginVertical: theme.spacing.md,
-      gap: theme.spacing.sm,
-    },
-    dividerLine: {
-      flex: 1,
-      height: 1,
-    },
-    dividerText: {
-      fontSize: theme.typography.small,
-      fontWeight: '600',
     },
     socialButtons: {
+      flexDirection: 'row',
       gap: theme.spacing.sm,
     },
     socialButton: {
+      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
@@ -461,5 +376,75 @@ const makeStyles = (theme: any) =>
     socialButtonText: {
       fontSize: theme.typography.body,
       fontWeight: '600',
+    },
+    divider: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: theme.spacing.sm,
+      gap: theme.spacing.sm,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+    },
+    dividerText: {
+      fontSize: theme.typography.small,
+      fontWeight: '600',
+    },
+    magicLinkSection: {
+      gap: theme.spacing.sm,
+    },
+    actions: {
+      paddingTop: theme.spacing.xs,
+    },
+    magicLinkHint: {
+      fontSize: theme.typography.small,
+      textAlign: 'center',
+    },
+    footer: {
+      paddingTop: theme.spacing.md,
+    },
+    footerText: {
+      fontSize: theme.typography.small,
+      textAlign: 'center',
+      lineHeight: 18,
+    },
+    footerLink: {
+      fontWeight: '600',
+      textDecorationLine: 'underline',
+    },
+    magicLinkContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: theme.spacing.lg,
+    },
+    iconContainer: {
+      marginBottom: theme.spacing.lg,
+    },
+    icon: {
+      fontSize: 64,
+    },
+    content: {
+      alignItems: 'center',
+      gap: theme.spacing.md,
+      marginBottom: theme.spacing.xl,
+      width: '100%',
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    body: {
+      fontSize: theme.typography.body,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+    hint: {
+      fontSize: theme.typography.small,
+      textAlign: 'center',
+      marginTop: theme.spacing.sm,
+      lineHeight: 18,
     },
   });

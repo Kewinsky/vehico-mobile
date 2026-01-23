@@ -21,6 +21,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
@@ -38,6 +39,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const styles = makeStyles(theme, insets);
   const { vehicleId, title } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [loading, setLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
   const menuOpacity = useRef(new Animated.Value(0)).current;
   const menuTranslateY = useRef(new Animated.Value(20)).current;
@@ -46,10 +48,13 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
   const load = useCallback(async () => {
     try {
+      setLoading(true);
       const v = await getVehicle(vehicleId);
       setVehicle(v);
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
+    } finally {
+      setLoading(false);
     }
   }, [vehicleId, t]);
 
@@ -191,6 +196,11 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: theme.spacing.md }}>
+          <LoadingIndicator />
+        </View>
+      ) : (
       <FlatList
         data={tiles}
         numColumns={2}
@@ -235,6 +245,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           </Pressable>
         )}
       />
+      )}
 
       {/* Floating Action Button */}
       <TouchableWithoutFeedback onPress={() => setShowMenu(false)}>

@@ -32,6 +32,7 @@ export function VehicleFormScreen({ navigation }: Props) {
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
+  const [mileage, setMileage] = useState("");
   const [engineCapacity, setEngineCapacity] = useState("");
   const [powerHp, setPowerHp] = useState("");
   const [fuelType, setFuelType] = useState<FuelType | null>(null);
@@ -257,6 +258,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         make: make.trim(),
         model: model.trim(),
         production_year,
+        mileage: mileage.trim().length ? Number(mileage) : null,
         engine_capacity: engineCapacity.trim().length
           ? Number(engineCapacity)
           : null,
@@ -284,10 +286,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         }
       }
 
-      navigation.replace("VehicleDetail", {
-        vehicleId: created.id,
-        title: created.title,
-      });
+      navigation.replace("Vehicles");
     } catch (e: any) {
       toastError(t("common.error"), e?.message ?? String(e));
     } finally {
@@ -462,6 +461,13 @@ export function VehicleFormScreen({ navigation }: Props) {
         keyboardType="number-pad"
         maxLength={4}
         placeholder={t("vehicleForm.placeholderYear")}
+      />
+      <TextField
+        label={t("vehicleForm.mileageLabel")}
+        value={mileage}
+        onChangeText={setMileage}
+        keyboardType="number-pad"
+        placeholder={t("vehicleForm.placeholderMileage")}
       />
       <PickerField
         label={t("vehicleForm.fuelTypeLabel")}

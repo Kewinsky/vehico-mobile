@@ -20,6 +20,7 @@ import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicle">;
 
@@ -155,7 +156,11 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
       </View>
       <View style={{ height: theme.spacing.md }} />
 
-      {vehicle ? (
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <LoadingIndicator />
+        </View>
+      ) : vehicle ? (
         <>
           <View style={styles.detailsCard}>
             <View style={styles.vehicleImageContainer}>
@@ -192,8 +197,8 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
               )}
               <View style={styles.divider} />
               <View style={styles.detailsGrid}>
-                {/* Column A: Make, Engine Capacity, Year, Transmission */}
-                <View style={styles.detailsColumn}>
+                {/* Row 1: Marka + Model */}
+                <View style={styles.detailsRow}>
                   <View style={styles.detailItem}>
                     <View
                       style={[
@@ -222,22 +227,22 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       ]}
                     >
                       <Ionicons
-                        name="speedometer-outline"
+                        name="car-outline"
                         size={18}
                         color={theme.colors.accent}
                       />
                     </View>
                     <View style={styles.detailContent}>
                       <Text style={styles.detailLabel}>
-                        {t("vehicleForm.engineCapacityLabel")}
+                        {t("vehicleForm.modelLabel")}
                       </Text>
-                      <Text style={styles.detailValue}>
-                        {vehicle.engine_capacity
-                          ? `${vehicle.engine_capacity} cm³`
-                          : "N/A"}
-                      </Text>
+                      <Text style={styles.detailValue}>{vehicle.model}</Text>
                     </View>
                   </View>
+                </View>
+
+                {/* Row 2: Rok + Przebieg */}
+                <View style={styles.detailsRow}>
                   <View style={styles.detailItem}>
                     <View
                       style={[
@@ -268,33 +273,26 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       ]}
                     >
                       <Ionicons
-                        name="settings-outline"
+                        name="speedometer-outline"
                         size={18}
                         color={theme.colors.accent}
                       />
                     </View>
                     <View style={styles.detailContent}>
                       <Text style={styles.detailLabel}>
-                        {t("vehicleForm.transmissionLabel")}
+                        {t("vehicleForm.mileageLabel")}
                       </Text>
                       <Text style={styles.detailValue}>
-                        {vehicle.transmission
-                          ? t(
-                              `vehicleForm.transmission${
-                                vehicle.transmission.charAt(0).toUpperCase() +
-                                vehicle.transmission.slice(1)
-                              }` as
-                                | "vehicleForm.transmissionManual"
-                                | "vehicleForm.transmissionAutomatic"
-                            )
+                        {vehicle.mileage
+                          ? `${vehicle.mileage.toLocaleString()} km`
                           : "N/A"}
                       </Text>
                     </View>
                   </View>
                 </View>
 
-                {/* Column B: Model, Power, Fuel Type, Drive Type */}
-                <View style={styles.detailsColumn}>
+                {/* Row 3: Silnik + Moc */}
+                <View style={styles.detailsRow}>
                   <View style={styles.detailItem}>
                     <View
                       style={[
@@ -303,16 +301,20 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       ]}
                     >
                       <Ionicons
-                        name="car-outline"
+                        name="settings-outline"
                         size={18}
                         color={theme.colors.accent}
                       />
                     </View>
                     <View style={styles.detailContent}>
                       <Text style={styles.detailLabel}>
-                        {t("vehicleForm.modelLabel")}
+                        {t("vehicleForm.engineCapacityLabel")}
                       </Text>
-                      <Text style={styles.detailValue}>{vehicle.model}</Text>
+                      <Text style={styles.detailValue}>
+                        {vehicle.engine_capacity
+                          ? `${vehicle.engine_capacity} cm³`
+                          : "N/A"}
+                      </Text>
                     </View>
                   </View>
                   <View style={styles.detailItem}>
@@ -337,6 +339,67 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       </Text>
                     </View>
                   </View>
+                </View>
+
+                {/* Row 4: Skrzynia + Napęd */}
+                <View style={styles.detailsRow}>
+                  <View style={styles.detailItem}>
+                    <View
+                      style={[
+                        styles.detailIconContainer,
+                        { backgroundColor: theme.colors.accent + "25" },
+                      ]}
+                    >
+                      <Ionicons
+                        name="cog-outline"
+                        size={18}
+                        color={theme.colors.accent}
+                      />
+                    </View>
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>
+                        {t("vehicleForm.transmissionLabel")}
+                      </Text>
+                      <Text style={styles.detailValue}>
+                        {vehicle.transmission
+                          ? t(
+                              `vehicleForm.transmission${
+                                vehicle.transmission.charAt(0).toUpperCase() +
+                                vehicle.transmission.slice(1)
+                              }` as
+                                | "vehicleForm.transmissionManual"
+                                | "vehicleForm.transmissionAutomatic"
+                            )
+                          : "N/A"}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.detailItem}>
+                    <View
+                      style={[
+                        styles.detailIconContainer,
+                        { backgroundColor: theme.colors.accent + "25" },
+                      ]}
+                    >
+                      <Ionicons
+                        name="git-branch-outline"
+                        size={18}
+                        color={theme.colors.accent}
+                      />
+                    </View>
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>
+                        {t("vehicleForm.driveTypeLabel")}
+                      </Text>
+                      <Text style={styles.detailValue}>
+                        {vehicle.drive_type || "N/A"}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Row 5: Rodzaj paliwa + Notatki (skrócone) */}
+                <View style={styles.detailsRow}>
                   <View style={styles.detailItem}>
                     <View
                       style={[
@@ -379,45 +442,24 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       ]}
                     >
                       <Ionicons
-                        name="git-branch-outline"
+                        name="document-text-outline"
                         size={18}
                         color={theme.colors.accent}
                       />
                     </View>
                     <View style={styles.detailContent}>
                       <Text style={styles.detailLabel}>
-                        {t("vehicleForm.driveTypeLabel")}
+                        {t("manageVehicle.notesLabel")}
                       </Text>
-                      <Text style={styles.detailValue}>
-                        {vehicle.drive_type || "N/A"}
+                      <Text style={styles.detailValue} numberOfLines={1}>
+                        {vehicle.notes
+                          ? vehicle.notes.length > 30
+                            ? `${vehicle.notes.substring(0, 30)}...`
+                            : vehicle.notes
+                          : "N/A"}
                       </Text>
                     </View>
                   </View>
-                </View>
-              </View>
-
-              {/* Notes: Full width */}
-              <View style={{ height: theme.spacing.sm }} />
-              <View style={styles.detailItem}>
-                <View
-                  style={[
-                    styles.detailIconContainer,
-                    { backgroundColor: theme.colors.accent + "25" },
-                  ]}
-                >
-                  <Ionicons
-                    name="document-text-outline"
-                    size={18}
-                    color={theme.colors.accent}
-                  />
-                </View>
-                <View style={styles.detailContent}>
-                  <Text style={styles.detailLabel}>
-                    {t("manageVehicle.notesLabel")}
-                  </Text>
-                  <Text style={styles.detailValue} numberOfLines={3}>
-                    {vehicle.notes || "N/A"}
-                  </Text>
                 </View>
               </View>
             </View>
@@ -523,18 +565,23 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.md,
     },
     detailsGrid: {
+      gap: theme.spacing.sm,
+    },
+    detailsRow: {
       flexDirection: "row",
       gap: theme.spacing.md,
       alignItems: "flex-start",
     },
     detailsColumn: {
       flex: 1,
-      gap: theme.spacing.sm,
+      minWidth: 0, // Allows flex items to shrink below their content size
     },
     detailItem: {
+      flex: 1,
       flexDirection: "row",
       alignItems: "flex-start",
       gap: theme.spacing.sm,
+      minWidth: 0, // Allows flex items to shrink below their content size
     },
     detailIconContainer: {
       width: 40,

@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Pressable,
@@ -30,6 +29,7 @@ import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { DateField } from "../ui/components/DateField";
 import { TextField } from "../ui/components/TextField";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
 
@@ -370,7 +370,7 @@ export function FuelScreen({ route, navigation }: Props) {
         ListEmptyComponent={
           loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={theme.colors.accent} />
+              <LoadingIndicator />
             </View>
           ) : (
             <Text style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}>

@@ -1,7 +1,11 @@
 -- Vehico (MVP) schema for hosted Supabase
--- Run this in Supabase Dashboard → SQL Editor.
+-- Run this in Supabase Dashboard → SQL Editor to set up the database from scratch.
 
--- Extensions (needed for gen_random_uuid)
+-- ================
+-- Extensions
+-- ================
+
+drop extension if exists "pgcrypto" cascade;
 create extension if not exists "pgcrypto";
 
 -- ================
@@ -9,6 +13,7 @@ create extension if not exists "pgcrypto";
 -- ================
 
 -- Vehicles (cars + motorcycles)
+drop table if exists public.vehicles cascade;
 create table if not exists public.vehicles (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null default auth.uid(),
@@ -18,6 +23,7 @@ create table if not exists public.vehicles (
   make text not null,
   model text not null,
   production_year integer not null,
+  mileage integer, -- current mileage in km
   engine_capacity integer, -- in cm³
   power_hp integer, -- horsepower
   fuel_type text check (fuel_type in ('petrol', 'diesel', 'hybrid', 'electric', 'lpg')),
@@ -27,10 +33,13 @@ create table if not exists public.vehicles (
   created_at timestamptz not null default now()
 );
 
+drop index if exists public.vehicles_owner_id_idx;
 create index if not exists vehicles_owner_id_idx on public.vehicles(owner_id);
+drop index if exists public.vehicles_created_at_idx;
 create index if not exists vehicles_created_at_idx on public.vehicles(created_at desc);
 
 -- Service entries (timeline)
+drop table if exists public.service_entries cascade;
 create table if not exists public.service_entries (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
@@ -43,10 +52,13 @@ create table if not exists public.service_entries (
   created_at timestamptz not null default now()
 );
 
+drop index if exists public.service_entries_vehicle_id_idx;
 create index if not exists service_entries_vehicle_id_idx on public.service_entries(vehicle_id);
+drop index if exists public.service_entries_service_date_idx;
 create index if not exists service_entries_service_date_idx on public.service_entries(service_date desc);
 
 -- Attachments (receipts/invoices/photos) metadata
+drop table if exists public.attachments cascade;
 create table if not exists public.attachments (
   id uuid primary key default gen_random_uuid(),
   service_entry_id uuid not null references public.service_entries(id) on delete cascade,
@@ -56,24 +68,30 @@ create table if not exists public.attachments (
   created_at timestamptz not null default now()
 );
 
+drop index if exists public.attachments_service_entry_id_idx;
 create index if not exists attachments_service_entry_id_idx on public.attachments(service_entry_id);
 
--- Public pages (share link stub)
-create table if not exists public.public_pages (
+-- Public reports (immutable snapshots for public reports)
+drop table if exists public.public_report cascade;
+create table if not exists public.public_report (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   public_id text not null default replace(gen_random_uuid()::text, '-', ''),
+  title text,
+  snapshot_data jsonb not null,
   created_at timestamptz not null default now(),
   unique (public_id)
 );
 
-create index if not exists public_pages_vehicle_id_idx on public.public_pages(vehicle_id);
-
--- ==============================
--- Phase 2 tables (prompt_2)
--- ==============================
+drop index if exists public.public_report_vehicle_id_idx;
+create index if not exists public_report_vehicle_id_idx on public.public_report(vehicle_id);
+drop index if exists public.public_report_public_id_idx;
+create index if not exists public_report_public_id_idx on public.public_report(public_id);
+drop index if exists public.public_report_created_at_idx;
+create index if not exists public_report_created_at_idx on public.public_report(created_at desc);
 
 -- Fueling entries (lightweight)
+drop table if exists public.fueling_entries cascade;
 create table if not exists public.fueling_entries (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
@@ -84,10 +102,13 @@ create table if not exists public.fueling_entries (
   created_at timestamptz not null default now()
 );
 
+drop index if exists public.fueling_entries_vehicle_id_idx;
 create index if not exists fueling_entries_vehicle_id_idx on public.fueling_entries(vehicle_id);
+drop index if exists public.fueling_entries_date_idx;
 create index if not exists fueling_entries_date_idx on public.fueling_entries(date desc);
 
 -- Reminders (time-based or mileage-based)
+drop table if exists public.reminders cascade;
 create table if not exists public.reminders (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
@@ -110,66 +131,11 @@ create table if not exists public.reminders (
   )
 );
 
+drop index if exists public.reminders_vehicle_id_idx;
 create index if not exists reminders_vehicle_id_idx on public.reminders(vehicle_id);
 
--- Backfill / migrate: note -> title (rename only if needed)
-do $$
-begin
-  if exists (
-    select 1
-    from information_schema.columns
-    where table_schema = 'public'
-      and table_name = 'reminders'
-      and column_name = 'note'
-  ) and not exists (
-    select 1
-    from information_schema.columns
-    where table_schema = 'public'
-      and table_name = 'reminders'
-      and column_name = 'title'
-  ) then
-    alter table public.reminders rename column note to title;
-  end if;
-end $$;
-
--- Ensure optional notes + title exist even if table already existed
-alter table public.reminders
-  add column if not exists title text;
-
-alter table public.reminders
-  add column if not exists notes text;
-
--- Add days_before column for time-based reminders (how many days before due_date to send reminder)
-alter table public.reminders
-  add column if not exists days_before integer;
-
--- Set default value for existing time-based reminders (7 days)
-do $$
-begin
-  update public.reminders
-  set days_before = 7
-  where type = 'time' and days_before is null;
-end $$;
-
--- Add comment to document the column
-comment on column public.reminders.days_before is 'Number of days before due_date to send reminder (only for type = time)';
-
--- Add status column for reminders (active or done)
-alter table public.reminders
-  add column if not exists status text not null default 'active' check (status in ('active', 'done'));
-
--- Set default value for existing reminders
-do $$
-begin
-  update public.reminders
-  set status = 'active'
-  where status is null;
-end $$;
-
--- Add comment to document the column
-comment on column public.reminders.status is 'Status of the reminder: active or done';
-
 -- User settings (persist per user)
+drop table if exists public.user_settings cascade;
 create table if not exists public.user_settings (
   user_id uuid primary key default auth.uid(),
   currency text not null default 'PLN' check (currency in ('PLN', 'EUR')),
@@ -182,6 +148,7 @@ create table if not exists public.user_settings (
 );
 
 -- Vehicle documents (not tied to service entries)
+drop table if exists public.vehicle_documents cascade;
 create table if not exists public.vehicle_documents (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
@@ -191,18 +158,13 @@ create table if not exists public.vehicle_documents (
   created_at timestamptz not null default now()
 );
 
+drop index if exists public.vehicle_documents_vehicle_id_idx;
 create index if not exists vehicle_documents_vehicle_id_idx on public.vehicle_documents(vehicle_id);
+drop index if exists public.vehicle_documents_created_at_idx;
 create index if not exists vehicle_documents_created_at_idx on public.vehicle_documents(created_at desc);
 
--- Add description column to vehicle_documents (migration for existing databases)
-alter table public.vehicle_documents
-  add column if not exists description text;
-
--- Add drive_type column to vehicles (migration for existing databases)
-alter table public.vehicles
-  add column if not exists drive_type text check (drive_type in ('FWD', 'RWD', 'AWD'));
-
--- Vehicle photos (up to 5 photos per vehicle)
+-- Vehicle photos (up to 6 photos per vehicle)
+drop table if exists public.vehicle_photos cascade;
 create table if not exists public.vehicle_photos (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
@@ -212,10 +174,13 @@ create table if not exists public.vehicle_photos (
   created_at timestamptz not null default now()
 );
 
+drop index if exists public.vehicle_photos_vehicle_id_idx;
 create index if not exists vehicle_photos_vehicle_id_idx on public.vehicle_photos(vehicle_id);
+drop index if exists public.vehicle_photos_display_order_idx;
 create index if not exists vehicle_photos_display_order_idx on public.vehicle_photos(vehicle_id, display_order);
 
 -- Marketplace posts (generated listings)
+drop table if exists public.marketplace_posts cascade;
 create table if not exists public.marketplace_posts (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
@@ -228,8 +193,11 @@ create table if not exists public.marketplace_posts (
   updated_at timestamptz not null default now()
 );
 
+drop index if exists public.marketplace_posts_vehicle_id_idx;
 create index if not exists marketplace_posts_vehicle_id_idx on public.marketplace_posts(vehicle_id);
+drop index if exists public.marketplace_posts_user_id_idx;
 create index if not exists marketplace_posts_user_id_idx on public.marketplace_posts(user_id);
+drop index if exists public.marketplace_posts_created_at_idx;
 create index if not exists marketplace_posts_created_at_idx on public.marketplace_posts(created_at desc);
 
 -- ================
@@ -239,7 +207,7 @@ create index if not exists marketplace_posts_created_at_idx on public.marketplac
 alter table public.vehicles enable row level security;
 alter table public.service_entries enable row level security;
 alter table public.attachments enable row level security;
-alter table public.public_pages enable row level security;
+alter table public.public_report enable row level security;
 alter table public.fueling_entries enable row level security;
 alter table public.reminders enable row level security;
 alter table public.user_settings enable row level security;
@@ -247,24 +215,12 @@ alter table public.vehicle_documents enable row level security;
 alter table public.vehicle_photos enable row level security;
 alter table public.marketplace_posts enable row level security;
 
--- Vehicles: owner can CRUD
+-- Vehicles: owner can CRUD (authenticated only, no public access)
 drop policy if exists vehicles_select_own on public.vehicles;
 create policy vehicles_select_own
 on public.vehicles for select
 to authenticated
 using (owner_id = auth.uid());
-
--- Vehicles: public read access if vehicle has public page
-drop policy if exists vehicles_select_public on public.vehicles;
-create policy vehicles_select_public
-on public.vehicles for select
-to anon
-using (
-  exists (
-    select 1 from public.public_pages pp
-    where pp.vehicle_id = vehicles.id
-  )
-);
 
 drop policy if exists vehicles_insert_own on public.vehicles;
 create policy vehicles_insert_own
@@ -285,7 +241,7 @@ on public.vehicles for delete
 to authenticated
 using (owner_id = auth.uid());
 
--- Service entries: allowed if the vehicle belongs to the user OR vehicle has public page
+-- Service entries: allowed if the vehicle belongs to the user (authenticated only, no public access)
 drop policy if exists service_entries_select_own_vehicle on public.service_entries;
 create policy service_entries_select_own_vehicle
 on public.service_entries for select
@@ -295,18 +251,6 @@ using (
     select 1 from public.vehicles v
     where v.id = service_entries.vehicle_id
       and v.owner_id = auth.uid()
-  )
-);
-
--- Service entries: public read access if vehicle has public page
-drop policy if exists service_entries_select_public on public.service_entries;
-create policy service_entries_select_public
-on public.service_entries for select
-to anon
-using (
-  exists (
-    select 1 from public.public_pages pp
-    where pp.vehicle_id = service_entries.vehicle_id
   )
 );
 
@@ -396,51 +340,78 @@ using (
   )
 );
 
--- Public pages: owner can read, and public can read by public_id
-drop policy if exists public_pages_select_own_vehicle on public.public_pages;
-create policy public_pages_select_own_vehicle
-on public.public_pages for select
+-- Public reports: public read access (for Next.js public reports)
+drop policy if exists public_report_select_public on public.public_report;
+create policy public_report_select_public
+on public.public_report for select
+to anon
+using (true); -- Public access is controlled by public_id uniqueness
+
+-- Public reports: authenticated users can read their own snapshots
+drop policy if exists public_report_select_own on public.public_report;
+create policy public_report_select_own
+on public.public_report for select
 to authenticated
 using (
   exists (
-    select 1 from public.vehicles v
-    where v.id = public_pages.vehicle_id
+    select 1
+    from public.vehicles v
+    where v.id = public_report.vehicle_id
       and v.owner_id = auth.uid()
   )
 );
 
--- Public pages: public read access (for public reports)
-drop policy if exists public_pages_select_public on public.public_pages;
-create policy public_pages_select_public
-on public.public_pages for select
-to anon
-using (true);
-
-drop policy if exists public_pages_insert_own_vehicle on public.public_pages;
-create policy public_pages_insert_own_vehicle
-on public.public_pages for insert
+-- Public reports: authenticated users can insert their own snapshots
+drop policy if exists public_report_insert_own on public.public_report;
+create policy public_report_insert_own
+on public.public_report for insert
 to authenticated
 with check (
   exists (
-    select 1 from public.vehicles v
-    where v.id = public_pages.vehicle_id
+    select 1
+    from public.vehicles v
+    where v.id = public_report.vehicle_id
       and v.owner_id = auth.uid()
   )
 );
 
-drop policy if exists public_pages_delete_own_vehicle on public.public_pages;
-create policy public_pages_delete_own_vehicle
-on public.public_pages for delete
+-- Public reports: authenticated users can delete their own snapshots
+drop policy if exists public_report_delete_own on public.public_report;
+create policy public_report_delete_own
+on public.public_report for delete
 to authenticated
 using (
   exists (
-    select 1 from public.vehicles v
-    where v.id = public_pages.vehicle_id
+    select 1
+    from public.vehicles v
+    where v.id = public_report.vehicle_id
       and v.owner_id = auth.uid()
   )
 );
 
--- Fueling entries: allowed if vehicle belongs to user (and not deleted)
+-- Update: authenticated can update title for their own reports
+drop policy if exists public_report_update_own on public.public_report;
+create policy public_report_update_own
+on public.public_report for update
+to authenticated
+using (
+  exists (
+    select 1
+    from public.vehicles v
+    where v.id = public_report.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1
+    from public.vehicles v
+    where v.id = public_report.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- Fueling entries: allowed if vehicle belongs to user
 drop policy if exists fueling_entries_select_own_vehicle on public.fueling_entries;
 create policy fueling_entries_select_own_vehicle
 on public.fueling_entries for select
@@ -496,7 +467,7 @@ using (
   )
 );
 
--- Reminders: allowed if vehicle belongs to user (and not deleted)
+-- Reminders: allowed if vehicle belongs to user
 drop policy if exists reminders_select_own_vehicle on public.reminders;
 create policy reminders_select_own_vehicle
 on public.reminders for select
@@ -628,7 +599,7 @@ using (
   )
 );
 
--- Vehicle photos: allowed if vehicle belongs to user OR vehicle has public page
+-- Vehicle photos: allowed if vehicle belongs to user (authenticated only, no public access)
 drop policy if exists vehicle_photos_select_own_vehicle on public.vehicle_photos;
 create policy vehicle_photos_select_own_vehicle
 on public.vehicle_photos for select
@@ -638,18 +609,6 @@ using (
     select 1 from public.vehicles v
     where v.id = vehicle_photos.vehicle_id
       and v.owner_id = auth.uid()
-  )
-);
-
--- Vehicle photos: public read access if vehicle has public page
-drop policy if exists vehicle_photos_select_public on public.vehicle_photos;
-create policy vehicle_photos_select_public
-on public.vehicle_photos for select
-to anon
-using (
-  exists (
-    select 1 from public.public_pages pp
-    where pp.vehicle_id = vehicle_photos.vehicle_id
   )
 );
 
@@ -723,107 +682,360 @@ to authenticated
 using (user_id = auth.uid());
 
 -- ================
+-- Functions for public reports
+-- ================
+
+-- Function to generate snapshot data
+drop function if exists public.generate_vehicle_snapshot(uuid);
+create or replace function public.generate_vehicle_snapshot(p_vehicle_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_snapshot jsonb;
+  v_vehicle jsonb;
+  v_service_entries jsonb;
+  v_vehicle_photos jsonb;
+begin
+  -- Get vehicle data
+  select to_jsonb(v.*) into v_vehicle
+  from public.vehicles v
+  where v.id = p_vehicle_id;
+
+  if v_vehicle is null then
+    raise exception 'Vehicle not found: %', p_vehicle_id;
+  end if;
+
+  -- Get service entries (without attachments - user requirement)
+  select coalesce(jsonb_agg(
+    jsonb_build_object(
+      'id', se.id,
+      'service_date', se.service_date,
+      'mileage', se.mileage,
+      'category', se.category,
+      'title', se.title,
+      'description', se.description,
+      'cost', se.cost,
+      'created_at', se.created_at
+    ) order by se.service_date desc
+  ), '[]'::jsonb) into v_service_entries
+  from public.service_entries se
+  where se.vehicle_id = p_vehicle_id;
+
+  -- Get vehicle photos (URLs will be built in Next.js from storage_path since bucket is public)
+  select coalesce(jsonb_agg(
+    jsonb_build_object(
+      'id', vp.id,
+      'storage_path', vp.storage_path,
+      'storage_bucket', vp.storage_bucket,
+      'display_order', vp.display_order,
+      'created_at', vp.created_at
+    ) order by vp.display_order, vp.created_at
+  ), '[]'::jsonb) into v_vehicle_photos
+  from public.vehicle_photos vp
+  where vp.vehicle_id = p_vehicle_id;
+
+  -- Build complete snapshot
+  v_snapshot := jsonb_build_object(
+    'vehicle', v_vehicle,
+    'service_entries', v_service_entries,
+    'vehicle_photos', v_vehicle_photos,
+    'snapshot_version', '1.0',
+    'snapshot_date', now()
+  );
+
+  return v_snapshot;
+end;
+$$;
+
+-- Grant execute to authenticated users
+grant execute on function public.generate_vehicle_snapshot(uuid) to authenticated;
+
+-- Function to create snapshot (enforces 5 snapshot limit)
+drop function if exists public.create_public_report_snapshot(uuid);
+create or replace function public.create_public_report_snapshot(p_vehicle_id uuid)
+returns public.public_report
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_snapshot public.public_report;
+  v_snapshot_data jsonb;
+  v_snapshot_count integer;
+begin
+  -- Verify user owns the vehicle
+  if not exists (
+    select 1
+    from public.vehicles v
+    where v.id = p_vehicle_id
+      and v.owner_id = auth.uid()
+  ) then
+    raise exception 'Vehicle not found or access denied';
+  end if;
+
+  -- Check snapshot limit (5 per vehicle)
+  select count(*) into v_snapshot_count
+  from public.public_report
+  where vehicle_id = p_vehicle_id;
+
+  if v_snapshot_count >= 5 then
+    -- Delete oldest snapshot
+    delete from public.public_report
+    where id = (
+      select id
+      from public.public_report
+      where vehicle_id = p_vehicle_id
+      order by created_at asc
+      limit 1
+    );
+  end if;
+
+  -- Generate snapshot
+  v_snapshot_data := public.generate_vehicle_snapshot(p_vehicle_id);
+
+  -- Create snapshot with public_id
+  insert into public.public_report (vehicle_id, snapshot_data)
+  values (p_vehicle_id, v_snapshot_data)
+  returning * into v_snapshot;
+
+  return v_snapshot;
+end;
+$$;
+
+-- Grant execute to authenticated users
+grant execute on function public.create_public_report_snapshot(uuid) to authenticated;
+
+-- ================
 -- Storage (buckets + policies)
 -- ================
 -- NOTE: Creating buckets is often easiest in the Dashboard (Storage → New bucket).
 -- Buckets required by the app:
--- - images
--- - documents
+-- - images (must be PUBLIC)
+-- - documents (private)
 --
 -- Vehico convention:
--- - All uploaded objects are stored under a path that starts with the vehicle UUID:
---   <vehicle_id>/<...>
+-- - Vehicle photos and documents: <vehicle_id>/<...>
+-- - Attachments: service_entry_attachments/<vehicle_id>/<service_entry_id>/<...>
 -- This lets us enforce storage access by checking vehicle ownership.
 --
 -- IMPORTANT: You may need to create these policies in the Dashboard if your project
 -- restricts SQL access to the storage schema.
---
--- Read: authenticated can read objects for vehicles they own
-drop policy if exists "storage_read_vehicle_scoped" on storage.objects;
-create policy "storage_read_vehicle_scoped"
+
+-- ================
+-- Storage policies for 'images' bucket
+-- ================
+
+-- Read: authenticated can read images for vehicles they own
+drop policy if exists "storage_images_read_vehicle_scoped" on storage.objects;
+create policy "storage_images_read_vehicle_scoped"
 on storage.objects for select
 to authenticated
 using (
-  bucket_id in ('images', 'documents')
+  bucket_id = 'images'
   and exists (
     select 1
     from public.vehicles v
-    where v.id::text = split_part(name, '/', 1)
-      and v.owner_id = auth.uid()
+    where (
+      -- Vehicle photos: <vehicle_id>/<...>
+      v.id::text = split_part(name, '/', 1)
+      or
+      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
+    )
+    and v.owner_id = auth.uid()
   )
 );
 
--- Read: anon can read objects for vehicles that have public pages (images only)
--- This policy allows public access to images for vehicles with public pages
+-- Read: anon can read images bucket (public access for public reports)
 -- Note: Bucket must be set to PUBLIC in Supabase Dashboard → Storage → Buckets → images → Edit → Public bucket
-drop policy if exists "storage_read_public_vehicle" on storage.objects;
-create policy "storage_read_public_vehicle"
+-- This allows Next.js app to display vehicle photos from snapshots
+drop policy if exists "storage_images_read_public" on storage.objects;
+create policy "storage_images_read_public"
 on storage.objects for select
 to anon
-using (
-  bucket_id = 'images'
-  and (
-    -- Check if the path starts with a vehicle ID that has a public page
-    exists (
-      select 1
-      from public.vehicles v
-      join public.public_pages pp on pp.vehicle_id = v.id
-      where v.id::text = split_part(name, '/', 1)
-    )
-  )
-);
+using (bucket_id = 'images');
 
--- Write: authenticated can write objects only under vehicles they own
-drop policy if exists "storage_write_vehicle_scoped" on storage.objects;
-create policy "storage_write_vehicle_scoped"
+-- Write: authenticated can write images only under vehicles they own
+drop policy if exists "storage_images_write_vehicle_scoped" on storage.objects;
+create policy "storage_images_write_vehicle_scoped"
 on storage.objects for insert
 to authenticated
 with check (
-  bucket_id in ('images', 'documents')
+  bucket_id = 'images'
   and exists (
     select 1
     from public.vehicles v
-    where v.id::text = split_part(name, '/', 1)
-      and v.owner_id = auth.uid()
+    where (
+      -- Vehicle photos: <vehicle_id>/<...>
+      v.id::text = split_part(name, '/', 1)
+      or
+      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
+    )
+    and v.owner_id = auth.uid()
   )
 );
 
--- Update: authenticated can update objects only under vehicles they own
-drop policy if exists "storage_update_vehicle_scoped" on storage.objects;
-create policy "storage_update_vehicle_scoped"
+-- Update: authenticated can update images only under vehicles they own
+drop policy if exists "storage_images_update_vehicle_scoped" on storage.objects;
+create policy "storage_images_update_vehicle_scoped"
 on storage.objects for update
 to authenticated
 using (
-  bucket_id in ('images', 'documents')
+  bucket_id = 'images'
   and exists (
     select 1
     from public.vehicles v
-    where v.id::text = split_part(name, '/', 1)
-      and v.owner_id = auth.uid()
+    where (
+      -- Vehicle photos: <vehicle_id>/<...>
+      v.id::text = split_part(name, '/', 1)
+      or
+      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
+    )
+    and v.owner_id = auth.uid()
   )
 )
 with check (
-  bucket_id in ('images', 'documents')
+  bucket_id = 'images'
   and exists (
     select 1
     from public.vehicles v
-    where v.id::text = split_part(name, '/', 1)
-      and v.owner_id = auth.uid()
+    where (
+      -- Vehicle photos: <vehicle_id>/<...>
+      v.id::text = split_part(name, '/', 1)
+      or
+      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
+    )
+    and v.owner_id = auth.uid()
   )
 );
 
--- Delete: authenticated can delete objects only under vehicles they own
-drop policy if exists "storage_delete_vehicle_scoped" on storage.objects;
-create policy "storage_delete_vehicle_scoped"
+-- Delete: authenticated can delete images only under vehicles they own
+drop policy if exists "storage_images_delete_vehicle_scoped" on storage.objects;
+create policy "storage_images_delete_vehicle_scoped"
 on storage.objects for delete
 to authenticated
 using (
-  bucket_id in ('images', 'documents')
+  bucket_id = 'images'
   and exists (
     select 1
     from public.vehicles v
-    where v.id::text = split_part(name, '/', 1)
-      and v.owner_id = auth.uid()
+    where (
+      -- Vehicle photos: <vehicle_id>/<...>
+      v.id::text = split_part(name, '/', 1)
+      or
+      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
+    )
+    and v.owner_id = auth.uid()
+  )
+);
+
+-- ================
+-- Storage policies for 'documents' bucket
+-- ================
+
+-- Read: authenticated can read documents for vehicles they own
+drop policy if exists "storage_documents_read_vehicle_scoped" on storage.objects;
+create policy "storage_documents_read_vehicle_scoped"
+on storage.objects for select
+to authenticated
+using (
+  bucket_id = 'documents'
+  and exists (
+    select 1
+    from public.vehicles v
+    where (
+      -- Vehicle documents: <vehicle_id>/<...>
+      v.id::text = split_part(name, '/', 1)
+      or
+      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
+    )
+    and v.owner_id = auth.uid()
+  )
+);
+
+-- Write: authenticated can write documents only under vehicles they own
+drop policy if exists "storage_documents_write_vehicle_scoped" on storage.objects;
+create policy "storage_documents_write_vehicle_scoped"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'documents'
+  and exists (
+    select 1
+    from public.vehicles v
+    where (
+      -- Vehicle documents: <vehicle_id>/<...>
+      v.id::text = split_part(name, '/', 1)
+      or
+      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
+    )
+    and v.owner_id = auth.uid()
+  )
+);
+
+-- Update: authenticated can update documents only under vehicles they own
+drop policy if exists "storage_documents_update_vehicle_scoped" on storage.objects;
+create policy "storage_documents_update_vehicle_scoped"
+on storage.objects for update
+to authenticated
+using (
+  bucket_id = 'documents'
+  and exists (
+    select 1
+    from public.vehicles v
+    where (
+      -- Vehicle documents: <vehicle_id>/<...>
+      v.id::text = split_part(name, '/', 1)
+      or
+      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
+    )
+    and v.owner_id = auth.uid()
+  )
+)
+with check (
+  bucket_id = 'documents'
+  and exists (
+    select 1
+    from public.vehicles v
+    where (
+      -- Vehicle documents: <vehicle_id>/<...>
+      v.id::text = split_part(name, '/', 1)
+      or
+      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
+    )
+    and v.owner_id = auth.uid()
+  )
+);
+
+-- Delete: authenticated can delete documents only under vehicles they own
+drop policy if exists "storage_documents_delete_vehicle_scoped" on storage.objects;
+create policy "storage_documents_delete_vehicle_scoped"
+on storage.objects for delete
+to authenticated
+using (
+  bucket_id = 'documents'
+  and exists (
+    select 1
+    from public.vehicles v
+    where (
+      -- Vehicle documents: <vehicle_id>/<...>
+      v.id::text = split_part(name, '/', 1)
+      or
+      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
+      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
+    )
+    and v.owner_id = auth.uid()
   )
 );
 
@@ -848,6 +1060,7 @@ $$;
 
 revoke all on function public.delete_storage_object(bucket text, path text) from public;
 
+drop function if exists public.delete_storage_object_trigger();
 create or replace function public.delete_storage_object_trigger()
 returns trigger
 language plpgsql

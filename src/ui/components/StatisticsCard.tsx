@@ -1,7 +1,6 @@
 import { useIsFocused } from "@react-navigation/native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   StyleSheet,
   Text,
   View,
@@ -26,6 +25,7 @@ import type {
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useTheme } from "../ThemeProvider";
 import { toastError } from "../toast/toast";
+import { LoadingIndicator } from "./LoadingIndicator";
 
 type PeriodKey = "1m" | "3m" | "6m" | "1y" | "all";
 
@@ -671,8 +671,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
     <View style={styles.container}>
       {loading ? (
         <View style={styles.loading}>
-          <ActivityIndicator />
-          <Text style={styles.loadingText}>{t("common.loading")}</Text>
+          <LoadingIndicator />
         </View>
       ) : (
         <>
@@ -806,9 +805,7 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "center",
       paddingVertical: 18,
-      gap: 10,
     },
-    loadingText: { color: theme.colors.muted, fontWeight: "700" },
     metricsRow: { flexDirection: "row", gap: 12 },
     metric: {
       flex: 1,

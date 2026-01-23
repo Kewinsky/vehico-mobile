@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Pressable,
@@ -23,6 +22,7 @@ import { Screen } from "../ui/components/Screen";
 import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "AddAttachment">;
 
@@ -236,7 +236,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         ListEmptyComponent={
           loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={theme.colors.accent} />
+              <LoadingIndicator />
             </View>
           ) : (
             <Text

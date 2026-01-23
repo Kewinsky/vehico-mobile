@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Pressable,
@@ -30,6 +29,7 @@ import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { TextField } from "../ui/components/TextField";
 import { DateField } from "../ui/components/DateField";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Reminders">;
 
@@ -501,7 +501,7 @@ export function RemindersScreen({ route, navigation }: Props) {
         ListEmptyComponent={
           loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={theme.colors.accent} />
+              <LoadingIndicator />
             </View>
           ) : (
             <Text

@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Keyboard,
@@ -38,6 +37,7 @@ import { toastError, toastSuccess } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { TextField } from "../ui/components/TextField";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
@@ -386,7 +386,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
           ))}
         {loading && vehicleDocs.length === 0 ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.colors.accent} />
+            <LoadingIndicator />
           </View>
         ) : vehicleDocs.filter((d) => {
             const q = query.trim().toLowerCase();

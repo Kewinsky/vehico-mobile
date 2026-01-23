@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Linking,
@@ -36,6 +35,7 @@ import { TextField } from "../ui/components/TextField";
 import { PickerField } from "../ui/components/PickerField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -453,7 +453,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           ListEmptyComponent={
             attachmentsLoading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={theme.colors.accent} />
+                <LoadingIndicator />
               </View>
             ) : !uploading && attachments.length === 0 ? (
               <Text style={styles.muted}>

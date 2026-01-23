@@ -13,6 +13,7 @@ export type Vehicle = {
   make: string;
   model: string;
   production_year: number;
+  mileage: number | null; // current mileage in km
   engine_capacity: number | null; // in cm³
   power_hp: number | null; // horsepower
   fuel_type: FuelType | null;
@@ -52,10 +53,24 @@ export type Attachment = {
   created_at: string;
 };
 
-export type PublicPage = {
+export type PublicReportSnapshot = {
   id: string;
   vehicle_id: string;
-  public_id: string; // unguessable
+  public_id: string; // unguessable, used in URLs
+  title: string | null;
+  snapshot_data: {
+    vehicle: Vehicle;
+    service_entries: ServiceEntry[];
+    vehicle_photos: Array<{
+      id: string;
+      storage_path: string;
+      storage_bucket: 'images';
+      display_order: number;
+      created_at: string;
+    }>;
+    snapshot_version: string;
+    snapshot_date: string;
+  };
   created_at: string;
 };
 

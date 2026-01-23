@@ -5,8 +5,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../providers/AuthProvider";
 import { LandingScreen } from "../../screens/LandingScreen";
 import { AuthScreen } from "../../screens/AuthScreen";
-import { EmailConfirmationScreen } from "../../screens/EmailConfirmationScreen";
-import { ForgotPasswordScreen } from "../../screens/ForgotPasswordScreen";
 import { TermsOfUseScreen } from "../../screens/TermsOfUseScreen";
 import { PrivacyPolicyScreen } from "../../screens/PrivacyPolicyScreen";
 import { VehiclesScreen } from "../../screens/VehiclesScreen";
@@ -34,12 +32,12 @@ import { MarketplacePostScreen } from "../../screens/MarketplacePostScreen";
 import { MarketplacePostHistoryScreen } from "../../screens/MarketplacePostHistoryScreen";
 import { MarketplacePostEditScreen } from "../../screens/MarketplacePostEditScreen";
 import { PublicReportOptionsScreen } from "../../screens/PublicReportOptionsScreen";
+import { PublicReportHistoryScreen } from "../../screens/PublicReportHistoryScreen";
+import { PublicReportScreen } from "../../screens/PublicReportScreen";
 
 export type AppStackParamList = {
   Landing: undefined;
-  Auth: { initialMode?: 'signIn' | 'signUp' };
-  EmailConfirmation: { email: string };
-  ForgotPassword: undefined;
+  Auth: undefined;
   TermsOfUse: undefined;
   PrivacyPolicy: undefined;
   Vehicles: undefined;
@@ -55,7 +53,9 @@ export type AppStackParamList = {
   MarketplacePost: { vehicleId: string; title: string };
   MarketplacePostHistory: { vehicleId: string; title: string };
   MarketplacePostEdit: { postId: string };
+  PublicReport: { vehicleId: string; title: string };
   PublicReportOptions: { url: string; vehicleTitle: string };
+  PublicReportHistory: { vehicleId: string; title: string };
   ManageVehicle: { vehicleId: string; title: string };
   ManageVehicleEdit: { vehicleId: string };
   DataPortability: { vehicleId: string; title: string };
@@ -83,13 +83,15 @@ export function RootNavigator() {
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      key={session ? 'authenticated' : 'unauthenticated'}
+      screenOptions={{ headerShown: false }}
+      initialRouteName={session ? "Vehicles" : "Landing"}
+    >
       {!session ? (
         <>
           <Stack.Screen name="Landing" component={LandingScreen} />
           <Stack.Screen name="Auth" component={AuthScreen} />
-          <Stack.Screen name="EmailConfirmation" component={EmailConfirmationScreen} />
-          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           <Stack.Screen name="TermsOfUse" component={TermsOfUseScreen} />
           <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
         </>
@@ -130,8 +132,16 @@ export function RootNavigator() {
             component={MarketplacePostEditScreen}
           />
           <Stack.Screen
+            name="PublicReport"
+            component={PublicReportScreen}
+          />
+          <Stack.Screen
             name="PublicReportOptions"
             component={PublicReportOptionsScreen}
+          />
+          <Stack.Screen
+            name="PublicReportHistory"
+            component={PublicReportHistoryScreen}
           />
           <Stack.Screen name="ManageVehicle" component={ManageVehicleScreen} />
           <Stack.Screen

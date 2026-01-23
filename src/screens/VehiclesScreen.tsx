@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Dimensions,
   FlatList,
   Pressable,
@@ -28,6 +27,7 @@ import { Screen } from "../ui/components/Screen";
 import { AppHeader } from "../ui/components/AppHeader";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 
@@ -168,7 +168,7 @@ export function VehiclesScreen({ navigation }: Props) {
       <View style={styles.body}>
         {loading && items.length === 0 ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.colors.accent} />
+            <LoadingIndicator />
           </View>
         ) : items.length === 0 ? (
           <View style={styles.emptyContainer}>

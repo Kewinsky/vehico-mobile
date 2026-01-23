@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Pressable,
   StyleSheet,
@@ -18,6 +17,7 @@ import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderDetail">;
 
@@ -146,7 +146,7 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
           </View>
         ) : loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.colors.accent} />
+            <LoadingIndicator />
           </View>
         ) : null}
       </View>

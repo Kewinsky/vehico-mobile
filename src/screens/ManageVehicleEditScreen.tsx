@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Dimensions,
   StyleSheet,
@@ -40,6 +39,7 @@ import { TextField } from "../ui/components/TextField";
 import { PickerField } from "../ui/components/PickerField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicleEdit">;
 
@@ -63,6 +63,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
+  const [mileage, setMileage] = useState("");
   const [engineCapacity, setEngineCapacity] = useState("");
   const [powerHp, setPowerHp] = useState("");
   const [fuelType, setFuelType] = useState<FuelType | null>(null);
@@ -83,6 +84,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       setMake(v.make);
       setModel(v.model);
       setYear(String(v.production_year));
+      setMileage(v.mileage ? String(v.mileage) : "");
       setEngineCapacity(v.engine_capacity ? String(v.engine_capacity) : "");
       setPowerHp(v.power_hp ? String(v.power_hp) : "");
       setFuelType(v.fuel_type);
@@ -127,6 +129,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
         make: make.trim(),
         model: model.trim(),
         production_year,
+        mileage: mileage.trim().length ? Number(mileage) : null,
         engine_capacity: engineCapacity.trim().length
           ? Number(engineCapacity)
           : null,
@@ -393,7 +396,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       <Text style={styles.h1}>{t("manageVehicle.editTitle")}</Text>
       {!!loading && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.colors.accent} />
+          <LoadingIndicator />
         </View>
       )}
 
@@ -532,6 +535,13 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             onChangeText={setYear}
             keyboardType="number-pad"
             maxLength={4}
+          />
+          <TextField
+            label={t("vehicleForm.mileageLabel")}
+            value={mileage}
+            onChangeText={setMileage}
+            keyboardType="number-pad"
+            placeholder={t("vehicleForm.placeholderMileage")}
           />
           <PickerField
             label={t("vehicleForm.fuelTypeLabel")}

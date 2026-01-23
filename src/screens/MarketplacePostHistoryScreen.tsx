@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Pressable,
@@ -21,6 +20,7 @@ import {
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 
 import { formatDate } from "../utils/dateFormatting";
@@ -116,7 +116,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
 
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.colors.accent} />
+            <LoadingIndicator />
           </View>
         ) : posts.length === 0 ? (
           <Text style={{ color: theme.colors.muted, marginTop: 8 }}>

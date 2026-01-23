@@ -67,7 +67,7 @@ export function LandingScreen({ navigation }: Props) {
       {/* CTA Button */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + theme.spacing.md }]}>
         <Button 
-          onPress={() => navigation.navigate('Auth', { initialMode: 'signIn' })} 
+          onPress={() => navigation.navigate('Auth')} 
           style={styles.ctaButton}
         >
           {t('landing.getStarted')}
