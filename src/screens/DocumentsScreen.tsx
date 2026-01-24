@@ -61,7 +61,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       setVehicleDocs(d);
       setAttachments(a);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -79,7 +79,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       const url = await createSignedUrl(bucket, path);
       await Linking.openURL(url);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     }
   }
 
@@ -123,7 +123,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -150,7 +150,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -175,7 +175,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -195,7 +195,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
               await load();
               toastSuccess(t("documents.descriptionUpdated"));
             } catch (e: any) {
-              toastError(t("common.error"), e?.message ?? String(e));
+              toastError(e?.message ?? t("common.error"));
             }
           },
         },
@@ -219,7 +219,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
               await deleteVehicleDocument(doc);
               setVehicleDocs((prev) => prev.filter((x) => x.id !== doc.id));
             } catch (e: any) {
-              toastError(t("common.error"), e?.message ?? String(e));
+              toastError(e?.message ?? t("common.error"));
             }
           },
         },
@@ -241,7 +241,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
               await deleteAttachment(att);
               setAttachments((prev) => prev.filter((x) => x.id !== att.id));
             } catch (e: any) {
-              toastError(t("common.error"), e?.message ?? String(e));
+              toastError(e?.message ?? t("common.error"));
             }
           },
         },

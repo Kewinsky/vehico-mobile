@@ -25,7 +25,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
       await Clipboard.setStringAsync(url);
       toastSuccess(t("share.linkCopied"));
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     }
   }
 
@@ -35,10 +35,10 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
       if (canOpen) {
         await Linking.openURL(url);
       } else {
-        toastError(t("common.error"), t("share.cannotOpenUrl"));
+        toastError(t("share.cannotOpenUrl"));
       }
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     }
   }
 

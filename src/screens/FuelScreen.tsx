@@ -59,7 +59,7 @@ export function FuelScreen({ route, navigation }: Props) {
       const f = await listFuelingEntries(route.params.vehicleId);
       setFueling(f);
     } catch (err: any) {
-      toastError(t("common.error"), err?.message ?? String(err));
+      toastError(err?.message ?? t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -155,7 +155,7 @@ export function FuelScreen({ route, navigation }: Props) {
               await deleteFuelingEntry(id);
               setFueling((prev) => prev.filter((x) => x.id !== id));
             } catch (err: any) {
-              toastError(t("common.error"), err?.message ?? String(err));
+              toastError(err?.message ?? t("common.error"));
             }
           },
         },

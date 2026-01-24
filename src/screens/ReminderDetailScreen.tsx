@@ -40,7 +40,7 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
       const r = await getReminder(reminderId);
       setReminder(r);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -62,7 +62,7 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
             await deleteReminder(reminderId);
             navigation.goBack();
           } catch (e: any) {
-            toastError(t("common.error"), e?.message ?? String(e));
+            toastError(e?.message ?? t("common.error"));
           }
         },
       },

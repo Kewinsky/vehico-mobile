@@ -63,7 +63,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
 
       setContent(generated);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setGenerating(false);
     }
@@ -72,20 +72,20 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
   async function handleCopy() {
     try {
       if (!content.trim()) {
-        toastError(t("common.error"), t("marketplace.noContentToCopy"));
+        toastError(t("marketplace.noContentToCopy"));
         return;
       }
       await Clipboard.setStringAsync(content);
       toastSuccess(t("marketplace.copiedToClipboard"));
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     }
   }
 
   async function handleSave() {
     try {
       if (!content.trim()) {
-        toastError(t("common.error"), t("marketplace.noContentToSave"));
+        toastError(t("marketplace.noContentToSave"));
         return;
       }
 
@@ -103,7 +103,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
       setPrice("");
       setCurrency(settings?.currency ?? "PLN");
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -135,19 +135,6 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
       <View style={{ height: theme.spacing.md }} />
 
       <Text style={styles.h1}>{t("marketplace.title")}</Text>
-
-      <View style={{ height: theme.spacing.md }} />
-
-      <Button
-        onPress={() =>
-          navigation.navigate("MarketplacePostHistory", {
-            vehicleId,
-          })
-        }
-        variant="ghost"
-      >
-        {t("marketplace.viewHistory")}
-      </Button>
 
       <View style={{ height: theme.spacing.md }} />
 
@@ -197,6 +184,17 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
         ) : (
           t("marketplace.generate")
         )}
+      </Button>
+      <View style={{ height: theme.spacing.xs }} />
+      <Button
+        onPress={() =>
+          navigation.navigate("MarketplacePostHistory", {
+            vehicleId,
+          })
+        }
+        variant="ghost"
+      >
+        {t("marketplace.viewHistory")}
       </Button>
 
       {content ? (

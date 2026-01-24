@@ -47,7 +47,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         setFuelAmount(String(e.fuel_amount));
         setFuelCost(String(e.fuel_cost));
       } catch (err: any) {
-        toastError(t("common.error"), err?.message ?? String(err));
+        toastError(err?.message ?? t("common.error"));
       }
     })();
   }, [entryId, t]);
@@ -75,7 +75,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       else await createFuelingEntry(payload as any);
       navigation.goBack();
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setSaving(false);
     }

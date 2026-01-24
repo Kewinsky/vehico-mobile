@@ -77,7 +77,7 @@ export function AuthScreen({ navigation }: Props) {
       if (error) {
         // Check for rate limit error
         if (error.message.includes('rate limit') || error.message.includes('Rate limit')) {
-          toastError(t('auth.rateLimitExceeded'), t('auth.rateLimitMessage'));
+          toastError(t('auth.rateLimitExceeded'));
           return;
         }
         throw error;
@@ -87,9 +87,9 @@ export function AuthScreen({ navigation }: Props) {
       setMagicLinkSent(true);
       setSentEmail(emailTrimmed);
       setEmail('');
-      toastSuccess(t('common.success'), t('auth.magicLinkSent'));
+      toastSuccess(t('auth.magicLinkSent'));
     } catch (e: any) {
-      toastError(t('common.error'), e?.message ?? String(e));
+      toastError(e?.message ?? t('common.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -122,7 +122,7 @@ export function AuthScreen({ navigation }: Props) {
       throw new Error('Session was not created');
     }
 
-    toastSuccess(t('common.success'), t('auth.signedInSuccessfully'));
+    toastSuccess(t('auth.signedInSuccessfully'));
   }
 
   async function signInWithOAuth(provider: 'google' | 'facebook') {
@@ -165,7 +165,7 @@ export function AuthScreen({ navigation }: Props) {
         throw new Error('Authentication failed');
       }
     } catch (e: any) {
-      toastError(t('common.error'), e?.message ?? String(e));
+      toastError(e?.message ?? t('common.error'));
     } finally {
       setIsSocialLoading(null);
     }
@@ -188,9 +188,9 @@ export function AuthScreen({ navigation }: Props) {
       });
 
       if (error) throw error;
-      toastSuccess(t('common.success'), t('auth.signedInSuccessfully'));
+      toastSuccess(t('auth.signedInSuccessfully'));
     } catch (e: any) {
-      toastError(t('common.error'), e?.message ?? String(e));
+      toastError(e?.message ?? t('common.error'));
     } finally {
       setIsSubmitting(false);
     }

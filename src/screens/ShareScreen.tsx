@@ -26,7 +26,7 @@ export function ShareScreen({ navigation, route }: Props) {
       const v = await getVehicle(vehicleId);
       setVehicle(v);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     }
   }, [vehicleId, t]);
 

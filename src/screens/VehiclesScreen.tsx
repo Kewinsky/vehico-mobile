@@ -110,7 +110,7 @@ export function VehiclesScreen({ navigation }: Props) {
   
   function onSignOut() {
     signOut().catch((e: any) => {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     });
   }
 
@@ -142,7 +142,7 @@ export function VehiclesScreen({ navigation }: Props) {
         );
         setPhotoUrlsMap(urlsMap);
       } catch (e: any) {
-        toastError(t("common.error"), e?.message ?? String(e));
+        toastError(e?.message ?? t("common.error"));
       } finally {
         if (opts?.refreshing) setRefreshing(false);
         else setLoading(false);

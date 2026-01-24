@@ -96,7 +96,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         }
         setAttachmentsCount(countMap);
       } catch (e: any) {
-        toastError(t("common.error"), e?.message ?? String(e));
+        toastError(e?.message ?? t("common.error"));
       } finally {
         if (opts?.refreshing) setRefreshing(false);
         else setLoading(false);

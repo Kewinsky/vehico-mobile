@@ -4,7 +4,7 @@ import type { PublicReportSnapshot } from "../../types/domain";
 
 /**
  * Generates a new public report snapshot (always creates new, never reuses)
- * Enforces 5 snapshot limit per vehicle
+ * Enforces 3 snapshot limit per vehicle
  */
 export async function generatePublicPage(
   vehicleId: string
@@ -67,16 +67,16 @@ export async function deletePublicPage(snapshotId: string): Promise<void> {
 }
 
 /**
- * Updates the title of a public report
+ * Gets the count of public reports for a vehicle
  */
-export async function updatePublicReportTitle(
-  reportId: string,
-  title: string | null
-): Promise<void> {
-  const { error } = await supabase
+export async function getPublicReportCount(
+  vehicleId: string
+): Promise<number> {
+  const { count, error } = await supabase
     .from("public_report")
-    .update({ title })
-    .eq("id", reportId);
+    .select("*", { count: "exact", head: true })
+    .eq("vehicle_id", vehicleId);
 
   if (error) throw error;
+  return count ?? 0;
 }

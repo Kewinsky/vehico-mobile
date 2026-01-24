@@ -52,7 +52,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       const v = await getVehicle(vehicleId);
       setVehicle(v);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -67,7 +67,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   async function onCopyVin() {
     if (vehicle?.vin) {
       await Clipboard.setStringAsync(vehicle.vin);
-      toastSuccess(t("common.copied"), t("manageVehicle.vinCopied"));
+      toastSuccess(t("manageVehicle.vinCopied"));
     }
   }
 

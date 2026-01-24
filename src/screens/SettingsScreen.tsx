@@ -23,7 +23,7 @@ export function SettingsScreen({ navigation }: Props) {
     try {
       await setSettings({ [key]: value } as Partial<UserSettings>);
     } catch (e: any) {
-      toastError(t('common.error'), e?.message ?? String(e));
+      toastError(e?.message ?? t('common.error'));
     }
   }
 

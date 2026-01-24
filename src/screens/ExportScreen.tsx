@@ -63,7 +63,7 @@ export function ExportScreen({ navigation, route }: Props) {
         message: json,
       });
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setExporting(null);
     }
@@ -100,7 +100,7 @@ export function ExportScreen({ navigation, route }: Props) {
         message: csvText,
       });
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setExporting(null);
     }

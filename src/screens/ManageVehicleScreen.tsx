@@ -93,7 +93,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
       const urls = photos.map((photo) => getVehiclePhotoUrl(photo));
       setPhotoUrls(urls);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -109,7 +109,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   async function onCopyVin() {
     if (vehicle?.vin) {
       await Clipboard.setStringAsync(vehicle.vin);
-      toastSuccess(t("common.copied"), t("manageVehicle.vinCopied"));
+      toastSuccess(t("manageVehicle.vinCopied"));
     }
   }
 
@@ -127,7 +127,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
               await deleteVehicle(vehicleId);
               navigation.popToTop();
             } catch (e: any) {
-              toastError(t("common.error"), e?.message ?? String(e));
+              toastError(e?.message ?? t("common.error"));
             }
           },
         },

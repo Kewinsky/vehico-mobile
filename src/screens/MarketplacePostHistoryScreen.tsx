@@ -44,7 +44,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
       const v = await getVehicle(vehicleId);
       setVehicle(v);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     }
   }, [vehicleId, t]);
 
@@ -64,7 +64,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
       const loaded = await listMarketplacePosts(vehicleId);
       setPosts(loaded);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
       const loaded = await listMarketplacePosts(vehicleId);
       setPosts(loaded);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setRefreshing(false);
     }
@@ -87,7 +87,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
       await Clipboard.setStringAsync(post.content);
       toastSuccess(t("marketplace.copiedToClipboard"));
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     }
   }
 
@@ -106,7 +106,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
               toastSuccess(t("marketplace.deleted"));
               await loadPosts();
             } catch (e: any) {
-              toastError(t("common.error"), e?.message ?? String(e));
+              toastError(e?.message ?? t("common.error"));
             }
           },
         },

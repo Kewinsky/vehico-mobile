@@ -61,7 +61,7 @@ export function RemindersScreen({ route, navigation }: Props) {
         const data = await listReminders(route.params.vehicleId);
         setItems(data);
       } catch (e: any) {
-        toastError(t("common.error"), e?.message ?? String(e));
+        toastError(e?.message ?? t("common.error"));
       } finally {
         if (opts?.refreshing) setRefreshing(false);
         else setLoading(false);
@@ -85,7 +85,7 @@ export function RemindersScreen({ route, navigation }: Props) {
         prev.map((r) => (r.id === reminderId ? { ...r, status: newStatus } : r))
       );
     } catch (err: any) {
-      toastError(t("common.error"), err?.message ?? String(err));
+      toastError(err?.message ?? t("common.error"));
     }
   }
 
@@ -100,7 +100,7 @@ export function RemindersScreen({ route, navigation }: Props) {
             await deleteReminder(id);
             setItems((prev) => prev.filter((x) => x.id !== id));
           } catch (err: any) {
-            toastError(t("common.error"), err?.message ?? String(err));
+            toastError(err?.message ?? t("common.error"));
           }
         },
       },

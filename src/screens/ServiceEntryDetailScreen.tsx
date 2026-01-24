@@ -56,7 +56,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
         const data = await listAttachments(entryId);
         setItems(data);
       } catch (e: any) {
-        toastError(t("common.error"), e?.message ?? String(e));
+        toastError(e?.message ?? t("common.error"));
       } finally {
         if (opts?.refreshing) setRefreshing(false);
         else setLoading(false);
@@ -74,7 +74,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
       const url = await createSignedUrl(att.storage_bucket, att.storage_path);
       await Linking.openURL(url);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     }
   }
 
@@ -89,7 +89,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
             await deleteServiceEntry(entryId);
             navigation.goBack();
           } catch (e: any) {
-            toastError(t("common.error"), e?.message ?? String(e));
+            toastError(e?.message ?? t("common.error"));
           }
         },
       },

@@ -53,7 +53,7 @@ export function ImportScreen({ navigation, route }: Props) {
       if (importing) return;
       const raw = csv.trim();
       if (!raw) {
-        toastError(t("common.error"), t("import.emptyCsv"));
+        toastError(t("import.emptyCsv"));
         return;
       }
 
@@ -138,7 +138,7 @@ export function ImportScreen({ navigation, route }: Props) {
                   t("import.successBody")
                 );
               } catch (err: any) {
-                toastError(t("common.error"), err?.message ?? String(err));
+                toastError(err?.message ?? t("common.error"));
               } finally {
                 setImporting(false);
               }
@@ -147,7 +147,7 @@ export function ImportScreen({ navigation, route }: Props) {
         ]
       );
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     }
   }
 

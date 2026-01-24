@@ -88,7 +88,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         setCost(e.cost != null ? String(e.cost) : "");
         await reloadAttachments(entryId);
       } catch (err: any) {
-        toastError(t("common.error"), err?.message ?? String(err));
+        toastError(err?.message ?? t("common.error"));
       }
     })();
   }, [entryId, reloadAttachments, t]);
@@ -98,7 +98,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       const url = await createSignedUrl(att.storage_bucket, att.storage_path);
       await Linking.openURL(url);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     }
   }
 
@@ -116,7 +116,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               await deleteAttachment(att);
               setAttachments((prev) => prev.filter((x) => x.id !== att.id));
             } catch (e: any) {
-              toastError(t("common.error"), e?.message ?? String(e));
+              toastError(e?.message ?? t("common.error"));
             }
           },
         },

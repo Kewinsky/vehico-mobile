@@ -34,7 +34,7 @@ export function toastInfo(title: string, description?: string) {
   Toast.show({
     type: "info",
     text1: title,
-    text2: description,
+    text2: description || undefined,
     position: "bottom",
     useModal: false,
     backgroundColor: colors.bg,
@@ -48,7 +48,7 @@ export function toastSuccess(title: string, description?: string) {
   Toast.show({
     type: "success",
     text1: title,
-    text2: description,
+    text2: description || undefined,
     position: "bottom",
     useModal: false,
     backgroundColor: colors.bg,
@@ -62,7 +62,7 @@ export function toastError(title: string, description?: string) {
   Toast.show({
     type: "error",
     text1: title,
-    text2: description,
+    text2: description || undefined,
     position: "bottom",
     useModal: false,
     backgroundColor: colors.bg,

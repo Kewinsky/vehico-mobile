@@ -752,7 +752,7 @@ $$;
 -- Grant execute to authenticated users
 grant execute on function public.generate_vehicle_snapshot(uuid) to authenticated;
 
--- Function to create snapshot (enforces 5 snapshot limit)
+-- Function to create snapshot (enforces 3 snapshot limit)
 drop function if exists public.create_public_report_snapshot(uuid);
 create or replace function public.create_public_report_snapshot(p_vehicle_id uuid)
 returns public.public_report
@@ -775,12 +775,12 @@ begin
     raise exception 'Vehicle not found or access denied';
   end if;
 
-  -- Check snapshot limit (5 per vehicle)
+  -- Check snapshot limit (3 per vehicle)
   select count(*) into v_snapshot_count
   from public.public_report
   where vehicle_id = p_vehicle_id;
 
-  if v_snapshot_count >= 5 then
+  if v_snapshot_count >= 3 then
     -- Delete oldest snapshot
     delete from public.public_report
     where id = (

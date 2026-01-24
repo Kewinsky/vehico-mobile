@@ -61,7 +61,7 @@ export function VehicleFormScreen({ navigation }: Props) {
   function pickSource() {
     const remainingSlots = 6 - photoUris.length;
     if (remainingSlots <= 0) {
-      toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+      toastError(t("vehicleForm.maxPhotosReached"));
       return;
     }
     Alert.alert(
@@ -89,7 +89,7 @@ export function VehicleFormScreen({ navigation }: Props) {
     try {
       const remainingSlots = 6 - photoUris.length;
       if (remainingSlots <= 0) {
-        toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+        toastError(t("vehicleForm.maxPhotosReached"));
         return;
       }
       setUploadingPhoto(true);
@@ -108,7 +108,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         },
       ]);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setUploadingPhoto(false);
     }
@@ -118,7 +118,7 @@ export function VehicleFormScreen({ navigation }: Props) {
     try {
       const remainingSlots = 6 - photoUris.length;
       if (remainingSlots <= 0) {
-        toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+        toastError(t("vehicleForm.maxPhotosReached"));
         return;
       }
       setUploadingPhoto(true);
@@ -145,7 +145,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         .filter((photo) => !!photo.uri) as PhotoFile[];
       setPhotoUris([...photoUris, ...newPhotos]);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setUploadingPhoto(false);
     }
@@ -155,7 +155,7 @@ export function VehicleFormScreen({ navigation }: Props) {
     try {
       const remainingSlots = 6 - photoUris.length;
       if (remainingSlots <= 0) {
-        toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+        toastError(t("vehicleForm.maxPhotosReached"));
         return;
       }
       setUploadingPhoto(true);
@@ -179,7 +179,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         .filter((photo) => !!photo.uri) as PhotoFile[];
       setPhotoUris([...photoUris, ...newPhotos]);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setUploadingPhoto(false);
     }
@@ -285,7 +285,7 @@ export function VehicleFormScreen({ navigation }: Props) {
 
       navigation.replace("Vehicles");
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setSaving(false);
     }

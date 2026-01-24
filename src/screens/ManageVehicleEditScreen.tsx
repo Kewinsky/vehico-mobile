@@ -96,7 +96,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       const urls = photosList.map((photo) => getVehiclePhotoUrl(photo));
       setPhotoUrls(urls);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -138,7 +138,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       setVehicle(updated);
       navigation.goBack();
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -147,7 +147,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   function pickSource() {
     const remainingSlots = 6 - photos.length;
     if (remainingSlots <= 0) {
-      toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+      toastError(t("vehicleForm.maxPhotosReached"));
       return;
     }
     Alert.alert(
@@ -175,7 +175,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
     try {
       const remainingSlots = 6 - photos.length;
       if (remainingSlots <= 0) {
-        toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+        toastError(t("vehicleForm.maxPhotosReached"));
         return;
       }
       setUploadingPhoto(true);
@@ -195,7 +195,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       await load();
       toastSuccess(t("manageVehicle.photoAdded"));
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setUploadingPhoto(false);
     }
@@ -205,7 +205,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
     try {
       const remainingSlots = 6 - photos.length;
       if (remainingSlots <= 0) {
-        toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+        toastError(t("vehicleForm.maxPhotosReached"));
         return;
       }
       setUploadingPhoto(true);
@@ -238,7 +238,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       await load();
       toastSuccess(t("manageVehicle.photoAdded"));
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setUploadingPhoto(false);
     }
@@ -248,7 +248,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
     try {
       const remainingSlots = 6 - photos.length;
       if (remainingSlots <= 0) {
-        toastError(t("common.error"), t("vehicleForm.maxPhotosReached"));
+        toastError(t("vehicleForm.maxPhotosReached"));
         return;
       }
       setUploadingPhoto(true);
@@ -278,7 +278,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       await load();
       toastSuccess(t("manageVehicle.photoAdded"));
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setUploadingPhoto(false);
     }
@@ -290,7 +290,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       await load();
       toastSuccess(t("manageVehicle.photoRemoved"));
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     }
   }
 

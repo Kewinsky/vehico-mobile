@@ -46,7 +46,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
       const v = await getVehicle(vehicleId);
       setVehicle(v);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     }
   }, [vehicleId, t]);
 
@@ -66,7 +66,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
       const loaded = await listPublicPages(vehicleId);
       setReports(loaded);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -78,7 +78,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
       const loaded = await listPublicPages(vehicleId);
       setReports(loaded);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setRefreshing(false);
     }
@@ -98,7 +98,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
               toastSuccess(t("publicReport.titleUpdated"));
               await loadReports();
             } catch (e: any) {
-              toastError(t("common.error"), e?.message ?? String(e));
+              toastError(e?.message ?? t("common.error"));
             }
           },
         },
@@ -123,7 +123,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
               toastSuccess(t("share.reportDeleted"));
               await loadReports();
             } catch (e: any) {
-              toastError(t("common.error"), e?.message ?? String(e));
+              toastError(e?.message ?? t("common.error"));
             }
           },
         },
@@ -139,7 +139,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
         vehicleTitle,
       });
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     }
   }
 

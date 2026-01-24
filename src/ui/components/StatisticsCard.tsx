@@ -468,7 +468,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
         setService(s);
         setFueling(f);
       } catch (err: any) {
-        toastError(t("common.error"), err?.message ?? String(err));
+        toastError(err?.message ?? t("common.error"));
       } finally {
         if (alive) setLoading(false);
       }

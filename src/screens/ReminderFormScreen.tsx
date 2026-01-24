@@ -56,7 +56,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         setTitle(r.title ?? "");
         setNotes(r.notes ?? "");
       } catch (err: any) {
-        toastError(t("common.error"), err?.message ?? String(err));
+        toastError(err?.message ?? t("common.error"));
       }
     })();
   }, [reminderId, t]);
@@ -87,7 +87,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       else await createReminder(payload);
       navigation.goBack();
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setSaving(false);
     }

@@ -46,7 +46,7 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
       const post = await getMarketplacePost(postId);
       setContent(post.content);
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -56,7 +56,7 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
   async function handleSave() {
     try {
       if (!content.trim()) {
-        toastError(t("common.error"), t("marketplace.noContentToSave"));
+        toastError(t("marketplace.noContentToSave"));
         return;
       }
 
@@ -65,7 +65,7 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
       toastSuccess(t("marketplace.updated"));
       navigation.goBack();
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setSaving(false);
     }

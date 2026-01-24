@@ -40,9 +40,9 @@ export function EmailConfirmationScreen({ route, navigation }: Props) {
       });
 
       if (error) throw error;
-      toastSuccess(t('common.success'), t('auth.confirmationEmailResent'));
+      toastSuccess(t('auth.confirmationEmailResent'));
     } catch (e: any) {
-      toastError(t('common.error'), e?.message ?? String(e));
+      toastError(e?.message ?? t('common.error'));
     } finally {
       setIsResending(false);
     }

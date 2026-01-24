@@ -46,7 +46,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         const data = await listServiceEntries(vehicleId);
         setItems(data);
       } catch (e: any) {
-        toastError(t("common.error"), e?.message ?? String(e));
+        toastError(e?.message ?? t("common.error"));
       } finally {
         if (opts?.refreshing) setRefreshing(false);
         else setLoading(false);
@@ -111,7 +111,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       });
       navigation.goBack();
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -137,7 +137,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       });
       navigation.goBack();
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -161,7 +161,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       });
       navigation.goBack();
     } catch (e: any) {
-      toastError(t("common.error"), e?.message ?? String(e));
+      toastError(e?.message ?? t("common.error"));
     } finally {
       setUploading(false);
     }
