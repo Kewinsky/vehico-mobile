@@ -76,7 +76,7 @@ function VehicleCarousel({ photoUrls, width, height, theme }: VehicleCarouselPro
           <Pagination.Basic
             progress={progress}
             data={photoUrls.map((url) => ({ url }))}
-            dotStyle={{ backgroundColor: "rgba(255,255,255,0.5)", borderRadius: 50 }}
+            dotStyle={{ backgroundColor: theme.colors.border, borderRadius: 50 }}
             activeDotStyle={{ backgroundColor: theme.colors.accent, borderRadius: 50 }}
             containerStyle={{ gap: 5 }}
           />
@@ -367,16 +367,16 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     vehicleTitle: {
       fontSize: 22,
       fontWeight: "800",
-      color: "#FFFFFF",
-      textShadowColor: "rgba(0, 0, 0, 0.5)",
+      color: theme.colors.fg,
+      textShadowColor: theme.colors.bg,
       textShadowOffset: { width: 0, height: 1 },
       textShadowRadius: 4,
       marginBottom: 4,
     },
     vehicleMeta: {
       fontSize: 14,
-      color: "#FFFFFF",
-      textShadowColor: "rgba(0, 0, 0, 0.5)",
+      color: theme.colors.fg,
+      textShadowColor: theme.colors.bg,
       textShadowOffset: { width: 0, height: 1 },
       textShadowRadius: 4,
       opacity: 0.95,

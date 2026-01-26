@@ -653,7 +653,7 @@ const makeStyles = (theme: any) =>
       height: 28,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      backgroundColor: theme.colors.bg,
       borderRadius: 14,
       opacity: 0.7,
     },
@@ -669,7 +669,7 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
     },
     photoMainText: {
-      color: "#000000",
+      color: theme.colors.fg,
       fontSize: 11,
       fontWeight: "700",
     },

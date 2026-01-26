@@ -18,8 +18,11 @@ function parseCsvLine(line: string): string[] {
   const out: string[] = [];
   let cur = "";
   let inQuotes = false;
+  const delimiter = ";";
+
   for (let i = 0; i < line.length; i++) {
     const ch = line[i];
+
     if (ch === '"') {
       const next = line[i + 1];
       if (inQuotes && next === '"') {
@@ -28,13 +31,14 @@ function parseCsvLine(line: string): string[] {
       } else {
         inQuotes = !inQuotes;
       }
-    } else if (ch === "," && !inQuotes) {
+    } else if (ch === delimiter && !inQuotes) {
       out.push(cur.trim());
       cur = "";
     } else {
       cur += ch;
     }
   }
+
   out.push(cur.trim());
   return out;
 }

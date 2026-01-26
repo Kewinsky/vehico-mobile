@@ -61,7 +61,7 @@ function VehicleCarousel({ photoUrls, width, height, theme }: VehicleCarouselPro
         <Pagination.Basic
           progress={progress}
           data={photoUrls.map((url) => ({ url }))}
-          dotStyle={{ backgroundColor: "rgba(255,255,255,0.5)", borderRadius: 50 }}
+          dotStyle={{ backgroundColor: theme.colors.border, borderRadius: 50 }}
           activeDotStyle={{ backgroundColor: theme.colors.accent, borderRadius: 50 }}
           containerStyle={{ gap: 5, marginTop: 10 }}
         />

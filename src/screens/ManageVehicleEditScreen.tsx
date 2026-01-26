@@ -716,7 +716,7 @@ const makeStyles = (theme: any) =>
       height: 28,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      backgroundColor: theme.colors.bg,
       borderRadius: 14,
       opacity: 0.7,
     },
