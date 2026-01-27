@@ -78,7 +78,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
     }
   }
 
-  function onDeleteEntry() {
+  function onDelete() {
     Alert.alert(t("entryDetail.deleteTitle"), t("entryDetail.deleteBody"), [
       { text: t("common.cancel"), style: "cancel" },
       {
@@ -219,7 +219,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
       />
 
       <View style={styles.actions}>
-        <Button onPress={onDeleteEntry} variant="destructive">
+        <Button onPress={onDelete} variant="destructive">
           {t("common.delete")}
         </Button>
       </View>

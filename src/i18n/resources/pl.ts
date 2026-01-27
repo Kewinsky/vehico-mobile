@@ -428,13 +428,13 @@ export const pl = {
   },
   dataPortability: {
     title: "Eksport / Import",
-    subtitle: "Kopia zapasowa i przywracanie danych pojazdu",
+    subtitle: "Kopia zapasowa i przywracanie danych pojazdu.",
     exportButton: "Eksportuj dane",
     importButton: "Importuj dane",
   },
   export: {
     title: "Eksport danych",
-    subtitle: "Eksportuj dane pojazdu w różnych formatach",
+    subtitle: "Eksportuj dane pojazdu w różnych formatach.",
     shareTitle: "Eksport Vehico",
     jsonButton: "Eksport JSON (Wszystkie dane)",
     jsonDescription: "Eksportuje pojazd, wpisy serwisowe, tankowania i przypomnienia",
@@ -443,12 +443,12 @@ export const pl = {
   },
   import: {
     title: "Import danych",
-    subtitle: "Importuj wpisy serwisowe z CSV",
+    subtitle: "Importuj wpisy serwisowe z CSV.",
     csvLabel: "Wklej CSV",
     csvHint:
       "Wymagane kolumny: service_date,title (opcjonalnie: description,mileage,cost)",
     placeholder:
-      "service_date,title,description,mileage,cost\n2026-01-14,Wymiana oleju,Olej i filtr,120000,250",
+      "service_date;title;description;mileage;cost\n2026-01-14;Wymiana oleju;Olej i filtr;120000;250",
     importButton: "Importuj wpisy serwisowe",
     clearButton: "Wyczyść",
     confirmTitle: "Zaimportować wpisy?",

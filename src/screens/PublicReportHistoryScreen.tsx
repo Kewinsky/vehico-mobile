@@ -108,29 +108,6 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
     );
   }
 
-  function handleDeleteReport(report: PublicReportSnapshot) {
-    Alert.alert(
-      t("share.deleteReportTitle"),
-      t("share.deleteReportBody"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("common.delete"),
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deletePublicPage(report.id);
-              toastSuccess(t("share.reportDeleted"));
-              await loadReports();
-            } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
-            }
-          },
-        },
-      ]
-    );
-  }
-
   async function handleReportPress(report: PublicReportSnapshot) {
     try {
       const url = await getPublicPageUrl(report.public_id);
@@ -202,16 +179,6 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
                         name="pencil-outline"
                         size={18}
                         color={theme.colors.accent}
-                      />
-                    </IconButton>
-                    <IconButton
-                      onPress={() => handleDeleteReport(item)}
-                      variant="danger"
-                    >
-                      <Ionicons
-                        name="trash-outline"
-                        size={18}
-                        color={theme.colors.danger}
                       />
                     </IconButton>
                   </View>

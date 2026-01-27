@@ -424,13 +424,13 @@ export const en = {
   },
   dataPortability: {
     title: "Export / Import",
-    subtitle: "Backup and restore your vehicle data",
+    subtitle: "Backup and restore your vehicle data.",
     exportButton: "Export Data",
     importButton: "Import Data",
   },
   export: {
     title: "Export Data",
-    subtitle: "Export your vehicle data in different formats",
+    subtitle: "Export your vehicle data in different formats.",
     shareTitle: "Vehico export",
     jsonButton: "Export JSON (All Data)",
     jsonDescription: "Exports vehicle, service entries, fueling entries, and reminders",
@@ -439,12 +439,12 @@ export const en = {
   },
   import: {
     title: "Import Data",
-    subtitle: "Import service entries from CSV",
+    subtitle: "Import service entries from CSV.",
     csvLabel: "Paste CSV",
     csvHint:
       "Required columns: service_date,title (optional: description,mileage,cost)",
     placeholder:
-      "service_date,title,description,mileage,cost\n2026-01-14,Oil change,Engine oil and filter,120000,250",
+      "service_date;title;description;mileage;cost\n2026-01-14;Oil change;Engine oil and filter;120000;250",
     importButton: "Import service entries",
     clearButton: "Clear",
     confirmTitle: "Import entries?",

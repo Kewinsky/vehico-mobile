@@ -374,20 +374,6 @@ with check (
   )
 );
 
--- Public reports: authenticated users can delete their own snapshots
-drop policy if exists public_report_delete_own on public.public_report;
-create policy public_report_delete_own
-on public.public_report for delete
-to authenticated
-using (
-  exists (
-    select 1
-    from public.vehicles v
-    where v.id = public_report.vehicle_id
-      and v.owner_id = auth.uid()
-  )
-);
-
 -- Update: authenticated can update title for their own reports
 drop policy if exists public_report_update_own on public.public_report;
 create policy public_report_update_own

@@ -210,8 +210,6 @@ const makeStyles = (theme: any) =>
     muted: { marginTop: 8, color: theme.colors.muted, lineHeight: 20 },
     actions: {
       paddingHorizontal: theme.spacing.md,
-      paddingTop: theme.spacing.sm,
-      paddingBottom: theme.spacing.md,
     },
     loadingContainer: {
       paddingTop: theme.spacing.lg * 2.5,
