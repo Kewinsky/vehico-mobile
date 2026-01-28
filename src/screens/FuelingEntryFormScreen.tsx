@@ -10,7 +10,6 @@ import {
   updateFuelingEntry,
 } from "../services/fuel/fuelingEntriesRepo";
 import { AppHeader } from "../ui/components/AppHeader";
-import { Button } from "../ui/components/Button";
 import { DateField } from "../ui/components/DateField";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
@@ -151,7 +150,6 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         keyboardType="decimal-pad"
         placeholder={t("fuelingForm.placeholderCost")}
       />
-
     </FormScreen>
   );
 }

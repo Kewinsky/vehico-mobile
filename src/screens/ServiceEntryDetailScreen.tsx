@@ -62,7 +62,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
         else setLoading(false);
       }
     },
-    [entryId, t]
+    [entryId, t],
   );
 
   useEffect(() => {
@@ -102,14 +102,19 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
       <View style={styles.top}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>{t("entryDetail.title")}</Text>
-          <Pressable
-            onPress={() =>
-              navigation.navigate("ServiceEntryForm", { vehicleId, entryId })
-            }
-            hitSlop={10}
-          >
-            <Text style={styles.editLink}>{t("common.edit")}</Text>
-          </Pressable>
+          <View style={styles.actionsRow}>
+            <Pressable
+              onPress={() =>
+                navigation.navigate("ServiceEntryForm", { vehicleId, entryId })
+              }
+              hitSlop={10}
+            >
+              <Text style={styles.editLink}>{t("common.edit")}</Text>
+            </Pressable>
+            <Pressable onPress={() => onDelete()} hitSlop={10}>
+              <Text style={styles.deleteLink}>{t("common.delete")}</Text>
+            </Pressable>
+          </View>
         </View>
 
         {entry ? (
@@ -206,7 +211,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
                     const date = new Date(item.created_at);
                     const formattedDate = date.toLocaleDateString(
                       i18n.language === "pl" ? "pl-PL" : "en-US",
-                      { day: "2-digit", month: "2-digit", year: "numeric" }
+                      { day: "2-digit", month: "2-digit", year: "numeric" },
                     );
                     return `${t("documents.added")} ${formattedDate} · ${ext}`;
                   })()}
@@ -217,12 +222,6 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
         )}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
       />
-
-      <View style={styles.actions}>
-        <Button onPress={onDelete} variant="destructive">
-          {t("common.delete")}
-        </Button>
-      </View>
     </Screen>
   );
 }
@@ -235,12 +234,18 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingHorizontal: theme.spacing.md,
       paddingBottom: theme.spacing.sm,
     },
+    actionsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
     headerRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
     },
     editLink: { color: theme.colors.muted, fontWeight: "800" },
+    deleteLink: { color: theme.colors.danger, fontWeight: "800" },
     title: {
       fontSize: 20,
       fontWeight: "800",
@@ -279,11 +284,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingBottom: theme.spacing.sm,
     },
     sectionTitle: { fontSize: 16, fontWeight: "800", color: theme.colors.fg },
-    actions: {
-      paddingHorizontal: theme.spacing.md,
-      paddingTop: theme.spacing.sm,
-      paddingBottom: theme.spacing.md,
-    },
     list: {
       paddingHorizontal: theme.spacing.md,
       paddingBottom: insets.bottom + theme.spacing.lg,

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { PublicReportSnapshot } from "../types/domain";
@@ -17,7 +17,6 @@ import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import type { Vehicle } from "../types/domain";
 import {
   listPublicPages,
-  deletePublicPage,
   getPublicPageUrl,
   updatePublicReportTitle,
 } from "../services/publicPages/publicPagesRepo";
@@ -94,7 +93,10 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
           text: t("common.save"),
           onPress: async (newTitle: string | undefined) => {
             try {
-              await updatePublicReportTitle(report.id, newTitle?.trim() || null);
+              await updatePublicReportTitle(
+                report.id,
+                newTitle?.trim() || null,
+              );
               toastSuccess(t("publicReport.titleUpdated"));
               await loadReports();
             } catch (e: any) {
@@ -104,7 +106,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
         },
       ],
       "plain-text",
-      report.title || ""
+      report.title || "",
     );
   }
 
@@ -163,10 +165,14 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
                     style={{ flex: 1 }}
                     onPress={() => handleReportPress(item)}
                   >
-                    <Text style={[styles.reportTitle, { color: theme.colors.fg }]}>
+                    <Text
+                      style={[styles.reportTitle, { color: theme.colors.fg }]}
+                    >
                       {item.title || t("publicReport.defaultTitle")}
                     </Text>
-                    <Text style={[styles.reportDate, { color: theme.colors.muted }]}>
+                    <Text
+                      style={[styles.reportDate, { color: theme.colors.muted }]}
+                    >
                       {t("share.generatedOn")} {formatDate(item.created_at)}
                     </Text>
                   </Pressable>
@@ -175,9 +181,9 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
                       onPress={() => handleEditTitle(item)}
                       variant="ghost"
                     >
-                      <Ionicons
-                        name="pencil-outline"
-                        size={18}
+                      <Feather
+                        name="edit"
+                        size={24}
                         color={theme.colors.accent}
                       />
                     </IconButton>
@@ -185,7 +191,9 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
                 </View>
               </Pressable>
             )}
-            ItemSeparatorComponent={() => <View style={{ height: theme.spacing.sm }} />}
+            ItemSeparatorComponent={() => (
+              <View style={{ height: theme.spacing.sm }} />
+            )}
           />
         )}
       </View>

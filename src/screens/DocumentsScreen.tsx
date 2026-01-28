@@ -1,7 +1,5 @@
 import {
   Alert,
-  FlatList,
-  Keyboard,
   Linking,
   Pressable,
   ScrollView,
@@ -35,7 +33,7 @@ import {
 import { Button } from "../ui/components/Button";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { TextField } from "../ui/components/TextField";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
@@ -101,7 +99,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
           text: t("attachments.files"),
           onPress: () => void pickDocFromFiles(),
         },
-      ]
+      ],
     );
   }
 
@@ -201,7 +199,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
         },
       ],
       "plain-text",
-      doc.description || ""
+      doc.description || "",
     );
   }
 
@@ -223,7 +221,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
             }
           },
         },
-      ]
+      ],
     );
   }
 
@@ -245,7 +243,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
             }
           },
         },
-      ]
+      ],
     );
   }
 
@@ -262,41 +260,41 @@ export function DocumentsScreen({ route, navigation }: Props) {
           </Text>
         </View>
         <View style={{ height: theme.spacing.sm }} />
-          <TextField
-            noMarginTop
-            value={query}
-            onChangeText={setQuery}
-            placeholder={t("documents.searchPlaceholder")}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-            blurOnSubmit={true}
-          />
-          <View style={{ height: theme.spacing.sm }} />
-          <View style={styles.buttonsRow}>
-            <View style={{ flex: 1 }}>
-              <Button
-                onPress={pickVehicleDocument}
-                variant="ghost"
-                disabled={uploading}
-              >
-                {t("documents.addVehicleDocument")}
-              </Button>
-            </View>
-            <View style={{ width: theme.spacing.sm }} />
-            <View style={{ flex: 1 }}>
-              <Button
-                onPress={() =>
-                  navigation.navigate("AddAttachment", {
-                    vehicleId: route.params.vehicleId,
-                  })
-                }
-                variant="ghost"
-              >
-                {t("documents.addAttachment")}
-              </Button>
-            </View>
+        <TextField
+          noMarginTop
+          value={query}
+          onChangeText={setQuery}
+          placeholder={t("documents.searchPlaceholder")}
+          autoCapitalize="none"
+          autoCorrect={false}
+          clearButtonMode="while-editing"
+          blurOnSubmit={true}
+        />
+        <View style={{ height: theme.spacing.sm }} />
+        <View style={styles.buttonsRow}>
+          <View style={{ flex: 1 }}>
+            <Button
+              onPress={pickVehicleDocument}
+              variant="ghost"
+              disabled={uploading}
+            >
+              {t("documents.addVehicleDocument")}
+            </Button>
           </View>
+          <View style={{ width: theme.spacing.sm }} />
+          <View style={{ flex: 1 }}>
+            <Button
+              onPress={() =>
+                navigation.navigate("AddAttachment", {
+                  vehicleId: route.params.vehicleId,
+                })
+              }
+              variant="ghost"
+            >
+              {t("documents.addAttachment")}
+            </Button>
+          </View>
+        </View>
       </View>
       <ScrollView
         contentContainerStyle={{
@@ -349,10 +347,10 @@ export function DocumentsScreen({ route, navigation }: Props) {
                         const date = new Date(item.created_at);
                         const formattedDate = date.toLocaleDateString(
                           i18n.language === "pl" ? "pl-PL" : "en-US",
-                          { day: "2-digit", month: "2-digit", year: "numeric" }
+                          { day: "2-digit", month: "2-digit", year: "numeric" },
                         );
                         return `${t(
-                          "documents.added"
+                          "documents.added",
                         )} ${formattedDate} · ${ext}`;
                       })()}
                     </Text>
@@ -362,9 +360,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
                       onPress={() => editDocumentDescription(item)}
                       variant="ghost"
                     >
-                      <Ionicons
-                        name="pencil-outline"
-                        size={18}
+                      <Feather
+                        name="edit"
+                        size={24}
                         color={theme.colors.accent}
                       />
                     </IconButton>
@@ -374,7 +372,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
                     >
                       <Ionicons
                         name="trash-outline"
-                        size={18}
+                        size={24}
                         color={theme.colors.danger}
                       />
                     </IconButton>
@@ -443,10 +441,10 @@ export function DocumentsScreen({ route, navigation }: Props) {
                         const date = new Date(item.created_at);
                         const formattedDate = date.toLocaleDateString(
                           i18n.language === "pl" ? "pl-PL" : "en-US",
-                          { day: "2-digit", month: "2-digit", year: "numeric" }
+                          { day: "2-digit", month: "2-digit", year: "numeric" },
                         );
                         return `${t(
-                          "documents.added"
+                          "documents.added",
                         )} ${formattedDate} · ${ext}`;
                       })()}
                     </Text>
@@ -457,7 +455,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
                   >
                     <Ionicons
                       name="trash-outline"
-                      size={18}
+                      size={24}
                       color={theme.colors.danger}
                     />
                   </IconButton>

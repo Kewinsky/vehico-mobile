@@ -159,7 +159,7 @@ export function FuelScreen({ route, navigation }: Props) {
             }
           },
         },
-      ]
+      ],
     );
   }
 
@@ -175,18 +175,53 @@ export function FuelScreen({ route, navigation }: Props) {
         </View>
         <View style={{ height: theme.spacing.sm }} />
         <View style={styles.actionsRow}>
-            <View style={{ flex: 1 }}>
-              <Button
-                onPress={() =>
-                  navigation.navigate("FuelingEntryForm", {
-                    vehicleId: route.params.vehicleId,
-                  })
-                }
+          <View style={{ flex: 1 }}>
+            <Button
+              onPress={() =>
+                navigation.navigate("FuelingEntryForm", {
+                  vehicleId: route.params.vehicleId,
+                })
+              }
+            >
+              {t("fuelCosts.addFueling")}
+            </Button>
+          </View>
+          <View
+            style={{
+              marginLeft: theme.spacing.sm,
+              flexDirection: "row",
+              gap: theme.spacing.sm,
+            }}
+          >
+            <View
+              style={[
+                styles.filterButton,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+                hasActiveFilters && {
+                  borderColor: theme.colors.accent,
+                },
+              ]}
+            >
+              <Pressable
+                onPress={() => setFiltersOpen((v) => !v)}
+                style={({ pressed }) => [
+                  styles.filterButtonInner,
+                  pressed && { opacity: 0.9 },
+                ]}
               >
-                {t("fuelCosts.addFueling")}
-              </Button>
+                <Ionicons
+                  name="filter-outline"
+                  size={24}
+                  color={
+                    hasActiveFilters ? theme.colors.accent : theme.colors.fg
+                  }
+                />
+              </Pressable>
             </View>
-            <View style={{ marginLeft: theme.spacing.sm, flexDirection: "row", gap: theme.spacing.sm }}>
+            {hasActiveFilters ? (
               <View
                 style={[
                   styles.filterButton,
@@ -194,98 +229,69 @@ export function FuelScreen({ route, navigation }: Props) {
                     borderColor: theme.colors.border,
                     backgroundColor: theme.colors.card,
                   },
-                  hasActiveFilters && {
-                    borderColor: theme.colors.accent,
-                  },
                 ]}
               >
                 <Pressable
-                  onPress={() => setFiltersOpen((v) => !v)}
+                  onPress={resetFilters}
                   style={({ pressed }) => [
                     styles.filterButtonInner,
                     pressed && { opacity: 0.9 },
                   ]}
                 >
                   <Ionicons
-                    name="filter-outline"
+                    name="refresh-outline"
                     size={24}
-                    color={
-                      hasActiveFilters ? theme.colors.accent : theme.colors.fg
-                    }
+                    color={theme.colors.fg}
                   />
                 </Pressable>
               </View>
-              {hasActiveFilters ? (
-                <View
-                  style={[
-                    styles.filterButton,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
-                  <Pressable
-                    onPress={resetFilters}
-                    style={({ pressed }) => [
-                      styles.filterButtonInner,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="refresh-outline"
-                      size={24}
-                      color={theme.colors.fg}
-                    />
-                  </Pressable>
-                </View>
-              ) : null}
-            </View>
+            ) : null}
           </View>
+        </View>
 
-          {filtersOpen ? (
-            <View
-              style={[
-                styles.filtersCard,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <DateField
-                label={t("timeline.filterFrom")}
-                value={dateFrom}
-                onChange={setDateFrom}
-              />
-              <View style={{ height: 10 }} />
-              <DateField
-                label={t("timeline.filterTo")}
-                value={dateTo}
-                onChange={setDateTo}
-              />
+        {filtersOpen ? (
+          <View
+            style={[
+              styles.filtersCard,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <DateField
+              label={t("timeline.filterFrom")}
+              value={dateFrom}
+              onChange={setDateFrom}
+            />
+            <View style={{ height: 10 }} />
+            <DateField
+              label={t("timeline.filterTo")}
+              value={dateTo}
+              onChange={setDateTo}
+            />
 
-              <View style={{ height: theme.spacing.sm }} />
-              <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
-                <View style={{ flex: 1 }}>
-                  <TextField
-                    label={t("timeline.filterMinCost")}
-                    value={minCost}
-                    onChangeText={setMinCost}
-                    keyboardType="decimal-pad"
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <TextField
-                    label={t("timeline.filterMaxCost")}
-                    value={maxCost}
-                    onChangeText={setMaxCost}
-                    keyboardType="decimal-pad"
-                  />
-                </View>
+            <View style={{ height: theme.spacing.sm }} />
+            <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
+              <View style={{ flex: 1 }}>
+                <TextField
+                  label={t("timeline.filterMinCost")}
+                  value={minCost}
+                  onChangeText={setMinCost}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <TextField
+                  label={t("timeline.filterMaxCost")}
+                  value={maxCost}
+                  onChangeText={setMaxCost}
+                  keyboardType="decimal-pad"
+                />
               </View>
             </View>
-          ) : null}
+          </View>
+        ) : null}
       </View>
       <FlatList
         data={filteredFuelingWithSeparators}
@@ -347,7 +353,12 @@ export function FuelScreen({ route, navigation }: Props) {
                   <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
                     {entry.date}
                   </Text>
-                  <Text style={{ color: theme.colors.muted, marginTop: theme.spacing.xs / 2 }}>
+                  <Text
+                    style={{
+                      color: theme.colors.muted,
+                      marginTop: theme.spacing.xs / 2,
+                    }}
+                  >
                     {Number(entry.distance).toFixed(1)} {distanceUnit} ·{" "}
                     {Number(entry.fuel_amount).toFixed(1)} {fuelUnit} ·{" "}
                     {Number(entry.fuel_cost).toFixed(2)} {currency}
@@ -359,7 +370,7 @@ export function FuelScreen({ route, navigation }: Props) {
                 >
                   <Ionicons
                     name="trash-outline"
-                    size={18}
+                    size={24}
                     color={theme.colors.danger}
                   />
                 </IconButton>
@@ -373,7 +384,9 @@ export function FuelScreen({ route, navigation }: Props) {
               <LoadingIndicator />
             </View>
           ) : (
-            <Text style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}>
+            <Text
+              style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}
+            >
               {t("fuelCosts.noFueling")}
             </Text>
           )
@@ -398,9 +411,17 @@ const makeStyles = (theme: any) =>
     title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
     subtitle: { fontSize: 13, color: theme.colors.muted },
     body: { marginTop: theme.spacing.xs, lineHeight: 22 },
-    section: { marginTop: theme.spacing.sm - 2, fontSize: 16, fontWeight: "800" },
+    section: {
+      marginTop: theme.spacing.sm - 2,
+      fontSize: 16,
+      fontWeight: "800",
+    },
     card: { borderWidth: 1, borderRadius: 14, padding: theme.spacing.sm },
-    cardRow: { flexDirection: "row", alignItems: "center", gap: theme.spacing.sm },
+    cardRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
     actionsRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -419,7 +440,11 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    filtersRow: { flexDirection: "row", gap: theme.spacing.sm, marginTop: theme.spacing.sm },
+    filtersRow: {
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+      marginTop: theme.spacing.sm,
+    },
     filtersAction: {
       borderWidth: 1,
       borderRadius: theme.radius.md - 2,

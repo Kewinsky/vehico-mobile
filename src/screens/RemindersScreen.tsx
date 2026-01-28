@@ -50,7 +50,7 @@ export function RemindersScreen({ route, navigation }: Props) {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "done">(
-    "all"
+    "all",
   );
 
   const load = useCallback(
@@ -67,7 +67,7 @@ export function RemindersScreen({ route, navigation }: Props) {
         else setLoading(false);
       }
     },
-    [route.params.vehicleId, t]
+    [route.params.vehicleId, t],
   );
 
   useEffect(() => {
@@ -82,7 +82,9 @@ export function RemindersScreen({ route, navigation }: Props) {
       const newStatus = currentStatus === "active" ? "done" : "active";
       await updateReminder(reminderId, { status: newStatus });
       setItems((prev) =>
-        prev.map((r) => (r.id === reminderId ? { ...r, status: newStatus } : r))
+        prev.map((r) =>
+          r.id === reminderId ? { ...r, status: newStatus } : r,
+        ),
       );
     } catch (err: any) {
       toastError(err?.message ?? t("common.error"));
@@ -206,160 +208,160 @@ export function RemindersScreen({ route, navigation }: Props) {
           </Text>
         </View>
         <View style={{ height: theme.spacing.sm }} />
-          <View style={styles.searchRow}>
-            <View style={{ flex: 1 }}>
-              <TextField
-                noMarginTop
-                value={query}
-                onChangeText={setQuery}
-                placeholder={t("reminders.searchPlaceholder")}
-                autoCapitalize="none"
-                autoCorrect={false}
-                clearButtonMode="while-editing"
-              />
-            </View>
-            <View
-              style={{
-                marginLeft: theme.spacing.sm,
-                flexDirection: "row",
-                gap: theme.spacing.sm,
-              }}
-            >
-              <View
-                style={[
-                  styles.addButton,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <Pressable
-                  onPress={() =>
-                    navigation.navigate("ReminderForm", {
-                      vehicleId: route.params.vehicleId,
-                    })
-                  }
-                  style={({ pressed }) => [
-                    styles.addButtonInner,
-                    pressed && { opacity: 0.9 },
-                  ]}
-                >
-                  <Ionicons name="add" size={24} color={theme.colors.fg} />
-                </Pressable>
-              </View>
-              <View
-                style={[
-                  styles.addButton,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                  hasActiveFilters && {
-                    borderColor: theme.colors.accent,
-                  },
-                ]}
-              >
-                <Pressable
-                  onPress={() => setFiltersOpen((v) => !v)}
-                  style={({ pressed }) => [
-                    styles.addButtonInner,
-                    pressed && { opacity: 0.9 },
-                  ]}
-                >
-                  <Ionicons
-                    name="filter-outline"
-                    size={24}
-                    color={
-                      hasActiveFilters ? theme.colors.accent : theme.colors.fg
-                    }
-                  />
-                </Pressable>
-              </View>
-              {hasActiveFilters ? (
-                <View
-                  style={[
-                    styles.addButton,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
-                  <Pressable
-                    onPress={resetFilters}
-                    style={({ pressed }) => [
-                      styles.addButtonInner,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="refresh-outline"
-                      size={24}
-                      color={theme.colors.fg}
-                    />
-                  </Pressable>
-                </View>
-              ) : null}
-            </View>
+        <View style={styles.searchRow}>
+          <View style={{ flex: 1 }}>
+            <TextField
+              noMarginTop
+              value={query}
+              onChangeText={setQuery}
+              placeholder={t("reminders.searchPlaceholder")}
+              autoCapitalize="none"
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+            />
           </View>
-          {filtersOpen ? (
+          <View
+            style={{
+              marginLeft: theme.spacing.sm,
+              flexDirection: "row",
+              gap: theme.spacing.sm,
+            }}
+          >
             <View
               style={[
-                styles.filtersCard,
+                styles.addButton,
                 {
                   borderColor: theme.colors.border,
                   backgroundColor: theme.colors.card,
                 },
               ]}
             >
-              <Text style={[styles.filterLabel, { color: theme.colors.muted }]}>
-                {t("reminders.filterStatus")}
-              </Text>
-              <View style={styles.filterRow}>
-                {(["all", "active", "done"] as const).map((status) => (
-                  <Pressable
-                    key={status}
-                    onPress={() => setStatusFilter(status)}
-                    style={[
-                      styles.filterChoice,
-                      { borderColor: theme.colors.border },
-                      statusFilter === status && {
-                        borderColor: theme.colors.accent,
-                      },
-                    ]}
+              <Pressable
+                onPress={() =>
+                  navigation.navigate("ReminderForm", {
+                    vehicleId: route.params.vehicleId,
+                  })
+                }
+                style={({ pressed }) => [
+                  styles.addButtonInner,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <Ionicons name="add" size={24} color={theme.colors.fg} />
+              </Pressable>
+            </View>
+            <View
+              style={[
+                styles.addButton,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+                hasActiveFilters && {
+                  borderColor: theme.colors.accent,
+                },
+              ]}
+            >
+              <Pressable
+                onPress={() => setFiltersOpen((v) => !v)}
+                style={({ pressed }) => [
+                  styles.addButtonInner,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <Ionicons
+                  name="filter-outline"
+                  size={24}
+                  color={
+                    hasActiveFilters ? theme.colors.accent : theme.colors.fg
+                  }
+                />
+              </Pressable>
+            </View>
+            {hasActiveFilters ? (
+              <View
+                style={[
+                  styles.addButton,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                ]}
+              >
+                <Pressable
+                  onPress={resetFilters}
+                  style={({ pressed }) => [
+                    styles.addButtonInner,
+                    pressed && { opacity: 0.9 },
+                  ]}
+                >
+                  <Ionicons
+                    name="refresh-outline"
+                    size={24}
+                    color={theme.colors.fg}
+                  />
+                </Pressable>
+              </View>
+            ) : null}
+          </View>
+        </View>
+        {filtersOpen ? (
+          <View
+            style={[
+              styles.filtersCard,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <Text style={[styles.filterLabel, { color: theme.colors.muted }]}>
+              {t("reminders.filterStatus")}
+            </Text>
+            <View style={styles.filterRow}>
+              {(["all", "active", "done"] as const).map((status) => (
+                <Pressable
+                  key={status}
+                  onPress={() => setStatusFilter(status)}
+                  style={[
+                    styles.filterChoice,
+                    { borderColor: theme.colors.border },
+                    statusFilter === status && {
+                      borderColor: theme.colors.accent,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color:
+                        statusFilter === status
+                          ? theme.colors.fg
+                          : theme.colors.muted,
+                      fontWeight: "800",
+                    }}
                   >
-                    <Text
-                      style={{
-                        color:
-                          statusFilter === status
-                            ? theme.colors.fg
-                            : theme.colors.muted,
-                        fontWeight: "800",
-                      }}
-                    >
-                      {status === "all"
-                        ? t("reminders.filterAll")
-                        : status === "active"
+                    {status === "all"
+                      ? t("reminders.filterAll")
+                      : status === "active"
                         ? t("reminderDetail.status.active")
                         : t("reminderDetail.status.done")}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-              <DateField
-                label={t("timeline.filterFrom")}
-                value={dateFrom}
-                onChange={setDateFrom}
-              />
-              <View style={{ height: theme.spacing.sm }} />
-              <DateField
-                label={t("timeline.filterTo")}
-                value={dateTo}
-                onChange={setDateTo}
-              />
+                  </Text>
+                </Pressable>
+              ))}
             </View>
-          ) : null}
+            <DateField
+              label={t("timeline.filterFrom")}
+              value={dateFrom}
+              onChange={setDateFrom}
+            />
+            <View style={{ height: theme.spacing.sm }} />
+            <DateField
+              label={t("timeline.filterTo")}
+              value={dateTo}
+              onChange={setDateTo}
+            />
+          </View>
+        ) : null}
       </View>
       <FlatList
         data={filteredItemsWithSeparators}
@@ -464,36 +466,24 @@ export function RemindersScreen({ route, navigation }: Props) {
                     </Text>
                   ) : null}
                 </Pressable>
-                <View style={styles.cardActions}>
-                  <IconButton
-                    onPress={() => toggleStatus(reminder.id, reminder.status)}
-                    variant="ghost"
-                  >
-                    <Ionicons
-                      name={
-                        reminder.status === "active"
-                          ? "checkmark-circle"
-                          : "checkmark-circle-outline"
-                      }
-                      size={18}
-                      color={
-                        reminder.status === "active"
-                          ? theme.colors.accent
-                          : theme.colors.muted
-                      }
-                    />
-                  </IconButton>
-                  <IconButton
-                    onPress={() => confirmDelete(reminder.id)}
-                    variant="danger"
-                  >
-                    <Ionicons
-                      name="trash-outline"
-                      size={18}
-                      color={theme.colors.danger}
-                    />
-                  </IconButton>
-                </View>
+                <IconButton
+                  onPress={() => toggleStatus(reminder.id, reminder.status)}
+                  variant="ghost"
+                >
+                  <Ionicons
+                    name={
+                      reminder.status === "active"
+                        ? "checkmark-circle"
+                        : "checkmark-circle-outline"
+                    }
+                    size={30}
+                    color={
+                      reminder.status === "active"
+                        ? theme.colors.accent
+                        : theme.colors.muted
+                    }
+                  />
+                </IconButton>
               </View>
             </View>
           );
@@ -543,11 +533,7 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       gap: theme.spacing.sm,
     },
-    cardActions: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-    },
+
     searchRow: { flexDirection: "row", alignItems: "center" },
     addButton: {
       width: 50,

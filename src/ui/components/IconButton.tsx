@@ -10,7 +10,12 @@ type Props = {
   variant?: "ghost" | "danger";
 };
 
-export function IconButton({ onPress, disabled, children, variant = "ghost" }: Props) {
+export function IconButton({
+  onPress,
+  disabled,
+  children,
+  variant = "ghost",
+}: Props) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
 
@@ -36,12 +41,13 @@ const makeStyles = (theme: any) =>
     base: {
       width: 44,
       height: 44,
-      borderRadius: 12,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1,
     },
-    inner: { alignItems: "center", justifyContent: "center" },
+    inner: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
     ghost: {
       backgroundColor: theme.colors.card,
       borderColor: theme.colors.border,
@@ -53,4 +59,3 @@ const makeStyles = (theme: any) =>
     pressed: { opacity: 0.9 },
     disabled: { opacity: 0.5 },
   });
-

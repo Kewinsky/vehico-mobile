@@ -7,12 +7,11 @@ import type { PublicReportSnapshot } from "../../types/domain";
  * Enforces 3 snapshot limit per vehicle
  */
 export async function generatePublicPage(
-  vehicleId: string
+  vehicleId: string,
 ): Promise<PublicReportSnapshot> {
-  const { data, error } = await supabase.rpc(
-    "create_public_report_snapshot",
-    { p_vehicle_id: vehicleId }
-  );
+  const { data, error } = await supabase.rpc("create_public_report_snapshot", {
+    p_vehicle_id: vehicleId,
+  });
 
   if (error) throw error;
   return data as PublicReportSnapshot;
@@ -22,7 +21,7 @@ export async function generatePublicPage(
  * Lists all snapshots (reports) for a vehicle, ordered by creation date (newest first)
  */
 export async function listPublicPages(
-  vehicleId: string
+  vehicleId: string,
 ): Promise<PublicReportSnapshot[]> {
   const { data, error } = await supabase
     .from("public_report")
@@ -38,7 +37,7 @@ export async function listPublicPages(
  * Gets snapshot data by public_id (for Next.js)
  */
 export async function getPublicReportSnapshot(
-  publicId: string
+  publicId: string,
 ): Promise<PublicReportSnapshot | null> {
   const { data, error } = await supabase
     .from("public_report")
@@ -69,9 +68,7 @@ export async function deletePublicPage(snapshotId: string): Promise<void> {
 /**
  * Gets the count of public reports for a vehicle
  */
-export async function getPublicReportCount(
-  vehicleId: string
-): Promise<number> {
+export async function getPublicReportCount(vehicleId: string): Promise<number> {
   const { count, error } = await supabase
     .from("public_report")
     .select("*", { count: "exact", head: true })
@@ -79,4 +76,15 @@ export async function getPublicReportCount(
 
   if (error) throw error;
   return count ?? 0;
+}
+
+export async function updatePublicReportTitle(
+  snapshotId: string,
+  title: string | null,
+): Promise<void> {
+  const { error } = await supabase
+    .from("public_report")
+    .update({ title })
+    .eq("id", snapshotId);
+  if (error) throw error;
 }

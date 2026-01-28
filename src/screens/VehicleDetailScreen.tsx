@@ -1,11 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { i18n } from "../i18n/i18n";
@@ -53,7 +47,9 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [attachmentsCount, setAttachmentsCount] = useState<Record<string, number>>({});
+  const [attachmentsCount, setAttachmentsCount] = useState<
+    Record<string, number>
+  >({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const distanceUnit = settings?.distanceUnit ?? "km";
@@ -68,8 +64,10 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   const [dateTo, setDateTo] = useState("");
   const [minCost, setMinCost] = useState("");
   const [maxCost, setMaxCost] = useState("");
-  const [showReminders, setShowReminders] = useState(true);
-  const [sortOption, setSortOption] = useState<"date-newest" | "date-oldest" | "mileage-highest" | "mileage-lowest">("date-newest");
+  const [showReminders, setShowReminders] = useState(false);
+  const [sortOption, setSortOption] = useState<
+    "date-newest" | "date-oldest" | "mileage-highest" | "mileage-lowest"
+  >("date-newest");
 
   const load = useCallback(
     async (opts?: { refreshing?: boolean }) => {
@@ -85,12 +83,12 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         setVehicle(v);
         setItems(data);
         setReminders(rs);
-        
+
         // Count attachments per service entry
         const countMap: Record<string, number> = {};
         for (const entry of data) {
           const entryAttachments = attachments.filter(
-            (att) => att.service_entry_id === entry.id
+            (att) => att.service_entry_id === entry.id,
           );
           countMap[entry.id] = entryAttachments.length;
         }
@@ -102,7 +100,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         else setLoading(false);
       }
     },
-    [vehicleId, t]
+    [vehicleId, t],
   );
 
   useEffect(() => {
@@ -119,7 +117,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
       dateTo.trim().length > 0 ||
       minCost.trim().length > 0 ||
       maxCost.trim().length > 0 ||
-      !showReminders
+      showReminders
     );
   }, [categoryFilter, dateFrom, dateTo, minCost, maxCost, showReminders]);
 
@@ -129,7 +127,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
     setDateTo("");
     setMinCost("");
     setMaxCost("");
-    setShowReminders(true);
+    setShowReminders(false);
     setSortOption("date-newest");
   }
 
@@ -212,12 +210,12 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         // Sort by mileage
         const aMileage = a.sortMileage ?? -1;
         const bMileage = b.sortMileage ?? -1;
-        
+
         // Entries without mileage go to the end
         if (aMileage === -1 && bMileage === -1) return 0;
         if (aMileage === -1) return 1;
         if (bMileage === -1) return -1;
-        
+
         if (sortOrder === "highest") {
           return aMileage < bMileage ? 1 : -1;
         } else {
@@ -228,16 +226,19 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
 
     // Reminders are always sorted by date (newest first)
     const sortedReminderRows = [...reminderRows].sort((a, b) =>
-      a.sortKey === b.sortKey ? 0 : a.sortKey < b.sortKey ? 1 : -1
+      a.sortKey === b.sortKey ? 0 : a.sortKey < b.sortKey ? 1 : -1,
     );
 
     // Combine: if sorting by date, mix reminders with service entries
     // If sorting by mileage, show service entries first, then reminders
-    let allRows: Array<typeof serviceRows[0] | typeof reminderRows[0]>;
-    
+    let allRows: Array<(typeof serviceRows)[0] | (typeof reminderRows)[0]>;
+
     if (sortBy === "date") {
       // Mix reminders and service entries, sort by date
-      const mixed: Array<typeof serviceRows[0] | typeof reminderRows[0]> = [...sortedReminderRows, ...sortedServiceRows];
+      const mixed: Array<(typeof serviceRows)[0] | (typeof reminderRows)[0]> = [
+        ...sortedReminderRows,
+        ...sortedServiceRows,
+      ];
       allRows = mixed.sort((a, b) => {
         if (a.sortKey === b.sortKey) return 0;
         if (sortOrder === "newest") {
@@ -256,7 +257,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
       | { type: "separator"; monthYear: string; monthYearKey: string }
       | { type: "item"; item: (typeof allRows)[0] }
     > = [];
-    
+
     if (sortBy === "date") {
       // Only add separators when sorting by date
       let currentMonthYear: string | null = null;
@@ -309,54 +310,81 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
       <AppHeader onBack={() => navigation.goBack()} />
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
-          <Text style={styles.title}>
-            {t("dashboard.tiles.serviceTitle")}
-          </Text>
+          <Text style={styles.title}>{t("dashboard.tiles.serviceTitle")}</Text>
           <Text style={styles.subtitle}>
             {t("dashboard.tiles.serviceSubtitle")}
           </Text>
         </View>
         <View style={{ height: theme.spacing.sm }} />
         <View style={styles.searchRow}>
-            <View style={{ flex: 1 }}>
-              <TextField
-                noMarginTop
-                value={query}
-                onChangeText={setQuery}
-                placeholder={t("timeline.searchPlaceholder")}
-                autoCapitalize="none"
-                autoCorrect={false}
-                clearButtonMode="while-editing"
-              />
+          <View style={{ flex: 1 }}>
+            <TextField
+              noMarginTop
+              value={query}
+              onChangeText={setQuery}
+              placeholder={t("timeline.searchPlaceholder")}
+              autoCapitalize="none"
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+            />
+          </View>
+          <View
+            style={{
+              marginLeft: theme.spacing.sm,
+              flexDirection: "row",
+              gap: theme.spacing.sm,
+            }}
+          >
+            <View
+              style={[
+                styles.addButton,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <Pressable
+                onPress={() =>
+                  navigation.navigate("ServiceEntryForm", { vehicleId })
+                }
+                style={({ pressed }) => [
+                  styles.addButtonInner,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <Ionicons name="add" size={24} color={theme.colors.fg} />
+              </Pressable>
             </View>
             <View
-              style={{
-                marginLeft: theme.spacing.sm,
-                flexDirection: "row",
-                gap: theme.spacing.sm,
-              }}
+              style={[
+                styles.addButton,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+                hasActiveFilters && {
+                  borderColor: theme.colors.accent,
+                },
+              ]}
             >
-              <View
-                style={[
-                  styles.addButton,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
+              <Pressable
+                onPress={() => setFiltersOpen((v) => !v)}
+                style={({ pressed }) => [
+                  styles.addButtonInner,
+                  pressed && { opacity: 0.9 },
                 ]}
               >
-                <Pressable
-                  onPress={() =>
-                    navigation.navigate("ServiceEntryForm", { vehicleId })
+                <Ionicons
+                  name="filter-outline"
+                  size={24}
+                  color={
+                    hasActiveFilters ? theme.colors.accent : theme.colors.fg
                   }
-                  style={({ pressed }) => [
-                    styles.addButtonInner,
-                    pressed && { opacity: 0.9 },
-                  ]}
-                >
-                  <Ionicons name="add" size={24} color={theme.colors.fg} />
-                </Pressable>
-              </View>
+                />
+              </Pressable>
+            </View>
+            {hasActiveFilters ? (
               <View
                 style={[
                   styles.addButton,
@@ -364,58 +392,29 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                     borderColor: theme.colors.border,
                     backgroundColor: theme.colors.card,
                   },
-                  hasActiveFilters && {
-                    borderColor: theme.colors.accent,
-                  },
                 ]}
               >
                 <Pressable
-                  onPress={() => setFiltersOpen((v) => !v)}
+                  onPress={resetFilters}
                   style={({ pressed }) => [
                     styles.addButtonInner,
                     pressed && { opacity: 0.9 },
                   ]}
                 >
                   <Ionicons
-                    name="filter-outline"
+                    name="refresh-outline"
                     size={24}
-                    color={
-                      hasActiveFilters ? theme.colors.accent : theme.colors.fg
-                    }
+                    color={theme.colors.fg}
                   />
                 </Pressable>
               </View>
-              {hasActiveFilters ? (
-                <View
-                  style={[
-                    styles.addButton,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
-                  <Pressable
-                    onPress={resetFilters}
-                    style={({ pressed }) => [
-                      styles.addButtonInner,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="refresh-outline"
-                      size={24}
-                      color={theme.colors.fg}
-                    />
-                  </Pressable>
-                </View>
-              ) : null}
-            </View>
+            ) : null}
           </View>
-          {filtersOpen ? (
-            <>
-              <View style={{ height: theme.spacing.sm }} />
-              <View style={styles.filtersCard}>
+        </View>
+        {filtersOpen ? (
+          <>
+            <View style={{ height: theme.spacing.sm }} />
+            <View style={styles.filtersCard}>
               <View style={styles.toggleRow}>
                 <Text style={styles.filtersLabel}>
                   {t("timeline.showReminders")}
@@ -448,10 +447,16 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 noMarginTop
                 label={t("timeline.filterCategory")}
                 value={categoryFilter === "all" ? null : categoryFilter}
-                options={["maintenance", "repair", "inspection", "upgrade", "other"] as const}
-                getLabel={(value) =>
-                  t(`entryForm.categories.${value}` as any)
+                options={
+                  [
+                    "maintenance",
+                    "repair",
+                    "inspection",
+                    "upgrade",
+                    "other",
+                  ] as const
                 }
+                getLabel={(value) => t(`entryForm.categories.${value}` as any)}
                 onChange={(value) => setCategoryFilter(value ?? "all")}
                 placeholder={t("common.all")}
               />
@@ -461,11 +466,21 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 noMarginTop
                 label={t("timeline.sortBy")}
                 value={sortOption}
-                options={["date-newest", "date-oldest", "mileage-highest", "mileage-lowest"] as const}
+                options={
+                  [
+                    "date-newest",
+                    "date-oldest",
+                    "mileage-highest",
+                    "mileage-lowest",
+                  ] as const
+                }
                 getLabel={(value) => {
-                  if (value === "date-newest") return t("timeline.sortOptionDateNewest");
-                  if (value === "date-oldest") return t("timeline.sortOptionDateOldest");
-                  if (value === "mileage-highest") return t("timeline.sortOptionMileageHighest");
+                  if (value === "date-newest")
+                    return t("timeline.sortOptionDateNewest");
+                  if (value === "date-oldest")
+                    return t("timeline.sortOptionDateOldest");
+                  if (value === "mileage-highest")
+                    return t("timeline.sortOptionMileageHighest");
                   return t("timeline.sortOptionMileageLowest");
                 }}
                 onChange={(value) => {
@@ -512,8 +527,8 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 </View>
               </View>
             </View>
-            </>
-          ) : null}
+          </>
+        ) : null}
       </View>
       <FlatList
         data={timelineRows}
@@ -581,8 +596,6 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 }
               >
                 <TimelineItem
-                  tone="reminder"
-                  dateLabel={dateLabel}
                   title={r.title ?? t("reminders.title")}
                   subtitle={dueText}
                 />
@@ -603,11 +616,11 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
               }
             >
               <TimelineItem
-                dateLabel={formatDate(e.service_date)}
                 title={e.title}
                 badge={t(`entryForm.categories.${cat}` as any)}
                 badgeVariant="accent"
                 subtitle={[
+                  e.service_date ? formatDate(e.service_date) : null,
                   e.mileage
                     ? `${e.mileage.toLocaleString()} ${distanceUnit}`
                     : null,

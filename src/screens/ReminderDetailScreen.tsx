@@ -1,18 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { deleteReminder, getReminder } from "../services/reminders/remindersRepo";
+import {
+  deleteReminder,
+  getReminder,
+} from "../services/reminders/remindersRepo";
 import { AppHeader } from "../ui/components/AppHeader";
-import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
@@ -50,23 +46,26 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
     void load();
   }, [load]);
 
-
   function onDelete() {
-    Alert.alert(t("reminderDetail.deleteTitle"), t("reminderDetail.deleteBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("common.delete"),
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteReminder(reminderId);
-            navigation.goBack();
-          } catch (e: any) {
-            toastError(e?.message ?? t("common.error"));
-          }
+    Alert.alert(
+      t("reminderDetail.deleteTitle"),
+      t("reminderDetail.deleteBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteReminder(reminderId);
+              navigation.goBack();
+            } catch (e: any) {
+              toastError(e?.message ?? t("common.error"));
+            }
+          },
         },
-      },
-    ]);
+      ],
+    );
   }
 
   const dueLabel = reminder
@@ -84,15 +83,20 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
       <View style={styles.top}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>{t("reminderDetail.title")}</Text>
-          <Pressable
-            onPress={() =>
-              navigation.navigate("ReminderForm", { vehicleId, reminderId })
-            }
-            hitSlop={10}
-            disabled={!reminder}
-          >
-            <Text style={styles.editLink}>{t("common.edit")}</Text>
-          </Pressable>
+          <View style={styles.actionsRow}>
+            <Pressable
+              onPress={() =>
+                navigation.navigate("ReminderForm", { vehicleId, reminderId })
+              }
+              hitSlop={10}
+              disabled={!reminder}
+            >
+              <Text style={styles.editLink}>{t("common.edit")}</Text>
+            </Pressable>
+            <Pressable onPress={() => onDelete()} hitSlop={10}>
+              <Text style={styles.deleteLink}>{t("common.delete")}</Text>
+            </Pressable>
+          </View>
         </View>
 
         {reminder ? (
@@ -100,7 +104,9 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
             <Text style={styles.detailsTitle}>{reminder.title ?? ""}</Text>
             <View style={{ height: 12 }} />
             <View style={styles.row}>
-              <Text style={styles.label}>{t("reminderDetail.labels.type")}</Text>
+              <Text style={styles.label}>
+                {t("reminderDetail.labels.type")}
+              </Text>
               <Text style={styles.value}>
                 {reminder.type === "time"
                   ? t("reminderForm.time")
@@ -112,7 +118,7 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
               <Text style={styles.value}>
                 {reminder.type === "time" && reminder.due_date
                   ? formatDate(reminder.due_date)
-                  : reminder.due_mileage ?? ""}
+                  : (reminder.due_mileage ?? "")}
               </Text>
             </View>
             {reminder.type === "time" && reminder.days_before != null ? (
@@ -128,7 +134,9 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
               </View>
             ) : null}
             <View style={styles.row}>
-              <Text style={styles.label}>{t("reminderDetail.labels.status")}</Text>
+              <Text style={styles.label}>
+                {t("reminderDetail.labels.status")}
+              </Text>
               <Text style={styles.value}>
                 {reminder.status === "active"
                   ? t("reminderDetail.status.active")
@@ -139,7 +147,9 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
             {reminder.notes ? (
               <>
                 <View style={{ height: 10 }} />
-                <Text style={styles.label}>{t("reminderDetail.labels.notes")}</Text>
+                <Text style={styles.label}>
+                  {t("reminderDetail.labels.notes")}
+                </Text>
                 <Text style={styles.bodyValue}>{String(reminder.notes)}</Text>
               </>
             ) : null}
@@ -149,12 +159,6 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
             <LoadingIndicator />
           </View>
         ) : null}
-      </View>
-
-      <View style={styles.actions}>
-        <Button onPress={onDelete} variant="destructive" disabled={!reminder}>
-          {t("common.delete")}
-        </Button>
       </View>
     </Screen>
   );
@@ -173,6 +177,12 @@ const makeStyles = (theme: any) =>
       justifyContent: "space-between",
     },
     editLink: { color: theme.colors.muted, fontWeight: "800" },
+    deleteLink: { color: theme.colors.danger, fontWeight: "800" },
+    actionsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
     title: {
       fontSize: 20,
       fontWeight: "800",
@@ -208,9 +218,6 @@ const makeStyles = (theme: any) =>
     },
     bodyValue: { marginTop: 6, color: theme.colors.fg, lineHeight: 20 },
     muted: { marginTop: 8, color: theme.colors.muted, lineHeight: 20 },
-    actions: {
-      paddingHorizontal: theme.spacing.md,
-    },
     loadingContainer: {
       paddingTop: theme.spacing.lg * 2.5,
       paddingBottom: theme.spacing.lg * 2.5,
@@ -218,4 +225,3 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
     },
   });
-
