@@ -1,11 +1,12 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
-import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 
@@ -14,8 +15,27 @@ type Props = NativeStackScreenProps<AppStackParamList, "DataPortability">;
 export function DataPortabilityScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const { vehicleId } = route.params;
+
+  const tiles = useMemo(
+    () => [
+      {
+        key: "export",
+        title: t("dataPortability.exportButton"),
+        icon: "share" as const,
+        onPress: () => navigation.navigate("Export", { vehicleId }),
+      },
+      {
+        key: "import",
+        title: t("dataPortability.importButton"),
+        icon: "download" as const,
+        onPress: () => navigation.navigate("Import", { vehicleId }),
+      },
+    ],
+    [t, navigation, vehicleId],
+  );
 
   return (
     <Screen padding={false}>
@@ -26,37 +46,39 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           <Text style={styles.subtitle}>{t("dataPortability.subtitle")}</Text>
         </View>
       </View>
-      <View style={styles.wrap}>
-        <Button
-          onPress={() => navigation.navigate("Export", { vehicleId })}
-          variant="ghost"
-        >
-          {t("dataPortability.exportButton")}
-        </Button>
-        <View style={{ height: 10 }} />
-        <Button
-          onPress={() => navigation.navigate("Import", { vehicleId })}
-          variant="ghost"
-        >
-          {t("dataPortability.importButton")}
-        </Button>
+      <View style={styles.list}>
+        <View style={styles.row}>
+          {tiles.map((item) => (
+            <Pressable
+              key={item.key}
+              onPress={item.onPress}
+              style={({ pressed }) => [
+                styles.tile,
+                pressed && styles.tilePressed,
+              ]}
+            >
+              <Ionicons
+                name={item.icon}
+                size={32}
+                color={theme.colors.accent}
+              />
+              <Text style={styles.tileTitle}>{item.title}</Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
     </Screen>
   );
 }
 
-const makeStyles = (theme: any) =>
+const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     fixedHeader: {
       paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
     },
     header: {
       gap: theme.spacing.xs / 2,
-    },
-    wrap: {
-      paddingHorizontal: theme.spacing.md,
     },
     h1: {
       fontSize: 20,
@@ -66,5 +88,36 @@ const makeStyles = (theme: any) =>
     subtitle: {
       fontSize: 13,
       color: theme.colors.muted,
+    },
+    list: {
+      paddingHorizontal: theme.spacing.md,
+      paddingTop: theme.spacing.md,
+      paddingBottom: insets.bottom + theme.spacing.lg,
+      gap: 8,
+    },
+    row: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    tile: {
+      flex: 1,
+      minHeight: 130,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.card,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: theme.spacing.sm,
+    },
+    tilePressed: {
+      opacity: 0.9,
+    },
+    tileTitle: {
+      color: theme.colors.fg,
+      fontSize: 14,
+      fontWeight: "800",
+      textAlign: "center",
     },
   });

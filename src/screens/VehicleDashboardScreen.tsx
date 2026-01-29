@@ -10,6 +10,7 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
+import { Database, Fuel } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
@@ -79,7 +80,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   }
 
   const tiles: Tile[] = [
-    // Row 1: Statystyki + Historia serwisowa
+    // Row 1: Statistics + Service history
     {
       key: "stats",
       title: t("dashboard.tiles.statsTitle"),
@@ -92,7 +93,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       icon: "construct",
       onPress: () => navigation.navigate("VehicleDetail", { vehicleId }),
     },
-    // Row 2: Zarządzaj pojazdem + Dokumenty
+    // Row 2: Manage vehicle + Documents
     {
       key: "manage",
       title: t("dashboard.tiles.manageTitle"),
@@ -105,7 +106,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       icon: "document-text",
       onPress: () => navigation.navigate("Documents", { vehicleId }),
     },
-    // Row 3: Paliwo + Przypomnienia
+    // Row 3: Fuel + Reminders
     {
       key: "fuel",
       title: t("dashboard.tiles.fuelTitle"),
@@ -118,11 +119,11 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       icon: "notifications",
       onPress: () => navigation.navigate("Reminders", { vehicleId }),
     },
-    // Row 4: Udostępnij + Eksport/Import
+    // Row 4: Share + Export/Import
     {
       key: "share",
       title: t("dashboard.tiles.shareTitle"),
-      icon: "share",
+      icon: "share-social",
       onPress: () => navigation.navigate("Share", { vehicleId }),
     },
     {
@@ -252,11 +253,17 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                 pressed && styles.tilePressed,
               ]}
             >
-              <Ionicons
-                name={item.icon}
-                size={32}
-                color={theme.colors.accent}
-              />
+              {item.key === "fuel" ? (
+                <Fuel size={32} color={theme.colors.accent} />
+              ) : item.key === "data" ? (
+                <Database size={32} color={theme.colors.accent} />
+              ) : (
+                <Ionicons
+                  name={item.icon}
+                  size={32}
+                  color={theme.colors.accent}
+                />
+              )}
               <Text style={styles.tileTitle}>{item.title}</Text>
             </Pressable>
           )}
@@ -314,7 +321,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             ]}
           >
             <View style={styles.menuItemIconContainer}>
-              <Ionicons name="car" size={20} color={theme.colors.accent} />
+              <Fuel size={20} color={theme.colors.accent} />
             </View>
             <Text style={[styles.menuItemText, { color: theme.colors.fg }]}>
               {t("dashboard.quickActions.addFuel")}

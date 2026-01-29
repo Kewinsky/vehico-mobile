@@ -92,7 +92,7 @@ export function ExportScreen({ navigation, route }: Props) {
       ]);
 
       const csvText = [header.join(","), ...rows.map((r) => r.join(","))].join(
-        "\n"
+        "\n",
       );
 
       await Share.share({

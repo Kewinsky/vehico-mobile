@@ -484,7 +484,7 @@ export const pl = {
     mainPhoto: "Główne",
     removePhotoConfirm: "Czy na pewno chcesz usunąć to zdjęcie?",
     insuranceLabel: "Ubezpieczenie",
-    inspectionLabel: "Przegląd tech.",
+    inspectionLabel: "Przegląd",
   },
   attachments: {
     title: "Załączniki",

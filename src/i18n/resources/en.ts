@@ -476,7 +476,7 @@ export const en = {
     mainPhoto: "Main",
     removePhotoConfirm: "Are you sure you want to remove this photo?",
     insuranceLabel: "Insurance",
-    inspectionLabel: "Tech. inspection",
+    inspectionLabel: "Inspection",
   },
   attachments: {
     title: "Attachments",
