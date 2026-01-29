@@ -98,6 +98,7 @@ create table if not exists public.fueling_entries (
   distance numeric not null,
   fuel_amount numeric not null,
   fuel_cost numeric not null,
+  gas_station text,
   created_at timestamptz not null default now()
 );
 

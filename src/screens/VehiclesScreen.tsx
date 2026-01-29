@@ -39,7 +39,12 @@ type VehicleCarouselProps = {
   theme: any;
 };
 
-function VehicleCarousel({ photoUrls, width, height, theme }: VehicleCarouselProps) {
+function VehicleCarousel({
+  photoUrls,
+  width,
+  height,
+  theme,
+}: VehicleCarouselProps) {
   const progress = useSharedValue(0);
 
   if (photoUrls.length === 0) return null;
@@ -59,7 +64,11 @@ function VehicleCarousel({ photoUrls, width, height, theme }: VehicleCarouselPro
         renderItem={({ item: url }) => (
           <Image
             source={{ uri: url }}
-            style={{ width: "100%", height: "100%", backgroundColor: theme.colors.card }}
+            style={{
+              width: "100%",
+              height: "100%",
+              backgroundColor: theme.colors.card,
+            }}
             contentFit="cover"
             transition={200}
           />
@@ -71,13 +80,20 @@ function VehicleCarousel({ photoUrls, width, height, theme }: VehicleCarouselPro
             position: "absolute",
             bottom: theme.spacing.md,
             right: theme.spacing.md,
+            zIndex: 10,
           }}
         >
           <Pagination.Basic
             progress={progress}
             data={photoUrls.map((url) => ({ url }))}
-            dotStyle={{ backgroundColor: theme.colors.border, borderRadius: 50 }}
-            activeDotStyle={{ backgroundColor: theme.colors.accent, borderRadius: 50 }}
+            dotStyle={{
+              backgroundColor: "rgba(255,255,255,0.5)",
+              borderRadius: 50,
+            }}
+            activeDotStyle={{
+              backgroundColor: theme.colors.accent,
+              borderRadius: 50,
+            }}
             containerStyle={{ gap: 5 }}
           />
         </View>
@@ -93,21 +109,24 @@ export function VehiclesScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const { signOut } = useAuth();
   const [items, setItems] = useState<Vehicle[]>([]);
-  const [photoUrlsMap, setPhotoUrlsMap] = useState<Map<string, string[]>>(new Map());
+  const [photoUrlsMap, setPhotoUrlsMap] = useState<Map<string, string[]>>(
+    new Map(),
+  );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  
+
   const windowWidth = Dimensions.get("window").width;
   const { settings } = useUserSettings();
   const distanceUnit = settings?.distanceUnit ?? "km";
-  
+
   // Convert mileage from km to miles if needed
   const formatMileage = (mileage: number | null | undefined): string => {
     if (!mileage) return "";
-    const value = distanceUnit === "miles" ? Math.round(mileage * 0.621371) : mileage;
+    const value =
+      distanceUnit === "miles" ? Math.round(mileage * 0.621371) : mileage;
     return `${value.toLocaleString()} ${distanceUnit === "km" ? "km" : "miles"}`;
   };
-  
+
   function onSignOut() {
     signOut().catch((e: any) => {
       toastError(e?.message ?? t("common.error"));
@@ -115,13 +134,15 @@ export function VehiclesScreen({ navigation }: Props) {
   }
 
   const load = useCallback(
-    async (opts?: { refreshing?: boolean }) => {
+    async (opts?: { refreshing?: boolean; showLoading?: boolean }) => {
       try {
-        if (opts?.refreshing) setRefreshing(true);
-        else setLoading(true);
+        if (opts?.showLoading !== false) {
+          if (opts?.refreshing) setRefreshing(true);
+          else setLoading(true);
+        }
         const data = await listVehicles();
         setItems(data);
-        
+
         // Load all photos for each vehicle
         const urlsMap = new Map<string, string[]>();
         await Promise.all(
@@ -135,26 +156,31 @@ export function VehiclesScreen({ navigation }: Props) {
             } catch (error) {
               console.error(
                 `Failed to load photos for vehicle ${vehicle.id}:`,
-                error
+                error,
               );
             }
-          })
+          }),
         );
         setPhotoUrlsMap(urlsMap);
       } catch (e: any) {
         toastError(e?.message ?? t("common.error"));
       } finally {
-        if (opts?.refreshing) setRefreshing(false);
-        else setLoading(false);
+        if (opts?.showLoading !== false) {
+          if (opts?.refreshing) setRefreshing(false);
+          else setLoading(false);
+        }
       }
     },
-    [t]
+    [t],
   );
 
   useEffect(() => {
     // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
     void load();
-    const unsub = navigation.addListener("focus", () => void load());
+    const unsub = navigation.addListener(
+      "focus",
+      () => void load({ showLoading: false }),
+    );
     return unsub;
   }, [navigation, load]);
 
@@ -164,10 +190,10 @@ export function VehiclesScreen({ navigation }: Props) {
       <View style={styles.top}>
         <View style={styles.actions}>
           <Pressable
-            onPress={() => navigation.navigate("Settings")}
+            onPress={() => navigation.navigate("Profile")}
             hitSlop={10}
           >
-            <Text style={styles.actionText}>{t("common.settings")}</Text>
+            <Text style={styles.actionText}>{t("profile.title")}</Text>
           </Pressable>
           <Pressable onPress={onSignOut} hitSlop={10}>
             <Text style={styles.actionText}>{t("common.signOut")}</Text>
@@ -200,9 +226,9 @@ export function VehiclesScreen({ navigation }: Props) {
               renderItem={({ item }) => (
                 <Pressable
                   onPress={() =>
-                  navigation.navigate("VehicleDashboard", {
-                    vehicleId: item.id,
-                  })
+                    navigation.navigate("VehicleDashboard", {
+                      vehicleId: item.id,
+                    })
                   }
                   style={({ pressed }) => [
                     styles.vehicleCard,
@@ -213,7 +239,7 @@ export function VehiclesScreen({ navigation }: Props) {
                     {(() => {
                       const photoUrls = photoUrlsMap.get(item.id) || [];
                       const carouselWidth = windowWidth - theme.spacing.md * 2;
-                      
+
                       if (photoUrls.length === 0) {
                         return (
                           <>
@@ -223,23 +249,37 @@ export function VehiclesScreen({ navigation }: Props) {
                               </Text>
                             </View>
                             <View style={styles.vehicleImageContent}>
-                              <Text style={styles.vehicleTitle} numberOfLines={2}>
+                              <Text
+                                style={[
+                                  styles.vehicleTitle,
+                                  styles.vehicleTitleOverlay,
+                                ]}
+                                numberOfLines={2}
+                              >
                                 {`${item.make} ${item.model}`}
                               </Text>
-                              <Text style={styles.vehicleMeta} numberOfLines={1}>
+                              <Text
+                                style={[
+                                  styles.vehicleMeta,
+                                  styles.vehicleMetaOverlay,
+                                ]}
+                                numberOfLines={1}
+                              >
                                 {item.production_year}
                                 {item.power_hp
                                   ? ` · ${item.power_hp}${
                                       i18n.language === "pl" ? "KM" : "HP"
                                     }`
                                   : ""}
-                                {item.mileage ? ` · ${formatMileage(item.mileage)}` : ""}
+                                {item.mileage
+                                  ? ` · ${formatMileage(item.mileage)}`
+                                  : ""}
                               </Text>
                             </View>
                           </>
                         );
                       }
-                      
+
                       return (
                         <>
                           <VehicleCarousel
@@ -249,17 +289,31 @@ export function VehiclesScreen({ navigation }: Props) {
                             theme={theme}
                           />
                           <View style={styles.vehicleImageContent}>
-                            <Text style={styles.vehicleTitle} numberOfLines={2}>
+                            <Text
+                              style={[
+                                styles.vehicleTitle,
+                                styles.vehicleTitleOverlay,
+                              ]}
+                              numberOfLines={2}
+                            >
                               {`${item.make} ${item.model}`}
                             </Text>
-                            <Text style={styles.vehicleMeta} numberOfLines={1}>
+                            <Text
+                              style={[
+                                styles.vehicleMeta,
+                                styles.vehicleMetaOverlay,
+                              ]}
+                              numberOfLines={1}
+                            >
                               {item.production_year}
                               {item.power_hp
                                 ? ` · ${item.power_hp}${
                                     i18n.language === "pl" ? "KM" : "HP"
                                   }`
                                 : ""}
-                              {item.mileage ? ` · ${formatMileage(item.mileage)}` : ""}
+                              {item.mileage
+                                ? ` · ${formatMileage(item.mileage)}`
+                                : ""}
                             </Text>
                           </View>
                         </>
@@ -363,23 +417,24 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       right: 0,
       padding: theme.spacing.md,
       paddingBottom: theme.spacing.sm + 4,
+      backgroundColor: "rgba(0,0,0,0.55)",
     },
     vehicleTitle: {
       fontSize: 22,
       fontWeight: "800",
       color: theme.colors.fg,
-      textShadowColor: theme.colors.bg,
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 4,
       marginBottom: 4,
+    },
+    vehicleTitleOverlay: {
+      color: "#fff",
     },
     vehicleMeta: {
       fontSize: 14,
       color: theme.colors.fg,
-      textShadowColor: theme.colors.bg,
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 4,
       opacity: 0.95,
+    },
+    vehicleMetaOverlay: {
+      color: "rgba(255,255,255,0.92)",
     },
     pill: {
       paddingHorizontal: 10,

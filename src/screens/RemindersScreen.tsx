@@ -54,17 +54,21 @@ export function RemindersScreen({ route, navigation }: Props) {
   );
 
   const load = useCallback(
-    async (opts?: { refreshing?: boolean }) => {
+    async (opts?: { refreshing?: boolean; showLoading?: boolean }) => {
       try {
-        if (opts?.refreshing) setRefreshing(true);
-        else setLoading(true);
+        if (opts?.showLoading !== false) {
+          if (opts?.refreshing) setRefreshing(true);
+          else setLoading(true);
+        }
         const data = await listReminders(route.params.vehicleId);
         setItems(data);
       } catch (e: any) {
         toastError(e?.message ?? t("common.error"));
       } finally {
-        if (opts?.refreshing) setRefreshing(false);
-        else setLoading(false);
+        if (opts?.showLoading !== false) {
+          if (opts?.refreshing) setRefreshing(false);
+          else setLoading(false);
+        }
       }
     },
     [route.params.vehicleId, t],
@@ -73,7 +77,10 @@ export function RemindersScreen({ route, navigation }: Props) {
   useEffect(() => {
     // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
     void load();
-    const unsub = navigation.addListener("focus", () => void load());
+    const unsub = navigation.addListener(
+      "focus",
+      () => void load({ showLoading: false }),
+    );
     return unsub;
   }, [navigation, load]);
 

@@ -4,6 +4,11 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import {
+  isValidDate,
+  isPositiveNumber,
+  isNonNegativeNumber,
+} from "../utils/validation";
 import type { ReminderType, ReminderStatus } from "../types/domain";
 import {
   createReminder,
@@ -35,7 +40,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const [type, setType] = useState<ReminderType>("time");
   const [status, setStatus] = useState<ReminderStatus>("active");
   const [dueDate, setDueDate] = useState(() =>
-    new Date().toISOString().slice(0, 10)
+    new Date().toISOString().slice(0, 10),
   );
   const [dueMileage, setDueMileage] = useState("");
   const [daysBefore, setDaysBefore] = useState("7");
@@ -63,13 +68,25 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
   const canSave = useMemo(() => {
     const okTitle = title.trim().length > 0;
-    if (type === "time") return okTitle && dueDate.trim().length === 10;
-    return okTitle && Number(dueMileage) > 0;
+    if (type === "time") return okTitle && isValidDate(dueDate);
+    return okTitle && isPositiveNumber(dueMileage);
   }, [type, dueDate, dueMileage, title]);
 
   async function onSave() {
     try {
       setSaving(true);
+      if (type === "time" && !isValidDate(dueDate)) {
+        toastError(t("validation.invalidDate"));
+        return;
+      }
+      if (type === "mileage" && !isPositiveNumber(dueMileage)) {
+        toastError(t("validation.positiveRequired"));
+        return;
+      }
+      if (daysBefore.trim() && !isNonNegativeNumber(daysBefore)) {
+        toastError(t("validation.nonNegativeRequired"));
+        return;
+      }
       const payload = {
         vehicle_id: vehicleId,
         type,
@@ -134,7 +151,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       <View style={{ height: theme.spacing.sm + 2 }} />
       <TextField
         noMarginTop
-        label={t("reminderForm.titleLabel")}
+        label={`${t("reminderForm.titleLabel")} *`}
         value={title}
         onChangeText={setTitle}
         placeholder={t("reminderForm.placeholderTitle")}
@@ -165,7 +182,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           >
             <Text
               style={{
-                color: type === kind ? theme.colors.fg : theme.colors.muted,
+                color: type === kind ? theme.colors.accent : theme.colors.muted,
                 fontWeight: "800",
               }}
             >
@@ -182,7 +199,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         <>
           <DateField
             noMarginTop
-            label={t("reminderForm.dueDate")}
+            label={`${t("reminderForm.dueDate")} *`}
             value={dueDate}
             onChange={setDueDate}
             disabled={saving}
@@ -201,7 +218,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         <>
           <TextField
             noMarginTop
-            label={t("reminderForm.dueMileage", { unit: distanceUnit })}
+            label={`${t("reminderForm.dueMileage", { unit: distanceUnit })} *`}
             value={dueMileage}
             onChangeText={setDueMileage}
             keyboardType="number-pad"
@@ -227,7 +244,8 @@ export function ReminderFormScreen({ navigation, route }: Props) {
               >
                 <Text
                   style={{
-                    color: status === st ? theme.colors.fg : theme.colors.muted,
+                    color:
+                      status === st ? theme.colors.accent : theme.colors.muted,
                     fontWeight: "800",
                   }}
                 >
@@ -240,7 +258,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           </View>
         </>
       ) : null}
-
     </FormScreen>
   );
 }
@@ -250,7 +267,11 @@ const makeStyles = (theme: any) =>
     h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
     label: { fontSize: 13, fontWeight: "800", color: theme.colors.muted },
     // One row, two columns for reminder type selection
-    row: { flexDirection: "row", gap: theme.spacing.sm, marginTop: theme.spacing.xs },
+    row: {
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+      marginTop: theme.spacing.xs,
+    },
     choice: {
       borderWidth: 1,
       borderRadius: theme.radius.md - 2,

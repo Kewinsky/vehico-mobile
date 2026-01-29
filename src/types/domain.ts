@@ -1,8 +1,8 @@
-export type VehicleType = 'car' | 'motorcycle';
+export type VehicleType = "car" | "motorcycle";
 
-export type FuelType = 'petrol' | 'diesel' | 'hybrid' | 'electric' | 'lpg';
-export type TransmissionType = 'manual' | 'automatic';
-export type DriveType = 'FWD' | 'RWD' | 'AWD';
+export type FuelType = "petrol" | "diesel" | "hybrid" | "electric" | "lpg";
+export type TransmissionType = "manual" | "automatic";
+export type DriveType = "FWD" | "RWD" | "AWD";
 
 export type Vehicle = {
   id: string;
@@ -35,19 +35,19 @@ export type ServiceEntry = {
 };
 
 export type ServiceEntryCategory =
-  | 'maintenance'
-  | 'repair'
-  | 'inspection'
-  | 'upgrade'
-  | 'other';
+  | "maintenance"
+  | "repair"
+  | "inspection"
+  | "upgrade"
+  | "other";
 
-export type AttachmentType = 'receipt' | 'invoice' | 'photo';
+export type AttachmentType = "receipt" | "invoice" | "photo";
 
 export type Attachment = {
   id: string;
   service_entry_id: string;
   type: AttachmentType;
-  storage_bucket: 'images' | 'documents';
+  storage_bucket: "images" | "documents";
   storage_path: string;
   created_at: string;
 };
@@ -63,7 +63,7 @@ export type PublicReportSnapshot = {
     vehicle_photos: Array<{
       id: string;
       storage_path: string;
-      storage_bucket: 'images';
+      storage_bucket: "images";
       display_order: number;
       created_at: string;
     }>;
@@ -73,12 +73,11 @@ export type PublicReportSnapshot = {
   created_at: string;
 };
 
-
-export type Currency = 'PLN' | 'EUR';
-export type DistanceUnit = 'km' | 'miles';
-export type FuelUnit = 'liters' | 'gallons';
-export type ThemePreference = 'system' | 'light' | 'dark';
-export type Language = 'en' | 'pl';
+export type Currency = "PLN" | "EUR";
+export type DistanceUnit = "km" | "miles";
+export type FuelUnit = "liters" | "gallons";
+export type ThemePreference = "system" | "light" | "dark";
+export type Language = "en" | "pl";
 
 export type UserSettings = {
   user_id: string;
@@ -91,11 +90,10 @@ export type UserSettings = {
   updated_at: string;
 };
 
-
 export type VehiclePhoto = {
   id: string;
   vehicle_id: string;
-  storage_bucket: 'images';
+  storage_bucket: "images";
   storage_path: string;
   display_order: number;
   created_at: string;
@@ -104,12 +102,20 @@ export type VehiclePhoto = {
 export type VehicleDocument = {
   id: string;
   vehicle_id: string;
-  storage_bucket: 'images' | 'documents';
+  storage_bucket: "images" | "documents";
   storage_path: string;
   description: string | null;
   created_at: string;
 };
 
+export type GasStation =
+  | "orlen"
+  | "bp"
+  | "shell"
+  | "circle_k"
+  | "mol"
+  | "moya"
+  | "other";
 
 export type FuelingEntry = {
   id: string;
@@ -118,15 +124,15 @@ export type FuelingEntry = {
   distance: number;
   fuel_amount: number;
   fuel_cost: number;
+  gas_station: GasStation | null;
   created_at: string;
 };
 
+export type ExpenseCategory = "service" | "parts" | "insurance" | "other";
 
-export type ExpenseCategory = 'service' | 'parts' | 'insurance' | 'other';
+export type ReminderType = "time" | "mileage";
 
-export type ReminderType = 'time' | 'mileage';
-
-export type ReminderStatus = 'active' | 'done';
+export type ReminderStatus = "active" | "done";
 
 export type Reminder = {
   id: string;
@@ -145,7 +151,7 @@ export type Reminder = {
   created_at: string;
 };
 
-export type MarketplacePlatform = 'olx' | 'facebook' | 'generic';
+export type MarketplacePlatform = "olx" | "facebook" | "generic";
 
 export type MarketplacePost = {
   id: string;

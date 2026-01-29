@@ -4,6 +4,8 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import { isValidDate, isPositiveNumber } from "../utils/validation";
+import type { GasStation } from "../types/domain";
 import {
   createFuelingEntry,
   getFuelingEntry,
@@ -18,6 +20,17 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { PickerField } from "../ui/components/PickerField";
+
+const GAS_STATION_OPTIONS: readonly GasStation[] = [
+  "orlen",
+  "bp",
+  "shell",
+  "circle_k",
+  "mol",
+  "moya",
+  "other",
+];
 
 type Props = NativeStackScreenProps<AppStackParamList, "FuelingEntryForm">;
 
@@ -34,6 +47,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const [distance, setDistance] = useState("");
   const [fuelAmount, setFuelAmount] = useState("");
   const [fuelCost, setFuelCost] = useState("");
+  const [gasStation, setGasStation] = useState<GasStation | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -45,6 +59,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         setDistance(String(e.distance));
         setFuelAmount(String(e.fuel_amount));
         setFuelCost(String(e.fuel_cost));
+        setGasStation(e.gas_station ?? null);
       } catch (err: any) {
         toastError(err?.message ?? t("common.error"));
       }
@@ -53,22 +68,35 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
 
   const canSave = useMemo(() => {
     return (
-      date.trim().length === 10 &&
-      Number(distance) > 0 &&
-      Number(fuelAmount) > 0 &&
-      Number(fuelCost) > 0
+      isValidDate(date) &&
+      isPositiveNumber(distance) &&
+      isPositiveNumber(fuelAmount) &&
+      isPositiveNumber(fuelCost)
     );
   }, [date, distance, fuelAmount, fuelCost]);
 
   async function onSave() {
     try {
       setSaving(true);
+      if (!isValidDate(date)) {
+        toastError(t("validation.invalidDate"));
+        return;
+      }
+      if (
+        !isPositiveNumber(distance) ||
+        !isPositiveNumber(fuelAmount) ||
+        !isPositiveNumber(fuelCost)
+      ) {
+        toastError(t("validation.positiveRequired"));
+        return;
+      }
       const payload = {
         vehicle_id: vehicleId,
         date: date.trim(),
         distance: Number(distance),
         fuel_amount: Number(fuelAmount),
         fuel_cost: Number(fuelCost),
+        gas_station: gasStation,
       };
       if (entryId) await updateFuelingEntry(entryId, payload);
       else await createFuelingEntry(payload as any);
@@ -121,14 +149,14 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       <View style={{ height: 14 }} />
       <DateField
         noMarginTop
-        label={t("fuelingForm.date")}
+        label={`${t("fuelingForm.date")} *`}
         value={date}
         onChange={setDate}
         disabled={saving}
       />
 
       <TextField
-        label={t("fuelingForm.distance", { unit: distanceUnit })}
+        label={`${t("fuelingForm.distance", { unit: distanceUnit })} *`}
         value={distance}
         onChangeText={setDistance}
         keyboardType="decimal-pad"
@@ -136,7 +164,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       />
 
       <TextField
-        label={t("fuelingForm.fuelAmount", { unit: fuelUnit })}
+        label={`${t("fuelingForm.fuelAmount", { unit: fuelUnit })} *`}
         value={fuelAmount}
         onChangeText={setFuelAmount}
         keyboardType="decimal-pad"
@@ -144,11 +172,20 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       />
 
       <TextField
-        label={t("fuelingForm.cost")}
+        label={`${t("fuelingForm.cost")} *`}
         value={fuelCost}
         onChangeText={setFuelCost}
         keyboardType="decimal-pad"
         placeholder={t("fuelingForm.placeholderCost")}
+      />
+
+      <PickerField<GasStation>
+        label={t("fuelingForm.gasStation")}
+        value={gasStation}
+        options={GAS_STATION_OPTIONS}
+        getLabel={(value) => t(`fuelingForm.stations.${value}`)}
+        onChange={setGasStation}
+        placeholder={t("common.all")}
       />
     </FormScreen>
   );

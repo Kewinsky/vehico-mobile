@@ -46,21 +46,28 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const iconRotation = useRef(new Animated.Value(0)).current;
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const v = await getVehicle(vehicleId);
-      setVehicle(v);
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
-    } finally {
-      setLoading(false);
-    }
-  }, [vehicleId, t]);
+  const load = useCallback(
+    async (opts?: { showLoading?: boolean }) => {
+      const showLoading = opts?.showLoading !== false;
+      try {
+        if (showLoading) setLoading(true);
+        const v = await getVehicle(vehicleId);
+        setVehicle(v);
+      } catch (e: any) {
+        toastError(e?.message ?? t("common.error"));
+      } finally {
+        if (showLoading) setLoading(false);
+      }
+    },
+    [vehicleId, t],
+  );
 
   useEffect(() => {
     void load();
-    const unsub = navigation.addListener("focus", () => void load());
+    const unsub = navigation.addListener(
+      "focus",
+      () => void load({ showLoading: false }),
+    );
     return unsub;
   }, [navigation, load]);
 
@@ -197,56 +204,63 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
       {loading ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: theme.spacing.md }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: theme.spacing.md,
+          }}
+        >
           <LoadingIndicator />
         </View>
       ) : (
-      <FlatList
-        data={tiles}
-        numColumns={2}
-        keyExtractor={(t) => t.key}
-        contentContainerStyle={styles.list}
-        columnWrapperStyle={styles.row}
-        ListHeaderComponent={
-          <View style={styles.listHeader}>
-            <View style={styles.header}>
-              <Text style={styles.title}>
-                {vehicle ? `${vehicle.make} ${vehicle.model}` : ""}
-              </Text>
-              {vehicle?.vin && (
-                <Pressable
-                  onPress={onCopyVin}
-                  style={styles.vinRow}
-                  hitSlop={10}
-                >
-                  <Text style={styles.vinText}>{vehicle.vin}</Text>
-                  <Ionicons
-                    name="copy-outline"
-                    size={16}
-                    color={theme.colors.muted}
-                  />
-                </Pressable>
-              )}
+        <FlatList
+          data={tiles}
+          numColumns={2}
+          keyExtractor={(t) => t.key}
+          contentContainerStyle={styles.list}
+          columnWrapperStyle={styles.row}
+          ListHeaderComponent={
+            <View style={styles.listHeader}>
+              <View style={styles.header}>
+                <Text style={styles.title}>
+                  {vehicle ? `${vehicle.make} ${vehicle.model}` : ""}
+                </Text>
+                {vehicle?.vin && (
+                  <Pressable
+                    onPress={onCopyVin}
+                    style={styles.vinRow}
+                    hitSlop={10}
+                  >
+                    <Text style={styles.vinText}>{vehicle.vin}</Text>
+                    <Ionicons
+                      name="copy-outline"
+                      size={16}
+                      color={theme.colors.muted}
+                    />
+                  </Pressable>
+                )}
+              </View>
             </View>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={item.onPress}
-            style={({ pressed }) => [
-              styles.tile,
-              pressed && styles.tilePressed,
-            ]}
-          >
-            <Ionicons
-              name={item.icon}
-              size={32}
-              color={theme.colors.accent}
-            />
-            <Text style={styles.tileTitle}>{item.title}</Text>
-          </Pressable>
-        )}
-      />
+          }
+          renderItem={({ item }) => (
+            <Pressable
+              onPress={item.onPress}
+              style={({ pressed }) => [
+                styles.tile,
+                pressed && styles.tilePressed,
+              ]}
+            >
+              <Ionicons
+                name={item.icon}
+                size={32}
+                color={theme.colors.accent}
+              />
+              <Text style={styles.tileTitle}>{item.title}</Text>
+            </Pressable>
+          )}
+        />
       )}
 
       {/* Floating Action Button */}

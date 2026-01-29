@@ -21,7 +21,7 @@ import {
   deleteFuelingEntry,
 } from "../services/fuel/fuelingEntriesRepo";
 import { useCallback, useEffect, useState } from "react";
-import type { FuelingEntry } from "../types/domain";
+import type { FuelingEntry, GasStation } from "../types/domain";
 import { Button } from "../ui/components/Button";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
@@ -29,7 +29,18 @@ import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { DateField } from "../ui/components/DateField";
 import { TextField } from "../ui/components/TextField";
+import { PickerField } from "../ui/components/PickerField";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
+
+const GAS_STATION_OPTIONS: readonly GasStation[] = [
+  "orlen",
+  "bp",
+  "shell",
+  "circle_k",
+  "mol",
+  "moya",
+  "other",
+];
 
 type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
 
@@ -46,6 +57,7 @@ export function FuelScreen({ route, navigation }: Props) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [stationFilter, setStationFilter] = useState<GasStation | null>(null);
   const [minCost, setMinCost] = useState("");
   const [maxCost, setMaxCost] = useState("");
 
@@ -53,22 +65,29 @@ export function FuelScreen({ route, navigation }: Props) {
   const distanceUnit = settings?.distanceUnit ?? "km";
   const fuelUnit = settings?.fuelUnit ?? "liters";
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const f = await listFuelingEntries(route.params.vehicleId);
-      setFueling(f);
-    } catch (err: any) {
-      toastError(err?.message ?? t("common.error"));
-    } finally {
-      setLoading(false);
-    }
-  }, [route.params.vehicleId, t]);
+  const load = useCallback(
+    async (opts?: { showLoading?: boolean }) => {
+      const showLoading = opts?.showLoading !== false;
+      try {
+        if (showLoading) setLoading(true);
+        const f = await listFuelingEntries(route.params.vehicleId);
+        setFueling(f);
+      } catch (err: any) {
+        toastError(err?.message ?? t("common.error"));
+      } finally {
+        if (showLoading) setLoading(false);
+      }
+    },
+    [route.params.vehicleId, t],
+  );
 
   useEffect(() => {
     // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
     void load();
-    const unsub = navigation.addListener("focus", () => void load());
+    const unsub = navigation.addListener(
+      "focus",
+      () => void load({ showLoading: false }),
+    );
     return unsub;
   }, [navigation, load]);
 
@@ -76,14 +95,16 @@ export function FuelScreen({ route, navigation }: Props) {
     return (
       dateFrom.trim().length > 0 ||
       dateTo.trim().length > 0 ||
+      stationFilter != null ||
       minCost.trim().length > 0 ||
       maxCost.trim().length > 0
     );
-  }, [dateFrom, dateTo, minCost, maxCost]);
+  }, [dateFrom, dateTo, stationFilter, minCost, maxCost]);
 
   function resetFilters() {
     setDateFrom("");
     setDateTo("");
+    setStationFilter(null);
     setMinCost("");
     setMaxCost("");
   }
@@ -98,6 +119,9 @@ export function FuelScreen({ route, navigation }: Props) {
       const d = String(f.date).slice(0, 10);
       if (from && d < from) return false;
       if (to && d > to) return false;
+      if (stationFilter != null) {
+        if (f.gas_station !== stationFilter) return false;
+      }
       if (min != null) {
         const cost = Number(f.fuel_cost ?? 0);
         if (cost < min) return false;
@@ -139,7 +163,7 @@ export function FuelScreen({ route, navigation }: Props) {
     }
 
     return grouped;
-  }, [fueling, dateFrom, dateTo, minCost, maxCost]);
+  }, [fueling, dateFrom, dateTo, stationFilter, minCost, maxCost]);
 
   function confirmDeleteFueling(id: string) {
     Alert.alert(
@@ -270,6 +294,15 @@ export function FuelScreen({ route, navigation }: Props) {
               value={dateTo}
               onChange={setDateTo}
             />
+            <View style={{ height: 10 }} />
+            <PickerField<GasStation>
+              label={t("timeline.filterStation")}
+              value={stationFilter}
+              options={GAS_STATION_OPTIONS}
+              getLabel={(value) => t(`fuelingForm.stations.${value}`)}
+              onChange={setStationFilter}
+              placeholder={t("common.all")}
+            />
 
             <View style={{ height: theme.spacing.sm }} />
             <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
@@ -352,6 +385,9 @@ export function FuelScreen({ route, navigation }: Props) {
                 >
                   <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
                     {entry.date}
+                    {entry.gas_station
+                      ? ` · ${t(`fuelingForm.stations.${entry.gas_station}`)}`
+                      : ""}
                   </Text>
                   <Text
                     style={{

@@ -19,6 +19,12 @@ export const pl = {
     copied: "Skopiowano",
     and: "i",
   },
+  validation: {
+    invalidDate: "Wprowadź poprawną datę (RRRR-MM-DD).",
+    invalidYear: "Wprowadź poprawny rok (1885–{{max}}).",
+    positiveRequired: "Wprowadź liczbę większą od zera.",
+    nonNegativeRequired: "Wprowadź zero lub liczbę dodatnią.",
+  },
   auth: {
     title: "Zaloguj się",
     signUpTitle: "Utwórz konto",
@@ -40,23 +46,31 @@ export const pl = {
     signedInSuccessfully: "Zalogowano pomyślnie",
     magicLinkSent: "Link magiczny wysłany",
     magicLinkSentTitle: "Sprawdź swoją skrzynkę",
-    magicLinkSentBody: "Wysłaliśmy link magiczny na adres {{email}}. Kliknij link w e-mailu, aby się zalogować.",
-    magicLinkSentHint: "Nie otrzymałeś e-maila? Sprawdź folder spam lub spróbuj ponownie.",
+    magicLinkSentBody:
+      "Wysłaliśmy link magiczny na adres {{email}}. Kliknij link w e-mailu, aby się zalogować.",
+    magicLinkSentHint:
+      "Nie otrzymałeś e-maila? Sprawdź folder spam lub spróbuj ponownie.",
     sendMagicLinkSignIn: "Wyślij link magiczny",
     sendMagicLinkSignUp: "Wyślij link magiczny",
     sendMagicLink: "Wyślij link magiczny",
     sendingLink: "Wysyłanie…",
     sendAnotherLink: "Wyślij kolejny link",
-    userAlreadyExists: "Konto z tym adresem e-mail już istnieje. Zaloguj się zamiast tego.",
-    userNotFound: "Nie znaleziono konta z tym adresem e-mail. Najpierw się zarejestruj.",
-    magicLinkHint: "Wyślemy Ci bezpieczny link do logowania. Hasło nie jest wymagane.",
+    userAlreadyExists:
+      "Konto z tym adresem e-mail już istnieje. Zaloguj się zamiast tego.",
+    userNotFound:
+      "Nie znaleziono konta z tym adresem e-mail. Najpierw się zarejestruj.",
+    magicLinkHint:
+      "Wyślemy Ci bezpieczny link do logowania. Hasło nie jest wymagane.",
     bySigningIn: "Logując się, akceptujesz nasz",
     termsOfService: "regulamin",
     rateLimitExceeded: "Zbyt wiele prób",
-    rateLimitMessage: "Poczekaj kilka minut przed ponownym wysłaniem linku magicznego.",
+    rateLimitMessage:
+      "Poczekaj kilka minut przed ponownym wysłaniem linku magicznego.",
     confirmEmailTitle: "Sprawdź swoją skrzynkę",
-    confirmEmailBody: "Wysłaliśmy e-mail potwierdzający na adres {{email}}. Kliknij link w e-mailu, aby zweryfikować swoje konto.",
-    confirmEmailHint: "Nie otrzymałeś e-maila? Sprawdź folder spam lub spróbuj ponownie wysłać.",
+    confirmEmailBody:
+      "Wysłaliśmy e-mail potwierdzający na adres {{email}}. Kliknij link w e-mailu, aby zweryfikować swoje konto.",
+    confirmEmailHint:
+      "Nie otrzymałeś e-maila? Sprawdź folder spam lub spróbuj ponownie wysłać.",
     resendEmail: "Wyślij ponownie e-mail potwierdzający",
     resendingEmail: "Wysyłanie ponownie…",
     openEmailApp: "Otwórz aplikację e-mail",
@@ -64,23 +78,27 @@ export const pl = {
   },
   landing: {
     title: "Vehico",
-    subtitle: "Śledź konserwację pojazdu, zużycie paliwa i wydatki w jednym miejscu.",
+    subtitle:
+      "Śledź konserwację pojazdu, zużycie paliwa i wydatki w jednym miejscu.",
     feature1Title: "Historia serwisowa",
-    feature1Description: "Prowadź szczegółowe zapisy wszystkich napraw i konserwacji ze zdjęciami i dokumentami.",
+    feature1Description:
+      "Prowadź szczegółowe zapisy wszystkich napraw i konserwacji ze zdjęciami i dokumentami.",
     feature2Title: "Śledzenie paliwa",
-    feature2Description: "Monitoruj zużycie i koszty paliwa, aby zoptymalizować efektywność pojazdu.",
+    feature2Description:
+      "Monitoruj zużycie i koszty paliwa, aby zoptymalizować efektywność pojazdu.",
     feature3Title: "Przypomnienia",
-    feature3Description: "Nigdy nie przegap konserwacji dzięki przypomnieniom opartym na czasie i przebiegu.",
+    feature3Description:
+      "Nigdy nie przegap konserwacji dzięki przypomnieniom opartym na czasie i przebiegu.",
     feature4Title: "Statystyki",
-    feature4Description: "Analizuj wydatki i śledź trendy dzięki szczegółowym raportom.",
+    feature4Description:
+      "Analizuj wydatki i śledź trendy dzięki szczegółowym raportom.",
     getStarted: "Rozpocznij",
     alreadyHaveAccount: "Masz już konto? ",
   },
   vehicles: {
     title: "Pojazdy",
     emptyTitle: "Brak pojazdów",
-    emptyBody:
-      "Dodaj swój pierwszy samochód lub motocykl.",
+    emptyBody: "Dodaj swój pierwszy samochód lub motocykl.",
     addVehicle: "Dodaj pojazd",
   },
   vehicleForm: {
@@ -90,7 +108,7 @@ export const pl = {
     motorcycle: "Motocykl",
     titleLabel: "Tytuł",
     titlePlaceholder: "np. BMW 530d 2019",
-    vinLabel: "VIN (opcjonalnie)",
+    vinLabel: "VIN",
     makeLabel: "Marka",
     modelLabel: "Model",
     yearLabel: "Rok produkcji",
@@ -115,7 +133,7 @@ export const pl = {
     transmissionManual: "Manualna",
     transmissionAutomatic: "Automatyczna",
     driveTypeLabel: "Napęd",
-    notesLabel: "Notatki (opcjonalnie)",
+    notesLabel: "Notatki",
     photoTitle: "Zdjęcie",
     photoSubtitle: "Dodaj zdjęcie, aby zidentyfikować ten pojazd.",
     photoPreview: "Zdjęcie wybrane",
@@ -135,6 +153,7 @@ export const pl = {
     filterCategory: "Kategoria",
     filterFrom: "Od",
     filterTo: "Do",
+    filterStation: "Stacja benzynowa",
     filterMinCost: "Min. koszt",
     filterMaxCost: "Maks. koszt",
     placeholderMinCost: "np. 100",
@@ -161,10 +180,10 @@ export const pl = {
     editTitle: "Edytuj wpis serwisowy",
     serviceDate: "Data serwisu",
     category: "Kategoria",
-    mileage: "Przebieg (opcjonalnie)",
+    mileage: "Przebieg",
     entryTitle: "Tytuł",
-    description: "Opis (opcjonalnie)",
-    cost: "Koszt (opcjonalnie)",
+    description: "Opis",
+    cost: "Koszt",
     categoryRequired: "Kategoria jest wymagana.",
     placeholderMileage: "np. 50000",
     placeholderTitle: "np. Wymiana oleju",
@@ -179,6 +198,13 @@ export const pl = {
     },
     ocrDisclaimer: "Dane z OCR mogą być niedokładne. Sprawdź je uważnie.",
     addAttachment: "Dodaj załącznik",
+    addAnotherEntry: "Dodaj kolejny wpis",
+    modeSingle: "Pojedynczy wpis",
+    modeMulti: "Wiele wpisów",
+    multiModeInfo:
+      "Notatki i załączniki możesz dodać do każdego wpisu później przy edycji.",
+    multipleEntriesNotice:
+      "Opis i załączniki są wyłączone przy dodawaniu wielu wpisów.",
     attachmentsTitle: "Załączniki",
     attachmentsEmpty: "Brak załączników.",
     pendingAttachments: "Załączniki do wysłania: {{count}}",
@@ -235,7 +261,8 @@ export const pl = {
       remindersTitle: "Przypomnienia",
       remindersSubtitle: "Nie przegap konserwacji.",
       shareTitle: "Udostępnij",
-      shareSubtitle: "Zwiększ wartość swojego pojazdu dzięki profesjonalnym raportom.",
+      shareSubtitle:
+        "Zwiększ wartość swojego pojazdu dzięki profesjonalnym raportom.",
       manageTitle: "Zarządzaj pojazdem",
       manageSubtitle: "Edytuj dane pojazdu i ustawienia.",
       dataTitle: "Eksport / Import",
@@ -248,6 +275,24 @@ export const pl = {
     },
     publicLinkTitle: "Link publiczny",
     publicLinkBody: "Public ID: {{id}}",
+  },
+  profile: {
+    title: "Profil",
+    subtitle: "Twoje konto i preferencje.",
+    displayName: "Nazwa wyświetlana",
+    displayNamePlaceholder: "Twoje imię lub nazwa",
+    email: "E-mail",
+    emailReadOnly: "E-mailu nie można zmienić tutaj.",
+    settings: "Ustawienia aplikacji",
+    settingsSubtitle: "Waluta, jednostki, motyw, język.",
+    signOut: "Wyloguj",
+    deleteAccount: "Usuń konto",
+    deleteAccountConfirmTitle: "Usunąć konto?",
+    deleteAccountConfirmBody:
+      "Wszystkie dane (pojazdy, dokumenty, przypomnienia) zostaną trwale usunięte. Tej operacji nie można cofnąć.",
+    deleteAccountNotAvailable:
+      "Usunięcie konta nie jest dostępne w aplikacji. Skontaktuj się z pomocą techniczną.",
+    displayNameUpdated: "Nazwa zaktualizowana",
   },
   settings: {
     title: "Ustawienia",
@@ -266,6 +311,9 @@ export const pl = {
   },
   documents: {
     title: "Dokumenty",
+    countInfo:
+      "Dokumenty: {{docCount}}, Załączniki: {{attCount}} ({{total}}/10)",
+    limitReached: "Łączny limit to 10 dokumentów i załączników.",
     searchPlaceholder: "Szukaj w dokumentach…",
     addAttachment: "Dodaj załącznik",
     addVehiclePhoto: "Dodaj zdjęcie pojazdu",
@@ -338,7 +386,7 @@ export const pl = {
     addTitle: "Dodaj przypomnienie",
     editTitle: "Edytuj przypomnienie",
     titleLabel: "Tytuł",
-    notesLabel: "Notatki (opcjonalnie)",
+    notesLabel: "Notatki",
     type: "Typ",
     time: "Czas",
     mileage: "Przebieg",
@@ -359,9 +407,19 @@ export const pl = {
     distance: "Dystans ({{unit}})",
     fuelAmount: "Ilość paliwa ({{unit}})",
     cost: "Koszt",
+    gasStation: "Stacja benzynowa",
     placeholderDistance: "np. 500",
     placeholderFuelAmount: "np. 40.5",
     placeholderCost: "np. 200.00",
+    stations: {
+      orlen: "Orlen",
+      bp: "BP",
+      shell: "Shell",
+      circle_k: "Circle K",
+      mol: "MOL",
+      moya: "Moya",
+      other: "Inne",
+    },
   },
   expenseForm: {
     addTitle: "Dodaj wydatek",
@@ -369,7 +427,7 @@ export const pl = {
     date: "Data",
     category: "Kategoria",
     amount: "Kwota",
-    note: "Notatka (opcjonalnie)",
+    note: "Notatka",
     categories: {
       service: "Serwis",
       parts: "Części",
@@ -382,7 +440,7 @@ export const pl = {
     editTitle: "Edytuj pojazd",
     loading: "Ładowanie…",
     titleLabel: "Tytuł",
-    vinLabel: "VIN (opcjonalnie)",
+    vinLabel: "VIN",
     makeLabel: "Marka",
     modelLabel: "Model",
     yearLabel: "Rok produkcji",
@@ -437,7 +495,8 @@ export const pl = {
     subtitle: "Eksportuj dane pojazdu w różnych formatach.",
     shareTitle: "Eksport Vehico",
     jsonButton: "Eksport JSON (Wszystkie dane)",
-    jsonDescription: "Eksportuje pojazd, wpisy serwisowe, tankowania i przypomnienia",
+    jsonDescription:
+      "Eksportuje pojazd, wpisy serwisowe, tankowania i przypomnienia",
     csvButton: "Eksport CSV (Tylko wpisy serwisowe)",
     csvDescription: "Eksportuje tylko wpisy serwisowe w formacie CSV",
   },
@@ -494,19 +553,23 @@ export const pl = {
     title: "Raport online",
     subtitle: "Wygeneruj publiczny raport dla pojazdu: {{vehicleTitle}}",
     infoTitle: "Ważne informacje",
-    infoText: "Raport generowany jest na podstawie aktualnych danych. Upewnij się, że wszystkie dane, które chcesz opublikować, są aktualne i prawidłowe. Po wygenerowaniu nie będziesz miał możliwości edycji raportu. Będziesz musiał na nowo wygenerować raport.",
+    infoText:
+      "Raport generowany jest na podstawie aktualnych danych. Upewnij się, że wszystkie dane, które chcesz opublikować, są aktualne i prawidłowe. Po wygenerowaniu nie będziesz miał możliwości edycji raportu. Będziesz musiał na nowo wygenerować raport.",
     historyButton: "Zobacz historię",
     generateButton: "Generuj raport online",
     confirmTitle: "Wygenerować raport?",
-    confirmBody: "Czy na pewno chcesz wygenerować nowy raport online? Raport zostanie utworzony na podstawie aktualnych danych pojazdu i nie będzie można go później edytować.",
+    confirmBody:
+      "Czy na pewno chcesz wygenerować nowy raport online? Raport zostanie utworzony na podstawie aktualnych danych pojazdu i nie będzie można go później edytować.",
     defaultTitle: "Raport publiczny",
     editTitleTitle: "Edytuj tytuł raportu",
     editTitleBody: "Wprowadź tytuł dla tego raportu",
     titleUpdated: "Tytuł raportu zaktualizowany",
     reportsUsed: "Użyte raporty",
-    maxReportsReached: "Osiągnięto limit darmowych raportów. Kup dodatkowe raporty, aby kontynuować.",
+    maxReportsReached:
+      "Osiągnięto limit darmowych raportów. Kup dodatkowe raporty, aby kontynuować.",
     paymentRequiredTitle: "Wymagana płatność",
-    paymentRequiredBody: "Osiągnięto limit {{maxFree}} darmowych raportów. Aby wygenerować kolejny raport, musisz dokonać zakupu.",
+    paymentRequiredBody:
+      "Osiągnięto limit {{maxFree}} darmowych raportów. Aby wygenerować kolejny raport, musisz dokonać zakupu.",
     purchaseButton: "Kup raporty",
     paymentNotImplemented: "Płatności będą dostępne wkrótce",
   },
@@ -515,7 +578,7 @@ export const pl = {
     languageLabel: "Język",
     languageEn: "Angielski",
     languagePl: "Polski",
-    priceLabel: "Cena (opcjonalnie)",
+    priceLabel: "Cena",
     pricePlaceholder: "Wprowadź cenę",
     generate: "Generuj ogłoszenie",
     generating: "Generowanie...",
@@ -550,30 +613,41 @@ export const pl = {
     title: "Regulamin",
     lastUpdated: "Ostatnia aktualizacja",
     section1Title: "1. Akceptacja warunków",
-    section1Content: "Korzystając z Vehico, akceptujesz i zgadzasz się przestrzegać warunków niniejszej umowy. Jeśli nie zgadzasz się z tymi warunkami, prosimy nie korzystać z naszej usługi.",
+    section1Content:
+      "Korzystając z Vehico, akceptujesz i zgadzasz się przestrzegać warunków niniejszej umowy. Jeśli nie zgadzasz się z tymi warunkami, prosimy nie korzystać z naszej usługi.",
     section2Title: "2. Licencja użytkowania",
-    section2Content: "Udzielamy pozwolenia na tymczasowe korzystanie z Vehico wyłącznie do osobistego, niekomercyjnego przeglądania. Jest to udzielenie licencji, a nie przeniesienie tytułu własności, i w ramach tej licencji nie możesz: modyfikować ani kopiować materiałów; używać materiałów do celów komercyjnych; próbować dekompilować lub przeprowadzać inżynierię wsteczną oprogramowania; usuwać jakichkolwiek oznaczeń praw autorskich lub innych zastrzeżeń własnościowych z materiałów.",
+    section2Content:
+      "Udzielamy pozwolenia na tymczasowe korzystanie z Vehico wyłącznie do osobistego, niekomercyjnego przeglądania. Jest to udzielenie licencji, a nie przeniesienie tytułu własności, i w ramach tej licencji nie możesz: modyfikować ani kopiować materiałów; używać materiałów do celów komercyjnych; próbować dekompilować lub przeprowadzać inżynierię wsteczną oprogramowania; usuwać jakichkolwiek oznaczeń praw autorskich lub innych zastrzeżeń własnościowych z materiałów.",
     section3Title: "3. Konto użytkownika",
-    section3Content: "Jesteś odpowiedzialny za zachowanie poufności swojego konta i hasła. Zgadzasz się przyjąć odpowiedzialność za wszystkie działania, które mają miejsce pod Twoim kontem. Musisz natychmiast powiadomić nas o jakimkolwiek nieautoryzowanym użyciu Twojego konta.",
+    section3Content:
+      "Jesteś odpowiedzialny za zachowanie poufności swojego konta i hasła. Zgadzasz się przyjąć odpowiedzialność za wszystkie działania, które mają miejsce pod Twoim kontem. Musisz natychmiast powiadomić nas o jakimkolwiek nieautoryzowanym użyciu Twojego konta.",
     section4Title: "4. Dane i prywatność",
-    section4Content: "Twoje korzystanie z Vehico jest również regulowane przez naszą Politykę Prywatności. Prosimy o zapoznanie się z naszą Polityką Prywatności, aby zrozumieć nasze praktyki dotyczące gromadzenia i wykorzystywania Twoich danych osobowych.",
+    section4Content:
+      "Twoje korzystanie z Vehico jest również regulowane przez naszą Politykę Prywatności. Prosimy o zapoznanie się z naszą Polityką Prywatności, aby zrozumieć nasze praktyki dotyczące gromadzenia i wykorzystywania Twoich danych osobowych.",
     section5Title: "5. Ograniczenie odpowiedzialności",
-    section5Content: "W żadnym wypadku Vehico ani jego dostawcy nie ponoszą odpowiedzialności za jakiekolwiek szkody (w tym, bez ograniczeń, szkody związane z utratą danych lub zysków, lub z powodu przerwy w działalności) wynikające z użytkowania lub niemożności użytkowania Vehico, nawet jeśli Vehico lub upoważniony przedstawiciel Vehico został powiadomiony ustnie lub na piśmie o możliwości wystąpienia takich szkód.",
+    section5Content:
+      "W żadnym wypadku Vehico ani jego dostawcy nie ponoszą odpowiedzialności za jakiekolwiek szkody (w tym, bez ograniczeń, szkody związane z utratą danych lub zysków, lub z powodu przerwy w działalności) wynikające z użytkowania lub niemożności użytkowania Vehico, nawet jeśli Vehico lub upoważniony przedstawiciel Vehico został powiadomiony ustnie lub na piśmie o możliwości wystąpienia takich szkód.",
   },
   privacy: {
     title: "Polityka prywatności",
     lastUpdated: "Ostatnia aktualizacja",
     section1Title: "1. Informacje, które zbieramy",
-    section1Content: "Zbieramy informacje, które przekazujesz nam bezpośrednio, takie jak podczas tworzenia konta, aktualizacji profilu lub korzystania z naszych usług. Obejmuje to Twój adres e-mail, informacje o pojazdach, zapisy serwisowe i inne dane, które zdecydujesz się podać.",
+    section1Content:
+      "Zbieramy informacje, które przekazujesz nam bezpośrednio, takie jak podczas tworzenia konta, aktualizacji profilu lub korzystania z naszych usług. Obejmuje to Twój adres e-mail, informacje o pojazdach, zapisy serwisowe i inne dane, które zdecydujesz się podać.",
     section2Title: "2. Jak wykorzystujemy Twoje informacje",
-    section2Content: "Wykorzystujemy zebrane informacje do świadczenia, utrzymywania i ulepszania naszych usług, przetwarzania transakcji, wysyłania powiadomień technicznych i wiadomości wsparcia oraz odpowiadania na Twoje komentarze i pytania.",
+    section2Content:
+      "Wykorzystujemy zebrane informacje do świadczenia, utrzymywania i ulepszania naszych usług, przetwarzania transakcji, wysyłania powiadomień technicznych i wiadomości wsparcia oraz odpowiadania na Twoje komentarze i pytania.",
     section3Title: "3. Przechowywanie i bezpieczeństwo danych",
-    section3Content: "Stosujemy standardowe w branży środki bezpieczeństwa w celu ochrony Twoich danych osobowych. Twoje dane są bezpiecznie przechowywane przy użyciu szyfrowania i kontroli dostępu. Jednak żadna metoda transmisji przez Internet lub przechowywania elektronicznego nie jest w 100% bezpieczna.",
+    section3Content:
+      "Stosujemy standardowe w branży środki bezpieczeństwa w celu ochrony Twoich danych osobowych. Twoje dane są bezpiecznie przechowywane przy użyciu szyfrowania i kontroli dostępu. Jednak żadna metoda transmisji przez Internet lub przechowywania elektronicznego nie jest w 100% bezpieczna.",
     section4Title: "4. Udostępnianie danych",
-    section4Content: "Nie sprzedajemy, nie wymieniamy ani nie wynajmujemy Twoich danych osobowych stronom trzecim. Możemy udostępniać Twoje informacje tylko w następujących okolicznościach: za Twoją zgodą, w celu wypełnienia zobowiązań prawnych lub w celu ochrony naszych praw i bezpieczeństwa.",
+    section4Content:
+      "Nie sprzedajemy, nie wymieniamy ani nie wynajmujemy Twoich danych osobowych stronom trzecim. Możemy udostępniać Twoje informacje tylko w następujących okolicznościach: za Twoją zgodą, w celu wypełnienia zobowiązań prawnych lub w celu ochrony naszych praw i bezpieczeństwa.",
     section5Title: "5. Twoje prawa",
-    section5Content: "Masz prawo do dostępu, aktualizacji lub usunięcia swoich danych osobowych w dowolnym momencie. Możesz również wyeksportować swoje dane lub poprosić o usunięcie konta i wszystkich powiązanych danych.",
+    section5Content:
+      "Masz prawo do dostępu, aktualizacji lub usunięcia swoich danych osobowych w dowolnym momencie. Możesz również wyeksportować swoje dane lub poprosić o usunięcie konta i wszystkich powiązanych danych.",
     section6Title: "6. Zmiany w polityce",
-    section6Content: "Możemy od czasu do czasu aktualizować niniejszą Politykę Prywatności. Powiadomimy Cię o wszelkich zmianach, publikując nową Politykę Prywatności na tej stronie i aktualizując datę 'Ostatniej aktualizacji'. Zalecamy okresowe przeglądanie tej Polityki Prywatności pod kątem jakichkolwiek zmian.",
+    section6Content:
+      "Możemy od czasu do czasu aktualizować niniejszą Politykę Prywatności. Powiadomimy Cię o wszelkich zmianach, publikując nową Politykę Prywatności na tej stronie i aktualizując datę 'Ostatniej aktualizacji'. Zalecamy okresowe przeglądanie tej Polityki Prywatności pod kątem jakichkolwiek zmian.",
   },
 };

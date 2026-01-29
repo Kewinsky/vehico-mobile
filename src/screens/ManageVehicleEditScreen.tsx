@@ -16,6 +16,10 @@ import { DraggableGrid } from "react-native-draggable-grid";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import {
+  isValidProductionYear,
+  isNonNegativeNumber,
+} from "../utils/validation";
 import type {
   Vehicle,
   VehicleType,
@@ -67,7 +71,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const [powerHp, setPowerHp] = useState("");
   const [fuelType, setFuelType] = useState<FuelType | null>(null);
   const [transmission, setTransmission] = useState<TransmissionType | null>(
-    null
+    null,
   );
   const [driveType, setDriveType] = useState<DriveType | null>(null);
   const [notes, setNotes] = useState("");
@@ -110,15 +114,35 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
     return (
       make.trim().length > 0 &&
       model.trim().length > 0 &&
-      year.trim().length === 4
+      isValidProductionYear(year) &&
+      isNonNegativeNumber(mileage) &&
+      isNonNegativeNumber(engineCapacity) &&
+      isNonNegativeNumber(powerHp)
     );
-  }, [make, model, year]);
+  }, [make, model, year, mileage, engineCapacity, powerHp]);
 
   async function onSave() {
     try {
       setSaving(true);
-      const production_year = Number(year);
-      if (!Number.isFinite(production_year)) throw new Error("Invalid year");
+      if (!isValidProductionYear(year)) {
+        toastError(
+          t("validation.invalidYear", { max: new Date().getFullYear() + 2 }),
+        );
+        return;
+      }
+      if (mileage.trim() && !isNonNegativeNumber(mileage)) {
+        toastError(t("validation.nonNegativeRequired"));
+        return;
+      }
+      if (engineCapacity.trim() && !isNonNegativeNumber(engineCapacity)) {
+        toastError(t("validation.nonNegativeRequired"));
+        return;
+      }
+      if (powerHp.trim() && !isNonNegativeNumber(powerHp)) {
+        toastError(t("validation.nonNegativeRequired"));
+        return;
+      }
+      const production_year = Number(year.trim());
       const updated = await updateVehicle(vehicleId, {
         type,
         vin: vin.trim().length ? vin.trim() : null,
@@ -167,7 +191,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
           text: t("attachments.files"),
           onPress: () => void pickFromFiles(),
         },
-      ]
+      ],
     );
   }
 
@@ -180,12 +204,13 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       }
       setUploadingPhoto(true);
       const perm = await ImagePicker.requestCameraPermissionsAsync();
-      if (!perm.granted) throw new Error(t("attachments.cameraPermissionDenied"));
+      if (!perm.granted)
+        throw new Error(t("attachments.cameraPermissionDenied"));
       const result = await ImagePicker.launchCameraAsync({ quality: 1 });
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-      
+
       await uploadVehiclePhoto({
         vehicleId,
         fileUri: asset.uri,
@@ -210,7 +235,8 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       }
       setUploadingPhoto(true);
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) throw new Error(t("attachments.galleryPermissionDenied"));
+      if (!perm.granted)
+        throw new Error(t("attachments.galleryPermissionDenied"));
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         quality: 1,
@@ -231,7 +257,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             fileUri: asset.uri,
             mimeType: asset.mimeType ?? null,
             fileName: asset.fileName ?? null,
-          })
+          }),
         )
         .filter((promise): promise is Promise<VehiclePhoto> => !!promise);
       await Promise.all(uploadPromises);
@@ -271,7 +297,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             fileUri: asset.uri,
             mimeType: asset.mimeType ?? null,
             fileName: asset.name ?? null,
-          })
+          }),
         )
         .filter((promise): promise is Promise<VehiclePhoto> => !!promise);
       await Promise.all(uploadPromises);
@@ -294,7 +320,6 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
     }
   }
 
-
   type PhotoItem = {
     key: string;
     photoId: string;
@@ -303,12 +328,14 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   };
 
   const photoItems: PhotoItem[] = useMemo(() => {
-    return photos.map((photo, index) => ({
-      key: photo.id,
-      photoId: photo.id,
-      url: photoUrls[index] || "",
-      index,
-    })).filter((item) => item.url);
+    return photos
+      .map((photo, index) => ({
+        key: photo.id,
+        photoId: photo.id,
+        url: photoUrls[index] || "",
+        index,
+      }))
+      .filter((item) => item.url);
   }, [photos, photoUrls]);
 
   const renderPhotoItem = (item: PhotoItem) => {
@@ -317,7 +344,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       // Return empty view if photo not found
       return <View style={styles.photoCard} />;
     }
-    
+
     const currentIndex = photos.findIndex((p) => p.id === item.photoId);
     const isMain = currentIndex === 0;
     return (
@@ -342,11 +369,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             style={styles.photoDeleteButton}
             hitSlop={5}
           >
-              <Ionicons
-                name="close"
-                size={16}
-                color={theme.colors.fg}
-              />
+            <Ionicons name="close" size={16} color={theme.colors.fg} />
           </Pressable>
         </View>
       </View>
@@ -417,19 +440,26 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                   const newPhotos: VehiclePhoto[] = data
                     .map((item) => photos.find((p) => p.id === item.photoId))
                     .filter((p): p is VehiclePhoto => !!p);
-                  
+
                   // Update photos state immediately
                   setPhotos(newPhotos);
-                  
+
                   // Update photoUrls in the same order (use existing URLs, just reorder)
-                  const newPhotoUrls = newPhotos.map((photo) => {
-                    const oldIndex = photos.findIndex((p) => p.id === photo.id);
-                    return photoUrls[oldIndex] || "";
-                  }).filter((url) => url !== "");
+                  const newPhotoUrls = newPhotos
+                    .map((photo) => {
+                      const oldIndex = photos.findIndex(
+                        (p) => p.id === photo.id,
+                      );
+                      return photoUrls[oldIndex] || "";
+                    })
+                    .filter((url) => url !== "");
                   setPhotoUrls(newPhotoUrls);
-                  
+
                   // Update display_order in database (async, don't wait)
-                  void reorderVehiclePhotos(vehicleId, newPhotos.map((p) => p.id));
+                  void reorderVehiclePhotos(
+                    vehicleId,
+                    newPhotos.map((p) => p.id),
+                  );
                 }}
               />
             ) : null}
@@ -511,17 +541,17 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             autoCapitalize="characters"
           />
           <TextField
-            label={t("manageVehicle.makeLabel")}
+            label={`${t("manageVehicle.makeLabel")} *`}
             value={make}
             onChangeText={setMake}
           />
           <TextField
-            label={t("manageVehicle.modelLabel")}
+            label={`${t("manageVehicle.modelLabel")} *`}
             value={model}
             onChangeText={setModel}
           />
           <TextField
-            label={t("manageVehicle.yearLabel")}
+            label={`${t("manageVehicle.yearLabel")} *`}
             value={year}
             onChangeText={setYear}
             keyboardType="number-pad"
@@ -547,7 +577,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                   | "vehicleForm.fuelTypeDiesel"
                   | "vehicleForm.fuelTypeHybrid"
                   | "vehicleForm.fuelTypeElectric"
-                  | "vehicleForm.fuelTypeLpg"
+                  | "vehicleForm.fuelTypeLpg",
               )
             }
             onChange={setFuelType}
@@ -599,7 +629,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                         tr.charAt(0).toUpperCase() + tr.slice(1)
                       }` as
                         | "vehicleForm.transmissionManual"
-                        | "vehicleForm.transmissionAutomatic"
+                        | "vehicleForm.transmissionAutomatic",
                     )}
                   </Text>
                 </Pressable>
@@ -629,7 +659,9 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                       styles.typeChipText,
                       {
                         color:
-                          driveType === dt ? theme.colors.fg : theme.colors.muted,
+                          driveType === dt
+                            ? theme.colors.fg
+                            : theme.colors.muted,
                       },
                     ]}
                   >
@@ -682,7 +714,11 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     photoCard: {
-      width: (Dimensions.get("window").width - theme.spacing.md * 2 - theme.spacing.sm * 2) / 3,
+      width:
+        (Dimensions.get("window").width -
+          theme.spacing.md * 2 -
+          theme.spacing.sm * 2) /
+        3,
       aspectRatio: 1,
       borderRadius: theme.radius.md,
       overflow: "hidden",

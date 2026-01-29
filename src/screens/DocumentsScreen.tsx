@@ -37,6 +37,8 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { TextField } from "../ui/components/TextField";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
+const MAX_DOCUMENTS_AND_ATTACHMENTS = 10;
+
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
 export function DocumentsScreen({ route, navigation }: Props) {
@@ -49,26 +51,36 @@ export function DocumentsScreen({ route, navigation }: Props) {
   const [uploading, setUploading] = useState(false);
   const [query, setQuery] = useState("");
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const [d, a] = await Promise.all([
-        listVehicleDocuments(route.params.vehicleId),
-        listVehicleAttachments(route.params.vehicleId),
-      ]);
-      setVehicleDocs(d);
-      setAttachments(a);
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
-    } finally {
-      setLoading(false);
-    }
-  }, [route.params.vehicleId, t]);
+  const totalCount = vehicleDocs.length + attachments.length;
+  const canAddMore = totalCount < MAX_DOCUMENTS_AND_ATTACHMENTS;
+
+  const load = useCallback(
+    async (opts?: { showLoading?: boolean }) => {
+      const showLoading = opts?.showLoading !== false;
+      try {
+        if (showLoading) setLoading(true);
+        const [d, a] = await Promise.all([
+          listVehicleDocuments(route.params.vehicleId),
+          listVehicleAttachments(route.params.vehicleId),
+        ]);
+        setVehicleDocs(d);
+        setAttachments(a);
+      } catch (e: any) {
+        toastError(e?.message ?? t("common.error"));
+      } finally {
+        if (showLoading) setLoading(false);
+      }
+    },
+    [route.params.vehicleId, t],
+  );
 
   useEffect(() => {
     // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
     void load();
-    const unsub = navigation.addListener("focus", () => void load());
+    const unsub = navigation.addListener(
+      "focus",
+      () => void load({ showLoading: false }),
+    );
     return unsub;
   }, [navigation, load]);
 
@@ -82,6 +94,10 @@ export function DocumentsScreen({ route, navigation }: Props) {
   }
 
   function pickVehicleDocument() {
+    if (!canAddMore) {
+      toastError(t("documents.limitReached"));
+      return;
+    }
     Alert.alert(
       t("documents.addVehicleDocument"),
       t("attachments.addPickerBody"),
@@ -258,6 +274,13 @@ export function DocumentsScreen({ route, navigation }: Props) {
           <Text style={styles.subtitle}>
             {t("dashboard.tiles.docsSubtitle")}
           </Text>
+          <Text style={[styles.countInfo, { color: theme.colors.muted }]}>
+            {t("documents.countInfo", {
+              docCount: vehicleDocs.length,
+              attCount: attachments.length,
+              total: totalCount,
+            })}
+          </Text>
         </View>
         <View style={{ height: theme.spacing.sm }} />
         <TextField
@@ -276,7 +299,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
             <Button
               onPress={pickVehicleDocument}
               variant="ghost"
-              disabled={uploading}
+              disabled={uploading || !canAddMore}
             >
               {t("documents.addVehicleDocument")}
             </Button>
@@ -284,12 +307,17 @@ export function DocumentsScreen({ route, navigation }: Props) {
           <View style={{ width: theme.spacing.sm }} />
           <View style={{ flex: 1 }}>
             <Button
-              onPress={() =>
+              onPress={() => {
+                if (!canAddMore) {
+                  toastError(t("documents.limitReached"));
+                  return;
+                }
                 navigation.navigate("AddAttachment", {
                   vehicleId: route.params.vehicleId,
-                })
-              }
+                });
+              }}
               variant="ghost"
+              disabled={!canAddMore}
             >
               {t("documents.addAttachment")}
             </Button>
@@ -493,6 +521,7 @@ const makeStyles = (theme: any) =>
     },
     title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
     subtitle: { fontSize: 13, color: theme.colors.muted },
+    countInfo: { fontSize: 13, marginTop: theme.spacing.xs / 2 },
     body: { marginTop: theme.spacing.xs, lineHeight: 22 },
     section: {
       marginTop: theme.spacing.sm - 2,

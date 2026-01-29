@@ -21,6 +21,7 @@ import { ReminderFormScreen } from "../../screens/ReminderFormScreen";
 import { ReminderDetailScreen } from "../../screens/ReminderDetailScreen";
 import { ServiceEntryDetailScreen } from "../../screens/ServiceEntryDetailScreen";
 import { ServiceEntryFormScreen } from "../../screens/ServiceEntryFormScreen";
+import { ProfileScreen } from "../../screens/ProfileScreen";
 import { SettingsScreen } from "../../screens/SettingsScreen";
 import { DataPortabilityScreen } from "../../screens/DataPortabilityScreen";
 import { ExportScreen } from "../../screens/ExportScreen";
@@ -42,6 +43,7 @@ export type AppStackParamList = {
   PrivacyPolicy: undefined;
   Vehicles: undefined;
   VehicleForm: undefined;
+  Profile: undefined;
   Settings: undefined;
   VehicleDashboard: { vehicleId: string };
   VehicleDetail: { vehicleId: string };
@@ -83,8 +85,8 @@ export function RootNavigator() {
   }
 
   return (
-    <Stack.Navigator 
-      key={session ? 'authenticated' : 'unauthenticated'}
+    <Stack.Navigator
+      key={session ? "authenticated" : "unauthenticated"}
       screenOptions={{ headerShown: false }}
       initialRouteName={session ? "Vehicles" : "Landing"}
     >
@@ -99,6 +101,7 @@ export function RootNavigator() {
         <>
           <Stack.Screen name="Vehicles" component={VehiclesScreen} />
           <Stack.Screen name="VehicleForm" component={VehicleFormScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen
             name="VehicleDashboard"
@@ -131,10 +134,7 @@ export function RootNavigator() {
             name="MarketplacePostEdit"
             component={MarketplacePostEditScreen}
           />
-          <Stack.Screen
-            name="PublicReport"
-            component={PublicReportScreen}
-          />
+          <Stack.Screen name="PublicReport" component={PublicReportScreen} />
           <Stack.Screen
             name="PublicReportOptions"
             component={PublicReportOptionsScreen}

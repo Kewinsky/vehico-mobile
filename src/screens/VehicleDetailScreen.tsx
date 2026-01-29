@@ -70,10 +70,12 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   >("date-newest");
 
   const load = useCallback(
-    async (opts?: { refreshing?: boolean }) => {
+    async (opts?: { refreshing?: boolean; showLoading?: boolean }) => {
       try {
-        if (opts?.refreshing) setRefreshing(true);
-        else setLoading(true);
+        if (opts?.showLoading !== false) {
+          if (opts?.refreshing) setRefreshing(true);
+          else setLoading(true);
+        }
         const [v, data, rs, attachments] = await Promise.all([
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
@@ -96,8 +98,10 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
       } catch (e: any) {
         toastError(e?.message ?? t("common.error"));
       } finally {
-        if (opts?.refreshing) setRefreshing(false);
-        else setLoading(false);
+        if (opts?.showLoading !== false) {
+          if (opts?.refreshing) setRefreshing(false);
+          else setLoading(false);
+        }
       }
     },
     [vehicleId, t],
@@ -106,7 +110,10 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   useEffect(() => {
     // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
     void load();
-    const unsub = navigation.addListener("focus", () => void load());
+    const unsub = navigation.addListener(
+      "focus",
+      () => void load({ showLoading: false }),
+    );
     return unsub;
   }, [navigation, load]);
 

@@ -1,6 +1,16 @@
-import { useCallback, useEffect, useState } from "react";
-import { Alert, Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Alert,
+  Dimensions,
+  FlatList,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { Image } from "expo-image";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,15 +39,28 @@ type VehicleCarouselProps = {
   width: number;
   height: number;
   theme: any;
+  onPhotoPress?: (index: number) => void;
 };
 
-function VehicleCarousel({ photoUrls, width, height, theme }: VehicleCarouselProps) {
+function VehicleCarousel({
+  photoUrls,
+  width,
+  height,
+  theme,
+  onPhotoPress,
+}: VehicleCarouselProps) {
   const progress = useSharedValue(0);
+  const currentIndexRef = useRef(0);
 
   if (photoUrls.length === 0) return null;
 
   return (
-    <View>
+    <Pressable
+      onPress={() =>
+        onPhotoPress?.(Math.round(currentIndexRef.current) % photoUrls.length)
+      }
+      style={{ width, height }}
+    >
       <Carousel
         loop={true}
         snapEnabled={true}
@@ -47,11 +70,16 @@ function VehicleCarousel({ photoUrls, width, height, theme }: VehicleCarouselPro
         height={height}
         onProgressChange={(offsetProgress, absoluteProgress) => {
           progress.value = absoluteProgress;
+          currentIndexRef.current = absoluteProgress;
         }}
         renderItem={({ item: url }) => (
           <Image
             source={{ uri: url }}
-            style={{ width: "100%", height: "100%", backgroundColor: theme.colors.card }}
+            style={{
+              width: "100%",
+              height: "100%",
+              backgroundColor: theme.colors.card,
+            }}
             contentFit="cover"
             transition={200}
           />
@@ -62,11 +90,14 @@ function VehicleCarousel({ photoUrls, width, height, theme }: VehicleCarouselPro
           progress={progress}
           data={photoUrls.map((url) => ({ url }))}
           dotStyle={{ backgroundColor: theme.colors.border, borderRadius: 50 }}
-          activeDotStyle={{ backgroundColor: theme.colors.accent, borderRadius: 50 }}
+          activeDotStyle={{
+            backgroundColor: theme.colors.accent,
+            borderRadius: 50,
+          }}
           containerStyle={{ gap: 5, marginTop: 10 }}
         />
       )}
-    </View>
+    </Pressable>
   );
 }
 
@@ -79,30 +110,39 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  const windowWidth = Dimensions.get("window").width;
+  const [fullScreenIndex, setFullScreenIndex] = useState<number | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const v = await getVehicle(vehicleId);
-      setVehicle(v);
-      
-      // Load all photos
-      const photos = await listVehiclePhotos(vehicleId);
-      const urls = photos.map((photo) => getVehiclePhotoUrl(photo));
-      setPhotoUrls(urls);
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
-    } finally {
-      setLoading(false);
-    }
-  }, [vehicleId, t]);
+  const insets = useSafeAreaInsets();
+  const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
+
+  const load = useCallback(
+    async (opts?: { showLoading?: boolean }) => {
+      const showLoading = opts?.showLoading !== false;
+      try {
+        if (showLoading) setLoading(true);
+        const v = await getVehicle(vehicleId);
+        setVehicle(v);
+
+        // Load all photos
+        const photos = await listVehiclePhotos(vehicleId);
+        const urls = photos.map((photo) => getVehiclePhotoUrl(photo));
+        setPhotoUrls(urls);
+      } catch (e: any) {
+        toastError(e?.message ?? t("common.error"));
+      } finally {
+        if (showLoading) setLoading(false);
+      }
+    },
+    [vehicleId, t],
+  );
 
   useEffect(() => {
     // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
     void load();
-    const unsub = navigation.addListener("focus", () => void load());
+    const unsub = navigation.addListener(
+      "focus",
+      () => void load({ showLoading: false }),
+    );
     return unsub;
   }, [navigation, load]);
 
@@ -131,7 +171,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
             }
           },
         },
-      ]
+      ],
     );
   }
 
@@ -170,6 +210,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                   width={windowWidth - theme.spacing.md * 2}
                   height={220}
                   theme={theme}
+                  onPhotoPress={(index) => setFullScreenIndex(index)}
                 />
               ) : (
                 <View style={styles.vehicleImagePlaceholder}>
@@ -181,7 +222,9 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
             </View>
             <View style={{ height: theme.spacing.md }} />
             <View style={styles.detailsContent}>
-              <Text style={styles.detailsTitle}>{`${vehicle.make} ${vehicle.model}`}</Text>
+              <Text
+                style={styles.detailsTitle}
+              >{`${vehicle.make} ${vehicle.model}`}</Text>
               {vehicle.vin && (
                 <Pressable
                   onPress={onCopyVin}
@@ -325,7 +368,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                                 vehicle.transmission.slice(1)
                               }` as
                                 | "vehicleForm.transmissionManual"
-                                | "vehicleForm.transmissionAutomatic"
+                                | "vehicleForm.transmissionAutomatic",
                             )
                           : "N/A"}
                       </Text>
@@ -385,7 +428,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                                 | "vehicleForm.fuelTypeDiesel"
                                 | "vehicleForm.fuelTypeHybrid"
                                 | "vehicleForm.fuelTypeElectric"
-                                | "vehicleForm.fuelTypeLpg"
+                                | "vehicleForm.fuelTypeLpg",
                             )
                           : "N/A"}
                       </Text>
@@ -426,6 +469,61 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
           <Button onPress={onDeleteVehicle} variant="destructive">
             {t("manageVehicle.deleteVehicle")}
           </Button>
+
+          <Modal
+            visible={fullScreenIndex !== null}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setFullScreenIndex(null)}
+          >
+            <View
+              style={[
+                styles.fullScreenOverlay,
+                { paddingTop: insets.top, paddingBottom: insets.bottom },
+              ]}
+            >
+              <Pressable
+                style={[styles.fullScreenClose, { top: insets.top + 8 }]}
+                onPress={() => setFullScreenIndex(null)}
+                hitSlop={12}
+              >
+                <Ionicons name="close" size={28} color="#fff" />
+              </Pressable>
+              {fullScreenIndex !== null && photoUrls.length > 0 && (
+                <FlatList
+                  data={photoUrls}
+                  horizontal
+                  pagingEnabled
+                  initialScrollIndex={fullScreenIndex}
+                  getItemLayout={(_, index) => ({
+                    length: windowWidth,
+                    offset: windowWidth * index,
+                    index,
+                  })}
+                  keyExtractor={(url) => url}
+                  renderItem={({ item: url }) => (
+                    <View
+                      style={{
+                        width: windowWidth,
+                        height: windowHeight - insets.top - insets.bottom,
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Image
+                        source={{ uri: url }}
+                        style={{
+                          width: windowWidth,
+                          height: windowHeight - insets.top - insets.bottom,
+                        }}
+                        contentFit="contain"
+                      />
+                    </View>
+                  )}
+                  showsHorizontalScrollIndicator={false}
+                />
+              )}
+            </View>
+          </Modal>
         </>
       ) : null}
     </FormScreen>
@@ -566,6 +664,22 @@ const makeStyles = (theme: any) =>
     loadingContainer: {
       paddingTop: theme.spacing.xl + theme.spacing.xs,
       paddingBottom: theme.spacing.xl + theme.spacing.xs,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    fullScreenOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.95)",
+      justifyContent: "center",
+    },
+    fullScreenClose: {
+      position: "absolute",
+      right: 16,
+      zIndex: 10,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: "rgba(0,0,0,0.4)",
       alignItems: "center",
       justifyContent: "center",
     },

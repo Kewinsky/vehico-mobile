@@ -1,5 +1,12 @@
 import { useMemo, useState } from "react";
-import { Alert, Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Dimensions,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -8,7 +15,16 @@ import * as DocumentPicker from "expo-document-picker";
 import { DraggableGrid } from "react-native-draggable-grid";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import type { VehicleType, FuelType, TransmissionType, DriveType } from "../types/domain";
+import {
+  isValidProductionYear,
+  isNonNegativeNumber,
+} from "../utils/validation";
+import type {
+  VehicleType,
+  FuelType,
+  TransmissionType,
+  DriveType,
+} from "../types/domain";
 import { createVehicle } from "../services/vehicles/vehiclesRepo";
 import { uploadVehiclePhoto } from "../services/vehicles/uploadPhoto";
 import { Button } from "../ui/components/Button";
@@ -36,7 +52,7 @@ export function VehicleFormScreen({ navigation }: Props) {
   const [powerHp, setPowerHp] = useState("");
   const [fuelType, setFuelType] = useState<FuelType | null>(null);
   const [transmission, setTransmission] = useState<TransmissionType | null>(
-    null
+    null,
   );
   const [driveType, setDriveType] = useState<DriveType | null>(null);
   const [notes, setNotes] = useState("");
@@ -54,9 +70,12 @@ export function VehicleFormScreen({ navigation }: Props) {
     return (
       make.trim().length > 0 &&
       model.trim().length > 0 &&
-      year.trim().length === 4
+      isValidProductionYear(year) &&
+      isNonNegativeNumber(mileage) &&
+      isNonNegativeNumber(engineCapacity) &&
+      isNonNegativeNumber(powerHp)
     );
-  }, [make, model, year]);
+  }, [make, model, year, mileage, engineCapacity, powerHp]);
 
   function pickSource() {
     const remainingSlots = 6 - photoUris.length;
@@ -81,7 +100,7 @@ export function VehicleFormScreen({ navigation }: Props) {
           text: t("attachments.files"),
           onPress: () => void pickFromFiles(),
         },
-      ]
+      ],
     );
   }
 
@@ -94,7 +113,8 @@ export function VehicleFormScreen({ navigation }: Props) {
       }
       setUploadingPhoto(true);
       const perm = await ImagePicker.requestCameraPermissionsAsync();
-      if (!perm.granted) throw new Error(t("attachments.cameraPermissionDenied"));
+      if (!perm.granted)
+        throw new Error(t("attachments.cameraPermissionDenied"));
       const result = await ImagePicker.launchCameraAsync({ quality: 1 });
       if (result.canceled) return;
       const asset = result.assets?.[0];
@@ -123,7 +143,8 @@ export function VehicleFormScreen({ navigation }: Props) {
       }
       setUploadingPhoto(true);
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) throw new Error(t("attachments.galleryPermissionDenied"));
+      if (!perm.granted)
+        throw new Error(t("attachments.galleryPermissionDenied"));
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         quality: 1,
@@ -227,16 +248,14 @@ export function VehicleFormScreen({ navigation }: Props) {
             </View>
           )}
           <Pressable
-            onPress={() => removePhoto(currentIndex >= 0 ? currentIndex : item.index)}
+            onPress={() =>
+              removePhoto(currentIndex >= 0 ? currentIndex : item.index)
+            }
             disabled={saving || uploadingPhoto}
             style={styles.photoDeleteButton}
             hitSlop={5}
           >
-              <Ionicons
-                name="close"
-                size={16}
-                color={theme.colors.fg}
-              />
+            <Ionicons name="close" size={16} color={theme.colors.accent} />
           </Pressable>
         </View>
       </View>
@@ -246,8 +265,25 @@ export function VehicleFormScreen({ navigation }: Props) {
   async function onSave() {
     try {
       setSaving(true);
-      const production_year = Number(year);
-      if (!Number.isFinite(production_year)) throw new Error("Invalid year");
+      if (!isValidProductionYear(year)) {
+        toastError(
+          t("validation.invalidYear", { max: new Date().getFullYear() + 2 }),
+        );
+        return;
+      }
+      const production_year = Number(year.trim());
+      if (mileage.trim() && !isNonNegativeNumber(mileage)) {
+        toastError(t("validation.nonNegativeRequired"));
+        return;
+      }
+      if (engineCapacity.trim() && !isNonNegativeNumber(engineCapacity)) {
+        toastError(t("validation.nonNegativeRequired"));
+        return;
+      }
+      if (powerHp.trim() && !isNonNegativeNumber(powerHp)) {
+        toastError(t("validation.nonNegativeRequired"));
+        return;
+      }
 
       const created = await createVehicle({
         type,
@@ -329,7 +365,6 @@ export function VehicleFormScreen({ navigation }: Props) {
 
       <Text style={styles.h1}>{t("vehicleForm.title")}</Text>
 
-
       {/* Photos Section */}
       <View style={styles.photosSection}>
         <Text style={[styles.label, { color: theme.colors.muted }]}>
@@ -381,14 +416,15 @@ export function VehicleFormScreen({ navigation }: Props) {
                 borderColor: theme.colors.border,
                 backgroundColor: theme.colors.card,
               },
-              type === "car" && { borderColor: theme.colors.fg },
+              type === "car" && { borderColor: theme.colors.accent },
             ]}
           >
             <Text
               style={[
                 styles.typeChipText,
                 {
-                  color: type === "car" ? theme.colors.fg : theme.colors.muted,
+                  color:
+                    type === "car" ? theme.colors.accent : theme.colors.muted,
                 },
               ]}
             >
@@ -403,7 +439,7 @@ export function VehicleFormScreen({ navigation }: Props) {
                 borderColor: theme.colors.border,
                 backgroundColor: theme.colors.card,
               },
-              type === "motorcycle" && { borderColor: theme.colors.fg },
+              type === "motorcycle" && { borderColor: theme.colors.accent },
             ]}
           >
             <Text
@@ -412,7 +448,7 @@ export function VehicleFormScreen({ navigation }: Props) {
                 {
                   color:
                     type === "motorcycle"
-                      ? theme.colors.fg
+                      ? theme.colors.accent
                       : theme.colors.muted,
                 },
               ]}
@@ -432,19 +468,19 @@ export function VehicleFormScreen({ navigation }: Props) {
         placeholder={t("vehicleForm.placeholderVin")}
       />
       <TextField
-        label={t("vehicleForm.makeLabel")}
+        label={`${t("vehicleForm.makeLabel")} *`}
         value={make}
         onChangeText={setMake}
         placeholder={t("vehicleForm.placeholderMake")}
       />
       <TextField
-        label={t("vehicleForm.modelLabel")}
+        label={`${t("vehicleForm.modelLabel")} *`}
         value={model}
         onChangeText={setModel}
         placeholder={t("vehicleForm.placeholderModel")}
       />
       <TextField
-        label={t("vehicleForm.yearLabel")}
+        label={`${t("vehicleForm.yearLabel")} *`}
         value={year}
         onChangeText={setYear}
         keyboardType="number-pad"
@@ -471,7 +507,7 @@ export function VehicleFormScreen({ navigation }: Props) {
               | "vehicleForm.fuelTypeDiesel"
               | "vehicleForm.fuelTypeHybrid"
               | "vehicleForm.fuelTypeElectric"
-              | "vehicleForm.fuelTypeLpg"
+              | "vehicleForm.fuelTypeLpg",
           )
         }
         onChange={setFuelType}
@@ -506,7 +542,7 @@ export function VehicleFormScreen({ navigation }: Props) {
                   borderColor: theme.colors.border,
                   backgroundColor: theme.colors.card,
                 },
-                transmission === tr && { borderColor: theme.colors.fg },
+                transmission === tr && { borderColor: theme.colors.accent },
               ]}
             >
               <Text
@@ -515,7 +551,7 @@ export function VehicleFormScreen({ navigation }: Props) {
                   {
                     color:
                       transmission === tr
-                        ? theme.colors.fg
+                        ? theme.colors.accent
                         : theme.colors.muted,
                   },
                 ]}
@@ -525,7 +561,7 @@ export function VehicleFormScreen({ navigation }: Props) {
                     tr.charAt(0).toUpperCase() + tr.slice(1)
                   }` as
                     | "vehicleForm.transmissionManual"
-                    | "vehicleForm.transmissionAutomatic"
+                    | "vehicleForm.transmissionAutomatic",
                 )}
               </Text>
             </Pressable>
@@ -547,7 +583,7 @@ export function VehicleFormScreen({ navigation }: Props) {
                   borderColor: theme.colors.border,
                   backgroundColor: theme.colors.card,
                 },
-                driveType === dt && { borderColor: theme.colors.fg },
+                driveType === dt && { borderColor: theme.colors.accent },
               ]}
             >
               <Text
@@ -555,7 +591,9 @@ export function VehicleFormScreen({ navigation }: Props) {
                   styles.typeChipText,
                   {
                     color:
-                      driveType === dt ? theme.colors.fg : theme.colors.muted,
+                      driveType === dt
+                        ? theme.colors.accent
+                        : theme.colors.muted,
                   },
                 ]}
               >
@@ -614,7 +652,11 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     photoCard: {
-      width: (Dimensions.get("window").width - theme.spacing.md * 2 - theme.spacing.sm * 2) / 3,
+      width:
+        (Dimensions.get("window").width -
+          theme.spacing.md * 2 -
+          theme.spacing.sm * 2) /
+        3,
       aspectRatio: 1,
       borderRadius: theme.radius.md,
       overflow: "hidden",
@@ -669,7 +711,7 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
     },
     photoMainText: {
-      color: theme.colors.fg,
+      color: "#000000",
       fontSize: 11,
       fontWeight: "700",
     },

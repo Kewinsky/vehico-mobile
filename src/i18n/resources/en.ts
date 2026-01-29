@@ -19,6 +19,12 @@ export const en = {
     copied: "Copied",
     and: "and",
   },
+  validation: {
+    invalidDate: "Please enter a valid date (YYYY-MM-DD).",
+    invalidYear: "Please enter a valid year (1885–{{max}}).",
+    positiveRequired: "Please enter a positive number.",
+    nonNegativeRequired: "Please enter zero or a positive number.",
+  },
   auth: {
     title: "Sign in",
     signUpTitle: "Create account",
@@ -40,40 +46,49 @@ export const en = {
     signedInSuccessfully: "Signed in successfully",
     magicLinkSent: "Magic link sent",
     magicLinkSentTitle: "Check your email",
-    magicLinkSentBody: "We've sent a magic link to {{email}}. Click the link in the email to sign in.",
-    magicLinkSentHint: "Didn't receive the email? Check your spam folder or try again.",
+    magicLinkSentBody:
+      "We've sent a magic link to {{email}}. Click the link in the email to sign in.",
+    magicLinkSentHint:
+      "Didn't receive the email? Check your spam folder or try again.",
     sendMagicLinkSignIn: "Send magic link",
     sendMagicLinkSignUp: "Send magic link",
     sendMagicLink: "Send Magic Link",
     sendingLink: "Sending…",
     sendAnotherLink: "Send another link",
-    userAlreadyExists: "An account with this email already exists. Please sign in instead.",
+    userAlreadyExists:
+      "An account with this email already exists. Please sign in instead.",
     userNotFound: "No account found with this email. Please sign up first.",
-    magicLinkHint: "We'll send you a secure link to sign in. No password required.",
+    magicLinkHint:
+      "We'll send you a secure link to sign in. No password required.",
     bySigningIn: "By signing in, you agree to our",
     termsOfService: "Terms of Service",
     rateLimitExceeded: "Too many requests",
-    rateLimitMessage: "Please wait a few minutes before requesting another magic link.",
+    rateLimitMessage:
+      "Please wait a few minutes before requesting another magic link.",
   },
   landing: {
     title: "Vehico",
-    subtitle: "Track your vehicle maintenance, fuel consumption, and expenses all in one place.",
+    subtitle:
+      "Track your vehicle maintenance, fuel consumption, and expenses all in one place.",
     feature1Title: "Service History",
-    feature1Description: "Keep detailed records of all maintenance and repairs with photos and documents.",
+    feature1Description:
+      "Keep detailed records of all maintenance and repairs with photos and documents.",
     feature2Title: "Fuel Tracking",
-    feature2Description: "Monitor fuel consumption and costs to optimize your vehicle's efficiency.",
+    feature2Description:
+      "Monitor fuel consumption and costs to optimize your vehicle's efficiency.",
     feature3Title: "Reminders",
-    feature3Description: "Never miss maintenance again with time and mileage-based reminders.",
+    feature3Description:
+      "Never miss maintenance again with time and mileage-based reminders.",
     feature4Title: "Statistics",
-    feature4Description: "Analyze your expenses and track trends with comprehensive reports.",
+    feature4Description:
+      "Analyze your expenses and track trends with comprehensive reports.",
     getStarted: "Get Started",
     alreadyHaveAccount: "Already have an account? ",
   },
   vehicles: {
     title: "Vehicles",
     emptyTitle: "No vehicles yet",
-    emptyBody:
-      "Add your first car or motorcycle.",
+    emptyBody: "Add your first car or motorcycle.",
     addVehicle: "Add vehicle",
   },
   vehicleForm: {
@@ -83,7 +98,7 @@ export const en = {
     motorcycle: "Motorcycle",
     titleLabel: "Title",
     titlePlaceholder: "e.g. BMW 530d 2019",
-    vinLabel: "VIN (optional)",
+    vinLabel: "VIN",
     makeLabel: "Make",
     modelLabel: "Model",
     yearLabel: "Production year",
@@ -108,7 +123,7 @@ export const en = {
     transmissionManual: "Manual",
     transmissionAutomatic: "Automatic",
     driveTypeLabel: "Drive type",
-    notesLabel: "Notes (optional)",
+    notesLabel: "Notes",
     photoTitle: "Photo",
     photoSubtitle: "Add a photo to identify this vehicle.",
     photoPreview: "Photo selected",
@@ -128,6 +143,7 @@ export const en = {
     filterCategory: "Category",
     filterFrom: "From",
     filterTo: "To",
+    filterStation: "Gas station",
     filterMinCost: "Min cost",
     filterMaxCost: "Max cost",
     placeholderMinCost: "e.g. 100",
@@ -159,10 +175,10 @@ export const en = {
     editTitle: "Edit service entry",
     serviceDate: "Service date",
     category: "Category",
-    mileage: "Mileage (optional)",
+    mileage: "Mileage",
     entryTitle: "Title",
-    description: "Description (optional)",
-    cost: "Cost (optional)",
+    description: "Description",
+    cost: "Cost",
     categoryRequired: "Category is required.",
     placeholderMileage: "e.g. 50000",
     placeholderTitle: "e.g. Oil change",
@@ -177,6 +193,13 @@ export const en = {
     },
     ocrDisclaimer: "OCR data may be inaccurate. Please review carefully.",
     addAttachment: "Add attachment",
+    addAnotherEntry: "Add another entry",
+    modeSingle: "Single entry",
+    modeMulti: "Multiple entries",
+    multiModeInfo:
+      "You can add notes and attachments to each entry later when editing.",
+    multipleEntriesNotice:
+      "Description and attachments are disabled when adding multiple entries.",
     attachmentsTitle: "Attachments",
     attachmentsEmpty: "No attachments yet.",
     pendingAttachments: "Attachments to upload: {{count}}",
@@ -247,6 +270,24 @@ export const en = {
     publicLinkTitle: "Public link",
     publicLinkBody: "Public ID: {{id}}",
   },
+  profile: {
+    title: "Profile",
+    subtitle: "Your account and preferences.",
+    displayName: "Display name",
+    displayNamePlaceholder: "Your name",
+    email: "Email",
+    emailReadOnly: "Email cannot be changed here.",
+    settings: "App settings",
+    settingsSubtitle: "Currency, units, theme, language.",
+    signOut: "Sign out",
+    deleteAccount: "Delete account",
+    deleteAccountConfirmTitle: "Delete account?",
+    deleteAccountConfirmBody:
+      "All your data (vehicles, documents, reminders) will be permanently deleted. This cannot be undone.",
+    deleteAccountNotAvailable:
+      "Account deletion is not available in the app. Please contact support.",
+    displayNameUpdated: "Display name updated",
+  },
   settings: {
     title: "Settings",
     subtitle: "Applied immediately and saved per account.",
@@ -264,6 +305,9 @@ export const en = {
   },
   documents: {
     title: "Documents",
+    countInfo:
+      "Documents: {{docCount}}, Attachments: {{attCount}} ({{total}}/10)",
+    limitReached: "Maximum 10 documents and attachments in total.",
     searchPlaceholder: "Search documents…",
     addAttachment: "Add attachment",
     addVehiclePhoto: "Add vehicle photo",
@@ -336,7 +380,7 @@ export const en = {
     addTitle: "Add reminder",
     editTitle: "Edit reminder",
     titleLabel: "Title",
-    notesLabel: "Notes (optional)",
+    notesLabel: "Notes",
     type: "Type",
     time: "Time",
     mileage: "Mileage",
@@ -357,9 +401,19 @@ export const en = {
     distance: "Distance ({{unit}})",
     fuelAmount: "Fuel amount ({{unit}})",
     cost: "Cost",
+    gasStation: "Gas station",
     placeholderDistance: "e.g. 500",
     placeholderFuelAmount: "e.g. 40.5",
     placeholderCost: "e.g. 200.00",
+    stations: {
+      orlen: "Orlen",
+      bp: "BP",
+      shell: "Shell",
+      circle_k: "Circle K",
+      mol: "MOL",
+      moya: "Moya",
+      other: "Other",
+    },
   },
   expenseForm: {
     addTitle: "Add expense",
@@ -367,7 +421,7 @@ export const en = {
     date: "Date",
     category: "Category",
     amount: "Amount",
-    note: "Note (optional)",
+    note: "Note",
     categories: {
       service: "Service",
       parts: "Parts",
@@ -380,7 +434,7 @@ export const en = {
     editTitle: "Edit vehicle",
     loading: "Loading…",
     titleLabel: "Title",
-    vinLabel: "VIN (optional)",
+    vinLabel: "VIN",
     makeLabel: "Make",
     modelLabel: "Model",
     yearLabel: "Production year",
@@ -433,7 +487,8 @@ export const en = {
     subtitle: "Export your vehicle data in different formats.",
     shareTitle: "Vehico export",
     jsonButton: "Export JSON (All Data)",
-    jsonDescription: "Exports vehicle, service entries, fueling entries, and reminders",
+    jsonDescription:
+      "Exports vehicle, service entries, fueling entries, and reminders",
     csvButton: "Export CSV (Service Entries Only)",
     csvDescription: "Exports only service entries in CSV format",
   },
@@ -480,26 +535,31 @@ export const en = {
     generatedOn: "Generated on",
     publicId: "Public ID",
     deleteReportTitle: "Delete report?",
-    deleteReportBody: "Are you sure you want to delete this report? This action cannot be undone.",
+    deleteReportBody:
+      "Are you sure you want to delete this report? This action cannot be undone.",
     reportDeleted: "Report deleted",
   },
   publicReport: {
     title: "Online Report",
     subtitle: "Generate a public report for vehicle: {{vehicleTitle}}",
     infoTitle: "Important information",
-    infoText: "The report is generated based on current data. Make sure all data you want to publish is current and correct. After generation, you will not be able to edit the report. You will need to generate a new report.",
+    infoText:
+      "The report is generated based on current data. Make sure all data you want to publish is current and correct. After generation, you will not be able to edit the report. You will need to generate a new report.",
     historyButton: "View history",
     generateButton: "Generate Online Report",
     confirmTitle: "Generate report?",
-    confirmBody: "Are you sure you want to generate a new online report? The report will be created based on current vehicle data and cannot be edited afterwards.",
+    confirmBody:
+      "Are you sure you want to generate a new online report? The report will be created based on current vehicle data and cannot be edited afterwards.",
     defaultTitle: "Public Report",
     editTitleTitle: "Edit Report Title",
     editTitleBody: "Enter a title for this report",
     titleUpdated: "Report title updated",
     reportsUsed: "Reports used",
-    maxReportsReached: "You've reached the free report limit. Purchase additional reports to continue.",
+    maxReportsReached:
+      "You've reached the free report limit. Purchase additional reports to continue.",
     paymentRequiredTitle: "Payment Required",
-    paymentRequiredBody: "You've reached the limit of {{maxFree}} free reports. To generate another report, you need to make a purchase.",
+    paymentRequiredBody:
+      "You've reached the limit of {{maxFree}} free reports. To generate another report, you need to make a purchase.",
     purchaseButton: "Purchase Reports",
     paymentNotImplemented: "Payments will be available soon",
   },
@@ -508,7 +568,7 @@ export const en = {
     languageLabel: "Language",
     languageEn: "English",
     languagePl: "Polish",
-    priceLabel: "Price (optional)",
+    priceLabel: "Price",
     pricePlaceholder: "Enter price",
     generate: "Generate marketplace post",
     generating: "Generating...",
@@ -544,30 +604,41 @@ export const en = {
     title: "Terms of Use",
     lastUpdated: "Last updated",
     section1Title: "1. Acceptance of Terms",
-    section1Content: "By accessing and using Vehico, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to these terms, please do not use our service.",
+    section1Content:
+      "By accessing and using Vehico, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to these terms, please do not use our service.",
     section2Title: "2. Use License",
-    section2Content: "Permission is granted to temporarily use Vehico for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not: modify or copy the materials; use the materials for any commercial purpose; attempt to decompile or reverse engineer any software; remove any copyright or other proprietary notations from the materials.",
+    section2Content:
+      "Permission is granted to temporarily use Vehico for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not: modify or copy the materials; use the materials for any commercial purpose; attempt to decompile or reverse engineer any software; remove any copyright or other proprietary notations from the materials.",
     section3Title: "3. User Account",
-    section3Content: "You are responsible for maintaining the confidentiality of your account and password. You agree to accept responsibility for all activities that occur under your account. You must notify us immediately of any unauthorized use of your account.",
+    section3Content:
+      "You are responsible for maintaining the confidentiality of your account and password. You agree to accept responsibility for all activities that occur under your account. You must notify us immediately of any unauthorized use of your account.",
     section4Title: "4. Data and Privacy",
-    section4Content: "Your use of Vehico is also governed by our Privacy Policy. Please review our Privacy Policy to understand our practices regarding the collection and use of your personal information.",
+    section4Content:
+      "Your use of Vehico is also governed by our Privacy Policy. Please review our Privacy Policy to understand our practices regarding the collection and use of your personal information.",
     section5Title: "5. Limitation of Liability",
-    section5Content: "In no event shall Vehico or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use Vehico, even if Vehico or a Vehico authorized representative has been notified orally or in writing of the possibility of such damage.",
+    section5Content:
+      "In no event shall Vehico or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use Vehico, even if Vehico or a Vehico authorized representative has been notified orally or in writing of the possibility of such damage.",
   },
   privacy: {
     title: "Privacy Policy",
     lastUpdated: "Last updated",
     section1Title: "1. Information We Collect",
-    section1Content: "We collect information that you provide directly to us, such as when you create an account, update your profile, or use our services. This includes your email address, vehicle information, service records, and other data you choose to provide.",
+    section1Content:
+      "We collect information that you provide directly to us, such as when you create an account, update your profile, or use our services. This includes your email address, vehicle information, service records, and other data you choose to provide.",
     section2Title: "2. How We Use Your Information",
-    section2Content: "We use the information we collect to provide, maintain, and improve our services, process transactions, send you technical notices and support messages, and respond to your comments and questions.",
+    section2Content:
+      "We use the information we collect to provide, maintain, and improve our services, process transactions, send you technical notices and support messages, and respond to your comments and questions.",
     section3Title: "3. Data Storage and Security",
-    section3Content: "We use industry-standard security measures to protect your personal information. Your data is stored securely using encryption and access controls. However, no method of transmission over the Internet or electronic storage is 100% secure.",
+    section3Content:
+      "We use industry-standard security measures to protect your personal information. Your data is stored securely using encryption and access controls. However, no method of transmission over the Internet or electronic storage is 100% secure.",
     section4Title: "4. Data Sharing",
-    section4Content: "We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances: with your consent, to comply with legal obligations, or to protect our rights and safety.",
+    section4Content:
+      "We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances: with your consent, to comply with legal obligations, or to protect our rights and safety.",
     section5Title: "5. Your Rights",
-    section5Content: "You have the right to access, update, or delete your personal information at any time. You can also export your data or request that we delete your account and all associated data.",
+    section5Content:
+      "You have the right to access, update, or delete your personal information at any time. You can also export your data or request that we delete your account and all associated data.",
     section6Title: "6. Changes to This Policy",
-    section6Content: "We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the 'Last updated' date. You are advised to review this Privacy Policy periodically for any changes.",
+    section6Content:
+      "We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the 'Last updated' date. You are advised to review this Privacy Policy periodically for any changes.",
   },
 };
