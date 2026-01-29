@@ -60,13 +60,21 @@ export type PublicReportSnapshot = {
   snapshot_data: {
     vehicle: Vehicle;
     service_entries: ServiceEntry[];
+    fueling_entries?: FuelingEntry[]; // Optional, included if fueling stats requested
     vehicle_photos: Array<{
       id: string;
       storage_path: string;
-      storage_bucket: "images";
+      storage_bucket: "images" | "report-photos";
+      source: "vehicle" | "report-temp";
       display_order: number;
       created_at: string;
     }>;
+    report_options?: {
+      include_service_entries: boolean;
+      include_notes: boolean;
+      include_fueling_stats: boolean;
+      include_service_stats: boolean;
+    };
     snapshot_version: string;
     snapshot_date: string;
   };

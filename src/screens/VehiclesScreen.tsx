@@ -381,10 +381,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       borderRadius: theme.radius.md,
       overflow: "hidden",
       backgroundColor: theme.colors.card,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
+
       elevation: 4,
     },
     vehicleCardPressed: {

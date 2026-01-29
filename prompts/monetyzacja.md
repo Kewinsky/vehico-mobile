@@ -9,7 +9,7 @@ FREE (hojny i funkcjonalny)
 
 1 pojazd
 
-max 10 zdjęć pojazdu
+max 6 zdjęć pojazdu
 
 pełna historia serwisów
 
@@ -17,7 +17,7 @@ pełna historia tankowań
 
 przypomnienia
 
-dokumenty/załączniki (limit: ~20)
+dokumenty/załączniki (limit: ~10)
 
 podstawowe statystyki
 
@@ -26,8 +26,6 @@ podstawowe wykresy
 generowanie raportu → płatne
 
 generowanie ogłoszenia → płatne
-
-publiczny link raportu → tylko po zakupie raportu
 
 LIFETIME Premium (jednorazowa opłata)
 
@@ -60,12 +58,6 @@ AI summary
 consistent maintenance score
 
 premium timeline
-
-QR code
-
-priority new features
-
-Lifetime = brak subskrypcji, jednorazowa opłata → najlepsza opcja psychologiczna dla tej branży.
 
 🟨 2. Produkty premium kupowane jednorazowo
 

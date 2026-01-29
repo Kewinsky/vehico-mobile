@@ -35,6 +35,8 @@ import { MarketplacePostEditScreen } from "../../screens/MarketplacePostEditScre
 import { PublicReportOptionsScreen } from "../../screens/PublicReportOptionsScreen";
 import { PublicReportHistoryScreen } from "../../screens/PublicReportHistoryScreen";
 import { PublicReportScreen } from "../../screens/PublicReportScreen";
+import { PublicReportConfigureScreen } from "../../screens/PublicReportConfigureScreen";
+import { PublicReportSummaryScreen } from "../../screens/PublicReportSummaryScreen";
 
 export type AppStackParamList = {
   Landing: undefined;
@@ -56,6 +58,23 @@ export type AppStackParamList = {
   MarketplacePostHistory: { vehicleId: string };
   MarketplacePostEdit: { postId: string };
   PublicReport: { vehicleId: string };
+  PublicReportConfigure: { vehicleId: string };
+  PublicReportSummary: {
+    vehicleId: string;
+    reportOptions: {
+      include_service_entries: boolean;
+      include_notes: boolean;
+      include_fueling_stats: boolean;
+      include_service_stats: boolean;
+    };
+    selectedVehiclePhotoIds: string[];
+    tempPhotos: Array<{
+      fileUri: string;
+      displayOrder: number;
+      mimeType?: string | null;
+      fileName?: string | null;
+    }>;
+  };
   PublicReportOptions: { url: string; vehicleTitle: string };
   PublicReportHistory: { vehicleId: string };
   ManageVehicle: { vehicleId: string };
@@ -135,6 +154,14 @@ export function RootNavigator() {
             component={MarketplacePostEditScreen}
           />
           <Stack.Screen name="PublicReport" component={PublicReportScreen} />
+          <Stack.Screen
+            name="PublicReportConfigure"
+            component={PublicReportConfigureScreen}
+          />
+          <Stack.Screen
+            name="PublicReportSummary"
+            component={PublicReportSummaryScreen}
+          />
           <Stack.Screen
             name="PublicReportOptions"
             component={PublicReportOptionsScreen}

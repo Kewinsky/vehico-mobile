@@ -445,10 +445,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       justifyContent: "center",
       borderWidth: 1,
       elevation: 4,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
     },
     fabPressed: {
       opacity: 0.9,
@@ -462,10 +458,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       borderWidth: 1,
       paddingVertical: theme.spacing.xs,
       elevation: 8,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4.65,
     },
     menuItem: {
       flexDirection: "row",

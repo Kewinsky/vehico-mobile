@@ -672,8 +672,40 @@ using (user_id = auth.uid());
 -- ================
 
 -- Function to generate snapshot data
+-- Legacy function for backward compatibility (uses all data)
 drop function if exists public.generate_vehicle_snapshot(uuid);
 create or replace function public.generate_vehicle_snapshot(p_vehicle_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return public.generate_vehicle_snapshot_with_options(
+    p_vehicle_id,
+    '[]'::jsonb, -- selected_vehicle_photo_ids (empty = all)
+    '[]'::jsonb, -- temp_photos_data (empty = none)
+    jsonb_build_object(
+      'include_service_entries', true,
+      'include_notes', true,
+      'include_fueling_stats', false,
+      'include_service_stats', false
+    ) -- report_options (default: include everything)
+  );
+end;
+$$;
+
+-- Grant execute to authenticated users
+grant execute on function public.generate_vehicle_snapshot(uuid) to authenticated;
+
+-- New function with options
+drop function if exists public.generate_vehicle_snapshot_with_options(uuid, jsonb, jsonb, jsonb);
+create or replace function public.generate_vehicle_snapshot_with_options(
+  p_vehicle_id uuid,
+  p_selected_vehicle_photo_ids jsonb, -- array of UUIDs, empty = all
+  p_temp_photos_data jsonb, -- array of {storage_path, display_order}
+  p_report_options jsonb -- {include_service_entries, include_notes, include_fueling_stats, include_service_stats}
+)
 returns jsonb
 language plpgsql
 security definer
@@ -683,8 +715,20 @@ declare
   v_snapshot jsonb;
   v_vehicle jsonb;
   v_service_entries jsonb;
+  v_fueling_entries jsonb;
   v_vehicle_photos jsonb;
+  v_temp_photos jsonb;
+  v_include_service_entries boolean;
+  v_include_notes boolean;
+  v_include_fueling_stats boolean;
+  v_include_service_stats boolean;
 begin
+  -- Extract options
+  v_include_service_entries := coalesce((p_report_options->>'include_service_entries')::boolean, true);
+  v_include_notes := coalesce((p_report_options->>'include_notes')::boolean, true);
+  v_include_fueling_stats := coalesce((p_report_options->>'include_fueling_stats')::boolean, false);
+  v_include_service_stats := coalesce((p_report_options->>'include_service_stats')::boolean, false);
+
   -- Get vehicle data
   select to_jsonb(v.*) into v_vehicle
   from public.vehicles v
@@ -694,41 +738,117 @@ begin
     raise exception 'Vehicle not found: %', p_vehicle_id;
   end if;
 
-  -- Get service entries (without attachments - user requirement)
-  select coalesce(jsonb_agg(
-    jsonb_build_object(
-      'id', se.id,
-      'service_date', se.service_date,
-      'mileage', se.mileage,
-      'category', se.category,
-      'title', se.title,
-      'description', se.description,
-      'cost', se.cost,
-      'created_at', se.created_at
-    ) order by se.service_date desc
-  ), '[]'::jsonb) into v_service_entries
-  from public.service_entries se
-  where se.vehicle_id = p_vehicle_id;
+  -- If notes not included, set to null
+  if not v_include_notes then
+    v_vehicle := v_vehicle || jsonb_build_object('notes', null);
+  end if;
 
-  -- Get vehicle photos (URLs will be built in Next.js from storage_path since bucket is public)
-  select coalesce(jsonb_agg(
-    jsonb_build_object(
-      'id', vp.id,
-      'storage_path', vp.storage_path,
-      'storage_bucket', vp.storage_bucket,
-      'display_order', vp.display_order,
-      'created_at', vp.created_at
-    ) order by vp.display_order, vp.created_at
-  ), '[]'::jsonb) into v_vehicle_photos
-  from public.vehicle_photos vp
-  where vp.vehicle_id = p_vehicle_id;
+  -- Get service entries (if included)
+  if v_include_service_entries or v_include_service_stats then
+    select coalesce(jsonb_agg(
+      jsonb_build_object(
+        'id', se.id,
+        'service_date', se.service_date,
+        'mileage', se.mileage,
+        'category', se.category,
+        'title', se.title,
+        'description', se.description,
+        'cost', se.cost,
+        'created_at', se.created_at
+      ) order by se.service_date desc
+    ), '[]'::jsonb) into v_service_entries
+    from public.service_entries se
+    where se.vehicle_id = p_vehicle_id;
+  else
+    v_service_entries := '[]'::jsonb;
+  end if;
+
+  -- Get fueling entries (if stats included)
+  if v_include_fueling_stats then
+    select coalesce(jsonb_agg(
+      jsonb_build_object(
+        'id', fe.id,
+        'date', fe.date,
+        'distance', fe.distance,
+        'fuel_amount', fe.fuel_amount,
+        'fuel_cost', fe.fuel_cost,
+        'gas_station', fe.gas_station,
+        'created_at', fe.created_at
+      ) order by fe.date desc
+    ), '[]'::jsonb) into v_fueling_entries
+    from public.fueling_entries fe
+    where fe.vehicle_id = p_vehicle_id;
+  else
+    v_fueling_entries := '[]'::jsonb;
+  end if;
+
+  -- Get selected vehicle photos
+  if jsonb_array_length(p_selected_vehicle_photo_ids) > 0 then
+    -- Only selected photos
+    select coalesce(jsonb_agg(
+      jsonb_build_object(
+        'id', vp.id,
+        'storage_path', vp.storage_path,
+        'storage_bucket', vp.storage_bucket,
+        'source', 'vehicle',
+        'display_order', vp.display_order,
+        'created_at', vp.created_at
+      ) order by vp.display_order, vp.created_at
+    ), '[]'::jsonb) into v_vehicle_photos
+    from public.vehicle_photos vp
+    where vp.vehicle_id = p_vehicle_id
+      and vp.id::text = any(select jsonb_array_elements_text(p_selected_vehicle_photo_ids));
+  else
+    -- All photos (backward compatibility)
+    select coalesce(jsonb_agg(
+      jsonb_build_object(
+        'id', vp.id,
+        'storage_path', vp.storage_path,
+        'storage_bucket', vp.storage_bucket,
+        'source', 'vehicle',
+        'display_order', vp.display_order,
+        'created_at', vp.created_at
+      ) order by vp.display_order, vp.created_at
+    ), '[]'::jsonb) into v_vehicle_photos
+    from public.vehicle_photos vp
+    where vp.vehicle_id = p_vehicle_id;
+  end if;
+
+  -- Process temp photos (from report-photos bucket)
+  if jsonb_array_length(p_temp_photos_data) > 0 then
+    v_temp_photos := jsonb_build_array();
+    for i in 0..jsonb_array_length(p_temp_photos_data) - 1 loop
+      v_temp_photos := v_temp_photos || jsonb_build_object(
+        'id', gen_random_uuid()::text, -- Generate ID for temp photo
+        'storage_path', p_temp_photos_data->i->>'storage_path',
+        'storage_bucket', 'report-photos',
+        'source', 'report-temp',
+        'display_order', (p_temp_photos_data->i->>'display_order')::integer,
+        'created_at', now()::text
+      );
+    end loop;
+  else
+    v_temp_photos := '[]'::jsonb;
+  end if;
+
+  -- Merge vehicle photos and temp photos, sort by display_order
+  v_vehicle_photos := (
+    select coalesce(jsonb_agg(photo order by (photo->>'display_order')::integer), '[]'::jsonb)
+    from (
+      select jsonb_array_elements(v_vehicle_photos) as photo
+      union all
+      select jsonb_array_elements(v_temp_photos) as photo
+    ) as all_photos
+  );
 
   -- Build complete snapshot
   v_snapshot := jsonb_build_object(
     'vehicle', v_vehicle,
     'service_entries', v_service_entries,
+    'fueling_entries', v_fueling_entries,
     'vehicle_photos', v_vehicle_photos,
-    'snapshot_version', '1.0',
+    'report_options', p_report_options,
+    'snapshot_version', '2.0',
     'snapshot_date', now()
   );
 
@@ -737,11 +857,42 @@ end;
 $$;
 
 -- Grant execute to authenticated users
-grant execute on function public.generate_vehicle_snapshot(uuid) to authenticated;
+grant execute on function public.generate_vehicle_snapshot_with_options(uuid, jsonb, jsonb, jsonb) to authenticated;
 
--- Function to create snapshot (enforces 3 snapshot limit)
+-- Legacy function for backward compatibility
 drop function if exists public.create_public_report_snapshot(uuid);
 create or replace function public.create_public_report_snapshot(p_vehicle_id uuid)
+returns public.public_report
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return public.create_public_report_snapshot_with_options(
+    p_vehicle_id,
+    '[]'::jsonb, -- selected_vehicle_photo_ids
+    '[]'::jsonb, -- temp_photos_data
+    jsonb_build_object(
+      'include_service_entries', true,
+      'include_notes', true,
+      'include_fueling_stats', false,
+      'include_service_stats', false
+    ) -- report_options
+  );
+end;
+$$;
+
+-- Grant execute to authenticated users
+grant execute on function public.create_public_report_snapshot(uuid) to authenticated;
+
+-- New function with options
+drop function if exists public.create_public_report_snapshot_with_options(uuid, jsonb, jsonb, jsonb);
+create or replace function public.create_public_report_snapshot_with_options(
+  p_vehicle_id uuid,
+  p_selected_vehicle_photo_ids jsonb,
+  p_temp_photos_data jsonb,
+  p_report_options jsonb
+)
 returns public.public_report
 language plpgsql
 security definer
@@ -779,8 +930,13 @@ begin
     );
   end if;
 
-  -- Generate snapshot
-  v_snapshot_data := public.generate_vehicle_snapshot(p_vehicle_id);
+  -- Generate snapshot with options
+  v_snapshot_data := public.generate_vehicle_snapshot_with_options(
+    p_vehicle_id,
+    p_selected_vehicle_photo_ids,
+    p_temp_photos_data,
+    p_report_options
+  );
 
   -- Create snapshot with public_id
   insert into public.public_report (vehicle_id, snapshot_data)
@@ -792,7 +948,7 @@ end;
 $$;
 
 -- Grant execute to authenticated users
-grant execute on function public.create_public_report_snapshot(uuid) to authenticated;
+grant execute on function public.create_public_report_snapshot_with_options(uuid, jsonb, jsonb, jsonb) to authenticated;
 
 -- ================
 -- Storage (buckets + policies)
@@ -801,10 +957,12 @@ grant execute on function public.create_public_report_snapshot(uuid) to authenti
 -- Buckets required by the app:
 -- - images (must be PUBLIC)
 -- - documents (private)
+-- - report-photos (must be PUBLIC) - temporary photos added only to reports
 --
 -- Vehico convention:
 -- - Vehicle photos and documents: <vehicle_id>/<...>
 -- - Attachments: service_entry_attachments/<vehicle_id>/<service_entry_id>/<...>
+-- - Report photos: report-photos/<report_id>/<timestamp>-<randomId>.jpg
 -- This lets us enforce storage access by checking vehicle ownership.
 --
 -- IMPORTANT: You may need to create these policies in the Dashboard if your project
@@ -1075,3 +1233,56 @@ drop trigger if exists vehicle_photos_delete_storage on public.vehicle_photos;
 create trigger vehicle_photos_delete_storage
 after delete on public.vehicle_photos
 for each row execute function public.delete_storage_object_trigger();
+
+-- ================
+-- Storage policies for 'report-photos' bucket
+-- ================
+-- Note: Bucket must be set to PUBLIC in Supabase Dashboard → Storage → Buckets → report-photos → Edit → Public bucket
+-- This allows Next.js app to display report photos from snapshots
+
+-- Read: public access (anyone with link can view)
+drop policy if exists "storage_report_photos_read_public" on storage.objects;
+create policy "storage_report_photos_read_public"
+on storage.objects for select
+to anon
+using (bucket_id = 'report-photos');
+
+-- Read: authenticated can read report photos
+drop policy if exists "storage_report_photos_read_authenticated" on storage.objects;
+create policy "storage_report_photos_read_authenticated"
+on storage.objects for select
+to authenticated
+using (bucket_id = 'report-photos');
+
+-- Write: authenticated can write report photos (for their own reports)
+-- Reports are linked to vehicles, so we check vehicle ownership
+drop policy if exists "storage_report_photos_write_authenticated" on storage.objects;
+create policy "storage_report_photos_write_authenticated"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'report-photos'
+  and exists (
+    select 1
+    from public.public_report pr
+    join public.vehicles v on v.id = pr.vehicle_id
+    where split_part(name, '/', 1) = pr.id::text
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- Delete: authenticated can delete report photos (for their own reports)
+drop policy if exists "storage_report_photos_delete_authenticated" on storage.objects;
+create policy "storage_report_photos_delete_authenticated"
+on storage.objects for delete
+to authenticated
+using (
+  bucket_id = 'report-photos'
+  and exists (
+    select 1
+    from public.public_report pr
+    join public.vehicles v on v.id = pr.vehicle_id
+    where split_part(name, '/', 1) = pr.id::text
+      and v.owner_id = auth.uid()
+  )
+);

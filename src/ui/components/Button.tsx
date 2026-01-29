@@ -28,8 +28,8 @@ export function Button({
         variant === "primary"
           ? styles.primary
           : variant === "destructive"
-          ? styles.destructive
-          : styles.ghost,
+            ? styles.destructive
+            : styles.ghost,
         disabled && styles.disabled,
         pressed && !disabled && styles.pressed,
         style,
@@ -41,8 +41,8 @@ export function Button({
           variant === "primary"
             ? styles.textPrimary
             : variant === "destructive"
-            ? styles.textDestructive
-            : styles.textGhost,
+              ? styles.textDestructive
+              : styles.textGhost,
         ]}
       >
         {children}
@@ -67,12 +67,9 @@ const makeStyles = (theme: any) =>
       borderColor: theme.colors.accent,
       ...(Platform.OS === "ios"
         ? {
-            shadowColor: "#000",
-            shadowOpacity: 0.12,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: 6 },
+            elevation: 4,
           }
-        : { elevation: 2 }),
+        : { elevation: 4 }),
     },
     ghost: {
       backgroundColor: theme.colors.card,

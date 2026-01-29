@@ -568,10 +568,6 @@ const makeStyles = (theme: any) =>
       backgroundColor: theme.colors.card,
       borderWidth: 1,
       borderColor: theme.colors.border,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
       elevation: 4,
     },
     vehicleImageContainer: {
