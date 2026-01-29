@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import * as Clipboard from "expo-clipboard";
+import { Feather } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { MarketplacePost } from "../types/domain";
@@ -17,17 +17,21 @@ import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import type { Vehicle } from "../types/domain";
 import {
   listMarketplacePosts,
-  deleteMarketplacePost,
+  updateMarketplacePostTitle,
 } from "../services/marketplace/marketplaceRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
+import { IconButton } from "../ui/components/IconButton";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 
 import { formatDate } from "../utils/dateFormatting";
 
-type Props = NativeStackScreenProps<AppStackParamList, "MarketplacePostHistory">;
+type Props = NativeStackScreenProps<
+  AppStackParamList,
+  "MarketplacePostHistory"
+>;
 
 export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -82,41 +86,39 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
     }
   }
 
-  async function handleCopyPost(post: MarketplacePost) {
-    try {
-      await Clipboard.setStringAsync(post.content);
-      toastSuccess(t("marketplace.copiedToClipboard"));
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
-    }
-  }
-
-  async function handleDeletePost(post: MarketplacePost) {
-    Alert.alert(
-      t("marketplace.deletePostTitle"),
-      t("marketplace.deletePostBody"),
+  function handleEditTitle(post: MarketplacePost) {
+    Alert.prompt(
+      t("marketplace.editTitleTitle"),
+      t("marketplace.editTitleBody"),
       [
         { text: t("common.cancel"), style: "cancel" },
         {
-          text: t("common.delete"),
-          style: "destructive",
-          onPress: async () => {
+          text: t("common.save"),
+          onPress: async (newTitle: string | undefined) => {
             try {
-              await deleteMarketplacePost(post.id);
-              toastSuccess(t("marketplace.deleted"));
+              await updateMarketplacePostTitle(
+                post.id,
+                newTitle?.trim() || null,
+              );
+              toastSuccess(t("marketplace.titleUpdated"));
               await loadPosts();
             } catch (e: any) {
               toastError(e?.message ?? t("common.error"));
             }
           },
         },
-      ]
+      ],
+      "plain-text",
+      post.title || "",
     );
   }
 
-  async function handleEditPost(post: MarketplacePost) {
-    navigation.navigate("MarketplacePostEdit", {
-      postId: post.id,
+  function handlePostPress(post: MarketplacePost) {
+    navigation.navigate("MarketplacePostOptions", {
+      content: post.content,
+      vehicleTitle,
+      vehicleId,
+      postTitle: post.title,
     });
   }
 
@@ -148,6 +150,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
             contentContainerStyle={styles.list}
             renderItem={({ item }) => (
               <Pressable
+                onPress={() => handlePostPress(item)}
                 style={({ pressed }) => [
                   styles.postCard,
                   {
@@ -156,45 +159,42 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
                     opacity: pressed ? 0.7 : 1,
                   },
                 ]}
-                onPress={() => handleEditPost(item)}
               >
-                <View style={styles.postHeader}>
-                  <Text style={[styles.postDate, { color: theme.colors.muted }]}>
-                    {t("marketplace.generatedOn")} {formatDate(item.created_at)}
-                  </Text>
-                  <View style={styles.postActions}>
-                    <Pressable
-                      onPress={() => handleCopyPost(item)}
-                      style={styles.postActionButton}
+                <View style={styles.cardRow}>
+                  <Pressable
+                    style={{ flex: 1 }}
+                    onPress={() => handlePostPress(item)}
+                  >
+                    <Text
+                      style={[styles.postTitle, { color: theme.colors.fg }]}
                     >
-                      <Text
-                        style={[styles.postActionText, { color: theme.colors.accent }]}
-                      >
-                        {t("marketplace.copyToClipboard")}
-                      </Text>
-                    </Pressable>
-                    <View style={{ width: theme.spacing.xs }} />
-                    <Pressable
-                      onPress={() => handleDeletePost(item)}
-                      style={styles.postActionButton}
+                      {item.title || t("marketplace.defaultTitle")}
+                    </Text>
+                    <Text
+                      style={[styles.postDate, { color: theme.colors.muted }]}
                     >
-                      <Text
-                        style={[styles.postActionText, { color: theme.colors.danger }]}
-                      >
-                        {t("common.delete")}
-                      </Text>
-                    </Pressable>
+                      {t("marketplace.generatedOn")}{" "}
+                      {formatDate(item.created_at)}
+                    </Text>
+                  </Pressable>
+                  <View style={{ flexDirection: "row", gap: theme.spacing.xs }}>
+                    <IconButton
+                      onPress={() => handleEditTitle(item)}
+                      variant="ghost"
+                    >
+                      <Feather
+                        name="edit"
+                        size={24}
+                        color={theme.colors.accent}
+                      />
+                    </IconButton>
                   </View>
                 </View>
-                <Text
-                  style={[styles.postPreview, { color: theme.colors.fg }]}
-                  numberOfLines={3}
-                >
-                  {item.content}
-                </Text>
               </Pressable>
             )}
-            ItemSeparatorComponent={() => <View style={{ height: theme.spacing.sm }} />}
+            ItemSeparatorComponent={() => (
+              <View style={{ height: theme.spacing.sm }} />
+            )}
           />
         )}
       </View>
@@ -232,27 +232,18 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       padding: theme.spacing.sm,
     },
-    postHeader: {
+    cardRow: {
       flexDirection: "row",
-      justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: theme.spacing.xs,
+      gap: theme.spacing.sm,
+    },
+    postTitle: {
+      fontSize: 15,
+      fontWeight: "800",
+      marginBottom: 4,
     },
     postDate: {
       fontSize: 12,
-    },
-    postActions: {
-      flexDirection: "row",
-    },
-    postActionButton: {
-      paddingHorizontal: theme.spacing.xs,
-    },
-    postActionText: {
-      fontSize: 12,
       fontWeight: "600",
-    },
-    postPreview: {
-      fontSize: 13,
-      lineHeight: 18,
     },
   });

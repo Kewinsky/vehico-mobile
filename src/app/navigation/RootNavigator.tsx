@@ -29,6 +29,10 @@ import { ImportScreen } from "../../screens/ImportScreen";
 import { AddAttachmentScreen } from "../../screens/AddAttachmentScreen";
 import { ShareScreen } from "../../screens/ShareScreen";
 import { StatisticsScreen } from "../../screens/StatisticsScreen";
+import { MarketplaceScreen } from "../../screens/MarketplaceScreen";
+import { MarketplaceConfigureScreen } from "../../screens/MarketplaceConfigureScreen";
+import { MarketplaceSummaryScreen } from "../../screens/MarketplaceSummaryScreen";
+import { MarketplacePostOptionsScreen } from "../../screens/MarketplacePostOptionsScreen";
 import { MarketplacePostScreen } from "../../screens/MarketplacePostScreen";
 import { MarketplacePostHistoryScreen } from "../../screens/MarketplacePostHistoryScreen";
 import { MarketplacePostEditScreen } from "../../screens/MarketplacePostEditScreen";
@@ -54,6 +58,27 @@ export type AppStackParamList = {
   Statistics: { vehicleId: string };
   Reminders: { vehicleId: string };
   Share: { vehicleId: string };
+  Marketplace: { vehicleId: string };
+  MarketplaceConfigure: { vehicleId: string };
+  MarketplaceSummary: {
+    vehicleId: string;
+    language: "en" | "pl";
+    price: number | null;
+    currency: string;
+    reportOptions: {
+      include_service_entries: boolean;
+      include_fueling_stats: boolean;
+      include_service_stats: boolean;
+      include_notes: boolean;
+    };
+    selectedReportId: string | null;
+  };
+  MarketplacePostOptions: {
+    content: string;
+    vehicleTitle: string;
+    vehicleId: string;
+    postTitle?: string | null;
+  };
   MarketplacePost: { vehicleId: string };
   MarketplacePostHistory: { vehicleId: string };
   MarketplacePostEdit: { postId: string };
@@ -75,7 +100,12 @@ export type AppStackParamList = {
       fileName?: string | null;
     }>;
   };
-  PublicReportOptions: { url: string; vehicleTitle: string };
+  PublicReportOptions: {
+    url: string;
+    vehicleTitle: string;
+    vehicleId: string;
+    reportTitle?: string | null;
+  };
   PublicReportHistory: { vehicleId: string };
   ManageVehicle: { vehicleId: string };
   ManageVehicleEdit: { vehicleId: string };
@@ -141,6 +171,19 @@ export function RootNavigator() {
             component={ReminderDetailScreen}
           />
           <Stack.Screen name="Share" component={ShareScreen} />
+          <Stack.Screen name="Marketplace" component={MarketplaceScreen} />
+          <Stack.Screen
+            name="MarketplaceConfigure"
+            component={MarketplaceConfigureScreen}
+          />
+          <Stack.Screen
+            name="MarketplaceSummary"
+            component={MarketplaceSummaryScreen}
+          />
+          <Stack.Screen
+            name="MarketplacePostOptions"
+            component={MarketplacePostOptionsScreen}
+          />
           <Stack.Screen
             name="MarketplacePost"
             component={MarketplacePostScreen}

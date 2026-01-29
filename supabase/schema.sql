@@ -189,6 +189,7 @@ create table if not exists public.marketplace_posts (
   language text not null default 'pl' check (language in ('en', 'pl')),
   price numeric,
   content text not null,
+  title text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -660,12 +661,6 @@ on public.marketplace_posts for update
 to authenticated
 using (user_id = auth.uid())
 with check (user_id = auth.uid());
-
-drop policy if exists marketplace_posts_delete_own on public.marketplace_posts;
-create policy marketplace_posts_delete_own
-on public.marketplace_posts for delete
-to authenticated
-using (user_id = auth.uid());
 
 -- ================
 -- Functions for public reports

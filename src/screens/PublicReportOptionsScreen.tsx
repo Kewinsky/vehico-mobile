@@ -18,7 +18,16 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { url, vehicleTitle } = route.params;
+  const { url, vehicleTitle, vehicleId, reportTitle } = route.params;
+
+  const handleBack = () => {
+    // Try to go back first, if not possible, replace with PublicReport screen
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.replace("PublicReport", { vehicleId });
+    }
+  };
 
   async function handleCopyLink() {
     try {
@@ -44,9 +53,13 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
 
   return (
     <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+      <AppHeader onBack={handleBack} />
       <View style={styles.wrap}>
-        <Text style={styles.h1}>{t("share.onlineReport")}</Text>
+        <Text style={styles.h1}>
+          {reportTitle
+            ? t("publicReport.reportWithTitle", { title: reportTitle })
+            : t("share.onlineReport")}
+        </Text>
         <Text style={styles.subtitle}>{t("share.qrCodeSubtitle")}</Text>
 
         <View style={{ height: 16 }} />

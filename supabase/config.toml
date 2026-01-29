@@ -1,2 +1,2 @@
-[functions.ai-generate-marketplace-post]
+[functions.generate-marketplace-post]
 verify_jwt = false

@@ -12,9 +12,9 @@ import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Share">;
+type Props = NativeStackScreenProps<AppStackParamList, "Marketplace">;
 
-export function ShareScreen({ navigation, route }: Props) {
+export function MarketplaceScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -41,33 +41,30 @@ export function ShareScreen({ navigation, route }: Props) {
       <AppHeader onBack={() => navigation.goBack()} />
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
-          <Text style={styles.h1}>{t("dashboard.tiles.shareTitle")}</Text>
+          <Text style={styles.h1}>{t("marketplace.screenTitle")}</Text>
           <Text style={styles.subtitle}>
-            {t("dashboard.tiles.shareSubtitle")}
+            {t("marketplace.screenSubtitle", { vehicleTitle })}
           </Text>
         </View>
       </View>
-      <View style={styles.wrap}>
+      <View style={styles.content}>
         <Button
           onPress={() =>
-            navigation.navigate("PublicReport", {
-              vehicleId,
-            })
+            navigation.navigate("MarketplaceConfigure", { vehicleId })
           }
-          variant="ghost"
         >
-          {t("share.onlineReport")}
+          {t("marketplace.generateButton")}
         </Button>
-        <View style={{ height: 10 }} />
+        <View style={{ height: theme.spacing.xs }} />
         <Button
           onPress={() =>
-            navigation.navigate("Marketplace", {
+            navigation.navigate("MarketplacePostHistory", {
               vehicleId,
             })
           }
           variant="ghost"
         >
-          {t("share.marketplacePost")}
+          {t("marketplace.historyButton")}
         </Button>
       </View>
     </Screen>
@@ -83,10 +80,6 @@ const makeStyles = (theme: any) =>
     header: {
       gap: theme.spacing.xs / 2,
     },
-    wrap: {
-      paddingHorizontal: theme.spacing.md,
-      paddingTop: theme.spacing.md,
-    },
     h1: {
       fontSize: 20,
       fontWeight: "800",
@@ -95,5 +88,9 @@ const makeStyles = (theme: any) =>
     subtitle: {
       fontSize: 13,
       color: theme.colors.muted,
+    },
+    content: {
+      paddingHorizontal: theme.spacing.md,
+      paddingTop: theme.spacing.md,
     },
   });

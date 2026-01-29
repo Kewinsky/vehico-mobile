@@ -6,6 +6,11 @@ type GenerateMarketplacePostInput = {
   language: Language;
   price?: number | null;
   currency?: string;
+  includeServiceEntries?: boolean;
+  includeFuelingStats?: boolean;
+  includeServiceStats?: boolean;
+  includeNotes?: boolean;
+  publicReportUrl?: string | null;
 };
 
 type SaveMarketplacePostInput = {
@@ -17,18 +22,23 @@ type SaveMarketplacePostInput = {
 };
 
 export async function generateMarketplacePost(
-  input: GenerateMarketplacePostInput
+  input: GenerateMarketplacePostInput,
 ): Promise<string> {
   const { data, error } = await supabase.functions.invoke(
-    "ai-generate-marketplace-post",
+    "generate-marketplace-post",
     {
       body: {
         vehicleId: input.vehicleId,
         language: input.language,
         price: input.price ?? null,
         currency: input.currency ?? "PLN",
+        includeServiceEntries: input.includeServiceEntries ?? true,
+        includeFuelingStats: input.includeFuelingStats ?? false,
+        includeServiceStats: input.includeServiceStats ?? false,
+        includeNotes: input.includeNotes ?? false,
+        publicReportUrl: input.publicReportUrl ?? null,
       },
-    }
+    },
   );
 
   if (error) throw error;
@@ -40,7 +50,7 @@ export async function generateMarketplacePost(
 }
 
 export async function saveMarketplacePost(
-  input: SaveMarketplacePostInput
+  input: SaveMarketplacePostInput,
 ): Promise<MarketplacePost> {
   const {
     data: { user },
@@ -57,6 +67,7 @@ export async function saveMarketplacePost(
       language: input.language,
       price: input.price ?? null,
       content: input.content,
+      title: null,
     })
     .select("*")
     .single();
@@ -67,7 +78,7 @@ export async function saveMarketplacePost(
 
 export async function updateMarketplacePost(
   postId: string,
-  content: string
+  content: string,
 ): Promise<MarketplacePost> {
   const { data, error } = await supabase
     .from("marketplace_posts")
@@ -84,7 +95,7 @@ export async function updateMarketplacePost(
 }
 
 export async function listMarketplacePosts(
-  vehicleId: string
+  vehicleId: string,
 ): Promise<MarketplacePost[]> {
   const { data, error } = await supabase
     .from("marketplace_posts")
@@ -97,7 +108,7 @@ export async function listMarketplacePosts(
 }
 
 export async function getMarketplacePost(
-  postId: string
+  postId: string,
 ): Promise<MarketplacePost> {
   const { data, error } = await supabase
     .from("marketplace_posts")
@@ -109,11 +120,13 @@ export async function getMarketplacePost(
   return data as MarketplacePost;
 }
 
-export async function deleteMarketplacePost(postId: string): Promise<void> {
+export async function updateMarketplacePostTitle(
+  postId: string,
+  title: string | null,
+): Promise<void> {
   const { error } = await supabase
     .from("marketplace_posts")
-    .delete()
+    .update({ title })
     .eq("id", postId);
-
   if (error) throw error;
 }

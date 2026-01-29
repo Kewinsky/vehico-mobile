@@ -169,6 +169,7 @@ export type MarketplacePost = {
   language: Language;
   price: number | null;
   content: string;
+  title: string | null;
   created_at: string;
   updated_at: string;
 };

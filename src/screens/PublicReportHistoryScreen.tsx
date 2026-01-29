@@ -116,6 +116,8 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
       navigation.navigate("PublicReportOptions", {
         url,
         vehicleTitle,
+        vehicleId,
+        reportTitle: report.title,
       });
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));

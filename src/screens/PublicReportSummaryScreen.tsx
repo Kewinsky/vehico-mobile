@@ -141,7 +141,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
           },
           {
             name: "PublicReportOptions",
-            params: { url, vehicleTitle },
+            params: { url, vehicleTitle, vehicleId, reportTitle: report.title },
           },
         ],
       });
