@@ -483,7 +483,14 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         label={`${t("entryForm.category")} *`}
         value={category}
         options={
-          ["maintenance", "repair", "inspection", "upgrade", "other"] as const
+          [
+            "maintenance",
+            "repair",
+            "inspection",
+            "upgrade",
+            "oil_engine",
+            "other",
+          ] as const
         }
         getLabel={(value) => t(`entryForm.categories.${value}` as any)}
         onChange={(value) => setCategory(value)}

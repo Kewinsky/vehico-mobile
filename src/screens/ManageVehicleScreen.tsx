@@ -26,9 +26,9 @@ import {
   getVehiclePhotoUrl,
 } from "../services/vehicles/uploadPhoto";
 import { AppHeader } from "../ui/components/AppHeader";
-import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
+import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
@@ -104,8 +104,10 @@ function VehicleCarousel({
 export function ManageVehicleScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { settings } = useUserSettings();
   const styles = makeStyles(theme);
   const { vehicleId } = route.params;
+  const distanceUnit = settings?.distanceUnit ?? "km";
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
@@ -181,14 +183,19 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
       <View style={styles.headerSection}>
         <View style={styles.headerRow}>
           <Text style={styles.h1}>{t("dashboard.tiles.manageTitle")}</Text>
-          <Pressable
-            onPress={() =>
-              navigation.navigate("ManageVehicleEdit", { vehicleId })
-            }
-            hitSlop={10}
-          >
-            <Text style={styles.editLink}>{t("common.edit")}</Text>
-          </Pressable>
+          <View style={styles.actionsRow}>
+            <Pressable
+              onPress={() =>
+                navigation.navigate("ManageVehicleEdit", { vehicleId })
+              }
+              hitSlop={10}
+            >
+              <Text style={styles.editLink}>{t("common.edit")}</Text>
+            </Pressable>
+            <Pressable onPress={onDeleteVehicle} hitSlop={10}>
+              <Text style={styles.deleteLink}>{t("common.delete")}</Text>
+            </Pressable>
+          </View>
         </View>
         <Text style={styles.subtitle}>
           {t("dashboard.tiles.manageSubtitle")}
@@ -284,7 +291,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       </Text>
                       <Text style={styles.detailValue}>
                         {vehicle.mileage
-                          ? `${vehicle.mileage.toLocaleString()} km`
+                          ? `${vehicle.mileage.toLocaleString()} ${distanceUnit}`
                           : "N/A"}
                       </Text>
                     </View>
@@ -461,14 +468,68 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                     </View>
                   </View>
                 </View>
+
+                {/* Row 5: Ubezpieczenie + Przegląd (gdy ustawione) */}
+                {(vehicle.insurance_valid_until != null ||
+                  vehicle.inspection_valid_until != null) && (
+                  <View style={styles.detailsRow}>
+                    {vehicle.insurance_valid_until != null && (
+                      <View style={styles.detailItem}>
+                        <View
+                          style={[
+                            styles.detailIconContainer,
+                            {
+                              backgroundColor: theme.colors.accent + "25",
+                            },
+                          ]}
+                        >
+                          <Ionicons
+                            name="shield-checkmark-outline"
+                            size={18}
+                            color={theme.colors.accent}
+                          />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>
+                            {t("manageVehicle.insuranceLabel")}
+                          </Text>
+                          <Text style={styles.detailValue}>
+                            {vehicle.insurance_valid_until}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                    {vehicle.inspection_valid_until != null && (
+                      <View style={styles.detailItem}>
+                        <View
+                          style={[
+                            styles.detailIconContainer,
+                            {
+                              backgroundColor: theme.colors.accent + "25",
+                            },
+                          ]}
+                        >
+                          <Ionicons
+                            name="checkmark-done-outline"
+                            size={18}
+                            color={theme.colors.accent}
+                          />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>
+                            {t("manageVehicle.inspectionLabel")}
+                          </Text>
+                          <Text style={styles.detailValue}>
+                            {vehicle.inspection_valid_until}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                )}
               </View>
             </View>
           </View>
-
-          <View style={{ height: 28 }} />
-          <Button onPress={onDeleteVehicle} variant="destructive">
-            {t("manageVehicle.deleteVehicle")}
-          </Button>
 
           <Modal
             visible={fullScreenIndex !== null}
@@ -545,6 +606,12 @@ const makeStyles = (theme: any) =>
       justifyContent: "space-between",
     },
     editLink: { color: theme.colors.muted, fontWeight: "800" },
+    deleteLink: { color: theme.colors.danger, fontWeight: "800" },
+    actionsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
     muted: { marginTop: 6, color: theme.colors.muted, lineHeight: 20 },
     cardRow: {
       flexDirection: "row",

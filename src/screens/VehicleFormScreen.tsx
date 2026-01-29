@@ -32,8 +32,10 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { PickerField } from "../ui/components/PickerField";
+import { DateField } from "../ui/components/DateField";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../ui/ThemeProvider";
+import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
@@ -41,7 +43,9 @@ type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
 export function VehicleFormScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { settings } = useUserSettings();
   const styles = makeStyles(theme);
+  const distanceUnit = settings?.distanceUnit ?? "km";
   const [type, setType] = useState<VehicleType>("car");
   const [vin, setVin] = useState("");
   const [make, setMake] = useState("");
@@ -56,6 +60,8 @@ export function VehicleFormScreen({ navigation }: Props) {
   );
   const [driveType, setDriveType] = useState<DriveType | null>(null);
   const [notes, setNotes] = useState("");
+  const [insuranceValidUntil, setInsuranceValidUntil] = useState("");
+  const [inspectionValidUntil, setInspectionValidUntil] = useState("");
   const [saving, setSaving] = useState(false);
   type PhotoFile = {
     uri: string;
@@ -300,6 +306,12 @@ export function VehicleFormScreen({ navigation }: Props) {
         transmission: transmission,
         drive_type: driveType,
         notes: notes.trim().length ? notes.trim() : null,
+        insurance_valid_until: insuranceValidUntil.trim().length
+          ? insuranceValidUntil.trim()
+          : null,
+        inspection_valid_until: inspectionValidUntil.trim().length
+          ? inspectionValidUntil.trim()
+          : null,
       });
 
       // Upload photos if selected
@@ -467,6 +479,16 @@ export function VehicleFormScreen({ navigation }: Props) {
         autoCapitalize="characters"
         placeholder={t("vehicleForm.placeholderVin")}
       />
+      <DateField
+        label={t("manageVehicle.insuranceLabel")}
+        value={insuranceValidUntil}
+        onChange={setInsuranceValidUntil}
+      />
+      <DateField
+        label={t("manageVehicle.inspectionLabel")}
+        value={inspectionValidUntil}
+        onChange={setInspectionValidUntil}
+      />
       <TextField
         label={`${t("vehicleForm.makeLabel")} *`}
         value={make}
@@ -488,7 +510,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         placeholder={t("vehicleForm.placeholderYear")}
       />
       <TextField
-        label={t("vehicleForm.mileageLabel")}
+        label={`${t("vehicleForm.mileageLabel")} (${distanceUnit})`}
         value={mileage}
         onChangeText={setMileage}
         keyboardType="number-pad"

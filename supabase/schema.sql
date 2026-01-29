@@ -29,6 +29,8 @@ create table if not exists public.vehicles (
   transmission text check (transmission in ('manual', 'automatic')),
   drive_type text check (drive_type in ('FWD', 'RWD', 'AWD')),
   notes text,
+  insurance_valid_until date,
+  inspection_valid_until date,
   created_at timestamptz not null default now()
 );
 

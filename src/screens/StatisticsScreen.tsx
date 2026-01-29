@@ -30,38 +30,36 @@ export function StatisticsScreen({ route, navigation }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
-      <View style={styles.fixedHeader}>
-        <View style={styles.headerRow}>
-          <Text style={styles.title}>{t("dashboard.stats.title")}</Text>
-          <View style={styles.periodRow}>
-            {periodOptions.map((p) => {
-              const active = p.key === period;
-              return (
-                <Pressable
-                  key={p.key}
-                  onPress={() => setPeriod(p.key)}
-                  style={({ pressed }) => [
-                    styles.chip,
-                    active ? styles.chipActive : null,
-                    pressed ? styles.chipPressed : null,
+      <View style={styles.header}>
+        <Text style={styles.title}>{t("dashboard.stats.title")}</Text>
+        <View style={styles.periodRow}>
+          {periodOptions.map((p) => {
+            const active = p.key === period;
+            return (
+              <Pressable
+                key={p.key}
+                onPress={() => setPeriod(p.key)}
+                style={({ pressed }) => [
+                  styles.chip,
+                  active ? styles.chipActive : null,
+                  pressed ? styles.chipPressed : null,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.chipText,
+                    active ? styles.chipTextActive : null,
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      active ? styles.chipTextActive : null,
-                    ]}
-                  >
-                    {p.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+                  {p.label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </View>
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <StatisticsCard vehicleId={route.params.vehicleId} period={period} />
@@ -72,32 +70,31 @@ export function StatisticsScreen({ route, navigation }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    fixedHeader: {
+    header: {
       paddingTop: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
-    },
-    headerRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+      backgroundColor: theme.colors.bg,
     },
     title: {
-      fontSize: 20,
+      fontSize: 22,
       fontWeight: "800",
       color: theme.colors.fg,
+      marginBottom: theme.spacing.sm,
     },
     periodRow: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: 6,
+      gap: 8,
     },
     chip: {
       borderWidth: 1,
       borderColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
-      paddingHorizontal: 10,
-      paddingVertical: 6,
+      backgroundColor: theme.colors.card,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
       borderRadius: 999,
     },
     chipActive: {
@@ -105,13 +102,12 @@ const makeStyles = (theme: any) =>
       borderColor: theme.colors.accent,
     },
     chipPressed: { opacity: 0.92 },
-    chipText: { color: theme.colors.fg, fontSize: 12, fontWeight: "800" },
+    chipText: { color: theme.colors.fg, fontSize: 13, fontWeight: "800" },
     chipTextActive: { color: "#000000" },
-    content: {
-      paddingHorizontal: theme.spacing.md,
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.xl,
-      gap: theme.spacing.sm,
+    scrollContent: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingTop: theme.spacing.lg,
+      paddingBottom: theme.spacing.xl * 1.5,
     },
   });
 

@@ -1,11 +1,6 @@
 import { useIsFocused } from "@react-navigation/native";
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, {
   Circle,
@@ -17,10 +12,12 @@ import Svg, {
 
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
+import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import type {
   FuelingEntry,
   ServiceEntry,
   ServiceEntryCategory,
+  Vehicle,
 } from "../../types/domain";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useTheme } from "../ThemeProvider";
@@ -169,7 +166,7 @@ function donutSlicePath(
   rOuter: number,
   rInner: number,
   startAngle: number,
-  endAngle: number
+  endAngle: number,
 ) {
   const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
 
@@ -187,6 +184,8 @@ function donutSlicePath(
   ].join(" ");
 }
 
+type LineChartYFormat = "currency" | "number";
+
 function SimpleLineChart({
   data,
   width,
@@ -195,6 +194,8 @@ function SimpleLineChart({
   grid,
   textColor,
   currency,
+  yFormat = "currency",
+  yUnit = "",
 }: {
   data: XY[];
   width: number;
@@ -203,13 +204,14 @@ function SimpleLineChart({
   grid: string;
   textColor: string;
   currency: string;
+  yFormat?: LineChartYFormat;
+  yUnit?: string;
 }) {
   // Responsive padding - adjust based on available width
-  // More padding for Y-axis labels (to fit full currency values)
-  const paddingLeft = Math.max(65, Math.min(75, width * 0.15)); // 15% of width, min 65, max 75
-  const paddingRight = 20; // More space for rightmost X-axis labels (dates)
+  const paddingLeft = Math.max(65, Math.min(75, width * 0.15));
+  const paddingRight = 20;
   const paddingTop = 10;
-  const paddingBottom = 35; // More space for X-axis labels (dates)
+  const paddingBottom = 35;
   const w = width;
   const h = height;
   const maxY = Math.max(1, ...data.map((d) => clampNonNeg(d.y)));
@@ -226,23 +228,19 @@ function SimpleLineChart({
     return { x, y, label: d.x, value: d.y };
   });
 
-  // Generate Y-axis ticks with nice rounded values
   const tickValues = generateNiceTicks(maxY);
   const yTicks = tickValues.map((value) => {
     const y = paddingTop + (1 - value / niceMaxY) * plotH;
     return { value, y };
   });
 
-  // Generate X-axis ticks (show first, middle, last, and some in between if many points)
   const xTicks: Array<{ x: number; label: string; index: number }> = [];
   if (data.length > 0) {
     if (data.length <= 5) {
-      // Show all points
       points.forEach((p, i) => {
         xTicks.push({ x: p.x, label: p.label.replace("-", "/"), index: i });
       });
     } else {
-      // Show first, last, and some in between
       xTicks.push({
         x: points[0].x,
         label: points[0].label.replace("-", "/"),
@@ -262,9 +260,13 @@ function SimpleLineChart({
     }
   }
 
+  const formatYLabel = (value: number) =>
+    yFormat === "currency"
+      ? fmtMoneyRounded(value, currency)
+      : `${fmtNumber(value, 1)}${yUnit ? ` ${yUnit}` : ""}`;
+
   return (
     <Svg width={w} height={h}>
-      {/* Grid lines - horizontal */}
       {yTicks.map((tick, i) => (
         <SvgLine
           key={`grid-y-${i}`}
@@ -277,8 +279,6 @@ function SimpleLineChart({
           strokeDasharray="2,2"
         />
       ))}
-
-      {/* Grid lines - vertical */}
       {xTicks.map((tick, i) => (
         <SvgLine
           key={`grid-x-${i}`}
@@ -291,8 +291,6 @@ function SimpleLineChart({
           strokeDasharray="2,2"
         />
       ))}
-
-      {/* Y-axis */}
       <SvgLine
         x1={paddingLeft}
         y1={paddingTop}
@@ -301,7 +299,6 @@ function SimpleLineChart({
         stroke={grid}
         strokeWidth={1}
       />
-      {/* X-axis */}
       <SvgLine
         x1={paddingLeft}
         y1={paddingTop + plotH}
@@ -310,8 +307,6 @@ function SimpleLineChart({
         stroke={grid}
         strokeWidth={1}
       />
-
-      {/* Y-axis ticks */}
       {yTicks.map((tick, i) => (
         <SvgLine
           key={`y-${i}`}
@@ -323,26 +318,19 @@ function SimpleLineChart({
           strokeWidth={1}
         />
       ))}
-
-      {/* Y-axis labels */}
-      {yTicks.map((tick, i) => {
-        const formattedValue = fmtMoneyRounded(tick.value, currency);
-        return (
-          <SvgText
-            key={`y-label-${i}`}
-            x={paddingLeft - 10}
-            y={tick.y + 4}
-            fontSize={9}
-            fill={textColor}
-            textAnchor="end"
-            alignmentBaseline="middle"
-          >
-            {formattedValue}
-          </SvgText>
-        );
-      })}
-
-      {/* X-axis ticks */}
+      {yTicks.map((tick, i) => (
+        <SvgText
+          key={`y-label-${i}`}
+          x={paddingLeft - 10}
+          y={tick.y + 4}
+          fontSize={9}
+          fill={textColor}
+          textAnchor="end"
+          alignmentBaseline="middle"
+        >
+          {formatYLabel(tick.value)}
+        </SvgText>
+      ))}
       {xTicks.map((tick, i) => (
         <SvgLine
           key={`x-${i}`}
@@ -354,8 +342,6 @@ function SimpleLineChart({
           strokeWidth={1}
         />
       ))}
-
-      {/* X-axis labels */}
       {xTicks.map((tick, i) => (
         <SvgText
           key={`x-label-${i}`}
@@ -369,8 +355,6 @@ function SimpleLineChart({
           {tick.label}
         </SvgText>
       ))}
-
-      {/* Line chart */}
       <Polyline
         points={points.map((p) => `${p.x},${p.y}`).join(" ")}
         fill="none"
@@ -451,6 +435,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
   const distanceUnit = settings?.distanceUnit ?? "km";
   const fuelUnit = settings?.fuelUnit ?? "liters";
   const [loading, setLoading] = useState(true);
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [service, setService] = useState<ServiceEntry[]>([]);
   const [fueling, setFueling] = useState<FuelingEntry[]>([]);
 
@@ -460,11 +445,13 @@ export function StatisticsCard({ vehicleId, period }: Props) {
     setLoading(true);
     (async () => {
       try {
-        const [s, f] = await Promise.all([
+        const [v, s, f] = await Promise.all([
+          getVehicle(vehicleId),
           listServiceEntries(vehicleId),
           listFuelingEntries(vehicleId),
         ]);
         if (!alive) return;
+        setVehicle(v);
         setService(s);
         setFueling(f);
       } catch (err: any) {
@@ -490,14 +477,17 @@ export function StatisticsCard({ vehicleId, period }: Props) {
       const currentMonth = today.getMonth(); // 0-11
 
       let monthsBack = 0;
-      if (period === "1m") monthsBack = 0; // Current month only
-      else if (period === "3m") monthsBack = 2; // Current + 2 previous
-      else if (period === "6m") monthsBack = 5; // Current + 5 previous
+      if (period === "1m")
+        monthsBack = 0; // Current month only
+      else if (period === "3m")
+        monthsBack = 2; // Current + 2 previous
+      else if (period === "6m")
+        monthsBack = 5; // Current + 5 previous
       else if (period === "1y") monthsBack = 11; // Current + 11 previous
 
       const startDate = new Date(currentYear, currentMonth - monthsBack, 1);
       startMonthStr = `${startDate.getFullYear()}-${String(
-        startDate.getMonth() + 1
+        startDate.getMonth() + 1,
       ).padStart(2, "0")}`;
     }
 
@@ -537,25 +527,26 @@ export function StatisticsCard({ vehicleId, period }: Props) {
   const totals = useMemo(() => {
     const serviceCost = filtered.service.reduce(
       (sum, x) => sum + Number(x.cost ?? 0),
-      0
+      0,
     );
     const fuelCost = filtered.fueling.reduce(
       (sum, x) => sum + Number(x.fuel_cost ?? 0),
-      0
+      0,
     );
     const totalDistance = filtered.fueling.reduce(
       (sum, x) => sum + Number(x.distance ?? 0),
-      0
+      0,
     );
     const totalFuel = filtered.fueling.reduce(
       (sum, x) => sum + Number(x.fuel_amount ?? 0),
-      0
+      0,
     );
     const total = serviceCost + fuelCost;
     const avgConsumptionPer100 =
       totalDistance > 0 ? (totalFuel / totalDistance) * 100 : Number.NaN;
     const costPer100 =
       totalDistance > 0 ? (total / totalDistance) * 100 : Number.NaN;
+    const avgCostPerLiter = totalFuel > 0 ? fuelCost / totalFuel : Number.NaN;
     return {
       serviceCost,
       fuelCost,
@@ -564,6 +555,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
       totalFuel,
       avgConsumptionPer100,
       costPer100,
+      avgCostPerLiter,
     };
   }, [filtered.service, filtered.fueling]);
 
@@ -628,13 +620,97 @@ export function StatisticsCard({ vehicleId, period }: Props) {
     return { data, avgMonthlyFuelCost };
   }, [filtered.service, filtered.fueling, totals.fuelCost]);
 
+  const favoriteStation = useMemo(() => {
+    const countByStation: Record<string, number> = {};
+    for (const f of filtered.fueling) {
+      const key = f.gas_station ?? "other";
+      countByStation[key] = (countByStation[key] ?? 0) + 1;
+    }
+    let best: string | null = null;
+    let bestCount = 0;
+    for (const [key, count] of Object.entries(countByStation)) {
+      if (count > bestCount) {
+        bestCount = count;
+        best = key;
+      }
+    }
+    return best;
+  }, [filtered.fueling]);
+
+  const monthlyDistanceSeries = useMemo(() => {
+    const byMonth: Record<string, number> = {};
+    for (const f of filtered.fueling) {
+      const d = parseDateLoose(f.date);
+      if (!d) continue;
+      const k = monthKey(d);
+      byMonth[k] = (byMonth[k] ?? 0) + Number(f.distance ?? 0);
+    }
+    const keys = Object.keys(byMonth).sort();
+    return keys.map((k) => ({ x: k, y: byMonth[k] ?? 0 }));
+  }, [filtered.fueling]);
+
+  const lastOilChange = useMemo(() => {
+    const oilEntries = service
+      .filter((e) => (e.category ?? "other") === "oil_engine")
+      .sort(
+        (a, b) =>
+          new Date(b.service_date).getTime() -
+          new Date(a.service_date).getTime(),
+      );
+    return oilEntries[0] ?? null;
+  }, [service]);
+
+  const oilIntervals = useMemo(() => {
+    const oilEntries = service
+      .filter((e) => (e.category ?? "other") === "oil_engine")
+      .sort(
+        (a, b) =>
+          new Date(a.service_date).getTime() -
+          new Date(b.service_date).getTime(),
+      );
+    if (oilEntries.length < 2)
+      return { avgKm: Number.NaN, avgMonths: Number.NaN };
+    const kmDeltas: number[] = [];
+    const monthDeltas: number[] = [];
+    for (let i = 1; i < oilEntries.length; i++) {
+      const prev = oilEntries[i - 1];
+      const curr = oilEntries[i];
+      const prevMileage = prev.mileage ?? null;
+      const currMileage = curr.mileage ?? null;
+      if (
+        prevMileage != null &&
+        currMileage != null &&
+        currMileage > prevMileage
+      ) {
+        kmDeltas.push(currMileage - prevMileage);
+      }
+      const prevDate = parseDateLoose(prev.service_date);
+      const currDate = parseDateLoose(curr.service_date);
+      if (prevDate && currDate) {
+        const months =
+          (currDate.getFullYear() - prevDate.getFullYear()) * 12 +
+          (currDate.getMonth() - prevDate.getMonth());
+        if (months > 0) monthDeltas.push(months);
+      }
+    }
+    const avgKm =
+      kmDeltas.length > 0
+        ? kmDeltas.reduce((a, b) => a + b, 0) / kmDeltas.length
+        : Number.NaN;
+    const avgMonths =
+      monthDeltas.length > 0
+        ? monthDeltas.reduce((a, b) => a + b, 0) / monthDeltas.length
+        : Number.NaN;
+    return { avgKm, avgMonths };
+  }, [service]);
+
   const styles = useMemo(() => makeStyles(theme), [theme]);
   // Chart width with proper margins to fit in card
   // Reduce width slightly to ensure labels fit properly
   const cardPadding = theme.spacing.md * 2; // Left + right padding of card
   const chartWidth = Math.max(
     280,
-    windowWidth - cardPadding - theme.spacing.md * 2 - 20
+    windowWidth - cardPadding - theme.spacing.md * 2 - 20,
   );
 
   const palette = useMemo(
@@ -647,9 +723,8 @@ export function StatisticsCard({ vehicleId, period }: Props) {
       "#06B6D4", // cyan-500 - cyan
       "#EF4444", // red-500 - red
     ],
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
-
 
   const categorySeries = useMemo(
     () =>
@@ -657,12 +732,12 @@ export function StatisticsCard({ vehicleId, period }: Props) {
         ...x,
         color: palette[idx % palette.length],
       })),
-    [expensesByCategory, palette]
+    [expensesByCategory, palette],
   );
 
   const totalByCategory = useMemo(
     () => categorySeries.reduce((s, x) => s + clampNonNeg(x.value), 0),
-    [categorySeries]
+    [categorySeries],
   );
 
   const isNarrow = windowWidth < 380;
@@ -705,7 +780,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
                 {Number.isFinite(totals.avgConsumptionPer100)
                   ? `${fmtNumber(
                       totals.avgConsumptionPer100,
-                      1
+                      1,
                     )} ${fuelUnit}/100 ${distanceUnit}`
                   : "—"}
               </Text>
@@ -718,8 +793,54 @@ export function StatisticsCard({ vehicleId, period }: Props) {
                 {Number.isFinite(totals.costPer100)
                   ? `${fmtNumber(
                       totals.costPer100,
-                      2
+                      2,
                     )} ${currency}/100 ${distanceUnit}`
+                  : "—"}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.metricsRow}>
+            <View style={styles.metric}>
+              <Text style={styles.metricLabel}>
+                {t("dashboard.stats.metrics.totalDistance")}
+              </Text>
+              <Text style={styles.metricValue}>
+                {totals.totalDistance > 0
+                  ? `${fmtNumber(totals.totalDistance, 0)} ${distanceUnit}`
+                  : "—"}
+              </Text>
+            </View>
+            <View style={styles.metric}>
+              <Text style={styles.metricLabel}>
+                {t("dashboard.stats.metrics.totalFuel")}
+              </Text>
+              <Text style={styles.metricValue}>
+                {totals.totalFuel > 0
+                  ? `${fmtNumber(totals.totalFuel, 1)} ${fuelUnit}`
+                  : "—"}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.metricsRow}>
+            <View style={styles.metric}>
+              <Text style={styles.metricLabel}>
+                {t("dashboard.stats.metrics.favoriteStation")}
+              </Text>
+              <Text style={styles.metricValue}>
+                {favoriteStation
+                  ? t(`fuelingForm.stations.${favoriteStation}`)
+                  : "—"}
+              </Text>
+            </View>
+            <View style={styles.metric}>
+              <Text style={styles.metricLabel}>
+                {t("dashboard.stats.metrics.avgCostPerLiter")} {fuelUnit}
+              </Text>
+              <Text style={styles.metricValue}>
+                {Number.isFinite(totals.avgCostPerLiter)
+                  ? fmtMoney(totals.avgCostPerLiter, currency)
                   : "—"}
               </Text>
             </View>
@@ -739,6 +860,29 @@ export function StatisticsCard({ vehicleId, period }: Props) {
                   grid={theme.colors.border}
                   textColor={theme.colors.muted}
                   currency={currency}
+                />
+              </View>
+            ) : (
+              <Text style={styles.empty}>{t("dashboard.stats.empty")}</Text>
+            )}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t("dashboard.stats.charts.distanceOverTime")}
+            </Text>
+            {monthlyDistanceSeries.length > 0 ? (
+              <View style={styles.chartWrap} key={`distance-chart-${period}`}>
+                <SimpleLineChart
+                  data={monthlyDistanceSeries}
+                  width={chartWidth}
+                  height={220}
+                  stroke={theme.colors.accent}
+                  grid={theme.colors.border}
+                  textColor={theme.colors.muted}
+                  currency={currency}
+                  yFormat="number"
+                  yUnit={distanceUnit}
                 />
               </View>
             ) : (
@@ -778,7 +922,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
                         {fmtPct(
                           totalByCategory > 0
                             ? (c.value / totalByCategory) * 100
-                            : Number.NaN
+                            : Number.NaN,
                         )}{" "}
                         · {fmtMoney(c.value, currency)}
                       </Text>
@@ -790,6 +934,105 @@ export function StatisticsCard({ vehicleId, period }: Props) {
               <Text style={styles.empty}>{t("dashboard.stats.empty")}</Text>
             )}
           </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t("dashboard.stats.lastOilChange")}
+            </Text>
+            {lastOilChange ? (
+              <View style={styles.infoCard}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoRowLabel}>
+                    {t("dashboard.stats.lastOilChangeDate")}
+                  </Text>
+                  <Text style={styles.infoRowValue}>
+                    {lastOilChange.service_date.slice(0, 10)}
+                  </Text>
+                </View>
+                {lastOilChange.mileage != null && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.lastOilChangeMileage")}
+                    </Text>
+                    <Text style={styles.infoRowValue}>
+                      {fmtNumber(lastOilChange.mileage, 0)} {distanceUnit}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            ) : (
+              <Text style={styles.empty}>
+                {t("dashboard.stats.noOilChangeEntries")}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t("dashboard.stats.oilIntervals")}
+            </Text>
+            {Number.isFinite(oilIntervals.avgKm) ||
+            Number.isFinite(oilIntervals.avgMonths) ? (
+              <View style={styles.infoCard}>
+                {Number.isFinite(oilIntervals.avgKm) && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.oilIntervalsAvgKm")}
+                    </Text>
+                    <Text style={styles.infoRowValue}>
+                      {fmtNumber(oilIntervals.avgKm, 0)} {distanceUnit}
+                    </Text>
+                  </View>
+                )}
+                {Number.isFinite(oilIntervals.avgMonths) && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.oilIntervalsAvgMonths")}
+                    </Text>
+                    <Text style={styles.infoRowValue}>
+                      {fmtNumber(oilIntervals.avgMonths, 1)}{" "}
+                      {t("dashboard.stats.months")}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            ) : (
+              <Text style={styles.empty}>
+                {t("dashboard.stats.noOilIntervals")}
+              </Text>
+            )}
+          </View>
+
+          {(vehicle?.insurance_valid_until != null ||
+            vehicle?.inspection_valid_until != null) && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {t("dashboard.stats.insuranceAndInspection")}
+              </Text>
+              <View style={styles.infoCard}>
+                {vehicle?.insurance_valid_until != null && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.insuranceValidUntil")}
+                    </Text>
+                    <Text style={styles.infoRowValue}>
+                      {vehicle.insurance_valid_until}
+                    </Text>
+                  </View>
+                )}
+                {vehicle?.inspection_valid_until != null && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.inspectionValidUntil")}
+                    </Text>
+                    <Text style={styles.infoRowValue}>
+                      {vehicle.inspection_valid_until}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
         </>
       )}
     </View>
@@ -821,6 +1064,32 @@ const makeStyles = (theme: any) =>
     section: { gap: 10 },
     sectionTitle: { color: theme.colors.fg, fontWeight: "900" },
     empty: { color: theme.colors.muted, fontWeight: "700" },
+    infoCard: {
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.bg,
+      borderRadius: 12,
+      padding: 12,
+      gap: 6,
+    },
+    infoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
+    infoRowLabel: {
+      color: theme.colors.muted,
+      fontWeight: "700",
+      fontSize: 13,
+      flexShrink: 0,
+    },
+    infoRowValue: {
+      color: theme.colors.fg,
+      fontWeight: "700",
+      fontSize: 13,
+      textAlign: "right",
+    },
     chartWrap: {
       borderWidth: 1,
       borderColor: theme.colors.border,

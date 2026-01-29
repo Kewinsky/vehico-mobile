@@ -19,6 +19,8 @@ export type Vehicle = {
   transmission: TransmissionType | null;
   drive_type: DriveType | null;
   notes: string | null;
+  insurance_valid_until?: string | null;
+  inspection_valid_until?: string | null;
   created_at: string;
 };
 
@@ -39,6 +41,7 @@ export type ServiceEntryCategory =
   | "repair"
   | "inspection"
   | "upgrade"
+  | "oil_engine"
   | "other";
 
 export type AttachmentType = "receipt" | "invoice" | "photo";

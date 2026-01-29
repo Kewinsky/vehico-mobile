@@ -10,10 +10,12 @@ type NewVehicleInput = {
   mileage?: number | null;
   engine_capacity?: number | null;
   power_hp?: number | null;
-  fuel_type?: 'petrol' | 'diesel' | 'hybrid' | 'electric' | 'lpg' | null;
-  transmission?: 'manual' | 'automatic' | null;
-  drive_type?: 'FWD' | 'RWD' | 'AWD' | null;
+  fuel_type?: "petrol" | "diesel" | "hybrid" | "electric" | "lpg" | null;
+  transmission?: "manual" | "automatic" | null;
+  drive_type?: "FWD" | "RWD" | "AWD" | null;
   notes?: string | null;
+  insurance_valid_until?: string | null;
+  inspection_valid_until?: string | null;
 };
 
 type UpdateVehicleInput = Partial<NewVehicleInput>;
@@ -50,7 +52,7 @@ export async function createVehicle(input: NewVehicleInput): Promise<Vehicle> {
 
 export async function updateVehicle(
   vehicleId: string,
-  patch: UpdateVehicleInput
+  patch: UpdateVehicleInput,
 ): Promise<Vehicle> {
   const { data, error } = await supabase
     .from("vehicles")

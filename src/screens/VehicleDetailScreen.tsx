@@ -460,6 +460,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                     "repair",
                     "inspection",
                     "upgrade",
+                    "oil_engine",
                     "other",
                   ] as const
                 }

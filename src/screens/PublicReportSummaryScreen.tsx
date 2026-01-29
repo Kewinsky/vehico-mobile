@@ -38,6 +38,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
+import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
@@ -46,9 +47,11 @@ type Props = NativeStackScreenProps<AppStackParamList, "PublicReportSummary">;
 export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId, reportOptions, selectedVehiclePhotoIds, tempPhotos } =
     route.params;
+  const distanceUnit = settings?.distanceUnit ?? "km";
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [serviceEntriesCount, setServiceEntriesCount] = useState<number>(0);
@@ -233,7 +236,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                   {t("vehicleForm.mileageLabel")}
                 </Text>
                 <Text style={styles.dataValue}>
-                  {vehicle.mileage.toLocaleString()} km
+                  {vehicle.mileage.toLocaleString()} {distanceUnit}
                 </Text>
               </View>
             )}

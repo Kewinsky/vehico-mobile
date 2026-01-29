@@ -94,7 +94,8 @@ function getCategoryLabel(category: string, lang: "en" | "pl"): string {
     maintenance: { en: "Maintenance", pl: "Serwis" },
     repair: { en: "Repair", pl: "Naprawa" },
     inspection: { en: "Inspection", pl: "Przegląd" },
-    upgrade: { en: "Upgrade", pl: "Ulepszenie" },
+    upgrade: { en: "Upgrade", pl: "Ulepszenie " },
+    oil_engine: { en: "Oil", pl: "Olej" },
     other: { en: "Other", pl: "Inne" },
   };
   return labels[category]?.[lang] || category;
@@ -255,6 +256,7 @@ function formatServiceStats(
     repair: { en: "Repair", pl: "Naprawa" },
     inspection: { en: "Inspection", pl: "Przegląd" },
     upgrade: { en: "Upgrade", pl: "Ulepszenie" },
+    oil_engine: { en: "Oil", pl: "Olej" },
     other: { en: "Other", pl: "Inne" },
   };
 

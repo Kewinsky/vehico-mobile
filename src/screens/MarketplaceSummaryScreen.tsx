@@ -26,6 +26,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
+import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import type { Language } from "../types/domain";
@@ -35,6 +36,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceSummary">;
 export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const {
     vehicleId,
@@ -44,6 +46,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
     reportOptions,
     selectedReportId,
   } = route.params;
+  const distanceUnit = settings?.distanceUnit ?? "km";
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [serviceEntriesCount, setServiceEntriesCount] = useState<number>(0);
@@ -217,7 +220,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                     {t("vehicleForm.mileageLabel")}
                   </Text>
                   <Text style={styles.dataValue}>
-                    {vehicle.mileage.toLocaleString()} km
+                    {vehicle.mileage.toLocaleString()} {distanceUnit}
                   </Text>
                 </View>
               )}

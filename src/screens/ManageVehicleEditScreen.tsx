@@ -41,7 +41,9 @@ import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { PickerField } from "../ui/components/PickerField";
+import { DateField } from "../ui/components/DateField";
 import { useTheme } from "../ui/ThemeProvider";
+import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
@@ -50,8 +52,10 @@ type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicleEdit">;
 export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { settings } = useUserSettings();
   const styles = makeStyles(theme);
   const { vehicleId } = route.params;
+  const distanceUnit = settings?.distanceUnit ?? "km";
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
@@ -75,6 +79,8 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   );
   const [driveType, setDriveType] = useState<DriveType | null>(null);
   const [notes, setNotes] = useState("");
+  const [insuranceValidUntil, setInsuranceValidUntil] = useState("");
+  const [inspectionValidUntil, setInspectionValidUntil] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -93,6 +99,8 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       setTransmission(v.transmission);
       setDriveType(v.drive_type);
       setNotes(v.notes ?? "");
+      setInsuranceValidUntil(v.insurance_valid_until ?? "");
+      setInspectionValidUntil(v.inspection_valid_until ?? "");
 
       // Load photos
       const photosList = await listVehiclePhotos(vehicleId);
@@ -158,6 +166,12 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
         transmission: transmission,
         drive_type: driveType,
         notes: notes.trim().length ? notes.trim() : null,
+        insurance_valid_until: insuranceValidUntil.trim().length
+          ? insuranceValidUntil.trim()
+          : null,
+        inspection_valid_until: inspectionValidUntil.trim().length
+          ? inspectionValidUntil.trim()
+          : null,
       });
       setVehicle(updated);
       navigation.goBack();
@@ -540,6 +554,16 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             onChangeText={setVin}
             autoCapitalize="characters"
           />
+          <DateField
+            label={t("manageVehicle.insuranceLabel")}
+            value={insuranceValidUntil}
+            onChange={setInsuranceValidUntil}
+          />
+          <DateField
+            label={t("manageVehicle.inspectionLabel")}
+            value={inspectionValidUntil}
+            onChange={setInspectionValidUntil}
+          />
           <TextField
             label={`${t("manageVehicle.makeLabel")} *`}
             value={make}
@@ -558,7 +582,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             maxLength={4}
           />
           <TextField
-            label={t("vehicleForm.mileageLabel")}
+            label={`${t("vehicleForm.mileageLabel")} (${distanceUnit})`}
             value={mileage}
             onChangeText={setMileage}
             keyboardType="number-pad"
