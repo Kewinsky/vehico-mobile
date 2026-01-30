@@ -193,20 +193,20 @@ function makeStyles(theme: any) {
       paddingBottom: theme.spacing.xl,
     },
     title: {
-      fontSize: 22,
+      fontSize: theme.typography.title,
       fontWeight: "800",
     },
     subtitle: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       marginTop: theme.spacing.xs,
     },
     sectionTitle: {
-      fontSize: 16,
+      fontSize: theme.typography.body,
       fontWeight: "700",
       marginBottom: theme.spacing.sm,
     },
     card: {
-      borderRadius: 12,
+      borderRadius: theme.radius.sm,
       borderWidth: 1,
       padding: theme.spacing.md,
     },
@@ -218,7 +218,7 @@ function makeStyles(theme: any) {
       gap: theme.spacing.xs,
     },
     cardLabel: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
     },
     buttonsRow: {
       flexDirection: "row",
@@ -226,15 +226,15 @@ function makeStyles(theme: any) {
     },
     actionCard: {
       flex: 1,
-      borderRadius: 12,
+      borderRadius: theme.radius.sm,
       borderWidth: 1,
       padding: theme.spacing.lg,
       alignItems: "center",
       justifyContent: "center",
-      minHeight: 120,
+      minHeight: theme.spacing.xl * 4 - 8,
     },
     actionTitle: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "600",
       marginTop: theme.spacing.sm,
       textAlign: "center",

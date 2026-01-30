@@ -527,12 +527,12 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.md,
     },
     h1: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
     subtitle: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       color: theme.colors.muted,
     },
     loadingContainer: {
@@ -548,7 +548,7 @@ const makeStyles = (theme: any) =>
       padding: theme.spacing.md,
     },
     sectionTitle: {
-      fontSize: 16,
+      fontSize: theme.typography.body,
       fontWeight: "700",
       color: theme.colors.fg,
       marginBottom: theme.spacing.sm,
@@ -580,7 +580,7 @@ const makeStyles = (theme: any) =>
       color: theme.colors.muted,
     },
     dataValue: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "600",
       color: theme.colors.fg,
     },
@@ -590,8 +590,8 @@ const makeStyles = (theme: any) =>
       color: theme.colors.accent,
     },
     notesText: {
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: theme.typography.small,
+      lineHeight: theme.typography.body + 4,
       color: theme.colors.fg,
     },
     confirmationRow: {
@@ -616,9 +616,9 @@ const makeStyles = (theme: any) =>
     },
     confirmationText: {
       flex: 1,
-      fontSize: 14,
+      fontSize: theme.typography.small,
       color: theme.colors.fg,
-      lineHeight: 20,
+      lineHeight: theme.typography.body + 4,
     },
     footer: {
       paddingHorizontal: theme.spacing.md,

@@ -243,7 +243,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       padding: theme.spacing.md,
       gap: 6,
     },
-    detailsTitle: { fontSize: 18, fontWeight: "800" },
+    detailsTitle: { fontSize: theme.typography.body, fontWeight: "800" },
     row: {
       flexDirection: "row",
       justifyContent: "space-between",

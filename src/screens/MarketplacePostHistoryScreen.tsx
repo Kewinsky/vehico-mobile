@@ -138,7 +138,9 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
             <LoadingIndicator />
           </View>
         ) : posts.length === 0 ? (
-          <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+          <Text
+            style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}
+          >
             {t("marketplace.noSavedPosts")}
           </Text>
         ) : (
@@ -210,13 +212,13 @@ const makeStyles = (theme: any) =>
       paddingTop: theme.spacing.md,
     },
     h1: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
     subtitle: {
       color: theme.colors.muted,
-      lineHeight: 22,
+      lineHeight: theme.typography.body + 6,
     },
     loadingContainer: {
       flex: 1,
@@ -243,7 +245,7 @@ const makeStyles = (theme: any) =>
       marginBottom: 4,
     },
     postDate: {
-      fontSize: 12,
+      fontSize: theme.typography.xs,
       fontWeight: "600",
     },
   });

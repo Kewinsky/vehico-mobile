@@ -112,7 +112,7 @@ const makeStyles = (theme: any) =>
     },
     subtitle: {
       color: theme.colors.muted,
-      lineHeight: 22,
+      lineHeight: theme.typography.body + 6,
     },
     qrContainer: {
       alignItems: "center",
@@ -120,7 +120,7 @@ const makeStyles = (theme: any) =>
     },
     qrWrapper: {
       padding: theme.spacing.md,
-      borderRadius: theme.radius.lg,
+      borderRadius: theme.radius.md,
       borderWidth: 1,
       alignItems: "center",
       justifyContent: "center",

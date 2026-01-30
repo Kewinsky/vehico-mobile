@@ -183,18 +183,18 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     title: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
     detailsCard: {
-      marginTop: 12,
+      marginTop: theme.spacing.sm,
       borderWidth: 1,
       borderColor: theme.colors.border,
       backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
-      gap: 6,
+      gap: theme.spacing.sm / 2,
     },
     detailsTitle: { fontSize: 18, fontWeight: "800", color: theme.colors.fg },
     row: {
@@ -215,8 +215,16 @@ const makeStyles = (theme: any) =>
       textAlign: "right",
       flex: 1,
     },
-    bodyValue: { marginTop: 6, color: theme.colors.fg, lineHeight: 20 },
-    muted: { marginTop: 8, color: theme.colors.muted, lineHeight: 20 },
+    bodyValue: {
+      marginTop: theme.spacing.sm / 2,
+      color: theme.colors.fg,
+      lineHeight: theme.typography.body + 4,
+    },
+    muted: {
+      marginTop: theme.spacing.xs,
+      color: theme.colors.muted,
+      lineHeight: theme.typography.body + 4,
+    },
     loadingContainer: {
       paddingTop: theme.spacing.lg * 2.5,
       paddingBottom: theme.spacing.lg * 2.5,

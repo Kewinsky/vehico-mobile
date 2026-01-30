@@ -39,8 +39,8 @@ export function IconButton({
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     base: {
-      width: 44,
-      height: 44,
+      width: theme.spacing.xl + theme.spacing.sm,
+      height: theme.spacing.xl + theme.spacing.sm,
       alignItems: "center",
       justifyContent: "center",
     },

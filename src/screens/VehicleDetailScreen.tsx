@@ -442,7 +442,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                     style={{
                       color: showReminders ? "#000000" : theme.colors.muted,
                       fontWeight: "800",
-                      fontSize: 12,
+                      fontSize: theme.typography.small,
                     }}
                   >
                     {showReminders ? t("common.on") : t("common.off")}
@@ -682,8 +682,8 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     editLink: { color: theme.colors.muted, fontWeight: "800" },
     searchRow: { flexDirection: "row", alignItems: "center" },
     addButton: {
-      width: 50,
-      height: 50,
+      width: theme.spacing.xl + theme.spacing.sm,
+      height: theme.spacing.xl + theme.spacing.sm,
       borderRadius: theme.radius.md,
       borderWidth: 1,
       alignItems: "center",
@@ -698,8 +698,8 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     filtersRow: { flexDirection: "row", gap: 10 },
     filtersAction: {
       borderWidth: 1,
-      borderRadius: 12,
-      paddingVertical: 10,
+      borderRadius: theme.radius.sm,
+      paddingVertical: theme.spacing.sm - 2,
       paddingHorizontal: theme.spacing.sm,
       alignSelf: "flex-start",
     },
@@ -712,7 +712,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       gap: 10,
     },
     filtersLabel: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       fontWeight: "800",
       color: theme.colors.muted,
     },
@@ -723,19 +723,23 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     toggleButton: {
       borderWidth: 1,
-      borderRadius: 12,
-      paddingVertical: 6,
+      borderRadius: theme.radius.sm,
+      paddingVertical: theme.spacing.sm / 2,
       paddingHorizontal: theme.spacing.sm,
     },
-    categoryRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+    categoryRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: theme.spacing.sm - 2,
+    },
     chip: {
       borderWidth: 1,
-      borderRadius: 12,
-      paddingVertical: 10,
+      borderRadius: theme.radius.sm,
+      paddingVertical: theme.spacing.sm - 2,
       paddingHorizontal: theme.spacing.sm,
       backgroundColor: theme.colors.card,
     },
-    rangeRow: { flexDirection: "row", gap: 10 },
+    rangeRow: { flexDirection: "row", gap: theme.spacing.sm - 2 },
     loadingContainer: {
       paddingTop: theme.spacing.lg * 2.5,
       paddingBottom: theme.spacing.lg * 2.5,
@@ -746,22 +750,22 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingTop: theme.spacing.xl,
     },
     emptyTitle: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
     emptyBody: {
       marginTop: theme.spacing.xs,
-      lineHeight: 22,
+      lineHeight: theme.typography.body + 6,
       color: theme.colors.muted,
     },
     separator: {
-      marginTop: theme.spacing.md + 4,
+      marginTop: theme.spacing.lg,
       marginBottom: theme.spacing.xs,
       paddingVertical: theme.spacing.xs,
     },
     separatorText: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "800",
       textTransform: "uppercase",
       letterSpacing: 0.5,

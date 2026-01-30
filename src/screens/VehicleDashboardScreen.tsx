@@ -398,7 +398,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     title: {
       color: theme.colors.fg,
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
     },
     vinRow: {
@@ -414,13 +414,13 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     list: {
       paddingHorizontal: theme.spacing.md,
       paddingBottom: insets.bottom + 80, // Extra padding for FAB
-      gap: 8,
+      gap: theme.spacing.xs,
     },
     listHeader: {
       width: "100%",
     },
     row: {
-      gap: 8,
+      gap: theme.spacing.xs,
     },
     tile: {
       flex: 1,
@@ -439,7 +439,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     tileTitle: {
       color: theme.colors.fg,
-      fontSize: 14,
+      fontSize: theme.typography.body,
       fontWeight: "800",
       textAlign: "center",
     },
@@ -458,9 +458,9 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       zIndex: 1000,
     },
     fab: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
+      width: theme.spacing.xl + theme.spacing.sm,
+      height: theme.spacing.xl + theme.spacing.sm,
+      borderRadius: theme.radius.md,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,

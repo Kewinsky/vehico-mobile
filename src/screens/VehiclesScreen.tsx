@@ -361,7 +361,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       gap: theme.spacing.xs / 2,
     },
     emptyTitle: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
@@ -375,7 +375,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     list: {
       paddingBottom: insets.bottom + 32,
-      gap: 8,
+      gap: theme.spacing.xs,
     },
     vehicleCard: {
       borderRadius: theme.radius.md,
@@ -417,10 +417,10 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       backgroundColor: "rgba(0,0,0,0.55)",
     },
     vehicleTitle: {
-      fontSize: 22,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
-      marginBottom: 4,
+      marginBottom: theme.spacing.xs / 2,
     },
     vehicleTitleOverlay: {
       color: "#fff",
@@ -434,12 +434,16 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       color: "rgba(255,255,255,0.92)",
     },
     pill: {
-      paddingHorizontal: 10,
-      paddingVertical: 6,
+      paddingHorizontal: theme.spacing.sm - 2,
+      paddingVertical: theme.spacing.sm / 2,
       borderRadius: 999,
       borderWidth: 1,
       borderColor: theme.colors.border,
       backgroundColor: theme.colors.bg,
     },
-    pillText: { fontSize: 12, fontWeight: "800", color: theme.colors.muted },
+    pillText: {
+      fontSize: theme.typography.xs,
+      fontWeight: "800",
+      color: theme.colors.muted,
+    },
   });

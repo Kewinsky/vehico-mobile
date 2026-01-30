@@ -140,7 +140,9 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
             <LoadingIndicator />
           </View>
         ) : reports.length === 0 ? (
-          <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+          <Text
+            style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}
+          >
             {t("share.noReports")}
           </Text>
         ) : (
@@ -211,13 +213,13 @@ const makeStyles = (theme: any) =>
       paddingTop: theme.spacing.md,
     },
     h1: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
     subtitle: {
       color: theme.colors.muted,
-      lineHeight: 22,
+      lineHeight: theme.typography.body + 6,
     },
     loadingContainer: {
       flex: 1,
@@ -244,7 +246,7 @@ const makeStyles = (theme: any) =>
       marginBottom: 4,
     },
     reportDate: {
-      fontSize: 12,
+      fontSize: theme.typography.xs,
       fontWeight: "600",
     },
   });

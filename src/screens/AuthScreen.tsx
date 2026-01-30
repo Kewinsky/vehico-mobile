@@ -394,7 +394,7 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "center",
       gap: theme.spacing.sm,
-      height: 48,
+      height: theme.spacing.lg * 2,
       borderRadius: theme.radius.md,
       borderWidth: 1,
       paddingHorizontal: theme.spacing.md,
@@ -433,7 +433,7 @@ const makeStyles = (theme: any) =>
     footerText: {
       fontSize: theme.typography.small,
       textAlign: "center",
-      lineHeight: 18,
+      lineHeight: theme.typography.body + 2,
     },
     footerLink: {
       fontWeight: "600",
@@ -449,7 +449,7 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.lg,
     },
     icon: {
-      fontSize: 64,
+      fontSize: theme.spacing.xl * 2,
     },
     content: {
       alignItems: "center",
@@ -458,19 +458,19 @@ const makeStyles = (theme: any) =>
       width: "100%",
     },
     title: {
-      fontSize: 24,
+      fontSize: theme.typography.title,
       fontWeight: "700",
       textAlign: "center",
     },
     body: {
       fontSize: theme.typography.body,
       textAlign: "center",
-      lineHeight: 22,
+      lineHeight: theme.typography.body + 6,
     },
     hint: {
       fontSize: theme.typography.small,
       textAlign: "center",
       marginTop: theme.spacing.sm,
-      lineHeight: 18,
+      lineHeight: theme.typography.body + 2,
     },
   });

@@ -79,7 +79,7 @@ const makeStyles = (theme: any) =>
       backgroundColor: theme.colors.bg,
     },
     title: {
-      fontSize: 22,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
       marginBottom: theme.spacing.sm,
@@ -87,7 +87,7 @@ const makeStyles = (theme: any) =>
     periodRow: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: 8,
+      gap: theme.spacing.xs,
     },
     chip: {
       borderWidth: 1,
@@ -102,7 +102,11 @@ const makeStyles = (theme: any) =>
       borderColor: theme.colors.accent,
     },
     chipPressed: { opacity: 0.92 },
-    chipText: { color: theme.colors.fg, fontSize: 13, fontWeight: "800" },
+    chipText: {
+      color: theme.colors.fg,
+      fontSize: theme.typography.small,
+      fontWeight: "800",
+    },
     chipTextActive: { color: "#000000" },
     scrollContent: {
       paddingHorizontal: theme.spacing.lg,
@@ -110,4 +114,3 @@ const makeStyles = (theme: any) =>
       paddingBottom: theme.spacing.xl * 1.5,
     },
   });
-

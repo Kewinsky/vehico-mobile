@@ -100,19 +100,19 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       gap: theme.spacing.xs / 2,
     },
     h1: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
     subtitle: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       color: theme.colors.muted,
     },
     list: {
       paddingHorizontal: theme.spacing.md,
       paddingTop: theme.spacing.md,
       paddingBottom: insets.bottom + theme.spacing.lg,
-      gap: 8,
+      gap: theme.spacing.xs,
     },
     row: {
       flexDirection: "row",
@@ -135,7 +135,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     tileTitle: {
       color: theme.colors.fg,
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "800",
       textAlign: "center",
     },

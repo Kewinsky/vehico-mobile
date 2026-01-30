@@ -596,10 +596,22 @@ const makeStyles = (theme: any) =>
     headerSection: {
       gap: theme.spacing.xs / 2,
     },
-    h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
-    subtitle: { fontSize: 13, color: theme.colors.muted },
-    headerSubtitle: { marginTop: 6, color: theme.colors.muted, lineHeight: 20 },
-    h2: { fontSize: 18, fontWeight: "800", color: theme.colors.fg },
+    h1: {
+      fontSize: theme.typography.title,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
+    subtitle: { fontSize: theme.typography.small, color: theme.colors.muted },
+    headerSubtitle: {
+      marginTop: theme.spacing.sm / 2,
+      color: theme.colors.muted,
+      lineHeight: theme.typography.body + 4,
+    },
+    h2: {
+      fontSize: theme.typography.body,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
     headerRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -612,7 +624,11 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       gap: theme.spacing.sm,
     },
-    muted: { marginTop: 6, color: theme.colors.muted, lineHeight: 20 },
+    muted: {
+      marginTop: theme.spacing.sm / 2,
+      color: theme.colors.muted,
+      lineHeight: theme.typography.body + 4,
+    },
     cardRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -624,9 +640,13 @@ const makeStyles = (theme: any) =>
       backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
       padding: theme.spacing.sm,
-      gap: 6,
+      gap: theme.spacing.sm / 2,
     },
-    cardTitle: { fontSize: 15, fontWeight: "800", color: theme.colors.fg },
+    cardTitle: {
+      fontSize: theme.typography.body,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
     cardMeta: { fontSize: theme.typography.small, color: theme.colors.muted },
 
     detailsCard: {
@@ -655,13 +675,13 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
     },
     vehicleImagePlaceholderText: {
-      fontSize: 64,
+      fontSize: theme.spacing.xl * 2,
     },
     detailsContent: {
       padding: theme.spacing.md,
     },
     detailsTitle: {
-      fontSize: 24,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
       marginBottom: theme.spacing.xs,
@@ -710,10 +730,10 @@ const makeStyles = (theme: any) =>
     },
     detailContent: {
       flex: 1,
-      gap: 4,
+      gap: theme.spacing.xs / 2,
     },
     detailLabel: {
-      fontSize: 11,
+      fontSize: theme.typography.xs,
       fontWeight: "700",
       color: theme.colors.muted,
       textTransform: "uppercase",
@@ -737,11 +757,11 @@ const makeStyles = (theme: any) =>
     },
     fullScreenClose: {
       position: "absolute",
-      right: 16,
+      right: theme.spacing.md,
       zIndex: 10,
-      width: 44,
-      height: 44,
-      borderRadius: 22,
+      width: theme.spacing.xl + theme.spacing.sm,
+      height: theme.spacing.xl + theme.spacing.sm,
+      borderRadius: (theme.spacing.xl + theme.spacing.sm) / 2,
       backgroundColor: "rgba(0,0,0,0.4)",
       alignItems: "center",
       justifyContent: "center",

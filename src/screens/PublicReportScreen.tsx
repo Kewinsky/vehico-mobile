@@ -108,13 +108,13 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     infoTitle: {
-      fontSize: 15,
+      fontSize: theme.typography.body,
       fontWeight: "800",
       color: theme.colors.fg,
     },
     infoText: {
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: theme.typography.small,
+      lineHeight: theme.typography.body + 4,
       color: theme.colors.muted,
     },
   });

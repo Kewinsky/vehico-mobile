@@ -63,7 +63,7 @@ export function AppHeader({
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     root: {
-      height: 52,
+      height: theme.spacing.lg * 2 + theme.spacing.xs / 2,
       paddingHorizontal: theme.spacing.md,
       flexDirection: "row",
       alignItems: "center",
@@ -72,11 +72,19 @@ const makeStyles = (theme: any) =>
       borderBottomColor: theme.colors.border,
       backgroundColor: theme.colors.bg,
     },
-    left: { width: 48, alignItems: "flex-start", justifyContent: "center" },
-    right: { width: 48, alignItems: "flex-end", justifyContent: "center" },
+    left: {
+      width: theme.spacing.lg * 2,
+      alignItems: "flex-start",
+      justifyContent: "center",
+    },
+    right: {
+      width: theme.spacing.lg * 2,
+      alignItems: "flex-end",
+      justifyContent: "center",
+    },
     backButton: {
-      width: 40,
-      height: 40,
+      width: theme.spacing.xl + theme.spacing.xs,
+      height: theme.spacing.xl + theme.spacing.xs,
       justifyContent: "center",
     },
     backButtonPressed: {
@@ -89,12 +97,12 @@ const makeStyles = (theme: any) =>
       fontSize: 15,
     },
     logoContainer: {
-      height: 32,
+      height: theme.spacing.xl,
       justifyContent: "center",
       alignItems: "center",
     },
     logo: {
       width: 100,
-      height: 32,
+      height: theme.spacing.xl,
     },
   });

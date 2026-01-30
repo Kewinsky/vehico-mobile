@@ -61,7 +61,7 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     row: {
       flexDirection: "row",
-      gap: 12,
+      gap: theme.spacing.sm,
     },
     card: {
       flex: 1,
@@ -74,14 +74,14 @@ const makeStyles = (theme: any) =>
     cardRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 12,
+      gap: theme.spacing.sm,
     },
     cardMain: {
       flex: 1,
-      gap: 6,
+      gap: theme.spacing.sm / 2,
     },
     badge: {
-      paddingHorizontal: 5,
+      paddingHorizontal: theme.spacing.xs / 2 + 1,
       paddingVertical: 2,
       borderRadius: 999,
     },
@@ -94,7 +94,7 @@ const makeStyles = (theme: any) =>
       backgroundColor: theme.colors.muted,
     },
     badgeText: {
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.xs,
       fontWeight: "700",
       color: "#000000",
       letterSpacing: 0.3,
@@ -103,18 +103,18 @@ const makeStyles = (theme: any) =>
       color: "#000000",
     },
     title: {
-      fontSize: 16,
+      fontSize: theme.typography.body,
       fontWeight: "800",
       color: theme.colors.fg,
     },
     subtitle: {
       fontSize: theme.typography.small,
       color: theme.colors.muted,
-      lineHeight: 18,
+      lineHeight: theme.typography.body + 2,
     },
     titleRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
+      gap: theme.spacing.sm / 2,
     },
   });

@@ -271,7 +271,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
             style={{
               color: theme.colors.muted,
               marginTop: theme.spacing.xs,
-              fontSize: 14,
+              fontSize: theme.typography.small,
             }}
           >
             {t("workshops.noWorkshops")}
@@ -326,11 +326,11 @@ function makeStyles(theme: any) {
       gap: theme.spacing.xs / 2,
     },
     title: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
     },
     subtitle: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       marginTop: theme.spacing.xs,
     },
     searchRow: {
@@ -338,9 +338,9 @@ function makeStyles(theme: any) {
       alignItems: "center",
     },
     addButton: {
-      width: 50,
-      height: 50,
-      borderRadius: 12,
+      width: theme.spacing.xl + theme.spacing.sm,
+      height: theme.spacing.xl + theme.spacing.sm,
+      borderRadius: theme.radius.sm,
       borderWidth: 1,
       alignItems: "center",
       justifyContent: "center",
@@ -358,7 +358,7 @@ function makeStyles(theme: any) {
       padding: theme.spacing.sm,
     },
     filterLabel: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       fontWeight: "800",
       marginBottom: theme.spacing.xs,
     },
@@ -380,15 +380,15 @@ function makeStyles(theme: any) {
       marginBottom: theme.spacing.sm,
     },
     cardTitle: {
-      fontSize: 16,
+      fontSize: theme.typography.body,
       fontWeight: "700",
     },
     cardSubtitle: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       marginTop: theme.spacing.xs,
     },
     cardPhone: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       marginTop: theme.spacing.xs,
     },
   });

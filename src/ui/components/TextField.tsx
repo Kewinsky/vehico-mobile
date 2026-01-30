@@ -1,7 +1,7 @@
-import type { ComponentProps } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import type { ComponentProps } from "react";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 
-import { useTheme } from '../ThemeProvider';
+import { useTheme } from "../ThemeProvider";
 
 type Props = ComponentProps<typeof TextInput> & {
   label?: string;
@@ -12,7 +12,8 @@ type Props = ComponentProps<typeof TextInput> & {
 export function TextField(props: Props) {
   const { theme, mode } = useTheme();
   const styles = makeStyles(theme);
-  const { label, helperText, noMarginTop, style, multiline, ...inputProps } = props;
+  const { label, helperText, noMarginTop, style, multiline, ...inputProps } =
+    props;
   const isMultiline = multiline === true;
   return (
     <View style={[styles.field, noMarginTop && styles.fieldNoTop]}>
@@ -43,7 +44,7 @@ const makeStyles = (theme: any) =>
     label: {
       marginBottom: theme.spacing.xs / 2,
       fontSize: theme.typography.small,
-      fontWeight: '800',
+      fontWeight: "800",
       color: theme.colors.muted,
     },
     wrap: {
@@ -53,11 +54,11 @@ const makeStyles = (theme: any) =>
       backgroundColor: theme.colors.card,
     },
     wrapMultiline: {
-      minHeight: 120,
+      minHeight: theme.spacing.xl * 4 - 8,
       padding: theme.spacing.sm,
     },
     input: {
-      height: 48,
+      height: theme.spacing.lg * 2,
       paddingHorizontal: theme.spacing.md,
       fontSize: theme.typography.body,
       color: theme.colors.fg,
@@ -74,7 +75,6 @@ const makeStyles = (theme: any) =>
       marginTop: theme.spacing.xs / 2,
       fontSize: theme.typography.small,
       color: theme.colors.muted,
-      lineHeight: 18,
+      lineHeight: theme.typography.body + 2,
     },
   });
-

@@ -103,7 +103,7 @@ export function DateField({
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     pickerWrap: {
-      marginTop: 8,
+      marginTop: theme.spacing.xs,
       borderWidth: 1,
       borderColor: theme.colors.border,
       backgroundColor: theme.colors.card,

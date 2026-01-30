@@ -189,7 +189,7 @@ const makeStyles = (theme: any) =>
       paddingTop: theme.spacing.md,
     },
     title: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
     },
     subtitle: {
@@ -204,7 +204,7 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     sectionLabel: {
-      fontSize: 12,
+      fontSize: theme.typography.xs,
       fontWeight: "800",
       textTransform: "uppercase",
       letterSpacing: 0.5,
@@ -240,7 +240,7 @@ const makeStyles = (theme: any) =>
       fontWeight: "800",
     },
     linkSubtitle: {
-      fontSize: 12,
-      marginTop: 2,
+      fontSize: theme.typography.xs,
+      marginTop: theme.spacing.xs / 4,
     },
   });

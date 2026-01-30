@@ -1,15 +1,15 @@
-import { useMemo } from 'react';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
-import { useTranslation } from 'react-i18next';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useMemo } from "react";
+import { StyleSheet, Text, View, ScrollView } from "react-native";
+import { useTranslation } from "react-i18next";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-import type { AppStackParamList } from '../app/navigation/RootNavigator';
-import { AppHeader } from '../ui/components/AppHeader';
-import { FormScreen } from '../ui/components/FormScreen';
-import { useTheme } from '../ui/ThemeProvider';
-import { i18n } from '../i18n/i18n';
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import { AppHeader } from "../ui/components/AppHeader";
+import { FormScreen } from "../ui/components/FormScreen";
+import { useTheme } from "../ui/ThemeProvider";
+import { i18n } from "../i18n/i18n";
 
-type Props = NativeStackScreenProps<AppStackParamList, 'TermsOfUse'>;
+type Props = NativeStackScreenProps<AppStackParamList, "TermsOfUse">;
 
 export function TermsOfUseScreen({ navigation }: Props) {
   const { t } = useTranslation();
@@ -18,11 +18,11 @@ export function TermsOfUseScreen({ navigation }: Props) {
 
   const formatDate = () => {
     const date = new Date();
-    const locale = i18n.language === 'pl' ? 'pl-PL' : 'en-US';
+    const locale = i18n.language === "pl" ? "pl-PL" : "en-US";
     return date.toLocaleDateString(locale, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -34,56 +34,56 @@ export function TermsOfUseScreen({ navigation }: Props) {
       >
         <View style={styles.content}>
           <View style={styles.titleContainer}>
-          <Text style={[styles.title, { color: theme.colors.fg }]}>
-            {t('terms.title')}
-          </Text>
-          <Text style={[styles.lastUpdated, { color: theme.colors.muted }]}>
-            {t('terms.lastUpdated')}: {formatDate()}
-          </Text>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t('terms.section1Title')}
+            <Text style={[styles.title, { color: theme.colors.fg }]}>
+              {t("terms.title")}
             </Text>
-            <Text style={[styles.text, { color: theme.colors.muted }]}>
-              {t('terms.section1Content')}
+            <Text style={[styles.lastUpdated, { color: theme.colors.muted }]}>
+              {t("terms.lastUpdated")}: {formatDate()}
             </Text>
           </View>
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t('terms.section2Title')}
+              {t("terms.section1Title")}
             </Text>
             <Text style={[styles.text, { color: theme.colors.muted }]}>
-              {t('terms.section2Content')}
+              {t("terms.section1Content")}
             </Text>
           </View>
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t('terms.section3Title')}
+              {t("terms.section2Title")}
             </Text>
             <Text style={[styles.text, { color: theme.colors.muted }]}>
-              {t('terms.section3Content')}
+              {t("terms.section2Content")}
             </Text>
           </View>
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t('terms.section4Title')}
+              {t("terms.section3Title")}
             </Text>
             <Text style={[styles.text, { color: theme.colors.muted }]}>
-              {t('terms.section4Content')}
+              {t("terms.section3Content")}
             </Text>
           </View>
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t('terms.section5Title')}
+              {t("terms.section4Title")}
             </Text>
             <Text style={[styles.text, { color: theme.colors.muted }]}>
-              {t('terms.section5Content')}
+              {t("terms.section4Content")}
+            </Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+              {t("terms.section5Title")}
+            </Text>
+            <Text style={[styles.text, { color: theme.colors.muted }]}>
+              {t("terms.section5Content")}
             </Text>
           </View>
         </View>
@@ -106,8 +106,8 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     title: {
-      fontSize: 28,
-      fontWeight: '700',
+      fontSize: theme.typography.title * 1.4,
+      fontWeight: "700",
     },
 
     lastUpdated: {
@@ -118,11 +118,11 @@ const makeStyles = (theme: any) =>
     },
     sectionTitle: {
       fontSize: theme.typography.title,
-      fontWeight: '700',
+      fontWeight: "700",
       marginTop: theme.spacing.md,
     },
     text: {
       fontSize: theme.typography.body,
-      lineHeight: 24,
+      lineHeight: theme.typography.body + 8,
     },
   });

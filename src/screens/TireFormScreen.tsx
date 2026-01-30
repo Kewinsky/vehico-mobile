@@ -230,7 +230,11 @@ export function TireFormScreen({ navigation, route }: Props) {
 
 function makeStyles(theme: any) {
   return StyleSheet.create({
-    h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
+    h1: {
+      fontSize: theme.typography.title,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
     switchRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -238,7 +242,7 @@ function makeStyles(theme: any) {
       marginTop: theme.spacing.sm,
     },
     switchLabel: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "600",
     },
   });

@@ -287,7 +287,7 @@ const makeStyles = (theme: any) =>
       padding: theme.spacing.sm,
     },
     cardTitle: { color: theme.colors.fg, fontWeight: "800" },
-    cardMeta: { marginTop: 4, color: theme.colors.muted },
+    cardMeta: { marginTop: theme.spacing.xs / 2, color: theme.colors.muted },
     loadingContainer: {
       paddingTop: theme.spacing.xl + theme.spacing.xs,
       paddingBottom: theme.spacing.xl + theme.spacing.xs,

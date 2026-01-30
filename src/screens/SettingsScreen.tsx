@@ -235,8 +235,11 @@ export function SettingsScreen({ navigation }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    title: { fontSize: 20, fontWeight: "800" },
-    body: { marginTop: theme.spacing.xs, lineHeight: 22 },
+    title: { fontSize: theme.typography.title, fontWeight: "800" },
+    body: {
+      marginTop: theme.spacing.xs,
+      lineHeight: theme.typography.body + 6,
+    },
     box: {
       marginTop: theme.spacing.md,
       borderWidth: 1,

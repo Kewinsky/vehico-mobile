@@ -81,12 +81,12 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.xs / 2,
     },
     h1: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
     subtitle: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       color: theme.colors.muted,
     },
     content: {

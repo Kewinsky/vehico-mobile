@@ -318,7 +318,7 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.md,
     },
     h1: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
@@ -330,7 +330,7 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.lg,
     },
     sectionTitle: {
-      fontSize: 16,
+      fontSize: theme.typography.body,
       fontWeight: "700",
       color: theme.colors.fg,
       marginBottom: theme.spacing.sm,
@@ -361,7 +361,7 @@ const makeStyles = (theme: any) =>
     },
     optionLabel: {
       flex: 1,
-      fontSize: 15,
+      fontSize: theme.typography.body,
       color: theme.colors.fg,
     },
     footer: {

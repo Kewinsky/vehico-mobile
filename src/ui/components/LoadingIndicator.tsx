@@ -29,7 +29,7 @@ const makeStyles = (theme: any) =>
       paddingVertical: theme.spacing.md,
     },
     text: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "600",
       color: theme.colors.muted,
     },

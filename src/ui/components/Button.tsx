@@ -54,7 +54,7 @@ export function Button({
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     base: {
-      height: 48,
+      height: theme.spacing.lg * 2,
       borderRadius: theme.radius.md,
       alignItems: "center",
       justifyContent: "center",

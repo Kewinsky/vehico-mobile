@@ -205,7 +205,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     editLink: { fontWeight: "800" },
     deleteLink: { fontWeight: "800" },
     title: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
     },
     detailsCard: {
@@ -215,7 +215,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       padding: theme.spacing.md,
       gap: 6,
     },
-    detailsTitle: { fontSize: 18, fontWeight: "800" },
+    detailsTitle: { fontSize: theme.typography.body, fontWeight: "800" },
     row: {
       flexDirection: "row",
       justifyContent: "space-between",

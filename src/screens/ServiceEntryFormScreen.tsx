@@ -729,13 +729,13 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     h1: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       marginBottom: theme.spacing.sm,
       color: theme.colors.fg,
     },
     modeLabel: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       fontWeight: "800",
     },
     modeRow: {
@@ -748,8 +748,12 @@ const makeStyles = (theme: any) =>
     },
     label: { fontSize: 13, fontWeight: "800", color: theme.colors.muted },
     h2: { fontSize: 16, fontWeight: "800", color: theme.colors.fg },
-    sectionHeader: { gap: 6 },
-    muted: { marginTop: 6, color: theme.colors.muted, lineHeight: 20 },
+    sectionHeader: { gap: theme.spacing.sm / 2 },
+    muted: {
+      marginTop: theme.spacing.sm / 2,
+      color: theme.colors.muted,
+      lineHeight: theme.typography.body + 4,
+    },
     pending: {
       marginTop: 10,
       fontSize: 13,
@@ -762,12 +766,12 @@ const makeStyles = (theme: any) =>
       backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
-      marginBottom: 16,
+      marginBottom: theme.spacing.md,
     },
     noticeText: {
       marginTop: theme.spacing.sm / 2,
-      fontSize: 13,
-      lineHeight: 18,
+      fontSize: theme.typography.small,
+      lineHeight: theme.typography.body + 2,
       color: theme.colors.muted,
     },
     card: {
@@ -783,7 +787,11 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     cardTitle: { fontWeight: "800", color: theme.colors.fg },
-    cardMeta: { marginTop: 4, fontSize: 13, color: theme.colors.muted },
+    cardMeta: {
+      marginTop: theme.spacing.xs / 2,
+      fontSize: theme.typography.small,
+      color: theme.colors.muted,
+    },
     entryRow: {
       flexDirection: "row",
       alignItems: "flex-start",
@@ -800,11 +808,11 @@ const makeStyles = (theme: any) =>
     entryCostWrap: { flex: 1, minWidth: 0 },
     entryRemoveWrap: {
       alignSelf: "flex-end",
-      marginBottom: 4,
+      marginBottom: theme.spacing.xs / 2,
     },
     entryRemoveBtn: {
-      width: 44,
-      height: 44,
+      width: theme.spacing.xl + theme.spacing.sm,
+      height: theme.spacing.xl + theme.spacing.sm,
       borderRadius: theme.radius.md,
       borderWidth: 1,
       alignItems: "center",

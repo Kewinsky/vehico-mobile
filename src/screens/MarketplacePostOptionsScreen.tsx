@@ -96,7 +96,7 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.xs / 2,
     },
     h1: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
@@ -115,8 +115,8 @@ const makeStyles = (theme: any) =>
     },
     contentText: {
       flex: 1,
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontFamily: "monospace",
-      lineHeight: 20,
+      lineHeight: theme.typography.body + 4,
     },
   });

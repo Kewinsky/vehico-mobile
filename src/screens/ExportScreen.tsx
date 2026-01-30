@@ -160,18 +160,18 @@ const makeStyles = (theme: any) =>
       paddingHorizontal: theme.spacing.md,
     },
     h1: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
     subtitle: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       color: theme.colors.muted,
     },
     description: {
-      fontSize: 12,
+      fontSize: theme.typography.xs,
       color: theme.colors.muted,
-      marginTop: 4,
+      marginTop: theme.spacing.xs / 2,
       paddingHorizontal: theme.spacing.sm,
     },
   });

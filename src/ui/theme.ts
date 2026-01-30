@@ -1,4 +1,4 @@
-export type ThemeMode = 'light' | 'dark';
+export type ThemeMode = "light" | "dark";
 
 export type AppTheme = {
   colors: {
@@ -17,26 +17,28 @@ export type AppTheme = {
     lg: number;
     xl: number;
   };
-  radius: {
-    sm: number;
-    md: number;
-  };
   typography: {
     title: number;
     body: number;
     small: number;
+    xs: number; // badge, caption
+  };
+  radius: {
+    xs: number; // checkbox, small corners
+    sm: number;
+    md: number;
   };
 };
 
 export const lightTheme: AppTheme = {
   colors: {
-    bg: '#FFFFFF',      // pure white
-    fg: '#000000',      // pure black
-    muted: '#666666',   // gray
-    border: '#E5E5E5',  // light gray
-    card: '#FFFFFF',
-    accent: '#FFB803',  // orange/yellow
-    danger: '#EF4444',  // red-500
+    bg: "#FFFFFF", // pure white
+    fg: "#000000", // pure black
+    muted: "#666666", // gray
+    border: "#E5E5E5", // light gray
+    card: "#FFFFFF",
+    accent: "#FFB803", // orange/yellow
+    danger: "#EF4444", // red-500
   },
   spacing: {
     xs: 8,
@@ -46,6 +48,7 @@ export const lightTheme: AppTheme = {
     xl: 32,
   },
   radius: {
+    xs: 4,
     sm: 8,
     md: 14,
   },
@@ -53,18 +56,19 @@ export const lightTheme: AppTheme = {
     title: 20,
     body: 16,
     small: 13,
+    xs: 11,
   },
 };
 
 export const darkTheme: AppTheme = {
   colors: {
-    bg: '#000000',      // pure black
-    fg: '#FFFFFF',      // pure white
-    muted: '#999999',   // light gray
-    border: '#333333',  // dark gray
-    card: '#000000',    // pure black
-    accent: '#FFB803',  // orange/yellow
-    danger: '#EF4444',  // red-500
+    bg: "#000000", // pure black
+    fg: "#FFFFFF", // pure white
+    muted: "#999999", // light gray
+    border: "#333333", // dark gray
+    card: "#000000", // pure black
+    accent: "#FFB803", // orange/yellow
+    danger: "#EF4444", // red-500
   },
   spacing: lightTheme.spacing,
   radius: lightTheme.radius,
@@ -72,7 +76,5 @@ export const darkTheme: AppTheme = {
 };
 
 export function getTheme(mode: ThemeMode): AppTheme {
-  return mode === 'dark' ? darkTheme : lightTheme;
+  return mode === "dark" ? darkTheme : lightTheme;
 }
-
-

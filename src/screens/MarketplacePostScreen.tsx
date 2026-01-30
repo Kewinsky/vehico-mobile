@@ -438,7 +438,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     h1: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
@@ -451,7 +451,7 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.md,
     },
     sectionTitle: {
-      fontSize: 16,
+      fontSize: theme.typography.body,
       fontWeight: "700",
       color: theme.colors.fg,
       marginBottom: theme.spacing.sm,
@@ -482,7 +482,7 @@ const makeStyles = (theme: any) =>
     },
     optionLabel: {
       flex: 1,
-      fontSize: 15,
+      fontSize: theme.typography.body,
       color: theme.colors.fg,
     },
     textAreaContainer: {
@@ -507,7 +507,7 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     buttonText: {
-      fontSize: 15,
+      fontSize: theme.typography.body,
       fontWeight: "700",
     },
     loadingContainer: {

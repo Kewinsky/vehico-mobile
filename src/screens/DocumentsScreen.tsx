@@ -419,7 +419,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
             const description = d.description || "";
             return description.toLowerCase().includes(q);
           }).length === 0 ? (
-          <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+          <Text
+            style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}
+          >
             {t("documents.noVehicleDocuments")}
           </Text>
         ) : null}
@@ -497,7 +499,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
           const title = a.serviceEntryTitle || "";
           return title.toLowerCase().includes(q);
         }).length === 0 && !loading ? (
-          <Text style={{ color: theme.colors.muted, marginTop: 8 }}>
+          <Text
+            style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}
+          >
             {t("documents.noAttachments")}
           </Text>
         ) : null}
@@ -519,10 +523,20 @@ const makeStyles = (theme: any) =>
     header: {
       gap: theme.spacing.xs / 2,
     },
-    title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
-    subtitle: { fontSize: 13, color: theme.colors.muted },
-    countInfo: { fontSize: 13, marginTop: theme.spacing.xs / 2 },
-    body: { marginTop: theme.spacing.xs, lineHeight: 22 },
+    title: {
+      fontSize: theme.typography.title,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
+    subtitle: { fontSize: theme.typography.small, color: theme.colors.muted },
+    countInfo: {
+      fontSize: theme.typography.small,
+      marginTop: theme.spacing.xs / 2,
+    },
+    body: {
+      marginTop: theme.spacing.xs,
+      lineHeight: theme.typography.body + 6,
+    },
     section: {
       marginTop: theme.spacing.sm - 2,
       fontSize: 16,
@@ -549,9 +563,9 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
     },
     trash: {
-      width: 44,
-      height: 44,
-      borderRadius: 12,
+      width: theme.spacing.xl + theme.spacing.sm,
+      height: theme.spacing.xl + theme.spacing.sm,
+      borderRadius: theme.radius.sm,
       alignItems: "center",
       justifyContent: "center",
     },

@@ -20,6 +20,7 @@ function hexToRgba(hex: string, alpha: number): string {
 
 export function ChoiceChip({ label, selected, onPress, style }: Props) {
   const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const accentBg = hexToRgba(theme.colors.accent, 0.15);
 
   return (
@@ -49,18 +50,19 @@ export function ChoiceChip({ label, selected, onPress, style }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  chip: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    minWidth: 60,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "800",
-  },
-});
+const makeStyles = (theme: any) =>
+  StyleSheet.create({
+    chip: {
+      borderWidth: 1,
+      borderRadius: theme.radius.sm,
+      paddingVertical: theme.spacing.sm - 2,
+      paddingHorizontal: theme.spacing.sm,
+      minWidth: 60,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    label: {
+      fontSize: theme.typography.small,
+      fontWeight: "800",
+    },
+  });

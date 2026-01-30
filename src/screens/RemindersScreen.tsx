@@ -513,9 +513,16 @@ const makeStyles = (theme: any) =>
     header: {
       gap: theme.spacing.xs / 2,
     },
-    title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
-    subtitle: { fontSize: 13, color: theme.colors.muted },
-    body: { marginTop: theme.spacing.xs, lineHeight: 22 },
+    title: {
+      fontSize: theme.typography.title,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
+    subtitle: { fontSize: theme.typography.small, color: theme.colors.muted },
+    body: {
+      marginTop: theme.spacing.xs,
+      lineHeight: theme.typography.body + 6,
+    },
     card: {
       borderWidth: 1,
       borderRadius: theme.radius.md,
@@ -530,9 +537,9 @@ const makeStyles = (theme: any) =>
 
     searchRow: { flexDirection: "row", alignItems: "center" },
     addButton: {
-      width: 50,
-      height: 50,
-      borderRadius: 12,
+      width: theme.spacing.xl + theme.spacing.sm,
+      height: theme.spacing.xl + theme.spacing.sm,
+      borderRadius: theme.radius.sm,
       borderWidth: 1,
       alignItems: "center",
       justifyContent: "center",
@@ -550,7 +557,7 @@ const makeStyles = (theme: any) =>
     },
     filtersAction: {
       borderWidth: 1,
-      borderRadius: theme.radius.md - 2,
+      borderRadius: theme.radius.sm,
       paddingVertical: theme.spacing.sm - 2,
       paddingHorizontal: theme.spacing.sm,
       alignSelf: "flex-start",
@@ -562,7 +569,7 @@ const makeStyles = (theme: any) =>
       padding: theme.spacing.sm,
     },
     filterLabel: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       fontWeight: "800",
       marginBottom: theme.spacing.xs,
     },
@@ -580,7 +587,7 @@ const makeStyles = (theme: any) =>
       paddingVertical: theme.spacing.xs,
     },
     separatorText: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "800",
       textTransform: "uppercase",
       letterSpacing: 0.5,

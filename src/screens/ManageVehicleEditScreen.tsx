@@ -636,10 +636,22 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
-    h2: { fontSize: 16, fontWeight: "800", color: theme.colors.fg },
-    muted: { marginTop: 6, color: theme.colors.muted, lineHeight: 20 },
-    sectionHeader: { gap: 6 },
+    h1: {
+      fontSize: theme.typography.title,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
+    h2: {
+      fontSize: theme.typography.body,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
+    muted: {
+      marginTop: theme.spacing.sm / 2,
+      color: theme.colors.muted,
+      lineHeight: theme.typography.body + 4,
+    },
+    sectionHeader: { gap: theme.spacing.sm / 2 },
     card: {
       borderWidth: 1,
       borderColor: theme.colors.border,
@@ -653,7 +665,7 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     cardTitle: { color: theme.colors.fg, fontWeight: "800" },
-    cardMeta: { marginTop: 4, color: theme.colors.muted },
+    cardMeta: { marginTop: theme.spacing.xs / 2, color: theme.colors.muted },
     photosSection: {
       gap: 8,
       marginTop: theme.spacing.sm,
@@ -693,14 +705,14 @@ const makeStyles = (theme: any) =>
     },
     photoDeleteButton: {
       position: "absolute",
-      top: 4,
-      right: 4,
-      width: 28,
-      height: 28,
+      top: theme.spacing.xs / 2,
+      right: theme.spacing.xs / 2,
+      width: theme.spacing.lg + theme.spacing.xs / 2,
+      height: theme.spacing.lg + theme.spacing.xs / 2,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: theme.colors.bg,
-      borderRadius: 14,
+      borderRadius: theme.radius.md,
       opacity: 0.7,
     },
     photoMainBadge: {
@@ -716,7 +728,7 @@ const makeStyles = (theme: any) =>
     },
     photoMainText: {
       color: "#000000",
-      fontSize: 11,
+      fontSize: theme.typography.xs,
       fontWeight: "700",
     },
     loadingContainer: {
@@ -726,12 +738,12 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
     },
     group: {
-      gap: 8,
+      gap: theme.spacing.xs,
       marginTop: theme.spacing.sm,
-      marginBottom: 4,
+      marginBottom: theme.spacing.xs / 2,
     },
     label: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       fontWeight: "700",
     },
     typeRow: {

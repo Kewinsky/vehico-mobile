@@ -196,15 +196,15 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.xs / 2,
     },
     title: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
     },
     subtitle: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
     },
     card: {
       borderWidth: 1,
-      borderRadius: 14,
+      borderRadius: theme.radius.md,
       padding: theme.spacing.sm,
     },
     cardRow: {
@@ -218,23 +218,23 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     itemTitle: {
-      fontSize: 16,
+      fontSize: theme.typography.body,
       fontWeight: "800",
     },
     badge: {
-      paddingHorizontal: 6,
+      paddingHorizontal: theme.spacing.sm / 2,
       paddingVertical: 2,
       borderRadius: 999,
       borderWidth: 1,
     },
     badgeText: {
-      fontSize: 11,
+      fontSize: theme.typography.xs,
       fontWeight: "700",
       color: "#000000",
       letterSpacing: 0.3,
     },
     itemSubtitle: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
     },
     loadingContainer: {
       paddingTop: theme.spacing.lg * 2.5,
@@ -243,6 +243,6 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
     },
     emptyText: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
     },
   });

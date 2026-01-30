@@ -204,11 +204,11 @@ function makeStyles(theme: any) {
       gap: theme.spacing.md,
     },
     editLink: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "600",
     },
     deleteLink: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "600",
     },
     content: {
@@ -216,11 +216,11 @@ function makeStyles(theme: any) {
       paddingTop: theme.spacing.sm,
     },
     title: {
-      fontSize: 22,
+      fontSize: theme.typography.title,
       fontWeight: "800",
     },
     subtitle: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       marginTop: theme.spacing.xs,
     },
     row: {
@@ -230,19 +230,19 @@ function makeStyles(theme: any) {
       marginTop: theme.spacing.md,
     },
     label: {
-      fontSize: 12,
+      fontSize: theme.typography.xs,
       fontWeight: "600",
       marginBottom: theme.spacing.xs,
     },
     value: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
     },
     phoneValue: {
       fontSize: 14,
       fontWeight: "600",
     },
     sectionTitle: {
-      fontSize: 16,
+      fontSize: theme.typography.body,
       fontWeight: "700",
       marginBottom: theme.spacing.sm,
     },
@@ -250,17 +250,17 @@ function makeStyles(theme: any) {
       gap: theme.spacing.sm,
     },
     entryCard: {
-      borderRadius: 12,
+      borderRadius: theme.radius.sm,
       borderWidth: 1,
       padding: theme.spacing.md,
       marginBottom: theme.spacing.sm,
     },
     entryTitle: {
-      fontSize: 15,
+      fontSize: theme.typography.body,
       fontWeight: "600",
     },
     entryDate: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       marginTop: theme.spacing.xs,
     },
   });

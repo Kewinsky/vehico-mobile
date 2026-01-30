@@ -538,12 +538,12 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.md,
     },
     h1: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
     subtitle: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       color: theme.colors.muted,
     },
     loadingContainer: {
@@ -560,7 +560,7 @@ const makeStyles = (theme: any) =>
       padding: theme.spacing.md,
     },
     sectionTitle: {
-      fontSize: 16,
+      fontSize: theme.typography.body,
       fontWeight: "700",
       color: theme.colors.fg,
       marginBottom: theme.spacing.sm,
@@ -611,11 +611,11 @@ const makeStyles = (theme: any) =>
     },
     fullScreenClose: {
       position: "absolute",
-      right: 16,
+      right: theme.spacing.md,
       zIndex: 10,
-      width: 44,
-      height: 44,
-      borderRadius: 22,
+      width: theme.spacing.xl + theme.spacing.sm,
+      height: theme.spacing.xl + theme.spacing.sm,
+      borderRadius: (theme.spacing.xl + theme.spacing.sm) / 2,
       backgroundColor: "rgba(0,0,0,0.4)",
       alignItems: "center",
       justifyContent: "center",
@@ -629,11 +629,11 @@ const makeStyles = (theme: any) =>
       borderBottomColor: theme.colors.border,
     },
     dataLabel: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       color: theme.colors.muted,
     },
     dataValue: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "600",
       color: theme.colors.fg,
     },
@@ -643,8 +643,8 @@ const makeStyles = (theme: any) =>
       color: theme.colors.accent,
     },
     notesText: {
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: theme.typography.small,
+      lineHeight: theme.typography.body + 4,
       color: theme.colors.fg,
     },
     statRow: {
@@ -660,7 +660,7 @@ const makeStyles = (theme: any) =>
       color: theme.colors.fg,
     },
     statValue: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "600",
       color: theme.colors.accent,
     },
@@ -670,8 +670,8 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     photoThumbnail: {
-      width: 80,
-      height: 80,
+      width: theme.spacing.xl * 2 + theme.spacing.sm,
+      height: theme.spacing.xl * 2 + theme.spacing.sm,
       borderRadius: theme.radius.sm,
       backgroundColor: theme.colors.border,
       alignItems: "center",
@@ -689,9 +689,9 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     checkbox: {
-      width: 24,
-      height: 24,
-      borderRadius: 4,
+      width: theme.spacing.lg,
+      height: theme.spacing.lg,
+      borderRadius: theme.radius.xs,
       borderWidth: 2,
       borderColor: theme.colors.border,
       alignItems: "center",
@@ -704,8 +704,8 @@ const makeStyles = (theme: any) =>
     },
     checkboxLabel: {
       flex: 1,
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: theme.typography.small,
+      lineHeight: theme.typography.body + 4,
       color: theme.colors.fg,
     },
     footer: {

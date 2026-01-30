@@ -565,14 +565,18 @@ export function VehicleFormScreen({ navigation }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
+    h1: {
+      fontSize: theme.typography.title,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
     group: {
-      gap: 8,
+      gap: theme.spacing.xs,
       marginTop: theme.spacing.sm,
-      marginBottom: 4,
+      marginBottom: theme.spacing.xs / 2,
     },
     label: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       fontWeight: "700",
     },
     typeRow: {
@@ -583,9 +587,9 @@ const makeStyles = (theme: any) =>
       flex: 1,
     },
     photosSection: {
-      gap: 8,
+      gap: theme.spacing.xs,
       marginTop: theme.spacing.sm,
-      marginBottom: 4,
+      marginBottom: theme.spacing.xs / 2,
     },
     photosGrid: {
       flexDirection: "row",
@@ -633,7 +637,7 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: theme.colors.bg,
-      borderRadius: 14,
+      borderRadius: theme.radius.md,
       opacity: 0.7,
     },
     photoMainBadge: {
@@ -642,14 +646,14 @@ const makeStyles = (theme: any) =>
       left: theme.spacing.xs,
       backgroundColor: theme.colors.accent,
       borderRadius: theme.radius.sm,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
+      paddingHorizontal: theme.spacing.xs,
+      paddingVertical: theme.spacing.xs / 2,
       alignItems: "center",
       justifyContent: "center",
     },
     photoMainText: {
       color: "#000000",
-      fontSize: 11,
+      fontSize: theme.typography.xs,
       fontWeight: "700",
     },
   });
