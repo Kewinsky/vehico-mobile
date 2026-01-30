@@ -230,8 +230,8 @@ const makeStyles = (theme: any) =>
       fontWeight: "800",
     },
     badge: {
-      paddingHorizontal: theme.spacing.sm / 2,
-      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.xs,
+      paddingVertical: theme.spacing.xs / 2,
       borderRadius: 999,
       borderWidth: 1,
     },

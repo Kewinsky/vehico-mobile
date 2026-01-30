@@ -12,12 +12,22 @@ import Svg, {
 
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
+import {
+  listVehicleTires,
+  formatTireDimensions,
+} from "../../services/tires/tiresRepo";
+import {
+  listVehicleWheels,
+  formatWheelDimensions,
+} from "../../services/wheels/wheelsRepo";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import type {
   FuelingEntry,
   ServiceEntry,
   ServiceEntryCategory,
   Vehicle,
+  VehicleTire,
+  VehicleWheel,
 } from "../../types/domain";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useTheme } from "../ThemeProvider";
@@ -438,6 +448,8 @@ export function StatisticsCard({ vehicleId, period }: Props) {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [service, setService] = useState<ServiceEntry[]>([]);
   const [fueling, setFueling] = useState<FuelingEntry[]>([]);
+  const [tires, setTires] = useState<VehicleTire[]>([]);
+  const [wheels, setWheels] = useState<VehicleWheel[]>([]);
 
   useEffect(() => {
     if (!isFocused) return;
@@ -445,15 +457,19 @@ export function StatisticsCard({ vehicleId, period }: Props) {
     setLoading(true);
     (async () => {
       try {
-        const [v, s, f] = await Promise.all([
+        const [v, s, f, tiresData, wheelsData] = await Promise.all([
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
           listFuelingEntries(vehicleId),
+          listVehicleTires(vehicleId),
+          listVehicleWheels(vehicleId),
         ]);
         if (!alive) return;
         setVehicle(v);
         setService(s);
         setFueling(f);
+        setTires(tiresData);
+        setWheels(wheelsData);
       } catch (err: any) {
         toastError(err?.message ?? t("common.error"));
       } finally {
@@ -464,6 +480,9 @@ export function StatisticsCard({ vehicleId, period }: Props) {
       alive = false;
     };
   }, [isFocused, t, vehicleId]);
+
+  const currentTire = tires.find((x) => x.is_currently_fitted) ?? null;
+  const currentWheel = wheels.find((x) => x.is_currently_fitted) ?? null;
 
   const filtered = useMemo(() => {
     const today = new Date();
@@ -747,6 +766,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
         </View>
       ) : (
         <>
+          {/* SECTION 1: Metrics – summary of expenses, fuel, distance */}
           <View style={styles.metricsRow}>
             <View style={styles.metric}>
               <Text style={styles.metricLabel}>
@@ -843,6 +863,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
             </View>
           </View>
 
+          {/* SECTION 2: Charts: expenses over time (linear) */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               {t("dashboard.stats.charts.expensesOverTime")}
@@ -864,6 +885,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
             )}
           </View>
 
+          {/* SECTION 3: Charts: distance over time (linear) */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               {t("dashboard.stats.charts.distanceOverTime")}
@@ -887,6 +909,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
             )}
           </View>
 
+          {/* SECTION 4: Charts: expenses by category (pie) */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               {t("dashboard.stats.charts.expensesByCategory")}
@@ -932,49 +955,43 @@ export function StatisticsCard({ vehicleId, period }: Props) {
             )}
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {t("dashboard.stats.lastOilChange")}
-            </Text>
-            {lastOilChange ? (
-              <View style={styles.infoCard}>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoRowLabel}>
-                    {t("dashboard.stats.lastOilChangeDate")}
-                  </Text>
-                  <Text style={styles.infoRowValue}>
-                    {lastOilChange.service_date.slice(0, 10)}
-                  </Text>
-                </View>
-                {lastOilChange.mileage != null && (
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoRowLabel}>
-                      {t("dashboard.stats.lastOilChangeMileage")}
-                    </Text>
-                    <Text style={styles.infoRowValue}>
-                      {fmtNumber(lastOilChange.mileage, 0)} {distanceUnit}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            ) : (
-              <Text style={styles.empty}>
-                {t("dashboard.stats.noOilChangeEntries")}
+          {/* SECTION 5: Wymiana oleju (ostatnia + interwały) */}
+          {(lastOilChange != null ||
+            Number.isFinite(oilIntervals.avgKm) ||
+            Number.isFinite(oilIntervals.avgMonths)) && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {t("dashboard.stats.oilChange")}
               </Text>
-            )}
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {t("dashboard.stats.oilIntervals")}
-            </Text>
-            {Number.isFinite(oilIntervals.avgKm) ||
-            Number.isFinite(oilIntervals.avgMonths) ? (
               <View style={styles.infoCard}>
+                {lastOilChange != null && (
+                  <>
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoRowLabel}>
+                        {t("dashboard.stats.lastOilChangeDate")}
+                      </Text>
+                      <Text style={styles.infoRowValue}>
+                        {lastOilChange.service_date.slice(0, 10)}
+                      </Text>
+                    </View>
+                    {lastOilChange.mileage != null && (
+                      <View style={styles.infoRow}>
+                        <Text style={styles.infoRowLabel}>
+                          {t("dashboard.stats.lastOilChangeMileage")}
+                        </Text>
+                        <Text style={styles.infoRowValue}>
+                          {fmtNumber(lastOilChange.mileage, 0)} {distanceUnit}
+                        </Text>
+                      </View>
+                    )}
+                  </>
+                )}
                 {Number.isFinite(oilIntervals.avgKm) && (
                   <View style={styles.infoRow}>
                     <Text style={styles.infoRowLabel}>
-                      {t("dashboard.stats.oilIntervalsAvgKm")}
+                      {t("dashboard.stats.oilIntervalAvg", {
+                        unit: distanceUnit,
+                      })}
                     </Text>
                     <Text style={styles.infoRowValue}>
                       {fmtNumber(oilIntervals.avgKm, 0)} {distanceUnit}
@@ -984,7 +1001,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
                 {Number.isFinite(oilIntervals.avgMonths) && (
                   <View style={styles.infoRow}>
                     <Text style={styles.infoRowLabel}>
-                      {t("dashboard.stats.oilIntervalsAvgMonths")}
+                      {t("dashboard.stats.oilIntervalAvgMonths")}
                     </Text>
                     <Text style={styles.infoRowValue}>
                       {fmtNumber(oilIntervals.avgMonths, 1)}{" "}
@@ -993,13 +1010,10 @@ export function StatisticsCard({ vehicleId, period }: Props) {
                   </View>
                 )}
               </View>
-            ) : (
-              <Text style={styles.empty}>
-                {t("dashboard.stats.noOilIntervals")}
-              </Text>
-            )}
-          </View>
+            </View>
+          )}
 
+          {/* SECTION 6: Ubezpieczenie i przegląd */}
           {(vehicle?.insurance_valid_until != null ||
             vehicle?.inspection_valid_until != null) && (
             <View style={styles.section}>
@@ -1025,6 +1039,59 @@ export function StatisticsCard({ vehicleId, period }: Props) {
                     <Text style={styles.infoRowValue}>
                       {vehicle.inspection_valid_until}
                     </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
+
+          {/* SECTION 7: Założone felgi i opony */}
+          {(currentTire != null || currentWheel != null) && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {t("dashboard.stats.fittedWheelsAndTires")}
+              </Text>
+              <View style={styles.infoCard}>
+                {currentTire != null && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.currentTire")}
+                    </Text>
+                    <View style={styles.infoRowValueWrap}>
+                      <Text
+                        style={styles.infoRowValue}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {currentTire.name} ·{" "}
+                        {formatTireDimensions(
+                          currentTire.width_mm,
+                          currentTire.aspect_ratio,
+                          currentTire.diameter_inch,
+                        )}{" "}
+                        · {t(`tireForm.types.${currentTire.tire_type}`)}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+                {currentWheel != null && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.currentWheel")}
+                    </Text>
+                    <View style={styles.infoRowValueWrap}>
+                      <Text
+                        style={styles.infoRowValue}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {currentWheel.name} ·{" "}
+                        {formatWheelDimensions(
+                          currentWheel.width_inch,
+                          currentWheel.diameter_inch,
+                        )}
+                      </Text>
+                    </View>
                   </View>
                 )}
               </View>
@@ -1088,6 +1155,10 @@ const makeStyles = (theme: any) =>
       fontWeight: "700",
       fontSize: theme.typography.small,
       flexShrink: 0,
+    },
+    infoRowValueWrap: {
+      flex: 1,
+      minWidth: 0,
     },
     infoRowValue: {
       color: theme.colors.fg,

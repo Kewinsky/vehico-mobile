@@ -119,20 +119,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       icon: "notifications",
       onPress: () => navigation.navigate("Reminders", { vehicleId }),
     },
-    // Row 4: Share + Export/Import
-    {
-      key: "share",
-      title: t("dashboard.tiles.shareTitle"),
-      icon: "share-social",
-      onPress: () => navigation.navigate("Share", { vehicleId }),
-    },
-    {
-      key: "data",
-      title: t("dashboard.tiles.dataTitle"),
-      icon: "download",
-      onPress: () => navigation.navigate("DataPortability", { vehicleId }),
-    },
-    // Row 5: Wheels + Workshops
+    // Row 4: Wheels + Workshops
     {
       key: "wheels",
       title: t("dashboard.tiles.wheelsTitle"),
@@ -144,6 +131,19 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       title: t("dashboard.tiles.workshopsTitle"),
       icon: "business",
       onPress: () => navigation.navigate("Workshops"),
+    },
+    // Row 5: Share + Export/Import
+    {
+      key: "share",
+      title: t("dashboard.tiles.shareTitle"),
+      icon: "share-social",
+      onPress: () => navigation.navigate("Share", { vehicleId }),
+    },
+    {
+      key: "data",
+      title: t("dashboard.tiles.dataTitle"),
+      icon: "download",
+      onPress: () => navigation.navigate("DataPortability", { vehicleId }),
     },
   ];
 

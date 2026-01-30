@@ -81,8 +81,8 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm / 2,
     },
     badge: {
-      paddingHorizontal: theme.spacing.xs / 2 + 1,
-      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.xs,
+      paddingVertical: theme.spacing.xs / 2,
       borderRadius: 999,
     },
     badgeAccent: {
