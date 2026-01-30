@@ -195,10 +195,18 @@ export function VehiclesScreen({ navigation }: Props) {
             onPress={() => navigation.navigate("Profile")}
             hitSlop={10}
           >
-            <Text style={styles.actionText}>{t("profile.title")}</Text>
+            <Text
+              style={[styles.actionText, { color: theme.colors.accent }]}
+            >
+              {t("profile.title")}
+            </Text>
           </Pressable>
           <Pressable onPress={onSignOut} hitSlop={10}>
-            <Text style={styles.actionText}>{t("common.signOut")}</Text>
+            <Text
+              style={[styles.actionText, { color: theme.colors.danger }]}
+            >
+              {t("common.signOut")}
+            </Text>
           </Pressable>
         </View>
       </View>

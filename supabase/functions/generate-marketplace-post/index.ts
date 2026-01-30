@@ -15,8 +15,8 @@ interface GenerateRequest {
   includeServiceEntries?: boolean;
   includeFuelingStats?: boolean;
   includeServiceStats?: boolean;
-  includeNotes?: boolean;
   includeWheelsTires?: boolean;
+  includeNotes?: boolean;
   publicReportUrl?: string | null;
 }
 
@@ -248,61 +248,103 @@ function formatFuelingStats(
 
   if (stats.totalDistance > 0) {
     lines.push(
-      `${isPL ? "Całkowity przebieg" : "Total distance"}: ${stats.totalDistance.toLocaleString()} km`,
+      `${
+        isPL ? "Całkowity przebieg" : "Total distance"
+      }: ${stats.totalDistance.toLocaleString()} km`,
     );
   }
   if (stats.totalFuel > 0) {
     lines.push(
-      `${isPL ? "Całkowite paliwo" : "Total fuel"}: ${stats.totalFuel.toFixed(2)} L`,
+      `${isPL ? "Całkowite paliwo" : "Total fuel"}: ${stats.totalFuel.toFixed(
+        2,
+      )} L`,
     );
   }
   if (stats.avgConsumption > 0) {
     lines.push(
-      `${isPL ? "Średnie spalanie" : "Average consumption"}: ${stats.avgConsumption.toFixed(2)} L/100km`,
+      `${
+        isPL ? "Średnie spalanie" : "Average consumption"
+      }: ${stats.avgConsumption.toFixed(2)} L/100km`,
     );
   }
   if (stats.totalCost > 0) {
     lines.push(
-      `${isPL ? "Całkowity koszt paliwa" : "Total fuel cost"}: ${stats.totalCost.toLocaleString(
-        undefined,
-        {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        },
-      )} ${currency}`,
+      `${
+        isPL ? "Całkowity koszt paliwa" : "Total fuel cost"
+      }: ${stats.totalCost.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })} ${currency}`,
     );
   }
 
   return lines.join("\n");
 }
 
+type OilChangeData = {
+  lastDate: string | null;
+  lastMileage: number | null;
+  avgKm: number;
+  avgMonths: number;
+};
+
 function formatServiceStats(
   stats: ReturnType<typeof calculateServiceStats>,
+  oil: OilChangeData,
   currency: string,
   lang: "en" | "pl",
 ): string {
-  if (stats.entryCount === 0) {
-    return lang === "pl" ? "Brak danych o serwisach." : "No service data.";
-  }
-
   const isPL = lang === "pl";
   const lines: string[] = [];
 
-  lines.push(
-    `${isPL ? "Liczba wpisów serwisowych" : "Number of service entries"}: ${stats.entryCount}`,
-  );
-  if (stats.totalCost > 0) {
+  // 1. Ostatnia wymiana oleju
+  if (oil.lastDate) {
     lines.push(
-      `${isPL ? "Całkowity koszt serwisów" : "Total service cost"}: ${stats.totalCost.toLocaleString(
-        undefined,
-        {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        },
-      )} ${currency}`,
+      `${isPL ? "Ostatnia wymiana oleju" : "Last oil change"}: ${oil.lastDate}`,
+    );
+    if (oil.lastMileage != null) {
+      lines.push(
+        `${isPL ? "Przebieg" : "Mileage"}: ${oil.lastMileage.toLocaleString()} km`,
+      );
+    }
+  }
+
+  // 2. Interwały olejowe
+  if (Number.isFinite(oil.avgKm)) {
+    lines.push(
+      `${
+        isPL ? "Średni interwał olejowy (km)" : "Avg oil interval (km)"
+      }: ${Math.round(oil.avgKm).toLocaleString()} km`,
+    );
+  }
+  if (Number.isFinite(oil.avgMonths)) {
+    lines.push(
+      `${
+        isPL ? "Średni interwał olejowy (mies.)" : "Avg oil interval (months)"
+      }: ${oil.avgMonths.toFixed(1)}`,
     );
   }
 
+  // 3. Łączny koszt serwisu
+  if (stats.totalCost > 0) {
+    lines.push(
+      `${
+        isPL ? "Łączny koszt serwisów" : "Total service cost"
+      }: ${stats.totalCost.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })} ${currency}`,
+    );
+  }
+
+  // 4. Liczba wpisów serwisowych
+  lines.push(
+    `${isPL ? "Liczba wpisów serwisowych" : "Number of service entries"}: ${
+      stats.entryCount
+    }`,
+  );
+
+  // 5. Koszty według kategorii
   const categoryLabels: Record<string, { en: string; pl: string }> = {
     maintenance: { en: "Maintenance", pl: "Serwis" },
     repair: { en: "Repair", pl: "Naprawa" },
@@ -311,11 +353,9 @@ function formatServiceStats(
     oil_engine: { en: "Oil", pl: "Olej" },
     other: { en: "Other", pl: "Inne" },
   };
-
   const categories = Object.entries(stats.byCategory)
     .filter(([_, cost]) => cost > 0)
     .sort(([_, a], [__, b]) => b - a);
-
   if (categories.length > 0) {
     lines.push("");
     lines.push(isPL ? "Koszty według kategorii:" : "Costs by category:");
@@ -330,7 +370,56 @@ function formatServiceStats(
     });
   }
 
+  if (lines.length === 0) {
+    return isPL ? "Brak danych o serwisach." : "No service data.";
+  }
   return lines.join("\n");
+}
+
+function getOilChangeData(entries: ServiceEntry[]): OilChangeData {
+  const oilEntries = entries
+    .filter((e) => (e.category ?? "other") === "oil_engine")
+    .sort(
+      (a, b) =>
+        new Date(a.service_date).getTime() -
+        new Date(b.service_date).getTime(),
+    );
+  const last = oilEntries.length > 0 ? oilEntries[oilEntries.length - 1] : null;
+  const lastDate = last?.service_date?.slice(0, 10) ?? null;
+  const lastMileage = last?.mileage ?? null;
+
+  let avgKm = NaN;
+  let avgMonths = NaN;
+  if (oilEntries.length >= 2) {
+    const kmDeltas: number[] = [];
+    const monthDeltas: number[] = [];
+    for (let i = 1; i < oilEntries.length; i++) {
+      const prev = oilEntries[i - 1];
+      const curr = oilEntries[i];
+      if (
+        prev.mileage != null &&
+        curr.mileage != null &&
+        curr.mileage > prev.mileage
+      ) {
+        kmDeltas.push(curr.mileage - prev.mileage);
+      }
+      const prevDate = new Date(prev.service_date);
+      const currDate = new Date(curr.service_date);
+      const months =
+        (currDate.getFullYear() - prevDate.getFullYear()) * 12 +
+        (currDate.getMonth() - prevDate.getMonth());
+      if (months > 0) monthDeltas.push(months);
+    }
+    avgKm =
+      kmDeltas.length > 0
+        ? kmDeltas.reduce((a, b) => a + b, 0) / kmDeltas.length
+        : NaN;
+    avgMonths =
+      monthDeltas.length > 0
+        ? monthDeltas.reduce((a, b) => a + b, 0) / monthDeltas.length
+        : NaN;
+  }
+  return { lastDate, lastMileage, avgKm, avgMonths };
 }
 
 function formatWheelsAndTiresSection(
@@ -393,8 +482,8 @@ function generateMarketplacePost(
     includeServiceEntries: boolean;
     includeFuelingStats: boolean;
     includeServiceStats: boolean;
-    includeNotes: boolean;
     includeWheelsTires: boolean;
+    includeNotes: boolean;
     publicReportUrl: string | null;
   },
 ): string {
@@ -453,10 +542,16 @@ ${isPL ? "Przebieg" : "Mileage"}: ${formatValue(
     isPL ? "przebieg" : "mileage",
   )} km`;
   const insuranceLine = vehicle.insurance_valid_until
-    ? `${isPL ? "Ubezpieczenie ważne do" : "Insurance valid until"}: ${vehicle.insurance_valid_until}`
+    ? `${isPL ? "Ubezpieczenie ważne do" : "Insurance valid until"}: ${
+        vehicle.insurance_valid_until
+      }`
     : null;
   const inspectionLine = vehicle.inspection_valid_until
-    ? `${isPL ? "Przegląd techniczny ważny do" : "Technical inspection valid until"}: ${vehicle.inspection_valid_until}`
+    ? `${
+        isPL
+          ? "Przegląd techniczny ważny do"
+          : "Technical inspection valid until"
+      }: ${vehicle.inspection_valid_until}`
     : null;
   const specExtras = [insuranceLine, inspectionLine].filter(Boolean);
   const specFull =
@@ -480,12 +575,13 @@ ${formatFuelingStats(fuelingStats, currency, language)}`;
     sections.push(stats);
   }
 
-  // Service statistics (if included)
+  // Service statistics (if included) - last oil change, intervals, cost, count, by category
   if (options.includeServiceStats) {
     const serviceStats = calculateServiceStats(serviceEntries, language);
+    const oilData = getOilChangeData(serviceEntries);
     const statsTitle = isPL ? "STATYSTYKI SERWISOWE" : "SERVICE STATISTICS";
     const stats = `=== ${statsTitle} ===
-${formatServiceStats(serviceStats, currency, language)}`;
+${formatServiceStats(serviceStats, oilData, currency, language)}`;
     sections.push(stats);
   }
 
@@ -499,7 +595,7 @@ ${vehicle.notes}`;
 
   // Wheels and tires (separate section if included)
   if (options.includeWheelsTires && (tires.length > 0 || wheels.length > 0)) {
-    const wheelsTitle = isPL ? "KOŁA I OPONY" : "WHEELS AND TIRES";
+    const wheelsTitle = isPL ? "FELGI I OPONY" : "WHEELS AND TIRES";
     const wheelsSection = `=== ${wheelsTitle} ===
 ${formatWheelsAndTiresSection(tires, wheels, language)}`;
     sections.push(wheelsSection);
@@ -509,7 +605,11 @@ ${formatWheelsAndTiresSection(tires, wheels, language)}`;
   if (options.publicReportUrl) {
     const reportTitle = isPL ? "RAPORT ONLINE" : "ONLINE REPORT";
     const reportSection = `=== ${reportTitle} ===
-${isPL ? "Szczegółowy raport dostępny pod adresem:" : "Detailed report available at:"}
+${
+  isPL
+    ? "Szczegółowy raport dostępny pod adresem:"
+    : "Detailed report available at:"
+}
 ${options.publicReportUrl}`;
     sections.push(reportSection);
   }
@@ -555,8 +655,8 @@ serve(async (req) => {
       includeServiceEntries = true,
       includeFuelingStats = false,
       includeServiceStats = false,
-      includeNotes = false,
       includeWheelsTires = false,
+      includeNotes = false,
       publicReportUrl = null,
     }: GenerateRequest = await req.json();
 
@@ -652,8 +752,8 @@ serve(async (req) => {
         includeServiceEntries,
         includeFuelingStats,
         includeServiceStats,
-        includeNotes,
         includeWheelsTires,
+        includeNotes,
         publicReportUrl,
       },
     );

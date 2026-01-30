@@ -94,7 +94,9 @@ export function WorkshopsScreen({ navigation, route }: Props) {
     return (
       <Screen padding={false}>
         <AppHeader onBack={() => navigation.goBack()} />
-        <LoadingIndicator />
+        <View style={styles.loadingContainer}>
+          <LoadingIndicator />
+        </View>
       </Screen>
     );
   }
@@ -282,29 +284,39 @@ export function WorkshopsScreen({ navigation, route }: Props) {
             onPress={() =>
               navigation.navigate("WorkshopDetail", { workshopId: item.id })
             }
-            style={({ pressed }) => [
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-                opacity: pressed ? 0.9 : 1,
-              },
-            ]}
+            style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
           >
-            <Text style={[styles.cardTitle, { color: theme.colors.fg }]}>
-              {item.name}
-            </Text>
-            <Text style={[styles.cardSubtitle, { color: theme.colors.muted }]}>
-              {getWorkshopTypeLabel(item.workshop_type)}
-            </Text>
-            {item.phone_number ? (
-              <Text
-                style={[styles.cardPhone, { color: theme.colors.accent }]}
-                numberOfLines={1}
-              >
-                {item.phone_number}
-              </Text>
-            ) : null}
+            <View
+              style={[
+                styles.card,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <View style={styles.cardRow}>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text
+                    style={[styles.cardTitle, { color: theme.colors.fg }]}
+                    numberOfLines={1}
+                  >
+                    {item.name}
+                  </Text>
+                  <Text
+                    style={[styles.cardSubtitle, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {getWorkshopTypeLabel(item.workshop_type)}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={22}
+                  color={theme.colors.muted}
+                />
+              </View>
+            </View>
           </Pressable>
         )}
       />
@@ -373,11 +385,21 @@ function makeStyles(theme: any) {
     filterChoiceType: {
       marginBottom: theme.spacing.xs / 2,
     },
+    loadingContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     card: {
-      borderRadius: 12,
+      borderRadius: theme.radius.md,
       borderWidth: 1,
       padding: theme.spacing.md,
       marginBottom: theme.spacing.sm,
+    },
+    cardRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
     },
     cardTitle: {
       fontSize: theme.typography.body,

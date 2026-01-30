@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -43,20 +43,26 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!workshopId) return;
-    void (async () => {
-      try {
-        const w = await getWorkshop(workshopId);
-        setName(w.name);
-        setWorkshopType(w.workshop_type);
-        setPhoneNumber(w.phone_number ?? "");
-        setAddress(w.address ?? "");
-      } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
-      }
-    })();
+    try {
+      const w = await getWorkshop(workshopId);
+      setName(w.name);
+      setWorkshopType(w.workshop_type);
+      setPhoneNumber(w.phone_number ?? "");
+      setAddress(w.address ?? "");
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    }
   }, [workshopId, t]);
+
+  useEffect(() => {
+    void load();
+    const unsub = workshopId
+      ? navigation.addListener("focus", () => void load())
+      : () => {};
+    return unsub;
+  }, [navigation, load, workshopId]);
 
   const canSave = useMemo(() => {
     return name.trim().length > 0 && workshopType != null;

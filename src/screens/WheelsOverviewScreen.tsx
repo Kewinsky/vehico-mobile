@@ -61,7 +61,9 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
     return (
       <Screen padding={false}>
         <AppHeader onBack={() => navigation.goBack()} />
-        <LoadingIndicator />
+        <View style={styles.loadingContainer}>
+          <LoadingIndicator />
+        </View>
       </Screen>
     );
   }
@@ -188,6 +190,11 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
 
 function makeStyles(theme: any) {
   return StyleSheet.create({
+    loadingContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     container: {
       paddingTop: theme.spacing.sm,
       paddingBottom: theme.spacing.xl,

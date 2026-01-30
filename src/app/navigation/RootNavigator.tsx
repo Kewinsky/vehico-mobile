@@ -79,8 +79,8 @@ export type AppStackParamList = {
       include_service_entries: boolean;
       include_fueling_stats: boolean;
       include_service_stats: boolean;
-      include_notes: boolean;
       include_wheels_tires?: boolean;
+      include_notes: boolean;
     };
     selectedReportId: string | null;
   };

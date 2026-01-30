@@ -424,7 +424,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     tile: {
       flex: 1,
-      minHeight: 130,
+      minHeight: 110,
       borderWidth: 1,
       borderColor: theme.colors.border,
       backgroundColor: theme.colors.card,

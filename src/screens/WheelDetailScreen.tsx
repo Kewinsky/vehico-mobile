@@ -109,7 +109,7 @@ export function WheelDetailScreen({ route, navigation }: Props) {
               }
               hitSlop={10}
             >
-              <Text style={[styles.editLink, { color: theme.colors.muted }]}>
+              <Text style={[styles.editLink, { color: theme.colors.accent }]}>
                 {t("common.edit")}
               </Text>
             </Pressable>

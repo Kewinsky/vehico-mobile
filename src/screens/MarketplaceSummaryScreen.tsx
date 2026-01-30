@@ -17,7 +17,10 @@ import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import type { Vehicle, PublicReportSnapshot } from "../types/domain";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
-import { getPublicPageUrl } from "../services/publicPages/publicPagesRepo";
+import {
+  getPublicPageUrl,
+  listPublicPages,
+} from "../services/publicPages/publicPagesRepo";
 import {
   generateMarketplacePost,
   saveMarketplacePost,
@@ -92,8 +95,6 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
       // Get public report URL if selected
       let publicReportUrl: string | null = null;
       if (selectedReportId) {
-        const { listPublicPages } =
-          await import("../services/publicPages/publicPagesRepo");
         const reports = await listPublicPages(vehicleId);
         const selectedReport = reports.find((r) => r.id === selectedReportId);
         if (selectedReport) {
@@ -110,8 +111,8 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
         includeServiceEntries: reportOptions.include_service_entries,
         includeFuelingStats: reportOptions.include_fueling_stats,
         includeServiceStats: reportOptions.include_service_stats,
-        includeNotes: reportOptions.include_notes,
         includeWheelsTires: reportOptions.include_wheels_tires ?? false,
+        includeNotes: reportOptions.include_notes,
         publicReportUrl,
       });
 
@@ -172,6 +173,43 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
           <Text style={styles.subtitle}>
             {t("marketplace.summarySubtitle")}
           </Text>
+        </View>
+
+        {/* Language and Price */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t("marketplace.basicInfo")}</Text>
+          <View style={styles.infoCard}>
+            <View style={styles.dataRow}>
+              <Text style={styles.dataLabel}>
+                {t("marketplace.languageLabel")}
+              </Text>
+              <Text style={styles.dataValue}>
+                {language === "pl"
+                  ? t("marketplace.languagePl")
+                  : t("marketplace.languageEn")}
+              </Text>
+            </View>
+            {price !== null && (
+              <View style={styles.dataRow}>
+                <Text style={styles.dataLabel}>
+                  {t("marketplace.priceLabel")}
+                </Text>
+                <Text style={styles.dataValue}>
+                  {price.toLocaleString()} {currency}
+                </Text>
+              </View>
+            )}
+            {selectedReportId && (
+              <View style={styles.dataRow}>
+                <Text style={styles.dataLabel}>
+                  {t("marketplace.publicReport")}
+                </Text>
+                <Text style={styles.dataValue}>
+                  {t("marketplace.included")}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Vehicle Info */}
@@ -315,43 +353,6 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
           </View>
         )}
 
-        {/* Language and Price */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t("marketplace.basicInfo")}</Text>
-          <View style={styles.infoCard}>
-            <View style={styles.dataRow}>
-              <Text style={styles.dataLabel}>
-                {t("marketplace.languageLabel")}
-              </Text>
-              <Text style={styles.dataValue}>
-                {language === "pl"
-                  ? t("marketplace.languagePl")
-                  : t("marketplace.languageEn")}
-              </Text>
-            </View>
-            {price !== null && (
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("marketplace.priceLabel")}
-                </Text>
-                <Text style={styles.dataValue}>
-                  {price.toLocaleString()} {currency}
-                </Text>
-              </View>
-            )}
-            {selectedReportId && (
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("marketplace.publicReport")}
-                </Text>
-                <Text style={styles.dataValue}>
-                  {t("marketplace.included")}
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-
         {/* Service Entries */}
         {reportOptions.include_service_entries && (
           <View style={styles.section}>
@@ -402,9 +403,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                 />
               </Pressable>
             </View>
-            <Text style={styles.countValue}>
-              {fuelingEntriesCount} {t("marketplace.entries")}
-            </Text>
+            <Text style={styles.countValue}>{t("marketplace.included")}</Text>
           </View>
         )}
 
@@ -431,7 +430,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                 />
               </Pressable>
             </View>
-            <Text style={styles.countValue}>{serviceEntriesCount}</Text>
+            <Text style={styles.countValue}>{t("marketplace.included")}</Text>
           </View>
         )}
 

@@ -617,7 +617,7 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "space-between",
     },
-    editLink: { color: theme.colors.muted, fontWeight: "800" },
+    editLink: { color: theme.colors.accent, fontWeight: "800" },
     deleteLink: { color: theme.colors.danger, fontWeight: "800" },
     actionsRow: {
       flexDirection: "row",

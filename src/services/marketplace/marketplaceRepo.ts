@@ -9,8 +9,8 @@ type GenerateMarketplacePostInput = {
   includeServiceEntries?: boolean;
   includeFuelingStats?: boolean;
   includeServiceStats?: boolean;
-  includeNotes?: boolean;
   includeWheelsTires?: boolean;
+  includeNotes?: boolean;
   publicReportUrl?: string | null;
 };
 
@@ -36,8 +36,8 @@ export async function generateMarketplacePost(
         includeServiceEntries: input.includeServiceEntries ?? true,
         includeFuelingStats: input.includeFuelingStats ?? false,
         includeServiceStats: input.includeServiceStats ?? false,
-        includeNotes: input.includeNotes ?? false,
         includeWheelsTires: input.includeWheelsTires ?? false,
+        includeNotes: input.includeNotes ?? false,
         publicReportUrl: input.publicReportUrl ?? null,
       },
     },

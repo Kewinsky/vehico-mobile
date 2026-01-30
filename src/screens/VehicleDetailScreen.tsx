@@ -687,7 +687,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       color: theme.colors.fg,
     },
     subtitle: { fontSize: theme.typography.small, color: theme.colors.muted },
-    editLink: { color: theme.colors.muted, fontWeight: "800" },
+    editLink: { color: theme.colors.accent, fontWeight: "800" },
     searchRow: { flexDirection: "row", alignItems: "center" },
     addButton: {
       width: theme.spacing.xl + theme.spacing.sm,

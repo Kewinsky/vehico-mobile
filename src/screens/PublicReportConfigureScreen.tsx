@@ -45,11 +45,12 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   const [vehiclePhotos, setVehiclePhotos] = useState<VehiclePhoto[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Report options: service entries (always on), tankowania, notatki
+  // Report options - order: service entries, fueling stats, service stats, wheels, notes
   const [includeServiceEntries] = useState(true); // Always true, mandatory
-  const [includeNotes, setIncludeNotes] = useState(false);
   const [includeFueling, setIncludeFueling] = useState(false);
+  const [includeServiceStats, setIncludeServiceStats] = useState(false);
   const [includeWheelsTires, setIncludeWheelsTires] = useState(false);
+  const [includeNotes, setIncludeNotes] = useState(false);
 
   // Selected vehicle photo IDs
   const [selectedVehiclePhotoIds, setSelectedVehiclePhotoIds] = useState<
@@ -291,10 +292,10 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       vehicleId,
       reportOptions: {
         include_service_entries: includeServiceEntries,
-        include_notes: includeNotes,
         include_fueling_stats: includeFueling,
-        include_service_stats: false,
+        include_service_stats: includeServiceStats,
         include_wheels_tires: includeWheelsTires,
+        include_notes: includeNotes,
       },
       selectedVehiclePhotoIds: Array.from(selectedVehiclePhotoIds),
       tempPhotos: tempPhotos.map((p) => ({
@@ -326,12 +327,12 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           </View>
         ) : (
           <>
-            {/* Report Options - checkboxes */}
+            {/* Report Options - checkboxes: 1.Wpisy 2.Statystyki tankowań 3.Statystyki serwisowania 4.Felgi 5.Notatki */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
                 {t("publicReport.vehicleInfo")}
               </Text>
-              {/* Service entries - always checked */}
+              {/* 1. Wpisy serwisowe - always checked */}
               <Pressable style={styles.checkboxRow} onPress={() => {}} disabled>
                 <View
                   style={[
@@ -343,10 +344,28 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
                   <Ionicons name="checkmark" size={16} color="#000000" />
                 </View>
                 <Text style={styles.optionLabel}>
-                  {t("publicReport.serviceEntries")}
+                  {t("marketplace.serviceEntries")}
                 </Text>
               </Pressable>
-              {/* Fueling entries */}
+
+              {/* 2. Notatki */}
+              <Pressable
+                style={styles.checkboxRow}
+                onPress={() => setIncludeNotes(!includeNotes)}
+              >
+                <View
+                  style={[
+                    styles.optionCheckbox,
+                    includeNotes && styles.optionCheckboxChecked,
+                  ]}
+                >
+                  {includeNotes && (
+                    <Ionicons name="checkmark" size={16} color="#000000" />
+                  )}
+                </View>
+                <Text style={styles.optionLabel}>{t("marketplace.notes")}</Text>
+              </Pressable>
+              {/* 3. Statystyki tankowań - raw fuelings passed, calculated on web */}
               <Pressable
                 style={styles.checkboxRow}
                 onPress={() => setIncludeFueling(!includeFueling)}
@@ -362,29 +381,29 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
                   )}
                 </View>
                 <Text style={styles.optionLabel}>
-                  {t("publicReport.fueling")}
+                  {t("marketplace.fuelingStats")}
                 </Text>
               </Pressable>
-              {/* Notes */}
+              {/* 4. Statystyki serwisowania - Eksploatacja + wydatki wg kategorii */}
               <Pressable
                 style={styles.checkboxRow}
-                onPress={() => setIncludeNotes(!includeNotes)}
+                onPress={() => setIncludeServiceStats(!includeServiceStats)}
               >
                 <View
                   style={[
                     styles.optionCheckbox,
-                    includeNotes && styles.optionCheckboxChecked,
+                    includeServiceStats && styles.optionCheckboxChecked,
                   ]}
                 >
-                  {includeNotes && (
+                  {includeServiceStats && (
                     <Ionicons name="checkmark" size={16} color="#000000" />
                   )}
                 </View>
                 <Text style={styles.optionLabel}>
-                  {t("publicReport.notes")}
+                  {t("marketplace.serviceStats")}
                 </Text>
               </Pressable>
-              {/* Wheels and tires */}
+              {/* 5. Felgi i opony */}
               <Pressable
                 style={styles.checkboxRow}
                 onPress={() => setIncludeWheelsTires(!includeWheelsTires)}
@@ -400,7 +419,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
                   )}
                 </View>
                 <Text style={styles.optionLabel}>
-                  {t("publicReport.wheelsAndTires")}
+                  {t("marketplace.wheelsAndTires")}
                 </Text>
               </Pressable>
             </View>
@@ -528,7 +547,6 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
       fontWeight: "700",
       color: theme.colors.fg,
-      marginBottom: theme.spacing.sm,
     },
     checkboxRow: {
       flexDirection: "row",
@@ -539,9 +557,9 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     optionCheckbox: {
-      width: theme.spacing.lg,
-      height: theme.spacing.lg,
-      borderRadius: theme.radius.xs,
+      width: 24,
+      height: 24,
+      borderRadius: 4,
       borderWidth: 2,
       borderColor: theme.colors.border,
       alignItems: "center",
@@ -556,7 +574,7 @@ const makeStyles = (theme: any) =>
     },
     optionLabel: {
       flex: 1,
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
       color: theme.colors.fg,
     },
     photosHeader: {

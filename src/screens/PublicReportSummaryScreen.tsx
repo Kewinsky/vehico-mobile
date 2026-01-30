@@ -356,18 +356,18 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
           </View>
         )}
 
-        {/* Fueling Entries */}
+        {/* Fueling Stats */}
         {reportOptions.include_fueling_stats && (
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionTitle}>
-                {t("publicReport.fuelingEntriesCount")}
+              <Text style={[styles.sectionTitle, styles.sectionTitleInRow]}>
+                {t("marketplace.fuelingStats")}
               </Text>
               <Pressable
                 hitSlop={8}
                 onPress={() =>
                   Alert.alert(
-                    t("publicReport.fuelingEntriesCount"),
+                    t("marketplace.fuelingStats"),
                     t("publicReport.dataUsedForCharts"),
                   )
                 }
@@ -379,17 +379,61 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                 />
               </Pressable>
             </View>
-            <Text style={styles.countValue}>{fuelingEntriesCount}</Text>
+            <Text style={styles.countValue}>{t("marketplace.included")}</Text>
+          </View>
+        )}
+
+        {/* Service Stats - Eksploatacja, wydatki wg kategorii */}
+        {reportOptions.include_service_stats && (
+          <View style={styles.section}>
+            <View style={styles.sectionTitleRow}>
+              <Text style={[styles.sectionTitle, styles.sectionTitleInRow]}>
+                {t("marketplace.serviceStats")}
+              </Text>
+              <Pressable
+                hitSlop={8}
+                onPress={() =>
+                  Alert.alert(
+                    t("marketplace.serviceStats"),
+                    t("publicReport.dataUsedForCharts"),
+                  )
+                }
+              >
+                <Ionicons
+                  name="information-circle-outline"
+                  size={22}
+                  color={theme.colors.muted}
+                />
+              </Pressable>
+            </View>
+            <Text style={styles.countValue}>{t("marketplace.included")}</Text>
           </View>
         )}
 
         {/* Wheels and tires */}
         {reportOptions.include_wheels_tires && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {t("publicReport.wheelsAndTires")}
-            </Text>
-            <Text style={styles.countValue}>{t("publicReport.included")}</Text>
+            <View style={styles.sectionTitleRow}>
+              <Text style={[styles.sectionTitle, styles.sectionTitleInRow]}>
+                {t("marketplace.wheelsAndTires")}
+              </Text>
+              <Pressable
+                hitSlop={8}
+                onPress={() =>
+                  Alert.alert(
+                    t("marketplace.wheelsAndTires"),
+                    t("publicReport.dataUsedForCharts"),
+                  )
+                }
+              >
+                <Ionicons
+                  name="information-circle-outline"
+                  size={22}
+                  color={theme.colors.muted}
+                />
+              </Pressable>
+            </View>
+            <Text style={styles.countValue}>{t("marketplace.included")}</Text>
           </View>
         )}
 
@@ -570,6 +614,9 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       gap: theme.spacing.xs,
       marginBottom: theme.spacing.sm,
+    },
+    sectionTitleInRow: {
+      marginBottom: 0,
     },
     countRow: {
       flexDirection: "row",

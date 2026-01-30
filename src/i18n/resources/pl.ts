@@ -726,7 +726,7 @@ export const pl = {
     purchaseButton: "Kup raporty",
     paymentNotImplemented: "Płatności będą dostępne wkrótce",
     configureTitle: "Konfiguracja raportu",
-    vehicleInfo: "Co chcesz zawrzeć w raporcie?",
+    vehicleInfo: "Informacje o pojeździe",
     serviceEntries: "Wpisy serwisowe (obowiązkowe)",
     fueling: "Tankowania",
     notes: "Notatki",
@@ -750,7 +750,7 @@ export const pl = {
     photosPreviewButton: "Podgląd",
     dataUsedForCharts:
       "Te dane zostaną wykorzystane do sporządzenia wykresów i statystyk w raporcie.",
-    wheelsAndTires: "Koła i opony",
+    wheelsAndTires: "Felgi i opony",
     included: "Zawarte",
     confirmationCheckbox:
       "Potwierdzam, że informacje są prawidłowe i rozumiem, że raport nie może być edytowany.",
@@ -803,7 +803,9 @@ export const pl = {
     fuelingStats: "Statystyki tankowań",
     serviceStats: "Statystyki serwisowe",
     notes: "Notatki",
-    wheelsAndTires: "Koła i opony",
+    wheelsAndTires: "Felgi i opony",
+    lastOilChange: "Ostatnia wymiana oleju",
+    oilIntervals: "Interwały olejowe",
     publicReport: "Raport online",
     selectReport: "Wybierz raport",
     noReport: "Brak raportu",
