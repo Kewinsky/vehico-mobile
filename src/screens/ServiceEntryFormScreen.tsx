@@ -29,6 +29,8 @@ import {
   uploadAttachment,
 } from "../services/attachments/attachmentsRepo";
 import { listVehicleDocuments } from "../services/vehicleDocuments/vehicleDocumentsRepo";
+import { listWorkshops } from "../services/workshops/workshopsRepo";
+import type { Workshop } from "../types/domain";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { Button } from "../ui/components/Button";
 import { AppHeader } from "../ui/components/AppHeader";
@@ -69,6 +71,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [pendingFiles, setPendingFiles] = useState<
     { uri: string; mimeType?: string | null; fileName?: string | null }[]
   >([]);
+  const [workshops, setWorkshops] = useState<Workshop[]>([]);
+  const [workshopId, setWorkshopId] = useState<string | null>(null);
 
   const MAX_DOCUMENTS_AND_ATTACHMENTS = 10;
 
@@ -104,6 +108,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }, []);
 
   useEffect(() => {
+    void listWorkshops().then(setWorkshops);
+  }, []);
+
+  useEffect(() => {
     if (!entryId) return;
     void (async () => {
       try {
@@ -118,6 +126,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           },
         ]);
         setDescription(e.description ?? "");
+        setWorkshopId((e as any).workshop_id ?? null);
         setMode("single");
         await reloadAttachments(entryId);
       } catch (err: any) {
@@ -342,6 +351,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         service_date: serviceDate.trim(),
         mileage: mileage.trim().length ? Number(mileage) : null,
         category,
+        workshop_id: workshopId || null,
       };
 
       if (entryId) {
@@ -504,6 +514,20 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         onChangeText={setMileage}
         keyboardType="number-pad"
         placeholder={t("entryForm.placeholderMileage")}
+      />
+
+      <PickerField
+        label={t("entryForm.workshop")}
+        value={workshopId}
+        options={
+          workshopId && !workshops.some((w) => w.id === workshopId)
+            ? [workshopId, ...workshops.map((w) => w.id)]
+            : workshops.map((w) => w.id)
+        }
+        getLabel={(id) => workshops.find((w) => w.id === id)?.name ?? id}
+        onChange={(id) => setWorkshopId(id)}
+        placeholder={t("entryForm.workshopPlaceholder")}
+        disabled={saving || uploading}
       />
 
       {entries.map((row, index) => (

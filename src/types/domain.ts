@@ -33,6 +33,62 @@ export type ServiceEntry = {
   title: string;
   description: string;
   cost: number | null;
+  workshop_id: string | null;
+  created_at: string;
+};
+
+export type TireType =
+  | "summer"
+  | "winter"
+  | "all_season"
+  | "run_flat"
+  | "uhp"
+  | "suv_xl";
+
+export type VehicleTire = {
+  id: string;
+  vehicle_id: string;
+  name: string;
+  width_mm: number;
+  aspect_ratio: number;
+  diameter_inch: number;
+  tire_type: TireType;
+  dot: string | null;
+  is_currently_fitted: boolean;
+  created_at: string;
+};
+
+export type VehicleWheel = {
+  id: string;
+  vehicle_id: string;
+  name: string;
+  width_inch: number;
+  profile_inch: number | null;
+  diameter_inch: number;
+  et_offset: number | null;
+  bolt_pattern: string | null;
+  center_bore_mm: number | null;
+  bolt_type: string | null;
+  weight_kg: number | null;
+  is_currently_fitted: boolean;
+  created_at: string;
+};
+
+export type WorkshopType =
+  | "mechanic"
+  | "electrician"
+  | "detailer"
+  | "bodywork"
+  | "car_wash"
+  | "other";
+
+export type Workshop = {
+  id: string;
+  owner_id: string;
+  name: string;
+  workshop_type: WorkshopType;
+  phone_number: string | null;
+  address: string | null;
   created_at: string;
 };
 

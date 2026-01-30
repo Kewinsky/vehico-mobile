@@ -132,6 +132,19 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       icon: "download",
       onPress: () => navigation.navigate("DataPortability", { vehicleId }),
     },
+    // Row 5: Wheels + Workshops
+    {
+      key: "wheels",
+      title: t("dashboard.tiles.wheelsTitle"),
+      icon: "disc",
+      onPress: () => navigation.navigate("Wheels", { vehicleId }),
+    },
+    {
+      key: "workshops",
+      title: t("dashboard.tiles.workshopsTitle"),
+      icon: "business",
+      onPress: () => navigation.navigate("Workshops"),
+    },
   ];
 
   const handleAddService = () => {

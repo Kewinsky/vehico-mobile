@@ -41,6 +41,12 @@ import { PublicReportHistoryScreen } from "../../screens/PublicReportHistoryScre
 import { PublicReportScreen } from "../../screens/PublicReportScreen";
 import { PublicReportConfigureScreen } from "../../screens/PublicReportConfigureScreen";
 import { PublicReportSummaryScreen } from "../../screens/PublicReportSummaryScreen";
+import { WheelsOverviewScreen } from "../../screens/WheelsOverviewScreen";
+import { TireFormScreen } from "../../screens/TireFormScreen";
+import { WheelFormScreen } from "../../screens/WheelFormScreen";
+import { WorkshopsScreen } from "../../screens/WorkshopsScreen";
+import { WorkshopDetailScreen } from "../../screens/WorkshopDetailScreen";
+import { WorkshopFormScreen } from "../../screens/WorkshopFormScreen";
 
 export type AppStackParamList = {
   Landing: undefined;
@@ -118,6 +124,12 @@ export type AppStackParamList = {
   FuelingEntryForm: { vehicleId: string; entryId?: string };
   ReminderForm: { vehicleId: string; reminderId?: string };
   ReminderDetail: { vehicleId: string; reminderId: string };
+  Wheels: { vehicleId: string };
+  TireForm: { vehicleId: string; tireId?: string };
+  WheelForm: { vehicleId: string; wheelId?: string };
+  Workshops: undefined;
+  WorkshopDetail: { workshopId: string };
+  WorkshopForm: { workshopId?: string };
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -233,6 +245,15 @@ export function RootNavigator() {
             name="ServiceEntryForm"
             component={ServiceEntryFormScreen}
           />
+          <Stack.Screen name="Wheels" component={WheelsOverviewScreen} />
+          <Stack.Screen name="TireForm" component={TireFormScreen} />
+          <Stack.Screen name="WheelForm" component={WheelFormScreen} />
+          <Stack.Screen name="Workshops" component={WorkshopsScreen} />
+          <Stack.Screen
+            name="WorkshopDetail"
+            component={WorkshopDetailScreen}
+          />
+          <Stack.Screen name="WorkshopForm" component={WorkshopFormScreen} />
         </>
       )}
     </Stack.Navigator>

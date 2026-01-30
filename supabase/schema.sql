@@ -39,6 +39,23 @@ create index if not exists vehicles_owner_id_idx on public.vehicles(owner_id);
 drop index if exists public.vehicles_created_at_idx;
 create index if not exists vehicles_created_at_idx on public.vehicles(created_at desc);
 
+-- Workshops (per user, not per vehicle)
+drop table if exists public.workshops cascade;
+create table if not exists public.workshops (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null default auth.uid(),
+  name text not null,
+  workshop_type text not null check (workshop_type in (
+    'mechanic', 'electrician', 'detailer', 'bodywork', 'car_wash', 'other'
+  )),
+  phone_number text,
+  address text,
+  created_at timestamptz not null default now()
+);
+
+drop index if exists public.workshops_owner_id_idx;
+create index if not exists workshops_owner_id_idx on public.workshops(owner_id);
+
 -- Service entries (timeline)
 drop table if exists public.service_entries cascade;
 create table if not exists public.service_entries (
@@ -50,6 +67,7 @@ create table if not exists public.service_entries (
   title text not null,
   description text not null default '',
   cost numeric,
+  workshop_id uuid references public.workshops(id) on delete set null,
   created_at timestamptz not null default now()
 );
 
@@ -57,6 +75,8 @@ drop index if exists public.service_entries_vehicle_id_idx;
 create index if not exists service_entries_vehicle_id_idx on public.service_entries(vehicle_id);
 drop index if exists public.service_entries_service_date_idx;
 create index if not exists service_entries_service_date_idx on public.service_entries(service_date desc);
+drop index if exists public.service_entries_workshop_id_idx;
+create index if not exists service_entries_workshop_id_idx on public.service_entries(workshop_id);
 
 -- Attachments (receipts/invoices/photos) metadata
 drop table if exists public.attachments cascade;
@@ -203,11 +223,57 @@ create index if not exists marketplace_posts_user_id_idx on public.marketplace_p
 drop index if exists public.marketplace_posts_created_at_idx;
 create index if not exists marketplace_posts_created_at_idx on public.marketplace_posts(created_at desc);
 
+-- Vehicle tires (per vehicle)
+drop table if exists public.vehicle_tires cascade;
+create table if not exists public.vehicle_tires (
+  id uuid primary key default gen_random_uuid(),
+  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
+  name text not null default '',
+  width_mm integer not null,
+  aspect_ratio integer not null,
+  diameter_inch integer not null,
+  tire_type text not null check (tire_type in (
+    'summer', 'winter', 'all_season', 'run_flat', 'uhp', 'suv_xl'
+  )),
+  dot text,
+  is_currently_fitted boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+drop index if exists public.vehicle_tires_vehicle_id_idx;
+create index if not exists vehicle_tires_vehicle_id_idx on public.vehicle_tires(vehicle_id);
+drop index if exists public.vehicle_tires_is_currently_fitted_idx;
+create index if not exists vehicle_tires_is_currently_fitted_idx on public.vehicle_tires(vehicle_id, is_currently_fitted) where is_currently_fitted = true;
+
+-- Vehicle wheels / rims (per vehicle)
+drop table if exists public.vehicle_wheels cascade;
+create table if not exists public.vehicle_wheels (
+  id uuid primary key default gen_random_uuid(),
+  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
+  name text not null default '',
+  width_inch numeric not null,
+  profile_inch numeric,
+  diameter_inch integer not null,
+  et_offset integer,
+  bolt_pattern text,
+  center_bore_mm numeric,
+  bolt_type text,
+  weight_kg numeric,
+  is_currently_fitted boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+drop index if exists public.vehicle_wheels_vehicle_id_idx;
+create index if not exists vehicle_wheels_vehicle_id_idx on public.vehicle_wheels(vehicle_id);
+drop index if exists public.vehicle_wheels_is_currently_fitted_idx;
+create index if not exists vehicle_wheels_is_currently_fitted_idx on public.vehicle_wheels(vehicle_id, is_currently_fitted) where is_currently_fitted = true;
+
 -- ================
 -- Row Level Security (RLS)
 -- ================
 
 alter table public.vehicles enable row level security;
+alter table public.workshops enable row level security;
 alter table public.service_entries enable row level security;
 alter table public.attachments enable row level security;
 alter table public.public_report enable row level security;
@@ -217,6 +283,8 @@ alter table public.user_settings enable row level security;
 alter table public.vehicle_documents enable row level security;
 alter table public.vehicle_photos enable row level security;
 alter table public.marketplace_posts enable row level security;
+alter table public.vehicle_tires enable row level security;
+alter table public.vehicle_wheels enable row level security;
 
 -- Vehicles: owner can CRUD (authenticated only, no public access)
 drop policy if exists vehicles_select_own on public.vehicles;
@@ -243,6 +311,20 @@ create policy vehicles_delete_own
 on public.vehicles for delete
 to authenticated
 using (owner_id = auth.uid());
+
+-- Workshops: owner can CRUD (per user)
+drop policy if exists workshops_select_own on public.workshops;
+create policy workshops_select_own on public.workshops for select to authenticated using (owner_id = auth.uid());
+
+drop policy if exists workshops_insert_own on public.workshops;
+create policy workshops_insert_own on public.workshops for insert to authenticated with check (owner_id = auth.uid());
+
+drop policy if exists workshops_update_own on public.workshops;
+create policy workshops_update_own on public.workshops for update to authenticated
+using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+
+drop policy if exists workshops_delete_own on public.workshops;
+create policy workshops_delete_own on public.workshops for delete to authenticated using (owner_id = auth.uid());
 
 -- Service entries: allowed if the vehicle belongs to the user (authenticated only, no public access)
 drop policy if exists service_entries_select_own_vehicle on public.service_entries;
@@ -643,6 +725,42 @@ using (
       and v.owner_id = auth.uid()
   )
 );
+
+-- Vehicle tires: allowed if vehicle belongs to user
+drop policy if exists vehicle_tires_select_own_vehicle on public.vehicle_tires;
+create policy vehicle_tires_select_own_vehicle on public.vehicle_tires for select to authenticated
+using (exists (select 1 from public.vehicles v where v.id = vehicle_tires.vehicle_id and v.owner_id = auth.uid()));
+
+drop policy if exists vehicle_tires_insert_own_vehicle on public.vehicle_tires;
+create policy vehicle_tires_insert_own_vehicle on public.vehicle_tires for insert to authenticated
+with check (exists (select 1 from public.vehicles v where v.id = vehicle_tires.vehicle_id and v.owner_id = auth.uid()));
+
+drop policy if exists vehicle_tires_update_own_vehicle on public.vehicle_tires;
+create policy vehicle_tires_update_own_vehicle on public.vehicle_tires for update to authenticated
+using (exists (select 1 from public.vehicles v where v.id = vehicle_tires.vehicle_id and v.owner_id = auth.uid()))
+with check (exists (select 1 from public.vehicles v where v.id = vehicle_tires.vehicle_id and v.owner_id = auth.uid()));
+
+drop policy if exists vehicle_tires_delete_own_vehicle on public.vehicle_tires;
+create policy vehicle_tires_delete_own_vehicle on public.vehicle_tires for delete to authenticated
+using (exists (select 1 from public.vehicles v where v.id = vehicle_tires.vehicle_id and v.owner_id = auth.uid()));
+
+-- Vehicle wheels: allowed if vehicle belongs to user
+drop policy if exists vehicle_wheels_select_own_vehicle on public.vehicle_wheels;
+create policy vehicle_wheels_select_own_vehicle on public.vehicle_wheels for select to authenticated
+using (exists (select 1 from public.vehicles v where v.id = vehicle_wheels.vehicle_id and v.owner_id = auth.uid()));
+
+drop policy if exists vehicle_wheels_insert_own_vehicle on public.vehicle_wheels;
+create policy vehicle_wheels_insert_own_vehicle on public.vehicle_wheels for insert to authenticated
+with check (exists (select 1 from public.vehicles v where v.id = vehicle_wheels.vehicle_id and v.owner_id = auth.uid()));
+
+drop policy if exists vehicle_wheels_update_own_vehicle on public.vehicle_wheels;
+create policy vehicle_wheels_update_own_vehicle on public.vehicle_wheels for update to authenticated
+using (exists (select 1 from public.vehicles v where v.id = vehicle_wheels.vehicle_id and v.owner_id = auth.uid()))
+with check (exists (select 1 from public.vehicles v where v.id = vehicle_wheels.vehicle_id and v.owner_id = auth.uid()));
+
+drop policy if exists vehicle_wheels_delete_own_vehicle on public.vehicle_wheels;
+create policy vehicle_wheels_delete_own_vehicle on public.vehicle_wheels for delete to authenticated
+using (exists (select 1 from public.vehicles v where v.id = vehicle_wheels.vehicle_id and v.owner_id = auth.uid()));
 
 -- Marketplace posts: owner can CRUD own posts
 drop policy if exists marketplace_posts_select_own on public.marketplace_posts;
