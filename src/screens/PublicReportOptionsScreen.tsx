@@ -106,7 +106,7 @@ const makeStyles = (theme: any) =>
       paddingTop: theme.spacing.md,
     },
     h1: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },

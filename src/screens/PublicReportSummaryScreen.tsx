@@ -333,7 +333,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
         {reportOptions.include_service_entries && (
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <Text style={[styles.sectionTitle, styles.sectionTitleInRow]}>
+              <Text style={styles.sectionTitle}>
                 {t("publicReport.serviceEntriesCount")}
               </Text>
               <Pressable
@@ -360,7 +360,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
         {reportOptions.include_fueling_stats && (
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <Text style={[styles.sectionTitle, styles.sectionTitleInRow]}>
+              <Text style={styles.sectionTitle}>
                 {t("publicReport.fuelingEntriesCount")}
               </Text>
               <Pressable
@@ -571,9 +571,6 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.xs,
       marginBottom: theme.spacing.sm,
     },
-    sectionTitleInRow: {
-      marginBottom: 0,
-    },
     countRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -600,7 +597,7 @@ const makeStyles = (theme: any) =>
       paddingHorizontal: theme.spacing.sm,
     },
     previewButtonText: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "600",
       color: theme.colors.accent,
     },
@@ -638,7 +635,7 @@ const makeStyles = (theme: any) =>
       color: theme.colors.fg,
     },
     countValue: {
-      fontSize: 24,
+      fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.accent,
     },
@@ -656,7 +653,7 @@ const makeStyles = (theme: any) =>
       borderBottomColor: theme.colors.border,
     },
     statLabel: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       color: theme.colors.fg,
     },
     statValue: {
@@ -679,7 +676,7 @@ const makeStyles = (theme: any) =>
       overflow: "hidden",
     },
     morePhotosText: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "700",
       color: theme.colors.muted,
     },
@@ -696,7 +693,7 @@ const makeStyles = (theme: any) =>
       borderColor: theme.colors.border,
       alignItems: "center",
       justifyContent: "center",
-      marginTop: 2,
+      marginTop: theme.spacing.xs,
     },
     checkboxChecked: {
       backgroundColor: theme.colors.accent,

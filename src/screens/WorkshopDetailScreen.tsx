@@ -238,7 +238,7 @@ function makeStyles(theme: any) {
       fontSize: theme.typography.small,
     },
     phoneValue: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       fontWeight: "600",
     },
     sectionTitle: {

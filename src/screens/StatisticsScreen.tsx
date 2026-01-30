@@ -93,8 +93,8 @@ const makeStyles = (theme: any) =>
       borderWidth: 1,
       borderColor: theme.colors.border,
       backgroundColor: theme.colors.card,
-      paddingHorizontal: 14,
-      paddingVertical: 8,
+      paddingHorizontal: theme.spacing.sm,
+      paddingVertical: theme.spacing.xs,
       borderRadius: 999,
     },
     chipActive: {

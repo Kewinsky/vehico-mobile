@@ -124,7 +124,9 @@ export function VehiclesScreen({ navigation }: Props) {
     if (!mileage) return "";
     const value =
       distanceUnit === "miles" ? Math.round(mileage * 0.621371) : mileage;
-    return `${value.toLocaleString()} ${distanceUnit === "km" ? "km" : "miles"}`;
+    return `${value.toLocaleString()} ${
+      distanceUnit === "km" ? "km" : "miles"
+    }`;
   };
 
   function onSignOut() {
@@ -323,7 +325,7 @@ export function VehiclesScreen({ navigation }: Props) {
                 </Pressable>
               )}
               ListFooterComponent={
-                <View style={{ paddingTop: 12 }}>
+                <View style={{ paddingTop: theme.spacing.sm }}>
                   <Button onPress={() => navigation.navigate("VehicleForm")}>
                     {t("vehicles.addVehicle")}
                   </Button>
@@ -374,7 +376,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       alignItems: "center",
     },
     list: {
-      paddingBottom: insets.bottom + 32,
+      paddingBottom: insets.bottom + theme.spacing.xl,
       gap: theme.spacing.xs,
     },
     vehicleCard: {
@@ -405,7 +407,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       justifyContent: "center",
     },
     vehicleImagePlaceholderText: {
-      fontSize: 64,
+      fontSize: theme.typography.title,
     },
     vehicleImageContent: {
       position: "absolute",
@@ -426,7 +428,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       color: "#fff",
     },
     vehicleMeta: {
-      fontSize: 14,
+      fontSize: theme.typography.small,
       color: theme.colors.fg,
       opacity: 0.95,
     },

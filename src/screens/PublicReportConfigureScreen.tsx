@@ -525,7 +525,7 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.lg,
     },
     sectionTitle: {
-      fontSize: 16,
+      fontSize: theme.typography.body,
       fontWeight: "700",
       color: theme.colors.fg,
       marginBottom: theme.spacing.sm,
@@ -556,7 +556,7 @@ const makeStyles = (theme: any) =>
     },
     optionLabel: {
       flex: 1,
-      fontSize: 15,
+      fontSize: theme.typography.small,
       color: theme.colors.fg,
     },
     photosHeader: {
@@ -612,7 +612,7 @@ const makeStyles = (theme: any) =>
       backgroundColor: theme.colors.accent,
     },
     photoCard: {
-      margin: 4,
+      margin: theme.spacing.xs,
     },
     photoImageContainer: {
       width: "100%",
@@ -632,9 +632,9 @@ const makeStyles = (theme: any) =>
       right: theme.spacing.xs / 2,
     },
     photoCheckbox: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
+      width: theme.spacing.lg,
+      height: theme.spacing.lg,
+      borderRadius: theme.radius.sm,
       backgroundColor: "rgba(0, 0, 0, 0.5)",
       alignItems: "center",
       justifyContent: "center",

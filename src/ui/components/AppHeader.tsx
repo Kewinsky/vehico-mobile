@@ -94,7 +94,7 @@ const makeStyles = (theme: any) =>
       color: theme.colors.fg,
       fontWeight: "800",
       letterSpacing: 0.2,
-      fontSize: 15,
+      fontSize: theme.typography.small,
     },
     logoContainer: {
       height: theme.spacing.xl,

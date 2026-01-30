@@ -1,8 +1,8 @@
-import type { PropsWithChildren } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { PropsWithChildren } from "react";
+import { StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme } from '../ThemeProvider';
+import { useTheme } from "../ThemeProvider";
 
 type ScreenProps = PropsWithChildren<{
   padding?: boolean;
@@ -34,4 +34,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 });
-

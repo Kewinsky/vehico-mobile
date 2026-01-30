@@ -634,7 +634,11 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                     : null,
                   e.cost != null ? `${e.cost} ${currency}` : null,
                   attachmentsCount[e.id] > 0
-                    ? `${attachmentsCount[e.id]} ${attachmentsCount[e.id] === 1 ? t("attachments.attachmentLabel") : t("attachments.title").toLowerCase()}`
+                    ? `${attachmentsCount[e.id]} ${
+                        attachmentsCount[e.id] === 1
+                          ? t("attachments.attachmentLabel")
+                          : t("attachments.title").toLowerCase()
+                      }`
                     : null,
                 ]
                   .filter(Boolean)
@@ -677,8 +681,12 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flexDirection: "row",
       alignItems: "center",
     },
-    title: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
-    subtitle: { fontSize: 13, color: theme.colors.muted },
+    title: {
+      fontSize: theme.typography.title,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
+    subtitle: { fontSize: theme.typography.small, color: theme.colors.muted },
     editLink: { color: theme.colors.muted, fontWeight: "800" },
     searchRow: { flexDirection: "row", alignItems: "center" },
     addButton: {

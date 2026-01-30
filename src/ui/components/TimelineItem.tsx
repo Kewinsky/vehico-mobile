@@ -82,7 +82,7 @@ const makeStyles = (theme: any) =>
     },
     badge: {
       paddingHorizontal: theme.spacing.xs / 2 + 1,
-      paddingVertical: 2,
+      paddingVertical: theme.spacing.xs,
       borderRadius: 999,
     },
     badgeAccent: {

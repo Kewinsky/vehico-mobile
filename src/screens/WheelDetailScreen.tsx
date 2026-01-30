@@ -233,7 +233,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     editLink: { fontWeight: "800" },
     deleteLink: { fontWeight: "800" },
     title: {
-      fontSize: 20,
+      fontSize: theme.typography.title,
       fontWeight: "800",
     },
     detailsCard: {

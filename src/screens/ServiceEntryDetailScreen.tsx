@@ -229,7 +229,11 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
 
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
-    h2: { fontSize: 18, fontWeight: "800", color: theme.colors.fg },
+    h2: {
+      fontSize: theme.typography.body,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
     top: {
       paddingTop: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
@@ -253,7 +257,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       color: theme.colors.fg,
     },
     detailsCard: {
-      marginTop: 12,
+      marginTop: theme.spacing.sm,
       borderWidth: 1,
       borderColor: theme.colors.border,
       backgroundColor: theme.colors.card,

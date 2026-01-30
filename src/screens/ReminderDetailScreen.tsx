@@ -117,7 +117,7 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
               <Text style={styles.value}>
                 {reminder.type === "time" && reminder.due_date
                   ? formatDate(reminder.due_date)
-                  : (reminder.due_mileage ?? "")}
+                  : reminder.due_mileage ?? ""}
               </Text>
             </View>
             {reminder.type === "time" && reminder.days_before != null ? (
@@ -196,7 +196,11 @@ const makeStyles = (theme: any) =>
       padding: theme.spacing.md,
       gap: theme.spacing.sm / 2,
     },
-    detailsTitle: { fontSize: 18, fontWeight: "800", color: theme.colors.fg },
+    detailsTitle: {
+      fontSize: theme.typography.body,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
     row: {
       flexDirection: "row",
       justifyContent: "space-between",

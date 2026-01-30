@@ -78,10 +78,7 @@ export function LandingScreen({ navigation }: Props) {
           { paddingBottom: insets.bottom + theme.spacing.md },
         ]}
       >
-        <Button
-          onPress={() => navigation.navigate("Auth")}
-          style={styles.ctaButton}
-        >
+        <Button onPress={() => navigation.navigate("Auth")}>
           {t("landing.getStarted")}
         </Button>
       </View>
@@ -156,9 +153,6 @@ const makeStyles = (theme: any) =>
     footer: {
       paddingHorizontal: theme.spacing.md,
       paddingTop: theme.spacing.md,
-    },
-    ctaButton: {
-      marginBottom: 0,
     },
   });
 

@@ -746,8 +746,16 @@ const makeStyles = (theme: any) =>
     modeChoice: {
       flex: 1,
     },
-    label: { fontSize: 13, fontWeight: "800", color: theme.colors.muted },
-    h2: { fontSize: 16, fontWeight: "800", color: theme.colors.fg },
+    label: {
+      fontSize: theme.typography.small,
+      fontWeight: "800",
+      color: theme.colors.muted,
+    },
+    h2: {
+      fontSize: theme.typography.body,
+      fontWeight: "800",
+      color: theme.colors.fg,
+    },
     sectionHeader: { gap: theme.spacing.sm / 2 },
     muted: {
       marginTop: theme.spacing.sm / 2,
@@ -755,9 +763,9 @@ const makeStyles = (theme: any) =>
       lineHeight: theme.typography.body + 4,
     },
     pending: {
-      marginTop: 10,
-      fontSize: 13,
-      lineHeight: 18,
+      marginTop: theme.spacing.sm,
+      fontSize: theme.typography.small,
+      lineHeight: theme.typography.body + 4,
       color: theme.colors.muted,
     },
     notice: {

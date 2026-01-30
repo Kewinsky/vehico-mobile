@@ -241,7 +241,7 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     reportTitle: {
-      fontSize: 15,
+      fontSize: theme.typography.small,
       fontWeight: "800",
       marginBottom: 4,
     },

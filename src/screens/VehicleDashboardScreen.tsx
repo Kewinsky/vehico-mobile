@@ -413,7 +413,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     list: {
       paddingHorizontal: theme.spacing.md,
-      paddingBottom: insets.bottom + 80, // Extra padding for FAB
+      paddingBottom: insets.bottom + theme.spacing.xl, // Extra padding for FAB
       gap: theme.spacing.xs,
     },
     listHeader: {

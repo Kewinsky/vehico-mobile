@@ -209,11 +209,11 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontWeight: "800",
     },
     detailsCard: {
-      marginTop: 12,
+      marginTop: theme.spacing.sm,
       borderWidth: 1,
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
-      gap: 6,
+      gap: theme.spacing.sm / 2,
     },
     detailsTitle: { fontSize: theme.typography.body, fontWeight: "800" },
     row: {

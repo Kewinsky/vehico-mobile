@@ -193,7 +193,7 @@ const makeStyles = (theme: any) =>
       fontWeight: "800",
     },
     subtitle: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       marginTop: theme.spacing.xs / 2,
     },
     card: {
@@ -236,7 +236,7 @@ const makeStyles = (theme: any) =>
       flex: 1,
     },
     linkTitle: {
-      fontSize: 16,
+      fontSize: theme.typography.body,
       fontWeight: "800",
     },
     linkSubtitle: {

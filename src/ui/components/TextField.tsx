@@ -65,8 +65,8 @@ const makeStyles = (theme: any) =>
     },
     inputMultiline: {
       minHeight: 100,
-      paddingHorizontal: 0,
-      paddingVertical: 0,
+      paddingHorizontal: theme.spacing.xs,
+      paddingVertical: theme.spacing.xs,
       fontSize: theme.typography.body,
       color: theme.colors.fg,
       textAlignVertical: "top",

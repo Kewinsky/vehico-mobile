@@ -477,12 +477,9 @@ export function StatisticsCard({ vehicleId, period }: Props) {
       const currentMonth = today.getMonth(); // 0-11
 
       let monthsBack = 0;
-      if (period === "1m")
-        monthsBack = 0; // Current month only
-      else if (period === "3m")
-        monthsBack = 2; // Current + 2 previous
-      else if (period === "6m")
-        monthsBack = 5; // Current + 5 previous
+      if (period === "1m") monthsBack = 0; // Current month only
+      else if (period === "3m") monthsBack = 2; // Current + 2 previous
+      else if (period === "6m") monthsBack = 5; // Current + 5 previous
       else if (period === "1y") monthsBack = 11; // Current + 11 previous
 
       const startDate = new Date(currentYear, currentMonth - monthsBack, 1);
@@ -1113,7 +1110,7 @@ const makeStyles = (theme: any) =>
       borderColor: theme.colors.border,
       backgroundColor: theme.colors.bg,
       borderRadius: 12,
-      padding: 10,
+      padding: theme.spacing.xs,
       alignSelf: "center",
     },
     legend: {

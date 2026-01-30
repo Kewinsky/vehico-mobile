@@ -223,7 +223,7 @@ const makeStyles = (theme: any) =>
     },
     badge: {
       paddingHorizontal: theme.spacing.sm / 2,
-      paddingVertical: 2,
+      paddingVertical: theme.spacing.xs,
       borderRadius: 999,
       borderWidth: 1,
     },

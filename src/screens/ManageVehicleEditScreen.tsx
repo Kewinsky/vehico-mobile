@@ -667,9 +667,9 @@ const makeStyles = (theme: any) =>
     cardTitle: { color: theme.colors.fg, fontWeight: "800" },
     cardMeta: { marginTop: theme.spacing.xs / 2, color: theme.colors.muted },
     photosSection: {
-      gap: 8,
+      gap: theme.spacing.sm,
       marginTop: theme.spacing.sm,
-      marginBottom: 4,
+      marginBottom: theme.spacing.xs,
     },
     photosGrid: {
       flexDirection: "row",
