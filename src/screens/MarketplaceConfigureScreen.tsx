@@ -168,6 +168,9 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
               </Text>
               {/* 1. Wpisy serwisowe - always checked */}
               <Pressable style={styles.checkboxRow} onPress={() => {}} disabled>
+                <Text style={styles.optionLabel}>
+                  {t("marketplace.serviceEntries")}
+                </Text>
                 <View
                   style={[
                     styles.optionCheckbox,
@@ -177,15 +180,13 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                 >
                   <Ionicons name="checkmark" size={16} color="#000000" />
                 </View>
-                <Text style={styles.optionLabel}>
-                  {t("marketplace.serviceEntries")}
-                </Text>
               </Pressable>
               {/* 2. Notatki */}
               <Pressable
                 style={styles.checkboxRow}
                 onPress={() => setIncludeNotes(!includeNotes)}
               >
+                <Text style={styles.optionLabel}>{t("marketplace.notes")}</Text>
                 <View
                   style={[
                     styles.optionCheckbox,
@@ -196,13 +197,15 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                     <Ionicons name="checkmark" size={16} color="#000000" />
                   )}
                 </View>
-                <Text style={styles.optionLabel}>{t("marketplace.notes")}</Text>
               </Pressable>
               {/* 3. Statystyki tankowań */}
               <Pressable
                 style={styles.checkboxRow}
                 onPress={() => setIncludeFuelingStats(!includeFuelingStats)}
               >
+                <Text style={styles.optionLabel}>
+                  {t("marketplace.fuelingStats")}
+                </Text>
                 <View
                   style={[
                     styles.optionCheckbox,
@@ -213,15 +216,15 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                     <Ionicons name="checkmark" size={16} color="#000000" />
                   )}
                 </View>
-                <Text style={styles.optionLabel}>
-                  {t("marketplace.fuelingStats")}
-                </Text>
               </Pressable>
               {/* 4. Statystyki serwisowania */}
               <Pressable
                 style={styles.checkboxRow}
                 onPress={() => setIncludeServiceStats(!includeServiceStats)}
               >
+                <Text style={styles.optionLabel}>
+                  {t("marketplace.serviceStats")}
+                </Text>
                 <View
                   style={[
                     styles.optionCheckbox,
@@ -232,15 +235,15 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                     <Ionicons name="checkmark" size={16} color="#000000" />
                   )}
                 </View>
-                <Text style={styles.optionLabel}>
-                  {t("marketplace.serviceStats")}
-                </Text>
               </Pressable>
               {/* 5. Felgi i opony */}
               <Pressable
                 style={styles.checkboxRow}
                 onPress={() => setIncludeWheelsTires(!includeWheelsTires)}
               >
+                <Text style={styles.optionLabel}>
+                  {t("marketplace.wheelsAndTires")}
+                </Text>
                 <View
                   style={[
                     styles.optionCheckbox,
@@ -251,9 +254,6 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                     <Ionicons name="checkmark" size={16} color="#000000" />
                   )}
                 </View>
-                <Text style={styles.optionLabel}>
-                  {t("marketplace.wheelsAndTires")}
-                </Text>
               </Pressable>
             </View>
 
@@ -269,7 +269,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                 </Text>
                 <PickerField
                   noMarginTop
-                  label={t("marketplace.selectReport")}
+                  label={""}
                   value={selectedReportId as string | null}
                   options={publicReports.map((r) => r.id) as readonly string[]}
                   getLabel={(value) => {
@@ -330,14 +330,13 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
       fontWeight: "700",
       color: theme.colors.fg,
+      marginBottom: theme.spacing.sm,
     },
     checkboxRow: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: theme.spacing.sm,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-      gap: theme.spacing.sm,
+      justifyContent: "space-between",
+      marginBottom: theme.spacing.sm,
     },
     optionCheckbox: {
       width: 24,

@@ -309,7 +309,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
           </Text>
           <PickerField
             noMarginTop
-            label={t("marketplace.selectReport")}
+            label={""}
             value={selectedReportId as string | null}
             options={publicReports.map((r) => r.id) as readonly string[]}
             getLabel={(value) => {

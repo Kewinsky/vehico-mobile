@@ -199,16 +199,6 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                 </Text>
               </View>
             )}
-            {selectedReportId && (
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("marketplace.publicReport")}
-                </Text>
-                <Text style={styles.dataValue}>
-                  {t("marketplace.included")}
-                </Text>
-              </View>
-            )}
           </View>
         </View>
 
@@ -446,6 +436,33 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                 onPress={() =>
                   Alert.alert(
                     t("marketplace.wheelsAndTires"),
+                    t("marketplace.dataUsedForPost"),
+                  )
+                }
+              >
+                <Ionicons
+                  name="information-circle-outline"
+                  size={22}
+                  color={theme.colors.muted}
+                />
+              </Pressable>
+            </View>
+            <Text style={styles.countValue}>{t("marketplace.included")}</Text>
+          </View>
+        )}
+
+        {/* Public report */}
+        {selectedReportId && (
+          <View style={styles.section}>
+            <View style={styles.sectionTitleRow}>
+              <Text style={[styles.sectionTitle, styles.sectionTitleInRow]}>
+                {t("marketplace.publicReport")}
+              </Text>
+              <Pressable
+                hitSlop={8}
+                onPress={() =>
+                  Alert.alert(
+                    t("marketplace.publicReport"),
                     t("marketplace.dataUsedForPost"),
                   )
                 }
