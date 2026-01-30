@@ -128,7 +128,7 @@ export function ExportScreen({ navigation, route }: Props) {
           )}
         </Button>
         <Text style={styles.description}>{t("export.jsonDescription")}</Text>
-        <View style={{ height: 10 }} />
+        <View style={{ height: theme.spacing.sm }} />
         <Button
           onPress={handleExportCsv}
           variant="ghost"

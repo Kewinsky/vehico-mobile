@@ -87,7 +87,7 @@ export function ImportScreen({ navigation, route }: Props) {
               ? (r[iCategory] ?? "").trim().toLowerCase()
               : "other",
           title: r[iTitle] ?? "",
-          description: iDesc >= 0 ? r[iDesc] ?? "" : "",
+          description: iDesc >= 0 ? (r[iDesc] ?? "") : "",
           mileage:
             iMileage >= 0 && (r[iMileage] ?? "").length
               ? Number(r[iMileage])
@@ -95,7 +95,7 @@ export function ImportScreen({ navigation, route }: Props) {
           cost: iCost >= 0 && (r[iCost] ?? "").length ? Number(r[iCost]) : null,
         }))
         .filter(
-          (r) => r.service_date.trim().length === 10 && r.title.trim().length
+          (r) => r.service_date.trim().length === 10 && r.title.trim().length,
         );
 
       if (toCreate.length === 0) {
@@ -120,13 +120,15 @@ export function ImportScreen({ navigation, route }: Props) {
                     mileage: Number.isFinite(e.mileage as any)
                       ? (e.mileage as any)
                       : null,
-                    category: ([
-                      "maintenance",
-                      "repair",
-                      "inspection",
-                      "upgrade",
-                      "other",
-                    ] as const).includes(e.category as any)
+                    category: (
+                      [
+                        "maintenance",
+                        "repair",
+                        "inspection",
+                        "upgrade",
+                        "other",
+                      ] as const
+                    ).includes(e.category as any)
                       ? (e.category as any)
                       : "other",
                     title: e.title.trim(),
@@ -137,10 +139,7 @@ export function ImportScreen({ navigation, route }: Props) {
                   });
                 }
                 setCsv("");
-                toastSuccess(
-                  t("import.successTitle"),
-                  t("import.successBody")
-                );
+                toastSuccess(t("import.successTitle"), t("import.successBody"));
               } catch (err: any) {
                 toastError(err?.message ?? t("common.error"));
               } finally {
@@ -148,7 +147,7 @@ export function ImportScreen({ navigation, route }: Props) {
               }
             },
           },
-        ]
+        ],
       );
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
@@ -173,11 +172,11 @@ export function ImportScreen({ navigation, route }: Props) {
         multiline
         editable={!importing}
       />
-      <View style={{ height: 12 }} />
+      <View style={{ height: theme.spacing.sm }} />
       <Button onPress={handleImportCsv} disabled={importing || !csv.trim()}>
         {importing ? t("common.loading") : t("import.importButton")}
       </Button>
-      <View style={{ height: 10 }} />
+      <View style={{ height: theme.spacing.sm }} />
       <Button
         onPress={() => setCsv("")}
         variant="ghost"

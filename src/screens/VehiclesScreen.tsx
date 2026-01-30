@@ -210,7 +210,7 @@ export function VehiclesScreen({ navigation }: Props) {
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyTitle}>{t("vehicles.emptyTitle")}</Text>
             <Text style={styles.emptyBody}>{t("vehicles.emptyBody")}</Text>
-            <View style={{ height: 16 }} />
+            <View style={{ height: theme.spacing.sm }} />
             <Button onPress={() => navigation.navigate("VehicleForm")}>
               {t("vehicles.addVehicle")}
             </Button>

@@ -62,7 +62,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
         </Text>
         <Text style={styles.subtitle}>{t("share.qrCodeSubtitle")}</Text>
 
-        <View style={{ height: 16 }} />
+        <View style={{ height: theme.spacing.sm }} />
 
         <View style={styles.qrContainer}>
           <View
@@ -83,13 +83,13 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
           </View>
         </View>
 
-        <View style={{ height: 16 }} />
+        <View style={{ height: theme.spacing.sm }} />
 
         <Button onPress={handleCopyLink} variant="ghost">
           {t("share.copyLink")}
         </Button>
 
-        <View style={{ height: 10 }} />
+        <View style={{ height: theme.spacing.sm }} />
 
         <Button onPress={handleOpenInBrowser} variant="ghost">
           {t("share.openInBrowser")}

@@ -383,6 +383,16 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
           </View>
         )}
 
+        {/* Wheels and tires */}
+        {reportOptions.include_wheels_tires && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t("publicReport.wheelsAndTires")}
+            </Text>
+            <Text style={styles.countValue}>{t("publicReport.included")}</Text>
+          </View>
+        )}
+
         {/* Photos - title, count, preview button */}
         {allPhotoUrls.length > 0 && (
           <View style={styles.section}>

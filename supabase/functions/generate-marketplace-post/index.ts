@@ -16,6 +16,7 @@ interface GenerateRequest {
   includeFuelingStats?: boolean;
   includeServiceStats?: boolean;
   includeNotes?: boolean;
+  includeWheelsTires?: boolean;
   publicReportUrl?: string | null;
 }
 
@@ -50,6 +51,28 @@ interface FuelingEntry {
   distance: number;
   fuel_amount: number;
   fuel_cost: number;
+}
+
+interface VehicleTire {
+  name: string;
+  width_mm: number;
+  aspect_ratio: number;
+  diameter_inch: number;
+  tire_type: string;
+  dot: string | null;
+  is_currently_fitted: boolean;
+}
+
+interface VehicleWheel {
+  name: string;
+  width_inch: number;
+  diameter_inch: number;
+  et_offset: number | null;
+  bolt_pattern: string | null;
+  center_bore_mm: number | null;
+  bolt_type: string | null;
+  weight_kg: number | null;
+  is_currently_fitted: boolean;
 }
 
 function formatValue(value: any, placeholder: string): string {
@@ -101,6 +124,33 @@ function getCategoryLabel(category: string, lang: "en" | "pl"): string {
     other: { en: "Other", pl: "Inne" },
   };
   return labels[category]?.[lang] || category;
+}
+
+function getTireTypeLabel(tireType: string, lang: "en" | "pl"): string {
+  const labels: Record<string, { en: string; pl: string }> = {
+    summer: { en: "Summer", pl: "Letnia" },
+    winter: { en: "Winter", pl: "Zimowa" },
+    all_season: { en: "All-season", pl: "Wielosezonowa" },
+    run_flat: { en: "Run-flat", pl: "Run-flat" },
+    uhp: { en: "UHP (sport)", pl: "UHP (sportowa)" },
+    suv_xl: { en: "SUV/XL (reinforced)", pl: "SUV/XL (wzmocniona)" },
+  };
+  return labels[tireType]?.[lang] || tireType;
+}
+
+function formatTireDimensions(
+  widthMm: number,
+  aspectRatio: number,
+  diameterInch: number,
+): string {
+  return `${widthMm}/${aspectRatio} R${diameterInch}`;
+}
+
+function formatWheelDimensions(
+  widthInch: number,
+  diameterInch: number,
+): string {
+  return `${widthInch}J R${diameterInch}`;
 }
 
 function formatServiceHistory(
@@ -283,10 +333,59 @@ function formatServiceStats(
   return lines.join("\n");
 }
 
+function formatWheelsAndTiresSection(
+  tires: VehicleTire[],
+  wheels: VehicleWheel[],
+  language: "en" | "pl",
+): string {
+  const isPL = language === "pl";
+  const lines: string[] = [];
+  if (tires.length > 0) {
+    lines.push(isPL ? "Opony:" : "Tires:");
+    tires.forEach((t) => {
+      const dim = formatTireDimensions(
+        t.width_mm,
+        t.aspect_ratio,
+        t.diameter_inch,
+      );
+      const typeLabel = getTireTypeLabel(t.tire_type, language);
+      const current = t.is_currently_fitted
+        ? isPL
+          ? " (aktualnie na aucie)"
+          : " (currently fitted)"
+        : "";
+      const dot = t.dot ? ` DOT ${t.dot}` : "";
+      lines.push(`  ${t.name || dim} – ${dim} ${typeLabel}${dot}${current}`);
+    });
+  }
+  if (wheels.length > 0) {
+    if (lines.length > 0) lines.push("");
+    lines.push(isPL ? "Felgi:" : "Rims:");
+    wheels.forEach((w) => {
+      const dim = formatWheelDimensions(w.width_inch, w.diameter_inch);
+      const parts = [dim];
+      if (w.et_offset != null) parts.push(`ET${w.et_offset}`);
+      if (w.bolt_pattern) parts.push(w.bolt_pattern);
+      if (w.center_bore_mm != null) parts.push(`CB ${w.center_bore_mm}mm`);
+      if (w.bolt_type) parts.push(w.bolt_type);
+      if (w.weight_kg != null) parts.push(`${w.weight_kg} kg`);
+      const current = w.is_currently_fitted
+        ? isPL
+          ? " (aktualnie na aucie)"
+          : " (currently fitted)"
+        : "";
+      lines.push(`  ${w.name || dim} – ${parts.join(" ")}${current}`);
+    });
+  }
+  return lines.join("\n");
+}
+
 function generateMarketplacePost(
   vehicle: VehicleData,
   serviceEntries: ServiceEntry[],
   fuelingEntries: FuelingEntry[],
+  tires: VehicleTire[],
+  wheels: VehicleWheel[],
   language: "en" | "pl",
   price: number | null,
   currency: string = "PLN",
@@ -295,6 +394,7 @@ function generateMarketplacePost(
     includeFuelingStats: boolean;
     includeServiceStats: boolean;
     includeNotes: boolean;
+    includeWheelsTires: boolean;
     publicReportUrl: string | null;
   },
 ): string {
@@ -397,6 +497,14 @@ ${vehicle.notes}`;
     sections.push(notesSection);
   }
 
+  // Wheels and tires (separate section if included)
+  if (options.includeWheelsTires && (tires.length > 0 || wheels.length > 0)) {
+    const wheelsTitle = isPL ? "KOŁA I OPONY" : "WHEELS AND TIRES";
+    const wheelsSection = `=== ${wheelsTitle} ===
+${formatWheelsAndTiresSection(tires, wheels, language)}`;
+    sections.push(wheelsSection);
+  }
+
   // Public report link (if provided)
   if (options.publicReportUrl) {
     const reportTitle = isPL ? "RAPORT ONLINE" : "ONLINE REPORT";
@@ -448,6 +556,7 @@ serve(async (req) => {
       includeFuelingStats = false,
       includeServiceStats = false,
       includeNotes = false,
+      includeWheelsTires = false,
       publicReportUrl = null,
     }: GenerateRequest = await req.json();
 
@@ -505,11 +614,37 @@ serve(async (req) => {
       fuelingEntries = (data || []) as FuelingEntry[];
     }
 
+    // Fetch vehicle tires and wheels (if wheels/tires section needed)
+    let tires: VehicleTire[] = [];
+    let wheels: VehicleWheel[] = [];
+    if (includeWheelsTires) {
+      const { data: tiresData } = await supabaseClient
+        .from("vehicle_tires")
+        .select(
+          "name, width_mm, aspect_ratio, diameter_inch, tire_type, dot, is_currently_fitted",
+        )
+        .eq("vehicle_id", vehicleId)
+        .order("is_currently_fitted", { ascending: false })
+        .order("created_at", { ascending: false });
+      tires = (tiresData || []) as VehicleTire[];
+      const { data: wheelsData } = await supabaseClient
+        .from("vehicle_wheels")
+        .select(
+          "name, width_inch, diameter_inch, et_offset, bolt_pattern, center_bore_mm, bolt_type, weight_kg, is_currently_fitted",
+        )
+        .eq("vehicle_id", vehicleId)
+        .order("is_currently_fitted", { ascending: false })
+        .order("created_at", { ascending: false });
+      wheels = (wheelsData || []) as VehicleWheel[];
+    }
+
     // Generate post
     const content = generateMarketplacePost(
       vehicle as VehicleData,
       serviceEntries,
       fuelingEntries,
+      tires,
+      wheels,
       language,
       price ?? null,
       currency,
@@ -518,6 +653,7 @@ serve(async (req) => {
         includeFuelingStats,
         includeServiceStats,
         includeNotes,
+        includeWheelsTires,
         publicReportUrl,
       },
     );

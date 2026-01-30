@@ -21,6 +21,7 @@ import { DateField } from "../ui/components/DateField";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
+import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
@@ -171,26 +172,17 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       <Text style={styles.label}>{t("reminderForm.type")}</Text>
       <View style={styles.row}>
         {(["time", "mileage"] as const).map((kind) => (
-          <Pressable
+          <ChoiceChip
             key={kind}
-            onPress={() => setType(kind)}
-            style={[
-              styles.choice,
-              { borderColor: theme.colors.border },
-              type === kind && { borderColor: theme.colors.accent },
-            ]}
-          >
-            <Text
-              style={{
-                color: type === kind ? theme.colors.accent : theme.colors.muted,
-                fontWeight: "800",
-              }}
-            >
-              {kind === "time"
+            label={
+              kind === "time"
                 ? t("reminderForm.time")
-                : t("reminderForm.mileage")}
-            </Text>
-          </Pressable>
+                : t("reminderForm.mileage")
+            }
+            selected={type === kind}
+            onPress={() => setType(kind)}
+            style={styles.choice}
+          />
         ))}
       </View>
 
@@ -233,27 +225,17 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           <Text style={styles.label}>{t("reminderForm.status")}</Text>
           <View style={styles.row}>
             {(["active", "done"] as const).map((st) => (
-              <Pressable
+              <ChoiceChip
                 key={st}
-                onPress={() => setStatus(st)}
-                style={[
-                  styles.choice,
-                  { borderColor: theme.colors.border },
-                  status === st && { borderColor: theme.colors.accent },
-                ]}
-              >
-                <Text
-                  style={{
-                    color:
-                      status === st ? theme.colors.accent : theme.colors.muted,
-                    fontWeight: "800",
-                  }}
-                >
-                  {st === "active"
+                label={
+                  st === "active"
                     ? t("reminderForm.statusActive")
-                    : t("reminderForm.statusDone")}
-                </Text>
-              </Pressable>
+                    : t("reminderForm.statusDone")
+                }
+                selected={status === st}
+                onPress={() => setStatus(st)}
+                style={styles.choice}
+              />
             ))}
           </View>
         </>
@@ -273,11 +255,6 @@ const makeStyles = (theme: any) =>
       marginTop: theme.spacing.xs,
     },
     choice: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md - 2,
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.sm,
       flex: 1,
-      alignItems: "center",
     },
   });

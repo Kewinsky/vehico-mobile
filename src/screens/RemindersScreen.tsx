@@ -26,6 +26,7 @@ import { Button } from "../ui/components/Button";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
+import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { Ionicons } from "@expo/vector-icons";
 import { TextField } from "../ui/components/TextField";
 import { DateField } from "../ui/components/DateField";
@@ -327,33 +328,19 @@ export function RemindersScreen({ route, navigation }: Props) {
             </Text>
             <View style={styles.filterRow}>
               {(["all", "active", "done"] as const).map((status) => (
-                <Pressable
+                <ChoiceChip
                   key={status}
-                  onPress={() => setStatusFilter(status)}
-                  style={[
-                    styles.filterChoice,
-                    { borderColor: theme.colors.border },
-                    statusFilter === status && {
-                      borderColor: theme.colors.accent,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color:
-                        statusFilter === status
-                          ? theme.colors.fg
-                          : theme.colors.muted,
-                      fontWeight: "800",
-                    }}
-                  >
-                    {status === "all"
+                  label={
+                    status === "all"
                       ? t("reminders.filterAll")
                       : status === "active"
                         ? t("reminderDetail.status.active")
-                        : t("reminderDetail.status.done")}
-                  </Text>
-                </Pressable>
+                        : t("reminderDetail.status.done")
+                  }
+                  selected={statusFilter === status}
+                  onPress={() => setStatusFilter(status)}
+                  style={styles.filterChoice}
+                />
               ))}
             </View>
             <DateField
@@ -585,12 +572,7 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.xs / 2,
     },
     filterChoice: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md - 2,
-      paddingVertical: theme.spacing.sm - 2,
-      paddingHorizontal: theme.spacing.sm,
       flex: 1,
-      alignItems: "center",
     },
     separator: {
       marginTop: theme.spacing.md + 4,

@@ -252,7 +252,6 @@ create table if not exists public.vehicle_wheels (
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   name text not null default '',
   width_inch numeric not null,
-  profile_inch numeric,
   diameter_inch integer not null,
   et_offset integer,
   bolt_pattern text,
@@ -819,7 +818,7 @@ create or replace function public.generate_vehicle_snapshot_with_options(
   p_vehicle_id uuid,
   p_selected_vehicle_photo_ids jsonb, -- array of UUIDs, empty = all
   p_temp_photos_data jsonb, -- array of {storage_path, display_order}
-  p_report_options jsonb -- {include_service_entries, include_notes, include_fueling_stats, include_service_stats}
+  p_report_options jsonb -- {include_service_entries, include_notes, include_fueling_stats, include_service_stats, include_wheels_tires}
 )
 returns jsonb
 language plpgsql
@@ -833,16 +832,20 @@ declare
   v_fueling_entries jsonb;
   v_vehicle_photos jsonb;
   v_temp_photos jsonb;
+  v_vehicle_tires jsonb;
+  v_vehicle_wheels jsonb;
   v_include_service_entries boolean;
   v_include_notes boolean;
   v_include_fueling_stats boolean;
   v_include_service_stats boolean;
+  v_include_wheels_tires boolean;
 begin
   -- Extract options
   v_include_service_entries := coalesce((p_report_options->>'include_service_entries')::boolean, true);
   v_include_notes := coalesce((p_report_options->>'include_notes')::boolean, true);
   v_include_fueling_stats := coalesce((p_report_options->>'include_fueling_stats')::boolean, false);
   v_include_service_stats := coalesce((p_report_options->>'include_service_stats')::boolean, false);
+  v_include_wheels_tires := coalesce((p_report_options->>'include_wheels_tires')::boolean, false);
 
   -- Get vehicle data
   select to_jsonb(v.*) into v_vehicle
@@ -895,6 +898,47 @@ begin
     where fe.vehicle_id = p_vehicle_id;
   else
     v_fueling_entries := '[]'::jsonb;
+  end if;
+
+  -- Get vehicle tires and wheels (if included)
+  if v_include_wheels_tires then
+    select coalesce(jsonb_agg(
+      jsonb_build_object(
+        'id', vt.id,
+        'vehicle_id', vt.vehicle_id,
+        'name', vt.name,
+        'width_mm', vt.width_mm,
+        'aspect_ratio', vt.aspect_ratio,
+        'diameter_inch', vt.diameter_inch,
+        'tire_type', vt.tire_type,
+        'dot', vt.dot,
+        'is_currently_fitted', vt.is_currently_fitted,
+        'created_at', vt.created_at
+      ) order by vt.is_currently_fitted desc, vt.created_at desc
+    ), '[]'::jsonb) into v_vehicle_tires
+    from public.vehicle_tires vt
+    where vt.vehicle_id = p_vehicle_id;
+    select coalesce(jsonb_agg(
+      jsonb_build_object(
+        'id', vw.id,
+        'vehicle_id', vw.vehicle_id,
+        'name', vw.name,
+        'width_inch', vw.width_inch,
+        'diameter_inch', vw.diameter_inch,
+        'et_offset', vw.et_offset,
+        'bolt_pattern', vw.bolt_pattern,
+        'center_bore_mm', vw.center_bore_mm,
+        'bolt_type', vw.bolt_type,
+        'weight_kg', vw.weight_kg,
+        'is_currently_fitted', vw.is_currently_fitted,
+        'created_at', vw.created_at
+      ) order by vw.is_currently_fitted desc, vw.created_at desc
+    ), '[]'::jsonb) into v_vehicle_wheels
+    from public.vehicle_wheels vw
+    where vw.vehicle_id = p_vehicle_id;
+  else
+    v_vehicle_tires := '[]'::jsonb;
+    v_vehicle_wheels := '[]'::jsonb;
   end if;
 
   -- Get selected vehicle photos
@@ -962,6 +1006,8 @@ begin
     'service_entries', v_service_entries,
     'fueling_entries', v_fueling_entries,
     'vehicle_photos', v_vehicle_photos,
+    'vehicle_tires', v_vehicle_tires,
+    'vehicle_wheels', v_vehicle_wheels,
     'report_options', p_report_options,
     'snapshot_version', '2.0',
     'snapshot_date', now()
@@ -991,7 +1037,8 @@ begin
       'include_service_entries', true,
       'include_notes', true,
       'include_fueling_stats', false,
-      'include_service_stats', false
+      'include_service_stats', false,
+      'include_wheels_tires', false
     ) -- report_options
   );
 end;

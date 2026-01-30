@@ -16,7 +16,6 @@ import {
 } from "../services/wheels/wheelsRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
-import { Button } from "../ui/components/Button";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
@@ -126,7 +125,6 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
                 {currentWheel.name} –{" "}
                 {formatWheelDimensions(
                   currentWheel.width_inch,
-                  currentWheel.profile_inch,
                   currentWheel.diameter_inch,
                 )}
               </Text>
@@ -142,7 +140,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
 
         <View style={styles.buttonsRow}>
           <Pressable
-            onPress={() => navigation.navigate("TireForm", { vehicleId })}
+            onPress={() => navigation.navigate("TiresList", { vehicleId })}
             style={({ pressed }) => [
               styles.actionCard,
               {
@@ -158,12 +156,12 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
               color={theme.colors.accent}
             />
             <Text style={[styles.actionTitle, { color: theme.colors.fg }]}>
-              {t("wheels.addTire")}
+              {t("wheels.tiresSection")}
             </Text>
           </Pressable>
 
           <Pressable
-            onPress={() => navigation.navigate("WheelForm", { vehicleId })}
+            onPress={() => navigation.navigate("WheelsList", { vehicleId })}
             style={({ pressed }) => [
               styles.actionCard,
               {
@@ -179,90 +177,10 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
               color={theme.colors.accent}
             />
             <Text style={[styles.actionTitle, { color: theme.colors.fg }]}>
-              {t("wheels.addWheel")}
+              {t("wheels.rimsSection")}
             </Text>
           </Pressable>
         </View>
-
-        {tires.length > 0 && (
-          <>
-            <View style={{ height: theme.spacing.xl }} />
-            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t("wheels.tiresSection")}
-            </Text>
-            {tires.map((tire) => (
-              <Pressable
-                key={tire.id}
-                onPress={() =>
-                  navigation.navigate("TireForm", {
-                    vehicleId,
-                    tireId: tire.id,
-                  })
-                }
-                style={({ pressed }) => [
-                  styles.listCard,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                    opacity: pressed ? 0.9 : 1,
-                  },
-                ]}
-              >
-                <Text style={{ color: theme.colors.fg, fontWeight: "600" }}>
-                  {tire.name} –{" "}
-                  {formatTireDimensions(
-                    tire.width_mm,
-                    tire.aspect_ratio,
-                    tire.diameter_inch,
-                  )}
-                  {tire.is_currently_fitted
-                    ? ` (${t("wheels.currentlyFitted")})`
-                    : ""}
-                </Text>
-              </Pressable>
-            ))}
-          </>
-        )}
-
-        {wheels.length > 0 && (
-          <>
-            <View style={{ height: theme.spacing.lg }} />
-            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t("wheels.rimsSection")}
-            </Text>
-            {wheels.map((wheel) => (
-              <Pressable
-                key={wheel.id}
-                onPress={() =>
-                  navigation.navigate("WheelForm", {
-                    vehicleId,
-                    wheelId: wheel.id,
-                  })
-                }
-                style={({ pressed }) => [
-                  styles.listCard,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                    opacity: pressed ? 0.9 : 1,
-                  },
-                ]}
-              >
-                <Text style={{ color: theme.colors.fg, fontWeight: "600" }}>
-                  {wheel.name} –{" "}
-                  {formatWheelDimensions(
-                    wheel.width_inch,
-                    wheel.profile_inch,
-                    wheel.diameter_inch,
-                  )}
-                  {wheel.is_currently_fitted
-                    ? ` (${t("wheels.currentlyFitted")})`
-                    : ""}
-                </Text>
-              </Pressable>
-            ))}
-          </>
-        )}
       </ScrollView>
     </Screen>
   );
@@ -320,12 +238,6 @@ function makeStyles(theme: any) {
       fontWeight: "600",
       marginTop: theme.spacing.sm,
       textAlign: "center",
-    },
-    listCard: {
-      borderRadius: 12,
-      borderWidth: 1,
-      padding: theme.spacing.md,
-      marginBottom: theme.spacing.sm,
     },
   });
 }

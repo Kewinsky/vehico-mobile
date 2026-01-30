@@ -111,6 +111,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
         includeFuelingStats: reportOptions.include_fueling_stats,
         includeServiceStats: reportOptions.include_service_stats,
         includeNotes: reportOptions.include_notes,
+        includeWheelsTires: reportOptions.include_wheels_tires ?? false,
         publicReportUrl,
       });
 
@@ -430,9 +431,34 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                 />
               </Pressable>
             </View>
-            <Text style={styles.countValue}>
-              {serviceEntriesCount} {t("marketplace.entries")}
-            </Text>
+            <Text style={styles.countValue}>{serviceEntriesCount}</Text>
+          </View>
+        )}
+
+        {/* Wheels and tires */}
+        {reportOptions.include_wheels_tires && (
+          <View style={styles.section}>
+            <View style={styles.sectionTitleRow}>
+              <Text style={[styles.sectionTitle, styles.sectionTitleInRow]}>
+                {t("marketplace.wheelsAndTires")}
+              </Text>
+              <Pressable
+                hitSlop={8}
+                onPress={() =>
+                  Alert.alert(
+                    t("marketplace.wheelsAndTires"),
+                    t("marketplace.dataUsedForPost"),
+                  )
+                }
+              >
+                <Ionicons
+                  name="information-circle-outline"
+                  size={22}
+                  color={theme.colors.muted}
+                />
+              </Pressable>
+            </View>
+            <Text style={styles.countValue}>{t("marketplace.included")}</Text>
           </View>
         )}
 

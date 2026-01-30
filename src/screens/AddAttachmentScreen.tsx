@@ -224,7 +224,9 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         onRefresh={() => void load({ refreshing: true })}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
-        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+        ItemSeparatorComponent={() => (
+          <View style={{ height: theme.spacing.sm }} />
+        )}
         renderItem={({ item }) => (
           <View
             style={[

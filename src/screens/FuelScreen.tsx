@@ -288,13 +288,13 @@ export function FuelScreen({ route, navigation }: Props) {
               value={dateFrom}
               onChange={setDateFrom}
             />
-            <View style={{ height: 10 }} />
+            <View style={{ height: theme.spacing.sm }} />
             <DateField
               label={t("timeline.filterTo")}
               value={dateTo}
               onChange={setDateTo}
             />
-            <View style={{ height: 10 }} />
+            <View style={{ height: theme.spacing.sm }} />
             <PickerField<GasStation>
               label={t("timeline.filterStation")}
               value={stationFilter}

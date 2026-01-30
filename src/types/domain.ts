@@ -63,7 +63,6 @@ export type VehicleWheel = {
   vehicle_id: string;
   name: string;
   width_inch: number;
-  profile_inch: number | null;
   diameter_inch: number;
   et_offset: number | null;
   bolt_pattern: string | null;
@@ -133,7 +132,10 @@ export type PublicReportSnapshot = {
       include_notes: boolean;
       include_fueling_stats: boolean;
       include_service_stats: boolean;
+      include_wheels_tires?: boolean;
     };
+    vehicle_tires?: VehicleTire[];
+    vehicle_wheels?: VehicleWheel[];
     snapshot_version: string;
     snapshot_date: string;
   };

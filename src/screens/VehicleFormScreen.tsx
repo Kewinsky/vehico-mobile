@@ -32,6 +32,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { PickerField } from "../ui/components/PickerField";
+import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { DateField } from "../ui/components/DateField";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../ui/ThemeProvider";
@@ -420,54 +421,18 @@ export function VehicleFormScreen({ navigation }: Props) {
           {t("vehicleForm.type")}
         </Text>
         <View style={styles.typeRow}>
-          <Pressable
+          <ChoiceChip
+            label={t("vehicleForm.car")}
+            selected={type === "car"}
             onPress={() => setType("car")}
-            style={[
-              styles.typeChip,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-              type === "car" && { borderColor: theme.colors.accent },
-            ]}
-          >
-            <Text
-              style={[
-                styles.typeChipText,
-                {
-                  color:
-                    type === "car" ? theme.colors.accent : theme.colors.muted,
-                },
-              ]}
-            >
-              {t("vehicleForm.car")}
-            </Text>
-          </Pressable>
-          <Pressable
+            style={styles.typeChip}
+          />
+          <ChoiceChip
+            label={t("vehicleForm.motorcycle")}
+            selected={type === "motorcycle"}
             onPress={() => setType("motorcycle")}
-            style={[
-              styles.typeChip,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-              type === "motorcycle" && { borderColor: theme.colors.accent },
-            ]}
-          >
-            <Text
-              style={[
-                styles.typeChipText,
-                {
-                  color:
-                    type === "motorcycle"
-                      ? theme.colors.accent
-                      : theme.colors.muted,
-                },
-              ]}
-            >
-              {t("vehicleForm.motorcycle")}
-            </Text>
-          </Pressable>
+            style={styles.typeChip}
+          />
         </View>
       </View>
 
@@ -555,38 +520,19 @@ export function VehicleFormScreen({ navigation }: Props) {
         </Text>
         <View style={styles.typeRow}>
           {(["manual", "automatic"] as const).map((tr) => (
-            <Pressable
+            <ChoiceChip
               key={tr}
+              label={t(
+                `vehicleForm.transmission${
+                  tr.charAt(0).toUpperCase() + tr.slice(1)
+                }` as
+                  | "vehicleForm.transmissionManual"
+                  | "vehicleForm.transmissionAutomatic",
+              )}
+              selected={transmission === tr}
               onPress={() => setTransmission(tr)}
-              style={[
-                styles.typeChip,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-                transmission === tr && { borderColor: theme.colors.accent },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.typeChipText,
-                  {
-                    color:
-                      transmission === tr
-                        ? theme.colors.accent
-                        : theme.colors.muted,
-                  },
-                ]}
-              >
-                {t(
-                  `vehicleForm.transmission${
-                    tr.charAt(0).toUpperCase() + tr.slice(1)
-                  }` as
-                    | "vehicleForm.transmissionManual"
-                    | "vehicleForm.transmissionAutomatic",
-                )}
-              </Text>
-            </Pressable>
+              style={styles.typeChip}
+            />
           ))}
         </View>
       </View>
@@ -596,32 +542,13 @@ export function VehicleFormScreen({ navigation }: Props) {
         </Text>
         <View style={styles.typeRow}>
           {(["FWD", "RWD", "AWD"] as const).map((dt) => (
-            <Pressable
+            <ChoiceChip
               key={dt}
+              label={dt}
+              selected={driveType === dt}
               onPress={() => setDriveType(dt)}
-              style={[
-                styles.typeChip,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-                driveType === dt && { borderColor: theme.colors.accent },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.typeChipText,
-                  {
-                    color:
-                      driveType === dt
-                        ? theme.colors.accent
-                        : theme.colors.muted,
-                  },
-                ]}
-              >
-                {dt}
-              </Text>
-            </Pressable>
+              style={styles.typeChip}
+            />
           ))}
         </View>
       </View>
@@ -654,14 +581,6 @@ const makeStyles = (theme: any) =>
     },
     typeChip: {
       flex: 1,
-      height: 44,
-      borderWidth: 1,
-      borderRadius: 12,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    typeChipText: {
-      fontWeight: "700",
     },
     photosSection: {
       gap: 8,

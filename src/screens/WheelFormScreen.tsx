@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { isPositiveNumber } from "../utils/validation";
+import { isPositiveNumber, isValidEt, parseDecimal } from "../utils/validation";
 import {
   createVehicleWheel,
   getVehicleWheel,
@@ -27,7 +27,6 @@ export function WheelFormScreen({ navigation, route }: Props) {
 
   const [name, setName] = useState("");
   const [width, setWidth] = useState("");
-  const [profile, setProfile] = useState("");
   const [diameter, setDiameter] = useState("");
   const [etOffset, setEtOffset] = useState("");
   const [boltPattern, setBoltPattern] = useState("");
@@ -44,9 +43,6 @@ export function WheelFormScreen({ navigation, route }: Props) {
         const wheel = await getVehicleWheel(wheelId);
         setName(wheel.name);
         setWidth(String(wheel.width_inch));
-        setProfile(
-          wheel.profile_inch != null ? String(wheel.profile_inch) : "",
-        );
         setDiameter(String(wheel.diameter_inch));
         setEtOffset(wheel.et_offset != null ? String(wheel.et_offset) : "");
         setBoltPattern(wheel.bolt_pattern ?? "");
@@ -66,9 +62,10 @@ export function WheelFormScreen({ navigation, route }: Props) {
     return (
       name.trim().length > 0 &&
       isPositiveNumber(width) &&
-      isPositiveNumber(diameter)
+      isPositiveNumber(diameter) &&
+      isValidEt(etOffset)
     );
-  }, [name, width, diameter]);
+  }, [name, width, diameter, etOffset]);
 
   async function onSave() {
     try {
@@ -83,17 +80,20 @@ export function WheelFormScreen({ navigation, route }: Props) {
         toastError(t("validation.positiveRequired"));
         return;
       }
+      if (!isValidEt(etOffset)) {
+        toastError(t("validation.etInvalid"));
+        return;
+      }
       const payload = {
         vehicle_id: vehicleId,
         name: name.trim(),
         width_inch: widthNum,
-        profile_inch: profile.trim() ? Number(profile.trim()) : null,
         diameter_inch: diameterNum,
         et_offset: etOffset.trim() ? Number(etOffset.trim()) : null,
         bolt_pattern: boltPattern.trim() || null,
-        center_bore_mm: centerBore.trim() ? Number(centerBore.trim()) : null,
+        center_bore_mm: parseDecimal(centerBore),
         bolt_type: boltType.trim() || null,
-        weight_kg: weight.trim() ? Number(weight.trim()) : null,
+        weight_kg: parseDecimal(weight),
         is_currently_fitted: isCurrentlyFitted,
       };
       if (wheelId) {
@@ -166,15 +166,6 @@ export function WheelFormScreen({ navigation, route }: Props) {
       <View style={{ height: theme.spacing.sm }} />
       <TextField
         noMarginTop
-        label={t("wheelForm.profile")}
-        value={profile}
-        onChangeText={setProfile}
-        placeholder={t("wheelForm.placeholderProfile")}
-        keyboardType="decimal-pad"
-      />
-      <View style={{ height: theme.spacing.sm }} />
-      <TextField
-        noMarginTop
         label={`${t("wheelForm.diameter")} *`}
         value={diameter}
         onChangeText={setDiameter}
@@ -188,7 +179,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
         value={etOffset}
         onChangeText={setEtOffset}
         placeholder={t("wheelForm.placeholderEtOffset")}
-        keyboardType="numbers-and-punctuation"
+        keyboardType="number-pad"
       />
       <View style={{ height: theme.spacing.sm }} />
       <TextField

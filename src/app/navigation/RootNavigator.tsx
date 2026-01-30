@@ -42,6 +42,10 @@ import { PublicReportScreen } from "../../screens/PublicReportScreen";
 import { PublicReportConfigureScreen } from "../../screens/PublicReportConfigureScreen";
 import { PublicReportSummaryScreen } from "../../screens/PublicReportSummaryScreen";
 import { WheelsOverviewScreen } from "../../screens/WheelsOverviewScreen";
+import { TiresListScreen } from "../../screens/TiresListScreen";
+import { WheelsListScreen } from "../../screens/WheelsListScreen";
+import { TireDetailScreen } from "../../screens/TireDetailScreen";
+import { WheelDetailScreen } from "../../screens/WheelDetailScreen";
 import { TireFormScreen } from "../../screens/TireFormScreen";
 import { WheelFormScreen } from "../../screens/WheelFormScreen";
 import { WorkshopsScreen } from "../../screens/WorkshopsScreen";
@@ -76,6 +80,7 @@ export type AppStackParamList = {
       include_fueling_stats: boolean;
       include_service_stats: boolean;
       include_notes: boolean;
+      include_wheels_tires?: boolean;
     };
     selectedReportId: string | null;
   };
@@ -97,6 +102,7 @@ export type AppStackParamList = {
       include_notes: boolean;
       include_fueling_stats: boolean;
       include_service_stats: boolean;
+      include_wheels_tires?: boolean;
     };
     selectedVehiclePhotoIds: string[];
     tempPhotos: Array<{
@@ -125,6 +131,10 @@ export type AppStackParamList = {
   ReminderForm: { vehicleId: string; reminderId?: string };
   ReminderDetail: { vehicleId: string; reminderId: string };
   Wheels: { vehicleId: string };
+  TiresList: { vehicleId: string };
+  WheelsList: { vehicleId: string };
+  TireDetail: { vehicleId: string; tireId: string };
+  WheelDetail: { vehicleId: string; wheelId: string };
   TireForm: { vehicleId: string; tireId?: string };
   WheelForm: { vehicleId: string; wheelId?: string };
   Workshops: undefined;
@@ -246,6 +256,10 @@ export function RootNavigator() {
             component={ServiceEntryFormScreen}
           />
           <Stack.Screen name="Wheels" component={WheelsOverviewScreen} />
+          <Stack.Screen name="TiresList" component={TiresListScreen} />
+          <Stack.Screen name="WheelsList" component={WheelsListScreen} />
+          <Stack.Screen name="TireDetail" component={TireDetailScreen} />
+          <Stack.Screen name="WheelDetail" component={WheelDetailScreen} />
           <Stack.Screen name="TireForm" component={TireFormScreen} />
           <Stack.Screen name="WheelForm" component={WheelFormScreen} />
           <Stack.Screen name="Workshops" component={WorkshopsScreen} />

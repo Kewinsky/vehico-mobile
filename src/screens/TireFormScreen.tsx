@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { TireType } from "../types/domain";
-import { isPositiveNumber } from "../utils/validation";
+import { isPositiveNumber, isValidDot } from "../utils/validation";
 import {
   createVehicleTire,
   getVehicleTire,
@@ -69,9 +69,10 @@ export function TireFormScreen({ navigation, route }: Props) {
       isPositiveNumber(width) &&
       isPositiveNumber(profile) &&
       isPositiveNumber(diameter) &&
-      tireType != null
+      tireType != null &&
+      isValidDot(dot)
     );
-  }, [name, width, profile, diameter, tireType]);
+  }, [name, width, profile, diameter, tireType, dot]);
 
   async function onSave() {
     try {
@@ -89,6 +90,10 @@ export function TireFormScreen({ navigation, route }: Props) {
       }
       if (!Number.isFinite(diameterNum) || diameterNum <= 0) {
         toastError(t("validation.positiveRequired"));
+        return;
+      }
+      if (!isValidDot(dot)) {
+        toastError(t("validation.dotInvalid"));
         return;
       }
       const payload = {
@@ -202,6 +207,7 @@ export function TireFormScreen({ navigation, route }: Props) {
         value={dot}
         onChangeText={setDot}
         placeholder={t("tireForm.placeholderDot")}
+        keyboardType="number-pad"
       />
       <View style={{ height: theme.spacing.sm }} />
       <View style={styles.switchRow}>

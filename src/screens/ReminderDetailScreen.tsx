@@ -102,7 +102,6 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
         {reminder ? (
           <View style={styles.detailsCard}>
             <Text style={styles.detailsTitle}>{reminder.title ?? ""}</Text>
-            <View style={{ height: 12 }} />
             <View style={styles.row}>
               <Text style={styles.label}>
                 {t("reminderDetail.labels.type")}
@@ -146,7 +145,7 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
 
             {reminder.notes ? (
               <>
-                <View style={{ height: 10 }} />
+                <View style={{ height: theme.spacing.sm }} />
                 <Text style={styles.label}>
                   {t("reminderDetail.labels.notes")}
                 </Text>

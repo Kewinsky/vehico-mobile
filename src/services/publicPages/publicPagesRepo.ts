@@ -8,6 +8,7 @@ export type ReportOptions = {
   include_notes: boolean;
   include_fueling_stats: boolean;
   include_service_stats: boolean;
+  include_wheels_tires?: boolean;
 };
 
 /**

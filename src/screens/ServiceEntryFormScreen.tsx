@@ -42,6 +42,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { IconButton } from "../ui/components/IconButton";
+import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryForm">;
@@ -453,27 +454,17 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         <>
           <View style={styles.modeRow}>
             {(["single", "multi"] as const).map((m) => (
-              <Pressable
+              <ChoiceChip
                 key={m}
-                onPress={() => setFormMode(m)}
-                style={[
-                  styles.modeChoice,
-                  { borderColor: theme.colors.border },
-                  mode === m && { borderColor: theme.colors.accent },
-                ]}
-              >
-                <Text
-                  style={{
-                    color:
-                      mode === m ? theme.colors.accent : theme.colors.muted,
-                    fontWeight: "800",
-                  }}
-                >
-                  {m === "single"
+                label={
+                  m === "single"
                     ? t("entryForm.modeSingle")
-                    : t("entryForm.modeMulti")}
-                </Text>
-              </Pressable>
+                    : t("entryForm.modeMulti")
+                }
+                selected={mode === m}
+                onPress={() => setFormMode(m)}
+                style={styles.modeChoice}
+              />
             ))}
           </View>
         </>
@@ -605,11 +596,11 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             placeholder={t("entryForm.placeholderDescription")}
           />
 
-          <View style={{ height: 12 }} />
+          <View style={{ height: theme.spacing.sm }} />
           <View style={styles.sectionHeader}>
             <Text style={styles.h2}>{t("attachments.title")}</Text>
           </View>
-          <View style={{ height: 10 }} />
+          <View style={{ height: theme.spacing.sm }} />
           <Button
             onPress={pickAttachment}
             variant="ghost"
@@ -617,14 +608,16 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           >
             {t("entryForm.addAttachment")}
           </Button>
-          <View style={{ height: 10 }} />
+          <View style={{ height: theme.spacing.sm }} />
 
           {entryId ? (
             <FlatList
               data={attachments}
               keyExtractor={(a) => a.id}
               scrollEnabled={false}
-              ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+              ItemSeparatorComponent={() => (
+                <View style={{ height: theme.spacing.sm }} />
+              )}
               renderItem={({ item }) => (
                 <View style={styles.card}>
                   <View style={styles.cardRow}>
@@ -687,7 +680,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               data={pendingFiles}
               keyExtractor={(_, index) => `pending-${index}`}
               scrollEnabled={false}
-              ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+              ItemSeparatorComponent={() => (
+                <View style={{ height: theme.spacing.sm }} />
+              )}
               renderItem={({ item, index }) => (
                 <View style={styles.card}>
                   <View style={styles.cardRow}>
@@ -749,12 +744,7 @@ const makeStyles = (theme: any) =>
       marginTop: theme.spacing.xs,
     },
     modeChoice: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md - 2,
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.sm,
       flex: 1,
-      alignItems: "center",
     },
     label: { fontSize: 13, fontWeight: "800", color: theme.colors.muted },
     h2: { fontSize: 16, fontWeight: "800", color: theme.colors.fg },

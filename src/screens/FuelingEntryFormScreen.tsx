@@ -146,7 +146,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         {entryId ? t("fuelingForm.editTitle") : t("fuelingForm.addTitle")}
       </Text>
 
-      <View style={{ height: 14 }} />
+      <View style={{ height: theme.spacing.sm }} />
       <DateField
         noMarginTop
         label={`${t("fuelingForm.date")} *`}

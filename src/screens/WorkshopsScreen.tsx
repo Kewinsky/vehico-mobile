@@ -1,12 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +11,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
+import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
@@ -30,6 +24,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
   const [items, setItems] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<WorkshopType | "all">("all");
   const [sortOrder, setSortOrder] = useState<"az" | "za">("az");
 
@@ -78,6 +73,23 @@ export function WorkshopsScreen({ navigation, route }: Props) {
     return t(`workshopForm.types.${type}`);
   }
 
+  const hasActiveFilters = typeFilter !== "all";
+
+  function resetFilters() {
+    setTypeFilter("all");
+    setSortOrder("az");
+  }
+
+  const WORKSHOP_TYPES: (WorkshopType | "all")[] = [
+    "all",
+    "mechanic",
+    "electrician",
+    "detailer",
+    "bodywork",
+    "car_wash",
+    "other",
+  ];
+
   if (loading) {
     return (
       <Screen padding={false}>
@@ -90,13 +102,15 @@ export function WorkshopsScreen({ navigation, route }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
-      <View style={[styles.header, { paddingHorizontal: theme.spacing.md }]}>
-        <Text style={[styles.title, { color: theme.colors.fg }]}>
-          {t("workshops.title")}
-        </Text>
-        <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-          {t("dashboard.tiles.workshopsSubtitle")}
-        </Text>
+      <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: theme.colors.fg }]}>
+            {t("workshops.title")}
+          </Text>
+          <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
+            {t("dashboard.tiles.workshopsSubtitle")}
+          </Text>
+        </View>
         <View style={{ height: theme.spacing.sm }} />
         <View style={styles.searchRow}>
           <View style={{ flex: 1 }}>
@@ -111,142 +125,138 @@ export function WorkshopsScreen({ navigation, route }: Props) {
             />
           </View>
           <View
-            style={[
-              styles.addButton,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <Pressable
-              onPress={() => navigation.navigate("WorkshopForm", {})}
-              style={({ pressed }) => [
-                styles.addButtonInner,
-                pressed && { opacity: 0.9 },
-              ]}
-            >
-              <Ionicons name="add" size={24} color={theme.colors.fg} />
-            </Pressable>
-          </View>
-        </View>
-        <View style={{ height: theme.spacing.sm }} />
-        <View style={styles.filterRow}>
-          <Pressable
-            onPress={() => {
-              const types: (WorkshopType | "all")[] = [
-                "all",
-                "mechanic",
-                "electrician",
-                "detailer",
-                "bodywork",
-                "car_wash",
-                "other",
-              ];
-              Alert.alert(
-                t("workshops.filterByType"),
-                "",
-                [
-                  { text: t("common.cancel"), style: "cancel" },
-                  ...types.map((type) => ({
-                    text:
-                      type === "all"
-                        ? t("workshops.typeAll")
-                        : getWorkshopTypeLabel(type),
-                    onPress: () => setTypeFilter(type),
-                  })),
-                ],
-                { cancelable: true },
-              );
+            style={{
+              marginLeft: theme.spacing.sm,
+              flexDirection: "row",
+              gap: theme.spacing.sm,
             }}
-            style={({ pressed }) => [
-              styles.filterChip,
+          >
+            <View
+              style={[
+                styles.addButton,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <Pressable
+                onPress={() => navigation.navigate("WorkshopForm", {})}
+                style={({ pressed }) => [
+                  styles.addButtonInner,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <Ionicons name="add" size={24} color={theme.colors.fg} />
+              </Pressable>
+            </View>
+            <View
+              style={[
+                styles.addButton,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+                hasActiveFilters && {
+                  borderColor: theme.colors.accent,
+                },
+              ]}
+            >
+              <Pressable
+                onPress={() => setFiltersOpen((v) => !v)}
+                style={({ pressed }) => [
+                  styles.addButtonInner,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <Ionicons
+                  name="filter-outline"
+                  size={24}
+                  color={
+                    hasActiveFilters ? theme.colors.accent : theme.colors.fg
+                  }
+                />
+              </Pressable>
+            </View>
+            {hasActiveFilters ? (
+              <View
+                style={[
+                  styles.addButton,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                ]}
+              >
+                <Pressable
+                  onPress={resetFilters}
+                  style={({ pressed }) => [
+                    styles.addButtonInner,
+                    pressed && { opacity: 0.9 },
+                  ]}
+                >
+                  <Ionicons
+                    name="refresh-outline"
+                    size={24}
+                    color={theme.colors.fg}
+                  />
+                </Pressable>
+              </View>
+            ) : null}
+          </View>
+        </View>
+        {filtersOpen ? (
+          <View
+            style={[
+              styles.filtersCard,
               {
                 borderColor: theme.colors.border,
                 backgroundColor: theme.colors.card,
-                opacity: pressed ? 0.9 : 1,
               },
             ]}
           >
+            <Text style={[styles.filterLabel, { color: theme.colors.muted }]}>
+              {t("workshops.filterByType")}
+            </Text>
+            <View style={[styles.filterRow, { flexWrap: "wrap" }]}>
+              {WORKSHOP_TYPES.map((type) => (
+                <ChoiceChip
+                  key={type}
+                  label={
+                    type === "all"
+                      ? t("workshops.typeAll")
+                      : getWorkshopTypeLabel(type)
+                  }
+                  selected={typeFilter === type}
+                  onPress={() => setTypeFilter(type)}
+                  style={styles.filterChoiceType}
+                />
+              ))}
+            </View>
             <Text
-              style={[styles.filterChipText, { color: theme.colors.fg }]}
-              numberOfLines={1}
-            >
-              {typeFilter === "all"
-                ? t("workshops.typeAll")
-                : getWorkshopTypeLabel(typeFilter)}
-            </Text>
-            <Ionicons
-              name="chevron-down"
-              size={16}
-              color={theme.colors.muted}
-              style={{ marginLeft: 4 }}
-            />
-          </Pressable>
-          <View style={styles.sortRow}>
-            <Text style={[styles.sortLabel, { color: theme.colors.muted }]}>
-              {t("workshops.sortBy")}:
-            </Text>
-            <Pressable
-              onPress={() => setSortOrder("az")}
-              style={({ pressed }) => [
-                styles.sortChip,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor:
-                    sortOrder === "az"
-                      ? theme.colors.accent + "20"
-                      : theme.colors.card,
-                  opacity: pressed ? 0.9 : 1,
-                },
+              style={[
+                styles.filterLabel,
+                { color: theme.colors.muted, marginTop: theme.spacing.sm },
               ]}
             >
-              <Text
-                style={[
-                  styles.sortChipText,
-                  {
-                    color:
-                      sortOrder === "az"
-                        ? theme.colors.accent
-                        : theme.colors.fg,
-                    fontWeight: sortOrder === "az" ? "700" : "500",
-                  },
-                ]}
-              >
-                {t("workshops.sortAz")}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setSortOrder("za")}
-              style={({ pressed }) => [
-                styles.sortChip,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor:
-                    sortOrder === "za"
-                      ? theme.colors.accent + "20"
-                      : theme.colors.card,
-                  opacity: pressed ? 0.9 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.sortChipText,
-                  {
-                    color:
-                      sortOrder === "za"
-                        ? theme.colors.accent
-                        : theme.colors.fg,
-                    fontWeight: sortOrder === "za" ? "700" : "500",
-                  },
-                ]}
-              >
-                {t("workshops.sortZa")}
-              </Text>
-            </Pressable>
+              {t("workshops.sortBy")}
+            </Text>
+            <View style={styles.filterRow}>
+              <ChoiceChip
+                label={t("workshops.sortAz")}
+                selected={sortOrder === "az"}
+                onPress={() => setSortOrder("az")}
+                style={styles.filterChoice}
+              />
+              <ChoiceChip
+                label={t("workshops.sortZa")}
+                selected={sortOrder === "za"}
+                onPress={() => setSortOrder("za")}
+                style={styles.filterChoice}
+              />
+            </View>
           </View>
-        </View>
+        ) : null}
       </View>
       <FlatList
         data={filtered}
@@ -257,11 +267,15 @@ export function WorkshopsScreen({ navigation, route }: Props) {
           paddingBottom: theme.spacing.xl,
         }}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={{ color: theme.colors.muted }}>
-              {t("workshops.noWorkshops")}
-            </Text>
-          </View>
+          <Text
+            style={{
+              color: theme.colors.muted,
+              marginTop: theme.spacing.xs,
+              fontSize: 14,
+            }}
+          >
+            {t("workshops.noWorkshops")}
+          </Text>
         }
         renderItem={({ item }) => (
           <Pressable
@@ -300,69 +314,64 @@ export function WorkshopsScreen({ navigation, route }: Props) {
 
 function makeStyles(theme: any) {
   return StyleSheet.create({
+    fixedHeader: {
+      paddingTop: theme.spacing.md,
+      paddingBottom: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md,
+      backgroundColor: theme.colors.bg,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
     header: {
-      paddingTop: theme.spacing.sm,
-      paddingBottom: theme.spacing.sm,
+      gap: theme.spacing.xs / 2,
     },
     title: {
-      fontSize: 22,
+      fontSize: 20,
       fontWeight: "800",
     },
     subtitle: {
-      fontSize: 14,
+      fontSize: 13,
       marginTop: theme.spacing.xs,
     },
     searchRow: {
       flexDirection: "row",
-      alignItems: "flex-start",
-      gap: theme.spacing.sm,
+      alignItems: "center",
     },
     addButton: {
-      width: 48,
-      height: 48,
+      width: 50,
+      height: 50,
       borderRadius: 12,
       borderWidth: 1,
       alignItems: "center",
       justifyContent: "center",
     },
     addButtonInner: {
+      width: "100%",
+      height: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    filtersCard: {
+      marginTop: theme.spacing.sm,
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
       padding: theme.spacing.sm,
+    },
+    filterLabel: {
+      fontSize: 13,
+      fontWeight: "800",
+      marginBottom: theme.spacing.xs,
     },
     filterRow: {
       flexDirection: "row",
-      alignItems: "center",
-      flexWrap: "wrap",
       gap: theme.spacing.sm,
+      marginBottom: theme.spacing.xs / 2,
     },
-    filterChip: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.sm,
-      borderRadius: 8,
-      borderWidth: 1,
-      maxWidth: "50%",
+    filterChoice: {
+      flex: 1,
     },
-    filterChipText: {
-      fontSize: 14,
-      fontWeight: "500",
-    },
-    sortRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-    },
-    sortLabel: {
-      fontSize: 14,
-    },
-    sortChip: {
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.sm,
-      borderRadius: 8,
-      borderWidth: 1,
-    },
-    sortChipText: {
-      fontSize: 14,
+    filterChoiceType: {
+      marginBottom: theme.spacing.xs / 2,
     },
     card: {
       borderRadius: 12,
@@ -381,10 +390,6 @@ function makeStyles(theme: any) {
     cardPhone: {
       fontSize: 14,
       marginTop: theme.spacing.xs,
-    },
-    empty: {
-      paddingVertical: theme.spacing.xl,
-      alignItems: "center",
     },
   });
 }

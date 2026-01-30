@@ -49,6 +49,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   const [includeServiceEntries] = useState(true); // Always true, mandatory
   const [includeNotes, setIncludeNotes] = useState(false);
   const [includeFueling, setIncludeFueling] = useState(false);
+  const [includeWheelsTires, setIncludeWheelsTires] = useState(false);
 
   // Selected vehicle photo IDs
   const [selectedVehiclePhotoIds, setSelectedVehiclePhotoIds] = useState<
@@ -293,6 +294,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         include_notes: includeNotes,
         include_fueling_stats: includeFueling,
         include_service_stats: false,
+        include_wheels_tires: includeWheelsTires,
       },
       selectedVehiclePhotoIds: Array.from(selectedVehiclePhotoIds),
       tempPhotos: tempPhotos.map((p) => ({
@@ -380,6 +382,25 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
                 </View>
                 <Text style={styles.optionLabel}>
                   {t("publicReport.notes")}
+                </Text>
+              </Pressable>
+              {/* Wheels and tires */}
+              <Pressable
+                style={styles.checkboxRow}
+                onPress={() => setIncludeWheelsTires(!includeWheelsTires)}
+              >
+                <View
+                  style={[
+                    styles.optionCheckbox,
+                    includeWheelsTires && styles.optionCheckboxChecked,
+                  ]}
+                >
+                  {includeWheelsTires && (
+                    <Ionicons name="checkmark" size={16} color="#000000" />
+                  )}
+                </View>
+                <Text style={styles.optionLabel}>
+                  {t("publicReport.wheelsAndTires")}
                 </Text>
               </Pressable>
             </View>

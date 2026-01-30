@@ -56,3 +56,25 @@ export function isValidProductionYear(s: string): boolean {
   const n = Number(s.trim());
   return Number.isFinite(n) && n >= MIN_YEAR && n <= MAX_YEAR;
 }
+
+/** True if DOT is empty or exactly 4 digits */
+export function isValidDot(s: string): boolean {
+  const t = s.trim();
+  if (t.length === 0) return true;
+  return /^\d{4}$/.test(t);
+}
+
+/** True if ET offset is empty or 1–2 digit number (0–99) */
+export function isValidEt(s: string): boolean {
+  const t = s.trim();
+  if (t.length === 0) return true;
+  return /^\d{1,2}$/.test(t);
+}
+
+/** Parse decimal string (accepts both . and , as separator), returns null if empty or invalid */
+export function parseDecimal(s: string): number | null {
+  const t = s.trim().replace(/,/g, ".");
+  if (t.length === 0) return null;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : null;
+}

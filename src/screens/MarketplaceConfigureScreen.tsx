@@ -46,6 +46,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   const [includeFuelingStats, setIncludeFuelingStats] = useState(false);
   const [includeServiceStats, setIncludeServiceStats] = useState(false);
   const [includeNotes, setIncludeNotes] = useState(false);
+  const [includeWheelsTires, setIncludeWheelsTires] = useState(false);
 
   // Public report selection
   const [publicReports, setPublicReports] = useState<PublicReportSnapshot[]>(
@@ -101,6 +102,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
         include_fueling_stats: includeFuelingStats,
         include_service_stats: includeServiceStats,
         include_notes: includeNotes,
+        include_wheels_tires: includeWheelsTires,
       },
       selectedReportId,
     });
@@ -236,6 +238,25 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                   )}
                 </View>
                 <Text style={styles.optionLabel}>{t("marketplace.notes")}</Text>
+              </Pressable>
+              {/* Wheels and tires */}
+              <Pressable
+                style={styles.checkboxRow}
+                onPress={() => setIncludeWheelsTires(!includeWheelsTires)}
+              >
+                <View
+                  style={[
+                    styles.optionCheckbox,
+                    includeWheelsTires && styles.optionCheckboxChecked,
+                  ]}
+                >
+                  {includeWheelsTires && (
+                    <Ionicons name="checkmark" size={16} color="#000000" />
+                  )}
+                </View>
+                <Text style={styles.optionLabel}>
+                  {t("marketplace.wheelsAndTires")}
+                </Text>
               </Pressable>
             </View>
 

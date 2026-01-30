@@ -5,7 +5,6 @@ export type NewVehicleWheelInput = {
   vehicle_id: string;
   name: string;
   width_inch: number;
-  profile_inch?: number | null;
   diameter_inch: number;
   et_offset?: number | null;
   bolt_pattern?: string | null;
@@ -15,15 +14,8 @@ export type NewVehicleWheelInput = {
   is_currently_fitted?: boolean;
 };
 
-export function formatWheelDimensions(
-  width: number,
-  profile: number | null | undefined,
-  diameter: number,
-): string {
-  if (profile != null) {
-    return `${width}/${profile} R${diameter}`;
-  }
-  return `${width} R${diameter}`;
+export function formatWheelDimensions(width: number, diameter: number): string {
+  return `${width}J R${diameter}`;
 }
 
 export async function listVehicleWheels(

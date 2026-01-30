@@ -120,7 +120,6 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
         {entry ? (
           <View style={styles.detailsCard}>
             <Text style={styles.detailsTitle}>{entry.title}</Text>
-            <View style={{ height: 12 }} />
             <View style={styles.row}>
               <Text style={styles.label}>
                 {t("entryDetail.labels.serviceDate")}
@@ -220,7 +219,9 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
             </View>
           </View>
         )}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        ItemSeparatorComponent={() => (
+          <View style={{ height: theme.spacing.sm }} />
+        )}
       />
     </Screen>
   );
