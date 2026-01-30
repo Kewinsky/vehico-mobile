@@ -298,6 +298,26 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                 <Text style={styles.dataValue}>{vehicle.drive_type}</Text>
               </View>
             )}
+            {vehicle.insurance_valid_until != null && (
+              <View style={styles.dataRow}>
+                <Text style={styles.dataLabel}>
+                  {t("dashboard.stats.insuranceValidUntil")}
+                </Text>
+                <Text style={styles.dataValue}>
+                  {vehicle.insurance_valid_until}
+                </Text>
+              </View>
+            )}
+            {vehicle.inspection_valid_until != null && (
+              <View style={styles.dataRow}>
+                <Text style={styles.dataLabel}>
+                  {t("dashboard.stats.inspectionValidUntil")}
+                </Text>
+                <Text style={styles.dataValue}>
+                  {vehicle.inspection_valid_until}
+                </Text>
+              </View>
+            )}
           </View>
         )}
 

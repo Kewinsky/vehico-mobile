@@ -32,6 +32,8 @@ interface VehicleData {
   fuel_type: "petrol" | "diesel" | "hybrid" | "electric" | "lpg" | null;
   transmission: "manual" | "automatic" | null;
   notes: string | null;
+  insurance_valid_until?: string | null;
+  inspection_valid_until?: string | null;
 }
 
 interface ServiceEntry {
@@ -350,7 +352,16 @@ ${isPL ? "Przebieg" : "Mileage"}: ${formatValue(
     lastMileage,
     isPL ? "przebieg" : "mileage",
   )} km`;
-  sections.push(spec);
+  const insuranceLine = vehicle.insurance_valid_until
+    ? `${isPL ? "Ubezpieczenie ważne do" : "Insurance valid until"}: ${vehicle.insurance_valid_until}`
+    : null;
+  const inspectionLine = vehicle.inspection_valid_until
+    ? `${isPL ? "Przegląd techniczny ważny do" : "Technical inspection valid until"}: ${vehicle.inspection_valid_until}`
+    : null;
+  const specExtras = [insuranceLine, inspectionLine].filter(Boolean);
+  const specFull =
+    specExtras.length > 0 ? spec + "\n" + specExtras.join("\n") : spec;
+  sections.push(specFull);
 
   // Service history (if included)
   if (options.includeServiceEntries) {
