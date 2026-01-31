@@ -127,12 +127,12 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
       toastSuccess(t("marketplace.postGenerated"));
 
       navigation.reset({
-        index: 1,
+        index: 4,
         routes: [
-          {
-            name: "Marketplace",
-            params: { vehicleId },
-          },
+          { name: "Vehicles" },
+          { name: "VehicleDashboard", params: { vehicleId } },
+          { name: "Share", params: { vehicleId } },
+          { name: "Marketplace", params: { vehicleId } },
           {
             name: "MarketplacePostOptions",
             params: {

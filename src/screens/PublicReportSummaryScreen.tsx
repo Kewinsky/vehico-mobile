@@ -136,12 +136,12 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
       toastSuccess(t("publicReport.reportGenerated"));
 
       navigation.reset({
-        index: 1,
+        index: 4,
         routes: [
-          {
-            name: "PublicReport",
-            params: { vehicleId },
-          },
+          { name: "Vehicles" },
+          { name: "VehicleDashboard", params: { vehicleId } },
+          { name: "Share", params: { vehicleId } },
+          { name: "PublicReport", params: { vehicleId } },
           {
             name: "PublicReportOptions",
             params: { url, vehicleTitle, vehicleId, reportTitle: report.title },
