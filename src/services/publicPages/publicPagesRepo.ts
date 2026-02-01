@@ -100,6 +100,26 @@ export async function getPublicPageUrl(publicId: string): Promise<string> {
 }
 
 /**
+ * Merges temp photos into report snapshot after upload to report-photos bucket.
+ * Call after: 1) create report, 2) upload temp photos.
+ */
+export async function updatePublicReportTempPhotos(
+  reportId: string,
+  tempPhotos: TempReportPhoto[],
+): Promise<PublicReportSnapshot> {
+  const { data, error } = await supabase.rpc("update_public_report_temp_photos", {
+    p_report_id: reportId,
+    p_temp_photos_data: tempPhotos.map((p) => ({
+      storage_path: p.storage_path,
+      display_order: p.display_order,
+    })),
+  });
+
+  if (error) throw error;
+  return data as PublicReportSnapshot;
+}
+
+/**
  * Deletes a snapshot
  */
 export async function deletePublicPage(snapshotId: string): Promise<void> {

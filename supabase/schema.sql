@@ -1128,6 +1128,82 @@ $$;
 -- Grant execute to authenticated users
 grant execute on function public.create_public_report_snapshot_with_options(uuid, jsonb, jsonb, jsonb) to authenticated;
 
+-- Update existing report snapshot with temp photos (called after upload to report-photos bucket)
+-- Flow: 1) create report (temp_photos=[]), 2) upload temp photos, 3) call this to merge into snapshot
+drop function if exists public.update_public_report_temp_photos(uuid, jsonb);
+create or replace function public.update_public_report_temp_photos(
+  p_report_id uuid,
+  p_temp_photos_data jsonb
+)
+returns public.public_report
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_report public.public_report;
+  v_snapshot_data jsonb;
+  v_vehicle_photos jsonb;
+  v_temp_photos jsonb;
+  i integer;
+begin
+  -- Get report and verify ownership
+  select * into v_report
+  from public.public_report
+  where id = p_report_id;
+  if v_report is null then
+    raise exception 'Report not found';
+  end if;
+  if not exists (
+    select 1 from public.vehicles v
+    where v.id = v_report.vehicle_id and v.owner_id = auth.uid()
+  ) then
+    raise exception 'Access denied';
+  end if;
+
+  if jsonb_array_length(p_temp_photos_data) = 0 then
+    return v_report;
+  end if;
+
+  v_snapshot_data := v_report.snapshot_data;
+  v_vehicle_photos := coalesce(v_snapshot_data->'vehicle_photos', '[]'::jsonb);
+
+  -- Build temp photos with same structure as generate_vehicle_snapshot_with_options
+  v_temp_photos := jsonb_build_array();
+  for i in 0..jsonb_array_length(p_temp_photos_data) - 1 loop
+    v_temp_photos := v_temp_photos || jsonb_build_object(
+      'id', gen_random_uuid()::text,
+      'storage_path', p_temp_photos_data->i->>'storage_path',
+      'storage_bucket', 'report-photos',
+      'source', 'report-temp',
+      'display_order', (p_temp_photos_data->i->>'display_order')::integer,
+      'created_at', now()::text
+    );
+  end loop;
+
+  -- Merge and sort
+  v_vehicle_photos := (
+    select coalesce(jsonb_agg(photo order by (photo->>'display_order')::integer), '[]'::jsonb)
+    from (
+      select jsonb_array_elements(v_vehicle_photos) as photo
+      union all
+      select jsonb_array_elements(v_temp_photos) as photo
+    ) as all_photos
+  );
+
+  v_snapshot_data := v_snapshot_data || jsonb_build_object('vehicle_photos', v_vehicle_photos);
+
+  update public.public_report
+  set snapshot_data = v_snapshot_data
+  where id = p_report_id
+  returning * into v_report;
+
+  return v_report;
+end;
+$$;
+
+grant execute on function public.update_public_report_temp_photos(uuid, jsonb) to authenticated;
+
 -- ================
 -- Storage (buckets + policies)
 -- ================

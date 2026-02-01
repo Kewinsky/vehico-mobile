@@ -25,6 +25,7 @@ import {
 import {
   generatePublicPageWithOptions,
   getPublicPageUrl,
+  updatePublicReportTempPhotos,
 } from "../services/publicPages/publicPagesRepo";
 import {
   uploadReportPhotos,
@@ -147,12 +148,12 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
         reportOptions,
       );
 
-      let uploadedTempPhotos: TempReportPhoto[] = [];
       if (tempPhotos.length > 0) {
-        uploadedTempPhotos = await uploadReportPhotos({
+        const uploadedTempPhotos = await uploadReportPhotos({
           reportId: report.id,
           photos: tempPhotos,
         });
+        await updatePublicReportTempPhotos(report.id, uploadedTempPhotos);
       }
 
       const url = await getPublicPageUrl(report.public_id);
