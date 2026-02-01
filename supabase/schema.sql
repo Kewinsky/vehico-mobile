@@ -201,16 +201,15 @@ create index if not exists vehicle_photos_vehicle_id_idx on public.vehicle_photo
 drop index if exists public.vehicle_photos_display_order_idx;
 create index if not exists vehicle_photos_display_order_idx on public.vehicle_photos(vehicle_id, display_order);
 
--- Marketplace posts (generated listings)
+-- Marketplace posts (generated listings, bilingual: { pl, en })
 drop table if exists public.marketplace_posts cascade;
 create table if not exists public.marketplace_posts (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   user_id uuid not null default auth.uid(),
   platform text not null default 'generic' check (platform in ('olx', 'facebook', 'generic')),
-  language text not null default 'pl' check (language in ('en', 'pl')),
   price numeric,
-  content text not null,
+  content jsonb not null,
   title text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

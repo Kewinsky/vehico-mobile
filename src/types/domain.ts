@@ -222,14 +222,18 @@ export type Reminder = {
 
 export type MarketplacePlatform = "olx" | "facebook" | "generic";
 
+export type MarketplacePostContent = {
+  pl: string;
+  en: string;
+};
+
 export type MarketplacePost = {
   id: string;
   vehicle_id: string;
   user_id: string;
   platform: MarketplacePlatform;
-  language: Language;
   price: number | null;
-  content: string;
+  content: MarketplacePostContent;
   title: string | null;
   created_at: string;
   updated_at: string;

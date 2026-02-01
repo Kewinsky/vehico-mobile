@@ -1,10 +1,13 @@
 import { StyleSheet, Text, View, ScrollView, TextInput } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as Clipboard from "expo-clipboard";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { resolveMarketplacePostContent } from "../services/marketplace/marketplaceRepo";
+import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
@@ -19,8 +22,17 @@ type Props = NativeStackScreenProps<
 export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
+  const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { content, vehicleTitle, vehicleId, postTitle } = route.params;
+  const [displayLang, setDisplayLang] = useState<"pl" | "en">(
+    (settings?.language as "pl" | "en") ?? "pl",
+  );
+
+  const displayContent = useMemo(
+    () => resolveMarketplacePostContent(content, displayLang),
+    [content, displayLang],
+  );
 
   const handleBack = () => {
     // Try to go back first, if not possible, replace with Marketplace screen
@@ -33,7 +45,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
 
   async function handleCopyContent() {
     try {
-      await Clipboard.setStringAsync(content);
+      await Clipboard.setStringAsync(displayContent);
       toastSuccess(t("marketplace.copiedToClipboard"));
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
@@ -58,12 +70,30 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
           </Text>
         </View>
 
+        <View style={styles.langRow}>
+          <View style={styles.langCol}>
+            <ChoiceChip
+              label={t("marketplace.languagePl")}
+              selected={displayLang === "pl"}
+              onPress={() => setDisplayLang("pl")}
+            />
+          </View>
+          <View style={styles.langCol}>
+            <ChoiceChip
+              label={t("marketplace.languageEn")}
+              selected={displayLang === "en"}
+              onPress={() => setDisplayLang("en")}
+            />
+          </View>
+        </View>
+
         <View style={{ height: theme.spacing.md }} />
 
         <View style={styles.contentContainer}>
           <TextInput
+            key={displayLang}
             style={[styles.contentText, { color: theme.colors.fg }]}
-            value={content}
+            value={displayContent}
             multiline
             textAlignVertical="top"
             editable={false}
@@ -103,6 +133,14 @@ const makeStyles = (theme: any) =>
     subtitle: {
       fontSize: 13,
       color: theme.colors.muted,
+    },
+    langRow: {
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+      marginTop: theme.spacing.sm,
+    },
+    langCol: {
+      flex: 1,
     },
     contentContainer: {
       borderWidth: 1,

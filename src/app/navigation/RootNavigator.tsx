@@ -90,7 +90,7 @@ export type AppStackParamList = {
     selectedReportId: string | null;
   };
   MarketplacePostOptions: {
-    content: string;
+    content: { pl: string; en: string };
     vehicleTitle: string;
     vehicleId: string;
     postTitle?: string | null;

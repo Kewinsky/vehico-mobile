@@ -26,14 +26,13 @@ type GenerateMarketplacePostInput = {
 type SaveMarketplacePostInput = {
   vehicleId: string;
   platform?: "olx" | "facebook" | "generic";
-  language?: "en" | "pl";
   price?: number | null;
-  content: string;
+  content: { pl: string; en: string };
 };
 
 export async function generateMarketplacePost(
   input: GenerateMarketplacePostInput,
-): Promise<string> {
+): Promise<{ pl: string; en: string }> {
   const ro = input.reportOptions;
   const { data, error } = await supabase.functions.invoke(
     "generate-marketplace-post",
@@ -63,7 +62,32 @@ export async function generateMarketplacePost(
     throw new Error("Failed to generate marketplace post");
   }
 
-  return data.content;
+  return data.content as { pl: string; en: string };
+}
+
+/**
+ * Resolves marketplace post content to display string.
+ * @param content Content object or legacy string (for backward compat)
+ * @param language Preferred language
+ */
+export function resolveMarketplacePostContent(
+  content: { pl: string; en: string } | string,
+  language: "pl" | "en",
+): string {
+  if (typeof content === "object" && content?.pl != null && content?.en != null) {
+    return content[language];
+  }
+  if (typeof content === "string") {
+    try {
+      const parsed = JSON.parse(content) as unknown;
+      if (parsed && typeof parsed === "object" && "pl" in parsed && "en" in parsed) {
+        return (parsed as { pl: string; en: string })[language];
+      }
+    } catch {
+      return content;
+    }
+  }
+  return "";
 }
 
 export async function saveMarketplacePost(
@@ -81,7 +105,6 @@ export async function saveMarketplacePost(
       vehicle_id: input.vehicleId,
       user_id: user.id,
       platform: input.platform ?? "generic",
-      language: input.language ?? "pl",
       price: input.price ?? null,
       content: input.content,
       title: null,
@@ -95,7 +118,7 @@ export async function saveMarketplacePost(
 
 export async function updateMarketplacePost(
   postId: string,
-  content: string,
+  content: { pl: string; en: string },
 ): Promise<MarketplacePost> {
   const { data, error } = await supabase
     .from("marketplace_posts")

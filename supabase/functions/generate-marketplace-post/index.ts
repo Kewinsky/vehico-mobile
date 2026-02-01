@@ -103,7 +103,7 @@ function getFuelTypeLabel(fuelType: string | null, lang: "en" | "pl"): string {
 
 function getTransmissionLabel(
   transmission: string | null,
-  lang: "en" | "pl",
+  lang: "en" | "pl"
 ): string {
   if (!transmission)
     return `[${lang === "pl" ? "skrzynia_biegow" : "transmission"}]`;
@@ -148,21 +148,21 @@ function getTireTypeLabel(tireType: string, lang: "en" | "pl"): string {
 function formatTireDimensions(
   widthMm: number,
   aspectRatio: number,
-  diameterInch: number,
+  diameterInch: number
 ): string {
   return `${widthMm}/${aspectRatio} R${diameterInch}`;
 }
 
 function formatWheelDimensions(
   widthInch: number,
-  diameterInch: number,
+  diameterInch: number
 ): string {
   return `${widthInch}J R${diameterInch}`;
 }
 
 function formatServiceHistory(
   entries: ServiceEntry[],
-  lang: "en" | "pl",
+  lang: "en" | "pl"
 ): string {
   if (entries.length === 0) {
     return lang === "pl" ? "Brak wpisów serwisowych." : "No service history.";
@@ -182,7 +182,7 @@ function formatServiceHistory(
 
 function calculateFuelingStats(
   entries: FuelingEntry[],
-  lang: "en" | "pl",
+  lang: "en" | "pl"
 ): {
   totalDistance: number;
   totalFuel: number;
@@ -217,7 +217,7 @@ function calculateFuelingStats(
 
 function calculateServiceStats(
   entries: ServiceEntry[],
-  lang: "en" | "pl",
+  lang: "en" | "pl"
 ): {
   totalCost: number;
   entryCount: number;
@@ -244,7 +244,7 @@ function calculateServiceStats(
 function formatFuelingStats(
   stats: ReturnType<typeof calculateFuelingStats>,
   currency: string,
-  lang: "en" | "pl",
+  lang: "en" | "pl"
 ): string {
   if (stats.entryCount === 0) {
     return lang === "pl" ? "Brak danych o tankowaniach." : "No fueling data.";
@@ -257,21 +257,21 @@ function formatFuelingStats(
     lines.push(
       `${
         isPL ? "Całkowity przebieg" : "Total distance"
-      }: ${stats.totalDistance.toLocaleString()} km`,
+      }: ${stats.totalDistance.toLocaleString()} km`
     );
   }
   if (stats.totalFuel > 0) {
     lines.push(
       `${isPL ? "Całkowite paliwo" : "Total fuel"}: ${stats.totalFuel.toFixed(
-        2,
-      )} L`,
+        2
+      )} L`
     );
   }
   if (stats.avgConsumption > 0) {
     lines.push(
       `${
         isPL ? "Średnie spalanie" : "Average consumption"
-      }: ${stats.avgConsumption.toFixed(2)} L/100km`,
+      }: ${stats.avgConsumption.toFixed(2)} L/100km`
     );
   }
   if (stats.totalCost > 0) {
@@ -281,7 +281,7 @@ function formatFuelingStats(
       }: ${stats.totalCost.toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      })} ${currency}`,
+      })} ${currency}`
     );
   }
 
@@ -299,7 +299,7 @@ function formatServiceStats(
   stats: ReturnType<typeof calculateServiceStats>,
   oil: OilChangeData,
   currency: string,
-  lang: "en" | "pl",
+  lang: "en" | "pl"
 ): string {
   const isPL = lang === "pl";
   const lines: string[] = [];
@@ -307,11 +307,13 @@ function formatServiceStats(
   // 1. Ostatnia wymiana oleju
   if (oil.lastDate) {
     lines.push(
-      `${isPL ? "Ostatnia wymiana oleju" : "Last oil change"}: ${oil.lastDate}`,
+      `${isPL ? "Ostatnia wymiana oleju" : "Last oil change"}: ${oil.lastDate}`
     );
     if (oil.lastMileage != null) {
       lines.push(
-        `${isPL ? "Przebieg" : "Mileage"}: ${oil.lastMileage.toLocaleString()} km`,
+        `${
+          isPL ? "Przebieg" : "Mileage"
+        }: ${oil.lastMileage.toLocaleString()} km`
       );
     }
   }
@@ -321,14 +323,14 @@ function formatServiceStats(
     lines.push(
       `${
         isPL ? "Średni interwał olejowy (km)" : "Avg oil interval (km)"
-      }: ${Math.round(oil.avgKm).toLocaleString()} km`,
+      }: ${Math.round(oil.avgKm).toLocaleString()} km`
     );
   }
   if (Number.isFinite(oil.avgMonths)) {
     lines.push(
       `${
         isPL ? "Średni interwał olejowy (mies.)" : "Avg oil interval (months)"
-      }: ${oil.avgMonths.toFixed(1)}`,
+      }: ${oil.avgMonths.toFixed(1)}`
     );
   }
 
@@ -340,7 +342,7 @@ function formatServiceStats(
       }: ${stats.totalCost.toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      })} ${currency}`,
+      })} ${currency}`
     );
   }
 
@@ -348,7 +350,7 @@ function formatServiceStats(
   lines.push(
     `${isPL ? "Liczba wpisów serwisowych" : "Number of service entries"}: ${
       stats.entryCount
-    }`,
+    }`
   );
 
   // 5. Koszty według kategorii
@@ -369,10 +371,10 @@ function formatServiceStats(
     categories.forEach(([cat, cost]) => {
       const label = categoryLabels[cat]?.[lang] || cat;
       lines.push(
-        `  ${label}: ${cost.toLocaleString(undefined, {
+        `- ${label}: ${cost.toLocaleString(undefined, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
-        })} ${currency}`,
+        })} ${currency}`
       );
     });
   }
@@ -388,8 +390,7 @@ function getOilChangeData(entries: ServiceEntry[]): OilChangeData {
     .filter((e) => (e.category ?? "other") === "oil_engine")
     .sort(
       (a, b) =>
-        new Date(a.service_date).getTime() -
-        new Date(b.service_date).getTime(),
+        new Date(a.service_date).getTime() - new Date(b.service_date).getTime()
     );
   const last = oilEntries.length > 0 ? oilEntries[oilEntries.length - 1] : null;
   const lastDate = last?.service_date?.slice(0, 10) ?? null;
@@ -432,7 +433,7 @@ function getOilChangeData(entries: ServiceEntry[]): OilChangeData {
 function formatWheelsAndTiresSection(
   tires: VehicleTire[],
   wheels: VehicleWheel[],
-  language: "en" | "pl",
+  language: "en" | "pl"
 ): string {
   const isPL = language === "pl";
   const lines: string[] = [];
@@ -442,7 +443,7 @@ function formatWheelsAndTiresSection(
       const dim = formatTireDimensions(
         t.width_mm,
         t.aspect_ratio,
-        t.diameter_inch,
+        t.diameter_inch
       );
       const typeLabel = getTireTypeLabel(t.tire_type, language);
       const current = t.is_currently_fitted
@@ -497,7 +498,7 @@ function generateMarketplacePostForLang(
   tires: VehicleTire[],
   wheels: VehicleWheel[],
   language: "en" | "pl",
-  options: MarketplaceOptions,
+  options: MarketplaceOptions
 ): string {
   const isPL = language === "pl";
 
@@ -517,10 +518,10 @@ function generateMarketplacePostForLang(
     : `${vehicle.make} ${vehicle.model} from ${vehicle.production_year} year with ${power}${powerUnit}`;
   const vinLine = vehicle.vin ? `VIN: ${vehicle.vin}` : null;
   const priceLine =
-    options.includePrice &&
-    options.price !== null &&
-    options.price > 0
-      ? `${isPL ? "Cena" : "Price"}: ${options.price.toLocaleString()} ${options.currency}`
+    options.includePrice && options.price !== null && options.price > 0
+      ? `${isPL ? "Cena" : "Price"}: ${options.price.toLocaleString()} ${
+          options.currency
+        }`
       : null;
 
   const forSaleLines = [forSaleTitle, vehicleInfo];
@@ -536,23 +537,23 @@ function generateMarketplacePostForLang(
 ${isPL ? "Rok produkcji" : "Production year"}: ${vehicle.production_year}
 ${isPL ? "Pojemność silnika" : "Engine capacity"}: ${formatValue(
     vehicle.engine_capacity,
-    isPL ? "pojemnosc_silnika" : "engine_capacity",
+    isPL ? "pojemnosc_silnika" : "engine_capacity"
   )} cm³
 ${isPL ? "Moc" : "Power"}: ${formatValue(
     vehicle.power_hp,
-    isPL ? "moc" : "power",
+    isPL ? "moc" : "power"
   )} ${isPL ? "KM" : "HP"}
 ${isPL ? "Rodzaj paliwa" : "Fuel type"}: ${getFuelTypeLabel(
     vehicle.fuel_type,
-    language,
+    language
   )}
 ${isPL ? "Skrzynia biegów" : "Transmission"}: ${getTransmissionLabel(
     vehicle.transmission,
-    language,
+    language
   )}
 ${isPL ? "Przebieg" : "Mileage"}: ${formatValue(
     lastMileage,
-    isPL ? "przebieg" : "mileage",
+    isPL ? "przebieg" : "mileage"
   )} km`;
   const insuranceLine =
     options.includeInsurance && vehicle.insurance_valid_until
@@ -640,7 +641,7 @@ serve(async (req) => {
         global: {
           headers: { Authorization: req.headers.get("Authorization")! },
         },
-      },
+      }
     );
 
     // Get user from token
@@ -675,7 +676,8 @@ serve(async (req) => {
       publicReportUrl = null,
     } = reqBody;
 
-    const vIncludeServiceEntries = includeServiceHistory ?? includeServiceEntries;
+    const vIncludeServiceEntries =
+      includeServiceHistory ?? includeServiceEntries;
     const vIncludeWheelsTires =
       (includeWheels ?? includeWheelsTires) ||
       (includeTires ?? includeWheelsTires);
@@ -686,7 +688,7 @@ serve(async (req) => {
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        }
       );
     }
 
@@ -741,7 +743,7 @@ serve(async (req) => {
       const { data: tiresData } = await supabaseClient
         .from("vehicle_tires")
         .select(
-          "name, width_mm, aspect_ratio, diameter_inch, tire_type, dot, is_currently_fitted",
+          "name, width_mm, aspect_ratio, diameter_inch, tire_type, dot, is_currently_fitted"
         )
         .eq("vehicle_id", vehicleId)
         .order("is_currently_fitted", { ascending: false })
@@ -750,7 +752,7 @@ serve(async (req) => {
       const { data: wheelsData } = await supabaseClient
         .from("vehicle_wheels")
         .select(
-          "name, width_inch, diameter_inch, et_offset, bolt_pattern, center_bore_mm, bolt_type, weight_kg, is_currently_fitted",
+          "name, width_inch, diameter_inch, et_offset, bolt_pattern, center_bore_mm, bolt_type, weight_kg, is_currently_fitted"
         )
         .eq("vehicle_id", vehicleId)
         .order("is_currently_fitted", { ascending: false })
@@ -779,7 +781,7 @@ serve(async (req) => {
       tires,
       wheels,
       "pl",
-      options,
+      options
     );
     const contentEn = generateMarketplacePostForLang(
       vehicle as VehicleData,
@@ -788,11 +790,10 @@ serve(async (req) => {
       tires,
       wheels,
       "en",
-      options,
+      options
     );
 
-    const content =
-      contentPl + "\n\n---\n\n=== ENGLISH ===\n\n" + contentEn;
+    const content = { pl: contentPl, en: contentEn };
 
     return new Response(JSON.stringify({ content }), {
       status: 200,
@@ -806,7 +807,7 @@ serve(async (req) => {
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+      }
     );
   }
 });

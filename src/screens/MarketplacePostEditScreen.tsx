@@ -18,6 +18,8 @@ import {
   getMarketplacePost,
   updateMarketplacePost,
 } from "../services/marketplace/marketplaceRepo";
+import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
@@ -29,12 +31,21 @@ type Props = NativeStackScreenProps<AppStackParamList, "MarketplacePostEdit">;
 export function MarketplacePostEditScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
+  const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { postId } = route.params;
 
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState<{ pl: string; en: string }>({
+    pl: "",
+    en: "",
+  });
+  const [displayLang, setDisplayLang] = useState<"pl" | "en">(
+    (settings?.language as "pl" | "en") ?? "pl",
+  );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const hasContent = !!(content.pl?.trim() || content.en?.trim());
 
   useEffect(() => {
     void loadPost();
@@ -55,7 +66,7 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
 
   async function handleSave() {
     try {
-      if (!content.trim()) {
+      if (!hasContent) {
         toastError(t("marketplace.noContentToSave"));
         return;
       }
@@ -78,11 +89,11 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
         right={
           <Pressable
             onPress={() => {
-              if (!saving && content.trim()) {
+              if (!saving && hasContent) {
                 void handleSave();
               }
             }}
-            disabled={saving || !content.trim()}
+            disabled={saving || !hasContent}
             hitSlop={10}
             style={({ pressed }) => [
               {
@@ -90,7 +101,7 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
                 height: 40,
                 alignItems: "center",
                 justifyContent: "center",
-                opacity: !content.trim() || saving ? 0.5 : pressed ? 0.6 : 1,
+                opacity: !hasContent || saving ? 0.5 : pressed ? 0.6 : 1,
               },
             ]}
           >
@@ -118,6 +129,22 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
           ) : (
             <>
               <Text style={styles.h1}>{t("marketplace.editPost")}</Text>
+              <View style={styles.langRow}>
+                <View style={styles.langCol}>
+                  <ChoiceChip
+                    label={t("marketplace.languagePl")}
+                    selected={displayLang === "pl"}
+                    onPress={() => setDisplayLang("pl")}
+                  />
+                </View>
+                <View style={styles.langCol}>
+                  <ChoiceChip
+                    label={t("marketplace.languageEn")}
+                    selected={displayLang === "en"}
+                    onPress={() => setDisplayLang("en")}
+                  />
+                </View>
+              </View>
               <View style={{ height: theme.spacing.md }} />
 
               <View
@@ -130,9 +157,12 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
                 ]}
               >
                 <TextInput
+                  key={displayLang}
                   style={[styles.textArea, { color: theme.colors.fg }]}
-                  value={content}
-                  onChangeText={setContent}
+                  value={content[displayLang]}
+                  onChangeText={(text) =>
+                    setContent((prev) => ({ ...prev, [displayLang]: text }))
+                  }
                   multiline
                   textAlignVertical="top"
                   placeholder={t("marketplace.contentPlaceholder")}
@@ -159,6 +189,14 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
+    },
+    langRow: {
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+      marginTop: theme.spacing.sm,
+    },
+    langCol: {
+      flex: 1,
     },
     loadingContainer: {
       minHeight: 400,

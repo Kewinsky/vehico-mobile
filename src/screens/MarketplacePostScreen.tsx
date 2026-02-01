@@ -16,6 +16,7 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { PublicReportSnapshot } from "../types/domain";
 import {
   generateMarketplacePost,
+  resolveMarketplacePostContent,
   saveMarketplacePost,
 } from "../services/marketplace/marketplaceRepo";
 import {
@@ -26,6 +27,7 @@ import { Button } from "../ui/components/Button";
 import { AppHeader } from "../ui/components/AppHeader";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
+import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { PickerField } from "../ui/components/PickerField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
@@ -43,9 +45,27 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
 
   const [price, setPrice] = useState("");
   const [currency, setCurrency] = useState<string>(settings?.currency ?? "PLN");
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState<{ pl: string; en: string } | "">("");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const [displayLang, setDisplayLang] = useState<"pl" | "en">(
+    (settings?.language as "pl" | "en") ?? "pl",
+  );
+  const displayContent = useMemo(() => {
+    if (typeof content === "string") {
+      return resolveMarketplacePostContent(content, displayLang);
+    }
+    return content ? content[displayLang] ?? "" : "";
+  }, [content, displayLang]);
+
+  function handleContentChange(newText: string) {
+    if (typeof content === "object" && content != null) {
+      setContent({ ...content, [displayLang]: newText });
+    } else {
+      setContent({ pl: newText, en: newText });
+    }
+  }
 
   // Report options - same structure as Configure
   const [includeServiceHistory, setIncludeServiceHistory] = useState(true);
@@ -129,11 +149,11 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
 
   async function handleCopy() {
     try {
-      if (!content.trim()) {
+      if (!displayContent.trim()) {
         toastError(t("marketplace.noContentToCopy"));
         return;
       }
-      await Clipboard.setStringAsync(content);
+      await Clipboard.setStringAsync(displayContent);
       toastSuccess(t("marketplace.copiedToClipboard"));
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
@@ -142,7 +162,11 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
 
   async function handleSave() {
     try {
-      if (!content.trim()) {
+      const contentToSave =
+        typeof content === "object" && content != null
+          ? content
+          : { pl: "", en: "" };
+      if (!contentToSave.pl?.trim() && !contentToSave.en?.trim()) {
         toastError(t("marketplace.noContentToSave"));
         return;
       }
@@ -153,7 +177,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
       await saveMarketplacePost({
         vehicleId,
         price: priceNum,
-        content,
+        content: contentToSave,
       });
       toastSuccess(t("marketplace.saved"));
       setContent("");
@@ -176,7 +200,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
           text: t("marketplace.regenerate"),
           style: "destructive",
           onPress: () => {
-            setContent("");
+            setContent("" as "" | { pl: string; en: string });
             void handleGenerate();
           },
         },
@@ -384,11 +408,27 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
         {t("marketplace.viewHistory")}
       </Button>
 
-      {content ? (
+      {content && (typeof content !== "object" || content.pl || content.en) ? (
         <>
           <View style={{ height: theme.spacing.md }} />
 
           <Text style={styles.label}>{t("marketplace.contentLabel")}</Text>
+          <View style={styles.langRow}>
+            <View style={styles.langCol}>
+              <ChoiceChip
+                label={t("marketplace.languagePl")}
+                selected={displayLang === "pl"}
+                onPress={() => setDisplayLang("pl")}
+              />
+            </View>
+            <View style={styles.langCol}>
+              <ChoiceChip
+                label={t("marketplace.languageEn")}
+                selected={displayLang === "en"}
+                onPress={() => setDisplayLang("en")}
+              />
+            </View>
+          </View>
           <View style={{ height: theme.spacing.xs }} />
 
           <View
@@ -401,9 +441,10 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
             ]}
           >
             <TextInput
+              key={displayLang}
               style={[styles.textArea, { color: theme.colors.fg }]}
-              value={content}
-              onChangeText={setContent}
+              value={displayContent}
+              onChangeText={handleContentChange}
               multiline
               textAlignVertical="top"
               placeholder={t("marketplace.contentPlaceholder")}
@@ -479,6 +520,14 @@ const makeStyles = (theme: any) =>
       fontSize: 13,
       fontWeight: "700",
       color: theme.colors.muted,
+    },
+    langRow: {
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+      marginTop: theme.spacing.sm,
+    },
+    langCol: {
+      flex: 1,
     },
     section: {
       marginBottom: theme.spacing.md,
