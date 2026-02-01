@@ -15,6 +15,7 @@ import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
+import { ENV } from "../config/env";
 
 // Complete the auth session for better UX
 WebBrowser.maybeCompleteAuthSession();
@@ -262,17 +263,21 @@ export function AuthScreen({ navigation }: Props) {
               {isSubmitting ? t("auth.sendingLink") : t("auth.sendMagicLink")}
             </Button>
 
-            {/* TEMPORARY: Test account button */}
-            <View style={{ height: theme.spacing.sm }} />
-            <Button
-              onPress={signInWithTestAccount}
-              disabled={isSubmitting}
-              variant="ghost"
-            >
-              {isSubmitting
-                ? t("common.loading")
-                : "🧪 Test Account (test@user.com)"}
-            </Button>
+            {/* Test account — only in development */}
+            {ENV.APP_ENV === "development" && (
+              <>
+                <View style={{ height: theme.spacing.sm }} />
+                <Button
+                  onPress={signInWithTestAccount}
+                  disabled={isSubmitting}
+                  variant="ghost"
+                >
+                  {isSubmitting
+                    ? t("common.loading")
+                    : "🧪 Test Account (test@user.com)"}
+                </Button>
+              </>
+            )}
           </View>
 
           <Text style={[styles.magicLinkHint, { color: theme.colors.muted }]}>
