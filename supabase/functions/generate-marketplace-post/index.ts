@@ -9,15 +9,22 @@ const corsHeaders = {
 
 interface GenerateRequest {
   vehicleId: string;
-  language: "en" | "pl";
   price?: number | null;
   currency?: string;
+  includePrice?: boolean;
   includeServiceEntries?: boolean;
+  includeServiceHistory?: boolean;
   includeFuelingStats?: boolean;
   includeServiceStats?: boolean;
   includeWheelsTires?: boolean;
+  includeWheels?: boolean;
+  includeTires?: boolean;
   includeNotes?: boolean;
+  includeInsurance?: boolean;
+  includeInspection?: boolean;
   publicReportUrl?: string | null;
+  // Deprecated, kept for backward compat
+  language?: "en" | "pl";
 }
 
 interface VehicleData {
@@ -469,27 +476,31 @@ function formatWheelsAndTiresSection(
   return lines.join("\n");
 }
 
-function generateMarketplacePost(
+type MarketplaceOptions = {
+  includePrice: boolean;
+  price: number | null;
+  currency: string;
+  includeServiceEntries: boolean;
+  includeFuelingStats: boolean;
+  includeServiceStats: boolean;
+  includeWheelsTires: boolean;
+  includeNotes: boolean;
+  includeInsurance: boolean;
+  includeInspection: boolean;
+  publicReportUrl: string | null;
+};
+
+function generateMarketplacePostForLang(
   vehicle: VehicleData,
   serviceEntries: ServiceEntry[],
   fuelingEntries: FuelingEntry[],
   tires: VehicleTire[],
   wheels: VehicleWheel[],
   language: "en" | "pl",
-  price: number | null,
-  currency: string = "PLN",
-  options: {
-    includeServiceEntries: boolean;
-    includeFuelingStats: boolean;
-    includeServiceStats: boolean;
-    includeWheelsTires: boolean;
-    includeNotes: boolean;
-    publicReportUrl: string | null;
-  },
+  options: MarketplaceOptions,
 ): string {
   const isPL = language === "pl";
 
-  // Get last mileage from service entries
   const lastMileage =
     serviceEntries
       .filter((e) => e.mileage !== null)
@@ -506,8 +517,10 @@ function generateMarketplacePost(
     : `${vehicle.make} ${vehicle.model} from ${vehicle.production_year} year with ${power}${powerUnit}`;
   const vinLine = vehicle.vin ? `VIN: ${vehicle.vin}` : null;
   const priceLine =
-    price !== null && price > 0
-      ? `${isPL ? "Cena" : "Price"}: ${price.toLocaleString()} ${currency}`
+    options.includePrice &&
+    options.price !== null &&
+    options.price > 0
+      ? `${isPL ? "Cena" : "Price"}: ${options.price.toLocaleString()} ${options.currency}`
       : null;
 
   const forSaleLines = [forSaleTitle, vehicleInfo];
@@ -541,24 +554,25 @@ ${isPL ? "Przebieg" : "Mileage"}: ${formatValue(
     lastMileage,
     isPL ? "przebieg" : "mileage",
   )} km`;
-  const insuranceLine = vehicle.insurance_valid_until
-    ? `${isPL ? "Ubezpieczenie ważne do" : "Insurance valid until"}: ${
-        vehicle.insurance_valid_until
-      }`
-    : null;
-  const inspectionLine = vehicle.inspection_valid_until
-    ? `${
-        isPL
-          ? "Przegląd techniczny ważny do"
-          : "Technical inspection valid until"
-      }: ${vehicle.inspection_valid_until}`
-    : null;
+  const insuranceLine =
+    options.includeInsurance && vehicle.insurance_valid_until
+      ? `${isPL ? "Ubezpieczenie ważne do" : "Insurance valid until"}: ${
+          vehicle.insurance_valid_until
+        }`
+      : null;
+  const inspectionLine =
+    options.includeInspection && vehicle.inspection_valid_until
+      ? `${
+          isPL
+            ? "Przegląd techniczny ważny do"
+            : "Technical inspection valid until"
+        }: ${vehicle.inspection_valid_until}`
+      : null;
   const specExtras = [insuranceLine, inspectionLine].filter(Boolean);
   const specFull =
     specExtras.length > 0 ? spec + "\n" + specExtras.join("\n") : spec;
   sections.push(specFull);
 
-  // Service history (if included)
   if (options.includeServiceEntries) {
     const historyTitle = isPL ? "HISTORIA SERWISOWA" : "SERVICE HISTORY";
     const history = `=== ${historyTitle} ===
@@ -566,26 +580,23 @@ ${formatServiceHistory(serviceEntries, language)}`;
     sections.push(history);
   }
 
-  // Fueling statistics (if included)
   if (options.includeFuelingStats) {
     const fuelingStats = calculateFuelingStats(fuelingEntries, language);
     const statsTitle = isPL ? "STATYSTYKI TANKOWAŃ" : "FUELING STATISTICS";
     const stats = `=== ${statsTitle} ===
-${formatFuelingStats(fuelingStats, currency, language)}`;
+${formatFuelingStats(fuelingStats, options.currency, language)}`;
     sections.push(stats);
   }
 
-  // Service statistics (if included) - last oil change, intervals, cost, count, by category
   if (options.includeServiceStats) {
     const serviceStats = calculateServiceStats(serviceEntries, language);
     const oilData = getOilChangeData(serviceEntries);
     const statsTitle = isPL ? "STATYSTYKI SERWISOWE" : "SERVICE STATISTICS";
     const stats = `=== ${statsTitle} ===
-${formatServiceStats(serviceStats, oilData, currency, language)}`;
+${formatServiceStats(serviceStats, oilData, options.currency, language)}`;
     sections.push(stats);
   }
 
-  // Notes (if included)
   if (options.includeNotes && vehicle.notes) {
     const notesTitle = isPL ? "NOTATKI" : "NOTES";
     const notesSection = `=== ${notesTitle} ===
@@ -593,7 +604,6 @@ ${vehicle.notes}`;
     sections.push(notesSection);
   }
 
-  // Wheels and tires (separate section if included)
   if (options.includeWheelsTires && (tires.length > 0 || wheels.length > 0)) {
     const wheelsTitle = isPL ? "FELGI I OPONY" : "WHEELS AND TIRES";
     const wheelsSection = `=== ${wheelsTitle} ===
@@ -601,7 +611,6 @@ ${formatWheelsAndTiresSection(tires, wheels, language)}`;
     sections.push(wheelsSection);
   }
 
-  // Public report link (if provided)
   if (options.publicReportUrl) {
     const reportTitle = isPL ? "RAPORT ONLINE" : "ONLINE REPORT";
     const reportSection = `=== ${reportTitle} ===
@@ -647,20 +656,31 @@ serve(async (req) => {
       });
     }
 
+    const reqBody: GenerateRequest = await req.json();
     const {
       vehicleId,
-      language,
-      price,
+      price = null,
       currency = "PLN",
+      includePrice = false,
       includeServiceEntries = true,
+      includeServiceHistory,
       includeFuelingStats = false,
       includeServiceStats = false,
       includeWheelsTires = false,
+      includeWheels,
+      includeTires,
       includeNotes = false,
+      includeInsurance = true,
+      includeInspection = true,
       publicReportUrl = null,
-    }: GenerateRequest = await req.json();
+    } = reqBody;
 
-    if (!vehicleId || !language) {
+    const vIncludeServiceEntries = includeServiceHistory ?? includeServiceEntries;
+    const vIncludeWheelsTires =
+      (includeWheels ?? includeWheelsTires) ||
+      (includeTires ?? includeWheelsTires);
+
+    if (!vehicleId) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         {
@@ -694,7 +714,7 @@ serve(async (req) => {
 
     // Fetch service entries (if needed)
     let serviceEntries: ServiceEntry[] = [];
-    if (includeServiceEntries || includeServiceStats) {
+    if (vIncludeServiceEntries || includeServiceStats) {
       const { data } = await supabaseClient
         .from("service_entries")
         .select("*")
@@ -717,7 +737,7 @@ serve(async (req) => {
     // Fetch vehicle tires and wheels (if wheels/tires section needed)
     let tires: VehicleTire[] = [];
     let wheels: VehicleWheel[] = [];
-    if (includeWheelsTires) {
+    if (vIncludeWheelsTires) {
       const { data: tiresData } = await supabaseClient
         .from("vehicle_tires")
         .select(
@@ -738,25 +758,41 @@ serve(async (req) => {
       wheels = (wheelsData || []) as VehicleWheel[];
     }
 
-    // Generate post
-    const content = generateMarketplacePost(
+    const options: MarketplaceOptions = {
+      includePrice,
+      price: price ?? null,
+      currency,
+      includeServiceEntries: vIncludeServiceEntries,
+      includeFuelingStats,
+      includeServiceStats,
+      includeWheelsTires: vIncludeWheelsTires,
+      includeNotes,
+      includeInsurance,
+      includeInspection,
+      publicReportUrl,
+    };
+
+    const contentPl = generateMarketplacePostForLang(
       vehicle as VehicleData,
       serviceEntries,
       fuelingEntries,
       tires,
       wheels,
-      language,
-      price ?? null,
-      currency,
-      {
-        includeServiceEntries,
-        includeFuelingStats,
-        includeServiceStats,
-        includeWheelsTires,
-        includeNotes,
-        publicReportUrl,
-      },
+      "pl",
+      options,
     );
+    const contentEn = generateMarketplacePostForLang(
+      vehicle as VehicleData,
+      serviceEntries,
+      fuelingEntries,
+      tires,
+      wheels,
+      "en",
+      options,
+    );
+
+    const content =
+      contentPl + "\n\n---\n\n=== ENGLISH ===\n\n" + contentEn;
 
     return new Response(JSON.stringify({ content }), {
       status: 200,

@@ -6,13 +6,7 @@ import {
   ScrollView,
   Pressable,
   ActivityIndicator,
-  Modal,
-  FlatList,
-  Alert,
-  useWindowDimensions,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,6 +16,8 @@ import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import type { Vehicle } from "../types/domain";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
+import { listVehicleTires } from "../services/tires/tiresRepo";
+import { listVehicleWheels } from "../services/wheels/wheelsRepo";
 import {
   listVehiclePhotos,
   getVehiclePhotoUrl,
@@ -44,6 +40,39 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportSummary">;
 
+function InfoCard({
+  title,
+  status,
+  count,
+  theme,
+  styles,
+}: {
+  title: string;
+  status: "included" | "notIncluded" | "noData";
+  count?: number;
+  theme: any;
+  styles: any;
+}) {
+  const { t } = useTranslation();
+  const value =
+    status === "included"
+      ? count != null
+        ? t("publicReport.includedWithCount", { count })
+        : t("publicReport.included")
+      : status === "noData"
+      ? t("publicReport.noData")
+      : t("publicReport.notIncluded");
+  const valueColor =
+    status === "included" ? theme.colors.accent : theme.colors.muted;
+
+  return (
+    <View style={styles.infoCard}>
+      <Text style={styles.infoCardTitle}>{title}</Text>
+      <Text style={[styles.infoCardValue, { color: valueColor }]}>{value}</Text>
+    </View>
+  );
+}
+
 export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -56,15 +85,11 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [serviceEntriesCount, setServiceEntriesCount] = useState<number>(0);
   const [fuelingEntriesCount, setFuelingEntriesCount] = useState<number>(0);
+  const [tiresCount, setTiresCount] = useState(0);
+  const [wheelsCount, setWheelsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-  const [fullScreenPhotoIndex, setFullScreenPhotoIndex] = useState<
-    number | null
-  >(null);
-
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
 
   const [vehiclePhotoUrls, setVehiclePhotoUrls] = useState<Map<string, string>>(
     new Map(),
@@ -73,18 +98,21 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [v, serviceEntries, fuelingEntries, vehiclePhotos] =
+      const [v, serviceEntries, fuelingEntries, vehiclePhotos, tires, wheels] =
         await Promise.all([
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
           listFuelingEntries(vehicleId),
           listVehiclePhotos(vehicleId),
+          listVehicleTires(vehicleId),
+          listVehicleWheels(vehicleId),
         ]);
       setVehicle(v);
       setServiceEntriesCount(serviceEntries.length);
       setFuelingEntriesCount(fuelingEntries.length);
+      setTiresCount(tires.length);
+      setWheelsCount(wheels.length);
 
-      // Build photo URL map for selected photos
       const urlMap = new Map<string, string>();
       vehiclePhotos
         .filter((p) => selectedVehiclePhotoIds.includes(p.id))
@@ -112,16 +140,13 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
     try {
       setGenerating(true);
 
-      // Step 1: Create report first to get the report ID
-      // We'll create it with empty temp photos, then upload photos and update
       const report = await generatePublicPageWithOptions(
         vehicleId,
         selectedVehiclePhotoIds,
-        [], // Empty temp photos for now - we'll add them after upload
+        [],
         reportOptions,
       );
 
-      // Step 2: Upload temp photos using the report ID
       let uploadedTempPhotos: TempReportPhoto[] = [];
       if (tempPhotos.length > 0) {
         uploadedTempPhotos = await uploadReportPhotos({
@@ -157,17 +182,15 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
 
   const allPhotoUrls = useMemo(() => {
     const urls: string[] = [];
-    // Vehicle photos
     selectedVehiclePhotoIds.forEach((id) => {
       const url = vehiclePhotoUrls.get(id);
       if (url) urls.push(url);
     });
-    // Temp photos (local URIs)
-    tempPhotos.forEach((photo) => {
-      urls.push(photo.fileUri);
-    });
+    tempPhotos.forEach((photo) => urls.push(photo.fileUri));
     return urls;
   }, [selectedVehiclePhotoIds, vehiclePhotoUrls, tempPhotos]);
+
+  const photoCount = allPhotoUrls.length;
 
   if (loading) {
     return (
@@ -179,6 +202,12 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
       </Screen>
     );
   }
+
+  const hasInsurance =
+    (vehicle?.insurance_valid_until?.trim() ?? "").length > 0;
+  const hasInspection =
+    (vehicle?.inspection_valid_until?.trim() ?? "").length > 0;
+  const hasNotes = (vehicle?.notes?.trim() ?? "").length > 0;
 
   return (
     <Screen padding={false}>
@@ -194,8 +223,8 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
           </Text>
         </View>
 
-        {/* Technical Data */}
-        {vehicle && (
+        {/* Summary of technical data */}
+        {reportOptions.include_technical_data && vehicle && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               {t("publicReport.technicalData")}
@@ -230,7 +259,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                 <Text style={styles.dataValue}>{vehicle.vin}</Text>
               </View>
             )}
-            {vehicle.mileage !== null && (
+            {vehicle.mileage != null && (
               <View style={styles.dataRow}>
                 <Text style={styles.dataLabel}>
                   {t("vehicleForm.mileageLabel")}
@@ -240,7 +269,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                 </Text>
               </View>
             )}
-            {vehicle.engine_capacity !== null && (
+            {vehicle.engine_capacity != null && (
               <View style={styles.dataRow}>
                 <Text style={styles.dataLabel}>
                   {t("vehicleForm.engineCapacityLabel")}
@@ -250,7 +279,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                 </Text>
               </View>
             )}
-            {vehicle.power_hp !== null && (
+            {vehicle.power_hp != null && (
               <View style={styles.dataRow}>
                 <Text style={styles.dataLabel}>
                   {t("vehicleForm.powerHpLabel")}
@@ -258,7 +287,27 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                 <Text style={styles.dataValue}>{vehicle.power_hp} HP</Text>
               </View>
             )}
-            {vehicle.fuel_type && (
+            {vehicle.transmission != null && (
+              <View style={styles.dataRow}>
+                <Text style={styles.dataLabel}>
+                  {t("vehicleForm.transmissionLabel")}
+                </Text>
+                <Text style={styles.dataValue}>
+                  {vehicle.transmission === "manual"
+                    ? t("vehicleForm.transmissionManual")
+                    : t("vehicleForm.transmissionAutomatic")}
+                </Text>
+              </View>
+            )}
+            {vehicle.drive_type != null && (
+              <View style={styles.dataRow}>
+                <Text style={styles.dataLabel}>
+                  {t("vehicleForm.driveTypeLabel")}
+                </Text>
+                <Text style={styles.dataValue}>{vehicle.drive_type}</Text>
+              </View>
+            )}
+            {vehicle.fuel_type != null && (
               <View style={styles.dataRow}>
                 <Text style={styles.dataLabel}>
                   {t("vehicleForm.fuelTypeLabel")}
@@ -278,191 +327,133 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                 </Text>
               </View>
             )}
-            {vehicle.transmission && (
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("vehicleForm.transmissionLabel")}
-                </Text>
-                <Text style={styles.dataValue}>
-                  {vehicle.transmission === "manual"
-                    ? t("vehicleForm.transmissionManual")
-                    : t("vehicleForm.transmissionAutomatic")}
-                </Text>
-              </View>
-            )}
-            {vehicle.drive_type && (
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("vehicleForm.driveTypeLabel")}
-                </Text>
-                <Text style={styles.dataValue}>{vehicle.drive_type}</Text>
-              </View>
-            )}
-            {vehicle.insurance_valid_until != null && (
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("dashboard.stats.insuranceValidUntil")}
-                </Text>
-                <Text style={styles.dataValue}>
-                  {vehicle.insurance_valid_until}
-                </Text>
-              </View>
-            )}
-            {vehicle.inspection_valid_until != null && (
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("dashboard.stats.inspectionValidUntil")}
-                </Text>
-                <Text style={styles.dataValue}>
-                  {vehicle.inspection_valid_until}
-                </Text>
-              </View>
-            )}
           </View>
         )}
 
-        {/* Notes */}
-        {reportOptions.include_notes && vehicle?.notes && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t("publicReport.notes")}</Text>
-            <Text style={styles.notesText}>{vehicle.notes}</Text>
-          </View>
-        )}
-
-        {/* Service Entries */}
-        {reportOptions.include_service_entries && (
-          <View style={styles.section}>
-            <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionTitle}>
-                {t("publicReport.serviceEntriesCount")}
-              </Text>
-              <Pressable
-                hitSlop={8}
-                onPress={() =>
-                  Alert.alert(
-                    t("publicReport.serviceEntriesCount"),
-                    t("publicReport.dataUsedForCharts"),
-                  )
-                }
-              >
-                <Ionicons
-                  name="information-circle-outline"
-                  size={22}
-                  color={theme.colors.muted}
-                />
-              </Pressable>
-            </View>
-            <Text style={styles.countValue}>{serviceEntriesCount}</Text>
-          </View>
-        )}
-
-        {/* Fueling Stats */}
-        {reportOptions.include_fueling_stats && (
-          <View style={styles.section}>
-            <View style={styles.sectionTitleRow}>
-              <Text style={[styles.sectionTitle, styles.sectionTitleInRow]}>
-                {t("marketplace.fuelingStats")}
-              </Text>
-              <Pressable
-                hitSlop={8}
-                onPress={() =>
-                  Alert.alert(
-                    t("marketplace.fuelingStats"),
-                    t("publicReport.dataUsedForCharts"),
-                  )
-                }
-              >
-                <Ionicons
-                  name="information-circle-outline"
-                  size={22}
-                  color={theme.colors.muted}
-                />
-              </Pressable>
-            </View>
-            <Text style={styles.countValue}>{t("marketplace.included")}</Text>
-          </View>
-        )}
-
-        {/* Service Stats - Eksploatacja, wydatki wg kategorii */}
-        {reportOptions.include_service_stats && (
-          <View style={styles.section}>
-            <View style={styles.sectionTitleRow}>
-              <Text style={[styles.sectionTitle, styles.sectionTitleInRow]}>
-                {t("marketplace.serviceStats")}
-              </Text>
-              <Pressable
-                hitSlop={8}
-                onPress={() =>
-                  Alert.alert(
-                    t("marketplace.serviceStats"),
-                    t("publicReport.dataUsedForCharts"),
-                  )
-                }
-              >
-                <Ionicons
-                  name="information-circle-outline"
-                  size={22}
-                  color={theme.colors.muted}
-                />
-              </Pressable>
-            </View>
-            <Text style={styles.countValue}>{t("marketplace.included")}</Text>
-          </View>
-        )}
-
-        {/* Wheels and tires */}
-        {reportOptions.include_wheels_tires && (
-          <View style={styles.section}>
-            <View style={styles.sectionTitleRow}>
-              <Text style={[styles.sectionTitle, styles.sectionTitleInRow]}>
-                {t("marketplace.wheelsAndTires")}
-              </Text>
-              <Pressable
-                hitSlop={8}
-                onPress={() =>
-                  Alert.alert(
-                    t("marketplace.wheelsAndTires"),
-                    t("publicReport.dataUsedForCharts"),
-                  )
-                }
-              >
-                <Ionicons
-                  name="information-circle-outline"
-                  size={22}
-                  color={theme.colors.muted}
-                />
-              </Pressable>
-            </View>
-            <Text style={styles.countValue}>{t("marketplace.included")}</Text>
-          </View>
-        )}
-
-        {/* Photos - title, count, preview button */}
-        {allPhotoUrls.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.photosSectionContent}>
-              <View style={styles.photosSectionLeft}>
-                <Text style={styles.sectionTitle}>
-                  {t("publicReport.photosPreview")}
-                </Text>
-                <Text style={styles.countValue}>{allPhotoUrls.length}</Text>
-              </View>
-              <Pressable
-                style={styles.previewButton}
-                onPress={() => setFullScreenPhotoIndex(0)}
-              >
-                <Text style={styles.previewButtonText}>
-                  {t("publicReport.photosPreviewButton")}
-                </Text>
-                <Ionicons
-                  name="expand-outline"
-                  size={18}
-                  color={theme.colors.accent}
-                />
-              </Pressable>
-            </View>
-          </View>
-        )}
+        {/* InfoCards */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {t("publicReport.includedData")}
+          </Text>
+          <InfoCard
+            title={t("publicReport.insurance")}
+            status={
+              reportOptions.include_insurance
+                ? hasInsurance
+                  ? "included"
+                  : "noData"
+                : "notIncluded"
+            }
+            theme={theme}
+            styles={styles}
+          />
+          <InfoCard
+            title={t("publicReport.inspection")}
+            status={
+              reportOptions.include_inspection
+                ? hasInspection
+                  ? "included"
+                  : "noData"
+                : "notIncluded"
+            }
+            theme={theme}
+            styles={styles}
+          />
+          <InfoCard
+            title={t("publicReport.notes")}
+            status={
+              reportOptions.include_notes
+                ? hasNotes
+                  ? "included"
+                  : "noData"
+                : "notIncluded"
+            }
+            theme={theme}
+            styles={styles}
+          />
+          <InfoCard
+            title={t("publicReport.wheels")}
+            status={
+              reportOptions.include_wheels
+                ? wheelsCount > 0
+                  ? "included"
+                  : "noData"
+                : "notIncluded"
+            }
+            theme={theme}
+            styles={styles}
+          />
+          <InfoCard
+            title={t("publicReport.tires")}
+            status={
+              reportOptions.include_tires
+                ? tiresCount > 0
+                  ? "included"
+                  : "noData"
+                : "notIncluded"
+            }
+            theme={theme}
+            styles={styles}
+          />
+          <InfoCard
+            title={t("publicReport.serviceHistory")}
+            status={
+              reportOptions.include_service_history
+                ? serviceEntriesCount > 0
+                  ? "included"
+                  : "noData"
+                : "notIncluded"
+            }
+            count={
+              reportOptions.include_service_history && serviceEntriesCount > 0
+                ? serviceEntriesCount
+                : undefined
+            }
+            theme={theme}
+            styles={styles}
+          />
+          <InfoCard
+            title={t("publicReport.serviceStats")}
+            status={
+              reportOptions.include_service_stats
+                ? serviceEntriesCount > 0
+                  ? "included"
+                  : "noData"
+                : "notIncluded"
+            }
+            theme={theme}
+            styles={styles}
+          />
+          <InfoCard
+            title={t("publicReport.fuelingStats")}
+            status={
+              reportOptions.include_fueling_stats
+                ? fuelingEntriesCount > 0
+                  ? "included"
+                  : "noData"
+                : "notIncluded"
+            }
+            theme={theme}
+            styles={styles}
+          />
+          <InfoCard
+            title={t("publicReport.photos")}
+            status={
+              reportOptions.include_photos
+                ? photoCount > 0
+                  ? "included"
+                  : "noData"
+                : "notIncluded"
+            }
+            count={
+              reportOptions.include_photos && photoCount > 0
+                ? photoCount
+                : undefined
+            }
+            theme={theme}
+            styles={styles}
+          />
+        </View>
 
         {/* Confirmation Checkbox */}
         <View style={styles.section}>
@@ -483,62 +474,6 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
           </Pressable>
         </View>
       </ScrollView>
-
-      {/* Full-screen photo modal */}
-      <Modal
-        visible={fullScreenPhotoIndex !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setFullScreenPhotoIndex(null)}
-      >
-        <View
-          style={[
-            styles.fullScreenOverlay,
-            { paddingTop: insets.top, paddingBottom: insets.bottom },
-          ]}
-        >
-          <Pressable
-            style={[styles.fullScreenClose, { top: insets.top + 8 }]}
-            onPress={() => setFullScreenPhotoIndex(null)}
-            hitSlop={12}
-          >
-            <Ionicons name="close" size={28} color="#fff" />
-          </Pressable>
-          {fullScreenPhotoIndex !== null && allPhotoUrls.length > 0 && (
-            <FlatList
-              data={allPhotoUrls}
-              horizontal
-              pagingEnabled
-              initialScrollIndex={fullScreenPhotoIndex}
-              getItemLayout={(_, index) => ({
-                length: windowWidth,
-                offset: windowWidth * index,
-                index,
-              })}
-              keyExtractor={(url) => url}
-              renderItem={({ item: url }) => (
-                <View
-                  style={{
-                    width: windowWidth,
-                    height: windowHeight - insets.top - insets.bottom,
-                    justifyContent: "center",
-                  }}
-                >
-                  <Image
-                    source={{ uri: url }}
-                    style={{
-                      width: windowWidth,
-                      height: windowHeight - insets.top - insets.bottom,
-                    }}
-                    contentFit="contain"
-                  />
-                </View>
-              )}
-              showsHorizontalScrollIndicator={false}
-            />
-          )}
-        </View>
-      </Modal>
 
       <View style={styles.footer}>
         <Button
@@ -569,9 +504,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    scrollView: {
-      flex: 1,
-    },
+    scrollView: { flex: 1 },
     scrollContent: {
       paddingHorizontal: theme.spacing.md,
       paddingTop: theme.spacing.md,
@@ -607,62 +540,6 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
       fontWeight: "700",
       color: theme.colors.fg,
-      marginBottom: theme.spacing.sm,
-    },
-    sectionTitleRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-      marginBottom: theme.spacing.sm,
-    },
-    sectionTitleInRow: {
-      marginBottom: 0,
-    },
-    countRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-    countRowRight: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.md,
-    },
-    photosSectionContent: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-    photosSectionLeft: {
-      flex: 1,
-    },
-    previewButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.sm,
-    },
-    previewButtonText: {
-      fontSize: theme.typography.small,
-      fontWeight: "600",
-      color: theme.colors.accent,
-    },
-    fullScreenOverlay: {
-      flex: 1,
-      backgroundColor: "rgba(0,0,0,0.95)",
-      justifyContent: "center",
-    },
-    fullScreenClose: {
-      position: "absolute",
-      right: theme.spacing.md,
-      zIndex: 10,
-      width: theme.spacing.xl + theme.spacing.sm,
-      height: theme.spacing.xl + theme.spacing.sm,
-      borderRadius: (theme.spacing.xl + theme.spacing.sm) / 2,
-      backgroundColor: "rgba(0,0,0,0.4)",
-      alignItems: "center",
-      justifyContent: "center",
     },
     dataRow: {
       flexDirection: "row",
@@ -673,59 +550,30 @@ const makeStyles = (theme: any) =>
       borderBottomColor: theme.colors.border,
     },
     dataLabel: {
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
       color: theme.colors.muted,
     },
     dataValue: {
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
       fontWeight: "600",
       color: theme.colors.fg,
     },
-    countValue: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
-      color: theme.colors.accent,
-    },
-    notesText: {
-      fontSize: theme.typography.small,
-      lineHeight: theme.typography.body + 4,
-      color: theme.colors.fg,
-    },
-    statRow: {
+    infoCard: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingVertical: theme.spacing.xs,
+      paddingVertical: theme.spacing.sm,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
-    statLabel: {
-      fontSize: theme.typography.small,
+    infoCardTitle: {
+      fontSize: theme.typography.body,
       color: theme.colors.fg,
+      flex: 1,
     },
-    statValue: {
-      fontSize: theme.typography.small,
-      fontWeight: "600",
-      color: theme.colors.accent,
-    },
-    photosGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: theme.spacing.sm,
-    },
-    photoThumbnail: {
-      width: theme.spacing.xl * 2 + theme.spacing.sm,
-      height: theme.spacing.xl * 2 + theme.spacing.sm,
-      borderRadius: theme.radius.sm,
-      backgroundColor: theme.colors.border,
-      alignItems: "center",
-      justifyContent: "center",
-      overflow: "hidden",
-    },
-    morePhotosText: {
-      fontSize: theme.typography.small,
+    infoCardValue: {
+      fontSize: theme.typography.body,
       fontWeight: "700",
-      color: theme.colors.muted,
     },
     checkboxRow: {
       flexDirection: "row",
@@ -748,7 +596,7 @@ const makeStyles = (theme: any) =>
     },
     checkboxLabel: {
       flex: 1,
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
       lineHeight: theme.typography.body + 4,
       color: theme.colors.fg,
     },

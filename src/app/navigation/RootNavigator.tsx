@@ -72,16 +72,21 @@ export type AppStackParamList = {
   MarketplaceConfigure: { vehicleId: string };
   MarketplaceSummary: {
     vehicleId: string;
-    language: "en" | "pl";
+    reportOptions: {
+      include_technical_data: boolean;
+      include_insurance: boolean;
+      include_inspection: boolean;
+      include_notes: boolean;
+      include_wheels: boolean;
+      include_tires: boolean;
+      include_service_history: boolean;
+      include_service_stats: boolean;
+      include_fueling_stats: boolean;
+    };
+    includePrice: boolean;
     price: number | null;
     currency: string;
-    reportOptions: {
-      include_service_entries: boolean;
-      include_fueling_stats: boolean;
-      include_service_stats: boolean;
-      include_wheels_tires?: boolean;
-      include_notes: boolean;
-    };
+    includePublicReport: boolean;
     selectedReportId: string | null;
   };
   MarketplacePostOptions: {
@@ -98,11 +103,16 @@ export type AppStackParamList = {
   PublicReportSummary: {
     vehicleId: string;
     reportOptions: {
-      include_service_entries: boolean;
+      include_technical_data: boolean;
+      include_insurance: boolean;
+      include_inspection: boolean;
       include_notes: boolean;
-      include_fueling_stats: boolean;
+      include_wheels: boolean;
+      include_tires: boolean;
+      include_service_history: boolean;
       include_service_stats: boolean;
-      include_wheels_tires?: boolean;
+      include_fueling_stats: boolean;
+      include_photos: boolean;
     };
     selectedVehiclePhotoIds: string[];
     tempPhotos: Array<{

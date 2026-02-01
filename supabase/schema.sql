@@ -834,18 +834,26 @@ declare
   v_temp_photos jsonb;
   v_vehicle_tires jsonb;
   v_vehicle_wheels jsonb;
-  v_include_service_entries boolean;
-  v_include_notes boolean;
-  v_include_fueling_stats boolean;
+  v_include_service_history boolean;
   v_include_service_stats boolean;
-  v_include_wheels_tires boolean;
+  v_include_notes boolean;
+  v_include_insurance boolean;
+  v_include_inspection boolean;
+  v_include_wheels boolean;
+  v_include_tires boolean;
+  v_include_fueling_stats boolean;
+  v_include_photos boolean;
 begin
-  -- Extract options
-  v_include_service_entries := coalesce((p_report_options->>'include_service_entries')::boolean, true);
-  v_include_notes := coalesce((p_report_options->>'include_notes')::boolean, true);
-  v_include_fueling_stats := coalesce((p_report_options->>'include_fueling_stats')::boolean, false);
+  -- Extract options (new format + backward compat with old keys)
+  v_include_service_history := coalesce((p_report_options->>'include_service_history')::boolean, (p_report_options->>'include_service_entries')::boolean, false);
   v_include_service_stats := coalesce((p_report_options->>'include_service_stats')::boolean, false);
-  v_include_wheels_tires := coalesce((p_report_options->>'include_wheels_tires')::boolean, false);
+  v_include_notes := coalesce((p_report_options->>'include_notes')::boolean, false);
+  v_include_insurance := coalesce((p_report_options->>'include_insurance')::boolean, true);
+  v_include_inspection := coalesce((p_report_options->>'include_inspection')::boolean, true);
+  v_include_wheels := coalesce((p_report_options->>'include_wheels')::boolean, (p_report_options->>'include_wheels_tires')::boolean, false);
+  v_include_tires := coalesce((p_report_options->>'include_tires')::boolean, (p_report_options->>'include_wheels_tires')::boolean, false);
+  v_include_fueling_stats := coalesce((p_report_options->>'include_fueling_stats')::boolean, false);
+  v_include_photos := coalesce((p_report_options->>'include_photos')::boolean, true);
 
   -- Get vehicle data
   select to_jsonb(v.*) into v_vehicle
@@ -856,13 +864,19 @@ begin
     raise exception 'Vehicle not found: %', p_vehicle_id;
   end if;
 
-  -- If notes not included, set to null
+  -- Strip optional vehicle fields when not included
   if not v_include_notes then
     v_vehicle := v_vehicle || jsonb_build_object('notes', null);
   end if;
+  if not v_include_insurance then
+    v_vehicle := v_vehicle || jsonb_build_object('insurance_valid_until', null);
+  end if;
+  if not v_include_inspection then
+    v_vehicle := v_vehicle || jsonb_build_object('inspection_valid_until', null);
+  end if;
 
   -- Get service entries (if included)
-  if v_include_service_entries or v_include_service_stats then
+  if v_include_service_history or v_include_service_stats then
     select coalesce(jsonb_agg(
       jsonb_build_object(
         'id', se.id,
@@ -901,7 +915,7 @@ begin
   end if;
 
   -- Get vehicle tires and wheels (if included)
-  if v_include_wheels_tires then
+  if v_include_wheels or v_include_tires then
     select coalesce(jsonb_agg(
       jsonb_build_object(
         'id', vt.id,
@@ -941,8 +955,8 @@ begin
     v_vehicle_wheels := '[]'::jsonb;
   end if;
 
-  -- Get selected vehicle photos
-  if jsonb_array_length(p_selected_vehicle_photo_ids) > 0 then
+  -- Get selected vehicle photos (skip when include_photos is false)
+  if v_include_photos and jsonb_array_length(p_selected_vehicle_photo_ids) > 0 then
     -- Only selected photos
     select coalesce(jsonb_agg(
       jsonb_build_object(
@@ -957,8 +971,8 @@ begin
     from public.vehicle_photos vp
     where vp.vehicle_id = p_vehicle_id
       and vp.id::text = any(select jsonb_array_elements_text(p_selected_vehicle_photo_ids));
-  else
-    -- All photos (backward compatibility)
+  elsif v_include_photos then
+    -- All photos (backward compatibility when no selection)
     select coalesce(jsonb_agg(
       jsonb_build_object(
         'id', vp.id,
@@ -971,10 +985,12 @@ begin
     ), '[]'::jsonb) into v_vehicle_photos
     from public.vehicle_photos vp
     where vp.vehicle_id = p_vehicle_id;
+  else
+    v_vehicle_photos := '[]'::jsonb;
   end if;
 
-  -- Process temp photos (from report-photos bucket)
-  if jsonb_array_length(p_temp_photos_data) > 0 then
+  -- Process temp photos (from report-photos bucket) - only when photos included
+  if v_include_photos and jsonb_array_length(p_temp_photos_data) > 0 then
     v_temp_photos := jsonb_build_array();
     for i in 0..jsonb_array_length(p_temp_photos_data) - 1 loop
       v_temp_photos := v_temp_photos || jsonb_build_object(
@@ -990,7 +1006,7 @@ begin
     v_temp_photos := '[]'::jsonb;
   end if;
 
-  -- Merge vehicle photos and temp photos, sort by display_order
+  -- Merge vehicle photos and temp photos (when include_photos, v_vehicle_photos and v_temp_photos already set above), sort by display_order
   v_vehicle_photos := (
     select coalesce(jsonb_agg(photo order by (photo->>'display_order')::integer), '[]'::jsonb)
     from (

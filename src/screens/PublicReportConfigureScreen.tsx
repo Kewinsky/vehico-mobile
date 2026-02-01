@@ -8,13 +8,16 @@ import { DraggableGrid } from "react-native-draggable-grid";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
+import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
-import type { Vehicle } from "../types/domain";
+import { listVehicleTires } from "../services/tires/tiresRepo";
+import { listVehicleWheels } from "../services/wheels/wheelsRepo";
 import {
   listVehiclePhotos,
   getVehiclePhotoUrl,
 } from "../services/vehicles/uploadPhoto";
-import type { VehiclePhoto } from "../types/domain";
+import type { Vehicle, VehiclePhoto } from "../types/domain";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
@@ -28,8 +31,8 @@ type Props = NativeStackScreenProps<AppStackParamList, "PublicReportConfigure">;
 
 type PhotoItem = {
   key: string;
-  photoId?: string; // For vehicle photos
-  tempId?: string; // For temp photos
+  photoId?: string;
+  tempId?: string;
   url: string;
   isVehiclePhoto: boolean;
   displayOrder: number;
@@ -43,21 +46,37 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [vehiclePhotos, setVehiclePhotos] = useState<VehiclePhoto[]>([]);
+  const [fuelingCount, setFuelingCount] = useState(0);
+  const [serviceEntriesCount, setServiceEntriesCount] = useState(0);
+  const [tiresCount, setTiresCount] = useState(0);
+  const [wheelsCount, setWheelsCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Report options - order: service entries, fueling stats, service stats, wheels, notes
-  const [includeServiceEntries] = useState(true); // Always true, mandatory
-  const [includeFueling, setIncludeFueling] = useState(false);
-  const [includeServiceStats, setIncludeServiceStats] = useState(false);
-  const [includeWheelsTires, setIncludeWheelsTires] = useState(false);
-  const [includeNotes, setIncludeNotes] = useState(false);
+  const hasInsurance =
+    (vehicle?.insurance_valid_until?.trim() ?? "").length > 0;
+  const hasInspection =
+    (vehicle?.inspection_valid_until?.trim() ?? "").length > 0;
+  const hasNotes = (vehicle?.notes?.trim() ?? "").length > 0;
+  const hasWheels = wheelsCount > 0;
+  const hasTires = tiresCount > 0;
+  const hasServiceHistory = serviceEntriesCount > 0;
+  const hasServiceStats = serviceEntriesCount > 0;
+  const hasFuelingStats = fuelingCount > 0;
 
-  // Selected vehicle photo IDs
+  const [includeTechnicalData] = useState(true);
+  const [includeInsurance, setIncludeInsurance] = useState(false);
+  const [includeInspection, setIncludeInspection] = useState(false);
+  const [includeNotes, setIncludeNotes] = useState(false);
+  const [includeWheels, setIncludeWheels] = useState(false);
+  const [includeTires, setIncludeTires] = useState(false);
+  const [includeServiceHistory, setIncludeServiceHistory] = useState(false);
+  const [includeServiceStats, setIncludeServiceStats] = useState(false);
+  const [includeFuelingStats, setIncludeFuelingStats] = useState(false);
+  const [includePhotos, setIncludePhotos] = useState(false);
+
   const [selectedVehiclePhotoIds, setSelectedVehiclePhotoIds] = useState<
     Set<string>
   >(new Set());
-
-  // Temp photos (not yet uploaded, stored locally)
   const [tempPhotos, setTempPhotos] = useState<
     Array<{
       id: string;
@@ -67,19 +86,26 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       fileName?: string | null;
     }>
   >([]);
-
   const [isDragging, setIsDragging] = useState(false);
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [v, photos] = await Promise.all([
-        getVehicle(vehicleId),
-        listVehiclePhotos(vehicleId),
-      ]);
+      const [v, photos, fuelings, serviceEntries, tires, wheels] =
+        await Promise.all([
+          getVehicle(vehicleId),
+          listVehiclePhotos(vehicleId),
+          listFuelingEntries(vehicleId),
+          listServiceEntries(vehicleId),
+          listVehicleTires(vehicleId),
+          listVehicleWheels(vehicleId),
+        ]);
       setVehicle(v);
       setVehiclePhotos(photos);
-      // Select all vehicle photos by default
+      setFuelingCount(fuelings.length);
+      setServiceEntriesCount(serviceEntries.length);
+      setTiresCount(tires.length);
+      setWheelsCount(wheels.length);
       setSelectedVehiclePhotoIds(new Set(photos.map((p) => p.id)));
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
@@ -92,14 +118,11 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
     void load();
   }, [load]);
 
-  // Combine all photos for display
   const allPhotos: PhotoItem[] = useMemo(() => {
     const items: PhotoItem[] = [];
-
-    // Vehicle photos (selected ones)
     vehiclePhotos
       .filter((p) => selectedVehiclePhotoIds.has(p.id))
-      .forEach((photo, index) => {
+      .forEach((photo) => {
         items.push({
           key: `vehicle-${photo.id}`,
           photoId: photo.id,
@@ -108,8 +131,6 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           displayOrder: photo.display_order,
         });
       });
-
-    // Temp photos
     tempPhotos.forEach((photo) => {
       items.push({
         key: `temp-${photo.id}`,
@@ -119,12 +140,31 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         displayOrder: photo.displayOrder,
       });
     });
-
-    // Sort by display order
     return items.sort((a, b) => a.displayOrder - b.displayOrder);
   }, [vehiclePhotos, selectedVehiclePhotoIds, tempPhotos]);
 
   const totalPhotoCount = allPhotos.length;
+
+  const unavailableOptions = useMemo(() => {
+    const list: string[] = [];
+    if (!hasInsurance) list.push(t("publicReport.optionInsurance"));
+    if (!hasInspection) list.push(t("publicReport.optionInspection"));
+    if (!hasNotes) list.push(t("publicReport.notes"));
+    if (!hasWheels) list.push(t("publicReport.optionWheels"));
+    if (!hasTires) list.push(t("publicReport.optionTires"));
+    if (!hasServiceHistory) list.push(t("publicReport.optionServiceHistory"));
+    if (!hasFuelingStats) list.push(t("publicReport.optionFuelingStats"));
+    return list;
+  }, [
+    hasInsurance,
+    hasInspection,
+    hasNotes,
+    hasWheels,
+    hasTires,
+    hasServiceHistory,
+    hasFuelingStats,
+    t,
+  ]);
 
   async function pickFromGallery() {
     try {
@@ -146,8 +186,6 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       if (!result.assets || result.assets.length === 0) {
         throw new Error(t("attachments.noFileSelected"));
       }
-
-      // Add temp photos
       const newPhotos = result.assets
         .slice(0, remainingSlots)
         .map((asset, index) => ({
@@ -157,7 +195,6 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           mimeType: asset.mimeType ?? null,
           fileName: asset.fileName ?? null,
         }));
-
       setTempPhotos([...tempPhotos, ...newPhotos]);
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
@@ -178,7 +215,6 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-
       const newPhoto = {
         id: `${Date.now()}-${Math.random()}`,
         fileUri: asset.uri,
@@ -186,7 +222,6 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         mimeType: asset.mimeType ?? null,
         fileName: asset.fileName ?? null,
       };
-
       setTempPhotos([...tempPhotos, newPhoto]);
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
@@ -213,101 +248,135 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
 
   function handleDragRelease(data: PhotoItem[]) {
     setIsDragging(false);
-
-    // Update display orders
     const vehiclePhotoMap = new Map(vehiclePhotos.map((p) => [p.id, p]));
     const tempPhotoMap = new Map(tempPhotos.map((p) => [p.id, p]));
-
-    // Update vehicle photos display_order (we'll need to update in DB later, but for now just reorder locally)
     const newVehiclePhotos = [...vehiclePhotos];
     const newTempPhotos = [...tempPhotos];
-
     data.forEach((item, index) => {
       if (item.isVehiclePhoto && item.photoId) {
         const photo = vehiclePhotoMap.get(item.photoId);
         if (photo) {
           const idx = newVehiclePhotos.findIndex((p) => p.id === photo.id);
-          if (idx >= 0) {
+          if (idx >= 0)
             newVehiclePhotos[idx] = { ...photo, display_order: index };
-          }
         }
       } else if (!item.isVehiclePhoto && item.tempId) {
         const photo = tempPhotoMap.get(item.tempId);
         if (photo) {
           const idx = newTempPhotos.findIndex((p) => p.id === photo.id);
-          if (idx >= 0) {
-            newTempPhotos[idx] = { ...photo, displayOrder: index };
-          }
+          if (idx >= 0) newTempPhotos[idx] = { ...photo, displayOrder: index };
         }
       }
     });
-
     setVehiclePhotos(newVehiclePhotos);
     setTempPhotos(newTempPhotos);
   }
 
-  const renderPhotoItem = (item: PhotoItem) => {
-    return (
-      <View style={styles.photoCard}>
-        <View style={styles.photoImageContainer}>
-          <Image
-            source={{ uri: item.url }}
-            style={styles.photoImage}
-            contentFit="cover"
-            transition={200}
-          />
-          {item.isVehiclePhoto && (
-            <View style={styles.photoCheckboxContainer}>
-              <Pressable
-                onPress={() => item.photoId && toggleVehiclePhoto(item.photoId)}
-                style={[
-                  styles.photoCheckbox,
-                  selectedVehiclePhotoIds.has(item.photoId || "") &&
-                    styles.photoCheckboxChecked,
-                ]}
-              >
-                {selectedVehiclePhotoIds.has(item.photoId || "") && (
-                  <Ionicons name="checkmark" size={16} color="#000000" />
-                )}
-              </Pressable>
-            </View>
-          )}
-          {!item.isVehiclePhoto && (
+  const renderPhotoItem = (item: PhotoItem) => (
+    <View style={styles.photoCard}>
+      <View style={styles.photoImageContainer}>
+        <Image
+          source={{ uri: item.url }}
+          style={styles.photoImage}
+          contentFit="cover"
+          transition={200}
+        />
+        {item.isVehiclePhoto && (
+          <View style={styles.photoCheckboxContainer}>
             <Pressable
-              onPress={() => item.tempId && removeTempPhoto(item.tempId)}
-              style={styles.photoDeleteButton}
-              hitSlop={5}
+              onPress={() => item.photoId && toggleVehiclePhoto(item.photoId)}
+              style={[
+                styles.photoCheckbox,
+                selectedVehiclePhotoIds.has(item.photoId || "") &&
+                  styles.photoCheckboxChecked,
+              ]}
             >
-              <Ionicons name="close" size={16} color={theme.colors.fg} />
+              {selectedVehiclePhotoIds.has(item.photoId || "") && (
+                <Ionicons name="checkmark" size={16} color="#000000" />
+              )}
             </Pressable>
-          )}
-        </View>
+          </View>
+        )}
+        {!item.isVehiclePhoto && (
+          <Pressable
+            onPress={() => item.tempId && removeTempPhoto(item.tempId)}
+            style={styles.photoDeleteButton}
+            hitSlop={5}
+          >
+            <Ionicons name="close" size={16} color={theme.colors.fg} />
+          </Pressable>
+        )}
       </View>
-    );
-  };
+    </View>
+  );
 
   function handleNext() {
-    // Prepare data for summary screen
+    const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
     navigation.navigate("PublicReportSummary", {
       vehicleId,
       reportOptions: {
-        include_service_entries: includeServiceEntries,
-        include_fueling_stats: includeFueling,
-        include_service_stats: includeServiceStats,
-        include_wheels_tires: includeWheelsTires,
+        include_technical_data: includeTechnicalData,
+        include_insurance: includeInsurance,
+        include_inspection: includeInspection,
         include_notes: includeNotes,
+        include_wheels: includeWheels,
+        include_tires: includeTires,
+        include_service_history: includeServiceHistory,
+        include_service_stats: includeServiceStats,
+        include_fueling_stats: includeFuelingStats,
+        include_photos: includePhotos,
       },
-      selectedVehiclePhotoIds: Array.from(selectedVehiclePhotoIds),
-      tempPhotos: tempPhotos.map((p) => ({
-        fileUri: p.fileUri,
-        displayOrder: p.displayOrder,
-        mimeType: p.mimeType,
-        fileName: p.fileName,
-      })),
+      selectedVehiclePhotoIds: includePhotos
+        ? Array.from(selectedVehiclePhotoIds)
+        : [],
+      tempPhotos: includePhotos
+        ? tempPhotos.map((p) => ({
+            fileUri: p.fileUri,
+            displayOrder: p.displayOrder,
+            mimeType: p.mimeType,
+            fileName: p.fileName,
+          }))
+        : [],
     });
   }
 
-  const canProceed = totalPhotoCount > 0;
+  const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
+
+  const CheckboxRow = ({
+    label,
+    checked,
+    onPress,
+    disabled,
+    suffix,
+  }: {
+    label: string;
+    checked: boolean;
+    onPress: () => void;
+    disabled?: boolean;
+    suffix?: string;
+  }) => (
+    <Pressable
+      style={[styles.checkboxRow, disabled && styles.checkboxRowDisabled]}
+      onPress={() => !disabled && onPress()}
+      disabled={disabled}
+    >
+      <Text
+        style={[styles.optionLabel, disabled && { color: theme.colors.muted }]}
+      >
+        {label}
+        {suffix ? ` ${suffix}` : ""}
+      </Text>
+      <View
+        style={[
+          styles.optionCheckbox,
+          checked && styles.optionCheckboxChecked,
+          disabled && styles.optionCheckboxDisabled,
+        ]}
+      >
+        {checked && <Ionicons name="checkmark" size={16} color="#000000" />}
+      </View>
+    </Pressable>
+  );
 
   return (
     <Screen padding={false}>
@@ -327,187 +396,193 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           </View>
         ) : (
           <>
-            {/* Report Options - checkboxes: 1.Wpisy 2.Statystyki tankowań 3.Statystyki serwisowania 4.Felgi 5.Notatki */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {t("publicReport.vehicleInfo")}
-              </Text>
-              {/* 1. Wpisy serwisowe - always checked */}
-              <Pressable style={styles.checkboxRow} onPress={() => {}} disabled>
-                <Text style={styles.optionLabel}>
-                  {t("marketplace.serviceEntries")}
-                </Text>
-                <View
-                  style={[
-                    styles.optionCheckbox,
-                    styles.optionCheckboxChecked,
-                    styles.optionCheckboxDisabled,
-                  ]}
-                >
-                  <Ionicons name="checkmark" size={16} color="#000000" />
-                </View>
-              </Pressable>
-
-              {/* 2. Notatki */}
-              <Pressable
-                style={styles.checkboxRow}
+              <CheckboxRow
+                label={t("publicReport.optionTechnicalData")}
+                checked={includeTechnicalData}
+                onPress={() => {}}
+                disabled
+                suffix={t("publicReport.optionTechnicalDataAlways")}
+              />
+              <CheckboxRow
+                label={t("publicReport.optionInsurance")}
+                checked={includeInsurance}
+                onPress={() => setIncludeInsurance(!includeInsurance)}
+                disabled={!hasInsurance}
+                suffix={
+                  !hasInsurance ? `(${t("publicReport.noData")})` : undefined
+                }
+              />
+              <CheckboxRow
+                label={t("publicReport.optionInspection")}
+                checked={includeInspection}
+                onPress={() => setIncludeInspection(!includeInspection)}
+                disabled={!hasInspection}
+                suffix={
+                  !hasInspection ? `(${t("publicReport.noData")})` : undefined
+                }
+              />
+              <CheckboxRow
+                label={t("publicReport.optionNotes", { vehicleTitle })}
+                checked={includeNotes}
                 onPress={() => setIncludeNotes(!includeNotes)}
-              >
-                <Text style={styles.optionLabel}>{t("marketplace.notes")}</Text>
-                <View
-                  style={[
-                    styles.optionCheckbox,
-                    includeNotes && styles.optionCheckboxChecked,
-                  ]}
-                >
-                  {includeNotes && (
-                    <Ionicons name="checkmark" size={16} color="#000000" />
-                  )}
-                </View>
-              </Pressable>
-              {/* 3. Statystyki tankowań - raw fuelings passed, calculated on web */}
-              <Pressable
-                style={styles.checkboxRow}
-                onPress={() => setIncludeFueling(!includeFueling)}
-              >
-                <Text style={styles.optionLabel}>
-                  {t("marketplace.fuelingStats")}
-                </Text>
-                <View
-                  style={[
-                    styles.optionCheckbox,
-                    includeFueling && styles.optionCheckboxChecked,
-                  ]}
-                >
-                  {includeFueling && (
-                    <Ionicons name="checkmark" size={16} color="#000000" />
-                  )}
-                </View>
-              </Pressable>
-              {/* 4. Statystyki serwisowania - Eksploatacja + wydatki wg kategorii */}
-              <Pressable
-                style={styles.checkboxRow}
+                disabled={!hasNotes}
+                suffix={!hasNotes ? `(${t("publicReport.noData")})` : undefined}
+              />
+              <CheckboxRow
+                label={t("publicReport.optionWheels")}
+                checked={includeWheels}
+                onPress={() => setIncludeWheels(!includeWheels)}
+                disabled={!hasWheels}
+                suffix={
+                  !hasWheels ? `(${t("publicReport.noData")})` : undefined
+                }
+              />
+              <CheckboxRow
+                label={t("publicReport.optionTires")}
+                checked={includeTires}
+                onPress={() => setIncludeTires(!includeTires)}
+                disabled={!hasTires}
+                suffix={!hasTires ? `(${t("publicReport.noData")})` : undefined}
+              />
+              <CheckboxRow
+                label={t("publicReport.optionServiceHistory")}
+                checked={includeServiceHistory}
+                onPress={() => setIncludeServiceHistory(!includeServiceHistory)}
+                disabled={!hasServiceHistory}
+                suffix={
+                  hasServiceHistory
+                    ? t("publicReport.optionServiceHistoryEntries", {
+                        count: serviceEntriesCount,
+                      })
+                    : t("publicReport.optionServiceHistoryNoData")
+                }
+              />
+              <CheckboxRow
+                label={t("publicReport.optionServiceStats")}
+                checked={includeServiceStats}
                 onPress={() => setIncludeServiceStats(!includeServiceStats)}
-              >
-                <Text style={styles.optionLabel}>
-                  {t("marketplace.serviceStats")}
-                </Text>
-                <View
-                  style={[
-                    styles.optionCheckbox,
-                    includeServiceStats && styles.optionCheckboxChecked,
-                  ]}
-                >
-                  {includeServiceStats && (
-                    <Ionicons name="checkmark" size={16} color="#000000" />
-                  )}
-                </View>
-              </Pressable>
-              {/* 5. Felgi i opony */}
-              <Pressable
-                style={styles.checkboxRow}
-                onPress={() => setIncludeWheelsTires(!includeWheelsTires)}
-              >
-                <Text style={styles.optionLabel}>
-                  {t("marketplace.wheelsAndTires")}
-                </Text>
-                <View
-                  style={[
-                    styles.optionCheckbox,
-                    includeWheelsTires && styles.optionCheckboxChecked,
-                  ]}
-                >
-                  {includeWheelsTires && (
-                    <Ionicons name="checkmark" size={16} color="#000000" />
-                  )}
-                </View>
-              </Pressable>
+                disabled={!hasServiceStats}
+                suffix={
+                  !hasServiceStats ? `(${t("publicReport.noData")})` : undefined
+                }
+              />
+              <CheckboxRow
+                label={t("publicReport.optionFuelingStats")}
+                checked={includeFuelingStats}
+                onPress={() => setIncludeFuelingStats(!includeFuelingStats)}
+                disabled={!hasFuelingStats}
+                suffix={
+                  !hasFuelingStats ? `(${t("publicReport.noData")})` : undefined
+                }
+              />
+              <CheckboxRow
+                label={t("publicReport.optionPhotos")}
+                checked={includePhotos}
+                onPress={() => setIncludePhotos(!includePhotos)}
+                suffix={
+                  includePhotos && totalPhotoCount > 0
+                    ? t("publicReport.optionPhotosCount", {
+                        count: totalPhotoCount,
+                      })
+                    : undefined
+                }
+              />
             </View>
 
-            {/* Photos Section */}
-            <View style={styles.section}>
-              <View style={styles.photosHeader}>
-                <Text style={styles.sectionTitle}>
-                  {t("publicReport.photosSection")}
-                </Text>
-                <Text style={styles.photosCount}>
-                  {t("publicReport.photosCount", { count: totalPhotoCount })}
+            {unavailableOptions.length > 0 && (
+              <View style={[styles.section, styles.hintSection]}>
+                <Text style={styles.hintText}>
+                  {t("publicReport.unavailableOptionsHint", {
+                    list: unavailableOptions.join(", "),
+                  })}
                 </Text>
               </View>
+            )}
 
-              {vehiclePhotos.length > 0 && (
-                <>
-                  <Text style={styles.photosSubtitle}>
-                    {t("publicReport.photosFromApp")}
+            {includePhotos && (
+              <View style={styles.section}>
+                <View style={styles.photosHeader}>
+                  <Text style={styles.sectionTitle}>
+                    {t("publicReport.photosSection")}
                   </Text>
-                  <View style={styles.vehiclePhotosList}>
-                    {vehiclePhotos.map((photo) => {
-                      const isSelected = selectedVehiclePhotoIds.has(photo.id);
-                      return (
-                        <Pressable
-                          key={photo.id}
-                          onPress={() => toggleVehiclePhoto(photo.id)}
-                          style={[
-                            styles.vehiclePhotoItem,
-                            isSelected && styles.vehiclePhotoItemSelected,
-                          ]}
-                        >
-                          <Image
-                            source={{ uri: getVehiclePhotoUrl(photo) }}
-                            style={styles.vehiclePhotoThumbnail}
-                            contentFit="cover"
-                          />
-                          <View
+                  <Text style={styles.photosCount}>
+                    {t("publicReport.photosCount", { count: totalPhotoCount })}
+                  </Text>
+                </View>
+                {vehiclePhotos.length > 0 && (
+                  <>
+                    <Text style={styles.photosSubtitle}>
+                      {t("publicReport.photosFromApp")}
+                    </Text>
+                    <View style={styles.vehiclePhotosList}>
+                      {vehiclePhotos.map((photo) => {
+                        const isSelected = selectedVehiclePhotoIds.has(
+                          photo.id,
+                        );
+                        return (
+                          <Pressable
+                            key={photo.id}
+                            onPress={() => toggleVehiclePhoto(photo.id)}
                             style={[
-                              styles.vehiclePhotoCheckbox,
-                              isSelected && styles.vehiclePhotoCheckboxChecked,
+                              styles.vehiclePhotoItem,
+                              isSelected && styles.vehiclePhotoItemSelected,
                             ]}
                           >
-                            {isSelected && (
-                              <Ionicons
-                                name="checkmark"
-                                size={16}
-                                color="#000000"
-                              />
-                            )}
-                          </View>
-                        </Pressable>
-                      );
-                    })}
+                            <Image
+                              source={{ uri: getVehiclePhotoUrl(photo) }}
+                              style={styles.vehiclePhotoThumbnail}
+                              contentFit="cover"
+                            />
+                            <View
+                              style={[
+                                styles.vehiclePhotoCheckbox,
+                                isSelected &&
+                                  styles.vehiclePhotoCheckboxChecked,
+                              ]}
+                            >
+                              {isSelected && (
+                                <Ionicons
+                                  name="checkmark"
+                                  size={16}
+                                  color="#000000"
+                                />
+                              )}
+                            </View>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </>
+                )}
+                {allPhotos.length > 0 && (
+                  <DraggableGrid
+                    numColumns={3}
+                    renderItem={renderPhotoItem}
+                    data={allPhotos}
+                    onDragStart={() => setIsDragging(true)}
+                    onDragRelease={handleDragRelease}
+                  />
+                )}
+                {totalPhotoCount < MAX_PHOTOS && (
+                  <View style={styles.addPhotoButtons}>
+                    <Button
+                      onPress={pickFromGallery}
+                      variant="ghost"
+                      style={styles.addPhotoButton}
+                    >
+                      {t("publicReport.addPhotos")}
+                    </Button>
                   </View>
-                </>
-              )}
-
-              {allPhotos.length > 0 && (
-                <DraggableGrid
-                  numColumns={3}
-                  renderItem={renderPhotoItem}
-                  data={allPhotos}
-                  onDragStart={() => setIsDragging(true)}
-                  onDragRelease={handleDragRelease}
-                />
-              )}
-
-              {totalPhotoCount < MAX_PHOTOS && (
-                <View style={styles.addPhotoButtons}>
-                  <Button
-                    onPress={pickFromGallery}
-                    variant="ghost"
-                    style={styles.addPhotoButton}
-                  >
-                    {t("publicReport.addPhotos")}
-                  </Button>
-                </View>
-              )}
-            </View>
+                )}
+              </View>
+            )}
           </>
         )}
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button onPress={handleNext} disabled={!canProceed}>
-          {t("publicReport.nextButton")}
-        </Button>
+        <Button onPress={handleNext}>{t("publicReport.nextButton")}</Button>
       </View>
     </Screen>
   );
@@ -515,33 +590,34 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    scrollView: {
-      flex: 1,
-    },
+    scrollView: { flex: 1 },
     scrollContent: {
       paddingHorizontal: theme.spacing.md,
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.xl,
     },
-    header: {
-      gap: theme.spacing.xs / 2,
-      marginBottom: theme.spacing.md,
-    },
+    header: { gap: theme.spacing.xs / 2, marginBottom: theme.spacing.md },
     h1: {
       fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
     },
-    subtitle: {
-      fontSize: theme.typography.small,
-      color: theme.colors.muted,
-    },
     loadingContainer: {
       paddingVertical: theme.spacing.xl,
       alignItems: "center",
     },
-    section: {
-      marginBottom: theme.spacing.lg,
+    section: { marginBottom: theme.spacing.lg },
+    hintSection: {
+      backgroundColor: theme.colors.card,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
+    },
+    hintText: {
+      fontSize: theme.typography.small,
+      color: theme.colors.muted,
+      lineHeight: theme.typography.body + 4,
     },
     sectionTitle: {
       fontSize: theme.typography.body,
@@ -555,6 +631,7 @@ const makeStyles = (theme: any) =>
       justifyContent: "space-between",
       marginBottom: theme.spacing.sm,
     },
+    checkboxRowDisabled: { opacity: 0.7 },
     optionCheckbox: {
       width: 24,
       height: 24,
@@ -568,9 +645,7 @@ const makeStyles = (theme: any) =>
       backgroundColor: theme.colors.accent,
       borderColor: theme.colors.accent,
     },
-    optionCheckboxDisabled: {
-      opacity: 0.8,
-    },
+    optionCheckboxDisabled: { opacity: 0.6 },
     optionLabel: {
       flex: 1,
       fontSize: theme.typography.body,
@@ -607,13 +682,8 @@ const makeStyles = (theme: any) =>
       borderColor: theme.colors.border,
       position: "relative",
     },
-    vehiclePhotoItemSelected: {
-      borderColor: theme.colors.accent,
-    },
-    vehiclePhotoThumbnail: {
-      width: "100%",
-      height: "100%",
-    },
+    vehiclePhotoItemSelected: { borderColor: theme.colors.accent },
+    vehiclePhotoThumbnail: { width: "100%", height: "100%" },
     vehiclePhotoCheckbox: {
       position: "absolute",
       top: theme.spacing.xs / 2,
@@ -625,12 +695,8 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    vehiclePhotoCheckboxChecked: {
-      backgroundColor: theme.colors.accent,
-    },
-    photoCard: {
-      margin: theme.spacing.xs,
-    },
+    vehiclePhotoCheckboxChecked: { backgroundColor: theme.colors.accent },
+    photoCard: { margin: theme.spacing.xs },
     photoImageContainer: {
       width: "100%",
       aspectRatio: 1,
@@ -639,10 +705,7 @@ const makeStyles = (theme: any) =>
       backgroundColor: theme.colors.card,
       position: "relative",
     },
-    photoImage: {
-      width: "100%",
-      height: "100%",
-    },
+    photoImage: { width: "100%", height: "100%" },
     photoCheckboxContainer: {
       position: "absolute",
       top: theme.spacing.xs / 2,
@@ -656,9 +719,7 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    photoCheckboxChecked: {
-      backgroundColor: theme.colors.accent,
-    },
+    photoCheckboxChecked: { backgroundColor: theme.colors.accent },
     photoDeleteButton: {
       position: "absolute",
       top: theme.spacing.xs / 2,
@@ -670,12 +731,8 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    addPhotoButtons: {
-      marginTop: theme.spacing.md,
-    },
-    addPhotoButton: {
-      marginBottom: theme.spacing.xs,
-    },
+    addPhotoButtons: { marginTop: theme.spacing.md },
+    addPhotoButton: { marginBottom: theme.spacing.xs },
     footer: {
       paddingHorizontal: theme.spacing.md,
       paddingVertical: theme.spacing.md,

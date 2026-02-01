@@ -1,23 +1,32 @@
 import { supabase } from "../supabase/client";
-import type { MarketplacePost, Language } from "../../types/domain";
+import type { MarketplacePost } from "../../types/domain";
+
+export type MarketplaceReportOptions = {
+  include_technical_data: boolean;
+  include_insurance: boolean;
+  include_inspection: boolean;
+  include_notes: boolean;
+  include_wheels: boolean;
+  include_tires: boolean;
+  include_service_history: boolean;
+  include_service_stats: boolean;
+  include_fueling_stats: boolean;
+};
 
 type GenerateMarketplacePostInput = {
   vehicleId: string;
-  language: Language;
-  price?: number | null;
-  currency?: string;
-  includeServiceEntries?: boolean;
-  includeFuelingStats?: boolean;
-  includeServiceStats?: boolean;
-  includeWheelsTires?: boolean;
-  includeNotes?: boolean;
-  publicReportUrl?: string | null;
+  reportOptions: MarketplaceReportOptions;
+  includePrice: boolean;
+  price: number | null;
+  currency: string;
+  includePublicReport: boolean;
+  publicReportUrl: string | null;
 };
 
 type SaveMarketplacePostInput = {
   vehicleId: string;
   platform?: "olx" | "facebook" | "generic";
-  language: Language;
+  language?: "en" | "pl";
   price?: number | null;
   content: string;
 };
@@ -25,20 +34,26 @@ type SaveMarketplacePostInput = {
 export async function generateMarketplacePost(
   input: GenerateMarketplacePostInput,
 ): Promise<string> {
+  const ro = input.reportOptions;
   const { data, error } = await supabase.functions.invoke(
     "generate-marketplace-post",
     {
       body: {
         vehicleId: input.vehicleId,
-        language: input.language,
-        price: input.price ?? null,
-        currency: input.currency ?? "PLN",
-        includeServiceEntries: input.includeServiceEntries ?? true,
-        includeFuelingStats: input.includeFuelingStats ?? false,
-        includeServiceStats: input.includeServiceStats ?? false,
-        includeWheelsTires: input.includeWheelsTires ?? false,
-        includeNotes: input.includeNotes ?? false,
-        publicReportUrl: input.publicReportUrl ?? null,
+        price: input.includePrice ? input.price : null,
+        currency: input.currency,
+        includePrice: input.includePrice,
+        includeServiceHistory: ro.include_service_history,
+        includeServiceEntries: ro.include_service_history,
+        includeFuelingStats: ro.include_fueling_stats,
+        includeServiceStats: ro.include_service_stats,
+        includeWheelsTires: ro.include_wheels || ro.include_tires,
+        includeWheels: ro.include_wheels,
+        includeTires: ro.include_tires,
+        includeNotes: ro.include_notes,
+        includeInsurance: ro.include_insurance,
+        includeInspection: ro.include_inspection,
+        publicReportUrl: input.includePublicReport ? input.publicReportUrl : null,
       },
     },
   );
@@ -66,7 +81,7 @@ export async function saveMarketplacePost(
       vehicle_id: input.vehicleId,
       user_id: user.id,
       platform: input.platform ?? "generic",
-      language: input.language,
+      language: input.language ?? "pl",
       price: input.price ?? null,
       content: input.content,
       title: null,

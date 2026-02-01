@@ -13,7 +13,7 @@ import * as Clipboard from "expo-clipboard";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import type { Language, PublicReportSnapshot } from "../types/domain";
+import type { PublicReportSnapshot } from "../types/domain";
 import {
   generateMarketplacePost,
   saveMarketplacePost,
@@ -41,20 +41,21 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
 
-  const [language, setLanguage] = useState<Language>(
-    (i18n.language as Language) || (settings?.language as Language) || "pl",
-  );
   const [price, setPrice] = useState("");
   const [currency, setCurrency] = useState<string>(settings?.currency ?? "PLN");
   const [content, setContent] = useState("");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Report options: service entries (always on), fueling stats, service stats, notes
-  const [includeServiceEntries] = useState(true); // Always true, mandatory
+  // Report options - same structure as Configure
+  const [includeServiceHistory, setIncludeServiceHistory] = useState(true);
   const [includeFuelingStats, setIncludeFuelingStats] = useState(false);
   const [includeServiceStats, setIncludeServiceStats] = useState(false);
   const [includeNotes, setIncludeNotes] = useState(false);
+  const [includeWheelsTires, setIncludeWheelsTires] = useState(false);
+  const [includeInsurance, setIncludeInsurance] = useState(true);
+  const [includeInspection, setIncludeInspection] = useState(true);
+  const [includePublicReport, setIncludePublicReport] = useState(false);
 
   // Public report selection
   const [publicReports, setPublicReports] = useState<PublicReportSnapshot[]>(
@@ -100,13 +101,21 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
 
       const generated = await generateMarketplacePost({
         vehicleId,
-        language,
+        reportOptions: {
+          include_technical_data: true,
+          include_insurance: includeInsurance,
+          include_inspection: includeInspection,
+          include_notes: includeNotes,
+          include_wheels: includeWheelsTires,
+          include_tires: includeWheelsTires,
+          include_service_history: includeServiceHistory,
+          include_service_stats: includeServiceStats,
+          include_fueling_stats: includeFuelingStats,
+        },
+        includePrice: priceNum != null && priceNum > 0,
         price: priceNum,
         currency,
-        includeServiceEntries,
-        includeFuelingStats,
-        includeServiceStats,
-        includeNotes,
+        includePublicReport: !!selectedReportId,
         publicReportUrl,
       });
 
@@ -143,7 +152,6 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
 
       await saveMarketplacePost({
         vehicleId,
-        language,
         price: priceNum,
         content,
       });
@@ -184,27 +192,12 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
 
       <View style={{ height: theme.spacing.md }} />
 
-      <PickerField
-        noMarginTop
-        label={t("marketplace.languageLabel")}
-        value={language}
-        options={["en", "pl"] as const}
-        getLabel={(value) =>
-          value === "en"
-            ? t("marketplace.languageEn")
-            : t("marketplace.languagePl")
-        }
-        onChange={(value) => {
-          if (value) setLanguage(value);
-        }}
-      />
-
       <TextField
         label={t("marketplace.priceLabel")}
         value={price}
         onChangeText={setPrice}
         keyboardType="decimal-pad"
-        placeholder={t("marketplace.pricePlaceholder", { currency })}
+        placeholder={t("marketplace.pricePlaceholder")}
       />
 
       <View style={{ height: theme.spacing.sm }} />
@@ -225,22 +218,24 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
       {/* Report Options Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t("marketplace.vehicleInfo")}</Text>
-        {/* Service entries - always checked */}
-        <Pressable style={styles.checkboxRow} onPress={() => {}} disabled>
+        <Pressable
+          style={styles.checkboxRow}
+          onPress={() => setIncludeServiceHistory(!includeServiceHistory)}
+        >
           <View
             style={[
               styles.optionCheckbox,
-              styles.optionCheckboxChecked,
-              styles.optionCheckboxDisabled,
+              includeServiceHistory && styles.optionCheckboxChecked,
             ]}
           >
-            <Ionicons name="checkmark" size={16} color="#000000" />
+            {includeServiceHistory && (
+              <Ionicons name="checkmark" size={16} color="#000000" />
+            )}
           </View>
           <Text style={styles.optionLabel}>
             {t("marketplace.serviceEntries")}
           </Text>
         </Pressable>
-        {/* Fueling stats */}
         <Pressable
           style={styles.checkboxRow}
           onPress={() => setIncludeFuelingStats(!includeFuelingStats)}
@@ -259,7 +254,6 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
             {t("marketplace.fuelingStats")}
           </Text>
         </Pressable>
-        {/* Service stats */}
         <Pressable
           style={styles.checkboxRow}
           onPress={() => setIncludeServiceStats(!includeServiceStats)}
@@ -278,7 +272,24 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
             {t("marketplace.serviceStats")}
           </Text>
         </Pressable>
-        {/* Notes */}
+        <Pressable
+          style={styles.checkboxRow}
+          onPress={() => setIncludeWheelsTires(!includeWheelsTires)}
+        >
+          <View
+            style={[
+              styles.optionCheckbox,
+              includeWheelsTires && styles.optionCheckboxChecked,
+            ]}
+          >
+            {includeWheelsTires && (
+              <Ionicons name="checkmark" size={16} color="#000000" />
+            )}
+          </View>
+          <Text style={styles.optionLabel}>
+            {t("marketplace.wheelsAndTires")}
+          </Text>
+        </Pressable>
         <Pressable
           style={styles.checkboxRow}
           onPress={() => setIncludeNotes(!includeNotes)}
@@ -295,36 +306,58 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
           </View>
           <Text style={styles.optionLabel}>{t("marketplace.notes")}</Text>
         </Pressable>
+        <Pressable
+          style={styles.checkboxRow}
+          onPress={() => setIncludePublicReport(!includePublicReport)}
+        >
+          <View
+            style={[
+              styles.optionCheckbox,
+              includePublicReport && styles.optionCheckboxChecked,
+            ]}
+          >
+            {includePublicReport && (
+              <Ionicons name="checkmark" size={16} color="#000000" />
+            )}
+          </View>
+          <Text style={styles.optionLabel}>
+            {t("marketplace.publicReport")}
+          </Text>
+        </Pressable>
       </View>
 
       {/* Public Report Selection */}
-      {loadingReports ? (
-        <View style={styles.loadingContainer}>
-          <LoadingIndicator />
-        </View>
-      ) : publicReports.length > 0 ? (
+      {includePublicReport && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
             {t("marketplace.publicReport")}
           </Text>
-          <PickerField
-            noMarginTop
-            label={""}
-            value={selectedReportId as string | null}
-            options={publicReports.map((r) => r.id) as readonly string[]}
-            getLabel={(value) => {
-              const report = publicReports.find((r) => r.id === value);
-              if (!report) return t("marketplace.noReport");
-              const date = new Date(report.created_at).toLocaleDateString();
-              return report.title || `${t("marketplace.report")} - ${date}`;
-            }}
-            onChange={(value) => {
-              setSelectedReportId(value);
-            }}
-            placeholder={t("marketplace.noReport")}
-          />
+          {loadingReports ? (
+            <View style={styles.loadingContainer}>
+              <LoadingIndicator />
+            </View>
+          ) : publicReports.length > 0 ? (
+            <PickerField
+              noMarginTop
+              label=""
+              value={selectedReportId as string | null}
+              options={publicReports.map((r) => r.id) as readonly string[]}
+              getLabel={(value) => {
+                const report = publicReports.find((r) => r.id === value);
+                if (!report) return t("marketplace.noReport");
+                const date = new Date(report.created_at).toLocaleDateString();
+                return report.title || `${t("marketplace.report")} - ${date}`;
+              }}
+              onChange={(value) => setSelectedReportId(value)}
+              placeholder={t("marketplace.noReport")}
+            />
+          ) : (
+            <Text style={styles.noReportsText}>
+              {t("marketplace.noReports")}
+            </Text>
+          )}
         </View>
-      ) : null}
+      )}
 
       <View style={{ height: theme.spacing.md }} />
 
@@ -513,5 +546,9 @@ const makeStyles = (theme: any) =>
     loadingContainer: {
       padding: theme.spacing.md,
       alignItems: "center",
+    },
+    noReportsText: {
+      fontSize: theme.typography.body,
+      color: theme.colors.muted,
     },
   });
