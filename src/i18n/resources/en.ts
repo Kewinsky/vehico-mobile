@@ -249,7 +249,13 @@ export const en = {
         totalDistance: "Distance in period",
         totalFuel: "Fuel in period",
         favoriteStation: "Favorite station",
-        avgCostPerLiter: "Avg cost per 1",
+        avgCostPerLiter: "Avg cost per 1 {{unit}}",
+      },
+      units: {
+        liters: "liters",
+        liter: "liter",
+        gallons: "gallons",
+        gallon: "gallon",
       },
       charts: {
         expensesOverTime: "Expenses over time",
@@ -552,6 +558,7 @@ export const en = {
     addTitle: "Add fueling",
     editTitle: "Edit fueling",
     date: "Date",
+    fuelType: "Fuel",
     distance: "Distance ({{unit}})",
     fuelAmount: "Fuel amount ({{unit}})",
     cost: "Cost",
@@ -559,6 +566,13 @@ export const en = {
     placeholderDistance: "e.g. 500",
     placeholderFuelAmount: "e.g. 40.5",
     placeholderCost: "e.g. 200.00",
+    fuelTypes: {
+      "95": "95",
+      "98": "98",
+      "100": "100",
+      on: "Diesel",
+      lpg: "LPG",
+    },
     stations: {
       orlen: "Orlen",
       bp: "BP",

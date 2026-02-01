@@ -186,6 +186,8 @@ export type GasStation =
   | "moya"
   | "other";
 
+export type FuelGrade = "95" | "98" | "100" | "on" | "lpg";
+
 export type FuelingEntry = {
   id: string;
   vehicle_id: string;
@@ -193,6 +195,7 @@ export type FuelingEntry = {
   distance: number;
   fuel_amount: number;
   fuel_cost: number;
+  fuel_type: FuelGrade | null;
   gas_station: GasStation | null;
   created_at: string;
 };

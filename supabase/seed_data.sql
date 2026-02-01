@@ -125,60 +125,60 @@ INSERT INTO public.service_entries (vehicle_id, service_date, mileage, category,
 -- Fueling entries for each month (varying frequency and amounts)
 
 -- January 2025
-INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost) VALUES
-(vehicle_id, '2025-01-10', 380.2, 45.8, 238.20),
-(vehicle_id, '2025-01-24', 390.5, 47.2, 245.80);
+INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost, fuel_type) VALUES
+(vehicle_id, '2025-01-10', 380.2, 45.8, 238.20, '95'),
+(vehicle_id, '2025-01-24', 390.5, 47.2, 245.80, '95');
 
 -- February 2025
-INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost) VALUES
-(vehicle_id, '2025-02-14', 385.0, 46.5, 241.90);
+INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost, fuel_type) VALUES
+(vehicle_id, '2025-02-14', 385.0, 46.5, 241.90, '98');
 
 -- March 2025
-INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost) VALUES
-(vehicle_id, '2025-03-13', 380.0, 45.9, 239.00),
-(vehicle_id, '2025-03-27', 390.0, 47.1, 245.20);
+INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost, fuel_type) VALUES
+(vehicle_id, '2025-03-13', 380.0, 45.9, 239.00, '95'),
+(vehicle_id, '2025-03-27', 390.0, 47.1, 245.20, '95');
 
 -- April 2025
 -- Brak tankowań w kwietniu
 
 -- May 2025
-INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost) VALUES
-(vehicle_id, '2025-05-09', 380.3, 46.0, 239.50),
-(vehicle_id, '2025-05-23', 390.5, 47.2, 245.80);
+INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost, fuel_type) VALUES
+(vehicle_id, '2025-05-09', 380.3, 46.0, 239.50, 'on'),
+(vehicle_id, '2025-05-23', 390.5, 47.2, 245.80, 'on');
 
 -- June 2025
-INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost) VALUES
-(vehicle_id, '2025-06-13', 385.0, 46.5, 242.00);
+INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost, fuel_type) VALUES
+(vehicle_id, '2025-06-13', 385.0, 46.5, 242.00, '100');
 
 -- July 2025
-INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost) VALUES
-(vehicle_id, '2025-07-11', 380.8, 46.0, 239.60),
-(vehicle_id, '2025-07-25', 390.0, 47.1, 245.00);
+INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost, fuel_type) VALUES
+(vehicle_id, '2025-07-11', 380.8, 46.0, 239.60, '95'),
+(vehicle_id, '2025-07-25', 390.0, 47.1, 245.00, 'lpg');
 
 -- August 2025
 -- Brak tankowań w sierpniu
 
 -- September 2025
-INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost) VALUES
-(vehicle_id, '2025-09-12', 380.0, 45.9, 239.00);
+INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost, fuel_type) VALUES
+(vehicle_id, '2025-09-12', 380.0, 45.9, 239.00, '95');
 
 -- October 2025
-INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost) VALUES
-(vehicle_id, '2025-10-10', 385.8, 46.6, 242.60),
-(vehicle_id, '2025-10-24', 395.0, 47.8, 248.80);
+INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost, fuel_type) VALUES
+(vehicle_id, '2025-10-10', 385.8, 46.6, 242.60, '98'),
+(vehicle_id, '2025-10-24', 395.0, 47.8, 248.80, '98');
 
 -- November 2025
-INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost) VALUES
-(vehicle_id, '2025-11-14', 380.2, 46.0, 239.40);
+INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost, fuel_type) VALUES
+(vehicle_id, '2025-11-14', 380.2, 46.0, 239.40, '95');
 
 -- December 2025
-INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost) VALUES
-(vehicle_id, '2025-12-12', 385.0, 46.5, 242.00),
-(vehicle_id, '2025-12-26', 395.5, 47.8, 248.80);
+INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost, fuel_type) VALUES
+(vehicle_id, '2025-12-12', 385.0, 46.5, 242.00, '95'),
+(vehicle_id, '2025-12-26', 395.5, 47.8, 248.80, '95');
 
 -- January 2026
-INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost) VALUES
-(vehicle_id, '2026-01-09', 380.8, 46.0, 239.60);
+INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fuel_cost, fuel_type) VALUES
+(vehicle_id, '2026-01-09', 380.8, 46.0, 239.60, '95');
 
 -- ================
 -- REMINDERS

@@ -250,7 +250,13 @@ export const pl = {
         totalDistance: "Przebieg w okresie",
         totalFuel: "Paliwo w okresie",
         favoriteStation: "Ulubiona stacja",
-        avgCostPerLiter: "Śr. cena za 1",
+        avgCostPerLiter: "Śr. cena za 1 {{unit}}",
+      },
+      units: {
+        liters: "litry",
+        liter: "litr",
+        gallons: "galony",
+        gallon: "galon",
       },
       charts: {
         expensesOverTime: "Wydatki w czasie",
@@ -554,6 +560,7 @@ export const pl = {
     addTitle: "Dodaj tankowanie",
     editTitle: "Edytuj tankowanie",
     date: "Data",
+    fuelType: "Paliwo",
     distance: "Dystans ({{unit}})",
     fuelAmount: "Ilość paliwa ({{unit}})",
     cost: "Koszt",
@@ -561,6 +568,13 @@ export const pl = {
     placeholderDistance: "np. 500",
     placeholderFuelAmount: "np. 40.5",
     placeholderCost: "np. 200.00",
+    fuelTypes: {
+      "95": "95",
+      "98": "98",
+      "100": "100",
+      on: "ON",
+      lpg: "LPG",
+    },
     stations: {
       orlen: "Orlen",
       bp: "BP",

@@ -58,6 +58,7 @@ interface FuelingEntry {
   distance: number;
   fuel_amount: number;
   fuel_cost: number;
+  fuel_type?: string | null;
 }
 
 interface VehicleTire {

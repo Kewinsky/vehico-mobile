@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { isValidDate, isPositiveNumber } from "../utils/validation";
-import type { GasStation } from "../types/domain";
+import type { FuelGrade, GasStation } from "../types/domain";
 import {
   createFuelingEntry,
   getFuelingEntry,
@@ -21,6 +21,14 @@ import { toastError } from "../ui/toast/toast";
 import { Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { PickerField } from "../ui/components/PickerField";
+
+const FUEL_TYPE_OPTIONS: readonly FuelGrade[] = [
+  "95",
+  "98",
+  "100",
+  "on",
+  "lpg",
+];
 
 const GAS_STATION_OPTIONS: readonly GasStation[] = [
   "orlen",
@@ -47,6 +55,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const [distance, setDistance] = useState("");
   const [fuelAmount, setFuelAmount] = useState("");
   const [fuelCost, setFuelCost] = useState("");
+  const [fuelType, setFuelType] = useState<FuelGrade | null>(null);
   const [gasStation, setGasStation] = useState<GasStation | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -59,6 +68,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         setDistance(String(e.distance));
         setFuelAmount(String(e.fuel_amount));
         setFuelCost(String(e.fuel_cost));
+        setFuelType(e.fuel_type ?? null);
         setGasStation(e.gas_station ?? null);
       } catch (err: any) {
         toastError(err?.message ?? t("common.error"));
@@ -96,6 +106,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         distance: Number(distance),
         fuel_amount: Number(fuelAmount),
         fuel_cost: Number(fuelCost),
+        fuel_type: fuelType,
         gas_station: gasStation,
       };
       if (entryId) await updateFuelingEntry(entryId, payload);
@@ -155,6 +166,17 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         disabled={saving}
       />
 
+      <View style={{ height: theme.spacing.sm }} />
+      <PickerField<FuelGrade>
+        noMarginTop
+        label={t("fuelingForm.fuelType")}
+        value={fuelType}
+        options={FUEL_TYPE_OPTIONS}
+        getLabel={(value) => t(`fuelingForm.fuelTypes.${value}`)}
+        onChange={setFuelType}
+        placeholder={t("common.all")}
+      />
+
       <TextField
         label={`${t("fuelingForm.distance", { unit: distanceUnit })} *`}
         value={distance}
@@ -164,7 +186,12 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       />
 
       <TextField
-        label={`${t("fuelingForm.fuelAmount", { unit: fuelUnit })} *`}
+        label={`${t("fuelingForm.fuelAmount", {
+          unit:
+            fuelUnit === "liters"
+              ? t("dashboard.stats.units.liters")
+              : t("dashboard.stats.units.gallons"),
+        })} *`}
         value={fuelAmount}
         onChangeText={setFuelAmount}
         keyboardType="decimal-pad"

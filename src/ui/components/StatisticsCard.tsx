@@ -444,6 +444,14 @@ export function StatisticsCard({ vehicleId, period }: Props) {
   const currency = settings?.currency ?? "PLN";
   const distanceUnit = settings?.distanceUnit ?? "km";
   const fuelUnit = settings?.fuelUnit ?? "liters";
+  const fuelUnitLabel =
+    fuelUnit === "liters"
+      ? t("dashboard.stats.units.liters")
+      : t("dashboard.stats.units.gallons");
+  const fuelUnitLabelSingular =
+    fuelUnit === "liters"
+      ? t("dashboard.stats.units.liter")
+      : t("dashboard.stats.units.gallon");
   const [loading, setLoading] = useState(true);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [service, setService] = useState<ServiceEntry[]>([]);
@@ -798,7 +806,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
                   ? `${fmtNumber(
                       totals.avgConsumptionPer100,
                       1,
-                    )} ${fuelUnit}/100 ${distanceUnit}`
+                    )} ${fuelUnitLabel}/100 ${distanceUnit}`
                   : "—"}
               </Text>
             </View>
@@ -834,7 +842,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
               </Text>
               <Text style={styles.metricValue}>
                 {totals.totalFuel > 0
-                  ? `${fmtNumber(totals.totalFuel, 1)} ${fuelUnit}`
+                  ? `${fmtNumber(totals.totalFuel, 1)} ${fuelUnitLabel}`
                   : "—"}
               </Text>
             </View>
@@ -853,7 +861,9 @@ export function StatisticsCard({ vehicleId, period }: Props) {
             </View>
             <View style={styles.metric}>
               <Text style={styles.metricLabel}>
-                {t("dashboard.stats.metrics.avgCostPerLiter")} {fuelUnit}
+                {t("dashboard.stats.metrics.avgCostPerLiter", {
+                  unit: fuelUnitLabelSingular,
+                })}
               </Text>
               <Text style={styles.metricValue}>
                 {Number.isFinite(totals.avgCostPerLiter)

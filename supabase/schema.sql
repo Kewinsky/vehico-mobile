@@ -120,6 +120,7 @@ create table if not exists public.fueling_entries (
   distance numeric not null,
   fuel_amount numeric not null,
   fuel_cost numeric not null,
+  fuel_type text check (fuel_type is null or fuel_type in ('95', '98', '100', 'on', 'lpg')),
   gas_station text,
   created_at timestamptz not null default now()
 );
@@ -903,6 +904,7 @@ begin
         'distance', fe.distance,
         'fuel_amount', fe.fuel_amount,
         'fuel_cost', fe.fuel_cost,
+        'fuel_type', fe.fuel_type,
         'gas_station', fe.gas_station,
         'created_at', fe.created_at
       ) order by fe.date desc

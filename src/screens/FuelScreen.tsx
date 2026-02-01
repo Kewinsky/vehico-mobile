@@ -64,6 +64,10 @@ export function FuelScreen({ route, navigation }: Props) {
   const currency = settings?.currency ?? "PLN";
   const distanceUnit = settings?.distanceUnit ?? "km";
   const fuelUnit = settings?.fuelUnit ?? "liters";
+  const fuelUnitLabel =
+    fuelUnit === "liters"
+      ? t("dashboard.stats.units.liters")
+      : t("dashboard.stats.units.gallons");
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -385,6 +389,9 @@ export function FuelScreen({ route, navigation }: Props) {
                 >
                   <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
                     {entry.date}
+                    {entry.fuel_type
+                      ? ` · ${t(`fuelingForm.fuelTypes.${entry.fuel_type}`)}`
+                      : ""}
                     {entry.gas_station
                       ? ` · ${t(`fuelingForm.stations.${entry.gas_station}`)}`
                       : ""}
@@ -396,7 +403,7 @@ export function FuelScreen({ route, navigation }: Props) {
                     }}
                   >
                     {Number(entry.distance).toFixed(1)} {distanceUnit} ·{" "}
-                    {Number(entry.fuel_amount).toFixed(1)} {fuelUnit} ·{" "}
+                    {Number(entry.fuel_amount).toFixed(1)} {fuelUnitLabel} ·{" "}
                     {Number(entry.fuel_cost).toFixed(2)} {currency}
                   </Text>
                 </Pressable>
