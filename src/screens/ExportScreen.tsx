@@ -169,9 +169,8 @@ const makeStyles = (theme: any) =>
       color: theme.colors.muted,
     },
     description: {
-      fontSize: theme.typography.xs,
+      fontSize: theme.typography.small,
       color: theme.colors.muted,
       marginTop: theme.spacing.xs / 2,
-      paddingHorizontal: theme.spacing.sm,
     },
   });
