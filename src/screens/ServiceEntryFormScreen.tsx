@@ -22,12 +22,12 @@ import {
   updateServiceEntry,
 } from "../services/serviceEntries/serviceEntriesRepo";
 import {
-  createSignedUrl,
   deleteAttachment,
   listAttachments,
   listVehicleAttachments,
   uploadAttachment,
 } from "../services/attachments/attachmentsRepo";
+import { getAttachmentOpenUrl, getFileNameFromItem } from "../services/storage/openFileUrl";
 import { listVehicleDocuments } from "../services/vehicleDocuments/vehicleDocumentsRepo";
 import { listWorkshops } from "../services/workshops/workshopsRepo";
 import type { Workshop } from "../types/domain";
@@ -161,10 +161,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     setMode(next);
   }
 
-  async function openAttachment(att: Attachment) {
+  function openAttachment(att: Attachment) {
     try {
-      const url = await createSignedUrl(att.storage_bucket, att.storage_path);
-      await Linking.openURL(url);
+      const url = getAttachmentOpenUrl(att);
+      void Linking.openURL(url);
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     }
@@ -630,9 +630,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       </Text>
                       <Text style={styles.cardMeta}>
                         {(() => {
-                          const fileName = item.storage_path
-                            .split("/")
-                            .slice(-1)[0];
+                          const fileName = getFileNameFromItem(item);
                           const ext =
                             fileName.split(".").pop()?.toUpperCase() || "FILE";
                           const date = new Date(item.created_at);

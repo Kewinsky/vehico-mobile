@@ -108,6 +108,8 @@ export type Attachment = {
   storage_bucket: "images" | "documents";
   storage_path: string;
   created_at: string;
+  /** When set, file is stored locally (not in Supabase). */
+  local_path?: string;
 };
 
 export type PublicReportSnapshot = {
@@ -175,6 +177,8 @@ export type VehicleDocument = {
   storage_path: string;
   description: string | null;
   created_at: string;
+  /** When set, file is stored locally (not in Supabase). */
+  local_path?: string;
 };
 
 export type GasStation =

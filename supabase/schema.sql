@@ -78,19 +78,8 @@ create index if not exists service_entries_service_date_idx on public.service_en
 drop index if exists public.service_entries_workshop_id_idx;
 create index if not exists service_entries_workshop_id_idx on public.service_entries(workshop_id);
 
--- Attachments (receipts/invoices/photos) metadata
-drop table if exists public.attachments cascade;
-create table if not exists public.attachments (
-  id uuid primary key default gen_random_uuid(),
-  service_entry_id uuid not null references public.service_entries(id) on delete cascade,
-  type text not null check (type in ('receipt', 'invoice', 'photo')),
-  storage_bucket text not null check (storage_bucket in ('images', 'documents')),
-  storage_path text not null,
-  created_at timestamptz not null default now()
-);
-
-drop index if exists public.attachments_service_entry_id_idx;
-create index if not exists attachments_service_entry_id_idx on public.attachments(service_entry_id);
+-- Attachments and vehicle_documents are stored locally on device (SQLite + file system).
+-- See: src/services/localStorage/
 
 -- Public reports (immutable snapshots for public reports)
 drop table if exists public.public_report cascade;
@@ -169,22 +158,6 @@ create table if not exists public.user_settings (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-
--- Vehicle documents (not tied to service entries)
-drop table if exists public.vehicle_documents cascade;
-create table if not exists public.vehicle_documents (
-  id uuid primary key default gen_random_uuid(),
-  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
-  storage_bucket text not null check (storage_bucket in ('images', 'documents')),
-  storage_path text not null,
-  description text,
-  created_at timestamptz not null default now()
-);
-
-drop index if exists public.vehicle_documents_vehicle_id_idx;
-create index if not exists vehicle_documents_vehicle_id_idx on public.vehicle_documents(vehicle_id);
-drop index if exists public.vehicle_documents_created_at_idx;
-create index if not exists vehicle_documents_created_at_idx on public.vehicle_documents(created_at desc);
 
 -- Vehicle photos (up to 6 photos per vehicle)
 drop table if exists public.vehicle_photos cascade;
@@ -274,12 +247,10 @@ create index if not exists vehicle_wheels_is_currently_fitted_idx on public.vehi
 alter table public.vehicles enable row level security;
 alter table public.workshops enable row level security;
 alter table public.service_entries enable row level security;
-alter table public.attachments enable row level security;
 alter table public.public_report enable row level security;
 alter table public.fueling_entries enable row level security;
 alter table public.reminders enable row level security;
 alter table public.user_settings enable row level security;
-alter table public.vehicle_documents enable row level security;
 alter table public.vehicle_photos enable row level security;
 alter table public.marketplace_posts enable row level security;
 alter table public.vehicle_tires enable row level security;
@@ -377,49 +348,6 @@ using (
   exists (
     select 1 from public.vehicles v
     where v.id = service_entries.vehicle_id
-      and v.owner_id = auth.uid()
-  )
-);
-
--- Attachments: allowed if the service entry belongs to a vehicle owned by user
-drop policy if exists attachments_select_own on public.attachments;
-create policy attachments_select_own
-on public.attachments for select
-to authenticated
-using (
-  exists (
-    select 1
-    from public.service_entries se
-    join public.vehicles v on v.id = se.vehicle_id
-    where se.id = attachments.service_entry_id
-      and v.owner_id = auth.uid()
-  )
-);
-
-drop policy if exists attachments_insert_own on public.attachments;
-create policy attachments_insert_own
-on public.attachments for insert
-to authenticated
-with check (
-  exists (
-    select 1
-    from public.service_entries se
-    join public.vehicles v on v.id = se.vehicle_id
-    where se.id = attachments.service_entry_id
-      and v.owner_id = auth.uid()
-  )
-);
-
-drop policy if exists attachments_delete_own on public.attachments;
-create policy attachments_delete_own
-on public.attachments for delete
-to authenticated
-using (
-  exists (
-    select 1
-    from public.service_entries se
-    join public.vehicles v on v.id = se.vehicle_id
-    where se.id = attachments.service_entry_id
       and v.owner_id = auth.uid()
   )
 );
@@ -612,62 +540,6 @@ on public.user_settings for update
 to authenticated
 using (user_id = auth.uid())
 with check (user_id = auth.uid());
-
--- Vehicle documents: allowed if vehicle belongs to user
-drop policy if exists vehicle_documents_select_own_vehicle on public.vehicle_documents;
-create policy vehicle_documents_select_own_vehicle
-on public.vehicle_documents for select
-to authenticated
-using (
-  exists (
-    select 1 from public.vehicles v
-    where v.id = vehicle_documents.vehicle_id
-      and v.owner_id = auth.uid()
-  )
-);
-
-drop policy if exists vehicle_documents_insert_own_vehicle on public.vehicle_documents;
-create policy vehicle_documents_insert_own_vehicle
-on public.vehicle_documents for insert
-to authenticated
-with check (
-  exists (
-    select 1 from public.vehicles v
-    where v.id = vehicle_documents.vehicle_id
-      and v.owner_id = auth.uid()
-  )
-);
-
-drop policy if exists vehicle_documents_update_own_vehicle on public.vehicle_documents;
-create policy vehicle_documents_update_own_vehicle
-on public.vehicle_documents for update
-to authenticated
-using (
-  exists (
-    select 1 from public.vehicles v
-    where v.id = vehicle_documents.vehicle_id
-      and v.owner_id = auth.uid()
-  )
-)
-with check (
-  exists (
-    select 1 from public.vehicles v
-    where v.id = vehicle_documents.vehicle_id
-      and v.owner_id = auth.uid()
-  )
-);
-
-drop policy if exists vehicle_documents_delete_own_vehicle on public.vehicle_documents;
-create policy vehicle_documents_delete_own_vehicle
-on public.vehicle_documents for delete
-to authenticated
-using (
-  exists (
-    select 1 from public.vehicles v
-    where v.id = vehicle_documents.vehicle_id
-      and v.owner_id = auth.uid()
-  )
-);
 
 -- Vehicle photos: allowed if vehicle belongs to user (authenticated only, no public access)
 drop policy if exists vehicle_photos_select_own_vehicle on public.vehicle_photos;
@@ -1210,14 +1082,13 @@ grant execute on function public.update_public_report_temp_photos(uuid, jsonb) t
 -- ================
 -- NOTE: Creating buckets is often easiest in the Dashboard (Storage → New bucket).
 -- Buckets required by the app:
--- - images (must be PUBLIC)
--- - documents (private)
+-- - images (must be PUBLIC) - vehicle photos only
 -- - report-photos (must be PUBLIC) - temporary photos added only to reports
 --
 -- Vehico convention:
--- - Vehicle photos and documents: <vehicle_id>/<...>
--- - Attachments: service_entry_attachments/<vehicle_id>/<service_entry_id>/<...>
+-- - Vehicle photos: <vehicle_id>/<...>
 -- - Report photos: report-photos/<report_id>/<timestamp>-<randomId>.jpg
+-- - Documents and attachments: stored locally on device
 -- This lets us enforce storage access by checking vehicle ownership.
 --
 -- IMPORTANT: You may need to create these policies in the Dashboard if your project
@@ -1237,14 +1108,8 @@ using (
   and exists (
     select 1
     from public.vehicles v
-    where (
-      -- Vehicle photos: <vehicle_id>/<...>
-      v.id::text = split_part(name, '/', 1)
-      or
-      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
-    )
-    and v.owner_id = auth.uid()
+    where v.id::text = split_part(name, '/', 1)
+      and v.owner_id = auth.uid()
   )
 );
 
@@ -1267,14 +1132,8 @@ with check (
   and exists (
     select 1
     from public.vehicles v
-    where (
-      -- Vehicle photos: <vehicle_id>/<...>
-      v.id::text = split_part(name, '/', 1)
-      or
-      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
-    )
-    and v.owner_id = auth.uid()
+    where v.id::text = split_part(name, '/', 1)
+      and v.owner_id = auth.uid()
   )
 );
 
@@ -1288,14 +1147,8 @@ using (
   and exists (
     select 1
     from public.vehicles v
-    where (
-      -- Vehicle photos: <vehicle_id>/<...>
-      v.id::text = split_part(name, '/', 1)
-      or
-      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
-    )
-    and v.owner_id = auth.uid()
+    where v.id::text = split_part(name, '/', 1)
+      and v.owner_id = auth.uid()
   )
 )
 with check (
@@ -1303,14 +1156,8 @@ with check (
   and exists (
     select 1
     from public.vehicles v
-    where (
-      -- Vehicle photos: <vehicle_id>/<...>
-      v.id::text = split_part(name, '/', 1)
-      or
-      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
-    )
-    and v.owner_id = auth.uid()
+    where v.id::text = split_part(name, '/', 1)
+      and v.owner_id = auth.uid()
   )
 );
 
@@ -1324,117 +1171,8 @@ using (
   and exists (
     select 1
     from public.vehicles v
-    where (
-      -- Vehicle photos: <vehicle_id>/<...>
-      v.id::text = split_part(name, '/', 1)
-      or
-      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
-    )
-    and v.owner_id = auth.uid()
-  )
-);
-
--- ================
--- Storage policies for 'documents' bucket
--- ================
-
--- Read: authenticated can read documents for vehicles they own
-drop policy if exists "storage_documents_read_vehicle_scoped" on storage.objects;
-create policy "storage_documents_read_vehicle_scoped"
-on storage.objects for select
-to authenticated
-using (
-  bucket_id = 'documents'
-  and exists (
-    select 1
-    from public.vehicles v
-    where (
-      -- Vehicle documents: vehicle_documents/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'vehicle_documents' and v.id::text = split_part(name, '/', 2))
-      or
-      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
-    )
-    and v.owner_id = auth.uid()
-  )
-);
-
--- Write: authenticated can write documents only under vehicles they own
-drop policy if exists "storage_documents_write_vehicle_scoped" on storage.objects;
-create policy "storage_documents_write_vehicle_scoped"
-on storage.objects for insert
-to authenticated
-with check (
-  bucket_id = 'documents'
-  and exists (
-    select 1
-    from public.vehicles v
-    where (
-      -- Vehicle documents: vehicle_documents/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'vehicle_documents' and v.id::text = split_part(name, '/', 2))
-      or
-      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
-    )
-    and v.owner_id = auth.uid()
-  )
-);
-
--- Update: authenticated can update documents only under vehicles they own
-drop policy if exists "storage_documents_update_vehicle_scoped" on storage.objects;
-create policy "storage_documents_update_vehicle_scoped"
-on storage.objects for update
-to authenticated
-using (
-  bucket_id = 'documents'
-  and exists (
-    select 1
-    from public.vehicles v
-    where (
-      -- Vehicle documents: vehicle_documents/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'vehicle_documents' and v.id::text = split_part(name, '/', 2))
-      or
-      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
-    )
-    and v.owner_id = auth.uid()
-  )
-)
-with check (
-  bucket_id = 'documents'
-  and exists (
-    select 1
-    from public.vehicles v
-    where (
-      -- Vehicle documents: vehicle_documents/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'vehicle_documents' and v.id::text = split_part(name, '/', 2))
-      or
-      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
-    )
-    and v.owner_id = auth.uid()
-  )
-);
-
--- Delete: authenticated can delete documents only under vehicles they own
-drop policy if exists "storage_documents_delete_vehicle_scoped" on storage.objects;
-create policy "storage_documents_delete_vehicle_scoped"
-on storage.objects for delete
-to authenticated
-using (
-  bucket_id = 'documents'
-  and exists (
-    select 1
-    from public.vehicles v
-    where (
-      -- Vehicle documents: vehicle_documents/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'vehicle_documents' and v.id::text = split_part(name, '/', 2))
-      or
-      -- Attachments: service_entry_attachments/<vehicle_id>/<...>
-      (split_part(name, '/', 1) = 'service_entry_attachments' and v.id::text = split_part(name, '/', 2))
-    )
-    and v.owner_id = auth.uid()
+    where v.id::text = split_part(name, '/', 1)
+      and v.owner_id = auth.uid()
   )
 );
 
@@ -1473,16 +1211,6 @@ end;
 $$;
 
 revoke all on function public.delete_storage_object_trigger() from public;
-
-drop trigger if exists attachments_delete_storage on public.attachments;
-create trigger attachments_delete_storage
-after delete on public.attachments
-for each row execute function public.delete_storage_object_trigger();
-
-drop trigger if exists vehicle_documents_delete_storage on public.vehicle_documents;
-create trigger vehicle_documents_delete_storage
-after delete on public.vehicle_documents
-for each row execute function public.delete_storage_object_trigger();
 
 drop trigger if exists vehicle_photos_delete_storage on public.vehicle_photos;
 create trigger vehicle_photos_delete_storage

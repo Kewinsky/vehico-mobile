@@ -19,11 +19,15 @@ import { useTheme } from "../ui/ThemeProvider";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Attachment, VehicleDocument } from "../types/domain";
 import {
-  createSignedUrl,
   deleteAttachment,
   listVehicleAttachments,
   type VehicleAttachment,
 } from "../services/attachments/attachmentsRepo";
+import {
+  getAttachmentOpenUrl,
+  getVehicleDocumentOpenUrl,
+  getFileNameFromItem,
+} from "../services/storage/openFileUrl";
 import {
   deleteVehicleDocument,
   listVehicleDocuments,
@@ -84,10 +88,19 @@ export function DocumentsScreen({ route, navigation }: Props) {
     return unsub;
   }, [navigation, load]);
 
-  async function openStorage(bucket: string, path: string) {
+  function openVehicleDocument(doc: VehicleDocument) {
     try {
-      const url = await createSignedUrl(bucket, path);
-      await Linking.openURL(url);
+      const url = getVehicleDocumentOpenUrl(doc);
+      void Linking.openURL(url);
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    }
+  }
+
+  function openAttachment(att: Attachment) {
+    try {
+      const url = getAttachmentOpenUrl(att);
+      void Linking.openURL(url);
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     }
@@ -358,18 +371,14 @@ export function DocumentsScreen({ route, navigation }: Props) {
                 <View style={styles.cardRow}>
                   <Pressable
                     style={{ flex: 1 }}
-                    onPress={() =>
-                      void openStorage(item.storage_bucket, item.storage_path)
-                    }
+                    onPress={() => void openVehicleDocument(item)}
                   >
                     <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
                       {item.description || t("documents.documentLabel")}
                     </Text>
                     <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
                       {(() => {
-                        const fileName = item.storage_path
-                          .split("/")
-                          .slice(-1)[0];
+                        const fileName = getFileNameFromItem(item);
                         const ext =
                           fileName.split(".").pop()?.toUpperCase() || "FILE";
                         const date = new Date(item.created_at);
@@ -452,9 +461,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
                 <View style={styles.cardRow}>
                   <Pressable
                     style={{ flex: 1 }}
-                    onPress={() =>
-                      void openStorage(item.storage_bucket, item.storage_path)
-                    }
+                    onPress={() => void openAttachment(item)}
                   >
                     <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
                       {item.serviceEntryTitle
@@ -463,9 +470,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
                     </Text>
                     <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
                       {(() => {
-                        const fileName = item.storage_path
-                          .split("/")
-                          .slice(-1)[0];
+                        const fileName = getFileNameFromItem(item);
                         const ext =
                           fileName.split(".").pop()?.toUpperCase() || "FILE";
                         const date = new Date(item.created_at);

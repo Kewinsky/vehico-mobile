@@ -5,6 +5,15 @@ export function randomId(): string {
   return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
 }
 
+/** Generate a UUID v4-like id for local entities. */
+export function uuid(): string {
+  const hex = () =>
+    Math.floor(Math.random() * 0x10000)
+      .toString(16)
+      .padStart(4, "0");
+  return `${hex()}${hex()}-${hex()}-4${hex().slice(1)}-8${hex().slice(1)}-${hex()}${hex()}${hex()}`;
+}
+
 export async function fetchBlob(fileUri: string): Promise<Blob | ArrayBuffer> {
   // In React Native, we need to use expo-file-system to read files
   // because standard fetch() doesn't work with file:// URIs from ImagePicker

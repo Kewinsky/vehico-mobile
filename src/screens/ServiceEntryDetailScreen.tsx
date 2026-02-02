@@ -14,10 +14,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Attachment } from "../types/domain";
-import {
-  createSignedUrl,
-  listAttachments,
-} from "../services/attachments/attachmentsRepo";
+import { listAttachments } from "../services/attachments/attachmentsRepo";
+import { getAttachmentOpenUrl, getFileNameFromItem } from "../services/storage/openFileUrl";
 import {
   deleteServiceEntry,
   getServiceEntry,
@@ -69,10 +67,10 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
     void load();
   }, [load]);
 
-  async function openAttachment(att: Attachment) {
+  function openAttachment(att: Attachment) {
     try {
-      const url = await createSignedUrl(att.storage_bucket, att.storage_path);
-      await Linking.openURL(url);
+      const url = getAttachmentOpenUrl(att);
+      void Linking.openURL(url);
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     }
@@ -204,7 +202,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
                 </Text>
                 <Text style={styles.cardMeta}>
                   {(() => {
-                    const fileName = item.storage_path.split("/").slice(-1)[0];
+                    const fileName = getFileNameFromItem(item);
                     const ext =
                       fileName.split(".").pop()?.toUpperCase() || "FILE";
                     const date = new Date(item.created_at);

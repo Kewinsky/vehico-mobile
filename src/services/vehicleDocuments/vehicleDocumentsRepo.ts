@@ -1,24 +1,38 @@
 import type { VehicleDocument } from "../../types/domain";
-import { supabase } from "../supabase/client";
 import {
-  fetchBlob,
   inferContentType,
   inferExtension,
-  randomId,
+  uuid,
 } from "../storage/uploadUtils";
+import {
+  deleteLocalVehicleDocument,
+  getLocalVehicleDocument,
+  insertLocalVehicleDocument,
+  listLocalVehicleDocuments,
+  updateLocalVehicleDocumentDescription,
+} from "../localStorage/localDb";
+import {
+  deleteLocalFile,
+  saveVehicleDocumentFile,
+} from "../localStorage/localFiles";
 
+/** List vehicle documents (local only). */
 export async function listVehicleDocuments(
   vehicleId: string
 ): Promise<VehicleDocument[]> {
-  const { data, error } = await supabase
-    .from("vehicle_documents")
-    .select("*")
-    .eq("vehicle_id", vehicleId)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as VehicleDocument[];
+  const localRows = await listLocalVehicleDocuments(vehicleId);
+  return localRows.map((row) => ({
+    id: row.id,
+    vehicle_id: row.vehicle_id,
+    storage_bucket: "documents",
+    storage_path: "",
+    description: row.description,
+    created_at: row.created_at,
+    local_path: row.local_path,
+  }));
 }
 
+/** Upload vehicle document to local storage. */
 export async function uploadVehicleDocument(params: {
   vehicleId: string;
   fileUri: string;
@@ -30,61 +44,62 @@ export async function uploadVehicleDocument(params: {
     mimeType: params.mimeType,
     fileName: params.fileName,
   });
-  // All vehicle documents (photos, PDFs, etc.) go to "documents" bucket
-  const bucket = "documents";
   const ext = inferExtension({
     uri: params.fileUri,
     contentType,
     fileName: params.fileName,
   });
-  const storagePath = `vehicle_documents/${params.vehicleId}/${Date.now()}-${randomId()}.${ext}`;
 
-  const fileData = await fetchBlob(params.fileUri);
+  const localPath = await saveVehicleDocumentFile({
+    sourceUri: params.fileUri,
+    vehicleId: params.vehicleId,
+    ext,
+  });
 
-  const { error: uploadError } = await supabase.storage
-    .from(bucket)
-    .upload(storagePath, fileData, { contentType, upsert: false });
-  if (uploadError) throw uploadError;
+  const id = uuid();
+  const created_at = new Date().toISOString();
+  await insertLocalVehicleDocument({
+    id,
+    vehicle_id: params.vehicleId,
+    local_path: localPath,
+    description: null,
+    created_at,
+  });
 
-  const { data, error } = await supabase
-    .from("vehicle_documents")
-    .insert({
-      vehicle_id: params.vehicleId,
-      storage_bucket: bucket,
-      storage_path: storagePath,
-    })
-    .select("*")
-    .single();
-  if (error) throw error;
-  return data as VehicleDocument;
+  return {
+    id,
+    vehicle_id: params.vehicleId,
+    storage_bucket: "documents",
+    storage_path: "",
+    description: null,
+    created_at,
+    local_path: localPath,
+  };
 }
 
 export async function updateVehicleDocument(
   docId: string,
   description: string | null
 ): Promise<VehicleDocument> {
-  const { data, error } = await supabase
-    .from("vehicle_documents")
-    .update({ description })
-    .eq("id", docId)
-    .select("*")
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) throw new Error("Document not found");
-  return data as VehicleDocument;
+  const local = await getLocalVehicleDocument(docId);
+  if (!local) throw new Error("Document not found");
+  await updateLocalVehicleDocumentDescription(docId, description);
+  return {
+    id: local.id,
+    vehicle_id: local.vehicle_id,
+    storage_bucket: "documents",
+    storage_path: "",
+    description,
+    created_at: local.created_at,
+    local_path: local.local_path,
+  };
 }
 
 export async function deleteVehicleDocument(
   doc: VehicleDocument
 ): Promise<void> {
-  const { error: storageError } = await supabase.storage
-    .from(doc.storage_bucket)
-    .remove([doc.storage_path]);
-  if (storageError) throw storageError;
-
-  const { error } = await supabase
-    .from("vehicle_documents")
-    .delete()
-    .eq("id", doc.id);
-  if (error) throw error;
+  if (doc.local_path) {
+    await deleteLocalFile(doc.local_path);
+  }
+  await deleteLocalVehicleDocument(doc.id);
 }
