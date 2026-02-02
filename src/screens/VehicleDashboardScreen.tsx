@@ -60,14 +60,14 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t],
+    [vehicleId, t]
   );
 
   useEffect(() => {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false }),
+      () => void load({ showLoading: false })
     );
     return unsub;
   }, [navigation, load]);
@@ -450,6 +450,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       right: 0,
       bottom: 0,
       zIndex: 999,
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
     },
     fabContainer: {
       position: "absolute",
