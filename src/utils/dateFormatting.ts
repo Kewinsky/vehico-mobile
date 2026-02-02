@@ -4,12 +4,29 @@
  */
 
 /**
- * Formats ISO date string to YYYY-MM-DD format
+ * Formats ISO date string to YYYY-MM-DD format (for forms/API, not for display)
  * @param iso ISO date string (e.g., "2024-01-15T10:30:00Z")
  * @returns Date string in YYYY-MM-DD format
  */
 export function formatDate(iso: string): string {
   return iso.slice(0, 10);
+}
+
+/**
+ * Formats ISO date string for display, respecting app locale (pl-PL / en-US)
+ * @param iso ISO date string (e.g., "2024-01-15T10:30:00Z")
+ * @param locale Language code from i18n (e.g. "pl", "en", "pl-PL")
+ * @returns Locale-formatted date (e.g. "15.01.2024" for PL, "1/15/2024" for EN)
+ */
+export function formatDateDisplay(iso: string, locale: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const localeCode = locale.startsWith("pl") ? "pl-PL" : "en-US";
+  return d.toLocaleDateString(localeCode, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 /**

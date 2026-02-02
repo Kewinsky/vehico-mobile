@@ -17,7 +17,8 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderDetail">;
 
-import { formatDate } from "../utils/dateFormatting";
+import { formatDateDisplay } from "../utils/dateFormatting";
+import { i18n } from "../i18n/i18n";
 
 export function ReminderDetailScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
@@ -116,7 +117,7 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
               <Text style={styles.label}>{t("reminderDetail.labels.due")}</Text>
               <Text style={styles.value}>
                 {reminder.type === "time" && reminder.due_date
-                  ? formatDate(reminder.due_date)
+                  ? formatDateDisplay(reminder.due_date, i18n.language)
                   : reminder.due_mileage ?? ""}
               </Text>
             </View>

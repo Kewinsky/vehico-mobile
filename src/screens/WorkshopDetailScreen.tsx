@@ -27,7 +27,8 @@ import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
-import { formatDate } from "../utils/dateFormatting";
+import { formatDateDisplay } from "../utils/dateFormatting";
+import { i18n } from "../i18n/i18n";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WorkshopDetail">;
 
@@ -271,7 +272,7 @@ export function WorkshopDetailScreen({ navigation, route }: Props) {
                     style={[styles.cardMeta, { color: theme.colors.muted }]}
                     numberOfLines={1}
                   >
-                    {formatDate(item.service_date)}
+                    {formatDateDisplay(item.service_date, i18n.language)}
                     {item.cost != null ? ` · ${item.cost} ${currency}` : ""}
                   </Text>
                 </View>

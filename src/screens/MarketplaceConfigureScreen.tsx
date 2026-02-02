@@ -3,6 +3,8 @@ import { StyleSheet, Text, View, Pressable, ScrollView } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
+import { formatDateDisplay } from "../utils/dateFormatting";
+import { i18n } from "../i18n/i18n";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
@@ -342,9 +344,10 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                           (r) => r.id === value,
                         );
                         if (!report) return t("marketplace.noReport");
-                        const date = new Date(
+                        const date = formatDateDisplay(
                           report.created_at,
-                        ).toLocaleDateString();
+                          i18n.language,
+                        );
                         return (
                           report.title || `${t("marketplace.report")} - ${date}`
                         );

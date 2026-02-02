@@ -26,7 +26,8 @@ import { useTheme } from "../ui/ThemeProvider";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { IconButton } from "../ui/components/IconButton";
 import { toastError, toastSuccess } from "../ui/toast/toast";
-import { formatDate } from "../utils/dateFormatting";
+import { formatDateDisplay } from "../utils/dateFormatting";
+import { i18n } from "../i18n/i18n";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportHistory">;
 
@@ -177,7 +178,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
                     <Text
                       style={[styles.reportDate, { color: theme.colors.muted }]}
                     >
-                      {t("share.generatedOn")} {formatDate(item.created_at)}
+                      {t("share.generatedOn")} {formatDateDisplay(item.created_at, i18n.language)}
                     </Text>
                   </Pressable>
                   <View style={{ flexDirection: "row", gap: theme.spacing.xs }}>

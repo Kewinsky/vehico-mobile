@@ -26,7 +26,8 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { IconButton } from "../ui/components/IconButton";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 
-import { formatDate } from "../utils/dateFormatting";
+import { formatDateDisplay } from "../utils/dateFormatting";
+import { i18n } from "../i18n/i18n";
 
 type Props = NativeStackScreenProps<
   AppStackParamList,
@@ -176,7 +177,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
                       style={[styles.postDate, { color: theme.colors.muted }]}
                     >
                       {t("marketplace.generatedOn")}{" "}
-                      {formatDate(item.created_at)}
+                      {formatDateDisplay(item.created_at, i18n.language)}
                     </Text>
                   </Pressable>
                   <View style={{ flexDirection: "row", gap: theme.spacing.xs }}>

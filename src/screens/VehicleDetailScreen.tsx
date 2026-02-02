@@ -32,7 +32,7 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDetail">;
 
 import {
-  formatDate,
+  formatDateDisplay,
   formatMonthYear,
   formatMonthYearPL,
 } from "../utils/dateFormatting";
@@ -584,7 +584,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
             const r = rowItem.reminder;
             const dateLabel =
               r.type === "time" && r.due_date
-                ? formatDate(r.due_date)
+                ? formatDateDisplay(r.due_date, i18n.language)
                 : t("reminderForm.mileage");
             const dueText =
               r.type === "time"
@@ -628,7 +628,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 badge={t(`entryForm.categories.${cat}` as any)}
                 badgeVariant="accent"
                 subtitle={[
-                  e.service_date ? formatDate(e.service_date) : null,
+                  e.service_date ? formatDateDisplay(e.service_date, i18n.language) : null,
                   e.mileage
                     ? `${e.mileage.toLocaleString()} ${distanceUnit}`
                     : null,

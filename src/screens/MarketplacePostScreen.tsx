@@ -10,6 +10,8 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as Clipboard from "expo-clipboard";
+import { formatDateDisplay } from "../utils/dateFormatting";
+import { i18n } from "../i18n/i18n";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
@@ -369,7 +371,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
               getLabel={(value) => {
                 const report = publicReports.find((r) => r.id === value);
                 if (!report) return t("marketplace.noReport");
-                const date = new Date(report.created_at).toLocaleDateString();
+                const date = formatDateDisplay(report.created_at, i18n.language);
                 return report.title || `${t("marketplace.report")} - ${date}`;
               }}
               onChange={(value) => setSelectedReportId(value)}
