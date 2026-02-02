@@ -12,7 +12,7 @@ export async function listVehiclePhotos(
   vehicleId: string
 ): Promise<VehiclePhoto[]> {
   const { data, error } = await supabase
-    .from("vehicle_photos")
+    .from("photos")
     .select("*")
     .eq("vehicle_id", vehicleId)
     .order("display_order", { ascending: true });
@@ -76,7 +76,7 @@ export async function uploadVehiclePhoto(params: {
 
   // Insert into database
   const { data, error } = await supabase
-    .from("vehicle_photos")
+    .from("photos")
     .insert({
       vehicle_id: params.vehicleId,
       storage_bucket: bucket,
@@ -104,7 +104,7 @@ export async function deleteVehiclePhoto(
 
   // Delete from database
   const { error } = await supabase
-    .from("vehicle_photos")
+    .from("photos")
     .delete()
     .eq("id", photo.id);
   if (error) throw error;
@@ -113,7 +113,7 @@ export async function deleteVehiclePhoto(
   const remaining = await listVehiclePhotos(photo.vehicle_id);
   for (let i = 0; i < remaining.length; i++) {
     await supabase
-      .from("vehicle_photos")
+      .from("photos")
       .update({ display_order: i })
       .eq("id", remaining[i].id);
   }
@@ -132,7 +132,7 @@ export async function reorderVehiclePhotos(
   await Promise.all(
     photoIds.map((photoId, index) =>
       supabase
-        .from("vehicle_photos")
+        .from("photos")
         .update({ display_order: index })
         .eq("id", photoId)
         .eq("vehicle_id", vehicleId)

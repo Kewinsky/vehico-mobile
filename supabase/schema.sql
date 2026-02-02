@@ -81,9 +81,9 @@ create index if not exists service_entries_workshop_id_idx on public.service_ent
 -- Attachments and vehicle_documents are stored locally on device (SQLite + file system).
 -- See: src/services/localStorage/
 
--- Public reports (immutable snapshots for public reports)
-drop table if exists public.public_report cascade;
-create table if not exists public.public_report (
+-- Reports (immutable snapshots for public reports)
+drop table if exists public.reports cascade;
+create table if not exists public.reports (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   public_id text not null default replace(gen_random_uuid()::text, '-', ''),
@@ -93,12 +93,12 @@ create table if not exists public.public_report (
   unique (public_id)
 );
 
-drop index if exists public.public_report_vehicle_id_idx;
-create index if not exists public_report_vehicle_id_idx on public.public_report(vehicle_id);
-drop index if exists public.public_report_public_id_idx;
-create index if not exists public_report_public_id_idx on public.public_report(public_id);
-drop index if exists public.public_report_created_at_idx;
-create index if not exists public_report_created_at_idx on public.public_report(created_at desc);
+drop index if exists public.reports_vehicle_id_idx;
+create index if not exists reports_vehicle_id_idx on public.reports(vehicle_id);
+drop index if exists public.reports_public_id_idx;
+create index if not exists reports_public_id_idx on public.reports(public_id);
+drop index if exists public.reports_created_at_idx;
+create index if not exists reports_created_at_idx on public.reports(created_at desc);
 
 -- Fueling entries (lightweight)
 drop table if exists public.fueling_entries cascade;
@@ -159,9 +159,9 @@ create table if not exists public.user_settings (
   updated_at timestamptz not null default now()
 );
 
--- Vehicle photos (up to 6 photos per vehicle)
-drop table if exists public.vehicle_photos cascade;
-create table if not exists public.vehicle_photos (
+-- Photos (up to 6 photos per vehicle)
+drop table if exists public.photos cascade;
+create table if not exists public.photos (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   storage_bucket text not null default 'images' check (storage_bucket in ('images')),
@@ -170,14 +170,14 @@ create table if not exists public.vehicle_photos (
   created_at timestamptz not null default now()
 );
 
-drop index if exists public.vehicle_photos_vehicle_id_idx;
-create index if not exists vehicle_photos_vehicle_id_idx on public.vehicle_photos(vehicle_id);
-drop index if exists public.vehicle_photos_display_order_idx;
-create index if not exists vehicle_photos_display_order_idx on public.vehicle_photos(vehicle_id, display_order);
+drop index if exists public.photos_vehicle_id_idx;
+create index if not exists photos_vehicle_id_idx on public.photos(vehicle_id);
+drop index if exists public.photos_display_order_idx;
+create index if not exists photos_display_order_idx on public.photos(vehicle_id, display_order);
 
--- Marketplace posts (generated listings, bilingual: { pl, en })
-drop table if exists public.marketplace_posts cascade;
-create table if not exists public.marketplace_posts (
+-- Posts (generated marketplace listings, bilingual: { pl, en })
+drop table if exists public.posts cascade;
+create table if not exists public.posts (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   user_id uuid not null default auth.uid(),
@@ -189,16 +189,16 @@ create table if not exists public.marketplace_posts (
   updated_at timestamptz not null default now()
 );
 
-drop index if exists public.marketplace_posts_vehicle_id_idx;
-create index if not exists marketplace_posts_vehicle_id_idx on public.marketplace_posts(vehicle_id);
-drop index if exists public.marketplace_posts_user_id_idx;
-create index if not exists marketplace_posts_user_id_idx on public.marketplace_posts(user_id);
-drop index if exists public.marketplace_posts_created_at_idx;
-create index if not exists marketplace_posts_created_at_idx on public.marketplace_posts(created_at desc);
+drop index if exists public.posts_vehicle_id_idx;
+create index if not exists posts_vehicle_id_idx on public.posts(vehicle_id);
+drop index if exists public.posts_user_id_idx;
+create index if not exists posts_user_id_idx on public.posts(user_id);
+drop index if exists public.posts_created_at_idx;
+create index if not exists posts_created_at_idx on public.posts(created_at desc);
 
--- Vehicle tires (per vehicle)
-drop table if exists public.vehicle_tires cascade;
-create table if not exists public.vehicle_tires (
+-- Tires (per vehicle)
+drop table if exists public.tires cascade;
+create table if not exists public.tires (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   name text not null default '',
@@ -213,14 +213,14 @@ create table if not exists public.vehicle_tires (
   created_at timestamptz not null default now()
 );
 
-drop index if exists public.vehicle_tires_vehicle_id_idx;
-create index if not exists vehicle_tires_vehicle_id_idx on public.vehicle_tires(vehicle_id);
-drop index if exists public.vehicle_tires_is_currently_fitted_idx;
-create index if not exists vehicle_tires_is_currently_fitted_idx on public.vehicle_tires(vehicle_id, is_currently_fitted) where is_currently_fitted = true;
+drop index if exists public.tires_vehicle_id_idx;
+create index if not exists tires_vehicle_id_idx on public.tires(vehicle_id);
+drop index if exists public.tires_is_currently_fitted_idx;
+create index if not exists tires_is_currently_fitted_idx on public.tires(vehicle_id, is_currently_fitted) where is_currently_fitted = true;
 
--- Vehicle wheels / rims (per vehicle)
-drop table if exists public.vehicle_wheels cascade;
-create table if not exists public.vehicle_wheels (
+-- Wheels / rims (per vehicle)
+drop table if exists public.wheels cascade;
+create table if not exists public.wheels (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   name text not null default '',
@@ -235,10 +235,10 @@ create table if not exists public.vehicle_wheels (
   created_at timestamptz not null default now()
 );
 
-drop index if exists public.vehicle_wheels_vehicle_id_idx;
-create index if not exists vehicle_wheels_vehicle_id_idx on public.vehicle_wheels(vehicle_id);
-drop index if exists public.vehicle_wheels_is_currently_fitted_idx;
-create index if not exists vehicle_wheels_is_currently_fitted_idx on public.vehicle_wheels(vehicle_id, is_currently_fitted) where is_currently_fitted = true;
+drop index if exists public.wheels_vehicle_id_idx;
+create index if not exists wheels_vehicle_id_idx on public.wheels(vehicle_id);
+drop index if exists public.wheels_is_currently_fitted_idx;
+create index if not exists wheels_is_currently_fitted_idx on public.wheels(vehicle_id, is_currently_fitted) where is_currently_fitted = true;
 
 -- ================
 -- Row Level Security (RLS)
@@ -247,14 +247,14 @@ create index if not exists vehicle_wheels_is_currently_fitted_idx on public.vehi
 alter table public.vehicles enable row level security;
 alter table public.workshops enable row level security;
 alter table public.service_entries enable row level security;
-alter table public.public_report enable row level security;
+alter table public.reports enable row level security;
 alter table public.fueling_entries enable row level security;
 alter table public.reminders enable row level security;
 alter table public.user_settings enable row level security;
-alter table public.vehicle_photos enable row level security;
-alter table public.marketplace_posts enable row level security;
-alter table public.vehicle_tires enable row level security;
-alter table public.vehicle_wheels enable row level security;
+alter table public.photos enable row level security;
+alter table public.posts enable row level security;
+alter table public.tires enable row level security;
+alter table public.wheels enable row level security;
 
 -- Vehicles: owner can CRUD (authenticated only, no public access)
 drop policy if exists vehicles_select_own on public.vehicles;
@@ -353,50 +353,50 @@ using (
 );
 
 -- Public reports: public read access (for Next.js public reports)
-drop policy if exists public_report_select_public on public.public_report;
-create policy public_report_select_public
-on public.public_report for select
+drop policy if exists reports_select_public on public.reports;
+create policy reports_select_public
+on public.reports for select
 to anon
 using (true); -- Public access is controlled by public_id uniqueness
 
 -- Public reports: authenticated users can read their own snapshots
-drop policy if exists public_report_select_own on public.public_report;
-create policy public_report_select_own
-on public.public_report for select
+drop policy if exists reports_select_own on public.reports;
+create policy reports_select_own
+on public.reports for select
 to authenticated
 using (
   exists (
     select 1
     from public.vehicles v
-    where v.id = public_report.vehicle_id
+    where v.id = reports.vehicle_id
       and v.owner_id = auth.uid()
   )
 );
 
 -- Public reports: authenticated users can insert their own snapshots
-drop policy if exists public_report_insert_own on public.public_report;
-create policy public_report_insert_own
-on public.public_report for insert
+drop policy if exists reports_insert_own on public.reports;
+create policy reports_insert_own
+on public.reports for insert
 to authenticated
 with check (
   exists (
     select 1
     from public.vehicles v
-    where v.id = public_report.vehicle_id
+    where v.id = reports.vehicle_id
       and v.owner_id = auth.uid()
   )
 );
 
 -- Update: authenticated can update title for their own reports
-drop policy if exists public_report_update_own on public.public_report;
-create policy public_report_update_own
-on public.public_report for update
+drop policy if exists reports_update_own on public.reports;
+create policy reports_update_own
+on public.reports for update
 to authenticated
 using (
   exists (
     select 1
     from public.vehicles v
-    where v.id = public_report.vehicle_id
+    where v.id = reports.vehicle_id
       and v.owner_id = auth.uid()
   )
 )
@@ -404,7 +404,7 @@ with check (
   exists (
     select 1
     from public.vehicles v
-    where v.id = public_report.vehicle_id
+    where v.id = reports.vehicle_id
       and v.owner_id = auth.uid()
   )
 );
@@ -542,113 +542,113 @@ using (user_id = auth.uid())
 with check (user_id = auth.uid());
 
 -- Vehicle photos: allowed if vehicle belongs to user (authenticated only, no public access)
-drop policy if exists vehicle_photos_select_own_vehicle on public.vehicle_photos;
-create policy vehicle_photos_select_own_vehicle
-on public.vehicle_photos for select
+drop policy if exists photos_select_own_vehicle on public.photos;
+create policy photos_select_own_vehicle
+on public.photos for select
 to authenticated
 using (
   exists (
     select 1 from public.vehicles v
-    where v.id = vehicle_photos.vehicle_id
+    where v.id = photos.vehicle_id
       and v.owner_id = auth.uid()
   )
 );
 
-drop policy if exists vehicle_photos_insert_own_vehicle on public.vehicle_photos;
-create policy vehicle_photos_insert_own_vehicle
-on public.vehicle_photos for insert
+drop policy if exists photos_insert_own_vehicle on public.photos;
+create policy photos_insert_own_vehicle
+on public.photos for insert
 to authenticated
 with check (
   exists (
     select 1 from public.vehicles v
-    where v.id = vehicle_photos.vehicle_id
+    where v.id = photos.vehicle_id
       and v.owner_id = auth.uid()
   )
 );
 
-drop policy if exists vehicle_photos_update_own_vehicle on public.vehicle_photos;
-create policy vehicle_photos_update_own_vehicle
-on public.vehicle_photos for update
+drop policy if exists photos_update_own_vehicle on public.photos;
+create policy photos_update_own_vehicle
+on public.photos for update
 to authenticated
 using (
   exists (
     select 1 from public.vehicles v
-    where v.id = vehicle_photos.vehicle_id
+    where v.id = photos.vehicle_id
       and v.owner_id = auth.uid()
   )
 )
 with check (
   exists (
     select 1 from public.vehicles v
-    where v.id = vehicle_photos.vehicle_id
+    where v.id = photos.vehicle_id
       and v.owner_id = auth.uid()
   )
 );
 
-drop policy if exists vehicle_photos_delete_own_vehicle on public.vehicle_photos;
-create policy vehicle_photos_delete_own_vehicle
-on public.vehicle_photos for delete
+drop policy if exists photos_delete_own_vehicle on public.photos;
+create policy photos_delete_own_vehicle
+on public.photos for delete
 to authenticated
 using (
   exists (
     select 1 from public.vehicles v
-    where v.id = vehicle_photos.vehicle_id
+    where v.id = photos.vehicle_id
       and v.owner_id = auth.uid()
   )
 );
 
 -- Vehicle tires: allowed if vehicle belongs to user
-drop policy if exists vehicle_tires_select_own_vehicle on public.vehicle_tires;
-create policy vehicle_tires_select_own_vehicle on public.vehicle_tires for select to authenticated
-using (exists (select 1 from public.vehicles v where v.id = vehicle_tires.vehicle_id and v.owner_id = auth.uid()));
+drop policy if exists tires_select_own_vehicle on public.tires;
+create policy tires_select_own_vehicle on public.tires for select to authenticated
+using (exists (select 1 from public.vehicles v where v.id = tires.vehicle_id and v.owner_id = auth.uid()));
 
-drop policy if exists vehicle_tires_insert_own_vehicle on public.vehicle_tires;
-create policy vehicle_tires_insert_own_vehicle on public.vehicle_tires for insert to authenticated
-with check (exists (select 1 from public.vehicles v where v.id = vehicle_tires.vehicle_id and v.owner_id = auth.uid()));
+drop policy if exists tires_insert_own_vehicle on public.tires;
+create policy tires_insert_own_vehicle on public.tires for insert to authenticated
+with check (exists (select 1 from public.vehicles v where v.id = tires.vehicle_id and v.owner_id = auth.uid()));
 
-drop policy if exists vehicle_tires_update_own_vehicle on public.vehicle_tires;
-create policy vehicle_tires_update_own_vehicle on public.vehicle_tires for update to authenticated
-using (exists (select 1 from public.vehicles v where v.id = vehicle_tires.vehicle_id and v.owner_id = auth.uid()))
-with check (exists (select 1 from public.vehicles v where v.id = vehicle_tires.vehicle_id and v.owner_id = auth.uid()));
+drop policy if exists tires_update_own_vehicle on public.tires;
+create policy tires_update_own_vehicle on public.tires for update to authenticated
+using (exists (select 1 from public.vehicles v where v.id = tires.vehicle_id and v.owner_id = auth.uid()))
+with check (exists (select 1 from public.vehicles v where v.id = tires.vehicle_id and v.owner_id = auth.uid()));
 
-drop policy if exists vehicle_tires_delete_own_vehicle on public.vehicle_tires;
-create policy vehicle_tires_delete_own_vehicle on public.vehicle_tires for delete to authenticated
-using (exists (select 1 from public.vehicles v where v.id = vehicle_tires.vehicle_id and v.owner_id = auth.uid()));
+drop policy if exists tires_delete_own_vehicle on public.tires;
+create policy tires_delete_own_vehicle on public.tires for delete to authenticated
+using (exists (select 1 from public.vehicles v where v.id = tires.vehicle_id and v.owner_id = auth.uid()));
 
 -- Vehicle wheels: allowed if vehicle belongs to user
-drop policy if exists vehicle_wheels_select_own_vehicle on public.vehicle_wheels;
-create policy vehicle_wheels_select_own_vehicle on public.vehicle_wheels for select to authenticated
-using (exists (select 1 from public.vehicles v where v.id = vehicle_wheels.vehicle_id and v.owner_id = auth.uid()));
+drop policy if exists wheels_select_own_vehicle on public.wheels;
+create policy wheels_select_own_vehicle on public.wheels for select to authenticated
+using (exists (select 1 from public.vehicles v where v.id = wheels.vehicle_id and v.owner_id = auth.uid()));
 
-drop policy if exists vehicle_wheels_insert_own_vehicle on public.vehicle_wheels;
-create policy vehicle_wheels_insert_own_vehicle on public.vehicle_wheels for insert to authenticated
-with check (exists (select 1 from public.vehicles v where v.id = vehicle_wheels.vehicle_id and v.owner_id = auth.uid()));
+drop policy if exists wheels_insert_own_vehicle on public.wheels;
+create policy wheels_insert_own_vehicle on public.wheels for insert to authenticated
+with check (exists (select 1 from public.vehicles v where v.id = wheels.vehicle_id and v.owner_id = auth.uid()));
 
-drop policy if exists vehicle_wheels_update_own_vehicle on public.vehicle_wheels;
-create policy vehicle_wheels_update_own_vehicle on public.vehicle_wheels for update to authenticated
-using (exists (select 1 from public.vehicles v where v.id = vehicle_wheels.vehicle_id and v.owner_id = auth.uid()))
-with check (exists (select 1 from public.vehicles v where v.id = vehicle_wheels.vehicle_id and v.owner_id = auth.uid()));
+drop policy if exists wheels_update_own_vehicle on public.wheels;
+create policy wheels_update_own_vehicle on public.wheels for update to authenticated
+using (exists (select 1 from public.vehicles v where v.id = wheels.vehicle_id and v.owner_id = auth.uid()))
+with check (exists (select 1 from public.vehicles v where v.id = wheels.vehicle_id and v.owner_id = auth.uid()));
 
-drop policy if exists vehicle_wheels_delete_own_vehicle on public.vehicle_wheels;
-create policy vehicle_wheels_delete_own_vehicle on public.vehicle_wheels for delete to authenticated
-using (exists (select 1 from public.vehicles v where v.id = vehicle_wheels.vehicle_id and v.owner_id = auth.uid()));
+drop policy if exists wheels_delete_own_vehicle on public.wheels;
+create policy wheels_delete_own_vehicle on public.wheels for delete to authenticated
+using (exists (select 1 from public.vehicles v where v.id = wheels.vehicle_id and v.owner_id = auth.uid()));
 
 -- Marketplace posts: owner can CRUD own posts
-drop policy if exists marketplace_posts_select_own on public.marketplace_posts;
-create policy marketplace_posts_select_own
-on public.marketplace_posts for select
+drop policy if exists posts_select_own on public.posts;
+create policy posts_select_own
+on public.posts for select
 to authenticated
 using (user_id = auth.uid());
 
-drop policy if exists marketplace_posts_insert_own on public.marketplace_posts;
-create policy marketplace_posts_insert_own
-on public.marketplace_posts for insert
+drop policy if exists posts_insert_own on public.posts;
+create policy posts_insert_own
+on public.posts for insert
 to authenticated
 with check (user_id = auth.uid());
 
-drop policy if exists marketplace_posts_update_own on public.marketplace_posts;
-create policy marketplace_posts_update_own
-on public.marketplace_posts for update
+drop policy if exists posts_update_own on public.posts;
+create policy posts_update_own
+on public.posts for update
 to authenticated
 using (user_id = auth.uid())
 with check (user_id = auth.uid());
@@ -803,7 +803,7 @@ begin
         'created_at', vt.created_at
       ) order by vt.is_currently_fitted desc, vt.created_at desc
     ), '[]'::jsonb) into v_vehicle_tires
-    from public.vehicle_tires vt
+    from public.tires vt
     where vt.vehicle_id = p_vehicle_id;
     select coalesce(jsonb_agg(
       jsonb_build_object(
@@ -821,7 +821,7 @@ begin
         'created_at', vw.created_at
       ) order by vw.is_currently_fitted desc, vw.created_at desc
     ), '[]'::jsonb) into v_vehicle_wheels
-    from public.vehicle_wheels vw
+    from public.wheels vw
     where vw.vehicle_id = p_vehicle_id;
   else
     v_vehicle_tires := '[]'::jsonb;
@@ -841,7 +841,7 @@ begin
         'created_at', vp.created_at
       ) order by vp.display_order, vp.created_at
     ), '[]'::jsonb) into v_vehicle_photos
-    from public.vehicle_photos vp
+    from public.photos vp
     where vp.vehicle_id = p_vehicle_id
       and vp.id::text = any(select jsonb_array_elements_text(p_selected_vehicle_photo_ids));
   elsif v_include_photos then
@@ -856,7 +856,7 @@ begin
         'created_at', vp.created_at
       ) order by vp.display_order, vp.created_at
     ), '[]'::jsonb) into v_vehicle_photos
-    from public.vehicle_photos vp
+    from public.photos vp
     where vp.vehicle_id = p_vehicle_id;
   else
     v_vehicle_photos := '[]'::jsonb;
@@ -910,15 +910,15 @@ $$;
 grant execute on function public.generate_vehicle_snapshot_with_options(uuid, jsonb, jsonb, jsonb) to authenticated;
 
 -- Legacy function for backward compatibility
-drop function if exists public.create_public_report_snapshot(uuid);
-create or replace function public.create_public_report_snapshot(p_vehicle_id uuid)
-returns public.public_report
+drop function if exists public.create_report_snapshot(uuid);
+create or replace function public.create_report_snapshot(p_vehicle_id uuid)
+returns public.reports
 language plpgsql
 security definer
 set search_path = public
 as $$
 begin
-  return public.create_public_report_snapshot_with_options(
+  return public.create_report_snapshot_with_options(
     p_vehicle_id,
     '[]'::jsonb, -- selected_vehicle_photo_ids
     '[]'::jsonb, -- temp_photos_data
@@ -934,23 +934,23 @@ end;
 $$;
 
 -- Grant execute to authenticated users
-grant execute on function public.create_public_report_snapshot(uuid) to authenticated;
+grant execute on function public.create_report_snapshot(uuid) to authenticated;
 
 -- New function with options
-drop function if exists public.create_public_report_snapshot_with_options(uuid, jsonb, jsonb, jsonb);
-create or replace function public.create_public_report_snapshot_with_options(
+drop function if exists public.create_report_snapshot_with_options(uuid, jsonb, jsonb, jsonb);
+create or replace function public.create_report_snapshot_with_options(
   p_vehicle_id uuid,
   p_selected_vehicle_photo_ids jsonb,
   p_temp_photos_data jsonb,
   p_report_options jsonb
 )
-returns public.public_report
+returns public.reports
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-  v_snapshot public.public_report;
+  v_snapshot public.reports;
   v_snapshot_data jsonb;
   v_snapshot_count integer;
 begin
@@ -966,15 +966,15 @@ begin
 
   -- Check snapshot limit (3 per vehicle)
   select count(*) into v_snapshot_count
-  from public.public_report
+  from public.reports
   where vehicle_id = p_vehicle_id;
 
   if v_snapshot_count >= 3 then
     -- Delete oldest snapshot
-    delete from public.public_report
+    delete from public.reports
     where id = (
       select id
-      from public.public_report
+      from public.reports
       where vehicle_id = p_vehicle_id
       order by created_at asc
       limit 1
@@ -990,7 +990,7 @@ begin
   );
 
   -- Create snapshot with public_id
-  insert into public.public_report (vehicle_id, snapshot_data)
+  insert into public.reports (vehicle_id, snapshot_data)
   values (p_vehicle_id, v_snapshot_data)
   returning * into v_snapshot;
 
@@ -999,22 +999,22 @@ end;
 $$;
 
 -- Grant execute to authenticated users
-grant execute on function public.create_public_report_snapshot_with_options(uuid, jsonb, jsonb, jsonb) to authenticated;
+grant execute on function public.create_report_snapshot_with_options(uuid, jsonb, jsonb, jsonb) to authenticated;
 
 -- Update existing report snapshot with temp photos (called after upload to report-photos bucket)
 -- Flow: 1) create report (temp_photos=[]), 2) upload temp photos, 3) call this to merge into snapshot
-drop function if exists public.update_public_report_temp_photos(uuid, jsonb);
-create or replace function public.update_public_report_temp_photos(
+drop function if exists public.update_report_temp_photos(uuid, jsonb);
+create or replace function public.update_report_temp_photos(
   p_report_id uuid,
   p_temp_photos_data jsonb
 )
-returns public.public_report
+returns public.reports
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-  v_report public.public_report;
+  v_report public.reports;
   v_snapshot_data jsonb;
   v_vehicle_photos jsonb;
   v_temp_photos jsonb;
@@ -1022,7 +1022,7 @@ declare
 begin
   -- Get report and verify ownership
   select * into v_report
-  from public.public_report
+  from public.reports
   where id = p_report_id;
   if v_report is null then
     raise exception 'Report not found';
@@ -1066,7 +1066,7 @@ begin
 
   v_snapshot_data := v_snapshot_data || jsonb_build_object('vehicle_photos', v_vehicle_photos);
 
-  update public.public_report
+  update public.reports
   set snapshot_data = v_snapshot_data
   where id = p_report_id
   returning * into v_report;
@@ -1075,7 +1075,7 @@ begin
 end;
 $$;
 
-grant execute on function public.update_public_report_temp_photos(uuid, jsonb) to authenticated;
+grant execute on function public.update_report_temp_photos(uuid, jsonb) to authenticated;
 
 -- ================
 -- Storage (buckets + policies)
@@ -1212,9 +1212,9 @@ $$;
 
 revoke all on function public.delete_storage_object_trigger() from public;
 
-drop trigger if exists vehicle_photos_delete_storage on public.vehicle_photos;
-create trigger vehicle_photos_delete_storage
-after delete on public.vehicle_photos
+drop trigger if exists photos_delete_storage on public.photos;
+create trigger photos_delete_storage
+after delete on public.photos
 for each row execute function public.delete_storage_object_trigger();
 
 -- ================
@@ -1247,7 +1247,7 @@ with check (
   bucket_id = 'report-photos'
   and exists (
     select 1
-    from public.public_report pr
+    from public.reports pr
     join public.vehicles v on v.id = pr.vehicle_id
     where split_part(name, '/', 1) = pr.id::text
       and v.owner_id = auth.uid()
@@ -1263,7 +1263,7 @@ using (
   bucket_id = 'report-photos'
   and exists (
     select 1
-    from public.public_report pr
+    from public.reports pr
     join public.vehicles v on v.id = pr.vehicle_id
     where split_part(name, '/', 1) = pr.id::text
       and v.owner_id = auth.uid()

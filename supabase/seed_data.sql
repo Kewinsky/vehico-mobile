@@ -210,7 +210,7 @@ INSERT INTO public.reminders (vehicle_id, type, due_mileage, title, notes, statu
 -- ================
 -- tire_type: summer, winter, all_season, run_flat, uhp, suv_xl
 -- One tire fitted (is_currently_fitted=true), the rest in stock
-INSERT INTO public.vehicle_tires (vehicle_id, name, width_mm, aspect_ratio, diameter_inch, tire_type, dot, is_currently_fitted) VALUES
+INSERT INTO public.tires (vehicle_id, name, width_mm, aspect_ratio, diameter_inch, tire_type, dot, is_currently_fitted) VALUES
 (vehicle_id, 'Goodyear Eagle F1', 205, 55, 16, 'summer', '2423', true),
 (vehicle_id, 'Michelin Alpin 6', 205, 55, 16, 'winter', '2322', false),
 (vehicle_id, 'Continental PremiumContact', 205, 55, 16, 'all_season', '2424', false);
@@ -219,7 +219,7 @@ INSERT INTO public.vehicle_tires (vehicle_id, name, width_mm, aspect_ratio, diam
 -- VEHICLE WHEELS (felgi)
 -- ================
 -- One wheel fitted (is_currently_fitted=true)
-INSERT INTO public.vehicle_wheels (vehicle_id, name, width_inch, diameter_inch, et_offset, bolt_pattern, center_bore_mm, bolt_type, weight_kg, is_currently_fitted) VALUES
+INSERT INTO public.wheels (vehicle_id, name, width_inch, diameter_inch, et_offset, bolt_pattern, center_bore_mm, bolt_type, weight_kg, is_currently_fitted) VALUES
 (vehicle_id, 'Aluminiowe OEM', 7, 16, 45, '5x112', 66.5, 'M14x1.5', 10.2, true),
 (vehicle_id, 'Felgi stalowe zimowe', 7, 16, 45, '5x112', 66.5, 'M14x1.5', 12.5, false);
 

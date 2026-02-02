@@ -145,7 +145,7 @@ The application uses Supabase (PostgreSQL) with the following main tables:
 - `expense_entries` - Expense records
 - `reminders` - Maintenance reminders
 - `attachments` - File attachments
-- `vehicle_photos` - Vehicle photos
+- `photos` - Vehicle photos
 - `user_settings` - User preferences
 - `public_pages` - Public sharing links
 

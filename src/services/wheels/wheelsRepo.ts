@@ -22,7 +22,7 @@ export async function listVehicleWheels(
   vehicleId: string,
 ): Promise<VehicleWheel[]> {
   const { data, error } = await supabase
-    .from("vehicle_wheels")
+    .from("wheels")
     .select("*")
     .eq("vehicle_id", vehicleId)
     .order("is_currently_fitted", { ascending: false })
@@ -33,7 +33,7 @@ export async function listVehicleWheels(
 
 export async function getVehicleWheel(id: string): Promise<VehicleWheel> {
   const { data, error } = await supabase
-    .from("vehicle_wheels")
+    .from("wheels")
     .select("*")
     .eq("id", id)
     .single();
@@ -46,12 +46,12 @@ export async function createVehicleWheel(
 ): Promise<VehicleWheel> {
   if (input.is_currently_fitted) {
     await supabase
-      .from("vehicle_wheels")
+      .from("wheels")
       .update({ is_currently_fitted: false })
       .eq("vehicle_id", input.vehicle_id);
   }
   const { data, error } = await supabase
-    .from("vehicle_wheels")
+    .from("wheels")
     .insert(input)
     .select("*")
     .single();
@@ -65,13 +65,13 @@ export async function updateVehicleWheel(
 ): Promise<VehicleWheel> {
   if (patch.is_currently_fitted && patch.vehicle_id) {
     await supabase
-      .from("vehicle_wheels")
+      .from("wheels")
       .update({ is_currently_fitted: false })
       .eq("vehicle_id", patch.vehicle_id)
       .neq("id", id);
   }
   const { data, error } = await supabase
-    .from("vehicle_wheels")
+    .from("wheels")
     .update(patch)
     .eq("id", id)
     .select("*")
@@ -81,6 +81,6 @@ export async function updateVehicleWheel(
 }
 
 export async function deleteVehicleWheel(id: string): Promise<void> {
-  const { error } = await supabase.from("vehicle_wheels").delete().eq("id", id);
+  const { error } = await supabase.from("wheels").delete().eq("id", id);
   if (error) throw error;
 }

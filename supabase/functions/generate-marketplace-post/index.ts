@@ -742,7 +742,7 @@ serve(async (req) => {
     let wheels: VehicleWheel[] = [];
     if (vIncludeWheelsTires) {
       const { data: tiresData } = await supabaseClient
-        .from("vehicle_tires")
+        .from("tires")
         .select(
           "name, width_mm, aspect_ratio, diameter_inch, tire_type, dot, is_currently_fitted"
         )
@@ -751,7 +751,7 @@ serve(async (req) => {
         .order("created_at", { ascending: false });
       tires = (tiresData || []) as VehicleTire[];
       const { data: wheelsData } = await supabaseClient
-        .from("vehicle_wheels")
+        .from("wheels")
         .select(
           "name, width_inch, diameter_inch, et_offset, bolt_pattern, center_bore_mm, bolt_type, weight_kg, is_currently_fitted"
         )

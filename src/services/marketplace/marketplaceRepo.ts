@@ -100,7 +100,7 @@ export async function saveMarketplacePost(
   if (!user) throw new Error("User not authenticated");
 
   const { data, error } = await supabase
-    .from("marketplace_posts")
+    .from("posts")
     .insert({
       vehicle_id: input.vehicleId,
       user_id: user.id,
@@ -121,7 +121,7 @@ export async function updateMarketplacePost(
   content: { pl: string; en: string },
 ): Promise<MarketplacePost> {
   const { data, error } = await supabase
-    .from("marketplace_posts")
+    .from("posts")
     .update({
       content,
       updated_at: new Date().toISOString(),
@@ -138,7 +138,7 @@ export async function listMarketplacePosts(
   vehicleId: string,
 ): Promise<MarketplacePost[]> {
   const { data, error } = await supabase
-    .from("marketplace_posts")
+    .from("posts")
     .select("*")
     .eq("vehicle_id", vehicleId)
     .order("created_at", { ascending: false });
@@ -151,7 +151,7 @@ export async function getMarketplacePost(
   postId: string,
 ): Promise<MarketplacePost> {
   const { data, error } = await supabase
-    .from("marketplace_posts")
+    .from("posts")
     .select("*")
     .eq("id", postId)
     .single();
@@ -165,7 +165,7 @@ export async function updateMarketplacePostTitle(
   title: string | null,
 ): Promise<void> {
   const { error } = await supabase
-    .from("marketplace_posts")
+    .from("posts")
     .update({ title })
     .eq("id", postId);
   if (error) throw error;

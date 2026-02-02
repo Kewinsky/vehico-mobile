@@ -24,7 +24,7 @@ export type ReportOptions = {
 export async function generatePublicPage(
   vehicleId: string,
 ): Promise<PublicReportSnapshot> {
-  const { data, error } = await supabase.rpc("create_public_report_snapshot", {
+  const { data, error } = await supabase.rpc("create_report_snapshot", {
     p_vehicle_id: vehicleId,
   });
 
@@ -46,7 +46,7 @@ export async function generatePublicPageWithOptions(
   reportOptions: ReportOptions,
 ): Promise<PublicReportSnapshot> {
   const { data, error } = await supabase.rpc(
-    "create_public_report_snapshot_with_options",
+    "create_report_snapshot_with_options",
     {
       p_vehicle_id: vehicleId,
       p_selected_vehicle_photo_ids:
@@ -70,7 +70,7 @@ export async function listPublicPages(
   vehicleId: string,
 ): Promise<PublicReportSnapshot[]> {
   const { data, error } = await supabase
-    .from("public_report")
+    .from("reports")
     .select("*")
     .eq("vehicle_id", vehicleId)
     .order("created_at", { ascending: false });
@@ -86,7 +86,7 @@ export async function getPublicReportSnapshot(
   publicId: string,
 ): Promise<PublicReportSnapshot | null> {
   const { data, error } = await supabase
-    .from("public_report")
+    .from("reports")
     .select("*")
     .eq("public_id", publicId)
     .maybeSingle();
@@ -107,7 +107,7 @@ export async function updatePublicReportTempPhotos(
   reportId: string,
   tempPhotos: TempReportPhoto[],
 ): Promise<PublicReportSnapshot> {
-  const { data, error } = await supabase.rpc("update_public_report_temp_photos", {
+  const { data, error } = await supabase.rpc("update_report_temp_photos", {
     p_report_id: reportId,
     p_temp_photos_data: tempPhotos.map((p) => ({
       storage_path: p.storage_path,
@@ -124,7 +124,7 @@ export async function updatePublicReportTempPhotos(
  */
 export async function deletePublicPage(snapshotId: string): Promise<void> {
   const { error } = await supabase
-    .from("public_report")
+    .from("reports")
     .delete()
     .eq("id", snapshotId);
 
@@ -136,7 +136,7 @@ export async function deletePublicPage(snapshotId: string): Promise<void> {
  */
 export async function getPublicReportCount(vehicleId: string): Promise<number> {
   const { count, error } = await supabase
-    .from("public_report")
+    .from("reports")
     .select("*", { count: "exact", head: true })
     .eq("vehicle_id", vehicleId);
 
@@ -149,7 +149,7 @@ export async function updatePublicReportTitle(
   title: string | null,
 ): Promise<void> {
   const { error } = await supabase
-    .from("public_report")
+    .from("reports")
     .update({ title })
     .eq("id", snapshotId);
   if (error) throw error;
