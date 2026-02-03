@@ -325,7 +325,9 @@ export const pl = {
     deleteAccount: "Usuń konto",
     deleteAccountConfirmTitle: "Usunąć konto?",
     deleteAccountConfirmBody:
-      "Wszystkie dane (pojazdy, dokumenty, przypomnienia) zostaną trwale usunięte. Tej operacji nie można cofnąć.",
+      "Wszystkie dane (pojazdy, raporty, dokumenty, przypomnienia, zdjęcia) zostaną trwale usunięte. Tej operacji nie można cofnąć.",
+    deleteAccountSuccess:
+      "Twoje konto i wszystkie powiązane dane zostały trwale usunięte.",
     deleteAccountNotAvailable:
       "Usunięcie konta nie jest dostępne w aplikacji. Skontaktuj się z pomocą techniczną.",
     displayNameUpdated: "Nazwa zaktualizowana",

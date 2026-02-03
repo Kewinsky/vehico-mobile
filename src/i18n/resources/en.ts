@@ -323,7 +323,9 @@ export const en = {
     deleteAccount: "Delete account",
     deleteAccountConfirmTitle: "Delete account?",
     deleteAccountConfirmBody:
-      "All your data (vehicles, documents, reminders) will be permanently deleted. This cannot be undone.",
+      "All your data (vehicles, reports, documents, reminders, photos) will be permanently deleted. This action cannot be undone.",
+    deleteAccountSuccess:
+      "Your account and all associated data have been permanently deleted.",
     deleteAccountNotAvailable:
       "Account deletion is not available in the app. Please contact support.",
     displayNameUpdated: "Display name updated",

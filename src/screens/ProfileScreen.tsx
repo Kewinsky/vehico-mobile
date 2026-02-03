@@ -20,6 +20,7 @@ import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { supabase } from "../services/supabase/client";
+import { deleteAccount } from "../services/account/deleteAccount";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Profile">;
 
@@ -33,6 +34,7 @@ export function ProfileScreen({ navigation }: Props) {
     (user?.user_metadata?.full_name as string | undefined)?.trim() || "";
   const [displayName, setDisplayName] = useState(displayNameFromUser);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     setDisplayName(displayNameFromUser);
@@ -63,6 +65,20 @@ export function ProfileScreen({ navigation }: Props) {
     });
   }
 
+  async function performDeleteAccount() {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      await deleteAccount();
+      toastSuccess(t("profile.deleteAccountSuccess"));
+      await signOut();
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   function onDeleteAccount() {
     Alert.alert(
       t("profile.deleteAccountConfirmTitle"),
@@ -72,11 +88,9 @@ export function ProfileScreen({ navigation }: Props) {
         {
           text: t("common.delete"),
           style: "destructive",
-          onPress: () => {
-            toastError(t("profile.deleteAccountNotAvailable"));
-          },
+          onPress: () => void performDeleteAccount(),
         },
-      ],
+      ]
     );
   }
 
@@ -173,8 +187,12 @@ export function ProfileScreen({ navigation }: Props) {
 
         <View style={{ height: theme.spacing.md }} />
 
-        <Button onPress={onDeleteAccount} variant="destructive">
-          {t("profile.deleteAccount")}
+        <Button
+          onPress={onDeleteAccount}
+          variant="destructive"
+          disabled={deleting}
+        >
+          {deleting ? t("common.loading") : t("profile.deleteAccount")}
         </Button>
 
         <View style={{ height: theme.spacing.xl * 2 }} />
