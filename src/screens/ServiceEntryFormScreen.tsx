@@ -24,11 +24,12 @@ import {
 import {
   deleteAttachment,
   listAttachments,
-  listVehicleAttachments,
   uploadAttachment,
 } from "../services/attachments/attachmentsRepo";
-import { getAttachmentOpenUrl, getFileNameFromItem } from "../services/storage/openFileUrl";
-import { listVehicleDocuments } from "../services/vehicleDocuments/vehicleDocumentsRepo";
+import {
+  getAttachmentOpenUrl,
+  getFileNameFromItem,
+} from "../services/storage/openFileUrl";
 import { listWorkshops } from "../services/workshops/workshopsRepo";
 import type { Workshop } from "../types/domain";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
@@ -59,7 +60,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   type FormMode = "single" | "multi";
   const [mode, setMode] = useState<FormMode>("single");
   const [serviceDate, setServiceDate] = useState(() =>
-    new Date().toISOString().slice(0, 10),
+    new Date().toISOString().slice(0, 10)
   );
   const [mileage, setMileage] = useState("");
   const [category, setCategory] = useState<ServiceEntryCategory | null>(null);
@@ -75,8 +76,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [workshopId, setWorkshopId] = useState<string | null>(null);
 
-  const MAX_DOCUMENTS_AND_ATTACHMENTS = 10;
-
   const checkAndUpload = useCallback(
     async (params: {
       serviceEntryId: string;
@@ -85,17 +84,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       mimeType?: string | null;
       fileName?: string | null;
     }) => {
-      const [docs, atts] = await Promise.all([
-        listVehicleDocuments(vehicleId),
-        listVehicleAttachments(vehicleId),
-      ]);
-      if (docs.length + atts.length >= MAX_DOCUMENTS_AND_ATTACHMENTS) {
-        toastError(t("documents.limitReached"));
-        return;
-      }
       await uploadAttachment(params);
     },
-    [vehicleId, t],
+    []
   );
 
   const reloadAttachments = useCallback(async (id: string) => {
@@ -141,7 +132,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
   function updateEntry(index: number, patch: Partial<EntryRow>) {
     setEntries((prev) =>
-      prev.map((row, i) => (i === index ? { ...row, ...patch } : row)),
+      prev.map((row, i) => (i === index ? { ...row, ...patch } : row))
     );
   }
 
@@ -188,7 +179,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             }
           },
         },
-      ],
+      ]
     );
   }
 
@@ -214,7 +205,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           onPress: () => void pickFromGallery(),
         },
         { text: t("attachments.files"), onPress: () => void pickFromFiles() },
-      ],
+      ]
     );
   }
 
@@ -640,10 +631,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                               day: "2-digit",
                               month: "2-digit",
                               year: "numeric",
-                            },
+                            }
                           );
                           return `${t(
-                            "documents.added",
+                            "documents.added"
                           )} ${formattedDate} · ${ext}`;
                         })()}
                       </Text>
@@ -695,7 +686,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     <IconButton
                       onPress={() => {
                         setPendingFiles((prev) =>
-                          prev.filter((_, i) => i !== index),
+                          prev.filter((_, i) => i !== index)
                         );
                       }}
                       variant="danger"

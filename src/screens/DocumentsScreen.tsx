@@ -41,8 +41,6 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { TextField } from "../ui/components/TextField";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-const MAX_DOCUMENTS_AND_ATTACHMENTS = 10;
-
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
 export function DocumentsScreen({ route, navigation }: Props) {
@@ -56,7 +54,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
   const [query, setQuery] = useState("");
 
   const totalCount = vehicleDocs.length + attachments.length;
-  const canAddMore = totalCount < MAX_DOCUMENTS_AND_ATTACHMENTS;
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -75,7 +72,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [route.params.vehicleId, t],
+    [route.params.vehicleId, t]
   );
 
   useEffect(() => {
@@ -83,7 +80,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false }),
+      () => void load({ showLoading: false })
     );
     return unsub;
   }, [navigation, load]);
@@ -107,10 +104,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
   }
 
   function pickVehicleDocument() {
-    if (!canAddMore) {
-      toastError(t("documents.limitReached"));
-      return;
-    }
     Alert.alert(
       t("documents.addVehicleDocument"),
       t("attachments.addPickerBody"),
@@ -128,7 +121,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
           text: t("attachments.files"),
           onPress: () => void pickDocFromFiles(),
         },
-      ],
+      ]
     );
   }
 
@@ -228,7 +221,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
         },
       ],
       "plain-text",
-      doc.description || "",
+      doc.description || ""
     );
   }
 
@@ -250,7 +243,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
             }
           },
         },
-      ],
+      ]
     );
   }
 
@@ -272,7 +265,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
             }
           },
         },
-      ],
+      ]
     );
   }
 
@@ -312,7 +305,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
             <Button
               onPress={pickVehicleDocument}
               variant="ghost"
-              disabled={uploading || !canAddMore}
+              disabled={uploading}
             >
               {t("documents.addVehicleDocument")}
             </Button>
@@ -320,17 +313,12 @@ export function DocumentsScreen({ route, navigation }: Props) {
           <View style={{ width: theme.spacing.sm }} />
           <View style={{ flex: 1 }}>
             <Button
-              onPress={() => {
-                if (!canAddMore) {
-                  toastError(t("documents.limitReached"));
-                  return;
-                }
+              onPress={() =>
                 navigation.navigate("AddAttachment", {
                   vehicleId: route.params.vehicleId,
-                });
-              }}
+                })
+              }
               variant="ghost"
-              disabled={!canAddMore}
             >
               {t("documents.addAttachment")}
             </Button>
@@ -384,10 +372,10 @@ export function DocumentsScreen({ route, navigation }: Props) {
                         const date = new Date(item.created_at);
                         const formattedDate = date.toLocaleDateString(
                           i18n.language === "pl" ? "pl-PL" : "en-US",
-                          { day: "2-digit", month: "2-digit", year: "numeric" },
+                          { day: "2-digit", month: "2-digit", year: "numeric" }
                         );
                         return `${t(
-                          "documents.added",
+                          "documents.added"
                         )} ${formattedDate} · ${ext}`;
                       })()}
                     </Text>
@@ -476,10 +464,10 @@ export function DocumentsScreen({ route, navigation }: Props) {
                         const date = new Date(item.created_at);
                         const formattedDate = date.toLocaleDateString(
                           i18n.language === "pl" ? "pl-PL" : "en-US",
-                          { day: "2-digit", month: "2-digit", year: "numeric" },
+                          { day: "2-digit", month: "2-digit", year: "numeric" }
                         );
                         return `${t(
-                          "documents.added",
+                          "documents.added"
                         )} ${formattedDate} · ${ext}`;
                       })()}
                     </Text>

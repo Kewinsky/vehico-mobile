@@ -15,11 +15,7 @@ import * as DocumentPicker from "expo-document-picker";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { ServiceEntry } from "../types/domain";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
-import {
-  listVehicleAttachments,
-  uploadAttachment,
-} from "../services/attachments/attachmentsRepo";
-import { listVehicleDocuments } from "../services/vehicleDocuments/vehicleDocumentsRepo";
+import { uploadAttachment } from "../services/attachments/attachmentsRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
@@ -56,27 +52,17 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         else setLoading(false);
       }
     },
-    [vehicleId, t],
+    [vehicleId, t]
   );
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const MAX_DOCUMENTS_AND_ATTACHMENTS = 10;
-
   async function uploadTo(
     serviceEntryId: string,
-    file: { uri: string; mimeType?: string | null; fileName?: string | null },
+    file: { uri: string; mimeType?: string | null; fileName?: string | null }
   ) {
-    const [docs, atts] = await Promise.all([
-      listVehicleDocuments(vehicleId),
-      listVehicleAttachments(vehicleId),
-    ]);
-    if (docs.length + atts.length >= MAX_DOCUMENTS_AND_ATTACHMENTS) {
-      toastError(t("documents.limitReached"));
-      return;
-    }
     await uploadAttachment({
       serviceEntryId,
       vehicleId,
@@ -104,7 +90,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
           text: t("attachments.files"),
           onPress: () => void pickFromFiles(serviceEntryId),
         },
-      ],
+      ]
     );
   }
 

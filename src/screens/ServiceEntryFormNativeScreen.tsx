@@ -33,14 +33,12 @@ import {
 import {
   deleteAttachment,
   listAttachments,
-  listVehicleAttachments,
   uploadAttachment,
 } from "../services/attachments/attachmentsRepo";
 import {
   getAttachmentOpenUrl,
   getFileNameFromItem,
 } from "../services/storage/openFileUrl";
-import { listVehicleDocuments } from "../services/vehicleDocuments/vehicleDocumentsRepo";
 import { listWorkshops } from "../services/workshops/workshopsRepo";
 import type { Workshop } from "../types/domain";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
@@ -119,8 +117,6 @@ export function ServiceEntryFormNativeScreen({ navigation, route }: Props) {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [workshopId, setWorkshopId] = useState<string | null>(null);
 
-  const MAX_DOCUMENTS_AND_ATTACHMENTS = 10;
-
   const checkAndUpload = useCallback(
     async (params: {
       serviceEntryId: string;
@@ -129,17 +125,9 @@ export function ServiceEntryFormNativeScreen({ navigation, route }: Props) {
       mimeType?: string | null;
       fileName?: string | null;
     }) => {
-      const [docs, atts] = await Promise.all([
-        listVehicleDocuments(vehicleId),
-        listVehicleAttachments(vehicleId),
-      ]);
-      if (docs.length + atts.length >= MAX_DOCUMENTS_AND_ATTACHMENTS) {
-        toastError(t("documents.limitReached"));
-        return;
-      }
       await uploadAttachment(params);
     },
-    [vehicleId, t]
+    []
   );
 
   const reloadAttachments = useCallback(async (id: string) => {
