@@ -22,7 +22,7 @@
         "light": "./assets/icon-light.png",
         "dark": "./assets/icon-dark.png"
       },
-      "bundleIdentifier": "com.anonymous.vehico"
+      "bundleIdentifier": "com.ktasoftware.vehico"
     },
     "android": {
       "adaptiveIcon": {
@@ -32,7 +32,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.vehico"
+      "package": "com.ktasoftware.vehico"
     },
     "web": {
       "favicon": "./assets/favicon.png"
