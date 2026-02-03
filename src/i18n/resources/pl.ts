@@ -405,6 +405,8 @@ export const pl = {
   },
   reminderDetail: {
     title: "Przypomnienie",
+    markDone: "Oznacz zrobione",
+    markActive: "Przywróć",
     deleteTitle: "Usunąć przypomnienie?",
     deleteBody: "Tej operacji nie można cofnąć.",
     labels: {

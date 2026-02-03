@@ -40,7 +40,14 @@
     "plugins": [
       "expo-localization",
       "@react-native-community/datetimepicker",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#FFB803"
+        }
+      ]
     ],
     "scheme": "vehico",
     "extra": {

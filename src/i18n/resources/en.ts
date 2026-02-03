@@ -403,6 +403,8 @@ export const en = {
   },
   reminderDetail: {
     title: "Reminder",
+    markDone: "Mark done",
+    markActive: "Restore",
     deleteTitle: "Delete reminder?",
     deleteBody: "This action cannot be undone.",
     labels: {

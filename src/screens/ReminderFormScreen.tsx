@@ -15,8 +15,8 @@ import {
   getReminder,
   updateReminder,
 } from "../services/reminders/remindersRepo";
+import { scheduleLocalReminder } from "../services/push/localReminderNotifications";
 import { AppHeader } from "../ui/components/AppHeader";
-import { Button } from "../ui/components/Button";
 import { DateField } from "../ui/components/DateField";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
@@ -41,7 +41,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const [type, setType] = useState<ReminderType>("time");
   const [status, setStatus] = useState<ReminderStatus>("active");
   const [dueDate, setDueDate] = useState(() =>
-    new Date().toISOString().slice(0, 10),
+    new Date().toISOString().slice(0, 10)
   );
   const [dueMileage, setDueMileage] = useState("");
   const [daysBefore, setDaysBefore] = useState("7");
@@ -101,8 +101,13 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         channel_push: true,
         enabled: true,
       };
-      if (reminderId) await updateReminder(reminderId, payload);
-      else await createReminder(payload);
+      let saved: Awaited<ReturnType<typeof createReminder>>;
+      if (reminderId) {
+        saved = await updateReminder(reminderId, payload);
+      } else {
+        saved = await createReminder(payload);
+      }
+      await scheduleLocalReminder(saved);
       navigation.goBack();
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));

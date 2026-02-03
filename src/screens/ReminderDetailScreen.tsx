@@ -7,7 +7,12 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import {
   deleteReminder,
   getReminder,
+  updateReminder,
 } from "../services/reminders/remindersRepo";
+import {
+  cancelLocalReminder,
+  scheduleLocalReminder,
+} from "../services/push/localReminderNotifications";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
@@ -47,6 +52,27 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
     void load();
   }, [load]);
 
+  async function onToggleStatus() {
+    if (!reminder) return;
+    try {
+      const newStatus = reminder.status === "active" ? "done" : "active";
+      await updateReminder(reminderId, { status: newStatus });
+      setReminder((prev: typeof reminder) =>
+        prev ? { ...prev, status: newStatus } : null
+      );
+      if (newStatus === "done") {
+        await cancelLocalReminder(reminderId);
+      } else {
+        await scheduleLocalReminder({
+          ...reminder,
+          status: newStatus,
+        });
+      }
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    }
+  }
+
   function onDelete() {
     Alert.alert(
       t("reminderDetail.deleteTitle"),
@@ -58,6 +84,7 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
           style: "destructive",
           onPress: async () => {
             try {
+              await cancelLocalReminder(reminderId);
               await deleteReminder(reminderId);
               navigation.goBack();
             } catch (e: any) {
@@ -65,7 +92,7 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
             }
           },
         },
-      ],
+      ]
     );
   }
 
@@ -85,6 +112,17 @@ export function ReminderDetailScreen({ route, navigation }: Props) {
         <View style={styles.headerRow}>
           <Text style={styles.title}>{t("reminderDetail.title")}</Text>
           <View style={styles.actionsRow}>
+            <Pressable
+              onPress={onToggleStatus}
+              hitSlop={10}
+              disabled={!reminder}
+            >
+              <Text style={styles.statusLink}>
+                {reminder?.status === "active"
+                  ? t("reminderDetail.markDone")
+                  : t("reminderDetail.markActive")}
+              </Text>
+            </Pressable>
             <Pressable
               onPress={() =>
                 navigation.navigate("ReminderForm", { vehicleId, reminderId })
@@ -176,6 +214,7 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "space-between",
     },
+    statusLink: { color: theme.colors.muted, fontWeight: "700" },
     editLink: { color: theme.colors.accent, fontWeight: "800" },
     deleteLink: { color: theme.colors.danger, fontWeight: "800" },
     actionsRow: {

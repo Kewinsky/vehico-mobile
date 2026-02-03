@@ -22,7 +22,7 @@ import {
   listReminders,
   updateReminder,
 } from "../services/reminders/remindersRepo";
-import { Button } from "../ui/components/Button";
+import { cancelLocalReminder } from "../services/push/localReminderNotifications";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
@@ -51,7 +51,7 @@ export function RemindersScreen({ route, navigation }: Props) {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "done">(
-    "all",
+    "all"
   );
 
   const load = useCallback(
@@ -72,7 +72,7 @@ export function RemindersScreen({ route, navigation }: Props) {
         }
       }
     },
-    [route.params.vehicleId, t],
+    [route.params.vehicleId, t]
   );
 
   useEffect(() => {
@@ -80,7 +80,7 @@ export function RemindersScreen({ route, navigation }: Props) {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false }),
+      () => void load({ showLoading: false })
     );
     return unsub;
   }, [navigation, load]);
@@ -90,9 +90,7 @@ export function RemindersScreen({ route, navigation }: Props) {
       const newStatus = currentStatus === "active" ? "done" : "active";
       await updateReminder(reminderId, { status: newStatus });
       setItems((prev) =>
-        prev.map((r) =>
-          r.id === reminderId ? { ...r, status: newStatus } : r,
-        ),
+        prev.map((r) => (r.id === reminderId ? { ...r, status: newStatus } : r))
       );
     } catch (err: any) {
       toastError(err?.message ?? t("common.error"));
@@ -107,6 +105,7 @@ export function RemindersScreen({ route, navigation }: Props) {
         style: "destructive",
         onPress: async () => {
           try {
+            await cancelLocalReminder(id);
             await deleteReminder(id);
             setItems((prev) => prev.filter((x) => x.id !== id));
           } catch (err: any) {
@@ -334,8 +333,8 @@ export function RemindersScreen({ route, navigation }: Props) {
                     status === "all"
                       ? t("reminders.filterAll")
                       : status === "active"
-                        ? t("reminderDetail.status.active")
-                        : t("reminderDetail.status.done")
+                      ? t("reminderDetail.status.active")
+                      : t("reminderDetail.status.done")
                   }
                   selected={statusFilter === status}
                   onPress={() => setStatusFilter(status)}

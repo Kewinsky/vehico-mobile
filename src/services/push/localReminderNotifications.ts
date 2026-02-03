@@ -1,0 +1,119 @@
+import * as Notifications from "expo-notifications";
+
+const DEFAULT_HOUR = 9;
+const DEFAULT_MINUTE = 0;
+
+/** Prefix for scheduled notification identifiers so we can cancel by reminder id */
+const PREFIX = "vehico-reminder-";
+const PREFIX_BEFORE = "vehico-reminder-before-";
+
+export type ReminderForSchedule = {
+  id: string;
+  vehicle_id: string;
+  type: "time" | "mileage";
+  due_date: string | null;
+  days_before: number | null;
+  title: string | null;
+  status: string;
+  channel_push: boolean;
+  enabled: boolean;
+};
+
+/**
+ * Schedule local notifications for a time-based reminder.
+ * - On due_date at 9:00 (or due_date - days_before if set).
+ * - Optionally on due_date - days_before if days_before > 0.
+ * Does nothing for mileage reminders or if push is disabled / reminder not active.
+ * Requests notification permission if not yet granted.
+ */
+export async function scheduleLocalReminder(
+  reminder: ReminderForSchedule
+): Promise<void> {
+  if (reminder.type !== "time" || !reminder.due_date) return;
+  if (
+    reminder.status !== "active" ||
+    !reminder.channel_push ||
+    !reminder.enabled
+  )
+    return;
+
+  const { status } = await Notifications.getPermissionsAsync();
+  if (status !== "granted") {
+    const { status: requested } = await Notifications.requestPermissionsAsync();
+    if (requested !== "granted") return;
+  }
+
+  await cancelLocalReminder(reminder.id);
+
+  const title = "Vehico";
+  const body = `${reminder.title ?? "Reminder"} — due ${reminder.due_date}`;
+  const data = { reminderId: reminder.id, vehicleId: reminder.vehicle_id };
+
+  const due = new Date(reminder.due_date);
+  due.setHours(DEFAULT_HOUR, DEFAULT_MINUTE, 0, 0);
+  const now = Date.now();
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  if (due.getTime() <= now) {
+    if (due.getTime() >= todayStart.getTime()) {
+      // Due date is today but 9:00 already passed — schedule in 1 min so user still gets notified
+      due.setTime(now + 60 * 1000);
+    } else {
+      // Due date is in the past (before today) — don't schedule
+      return;
+    }
+  }
+
+  const ids: string[] = [];
+
+  // "X days before" notification
+  const daysBefore = reminder.days_before ?? 0;
+  if (daysBefore > 0) {
+    const beforeDate = new Date(due);
+    beforeDate.setDate(beforeDate.getDate() - daysBefore);
+    if (beforeDate.getTime() > Date.now()) {
+      const id = await Notifications.scheduleNotificationAsync({
+        identifier: `${PREFIX_BEFORE}${reminder.id}`,
+        content: {
+          title,
+          body: `${reminder.title ?? "Reminder"} — in ${daysBefore} days (${
+            reminder.due_date
+          })`,
+          data,
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: beforeDate,
+        },
+      });
+      if (id) ids.push(id);
+    }
+  }
+
+  // On due date
+  const id = await Notifications.scheduleNotificationAsync({
+    identifier: `${PREFIX}${reminder.id}`,
+    content: { title, body, data },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: due,
+    },
+  });
+  if (id) ids.push(id);
+}
+
+/**
+ * Cancel all local notifications for this reminder (on due date and "days before").
+ */
+export async function cancelLocalReminder(reminderId: string): Promise<void> {
+  try {
+    await Notifications.cancelScheduledNotificationAsync(
+      `${PREFIX}${reminderId}`
+    );
+    await Notifications.cancelScheduledNotificationAsync(
+      `${PREFIX_BEFORE}${reminderId}`
+    );
+  } catch {
+    // ignore if not found
+  }
+}
