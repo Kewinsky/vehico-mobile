@@ -22,7 +22,7 @@ export type ReportOptions = {
  * Legacy function for backward compatibility
  */
 export async function generatePublicPage(
-  vehicleId: string,
+  vehicleId: string
 ): Promise<PublicReportSnapshot> {
   const { data, error } = await supabase.rpc("create_report_snapshot", {
     p_vehicle_id: vehicleId,
@@ -43,7 +43,7 @@ export async function generatePublicPageWithOptions(
   vehicleId: string,
   selectedVehiclePhotoIds: string[],
   tempPhotos: TempReportPhoto[],
-  reportOptions: ReportOptions,
+  reportOptions: ReportOptions
 ): Promise<PublicReportSnapshot> {
   const { data, error } = await supabase.rpc(
     "create_report_snapshot_with_options",
@@ -56,7 +56,7 @@ export async function generatePublicPageWithOptions(
         display_order: photo.display_order,
       })),
       p_report_options: reportOptions,
-    },
+    }
   );
 
   if (error) throw error;
@@ -67,7 +67,7 @@ export async function generatePublicPageWithOptions(
  * Lists all snapshots (reports) for a vehicle, ordered by creation date (newest first)
  */
 export async function listPublicPages(
-  vehicleId: string,
+  vehicleId: string
 ): Promise<PublicReportSnapshot[]> {
   const { data, error } = await supabase
     .from("reports")
@@ -80,19 +80,19 @@ export async function listPublicPages(
 }
 
 /**
- * Gets snapshot data by public_id (for Next.js)
+ * Gets snapshot data by public_id (for public report link / Next.js).
+ * Uses RPC so anon can only fetch one report by ID, not list all.
  */
 export async function getPublicReportSnapshot(
-  publicId: string,
+  publicId: string
 ): Promise<PublicReportSnapshot | null> {
-  const { data, error } = await supabase
-    .from("reports")
-    .select("*")
-    .eq("public_id", publicId)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc("get_public_report_by_id", {
+    p_public_id: publicId,
+  });
 
   if (error) throw error;
-  return data as PublicReportSnapshot | null;
+  const row = Array.isArray(data) ? data[0] : data;
+  return (row as PublicReportSnapshot) ?? null;
 }
 
 export async function getPublicPageUrl(publicId: string): Promise<string> {
@@ -105,7 +105,7 @@ export async function getPublicPageUrl(publicId: string): Promise<string> {
  */
 export async function updatePublicReportTempPhotos(
   reportId: string,
-  tempPhotos: TempReportPhoto[],
+  tempPhotos: TempReportPhoto[]
 ): Promise<PublicReportSnapshot> {
   const { data, error } = await supabase.rpc("update_report_temp_photos", {
     p_report_id: reportId,
@@ -146,7 +146,7 @@ export async function getPublicReportCount(vehicleId: string): Promise<number> {
 
 export async function updatePublicReportTitle(
   snapshotId: string,
-  title: string | null,
+  title: string | null
 ): Promise<void> {
   const { error } = await supabase
     .from("reports")

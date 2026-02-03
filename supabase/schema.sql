@@ -352,12 +352,8 @@ using (
   )
 );
 
--- Public reports: public read access (for Next.js public reports)
+-- Public reports: anon has no direct SELECT (use get_public_report_by_id RPC instead)
 drop policy if exists reports_select_public on public.reports;
-create policy reports_select_public
-on public.reports for select
-to anon
-using (true); -- Public access is controlled by public_id uniqueness
 
 -- Public reports: authenticated users can read their own snapshots
 drop policy if exists reports_select_own on public.reports;
@@ -656,6 +652,19 @@ with check (user_id = auth.uid());
 -- ================
 -- Functions for public reports
 -- ================
+
+-- RPC: anon can fetch a single report by public_id only (no listing)
+drop function if exists public.get_public_report_by_id(text);
+create or replace function public.get_public_report_by_id(p_public_id text)
+returns setof public.reports
+language sql
+security definer
+set search_path = public
+as $$
+  select * from public.reports where public_id = p_public_id limit 1;
+$$;
+grant execute on function public.get_public_report_by_id(text) to anon;
+grant execute on function public.get_public_report_by_id(text) to authenticated;
 
 -- Function to generate snapshot data
 -- Legacy function for backward compatibility (uses all data)
