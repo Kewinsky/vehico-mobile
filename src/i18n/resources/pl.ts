@@ -66,7 +66,7 @@ export const pl = {
     magicLinkHint:
       "Wyślemy Ci bezpieczny link do logowania. Hasło nie jest wymagane.",
     bySigningIn: "Logując się, akceptujesz nasz",
-    termsOfService: "regulamin",
+    termsOfService: "Regulamin",
     rateLimitExceeded: "Zbyt wiele prób",
     rateLimitMessage:
       "Poczekaj kilka minut przed ponownym wysłaniem linku magicznego.",
