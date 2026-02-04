@@ -18,7 +18,9 @@ import * as Clipboard from "expo-clipboard";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import { useSharedValue } from "react-native-reanimated";
 
+import { CommonActions } from "@react-navigation/native";
 import type { DashboardStackParamList } from "../app/navigation/types";
+import { navigationRef } from "../app/navigationRef";
 import type { Vehicle } from "../types/domain";
 import { deleteVehicle, getVehicle } from "../services/vehicles/vehiclesRepo";
 import {
@@ -167,7 +169,14 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
           onPress: async () => {
             try {
               await deleteVehicle(vehicleId);
-              navigation.popToTop();
+              if (navigationRef.isReady()) {
+                navigationRef.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: "Vehicles" }],
+                  })
+                );
+              }
             } catch (e: any) {
               toastError(e?.message ?? t("common.error"));
             }
