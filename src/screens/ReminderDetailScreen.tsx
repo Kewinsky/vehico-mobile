@@ -3,7 +3,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import {
   deleteReminder,
   getReminder,
@@ -20,7 +20,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "ReminderDetail">;
+type Props = NativeStackScreenProps<AppStackParamList, "ReminderDetail">;
 
 import { formatDateDisplay } from "../utils/dateFormatting";
 import { i18n } from "../i18n/i18n";

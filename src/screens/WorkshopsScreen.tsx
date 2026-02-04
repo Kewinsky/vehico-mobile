@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Workshop, WorkshopType } from "../types/domain";
 import { listWorkshops } from "../services/workshops/workshopsRepo";
 import { AppHeader } from "../ui/components/AppHeader";
@@ -15,7 +15,7 @@ import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "Workshops">;
+type Props = NativeStackScreenProps<AppStackParamList, "Workshops">;
 
 export function WorkshopsScreen({ navigation, route }: Props) {
   const { t } = useTranslation();

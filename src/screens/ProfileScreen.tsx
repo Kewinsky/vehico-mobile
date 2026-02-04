@@ -11,7 +11,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { ProfileStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useAuth } from "../app/providers/AuthProvider";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
@@ -22,7 +22,7 @@ import { toastError, toastSuccess } from "../ui/toast/toast";
 import { supabase } from "../services/supabase/client";
 import { deleteAccount } from "../services/account/deleteAccount";
 
-type Props = NativeStackScreenProps<ProfileStackParamList, "Profile">;
+type Props = NativeStackScreenProps<AppStackParamList, "Profile">;
 
 export function ProfileScreen({ navigation }: Props) {
   const { t } = useTranslation();

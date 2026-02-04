@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as Clipboard from "expo-clipboard";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { resolveMarketplacePostContent } from "../services/marketplace/marketplaceRepo";
 import { ChoiceChip } from "../ui/components/ChoiceChip";
@@ -15,7 +15,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastSuccess, toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<
-  DashboardStackParamList,
+  AppStackParamList,
   "MarketplacePostOptions"
 >;
 

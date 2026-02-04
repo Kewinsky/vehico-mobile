@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import type { Vehicle } from "../types/domain";
 import { AppHeader } from "../ui/components/AppHeader";
@@ -13,7 +13,7 @@ import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "PublicReport">;
+type Props = NativeStackScreenProps<AppStackParamList, "PublicReport">;
 
 export function PublicReportScreen({ navigation, route }: Props) {
   const { t } = useTranslation();

@@ -232,12 +232,8 @@ export function VehiclesScreen({ navigation }: Props) {
               renderItem={({ item }) => (
                 <Pressable
                   onPress={() =>
-                    navigation.navigate("MainTabs", {
-                      screen: "Dashboard",
-                      params: {
-                        screen: "VehicleDashboard",
-                        params: { vehicleId: item.id },
-                      },
+                    navigation.navigate("VehicleDashboard", {
+                      vehicleId: item.id,
                     })
                   }
                   style={({ pressed }) => [

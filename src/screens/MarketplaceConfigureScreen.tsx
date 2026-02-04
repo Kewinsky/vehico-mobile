@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { formatDateDisplay } from "../utils/dateFormatting";
 import { i18n } from "../i18n/i18n";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { listVehicleTires } from "../services/tires/tiresRepo";
@@ -25,7 +25,7 @@ import { PickerField } from "../ui/components/PickerField";
 import { TextField } from "../ui/components/TextField";
 
 type Props = NativeStackScreenProps<
-  DashboardStackParamList,
+  AppStackParamList,
   "MarketplaceConfigure"
 >;
 

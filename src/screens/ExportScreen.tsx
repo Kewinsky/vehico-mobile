@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Share } from "react-native";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
@@ -15,7 +15,7 @@ import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "Export">;
+type Props = NativeStackScreenProps<AppStackParamList, "Export">;
 
 function csvEscape(value: unknown): string {
   const raw = value == null ? "" : String(value);

@@ -24,15 +24,9 @@ function AppContent() {
       vehicleId?: string;
     }) => {
       if (data?.reminderId && data?.vehicleId && navigationRef.isReady()) {
-        navigationRef.navigate("MainTabs", {
-          screen: "Dashboard",
-          params: {
-            screen: "ReminderDetail",
-            params: {
-              vehicleId: data.vehicleId,
-              reminderId: data.reminderId,
-            },
-          },
+        navigationRef.navigate("ReminderDetail", {
+          vehicleId: data.vehicleId,
+          reminderId: data.reminderId,
         });
       }
     };

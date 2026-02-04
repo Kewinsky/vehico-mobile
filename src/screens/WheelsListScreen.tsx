@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { VehicleWheel } from "../types/domain";
 import {
   listVehicleWheels,
@@ -18,7 +18,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "WheelsList">;
+type Props = NativeStackScreenProps<AppStackParamList, "WheelsList">;
 
 function wheelSubtitle(
   wheel: VehicleWheel,

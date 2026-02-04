@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { i18n } from "../i18n/i18n";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
@@ -32,7 +32,7 @@ import { TextField } from "../ui/components/TextField";
 import { DateField } from "../ui/components/DateField";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "Reminders">;
+type Props = NativeStackScreenProps<AppStackParamList, "Reminders">;
 
 import { formatMonthYear, formatMonthYearPL } from "../utils/dateFormatting";
 

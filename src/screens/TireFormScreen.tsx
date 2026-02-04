@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { TireType } from "../types/domain";
 import { isPositiveNumber, isValidDot } from "../utils/validation";
 import {
@@ -19,7 +19,7 @@ import { PickerField } from "../ui/components/PickerField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "TireForm">;
+type Props = NativeStackScreenProps<AppStackParamList, "TireForm">;
 
 const TIRE_TYPES: TireType[] = [
   "summer",

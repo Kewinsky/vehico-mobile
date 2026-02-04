@@ -3,7 +3,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { createServiceEntry } from "../services/serviceEntries/serviceEntriesRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
@@ -12,7 +12,7 @@ import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "Import">;
+type Props = NativeStackScreenProps<AppStackParamList, "Import">;
 
 function parseCsvLine(line: string): string[] {
   const out: string[] = [];

@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { isValidDate, isNonNegativeNumber } from "../utils/validation";
 import type { Attachment, ServiceEntryCategory } from "../types/domain";
 import {
@@ -47,7 +47,7 @@ import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<
-  DashboardStackParamList,
+  AppStackParamList,
   "ServiceEntryForm"
 >;
 

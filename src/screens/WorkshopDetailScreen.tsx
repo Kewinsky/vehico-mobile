@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { ServiceEntry } from "../types/domain";
 import {
   getWorkshop,
@@ -30,7 +30,7 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { formatDateDisplay } from "../utils/dateFormatting";
 import { i18n } from "../i18n/i18n";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "WorkshopDetail">;
+type Props = NativeStackScreenProps<AppStackParamList, "WorkshopDetail">;
 
 export function WorkshopDetailScreen({ navigation, route }: Props) {
   const { t } = useTranslation();

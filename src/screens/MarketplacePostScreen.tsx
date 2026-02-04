@@ -14,7 +14,7 @@ import { formatDateDisplay } from "../utils/dateFormatting";
 import { i18n } from "../i18n/i18n";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { PublicReportSnapshot } from "../types/domain";
 import {
   generateMarketplacePost,
@@ -36,7 +36,7 @@ import { toastError, toastSuccess } from "../ui/toast/toast";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "MarketplacePost">;
+type Props = NativeStackScreenProps<AppStackParamList, "MarketplacePost">;
 
 export function MarketplacePostScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();

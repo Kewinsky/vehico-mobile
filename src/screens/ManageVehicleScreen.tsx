@@ -18,9 +18,7 @@ import * as Clipboard from "expo-clipboard";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import { useSharedValue } from "react-native-reanimated";
 
-import { CommonActions } from "@react-navigation/native";
-import type { DashboardStackParamList } from "../app/navigation/types";
-import { navigationRef } from "../app/navigationRef";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Vehicle } from "../types/domain";
 import { deleteVehicle, getVehicle } from "../services/vehicles/vehiclesRepo";
 import {
@@ -34,7 +32,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "ManageVehicle">;
+type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicle">;
 
 type VehicleCarouselProps = {
   photoUrls: string[];
@@ -169,14 +167,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
           onPress: async () => {
             try {
               await deleteVehicle(vehicleId);
-              if (navigationRef.isReady()) {
-                navigationRef.dispatch(
-                  CommonActions.reset({
-                    index: 0,
-                    routes: [{ name: "Vehicles" }],
-                  })
-                );
-              }
+              navigation.popToTop();
             } catch (e: any) {
               toastError(e?.message ?? t("common.error"));
             }

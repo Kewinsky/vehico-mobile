@@ -11,7 +11,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import type { Vehicle } from "../types/domain";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
@@ -39,10 +39,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<
-  DashboardStackParamList,
-  "PublicReportSummary"
->;
+type Props = NativeStackScreenProps<AppStackParamList, "PublicReportSummary">;
 
 function InfoCard({
   title,
@@ -165,8 +162,9 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
       toastSuccess(t("publicReport.reportGenerated"));
 
       navigation.reset({
-        index: 3,
+        index: 4,
         routes: [
+          { name: "Vehicles" },
           { name: "VehicleDashboard", params: { vehicleId } },
           { name: "Share", params: { vehicleId } },
           { name: "PublicReport", params: { vehicleId } },

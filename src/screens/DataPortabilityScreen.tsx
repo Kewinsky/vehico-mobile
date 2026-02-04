@@ -5,12 +5,12 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "DataPortability">;
+type Props = NativeStackScreenProps<AppStackParamList, "DataPortability">;
 
 export function DataPortabilityScreen({ navigation, route }: Props) {
   const { t } = useTranslation();

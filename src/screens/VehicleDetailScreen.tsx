@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { i18n } from "../i18n/i18n";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type {
   Reminder,
   ServiceEntry,
@@ -29,7 +29,7 @@ import { PickerField } from "../ui/components/PickerField";
 import { Ionicons } from "@expo/vector-icons";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "VehicleDetail">;
+type Props = NativeStackScreenProps<AppStackParamList, "VehicleDetail">;
 
 import {
   formatDateDisplay,

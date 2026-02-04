@@ -12,7 +12,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Attachment } from "../types/domain";
 import { listAttachments } from "../services/attachments/attachmentsRepo";
 import {
@@ -32,7 +32,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<
-  DashboardStackParamList,
+  AppStackParamList,
   "ServiceEntryDetail"
 >;
 

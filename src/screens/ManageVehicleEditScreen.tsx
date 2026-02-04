@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 import { DraggableGrid } from "react-native-draggable-grid";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import {
   isValidProductionYear,
   isNonNegativeNumber,
@@ -49,7 +49,7 @@ import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<
-  DashboardStackParamList,
+  AppStackParamList,
   "ManageVehicleEdit"
 >;
 

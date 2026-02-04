@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import type { Vehicle } from "../types/domain";
 import { AppHeader } from "../ui/components/AppHeader";
@@ -13,7 +13,7 @@ import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "Share">;
+type Props = NativeStackScreenProps<AppStackParamList, "Share">;
 
 export function ShareScreen({ navigation, route }: Props) {
   const { t } = useTranslation();

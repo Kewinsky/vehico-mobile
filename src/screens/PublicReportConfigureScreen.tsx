@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { DraggableGrid } from "react-native-draggable-grid";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
@@ -28,7 +28,7 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 const MAX_PHOTOS = 30;
 
 type Props = NativeStackScreenProps<
-  DashboardStackParamList,
+  AppStackParamList,
   "PublicReportConfigure"
 >;
 

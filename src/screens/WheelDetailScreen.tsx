@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { VehicleWheel } from "../types/domain";
 import {
   getVehicleWheel,
@@ -17,7 +17,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "WheelDetail">;
+type Props = NativeStackScreenProps<AppStackParamList, "WheelDetail">;
 
 export function WheelDetailScreen({ route, navigation }: Props) {
   const { t } = useTranslation();

@@ -12,7 +12,7 @@ import { useMemo } from "react";
 import { i18n } from "../i18n/i18n";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { DashboardStackParamList } from "../app/navigation/types";
+import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
@@ -42,7 +42,7 @@ const GAS_STATION_OPTIONS: readonly GasStation[] = [
   "other",
 ];
 
-type Props = NativeStackScreenProps<DashboardStackParamList, "Fuel">;
+type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
 
 import { formatMonthYear, formatMonthYearPL } from "../utils/dateFormatting";
 
