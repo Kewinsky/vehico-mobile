@@ -361,7 +361,7 @@ function makeStyles(theme: any, insets: { bottom: number }) {
       fontWeight: "800",
     },
     list: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingBottom: insets.bottom + theme.spacing.lg,
     },
     emptyText: {

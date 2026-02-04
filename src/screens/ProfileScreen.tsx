@@ -98,17 +98,11 @@ export function ProfileScreen({ navigation }: Props) {
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
       <ScrollView
-        contentContainerStyle={[
-          styles.container,
-          { paddingHorizontal: theme.spacing.md },
-        ]}
+        contentContainerStyle={[styles.container, { paddingHorizontal: theme.layout.contentPaddingHorizontal }]}
         keyboardShouldPersistTaps="handled"
       >
         <Text style={[styles.title, { color: theme.colors.fg }]}>
           {t("profile.title")}
-        </Text>
-        <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-          {t("profile.subtitle")}
         </Text>
 
         <View
@@ -207,12 +201,10 @@ const makeStyles = (theme: any) =>
       paddingTop: theme.spacing.md,
     },
     title: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
-    },
-    subtitle: {
-      fontSize: theme.typography.small,
-      marginTop: theme.spacing.xs / 2,
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
+      fontWeight: "700",
+      marginBottom: theme.titleMarginBottom,
     },
     card: {
       marginTop: theme.spacing.md,

@@ -197,9 +197,6 @@ export function FuelScreen({ route, navigation }: Props) {
       <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
         <View style={styles.header}>
           <Text style={styles.title}>{t("dashboard.tiles.fuelTitle")}</Text>
-          <Text style={styles.subtitle}>
-            {t("dashboard.tiles.fuelSubtitle")}
-          </Text>
         </View>
         <View style={{ height: theme.spacing.sm }} />
         <View style={styles.actionsRow}>
@@ -339,7 +336,7 @@ export function FuelScreen({ route, navigation }: Props) {
           return item.item.id;
         }}
         contentContainerStyle={{
-          paddingHorizontal: theme.spacing.md,
+          paddingHorizontal: theme.layout.contentPaddingHorizontal,
           paddingTop: theme.spacing.sm,
           paddingBottom: insets.bottom + theme.spacing.xl,
         }}
@@ -444,19 +441,19 @@ const makeStyles = (theme: any) =>
     fixedHeader: {
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
     header: {
       gap: theme.spacing.xs / 2,
+      marginBottom: theme.titleMarginBottom,
     },
     title: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
     },
-    subtitle: { fontSize: theme.typography.small, color: theme.colors.muted },
     body: {
       marginTop: theme.spacing.xs,
       lineHeight: theme.typography.body + 6,

@@ -116,9 +116,6 @@ export function WorkshopsScreen({ navigation, route }: Props) {
           <Text style={[styles.title, { color: theme.colors.fg }]}>
             {t("workshops.title")}
           </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-            {t("dashboard.tiles.workshopsSubtitle")}
-          </Text>
         </View>
         <View style={{ height: theme.spacing.sm }} />
         <View style={styles.searchRow}>
@@ -271,7 +268,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
         data={filtered}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{
-          paddingHorizontal: theme.spacing.md,
+          paddingHorizontal: theme.layout.contentPaddingHorizontal,
           paddingTop: theme.spacing.sm,
           paddingBottom: theme.spacing.xl,
         }}
@@ -336,21 +333,18 @@ function makeStyles(theme: any) {
     fixedHeader: {
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       backgroundColor: theme.colors.bg,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
     header: {
       gap: theme.spacing.xs / 2,
+      marginBottom: theme.titleMarginBottom,
     },
     title: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
-    },
-    subtitle: {
-      fontSize: theme.typography.small,
-      marginTop: theme.spacing.xs,
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
     },
     searchRow: {
       flexDirection: "row",

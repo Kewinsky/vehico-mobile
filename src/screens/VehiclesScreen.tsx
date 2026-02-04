@@ -50,7 +50,7 @@ function VehicleCarousel({
   if (photoUrls.length === 0) return null;
 
   return (
-    <View style={{ position: "relative", width, height }}>
+    <View style={{ position: "relative", width, height, overflow: "hidden" }}>
       <Carousel
         loop={true}
         snapEnabled={true}
@@ -62,16 +62,18 @@ function VehicleCarousel({
           progress.value = absoluteProgress;
         }}
         renderItem={({ item: url }) => (
-          <Image
-            source={{ uri: url }}
-            style={{
-              width: "100%",
-              height: "100%",
-              backgroundColor: theme.colors.card,
-            }}
-            contentFit="cover"
-            transition={200}
-          />
+          <View style={{ width: "100%", height: "100%", overflow: "hidden" }}>
+            <Image
+              source={{ uri: url }}
+              style={{
+                width: "100%",
+                height: "100%",
+                backgroundColor: theme.colors.card,
+              }}
+              contentFit="cover"
+              transition={200}
+            />
+          </View>
         )}
       />
       {photoUrls.length > 1 && (
@@ -80,7 +82,7 @@ function VehicleCarousel({
             position: "absolute",
             bottom: theme.spacing.md,
             right: theme.spacing.md,
-            zIndex: 10,
+            zIndex: 100,
           }}
         >
           <Pagination.Basic
@@ -244,7 +246,11 @@ export function VehiclesScreen({ navigation }: Props) {
                   <View style={styles.vehicleImageContainer}>
                     {(() => {
                       const photoUrls = photoUrlsMap.get(item.id) || [];
-                      const carouselWidth = windowWidth - theme.spacing.md * 2;
+                      const carouselWidth =
+                        windowWidth -
+                        (theme.layout?.contentPaddingHorizontal ??
+                          theme.spacing.md) *
+                          2;
 
                       if (photoUrls.length === 0) {
                         return (
@@ -346,7 +352,7 @@ export function VehiclesScreen({ navigation }: Props) {
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     top: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.md,
       flexDirection: "row",
@@ -361,7 +367,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     actionText: { fontWeight: "800", color: theme.colors.muted },
     body: {
       flex: 1,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     emptyContainer: {
       gap: theme.spacing.xs / 2,
@@ -397,6 +403,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       position: "relative",
       height: 220,
       width: "100%",
+      overflow: "hidden",
     },
     vehicleImage: {
       width: "100%",

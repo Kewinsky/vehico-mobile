@@ -112,7 +112,6 @@ export function ExportScreen({ navigation, route }: Props) {
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
           <Text style={styles.h1}>{t("export.title")}</Text>
-          <Text style={styles.subtitle}>{t("export.subtitle")}</Text>
         </View>
       </View>
       <View style={styles.wrap}>
@@ -151,22 +150,18 @@ const makeStyles = (theme: any) =>
     fixedHeader: {
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     header: {
       gap: theme.spacing.xs / 2,
     },
     wrap: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
-    },
-    subtitle: {
-      fontSize: theme.typography.small,
-      color: theme.colors.muted,
     },
     description: {
       fontSize: theme.typography.small,

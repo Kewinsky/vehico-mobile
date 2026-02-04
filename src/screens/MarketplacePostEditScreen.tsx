@@ -26,10 +26,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<
-  AppStackParamList,
-  "MarketplacePostEdit"
->;
+type Props = NativeStackScreenProps<AppStackParamList, "MarketplacePostEdit">;
 
 export function MarketplacePostEditScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -184,13 +181,13 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     scrollContent: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.sm,
       paddingBottom: theme.spacing.xl,
     },
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
     },
     langRow: {

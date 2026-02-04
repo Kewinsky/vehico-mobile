@@ -211,9 +211,6 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
       >
         <View style={styles.header}>
           <Text style={styles.h1}>{t("marketplace.summaryTitle")}</Text>
-          <Text style={styles.subtitle}>
-            {t("marketplace.summarySubtitle")}
-          </Text>
         </View>
 
         {/* Technical data */}
@@ -505,7 +502,7 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     scrollView: { flex: 1 },
     scrollContent: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.xl,
     },
@@ -514,13 +511,9 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.md,
     },
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
-    },
-    subtitle: {
-      fontSize: theme.typography.small,
-      color: theme.colors.muted,
     },
     loadingContainer: {
       flex: 1,
@@ -600,7 +593,7 @@ const makeStyles = (theme: any) =>
       color: theme.colors.fg,
     },
     footer: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingVertical: theme.spacing.md,
       borderTopWidth: 1,
       borderTopColor: theme.colors.border,

@@ -38,7 +38,7 @@ export function AuthScreen({ navigation }: Props) {
       setEmail("");
       setMagicLinkSent(false);
       setSentEmail("");
-    }, []),
+    }, [])
   );
 
   const emailTrimmed = useMemo(() => email.trim(), [email]);
@@ -51,7 +51,7 @@ export function AuthScreen({ navigation }: Props) {
 
   const canSubmit = useMemo(
     () => emailTrimmed.length > 0 && isValidEmail && !isSubmitting,
-    [emailTrimmed, isValidEmail, isSubmitting],
+    [emailTrimmed, isValidEmail, isSubmitting]
   );
 
   async function sendMagicLink() {
@@ -155,7 +155,7 @@ export function AuthScreen({ navigation }: Props) {
 
       const result = await WebBrowser.openAuthSessionAsync(
         data.url,
-        redirectTo,
+        redirectTo
       );
 
       if (result.type === "success") {
@@ -244,6 +244,14 @@ export function AuthScreen({ navigation }: Props) {
     <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={{ height: theme.spacing.sm + 2 }} />
       <View style={styles.container}>
+        <View style={styles.headerBlock}>
+          <Text style={[styles.authTitle, { color: theme.colors.fg }]}>
+            {t("auth.title")}
+          </Text>
+          <Text style={[styles.authSubtitle, { color: theme.colors.muted }]}>
+            {t("auth.subtitle")}
+          </Text>
+        </View>
         {/* Magic Link Section */}
         <View style={styles.magicLinkSection}>
           <TextField
@@ -386,6 +394,17 @@ const makeStyles = (theme: any) =>
     container: {
       gap: theme.spacing.md,
     },
+    headerBlock: {
+      marginBottom: theme.titleMarginBottom,
+    },
+    authTitle: {
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
+    },
+    authSubtitle: {
+      fontSize: theme.typography.small,
+      marginTop: theme.spacing.xs,
+    },
     socialSection: {
       gap: theme.spacing.sm,
     },
@@ -402,7 +421,7 @@ const makeStyles = (theme: any) =>
       height: theme.spacing.lg * 2,
       borderRadius: theme.radius.md,
       borderWidth: 1,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     socialButtonText: {
       fontSize: theme.typography.body,

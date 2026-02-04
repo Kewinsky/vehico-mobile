@@ -318,9 +318,6 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
           <Text style={styles.title}>{t("dashboard.tiles.serviceTitle")}</Text>
-          <Text style={styles.subtitle}>
-            {t("dashboard.tiles.serviceSubtitle")}
-          </Text>
         </View>
         <View style={{ height: theme.spacing.sm }} />
         <View style={styles.searchRow}>
@@ -666,29 +663,29 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     fixedHeader: {
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       backgroundColor: theme.colors.bg,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
     list: {
       paddingTop: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingBottom: insets.bottom + theme.spacing.xl,
     },
     header: {
       gap: theme.spacing.xs / 2,
+      marginBottom: theme.titleMarginBottom,
     },
     headerRow: {
       flexDirection: "row",
       alignItems: "center",
     },
     title: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
     },
-    subtitle: { fontSize: theme.typography.small, color: theme.colors.muted },
     editLink: { color: theme.colors.accent, fontWeight: "800" },
     searchRow: { flexDirection: "row", alignItems: "center" },
     addButton: {

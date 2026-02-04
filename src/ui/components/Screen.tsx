@@ -17,7 +17,7 @@ export function Screen({ children, padding = true }: ScreenProps) {
       style={[
         styles.root,
         { paddingTop: insets.top },
-        padding && styles.padded,
+        padding && { paddingHorizontal: theme.layout.contentPaddingHorizontal },
         { backgroundColor: theme.colors.bg },
       ]}
     >
@@ -29,8 +29,5 @@ export function Screen({ children, padding = true }: ScreenProps) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-  },
-  padded: {
-    paddingHorizontal: 16,
   },
 });

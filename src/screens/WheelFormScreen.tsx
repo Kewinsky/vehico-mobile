@@ -237,8 +237,8 @@ export function WheelFormScreen({ navigation, route }: Props) {
 function makeStyles(theme: any) {
   return StyleSheet.create({
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
     },
     switchRow: {

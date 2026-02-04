@@ -31,10 +31,7 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<
-  AppStackParamList,
-  "ServiceEntryDetail"
->;
+type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryDetail">;
 
 export function ServiceEntryDetailScreen({ route, navigation }: Props) {
   const { t, i18n } = useTranslation();
@@ -240,7 +237,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     top: {
       paddingTop: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingBottom: theme.spacing.sm,
     },
     actionsRow: {
@@ -296,7 +293,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       lineHeight: theme.typography.body + 4,
     },
     sectionHeader: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.sm,
     },
@@ -306,7 +303,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       color: theme.colors.fg,
     },
     list: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingBottom: insets.bottom + theme.spacing.lg,
     },
     loadingContainer: {

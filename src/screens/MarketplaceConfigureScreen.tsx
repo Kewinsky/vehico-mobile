@@ -24,10 +24,7 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { PickerField } from "../ui/components/PickerField";
 import { TextField } from "../ui/components/TextField";
 
-type Props = NativeStackScreenProps<
-  AppStackParamList,
-  "MarketplaceConfigure"
->;
+type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceConfigure">;
 
 export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -393,14 +390,14 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     scrollView: { flex: 1 },
     scrollContent: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.xl,
     },
     header: { gap: theme.spacing.xs / 2, marginBottom: theme.spacing.md },
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
     },
     loadingContainer: {
@@ -465,7 +462,7 @@ const makeStyles = (theme: any) =>
       color: theme.colors.fg,
     },
     footer: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingVertical: theme.spacing.md,
       borderTopWidth: 1,
       borderTopColor: theme.colors.border,

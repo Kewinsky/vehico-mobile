@@ -63,7 +63,7 @@ export function AppHeader({
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     root: {
-      height: theme.spacing.lg * 2 + theme.spacing.xs / 2,
+      height: theme.spacing.lg * 2 + theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
       flexDirection: "row",
       alignItems: "center",

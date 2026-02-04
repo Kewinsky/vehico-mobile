@@ -210,9 +210,6 @@ export function RemindersScreen({ route, navigation }: Props) {
           <Text style={[styles.title, { color: theme.colors.fg }]}>
             {t("dashboard.tiles.remindersTitle")}
           </Text>
-          <Text style={styles.subtitle}>
-            {t("dashboard.tiles.remindersSubtitle")}
-          </Text>
         </View>
         <View style={{ height: theme.spacing.sm }} />
         <View style={styles.searchRow}>
@@ -365,7 +362,7 @@ export function RemindersScreen({ route, navigation }: Props) {
           return item.item.id;
         }}
         contentContainerStyle={{
-          paddingHorizontal: theme.spacing.md,
+          paddingHorizontal: theme.layout.contentPaddingHorizontal,
           paddingTop: theme.spacing.sm,
           paddingBottom: insets.bottom + theme.spacing.xl,
         }}
@@ -504,20 +501,20 @@ const makeStyles = (theme: any) =>
     fixedHeader: {
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       backgroundColor: theme.colors.bg,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
     header: {
       gap: theme.spacing.xs / 2,
+      marginBottom: theme.titleMarginBottom,
     },
     title: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
     },
-    subtitle: { fontSize: theme.typography.small, color: theme.colors.muted },
     body: {
       marginTop: theme.spacing.xs,
       lineHeight: theme.typography.body + 6,

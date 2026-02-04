@@ -200,7 +200,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       </View>
       <FlatList
         contentContainerStyle={{
-          paddingHorizontal: theme.spacing.md,
+          paddingHorizontal: theme.layout.contentPaddingHorizontal,
           paddingTop: theme.spacing.sm,
           paddingBottom: theme.spacing.xl,
         }}
@@ -262,11 +262,15 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
       paddingTop: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
-    h1: { fontSize: 20, fontWeight: "800", color: theme.colors.fg },
+    h1: {
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
+      color: theme.colors.fg,
+    },
     card: {
       borderWidth: 1,
       borderRadius: theme.radius.md,

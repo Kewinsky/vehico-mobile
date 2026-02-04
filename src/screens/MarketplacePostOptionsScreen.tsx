@@ -65,9 +65,6 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
               ? t("marketplace.postWithTitle", { title: postTitle })
               : t("marketplace.postGenerated")}
           </Text>
-          <Text style={styles.subtitle}>
-            {t("marketplace.postGeneratedSubtitle", { vehicleTitle })}
-          </Text>
         </View>
 
         <View style={styles.langRow}>
@@ -118,7 +115,7 @@ const makeStyles = (theme: any) =>
       flex: 1,
     },
     scrollContent: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.xl,
     },
@@ -126,13 +123,9 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.xs / 2,
     },
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
-    },
-    subtitle: {
-      fontSize: 13,
-      color: theme.colors.muted,
     },
     langRow: {
       flexDirection: "row",

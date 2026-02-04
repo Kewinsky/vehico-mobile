@@ -60,9 +60,6 @@ export function ShareScreen({ navigation, route }: Props) {
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
           <Text style={styles.h1}>{t("dashboard.tiles.shareTitle")}</Text>
-          <Text style={styles.subtitle}>
-            {t("dashboard.tiles.shareSubtitle")}
-          </Text>
         </View>
       </View>
       <View style={styles.list}>
@@ -94,22 +91,19 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     fixedHeader: {
       paddingTop: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     header: {
       gap: theme.spacing.xs / 2,
+      marginBottom: theme.titleMarginBottom,
     },
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
     },
-    subtitle: {
-      fontSize: theme.typography.small,
-      color: theme.colors.muted,
-    },
     list: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
       paddingBottom: insets.bottom + theme.spacing.lg,
       gap: theme.spacing.xs,

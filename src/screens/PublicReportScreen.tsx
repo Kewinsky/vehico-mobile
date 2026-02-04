@@ -43,9 +43,6 @@ export function PublicReportScreen({ navigation, route }: Props) {
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
           <Text style={styles.h1}>{t("publicReport.title")}</Text>
-          <Text style={styles.subtitle}>
-            {t("publicReport.subtitle", { vehicleTitle })}
-          </Text>
         </View>
       </View>
       <View style={styles.content}>
@@ -76,22 +73,18 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
       paddingTop: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     header: {
       gap: theme.spacing.xs / 2,
     },
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
     },
-    subtitle: {
-      fontSize: theme.typography.small,
-      color: theme.colors.muted,
-    },
     content: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
     },
     infoCard: {

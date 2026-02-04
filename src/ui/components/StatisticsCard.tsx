@@ -729,12 +729,10 @@ export function StatisticsCard({ vehicleId, period }: Props) {
   }, [service]);
 
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  // Chart width with proper margins to fit in card
-  // Reduce width slightly to ensure labels fit properly
-  const cardPadding = theme.spacing.md * 2; // Left + right padding of card
+  const contentPadding = theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
   const chartWidth = Math.max(
     280,
-    windowWidth - cardPadding - theme.spacing.md * 2 - 20,
+    windowWidth - contentPadding * 2 - theme.spacing.md * 2 - 20,
   );
 
   const palette = useMemo(
@@ -1116,43 +1114,50 @@ export function StatisticsCard({ vehicleId, period }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     container: {
-      gap: theme.spacing.md - 2,
+      gap: theme.spacing.md,
     },
     loading: {
       alignItems: "center",
       justifyContent: "center",
-      paddingVertical: theme.spacing.lg - 6,
+      paddingVertical: theme.spacing.xl,
     },
     metricsRow: { flexDirection: "row", gap: theme.spacing.sm },
     metric: {
       flex: 1,
       borderWidth: 1,
       borderColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
-      borderRadius: theme.radius.sm,
-      padding: theme.spacing.sm,
-      gap: theme.spacing.sm / 2,
+      backgroundColor: theme.colors.card,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
+      gap: theme.spacing.xs,
     },
     metricLabel: {
       color: theme.colors.muted,
-      fontWeight: "800",
+      fontWeight: "700",
       fontSize: theme.typography.xs,
     },
     metricValue: {
       color: theme.colors.fg,
-      fontWeight: "900",
+      fontWeight: "800",
       fontSize: theme.typography.small,
     },
-    section: { gap: theme.spacing.sm - 2 },
-    sectionTitle: { color: theme.colors.fg, fontWeight: "900" },
-    empty: { color: theme.colors.muted, fontWeight: "700" },
+    section: { gap: theme.spacing.sm },
+    sectionTitle: {
+      color: theme.colors.fg,
+      fontWeight: "800",
+      fontSize: theme.typography.body,
+    },
+    empty: {
+      color: theme.colors.muted,
+      fontSize: theme.typography.small,
+    },
     infoCard: {
       borderWidth: 1,
       borderColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
-      borderRadius: theme.radius.sm,
-      padding: theme.spacing.sm,
-      gap: theme.spacing.sm / 2,
+      backgroundColor: theme.colors.card,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
+      gap: theme.spacing.sm,
     },
     infoRow: {
       flexDirection: "row",
@@ -1179,30 +1184,29 @@ const makeStyles = (theme: any) =>
     chartWrap: {
       borderWidth: 1,
       borderColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
-      borderRadius: theme.radius.sm,
-      paddingVertical: theme.spacing.sm - 2,
-      paddingHorizontal: theme.spacing.xs,
+      backgroundColor: theme.colors.card,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
       alignItems: "center",
       justifyContent: "center",
     },
     pieBox: {
       borderWidth: 1,
       borderColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
-      borderRadius: 12,
+      backgroundColor: theme.colors.card,
+      borderRadius: theme.radius.md,
       padding: theme.spacing.xs,
       alignSelf: "center",
     },
     legend: {
-      gap: theme.spacing.sm - 2,
+      gap: theme.spacing.sm,
       paddingTop: theme.spacing.sm,
       width: "100%",
     },
     legendRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: theme.spacing.sm - 2,
+      gap: theme.spacing.sm,
     },
     legendDot: {
       width: theme.spacing.sm - 2,

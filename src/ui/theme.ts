@@ -18,6 +18,7 @@ export type AppTheme = {
     xl: number;
   };
   typography: {
+    largeTitle: number; // iOS-style large page title
     title: number;
     body: number;
     small: number;
@@ -27,6 +28,12 @@ export type AppTheme = {
     xs: number; // checkbox, small corners
     sm: number;
     md: number;
+  };
+  /** Margin below large title (breathing room) */
+  titleMarginBottom: number;
+  /** Horizontal padding for screen content (title + main). Change here to adjust globally. */
+  layout: {
+    contentPaddingHorizontal: number;
   };
 };
 
@@ -49,10 +56,15 @@ export const lightTheme: AppTheme = {
   },
   radius: {
     xs: 4,
-    sm: 8,
-    md: 14,
+    sm: 10,
+    md: 17,
+  },
+  titleMarginBottom: 12,
+  layout: {
+    contentPaddingHorizontal: 12, // same as spacing.sm – change here for global content inset
   },
   typography: {
+    largeTitle: 28,
     title: 20,
     body: 16,
     small: 13,
@@ -62,7 +74,7 @@ export const lightTheme: AppTheme = {
 
 export const darkTheme: AppTheme = {
   colors: {
-    bg: "#000000", // pure black
+    bg: "#0a0a0a", // soft black (iOS 26 style)
     fg: "#FFFFFF", // pure white
     muted: "#999999", // light gray
     border: "#333333", // dark gray
@@ -72,6 +84,8 @@ export const darkTheme: AppTheme = {
   },
   spacing: lightTheme.spacing,
   radius: lightTheme.radius,
+  titleMarginBottom: lightTheme.titleMarginBottom,
+  layout: lightTheme.layout,
   typography: lightTheme.typography,
 };
 

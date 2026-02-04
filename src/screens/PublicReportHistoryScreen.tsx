@@ -29,10 +29,7 @@ import { toastError, toastSuccess } from "../ui/toast/toast";
 import { formatDateDisplay } from "../utils/dateFormatting";
 import { i18n } from "../i18n/i18n";
 
-type Props = NativeStackScreenProps<
-  AppStackParamList,
-  "PublicReportHistory"
->;
+type Props = NativeStackScreenProps<AppStackParamList, "PublicReportHistory">;
 
 export function PublicReportHistoryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -133,9 +130,6 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
       <AppHeader onBack={() => navigation.goBack()} />
       <View style={styles.wrap}>
         <Text style={styles.h1}>{t("share.historyTitle")}</Text>
-        <Text style={styles.subtitle}>
-          {t("share.historySubtitle", { vehicleTitle })}
-        </Text>
 
         <View style={{ height: theme.spacing.md }} />
 
@@ -214,17 +208,13 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     wrap: {
       flex: 1,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
     },
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
-    },
-    subtitle: {
-      color: theme.colors.muted,
-      lineHeight: theme.typography.body + 6,
     },
     loadingContainer: {
       flex: 1,

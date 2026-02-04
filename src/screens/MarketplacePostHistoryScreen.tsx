@@ -128,9 +128,6 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
       <AppHeader onBack={() => navigation.goBack()} />
       <View style={styles.wrap}>
         <Text style={styles.h1}>{t("marketplace.historyTitle")}</Text>
-        <Text style={styles.subtitle}>
-          {t("marketplace.historySubtitle", { vehicleTitle })}
-        </Text>
 
         <View style={{ height: theme.spacing.md }} />
 
@@ -209,17 +206,13 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     wrap: {
       flex: 1,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
     },
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
-    },
-    subtitle: {
-      color: theme.colors.muted,
-      lineHeight: theme.typography.body + 6,
     },
     loadingContainer: {
       flex: 1,

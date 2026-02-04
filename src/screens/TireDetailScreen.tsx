@@ -189,7 +189,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     top: {
       paddingTop: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingBottom: theme.spacing.sm,
     },
     actionsRow: {

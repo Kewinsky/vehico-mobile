@@ -275,9 +275,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
           <Text style={[styles.title, { color: theme.colors.fg }]}>
             {t("dashboard.tiles.docsTitle")}
           </Text>
-          <Text style={styles.subtitle}>
-            {t("dashboard.tiles.docsSubtitle")}
-          </Text>
           <Text style={[styles.countInfo, { color: theme.colors.muted }]}>
             {t("documents.countInfo", {
               docCount: vehicleDocs.length,
@@ -324,7 +321,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       </View>
       <ScrollView
         contentContainerStyle={{
-          paddingHorizontal: theme.spacing.md,
+          paddingHorizontal: theme.layout.contentPaddingHorizontal,
           paddingTop: theme.spacing.sm,
           paddingBottom: theme.spacing.xl,
         }}
@@ -505,20 +502,21 @@ const makeStyles = (theme: any) =>
     fixedHeader: {
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       backgroundColor: theme.colors.bg,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
     header: {
       gap: theme.spacing.xs / 2,
+      marginBottom: theme.titleMarginBottom,
     },
     title: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
+      fontWeight: "700",
       color: theme.colors.fg,
     },
-    subtitle: { fontSize: theme.typography.small, color: theme.colors.muted },
     countInfo: {
       fontSize: theme.typography.small,
       marginTop: theme.spacing.xs / 2,

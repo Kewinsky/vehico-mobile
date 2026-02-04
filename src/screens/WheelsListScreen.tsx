@@ -84,9 +84,6 @@ export function WheelsListScreen({ route, navigation }: Props) {
           <Text style={[styles.title, { color: theme.colors.fg }]}>
             {t("wheels.rimsSection")}
           </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-            {t("dashboard.tiles.wheelsSubtitle")}
-          </Text>
         </View>
         <View style={{ height: theme.spacing.sm }} />
         <Button onPress={() => navigation.navigate("WheelForm", { vehicleId })}>
@@ -97,7 +94,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
         data={wheels}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{
-          paddingHorizontal: theme.spacing.md,
+          paddingHorizontal: theme.layout.contentPaddingHorizontal,
           paddingTop: theme.spacing.sm,
           paddingBottom: insets.bottom + theme.spacing.xl,
         }}
@@ -196,19 +193,17 @@ const makeStyles = (theme: any) =>
     fixedHeader: {
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
     header: {
       gap: theme.spacing.xs / 2,
+      marginBottom: theme.titleMarginBottom,
     },
     title: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
-    },
-    subtitle: {
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
     },
     card: {
       borderWidth: 1,

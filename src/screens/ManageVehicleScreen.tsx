@@ -59,7 +59,7 @@ function VehicleCarousel({
       onPress={() =>
         onPhotoPress?.(Math.round(currentIndexRef.current) % photoUrls.length)
       }
-      style={{ width, height }}
+      style={{ width, height, overflow: "hidden" }}
     >
       <Carousel
         loop={true}
@@ -73,16 +73,18 @@ function VehicleCarousel({
           currentIndexRef.current = absoluteProgress;
         }}
         renderItem={({ item: url }) => (
-          <Image
-            source={{ uri: url }}
-            style={{
-              width: "100%",
-              height: "100%",
-              backgroundColor: theme.colors.card,
-            }}
-            contentFit="cover"
-            transition={200}
-          />
+          <View style={{ width: "100%", height: "100%", overflow: "hidden" }}>
+            <Image
+              source={{ uri: url }}
+              style={{
+                width: "100%",
+                height: "100%",
+                backgroundColor: theme.colors.card,
+              }}
+              contentFit="cover"
+              transition={200}
+            />
+          </View>
         )}
       />
       {photoUrls.length > 1 && (
@@ -197,9 +199,6 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
             </Pressable>
           </View>
         </View>
-        <Text style={styles.subtitle}>
-          {t("dashboard.tiles.manageSubtitle")}
-        </Text>
       </View>
       <View style={{ height: theme.spacing.md }} />
 
@@ -214,7 +213,12 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
               {photoUrls.length > 0 ? (
                 <VehicleCarousel
                   photoUrls={photoUrls}
-                  width={windowWidth - theme.spacing.md * 2}
+                  width={
+                    windowWidth -
+                    (theme.layout?.contentPaddingHorizontal ??
+                      theme.spacing.md) *
+                      2
+                  }
                   height={220}
                   theme={theme}
                   onPhotoPress={(index) => setFullScreenIndex(index)}
@@ -595,13 +599,13 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     headerSection: {
       gap: theme.spacing.xs / 2,
+      marginBottom: theme.titleMarginBottom,
     },
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
     },
-    subtitle: { fontSize: theme.typography.small, color: theme.colors.muted },
     headerSubtitle: {
       marginTop: theme.spacing.sm / 2,
       color: theme.colors.muted,
@@ -661,6 +665,7 @@ const makeStyles = (theme: any) =>
       position: "relative",
       height: 220,
       width: "100%",
+      overflow: "hidden",
     },
     vehicleImage: {
       width: "100%",

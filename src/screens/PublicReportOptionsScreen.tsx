@@ -12,10 +12,7 @@ import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastSuccess, toastError } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<
-  AppStackParamList,
-  "PublicReportOptions"
->;
+type Props = NativeStackScreenProps<AppStackParamList, "PublicReportOptions">;
 
 export function PublicReportOptionsScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -63,7 +60,6 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
             ? t("publicReport.reportWithTitle", { title: reportTitle })
             : t("share.onlineReport")}
         </Text>
-        <Text style={styles.subtitle}>{t("share.qrCodeSubtitle")}</Text>
 
         <View style={{ height: theme.spacing.sm }} />
 
@@ -105,17 +101,13 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     wrap: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
     },
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
-    },
-    subtitle: {
-      color: theme.colors.muted,
-      lineHeight: theme.typography.body + 6,
     },
     qrContainer: {
       alignItems: "center",

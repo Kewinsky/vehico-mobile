@@ -119,7 +119,7 @@ const makeStyles = (theme: any) =>
     },
     scrollContent: {
       flexGrow: 1,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     content: {
       flex: 1,
@@ -144,14 +144,14 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
       textAlign: "center",
       lineHeight: theme.typography.body + 6,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     features: {
       gap: theme.spacing.lg,
       marginTop: theme.spacing.xl,
     },
     footer: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
     },
   });

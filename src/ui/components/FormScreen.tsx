@@ -14,7 +14,11 @@ export function FormScreen({
   padding = true,
   header,
   scrollEnabled = true,
-}: PropsWithChildren<{ padding?: boolean; header?: ReactNode; scrollEnabled?: boolean }>) {
+}: PropsWithChildren<{
+  padding?: boolean;
+  header?: ReactNode;
+  scrollEnabled?: boolean;
+}>) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
 
@@ -31,7 +35,7 @@ export function FormScreen({
         scrollEnabled={scrollEnabled}
         nestedScrollEnabled={false}
         contentContainerStyle={{
-          paddingHorizontal: padding ? theme.spacing.md : 0,
+          paddingHorizontal: theme.layout.contentPaddingHorizontal,
           paddingBottom: insets.bottom + theme.spacing.lg,
         }}
         keyboardShouldPersistTaps="handled"

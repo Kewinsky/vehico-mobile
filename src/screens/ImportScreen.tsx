@@ -159,7 +159,6 @@ export function ImportScreen({ navigation, route }: Props) {
       <View style={{ height: theme.spacing.md }} />
       <View style={styles.headerSection}>
         <Text style={styles.h1}>{t("import.title")}</Text>
-        <Text style={styles.subtitle}>{t("import.subtitle")}</Text>
       </View>
       <View style={{ height: theme.spacing.md }} />
       <TextField
@@ -194,12 +193,8 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.xs / 2,
     },
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
-    },
-    subtitle: {
-      fontSize: theme.typography.small,
-      color: theme.colors.muted,
     },
   });

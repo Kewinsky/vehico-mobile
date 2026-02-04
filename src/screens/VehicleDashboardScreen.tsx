@@ -216,7 +216,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             flex: 1,
             justifyContent: "center",
             alignItems: "center",
-            paddingHorizontal: theme.spacing.md,
+            paddingHorizontal: theme.layout.contentPaddingHorizontal,
           }}
         >
           <LoadingIndicator />
@@ -387,11 +387,12 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     header: {
       paddingTop: theme.spacing.md,
       gap: theme.spacing.xs / 2,
+      marginBottom: theme.titleMarginBottom,
     },
     title: {
       color: theme.colors.fg,
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
     },
     vinRow: {
       flexDirection: "row",
@@ -404,7 +405,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontWeight: "600",
     },
     list: {
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingBottom: insets.bottom + theme.spacing.xl,
       gap: theme.spacing.xs,
     },
@@ -475,7 +476,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     menuItem: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingVertical: theme.spacing.sm,
       gap: theme.spacing.sm,
     },

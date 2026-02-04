@@ -105,7 +105,7 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       gap: theme.spacing.md,
       marginBottom: theme.spacing.xl,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       width: "100%",
     },
     title: {

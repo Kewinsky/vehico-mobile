@@ -718,8 +718,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       marginBottom: theme.spacing.sm,
       color: theme.colors.fg,
     },

@@ -42,7 +42,7 @@ export function SettingsScreen({ navigation }: Props) {
       <AppHeader onBack={() => navigation.goBack()} />
       <View
         style={{
-          paddingHorizontal: theme.spacing.md,
+          paddingHorizontal: theme.layout.contentPaddingHorizontal,
           paddingTop: theme.spacing.md,
         }}
       >
@@ -235,7 +235,11 @@ export function SettingsScreen({ navigation }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    title: { fontSize: theme.typography.title, fontWeight: "800" },
+    title: {
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
+      marginBottom: theme.titleMarginBottom,
+    },
     body: {
       marginTop: theme.spacing.xs,
       lineHeight: theme.typography.body + 6,

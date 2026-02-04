@@ -37,7 +37,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
 
   const [name, setName] = useState("");
   const [workshopType, setWorkshopType] = useState<WorkshopType | null>(
-    "mechanic",
+    "mechanic"
   );
   const [phoneNumber, setPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
@@ -168,8 +168,8 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
 function makeStyles(theme: any) {
   return StyleSheet.create({
     h1: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
       color: theme.colors.fg,
     },
   });

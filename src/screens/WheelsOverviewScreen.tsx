@@ -79,17 +79,11 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
       <ScrollView
-        contentContainerStyle={[
-          styles.container,
-          { paddingHorizontal: theme.spacing.md },
-        ]}
+        contentContainerStyle={[styles.container, { paddingHorizontal: theme.layout.contentPaddingHorizontal }]}
         showsVerticalScrollIndicator={false}
       >
         <Text style={[styles.title, { color: theme.colors.fg }]}>
           {t("wheels.title")}
-        </Text>
-        <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-          {t("dashboard.tiles.wheelsSubtitle")}
         </Text>
 
         <View style={{ height: theme.spacing.lg }} />
@@ -207,12 +201,9 @@ function makeStyles(theme: any) {
       paddingBottom: theme.spacing.xl,
     },
     title: {
-      fontSize: theme.typography.title,
-      fontWeight: "800",
-    },
-    subtitle: {
-      fontSize: theme.typography.small,
-      marginTop: theme.spacing.xs,
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
+      marginBottom: theme.titleMarginBottom,
     },
     sectionTitle: {
       fontSize: theme.typography.body,
