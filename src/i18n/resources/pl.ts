@@ -355,9 +355,7 @@ export const pl = {
   },
   documents: {
     title: "Dokumenty",
-    countInfo:
-      "Dokumenty: {{docCount}}, Załączniki: {{attCount}} ({{total}}/10)",
-    limitReached: "Łączny limit to 10 dokumentów i załączników.",
+    countInfo: "Dokumenty: {{docCount}}, Załączniki: {{attCount}}",
     searchPlaceholder: "Szukaj w dokumentach…",
     addAttachment: "Dodaj załącznik",
     addVehiclePhoto: "Dodaj zdjęcie pojazdu",
@@ -772,7 +770,7 @@ export const pl = {
     photosCount: "{{count}} / 30 zdjęć",
     photosFromApp: "Zdjęcia z pojazdu",
     addPhotos: "Dodaj zdjęcia",
-    maxPhotosReached: "Maksymalnie 30 zdjęć",
+    maxPhotosReached: "Maksymalnie 40 zdjęć",
     nextButton: "Dalej",
     summaryTitle: "Podsumowanie raportu",
     summarySubtitle: "Sprawdź, co zostanie zawarte w raporcie.",

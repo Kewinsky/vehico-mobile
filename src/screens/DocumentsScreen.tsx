@@ -53,8 +53,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
   const [uploading, setUploading] = useState(false);
   const [query, setQuery] = useState("");
 
-  const totalCount = vehicleDocs.length + attachments.length;
-
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
       const showLoading = opts?.showLoading !== false;
@@ -284,7 +282,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
             {t("documents.countInfo", {
               docCount: vehicleDocs.length,
               attCount: attachments.length,
-              total: totalCount,
             })}
           </Text>
         </View>

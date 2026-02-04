@@ -57,7 +57,7 @@ export function VehicleFormScreen({ navigation }: Props) {
   const [powerHp, setPowerHp] = useState("");
   const [fuelType, setFuelType] = useState<FuelType | null>(null);
   const [transmission, setTransmission] = useState<TransmissionType | null>(
-    null,
+    null
   );
   const [driveType, setDriveType] = useState<DriveType | null>(null);
   const [notes, setNotes] = useState("");
@@ -107,7 +107,7 @@ export function VehicleFormScreen({ navigation }: Props) {
           text: t("attachments.files"),
           onPress: () => void pickFromFiles(),
         },
-      ],
+      ]
     );
   }
 
@@ -162,7 +162,6 @@ export function VehicleFormScreen({ navigation }: Props) {
       if (!result.assets || result.assets.length === 0) {
         throw new Error(t("attachments.noFileSelected"));
       }
-      // Add all selected photos, but limit to remaining slots
       const newPhotos = result.assets
         .slice(0, remainingSlots)
         .map((asset) => ({
@@ -196,7 +195,6 @@ export function VehicleFormScreen({ navigation }: Props) {
       if (!result.assets || result.assets.length === 0) {
         throw new Error(t("attachments.noFileSelected"));
       }
-      // Add all selected files, but limit to remaining slots
       const newPhotos = result.assets
         .slice(0, remainingSlots)
         .map((asset) => ({
@@ -274,7 +272,7 @@ export function VehicleFormScreen({ navigation }: Props) {
       setSaving(true);
       if (!isValidProductionYear(year)) {
         toastError(
-          t("validation.invalidYear", { max: new Date().getFullYear() + 2 }),
+          t("validation.invalidYear", { max: new Date().getFullYear() + 2 })
         );
         return;
       }
@@ -494,7 +492,7 @@ export function VehicleFormScreen({ navigation }: Props) {
               | "vehicleForm.fuelTypeDiesel"
               | "vehicleForm.fuelTypeHybrid"
               | "vehicleForm.fuelTypeElectric"
-              | "vehicleForm.fuelTypeLpg",
+              | "vehicleForm.fuelTypeLpg"
           )
         }
         onChange={setFuelType}
@@ -527,7 +525,7 @@ export function VehicleFormScreen({ navigation }: Props) {
                   tr.charAt(0).toUpperCase() + tr.slice(1)
                 }` as
                   | "vehicleForm.transmissionManual"
-                  | "vehicleForm.transmissionAutomatic",
+                  | "vehicleForm.transmissionAutomatic"
               )}
               selected={transmission === tr}
               onPress={() => setTransmission(tr)}

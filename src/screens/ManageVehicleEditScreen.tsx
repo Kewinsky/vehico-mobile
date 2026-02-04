@@ -48,10 +48,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<
-  AppStackParamList,
-  "ManageVehicleEdit"
->;
+type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicleEdit">;
 
 export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -266,7 +263,6 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
         throw new Error(t("attachments.noFileSelected"));
       }
 
-      // Upload all selected photos
       const uploadPromises = result.assets
         .slice(0, remainingSlots)
         .map((asset) =>
@@ -306,7 +302,6 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
         throw new Error(t("attachments.noFileSelected"));
       }
 
-      // Upload all selected files
       const uploadPromises = result.assets
         .slice(0, remainingSlots)
         .map((asset) =>

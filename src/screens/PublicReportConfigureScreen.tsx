@@ -25,12 +25,9 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-const MAX_PHOTOS = 30;
+const MAX_PHOTOS = 40;
 
-type Props = NativeStackScreenProps<
-  AppStackParamList,
-  "PublicReportConfigure"
->;
+type Props = NativeStackScreenProps<AppStackParamList, "PublicReportConfigure">;
 
 type PhotoItem = {
   key: string;
