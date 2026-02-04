@@ -12,7 +12,7 @@ import { useMemo } from "react";
 import { i18n } from "../i18n/i18n";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
@@ -42,7 +42,7 @@ const GAS_STATION_OPTIONS: readonly GasStation[] = [
   "other",
 ];
 
-type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "Fuel">;
 
 import { formatMonthYear, formatMonthYearPL } from "../utils/dateFormatting";
 
@@ -82,7 +82,7 @@ export function FuelScreen({ route, navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [route.params.vehicleId, t],
+    [route.params.vehicleId, t]
   );
 
   useEffect(() => {
@@ -90,7 +90,7 @@ export function FuelScreen({ route, navigation }: Props) {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false }),
+      () => void load({ showLoading: false })
     );
     return unsub;
   }, [navigation, load]);
@@ -187,7 +187,7 @@ export function FuelScreen({ route, navigation }: Props) {
             }
           },
         },
-      ],
+      ]
     );
   }
 

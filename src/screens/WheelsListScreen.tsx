@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import type { VehicleWheel } from "../types/domain";
 import {
   listVehicleWheels,
@@ -18,11 +18,11 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "WheelsList">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "WheelsList">;
 
 function wheelSubtitle(
   wheel: VehicleWheel,
-  t: (key: string) => string,
+  t: (key: string) => string
 ): string {
   const dims = formatWheelDimensions(wheel.width_inch, wheel.diameter_inch);
   const parts: string[] = [dims];
@@ -64,14 +64,14 @@ export function WheelsListScreen({ route, navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t],
+    [vehicleId, t]
   );
 
   useEffect(() => {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false }),
+      () => void load({ showLoading: false })
     );
     return unsub;
   }, [navigation, load]);

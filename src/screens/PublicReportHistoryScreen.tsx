@@ -11,7 +11,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Feather } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import type { PublicReportSnapshot } from "../types/domain";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import type { Vehicle } from "../types/domain";
@@ -29,7 +29,10 @@ import { toastError, toastSuccess } from "../ui/toast/toast";
 import { formatDateDisplay } from "../utils/dateFormatting";
 import { i18n } from "../i18n/i18n";
 
-type Props = NativeStackScreenProps<AppStackParamList, "PublicReportHistory">;
+type Props = NativeStackScreenProps<
+  DashboardStackParamList,
+  "PublicReportHistory"
+>;
 
 export function PublicReportHistoryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -96,7 +99,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
             try {
               await updatePublicReportTitle(
                 report.id,
-                newTitle?.trim() || null,
+                newTitle?.trim() || null
               );
               toastSuccess(t("publicReport.titleUpdated"));
               await loadReports();
@@ -107,7 +110,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
         },
       ],
       "plain-text",
-      report.title || "",
+      report.title || ""
     );
   }
 
@@ -178,7 +181,8 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
                     <Text
                       style={[styles.reportDate, { color: theme.colors.muted }]}
                     >
-                      {t("share.generatedOn")} {formatDateDisplay(item.created_at, i18n.language)}
+                      {t("share.generatedOn")}{" "}
+                      {formatDateDisplay(item.created_at, i18n.language)}
                     </Text>
                   </Pressable>
                   <View style={{ flexDirection: "row", gap: theme.spacing.xs }}>

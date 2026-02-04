@@ -14,7 +14,7 @@ import { formatDateDisplay } from "../utils/dateFormatting";
 import { i18n } from "../i18n/i18n";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import type { PublicReportSnapshot } from "../types/domain";
 import {
   generateMarketplacePost,
@@ -36,7 +36,7 @@ import { toastError, toastSuccess } from "../ui/toast/toast";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "MarketplacePost">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "MarketplacePost">;
 
 export function MarketplacePostScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
@@ -52,7 +52,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
   const [saving, setSaving] = useState(false);
 
   const [displayLang, setDisplayLang] = useState<"pl" | "en">(
-    (settings?.language as "pl" | "en") ?? "pl",
+    (settings?.language as "pl" | "en") ?? "pl"
   );
   const displayContent = useMemo(() => {
     if (typeof content === "string") {
@@ -81,7 +81,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
 
   // Public report selection
   const [publicReports, setPublicReports] = useState<PublicReportSnapshot[]>(
-    [],
+    []
   );
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [loadingReports, setLoadingReports] = useState(false);
@@ -114,7 +114,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
       let publicReportUrl: string | null = null;
       if (selectedReportId) {
         const selectedReport = publicReports.find(
-          (r) => r.id === selectedReportId,
+          (r) => r.id === selectedReportId
         );
         if (selectedReport) {
           publicReportUrl = await getPublicPageUrl(selectedReport.public_id);
@@ -206,7 +206,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
             void handleGenerate();
           },
         },
-      ],
+      ]
     );
   }
 
@@ -371,7 +371,10 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
               getLabel={(value) => {
                 const report = publicReports.find((r) => r.id === value);
                 if (!report) return t("marketplace.noReport");
-                const date = formatDateDisplay(report.created_at, i18n.language);
+                const date = formatDateDisplay(
+                  report.created_at,
+                  i18n.language
+                );
                 return report.title || `${t("marketplace.report")} - ${date}`;
               }}
               onChange={(value) => setSelectedReportId(value)}

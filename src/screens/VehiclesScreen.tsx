@@ -110,7 +110,7 @@ export function VehiclesScreen({ navigation }: Props) {
   const { signOut } = useAuth();
   const [items, setItems] = useState<Vehicle[]>([]);
   const [photoUrlsMap, setPhotoUrlsMap] = useState<Map<string, string[]>>(
-    new Map(),
+    new Map()
   );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -158,10 +158,10 @@ export function VehiclesScreen({ navigation }: Props) {
             } catch (error) {
               console.error(
                 `Failed to load photos for vehicle ${vehicle.id}:`,
-                error,
+                error
               );
             }
-          }),
+          })
         );
         setPhotoUrlsMap(urlsMap);
       } catch (e: any) {
@@ -173,7 +173,7 @@ export function VehiclesScreen({ navigation }: Props) {
         }
       }
     },
-    [t],
+    [t]
   );
 
   useEffect(() => {
@@ -181,7 +181,7 @@ export function VehiclesScreen({ navigation }: Props) {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false }),
+      () => void load({ showLoading: false })
     );
     return unsub;
   }, [navigation, load]);
@@ -195,16 +195,12 @@ export function VehiclesScreen({ navigation }: Props) {
             onPress={() => navigation.navigate("Profile")}
             hitSlop={10}
           >
-            <Text
-              style={[styles.actionText, { color: theme.colors.accent }]}
-            >
+            <Text style={[styles.actionText, { color: theme.colors.accent }]}>
               {t("profile.title")}
             </Text>
           </Pressable>
           <Pressable onPress={onSignOut} hitSlop={10}>
-            <Text
-              style={[styles.actionText, { color: theme.colors.danger }]}
-            >
+            <Text style={[styles.actionText, { color: theme.colors.danger }]}>
               {t("common.signOut")}
             </Text>
           </Pressable>
@@ -236,8 +232,12 @@ export function VehiclesScreen({ navigation }: Props) {
               renderItem={({ item }) => (
                 <Pressable
                   onPress={() =>
-                    navigation.navigate("VehicleDashboard", {
-                      vehicleId: item.id,
+                    navigation.navigate("MainTabs", {
+                      screen: "Dashboard",
+                      params: {
+                        screen: "VehicleDashboard",
+                        params: { vehicleId: item.id },
+                      },
                     })
                   }
                   style={({ pressed }) => [

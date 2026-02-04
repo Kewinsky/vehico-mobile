@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import { isValidDate, isNonNegativeNumber } from "../utils/validation";
 import type { Attachment, ServiceEntryCategory } from "../types/domain";
 import {
@@ -46,7 +46,10 @@ import { IconButton } from "../ui/components/IconButton";
 import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { Ionicons } from "@expo/vector-icons";
 
-type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryForm">;
+type Props = NativeStackScreenProps<
+  DashboardStackParamList,
+  "ServiceEntryForm"
+>;
 
 export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();

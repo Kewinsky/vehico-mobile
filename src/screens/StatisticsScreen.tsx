@@ -3,13 +3,13 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { StatisticsCard } from "../ui/components/StatisticsCard";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Statistics">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "Statistics">;
 
 type PeriodKey = "1m" | "3m" | "6m" | "1y" | "all";
 

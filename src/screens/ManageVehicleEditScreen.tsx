@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 import { DraggableGrid } from "react-native-draggable-grid";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import {
   isValidProductionYear,
   isNonNegativeNumber,
@@ -48,7 +48,10 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicleEdit">;
+type Props = NativeStackScreenProps<
+  DashboardStackParamList,
+  "ManageVehicleEdit"
+>;
 
 export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -76,7 +79,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const [powerHp, setPowerHp] = useState("");
   const [fuelType, setFuelType] = useState<FuelType | null>(null);
   const [transmission, setTransmission] = useState<TransmissionType | null>(
-    null,
+    null
   );
   const [driveType, setDriveType] = useState<DriveType | null>(null);
   const [notes, setNotes] = useState("");
@@ -135,7 +138,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
       setSaving(true);
       if (!isValidProductionYear(year)) {
         toastError(
-          t("validation.invalidYear", { max: new Date().getFullYear() + 2 }),
+          t("validation.invalidYear", { max: new Date().getFullYear() + 2 })
         );
         return;
       }
@@ -206,7 +209,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
           text: t("attachments.files"),
           onPress: () => void pickFromFiles(),
         },
-      ],
+      ]
     );
   }
 
@@ -272,7 +275,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             fileUri: asset.uri,
             mimeType: asset.mimeType ?? null,
             fileName: asset.fileName ?? null,
-          }),
+          })
         )
         .filter((promise): promise is Promise<VehiclePhoto> => !!promise);
       await Promise.all(uploadPromises);
@@ -312,7 +315,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             fileUri: asset.uri,
             mimeType: asset.mimeType ?? null,
             fileName: asset.name ?? null,
-          }),
+          })
         )
         .filter((promise): promise is Promise<VehiclePhoto> => !!promise);
       await Promise.all(uploadPromises);
@@ -463,7 +466,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                   const newPhotoUrls = newPhotos
                     .map((photo) => {
                       const oldIndex = photos.findIndex(
-                        (p) => p.id === photo.id,
+                        (p) => p.id === photo.id
                       );
                       return photoUrls[oldIndex] || "";
                     })
@@ -473,7 +476,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                   // Update display_order in database (async, don't wait)
                   void reorderVehiclePhotos(
                     vehicleId,
-                    newPhotos.map((p) => p.id),
+                    newPhotos.map((p) => p.id)
                   );
                 }}
               />
@@ -566,7 +569,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                   | "vehicleForm.fuelTypeDiesel"
                   | "vehicleForm.fuelTypeHybrid"
                   | "vehicleForm.fuelTypeElectric"
-                  | "vehicleForm.fuelTypeLpg",
+                  | "vehicleForm.fuelTypeLpg"
               )
             }
             onChange={setFuelType}
@@ -597,7 +600,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                       tr.charAt(0).toUpperCase() + tr.slice(1)
                     }` as
                       | "vehicleForm.transmissionManual"
-                      | "vehicleForm.transmissionAutomatic",
+                      | "vehicleForm.transmissionAutomatic"
                   )}
                   selected={transmission === tr}
                   onPress={() => setTransmission(tr)}

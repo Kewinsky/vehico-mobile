@@ -229,6 +229,11 @@ export const en = {
       description: "Description",
     },
   },
+  tabs: {
+    dashboard: "Dashboard",
+    placeholder: "Placeholder",
+    profile: "Profile",
+  },
   dashboard: {
     backToVehicles: "Back to vehicles",
     stats: {
@@ -306,6 +311,7 @@ export const en = {
       addService: "Add service entry",
       addFuel: "Add fueling",
       addReminder: "Add reminder",
+      selectVehicle: "Select a vehicle to add entries",
     },
     publicLinkTitle: "Public link",
     publicLinkBody: "Public ID: {{id}}",

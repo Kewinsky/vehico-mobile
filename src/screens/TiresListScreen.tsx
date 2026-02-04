@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import type { VehicleTire } from "../types/domain";
 import {
   listVehicleTires,
@@ -18,13 +18,13 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "TiresList">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "TiresList">;
 
 function tireSubtitle(tire: VehicleTire, t: (key: string) => string): string {
   const dims = formatTireDimensions(
     tire.width_mm,
     tire.aspect_ratio,
-    tire.diameter_inch,
+    tire.diameter_inch
   );
   const typeLabel = t(`tireForm.types.${tire.tire_type}`);
   const parts = [dims, typeLabel];
@@ -59,14 +59,14 @@ export function TiresListScreen({ route, navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t],
+    [vehicleId, t]
   );
 
   useEffect(() => {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false }),
+      () => void load({ showLoading: false })
     );
     return unsub;
   }, [navigation, load]);

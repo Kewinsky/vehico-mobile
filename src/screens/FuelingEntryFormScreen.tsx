@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import { isValidDate, isPositiveNumber } from "../utils/validation";
 import type { FuelGrade, GasStation } from "../types/domain";
 import {
@@ -40,7 +40,10 @@ const GAS_STATION_OPTIONS: readonly GasStation[] = [
   "other",
 ];
 
-type Props = NativeStackScreenProps<AppStackParamList, "FuelingEntryForm">;
+type Props = NativeStackScreenProps<
+  DashboardStackParamList,
+  "FuelingEntryForm"
+>;
 
 export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();

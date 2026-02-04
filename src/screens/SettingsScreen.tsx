@@ -10,7 +10,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { ProfileStackParamList } from "../app/navigation/types";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import type { UserSettings } from "../app/providers/UserSettingsProvider";
@@ -18,7 +18,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Settings">;
+type Props = NativeStackScreenProps<ProfileStackParamList, "Settings">;
 
 export function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation();
@@ -28,7 +28,7 @@ export function SettingsScreen({ navigation }: Props) {
 
   async function pick<K extends keyof UserSettings>(
     key: K,
-    value: UserSettings[K],
+    value: UserSettings[K]
   ) {
     try {
       await setSettings({ [key]: value } as Partial<UserSettings>);

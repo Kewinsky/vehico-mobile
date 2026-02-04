@@ -12,10 +12,13 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import type { Attachment } from "../types/domain";
 import { listAttachments } from "../services/attachments/attachmentsRepo";
-import { getAttachmentOpenUrl, getFileNameFromItem } from "../services/storage/openFileUrl";
+import {
+  getAttachmentOpenUrl,
+  getFileNameFromItem,
+} from "../services/storage/openFileUrl";
 import {
   deleteServiceEntry,
   getServiceEntry,
@@ -28,7 +31,10 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryDetail">;
+type Props = NativeStackScreenProps<
+  DashboardStackParamList,
+  "ServiceEntryDetail"
+>;
 
 export function ServiceEntryDetailScreen({ route, navigation }: Props) {
   const { t, i18n } = useTranslation();
@@ -60,7 +66,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
         else setLoading(false);
       }
     },
-    [entryId, t],
+    [entryId, t]
   );
 
   useEffect(() => {
@@ -208,7 +214,7 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
                     const date = new Date(item.created_at);
                     const formattedDate = date.toLocaleDateString(
                       i18n.language === "pl" ? "pl-PL" : "en-US",
-                      { day: "2-digit", month: "2-digit", year: "numeric" },
+                      { day: "2-digit", month: "2-digit", year: "numeric" }
                     );
                     return `${t("documents.added")} ${formattedDate} · ${ext}`;
                   })()}

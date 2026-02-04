@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as AuthSession from "expo-auth-session";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { RootStackParamList } from "../app/navigation/types";
 import { supabase } from "../services/supabase/client";
 import { ENV } from "../config/env";
 import { Button } from "../ui/components/Button";
@@ -13,13 +13,13 @@ import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<AppStackParamList, "EmailConfirmation">;
+type Props = NativeStackScreenProps<RootStackParamList, "EmailConfirmation">;
 
 export function EmailConfirmationScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { email } = route.params;
+  const email = route.params?.email ?? "";
   const [isResending, setIsResending] = useState(false);
 
   async function resendConfirmationEmail() {

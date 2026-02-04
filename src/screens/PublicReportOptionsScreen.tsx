@@ -5,14 +5,17 @@ import { useTranslation } from "react-i18next";
 import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastSuccess, toastError } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<AppStackParamList, "PublicReportOptions">;
+type Props = NativeStackScreenProps<
+  DashboardStackParamList,
+  "PublicReportOptions"
+>;
 
 export function PublicReportOptionsScreen({ navigation, route }: Props) {
   const { t } = useTranslation();

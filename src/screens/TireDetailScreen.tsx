@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import type { VehicleTire } from "../types/domain";
 import {
   getVehicleTire,
@@ -17,7 +17,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "TireDetail">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "TireDetail">;
 
 export function TireDetailScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
@@ -95,7 +95,7 @@ export function TireDetailScreen({ route, navigation }: Props) {
   const dims = formatTireDimensions(
     tire.width_mm,
     tire.aspect_ratio,
-    tire.diameter_inch,
+    tire.diameter_inch
   );
 
   return (

@@ -11,7 +11,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Feather } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import type { MarketplacePost } from "../types/domain";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import type { Vehicle } from "../types/domain";
@@ -30,7 +30,7 @@ import { formatDateDisplay } from "../utils/dateFormatting";
 import { i18n } from "../i18n/i18n";
 
 type Props = NativeStackScreenProps<
-  AppStackParamList,
+  DashboardStackParamList,
   "MarketplacePostHistory"
 >;
 
@@ -99,7 +99,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
             try {
               await updateMarketplacePostTitle(
                 post.id,
-                newTitle?.trim() || null,
+                newTitle?.trim() || null
               );
               toastSuccess(t("marketplace.titleUpdated"));
               await loadPosts();
@@ -110,7 +110,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
         },
       ],
       "plain-text",
-      post.title || "",
+      post.title || ""
     );
   }
 

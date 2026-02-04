@@ -11,7 +11,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import type { Vehicle } from "../types/domain";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
@@ -39,7 +39,10 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "PublicReportSummary">;
+type Props = NativeStackScreenProps<
+  DashboardStackParamList,
+  "PublicReportSummary"
+>;
 
 function InfoCard({
   title,
@@ -93,7 +96,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const [confirmed, setConfirmed] = useState(false);
 
   const [vehiclePhotoUrls, setVehiclePhotoUrls] = useState<Map<string, string>>(
-    new Map(),
+    new Map()
   );
 
   const load = useCallback(async () => {
@@ -145,7 +148,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
         vehicleId,
         selectedVehiclePhotoIds,
         [],
-        reportOptions,
+        reportOptions
       );
 
       if (tempPhotos.length > 0) {
@@ -162,9 +165,8 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
       toastSuccess(t("publicReport.reportGenerated"));
 
       navigation.reset({
-        index: 4,
+        index: 3,
         routes: [
-          { name: "Vehicles" },
           { name: "VehicleDashboard", params: { vehicleId } },
           { name: "Share", params: { vehicleId } },
           { name: "PublicReport", params: { vehicleId } },
@@ -323,7 +325,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                       | "vehicleForm.fuelTypeDiesel"
                       | "vehicleForm.fuelTypeHybrid"
                       | "vehicleForm.fuelTypeElectric"
-                      | "vehicleForm.fuelTypeLpg",
+                      | "vehicleForm.fuelTypeLpg"
                   )}
                 </Text>
               </View>

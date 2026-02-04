@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { formatDateDisplay } from "../utils/dateFormatting";
 import { i18n } from "../i18n/i18n";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { listVehicleTires } from "../services/tires/tiresRepo";
@@ -24,7 +24,10 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { PickerField } from "../ui/components/PickerField";
 import { TextField } from "../ui/components/TextField";
 
-type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceConfigure">;
+type Props = NativeStackScreenProps<
+  DashboardStackParamList,
+  "MarketplaceConfigure"
+>;
 
 export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -41,7 +44,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(true);
 
   const [publicReports, setPublicReports] = useState<PublicReportSnapshot[]>(
-    [],
+    []
   );
 
   const hasInsurance =
@@ -109,7 +112,9 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
     if (!hasServiceHistory) list.push(t("publicReport.optionServiceHistory"));
     if (!hasFuelingStats) list.push(t("publicReport.optionFuelingStats"));
     if (publicReports.length === 0)
-      list.push(`${t("marketplace.optionPublicReport")} (${t("marketplace.noReports")})`);
+      list.push(
+        `${t("marketplace.optionPublicReport")} (${t("marketplace.noReports")})`
+      );
     return list;
   }, [
     hasInsurance,
@@ -341,12 +346,12 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                       }
                       getLabel={(value) => {
                         const report = publicReports.find(
-                          (r) => r.id === value,
+                          (r) => r.id === value
                         );
                         if (!report) return t("marketplace.noReport");
                         const date = formatDateDisplay(
                           report.created_at,
-                          i18n.language,
+                          i18n.language
                         );
                         return (
                           report.title || `${t("marketplace.report")} - ${date}`

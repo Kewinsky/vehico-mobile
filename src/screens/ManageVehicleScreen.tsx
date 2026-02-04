@@ -18,7 +18,7 @@ import * as Clipboard from "expo-clipboard";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import { useSharedValue } from "react-native-reanimated";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import type { Vehicle } from "../types/domain";
 import { deleteVehicle, getVehicle } from "../services/vehicles/vehiclesRepo";
 import {
@@ -32,7 +32,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicle">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "ManageVehicle">;
 
 type VehicleCarouselProps = {
   photoUrls: string[];
@@ -135,7 +135,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t],
+    [vehicleId, t]
   );
 
   useEffect(() => {
@@ -143,7 +143,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false }),
+      () => void load({ showLoading: false })
     );
     return unsub;
   }, [navigation, load]);
@@ -173,7 +173,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
             }
           },
         },
-      ],
+      ]
     );
   }
 
@@ -375,7 +375,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                                 vehicle.transmission.slice(1)
                               }` as
                                 | "vehicleForm.transmissionManual"
-                                | "vehicleForm.transmissionAutomatic",
+                                | "vehicleForm.transmissionAutomatic"
                             )
                           : "N/A"}
                       </Text>
@@ -435,7 +435,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                                 | "vehicleForm.fuelTypeDiesel"
                                 | "vehicleForm.fuelTypeHybrid"
                                 | "vehicleForm.fuelTypeElectric"
-                                | "vehicleForm.fuelTypeLpg",
+                                | "vehicleForm.fuelTypeLpg"
                             )
                           : "N/A"}
                       </Text>

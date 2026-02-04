@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import type { VehicleTire, VehicleWheel } from "../types/domain";
 import {
   listVehicleTires,
@@ -20,7 +20,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Wheels">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "Wheels">;
 
 export function WheelsOverviewScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -109,7 +109,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
                 {formatTireDimensions(
                   currentTire.width_mm,
                   currentTire.aspect_ratio,
-                  currentTire.diameter_inch,
+                  currentTire.diameter_inch
                 )}
               </Text>
             ) : (
@@ -127,7 +127,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
                 {currentWheel.name} –{" "}
                 {formatWheelDimensions(
                   currentWheel.width_inch,
-                  currentWheel.diameter_inch,
+                  currentWheel.diameter_inch
                 )}
               </Text>
             ) : (

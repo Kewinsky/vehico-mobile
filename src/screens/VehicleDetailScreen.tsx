@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { i18n } from "../i18n/i18n";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import type {
   Reminder,
   ServiceEntry,
@@ -29,7 +29,7 @@ import { PickerField } from "../ui/components/PickerField";
 import { Ionicons } from "@expo/vector-icons";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "VehicleDetail">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "VehicleDetail">;
 
 import {
   formatDateDisplay,
@@ -90,7 +90,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         const countMap: Record<string, number> = {};
         for (const entry of data) {
           const entryAttachments = attachments.filter(
-            (att) => att.service_entry_id === entry.id,
+            (att) => att.service_entry_id === entry.id
           );
           countMap[entry.id] = entryAttachments.length;
         }
@@ -104,7 +104,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         }
       }
     },
-    [vehicleId, t],
+    [vehicleId, t]
   );
 
   useEffect(() => {
@@ -112,7 +112,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false }),
+      () => void load({ showLoading: false })
     );
     return unsub;
   }, [navigation, load]);
@@ -233,7 +233,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
 
     // Reminders are always sorted by date (newest first)
     const sortedReminderRows = [...reminderRows].sort((a, b) =>
-      a.sortKey === b.sortKey ? 0 : a.sortKey < b.sortKey ? 1 : -1,
+      a.sortKey === b.sortKey ? 0 : a.sortKey < b.sortKey ? 1 : -1
     );
 
     // Combine: if sorting by date, mix reminders with service entries
@@ -628,7 +628,9 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                 badge={t(`entryForm.categories.${cat}` as any)}
                 badgeVariant="accent"
                 subtitle={[
-                  e.service_date ? formatDateDisplay(e.service_date, i18n.language) : null,
+                  e.service_date
+                    ? formatDateDisplay(e.service_date, i18n.language)
+                    : null,
                   e.mileage
                     ? `${e.mileage.toLocaleString()} ${distanceUnit}`
                     : null,

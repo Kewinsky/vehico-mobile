@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { DraggableGrid } from "react-native-draggable-grid";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
@@ -27,7 +27,10 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 const MAX_PHOTOS = 30;
 
-type Props = NativeStackScreenProps<AppStackParamList, "PublicReportConfigure">;
+type Props = NativeStackScreenProps<
+  DashboardStackParamList,
+  "PublicReportConfigure"
+>;
 
 type PhotoItem = {
   key: string;
@@ -518,7 +521,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
                     <View style={styles.vehiclePhotosList}>
                       {vehiclePhotos.map((photo) => {
                         const isSelected = selectedVehiclePhotoIds.has(
-                          photo.id,
+                          photo.id
                         );
                         return (
                           <Pressable

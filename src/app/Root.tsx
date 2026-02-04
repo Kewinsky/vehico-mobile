@@ -1,25 +1,18 @@
 import React, { useEffect } from "react";
 import { Linking } from "react-native";
-import {
-  NavigationContainer,
-  createNavigationContainerRef,
-} from "@react-navigation/native";
+import { NavigationContainer } from "@react-navigation/native";
 import * as LinkingModule from "expo-linking";
 import * as Notifications from "expo-notifications";
 
 import "../i18n/i18n";
-import {
-  RootNavigator,
-  type AppStackParamList,
-} from "./navigation/RootNavigator";
+import { RootNavigator } from "./navigation/RootNavigator";
+import { navigationRef } from "./navigationRef";
 import { AuthProvider } from "./providers/AuthProvider";
 import { UserSettingsProvider } from "./providers/UserSettingsProvider";
 import { ThemeProvider, useTheme } from "../ui/ThemeProvider";
 import { AppToasts } from "../ui/toast/AppToasts";
 import { setThemeColorsGetter } from "../ui/toast/toast";
 import { supabase } from "../services/supabase/client";
-
-export const navigationRef = createNavigationContainerRef<AppStackParamList>();
 
 function AppContent() {
   const { theme } = useTheme();
@@ -31,9 +24,15 @@ function AppContent() {
       vehicleId?: string;
     }) => {
       if (data?.reminderId && data?.vehicleId && navigationRef.isReady()) {
-        navigationRef.navigate("ReminderDetail", {
-          vehicleId: data.vehicleId,
-          reminderId: data.reminderId,
+        navigationRef.navigate("MainTabs", {
+          screen: "Dashboard",
+          params: {
+            screen: "ReminderDetail",
+            params: {
+              vehicleId: data.vehicleId,
+              reminderId: data.reminderId,
+            },
+          },
         });
       }
     };

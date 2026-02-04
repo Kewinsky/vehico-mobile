@@ -13,7 +13,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import {
   getMarketplacePost,
   updateMarketplacePost,
@@ -26,7 +26,10 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "MarketplacePostEdit">;
+type Props = NativeStackScreenProps<
+  DashboardStackParamList,
+  "MarketplacePostEdit"
+>;
 
 export function MarketplacePostEditScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -40,7 +43,7 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
     en: "",
   });
   const [displayLang, setDisplayLang] = useState<"pl" | "en">(
-    (settings?.language as "pl" | "en") ?? "pl",
+    (settings?.language as "pl" | "en") ?? "pl"
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

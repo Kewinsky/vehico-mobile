@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import type { WorkshopType } from "../types/domain";
 import {
   createWorkshop,
@@ -18,7 +18,7 @@ import { PickerField } from "../ui/components/PickerField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<AppStackParamList, "WorkshopForm">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "WorkshopForm">;
 
 const WORKSHOP_TYPES: WorkshopType[] = [
   "mechanic",

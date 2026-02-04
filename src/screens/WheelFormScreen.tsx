@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import { isPositiveNumber, isValidEt, parseDecimal } from "../utils/validation";
 import {
   createVehicleWheel,
@@ -17,7 +17,7 @@ import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<AppStackParamList, "WheelForm">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "WheelForm">;
 
 export function WheelFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -47,7 +47,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
         setEtOffset(wheel.et_offset != null ? String(wheel.et_offset) : "");
         setBoltPattern(wheel.bolt_pattern ?? "");
         setCenterBore(
-          wheel.center_bore_mm != null ? String(wheel.center_bore_mm) : "",
+          wheel.center_bore_mm != null ? String(wheel.center_bore_mm) : ""
         );
         setBoltType(wheel.bolt_type ?? "");
         setWeight(wheel.weight_kg != null ? String(wheel.weight_kg) : "");

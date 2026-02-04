@@ -1,21 +1,15 @@
-import {
-  Animated,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { Database, Fuel } from "lucide-react-native";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
+import { navigationRef } from "../app/navigationRef";
+import { useQuickActions } from "../app/providers/QuickActionsProvider";
 import type { Vehicle } from "../types/domain";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import { AppHeader } from "../ui/components/AppHeader";
@@ -24,7 +18,10 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
+type Props = NativeStackScreenProps<
+  DashboardStackParamList,
+  "VehicleDashboard"
+>;
 
 type Tile = {
   key: string;
@@ -38,14 +35,15 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, insets);
+  const { setCurrentVehicleId } = useQuickActions();
   const { vehicleId } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showMenu, setShowMenu] = useState(false);
-  const menuOpacity = useRef(new Animated.Value(0)).current;
-  const menuTranslateY = useRef(new Animated.Value(20)).current;
-  const overlayOpacity = useRef(new Animated.Value(0)).current;
-  const iconRotation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    setCurrentVehicleId(vehicleId);
+    return () => setCurrentVehicleId(null);
+  }, [vehicleId, setCurrentVehicleId]);
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -147,76 +145,9 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     },
   ];
 
-  const handleAddService = () => {
-    setShowMenu(false);
-    navigation.navigate("ServiceEntryForm", { vehicleId });
-  };
-
-  const handleAddFuel = () => {
-    setShowMenu(false);
-    navigation.navigate("FuelingEntryForm", { vehicleId });
-  };
-
-  const handleAddReminder = () => {
-    setShowMenu(false);
-    navigation.navigate("ReminderForm", { vehicleId });
-  };
-
-  useEffect(() => {
-    if (showMenu) {
-      // Animate menu in
-      Animated.parallel([
-        Animated.timing(menuOpacity, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(menuTranslateY, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(overlayOpacity, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(iconRotation, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      // Animate menu out
-      Animated.parallel([
-        Animated.timing(menuOpacity, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(menuTranslateY, {
-          toValue: 20,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(overlayOpacity, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(iconRotation, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [showMenu]);
-
   return (
     <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+      <AppHeader onBack={() => navigationRef.navigate("Vehicles")} />
       {loading ? (
         <View
           style={{
@@ -282,110 +213,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           )}
         />
       )}
-
-      {/* Floating Action Button */}
-      <TouchableWithoutFeedback onPress={() => setShowMenu(false)}>
-        <Animated.View
-          style={[
-            styles.menuOverlay,
-            {
-              opacity: overlayOpacity,
-            },
-          ]}
-          pointerEvents={showMenu ? "auto" : "none"}
-        />
-      </TouchableWithoutFeedback>
-      <View style={styles.fabContainer}>
-        <Animated.View
-          style={[
-            styles.menu,
-            {
-              backgroundColor: theme.colors.card,
-              borderColor: theme.colors.border,
-              opacity: menuOpacity,
-              transform: [{ translateY: menuTranslateY }],
-            },
-          ]}
-          pointerEvents={showMenu ? "auto" : "none"}
-        >
-          <Pressable
-            onPress={handleAddService}
-            style={({ pressed }) => [
-              styles.menuItem,
-              pressed && styles.menuItemPressed,
-            ]}
-          >
-            <View style={styles.menuItemIconContainer}>
-              <Ionicons
-                name="construct"
-                size={20}
-                color={theme.colors.accent}
-              />
-            </View>
-            <Text style={[styles.menuItemText, { color: theme.colors.fg }]}>
-              {t("dashboard.quickActions.addService")}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={handleAddFuel}
-            style={({ pressed }) => [
-              styles.menuItem,
-              pressed && styles.menuItemPressed,
-            ]}
-          >
-            <View style={styles.menuItemIconContainer}>
-              <Fuel size={20} color={theme.colors.accent} />
-            </View>
-            <Text style={[styles.menuItemText, { color: theme.colors.fg }]}>
-              {t("dashboard.quickActions.addFuel")}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={handleAddReminder}
-            style={({ pressed }) => [
-              styles.menuItem,
-              pressed && styles.menuItemPressed,
-            ]}
-          >
-            <View style={styles.menuItemIconContainer}>
-              <Ionicons
-                name="notifications"
-                size={20}
-                color={theme.colors.accent}
-              />
-            </View>
-            <Text style={[styles.menuItemText, { color: theme.colors.fg }]}>
-              {t("dashboard.quickActions.addReminder")}
-            </Text>
-          </Pressable>
-        </Animated.View>
-        <Pressable
-          onPress={() => setShowMenu(!showMenu)}
-          style={({ pressed }) => [
-            styles.fab,
-            {
-              backgroundColor: theme.colors.accent,
-              borderColor: theme.colors.accent,
-            },
-            pressed && styles.fabPressed,
-          ]}
-        >
-          <Animated.View
-            style={{
-              transform: [
-                {
-                  rotate: iconRotation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ["0deg", "45deg"],
-                  }),
-                },
-              ],
-            }}
-          >
-            <Ionicons name="add" size={24} color="#000000" />
-          </Animated.View>
-        </Pressable>
-      </View>
     </Screen>
   );
 }
@@ -413,7 +240,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     list: {
       paddingHorizontal: theme.spacing.md,
-      paddingBottom: insets.bottom + theme.spacing.xl, // Extra padding for FAB
+      paddingBottom: insets.bottom + theme.spacing.xl,
       gap: theme.spacing.xs,
     },
     listHeader: {
@@ -442,60 +269,5 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontSize: theme.typography.body,
       fontWeight: "800",
       textAlign: "center",
-    },
-    menuOverlay: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 999,
-      backgroundColor: "rgba(0, 0, 0, 0.7)",
-    },
-    fabContainer: {
-      position: "absolute",
-      bottom: theme.spacing.xl,
-      right: theme.spacing.xl,
-      zIndex: 1000,
-    },
-    fab: {
-      width: theme.spacing.xl + theme.spacing.sm,
-      height: theme.spacing.xl + theme.spacing.sm,
-      borderRadius: theme.radius.md,
-      alignItems: "center",
-      justifyContent: "center",
-      borderWidth: 1,
-      elevation: 4,
-    },
-    fabPressed: {
-      opacity: 0.9,
-    },
-    menu: {
-      position: "absolute",
-      bottom: 60,
-      right: 0,
-      minWidth: 200,
-      borderRadius: theme.radius.md,
-      borderWidth: 1,
-      paddingVertical: theme.spacing.xs,
-      elevation: 8,
-    },
-    menuItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.sm,
-      gap: theme.spacing.sm,
-    },
-    menuItemIconContainer: {
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    menuItemPressed: {
-      opacity: 0.7,
-    },
-    menuItemText: {
-      fontSize: theme.typography.body,
-      fontWeight: "500",
     },
   });

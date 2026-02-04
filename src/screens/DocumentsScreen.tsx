@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
@@ -41,7 +41,7 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { TextField } from "../ui/components/TextField";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "Documents">;
 
 export function DocumentsScreen({ route, navigation }: Props) {
   const { t, i18n } = useTranslation();

@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import type { ServiceEntry } from "../types/domain";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { uploadAttachment } from "../services/attachments/attachmentsRepo";
@@ -24,7 +24,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "AddAttachment">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "AddAttachment">;
 
 export function AddAttachmentScreen({ navigation, route }: Props) {
   const { t } = useTranslation();

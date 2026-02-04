@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import {
   isValidDate,
   isPositiveNumber,
@@ -26,7 +26,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
 
-type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "ReminderForm">;
 
 export function ReminderFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();

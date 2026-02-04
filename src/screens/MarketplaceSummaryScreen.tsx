@@ -11,7 +11,7 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import type { Vehicle } from "../types/domain";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
@@ -34,7 +34,10 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
-type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceSummary">;
+type Props = NativeStackScreenProps<
+  DashboardStackParamList,
+  "MarketplaceSummary"
+>;
 
 function InfoCard({
   title,
@@ -162,9 +165,8 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
       toastSuccess(t("marketplace.postGenerated"));
 
       navigation.reset({
-        index: 4,
+        index: 3,
         routes: [
-          { name: "Vehicles" },
           { name: "VehicleDashboard", params: { vehicleId } },
           { name: "Share", params: { vehicleId } },
           { name: "Marketplace", params: { vehicleId } },
@@ -315,7 +317,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                       | "vehicleForm.fuelTypeDiesel"
                       | "vehicleForm.fuelTypeHybrid"
                       | "vehicleForm.fuelTypeElectric"
-                      | "vehicleForm.fuelTypeLpg",
+                      | "vehicleForm.fuelTypeLpg"
                   )}
                 </Text>
               </View>

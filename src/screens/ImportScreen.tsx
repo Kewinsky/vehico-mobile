@@ -3,7 +3,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { DashboardStackParamList } from "../app/navigation/types";
 import { createServiceEntry } from "../services/serviceEntries/serviceEntriesRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
@@ -12,7 +12,7 @@ import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Import">;
+type Props = NativeStackScreenProps<DashboardStackParamList, "Import">;
 
 function parseCsvLine(line: string): string[] {
   const out: string[] = [];
@@ -87,7 +87,7 @@ export function ImportScreen({ navigation, route }: Props) {
               ? (r[iCategory] ?? "").trim().toLowerCase()
               : "other",
           title: r[iTitle] ?? "",
-          description: iDesc >= 0 ? (r[iDesc] ?? "") : "",
+          description: iDesc >= 0 ? r[iDesc] ?? "" : "",
           mileage:
             iMileage >= 0 && (r[iMileage] ?? "").length
               ? Number(r[iMileage])
@@ -95,7 +95,7 @@ export function ImportScreen({ navigation, route }: Props) {
           cost: iCost >= 0 && (r[iCost] ?? "").length ? Number(r[iCost]) : null,
         }))
         .filter(
-          (r) => r.service_date.trim().length === 10 && r.title.trim().length,
+          (r) => r.service_date.trim().length === 10 && r.title.trim().length
         );
 
       if (toCreate.length === 0) {
@@ -147,7 +147,7 @@ export function ImportScreen({ navigation, route }: Props) {
               }
             },
           },
-        ],
+        ]
       );
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));

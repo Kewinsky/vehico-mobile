@@ -230,6 +230,11 @@ export const pl = {
       description: "Opis",
     },
   },
+  tabs: {
+    dashboard: "Panel",
+    placeholder: "Placeholder",
+    profile: "Profil",
+  },
   dashboard: {
     backToVehicles: "Wróć do pojazdów",
     stats: {
@@ -308,6 +313,7 @@ export const pl = {
       addService: "Dodaj wpis serwisowy",
       addFuel: "Dodaj tankowanie",
       addReminder: "Dodaj przypomnienie",
+      selectVehicle: "Wybierz pojazd, aby dodać wpisy",
     },
     publicLinkTitle: "Link publiczny",
     publicLinkBody: "Public ID: {{id}}",
