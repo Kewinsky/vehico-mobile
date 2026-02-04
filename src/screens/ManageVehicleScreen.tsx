@@ -61,44 +61,59 @@ function VehicleCarousel({
       }
       style={{ width, height, overflow: "hidden" }}
     >
-      <Carousel
-        loop={true}
-        snapEnabled={true}
-        pagingEnabled={true}
-        data={photoUrls}
-        width={width}
-        height={height}
-        onProgressChange={(offsetProgress, absoluteProgress) => {
-          progress.value = absoluteProgress;
-          currentIndexRef.current = absoluteProgress;
-        }}
-        renderItem={({ item: url }) => (
-          <View style={{ width: "100%", height: "100%", overflow: "hidden" }}>
-            <Image
-              source={{ uri: url }}
-              style={{
-                width: "100%",
-                height: "100%",
-                backgroundColor: theme.colors.card,
+      <View style={{ position: "relative", width, height }}>
+        <Carousel
+          loop={true}
+          snapEnabled={true}
+          pagingEnabled={true}
+          data={photoUrls}
+          width={width}
+          height={height}
+          onProgressChange={(offsetProgress, absoluteProgress) => {
+            progress.value = absoluteProgress;
+            currentIndexRef.current = absoluteProgress;
+          }}
+          renderItem={({ item: url }) => (
+            <View style={{ width: "100%", height: "100%", overflow: "hidden" }}>
+              <Image
+                source={{ uri: url }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: theme.colors.card,
+                }}
+                contentFit="cover"
+                transition={200}
+              />
+            </View>
+          )}
+        />
+        {photoUrls.length > 1 && (
+          <View
+            style={{
+              position: "absolute",
+              bottom: theme.spacing.md,
+              right: theme.spacing.md,
+              zIndex: 10,
+            }}
+            pointerEvents="none"
+          >
+            <Pagination.Basic
+              progress={progress}
+              data={photoUrls.map((url) => ({ url }))}
+              dotStyle={{
+                backgroundColor: "rgba(255,255,255,0.5)",
+                borderRadius: 50,
               }}
-              contentFit="cover"
-              transition={200}
+              activeDotStyle={{
+                backgroundColor: theme.colors.accent,
+                borderRadius: 50,
+              }}
+              containerStyle={{ gap: 5 }}
             />
           </View>
         )}
-      />
-      {photoUrls.length > 1 && (
-        <Pagination.Basic
-          progress={progress}
-          data={photoUrls.map((url) => ({ url }))}
-          dotStyle={{ backgroundColor: theme.colors.border, borderRadius: 50 }}
-          activeDotStyle={{
-            backgroundColor: theme.colors.accent,
-            borderRadius: 50,
-          }}
-          containerStyle={{ gap: 5, marginTop: 10 }}
-        />
-      )}
+      </View>
     </Pressable>
   );
 }
@@ -231,7 +246,6 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                 </View>
               )}
             </View>
-            <View style={{ height: theme.spacing.md }} />
             <View style={styles.detailsContent}>
               <Text
                 style={styles.detailsTitle}

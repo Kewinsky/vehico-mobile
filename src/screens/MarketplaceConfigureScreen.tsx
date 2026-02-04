@@ -445,7 +445,7 @@ const makeStyles = (theme: any) =>
     optionCheckbox: {
       width: 24,
       height: 24,
-      borderRadius: 4,
+      borderRadius: theme.radius.xs,
       borderWidth: 2,
       borderColor: theme.colors.border,
       alignItems: "center",

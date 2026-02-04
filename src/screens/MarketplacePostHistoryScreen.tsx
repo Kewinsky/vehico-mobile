@@ -234,9 +234,9 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     postTitle: {
-      fontSize: 15,
+      fontSize: theme.typography.body,
       fontWeight: "800",
-      marginBottom: 4,
+      marginBottom: theme.spacing.xs,
     },
     postDate: {
       fontSize: theme.typography.xs,

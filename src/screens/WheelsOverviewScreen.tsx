@@ -79,7 +79,10 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
       <ScrollView
-        contentContainerStyle={[styles.container, { paddingHorizontal: theme.layout.contentPaddingHorizontal }]}
+        contentContainerStyle={[
+          styles.container,
+          { paddingHorizontal: theme.layout.contentPaddingHorizontal },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <Text style={[styles.title, { color: theme.colors.fg }]}>
@@ -211,7 +214,7 @@ function makeStyles(theme: any) {
       marginBottom: theme.spacing.sm,
     },
     card: {
-      borderRadius: theme.radius.sm,
+      borderRadius: theme.radius.md,
       borderWidth: 1,
       padding: theme.spacing.md,
     },
@@ -231,7 +234,7 @@ function makeStyles(theme: any) {
     },
     actionCard: {
       flex: 1,
-      borderRadius: theme.radius.sm,
+      borderRadius: theme.radius.md,
       borderWidth: 1,
       padding: theme.spacing.lg,
       alignItems: "center",

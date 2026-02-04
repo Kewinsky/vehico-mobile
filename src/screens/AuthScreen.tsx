@@ -248,9 +248,6 @@ export function AuthScreen({ navigation }: Props) {
           <Text style={[styles.authTitle, { color: theme.colors.fg }]}>
             {t("auth.title")}
           </Text>
-          <Text style={[styles.authSubtitle, { color: theme.colors.muted }]}>
-            {t("auth.subtitle")}
-          </Text>
         </View>
         {/* Magic Link Section */}
         <View style={styles.magicLinkSection}>
@@ -400,10 +397,6 @@ const makeStyles = (theme: any) =>
     authTitle: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
-    },
-    authSubtitle: {
-      fontSize: theme.typography.small,
-      marginTop: theme.spacing.xs,
     },
     socialSection: {
       gap: theme.spacing.sm,

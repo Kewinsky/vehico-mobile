@@ -106,7 +106,7 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     title: {
-      fontSize: theme.typography.title,
+      fontSize: theme.typography.largeTitle,
       fontWeight: "700",
     },
 

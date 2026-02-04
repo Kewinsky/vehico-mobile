@@ -384,7 +384,7 @@ export function FuelScreen({ route, navigation }: Props) {
                     })
                   }
                 >
-                  <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
+                  <Text style={[styles.cardTitle, { color: theme.colors.fg }]}>
                     {entry.date}
                     {entry.fuel_type
                       ? ` · ${t(`fuelingForm.fuelTypes.${entry.fuel_type}`)}`
@@ -394,10 +394,13 @@ export function FuelScreen({ route, navigation }: Props) {
                       : ""}
                   </Text>
                   <Text
-                    style={{
-                      color: theme.colors.muted,
-                      marginTop: theme.spacing.xs / 2,
-                    }}
+                    style={[
+                      styles.cardMeta,
+                      {
+                        color: theme.colors.muted,
+                        marginTop: theme.spacing.xs / 2,
+                      },
+                    ]}
                   >
                     {Number(entry.distance).toFixed(1)} {distanceUnit} ·{" "}
                     {Number(entry.fuel_amount).toFixed(1)} {fuelUnitLabel} ·{" "}
@@ -466,12 +469,19 @@ const makeStyles = (theme: any) =>
     card: {
       borderWidth: 1,
       borderRadius: theme.radius.md,
-      padding: theme.spacing.sm,
+      padding: theme.spacing.md,
     },
     cardRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
+    },
+    cardTitle: {
+      fontSize: theme.typography.body,
+      fontWeight: "800",
+    },
+    cardMeta: {
+      fontSize: theme.typography.small,
     },
     actionsRow: {
       flexDirection: "row",
@@ -480,7 +490,7 @@ const makeStyles = (theme: any) =>
     filterButton: {
       width: theme.spacing.xl + theme.spacing.sm,
       height: theme.spacing.xl + theme.spacing.sm,
-      borderRadius: theme.radius.sm,
+      borderRadius: theme.radius.md,
       borderWidth: 1,
       alignItems: "center",
       justifyContent: "center",
@@ -498,7 +508,7 @@ const makeStyles = (theme: any) =>
     },
     filtersAction: {
       borderWidth: 1,
-      borderRadius: theme.radius.sm,
+      borderRadius: theme.radius.md,
       paddingVertical: theme.spacing.sm - 2,
       paddingHorizontal: theme.spacing.sm,
       alignSelf: "flex-start",

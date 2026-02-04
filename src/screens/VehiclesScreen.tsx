@@ -37,6 +37,7 @@ type VehicleCarouselProps = {
   width: number;
   height: number;
   theme: any;
+  progress: ReturnType<typeof useSharedValue<number>>;
 };
 
 function VehicleCarousel({
@@ -44,9 +45,8 @@ function VehicleCarousel({
   width,
   height,
   theme,
+  progress,
 }: VehicleCarouselProps) {
-  const progress = useSharedValue(0);
-
   if (photoUrls.length === 0) return null;
 
   return (
@@ -58,7 +58,7 @@ function VehicleCarousel({
         data={photoUrls}
         width={width}
         height={height}
-        onProgressChange={(offsetProgress, absoluteProgress) => {
+        onProgressChange={(_offset, absoluteProgress) => {
           progress.value = absoluteProgress;
         }}
         renderItem={({ item: url }) => (
@@ -76,14 +76,67 @@ function VehicleCarousel({
           </View>
         )}
       />
+    </View>
+  );
+}
+
+type VehicleCardImageProps = {
+  item: Vehicle;
+  photoUrls: string[];
+  carouselWidth: number;
+  theme: any;
+  styles: ReturnType<typeof makeStyles>;
+  formatMileage: (m: number | null | undefined) => string;
+  i18n: { language: string };
+};
+
+function VehicleCardImage({
+  item,
+  photoUrls,
+  carouselWidth,
+  theme,
+  styles,
+  formatMileage,
+  i18n,
+}: VehicleCardImageProps) {
+  const progress = useSharedValue(0);
+
+  return (
+    <>
+      <VehicleCarousel
+        photoUrls={photoUrls}
+        width={carouselWidth}
+        height={220}
+        theme={theme}
+        progress={progress}
+      />
+      <View style={styles.vehicleImageContent}>
+        <Text
+          style={[styles.vehicleTitle, styles.vehicleTitleOverlay]}
+          numberOfLines={2}
+        >
+          {`${item.make} ${item.model}`}
+        </Text>
+        <Text
+          style={[styles.vehicleMeta, styles.vehicleMetaOverlay]}
+          numberOfLines={1}
+        >
+          {item.production_year}
+          {item.power_hp
+            ? ` · ${item.power_hp}${i18n.language === "pl" ? "KM" : "HP"}`
+            : ""}
+          {item.mileage ? ` · ${formatMileage(item.mileage)}` : ""}
+        </Text>
+      </View>
       {photoUrls.length > 1 && (
         <View
           style={{
             position: "absolute",
             bottom: theme.spacing.md,
             right: theme.spacing.md,
-            zIndex: 100,
+            zIndex: 10,
           }}
+          pointerEvents="none"
         >
           <Pagination.Basic
             progress={progress}
@@ -100,7 +153,7 @@ function VehicleCarousel({
           />
         </View>
       )}
-    </View>
+    </>
   );
 }
 
@@ -293,42 +346,15 @@ export function VehiclesScreen({ navigation }: Props) {
                       }
 
                       return (
-                        <>
-                          <VehicleCarousel
-                            photoUrls={photoUrls}
-                            width={carouselWidth}
-                            height={220}
-                            theme={theme}
-                          />
-                          <View style={styles.vehicleImageContent}>
-                            <Text
-                              style={[
-                                styles.vehicleTitle,
-                                styles.vehicleTitleOverlay,
-                              ]}
-                              numberOfLines={2}
-                            >
-                              {`${item.make} ${item.model}`}
-                            </Text>
-                            <Text
-                              style={[
-                                styles.vehicleMeta,
-                                styles.vehicleMetaOverlay,
-                              ]}
-                              numberOfLines={1}
-                            >
-                              {item.production_year}
-                              {item.power_hp
-                                ? ` · ${item.power_hp}${
-                                    i18n.language === "pl" ? "KM" : "HP"
-                                  }`
-                                : ""}
-                              {item.mileage
-                                ? ` · ${formatMileage(item.mileage)}`
-                                : ""}
-                            </Text>
-                          </View>
-                        </>
+                        <VehicleCardImage
+                          item={item}
+                          photoUrls={photoUrls}
+                          carouselWidth={carouselWidth}
+                          theme={theme}
+                          styles={styles}
+                          formatMileage={formatMileage}
+                          i18n={i18n}
+                        />
                       );
                     })()}
                   </View>

@@ -176,7 +176,7 @@ function donutSlicePath(
   rOuter: number,
   rInner: number,
   startAngle: number,
-  endAngle: number,
+  endAngle: number
 ) {
   const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
 
@@ -511,7 +511,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
 
       const startDate = new Date(currentYear, currentMonth - monthsBack, 1);
       startMonthStr = `${startDate.getFullYear()}-${String(
-        startDate.getMonth() + 1,
+        startDate.getMonth() + 1
       ).padStart(2, "0")}`;
     }
 
@@ -551,19 +551,19 @@ export function StatisticsCard({ vehicleId, period }: Props) {
   const totals = useMemo(() => {
     const serviceCost = filtered.service.reduce(
       (sum, x) => sum + Number(x.cost ?? 0),
-      0,
+      0
     );
     const fuelCost = filtered.fueling.reduce(
       (sum, x) => sum + Number(x.fuel_cost ?? 0),
-      0,
+      0
     );
     const totalDistance = filtered.fueling.reduce(
       (sum, x) => sum + Number(x.distance ?? 0),
-      0,
+      0
     );
     const totalFuel = filtered.fueling.reduce(
       (sum, x) => sum + Number(x.fuel_amount ?? 0),
-      0,
+      0
     );
     const total = serviceCost + fuelCost;
     const avgConsumptionPer100 =
@@ -679,7 +679,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
       .sort(
         (a, b) =>
           new Date(b.service_date).getTime() -
-          new Date(a.service_date).getTime(),
+          new Date(a.service_date).getTime()
       );
     return oilEntries[0] ?? null;
   }, [service]);
@@ -690,7 +690,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
       .sort(
         (a, b) =>
           new Date(a.service_date).getTime() -
-          new Date(b.service_date).getTime(),
+          new Date(b.service_date).getTime()
       );
     if (oilEntries.length < 2)
       return { avgKm: Number.NaN, avgMonths: Number.NaN };
@@ -729,10 +729,11 @@ export function StatisticsCard({ vehicleId, period }: Props) {
   }, [service]);
 
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const contentPadding = theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
+  const contentPadding =
+    theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
   const chartWidth = Math.max(
     280,
-    windowWidth - contentPadding * 2 - theme.spacing.md * 2 - 20,
+    windowWidth - contentPadding * 2 - theme.spacing.md * 2 - 20
   );
 
   const palette = useMemo(
@@ -745,7 +746,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
       "#06B6D4", // cyan-500 - cyan
       "#EF4444", // red-500 - red
     ],
-    [theme.colors.accent],
+    [theme.colors.accent]
   );
 
   const categorySeries = useMemo(
@@ -754,12 +755,12 @@ export function StatisticsCard({ vehicleId, period }: Props) {
         ...x,
         color: palette[idx % palette.length],
       })),
-    [expensesByCategory, palette],
+    [expensesByCategory, palette]
   );
 
   const totalByCategory = useMemo(
     () => categorySeries.reduce((s, x) => s + clampNonNeg(x.value), 0),
-    [categorySeries],
+    [categorySeries]
   );
 
   const isNarrow = windowWidth < 380;
@@ -803,7 +804,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
                 {Number.isFinite(totals.avgConsumptionPer100)
                   ? `${fmtNumber(
                       totals.avgConsumptionPer100,
-                      1,
+                      1
                     )} ${fuelUnitLabel}/100 ${distanceUnit}`
                   : "—"}
               </Text>
@@ -816,7 +817,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
                 {Number.isFinite(totals.costPer100)
                   ? `${fmtNumber(
                       totals.costPer100,
-                      2,
+                      2
                     )} ${currency}/100 ${distanceUnit}`
                   : "—"}
               </Text>
@@ -950,7 +951,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
                         {fmtPct(
                           totalByCategory > 0
                             ? (c.value / totalByCategory) * 100
-                            : Number.NaN,
+                            : Number.NaN
                         )}{" "}
                         · {fmtMoney(c.value, currency)}
                       </Text>
@@ -1075,7 +1076,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
                         {formatTireDimensions(
                           currentTire.width_mm,
                           currentTire.aspect_ratio,
-                          currentTire.diameter_inch,
+                          currentTire.diameter_inch
                         )}{" "}
                         · {t(`tireForm.types.${currentTire.tire_type}`)}
                       </Text>
@@ -1096,7 +1097,7 @@ export function StatisticsCard({ vehicleId, period }: Props) {
                         {currentWheel.name} ·{" "}
                         {formatWheelDimensions(
                           currentWheel.width_inch,
-                          currentWheel.diameter_inch,
+                          currentWheel.diameter_inch
                         )}
                       </Text>
                     </View>
@@ -1134,18 +1135,18 @@ const makeStyles = (theme: any) =>
     metricLabel: {
       color: theme.colors.muted,
       fontWeight: "700",
-      fontSize: theme.typography.xs,
+      fontSize: theme.typography.small,
     },
     metricValue: {
       color: theme.colors.fg,
       fontWeight: "800",
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
     },
     section: { gap: theme.spacing.sm },
     sectionTitle: {
       color: theme.colors.fg,
       fontWeight: "800",
-      fontSize: theme.typography.body,
+      fontSize: theme.typography.title,
     },
     empty: {
       color: theme.colors.muted,
@@ -1168,7 +1169,7 @@ const makeStyles = (theme: any) =>
     infoRowLabel: {
       color: theme.colors.muted,
       fontWeight: "700",
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
       flexShrink: 0,
     },
     infoRowValueWrap: {
@@ -1178,7 +1179,7 @@ const makeStyles = (theme: any) =>
     infoRowValue: {
       color: theme.colors.fg,
       fontWeight: "700",
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
       textAlign: "right",
     },
     chartWrap: {
@@ -1216,11 +1217,11 @@ const makeStyles = (theme: any) =>
     legendLabel: {
       color: theme.colors.fg,
       fontWeight: "800",
-      fontSize: theme.typography.xs,
+      fontSize: theme.typography.small,
     },
     legendValue: {
       color: theme.colors.muted,
       fontWeight: "800",
-      fontSize: theme.typography.xs,
+      fontSize: theme.typography.small,
     },
   });

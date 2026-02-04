@@ -353,7 +353,7 @@ function makeStyles(theme: any) {
     addButton: {
       width: theme.spacing.xl + theme.spacing.sm,
       height: theme.spacing.xl + theme.spacing.sm,
-      borderRadius: theme.radius.sm,
+      borderRadius: theme.radius.md,
       borderWidth: 1,
       alignItems: "center",
       justifyContent: "center",

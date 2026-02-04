@@ -522,7 +522,7 @@ const makeStyles = (theme: any) =>
       color: theme.colors.fg,
     },
     label: {
-      fontSize: 13,
+      fontSize: theme.typography.small,
       fontWeight: "700",
       color: theme.colors.muted,
     },
@@ -554,7 +554,7 @@ const makeStyles = (theme: any) =>
     optionCheckbox: {
       width: 24,
       height: 24,
-      borderRadius: 4,
+      borderRadius: theme.radius.xs,
       borderWidth: 2,
       borderColor: theme.colors.border,
       alignItems: "center",
@@ -580,9 +580,9 @@ const makeStyles = (theme: any) =>
     },
     textArea: {
       flex: 1,
-      fontSize: 14,
+      fontSize: theme.typography.body,
       fontFamily: "monospace",
-      lineHeight: 20,
+      lineHeight: theme.typography.body + 4,
     },
     actionsRow: {
       flexDirection: "row",

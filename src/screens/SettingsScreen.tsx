@@ -260,7 +260,7 @@ const makeStyles = (theme: any) =>
     },
     choice: {
       borderWidth: 1,
-      borderRadius: theme.radius.md - 2,
+      borderRadius: theme.radius.sm,
       paddingVertical: theme.spacing.sm - 2,
       paddingHorizontal: theme.spacing.sm,
       width: "48%",

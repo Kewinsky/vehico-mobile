@@ -110,7 +110,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     row: {
       flexDirection: "row",
-      gap: 8,
+      gap: theme.spacing.sm,
     },
     tile: {
       flex: 1,
@@ -129,7 +129,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     tileTitle: {
       color: theme.colors.fg,
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
       fontWeight: "800",
       textAlign: "center",
     },

@@ -20,6 +20,7 @@ export function PlaceholderScreen() {
 function makeStyles(theme: {
   colors: { fg: string; muted: string };
   spacing: { lg: number };
+  typography: { title: number };
 }) {
   return StyleSheet.create({
     container: {
@@ -29,7 +30,7 @@ function makeStyles(theme: {
       padding: theme.spacing.lg,
     },
     text: {
-      fontSize: 18,
+      fontSize: theme.typography.title,
       color: theme.colors.muted ?? theme.colors.fg,
     },
   });

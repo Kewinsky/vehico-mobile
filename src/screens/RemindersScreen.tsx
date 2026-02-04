@@ -535,7 +535,7 @@ const makeStyles = (theme: any) =>
     addButton: {
       width: theme.spacing.xl + theme.spacing.sm,
       height: theme.spacing.xl + theme.spacing.sm,
-      borderRadius: theme.radius.sm,
+      borderRadius: theme.radius.md,
       borderWidth: 1,
       alignItems: "center",
       justifyContent: "center",
@@ -553,7 +553,7 @@ const makeStyles = (theme: any) =>
     },
     filtersAction: {
       borderWidth: 1,
-      borderRadius: theme.radius.sm,
+      borderRadius: theme.radius.md,
       paddingVertical: theme.spacing.sm - 2,
       paddingHorizontal: theme.spacing.sm,
       alignSelf: "flex-start",

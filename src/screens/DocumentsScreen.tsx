@@ -514,7 +514,6 @@ const makeStyles = (theme: any) =>
     title: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
-      fontWeight: "700",
       color: theme.colors.fg,
     },
     countInfo: {
@@ -527,7 +526,7 @@ const makeStyles = (theme: any) =>
     },
     section: {
       marginTop: theme.spacing.sm - 2,
-      fontSize: 16,
+      fontSize: theme.typography.body,
       fontWeight: "800",
     },
     buttonsRow: {

@@ -135,7 +135,7 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.md,
     },
     title: {
-      fontSize: 32,
+      fontSize: theme.typography.largeTitle,
       fontWeight: "700",
       textAlign: "center",
       marginBottom: theme.spacing.sm,
@@ -164,7 +164,7 @@ const makeFeatureStyles = (theme: any) =>
       gap: theme.spacing.md,
     },
     icon: {
-      fontSize: 32,
+      fontSize: theme.typography.largeTitle,
       width: 48,
       textAlign: "center",
     },
