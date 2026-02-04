@@ -22,7 +22,8 @@
         "light": "./assets/icon-light.png",
         "dark": "./assets/icon-dark.png"
       },
-      "bundleIdentifier": "com.ktasoftware.vehico"
+      "bundleIdentifier": "com.ktasoftware.vehico",
+      "developmentTeam": "YOUR_TEAM_ID"
     },
     "android": {
       "adaptiveIcon": {

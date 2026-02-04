@@ -46,10 +46,16 @@ import { IconButton } from "../ui/components/IconButton";
 import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { Ionicons } from "@expo/vector-icons";
 
-type Props = NativeStackScreenProps<
-  AppStackParamList,
-  "ServiceEntryForm"
->;
+const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
+  "maintenance",
+  "repair",
+  "inspection",
+  "upgrade",
+  "oil_engine",
+  "other",
+];
+
+type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryForm">;
 
 export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
@@ -477,16 +483,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       <PickerField
         label={`${t("entryForm.category")} *`}
         value={category}
-        options={
-          [
-            "maintenance",
-            "repair",
-            "inspection",
-            "upgrade",
-            "oil_engine",
-            "other",
-          ] as const
-        }
+        options={CATEGORY_OPTIONS}
         getLabel={(value) => t(`entryForm.categories.${value}` as any)}
         onChange={(value) => setCategory(value)}
         placeholder={t("entryForm.category")}
