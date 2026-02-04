@@ -28,21 +28,28 @@ export function WorkshopsScreen({ navigation, route }: Props) {
   const [typeFilter, setTypeFilter] = useState<WorkshopType | "all">("all");
   const [sortOrder, setSortOrder] = useState<"az" | "za">("az");
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await listWorkshops();
-      setItems(data);
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
+  const load = useCallback(
+    async (opts?: { showLoading?: boolean }) => {
+      const showLoading = opts?.showLoading !== false;
+      try {
+        if (showLoading) setLoading(true);
+        const data = await listWorkshops();
+        setItems(data);
+      } catch (e: any) {
+        toastError(e?.message ?? t("common.error"));
+      } finally {
+        if (showLoading) setLoading(false);
+      }
+    },
+    [t]
+  );
 
   useEffect(() => {
     void load();
-    const unsub = navigation.addListener("focus", () => void load());
+    const unsub = navigation.addListener(
+      "focus",
+      () => void load({ showLoading: false })
+    );
     return unsub;
   }, [navigation, load]);
 

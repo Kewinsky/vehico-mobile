@@ -32,25 +32,32 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
   const [wheels, setWheels] = useState<VehicleWheel[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const [tiresData, wheelsData] = await Promise.all([
-        listVehicleTires(vehicleId),
-        listVehicleWheels(vehicleId),
-      ]);
-      setTires(tiresData);
-      setWheels(wheelsData);
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
-    } finally {
-      setLoading(false);
-    }
-  }, [vehicleId, t]);
+  const load = useCallback(
+    async (opts?: { showLoading?: boolean }) => {
+      const showLoading = opts?.showLoading !== false;
+      try {
+        if (showLoading) setLoading(true);
+        const [tiresData, wheelsData] = await Promise.all([
+          listVehicleTires(vehicleId),
+          listVehicleWheels(vehicleId),
+        ]);
+        setTires(tiresData);
+        setWheels(wheelsData);
+      } catch (e: any) {
+        toastError(e?.message ?? t("common.error"));
+      } finally {
+        if (showLoading) setLoading(false);
+      }
+    },
+    [vehicleId, t]
+  );
 
   useEffect(() => {
     void load();
-    const unsub = navigation.addListener("focus", () => void load());
+    const unsub = navigation.addListener(
+      "focus",
+      () => void load({ showLoading: false })
+    );
     return unsub;
   }, [navigation, load]);
 
