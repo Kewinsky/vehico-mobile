@@ -44,8 +44,9 @@ export function AppHeader({
     >();
   const styles = makeStyles(theme);
 
-  const isProfileScreen = route.name === "Profile";
-  const showInitials = !!user && right === undefined && !isProfileScreen;
+  const hideProfileAvatar =
+    route.name === "Profile" || route.name === "Settings";
+  const showInitials = !!user && right === undefined && !hideProfileAvatar;
   const initials = user ? getInitials(user) : "";
 
   return (

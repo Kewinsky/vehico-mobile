@@ -275,12 +275,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
           <Text style={[styles.title, { color: theme.colors.fg }]}>
             {t("dashboard.tiles.docsTitle")}
           </Text>
-          <Text style={[styles.countInfo, { color: theme.colors.muted }]}>
-            {t("documents.countInfo", {
-              docCount: vehicleDocs.length,
-              attCount: attachments.length,
-            })}
-          </Text>
         </View>
         <View style={{ height: theme.spacing.sm }} />
         <TextField
@@ -329,7 +323,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
         keyboardDismissMode="on-drag"
       >
         <Text style={[styles.section, { color: theme.colors.fg }]}>
-          {t("documents.vehicleDocuments")}
+          {t("documents.vehicleDocumentsWithCount", {
+            count: vehicleDocs.length,
+          })}
         </Text>
         <View style={{ height: theme.spacing.sm }} />
         {vehicleDocs
@@ -419,7 +415,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
 
         <View style={{ height: 18 }} />
         <Text style={[styles.section, { color: theme.colors.fg }]}>
-          {t("documents.serviceAttachments")}
+          {t("documents.serviceAttachmentsWithCount", {
+            count: attachments.length,
+          })}
         </Text>
         <View style={{ height: theme.spacing.sm }} />
         {attachments
@@ -515,10 +513,6 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
       color: theme.colors.fg,
-    },
-    countInfo: {
-      fontSize: theme.typography.small,
-      marginTop: theme.spacing.xs / 2,
     },
     body: {
       marginTop: theme.spacing.xs,

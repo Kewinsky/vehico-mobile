@@ -258,6 +258,9 @@ export function VehiclesScreen({ navigation }: Props) {
               contentContainerStyle={styles.list}
               refreshing={refreshing}
               onRefresh={() => void load({ refreshing: true })}
+              ItemSeparatorComponent={() => (
+                <View style={{ height: theme.spacing.xs }} />
+              )}
               renderItem={({ item }) => (
                 <Pressable
                   onPress={() =>
@@ -335,7 +338,7 @@ export function VehiclesScreen({ navigation }: Props) {
                 </Pressable>
               )}
               ListFooterComponent={
-                <View style={{ paddingTop: theme.spacing.sm }}>
+                <View style={styles.listFooter}>
                   <Button onPress={() => navigation.navigate("VehicleForm")}>
                     {t("vehicles.addVehicle")}
                   </Button>
@@ -374,7 +377,9 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     list: {
       paddingBottom: insets.bottom + theme.spacing.xl,
-      gap: theme.spacing.xs,
+    },
+    listFooter: {
+      paddingTop: theme.spacing.sm,
     },
     vehicleCard: {
       borderRadius: theme.radius.md,

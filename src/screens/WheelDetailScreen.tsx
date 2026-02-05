@@ -3,6 +3,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { VehicleWheel } from "../types/domain";
@@ -73,6 +74,21 @@ export function WheelDetailScreen({ route, navigation }: Props) {
     ]);
   }
 
+  function showActionsMenu() {
+    Alert.alert("", "", [
+      {
+        text: t("common.edit"),
+        onPress: () => navigation.navigate("WheelForm", { vehicleId, wheelId }),
+      },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: onDelete,
+      },
+      { text: t("common.cancel"), style: "cancel" },
+    ]);
+  }
+
   if (loading) {
     return (
       <Screen padding={false}>
@@ -99,26 +115,27 @@ export function WheelDetailScreen({ route, navigation }: Props) {
       <AppHeader onBack={() => navigation.goBack()} />
       <View style={[styles.top, { backgroundColor: theme.colors.bg }]}>
         <View style={styles.headerRow}>
-          <Text style={[styles.title, { color: theme.colors.fg }]}>
-            {t("wheelDetail.title")}
+          <Text
+            style={[styles.title, { color: theme.colors.fg }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {wheel.name || t("wheelDetail.title")}
           </Text>
-          <View style={styles.actionsRow}>
-            <Pressable
-              onPress={() =>
-                navigation.navigate("WheelForm", { vehicleId, wheelId })
-              }
-              hitSlop={10}
-            >
-              <Text style={[styles.editLink, { color: theme.colors.accent }]}>
-                {t("common.edit")}
-              </Text>
-            </Pressable>
-            <Pressable onPress={() => onDelete()} hitSlop={10}>
-              <Text style={[styles.deleteLink, { color: theme.colors.danger }]}>
-                {t("common.delete")}
-              </Text>
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={showActionsMenu}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.menuButton,
+              pressed && { opacity: 0.6 },
+            ]}
+          >
+            <Ionicons
+              name="ellipsis-horizontal"
+              size={22}
+              color={theme.colors.fg}
+            />
+          </Pressable>
         </View>
 
         <View
@@ -130,30 +147,52 @@ export function WheelDetailScreen({ route, navigation }: Props) {
             },
           ]}
         >
-          <Text style={[styles.detailsTitle, { color: theme.colors.fg }]}>
-            {wheel.name}
-          </Text>
           <View style={styles.row}>
-            <Text style={[styles.label, { color: theme.colors.muted }]}>
-              {t("wheelForm.name")}
-            </Text>
-            <Text style={[styles.value, { color: theme.colors.fg }]}>
+            <View style={styles.labelRow}>
+              <Ionicons
+                name="document-text-outline"
+                size={20}
+                color={theme.colors.muted}
+              />
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("wheelForm.name")}
+              </Text>
+            </View>
+            <Text
+              style={[styles.value, { color: theme.colors.fg }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {wheel.name}
             </Text>
           </View>
           <View style={styles.row}>
-            <Text style={[styles.label, { color: theme.colors.muted }]}>
-              {t("wheelDetail.labels.dimensions")}
-            </Text>
+            <View style={styles.labelRow}>
+              <Ionicons
+                name="resize-outline"
+                size={20}
+                color={theme.colors.muted}
+              />
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("wheelDetail.labels.dimensions")}
+              </Text>
+            </View>
             <Text style={[styles.value, { color: theme.colors.fg }]}>
               {dims}
             </Text>
           </View>
           {wheel.et_offset != null ? (
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("wheelForm.etOffset")}
-              </Text>
+              <View style={styles.labelRow}>
+                <Ionicons
+                  name="speedometer-outline"
+                  size={20}
+                  color={theme.colors.muted}
+                />
+                <Text style={[styles.label, { color: theme.colors.muted }]}>
+                  {t("wheelForm.etOffset")}
+                </Text>
+              </View>
               <Text style={[styles.value, { color: theme.colors.fg }]}>
                 ET{wheel.et_offset}
               </Text>
@@ -161,9 +200,16 @@ export function WheelDetailScreen({ route, navigation }: Props) {
           ) : null}
           {wheel.bolt_pattern?.trim() ? (
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("wheelForm.boltPattern")}
-              </Text>
+              <View style={styles.labelRow}>
+                <Ionicons
+                  name="grid-outline"
+                  size={20}
+                  color={theme.colors.muted}
+                />
+                <Text style={[styles.label, { color: theme.colors.muted }]}>
+                  {t("wheelForm.boltPattern")}
+                </Text>
+              </View>
               <Text style={[styles.value, { color: theme.colors.fg }]}>
                 {wheel.bolt_pattern}
               </Text>
@@ -171,9 +217,16 @@ export function WheelDetailScreen({ route, navigation }: Props) {
           ) : null}
           {wheel.center_bore_mm != null ? (
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("wheelForm.centerBore")}
-              </Text>
+              <View style={styles.labelRow}>
+                <Ionicons
+                  name="disc-outline"
+                  size={20}
+                  color={theme.colors.muted}
+                />
+                <Text style={[styles.label, { color: theme.colors.muted }]}>
+                  {t("wheelForm.centerBore")}
+                </Text>
+              </View>
               <Text style={[styles.value, { color: theme.colors.fg }]}>
                 {t("wheels.centerBoreAbbr")} {wheel.center_bore_mm}mm
               </Text>
@@ -181,9 +234,16 @@ export function WheelDetailScreen({ route, navigation }: Props) {
           ) : null}
           {wheel.bolt_type?.trim() ? (
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("wheelForm.boltType")}
-              </Text>
+              <View style={styles.labelRow}>
+                <Ionicons
+                  name="construct-outline"
+                  size={20}
+                  color={theme.colors.muted}
+                />
+                <Text style={[styles.label, { color: theme.colors.muted }]}>
+                  {t("wheelForm.boltType")}
+                </Text>
+              </View>
               <Text style={[styles.value, { color: theme.colors.fg }]}>
                 {wheel.bolt_type}
               </Text>
@@ -191,18 +251,32 @@ export function WheelDetailScreen({ route, navigation }: Props) {
           ) : null}
           {wheel.weight_kg != null ? (
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("wheelForm.weight")}
-              </Text>
+              <View style={styles.labelRow}>
+                <Ionicons
+                  name="barbell-outline"
+                  size={20}
+                  color={theme.colors.muted}
+                />
+                <Text style={[styles.label, { color: theme.colors.muted }]}>
+                  {t("wheelForm.weight")}
+                </Text>
+              </View>
               <Text style={[styles.value, { color: theme.colors.fg }]}>
                 {wheel.weight_kg} kg
               </Text>
             </View>
           ) : null}
           <View style={styles.row}>
-            <Text style={[styles.label, { color: theme.colors.muted }]}>
-              {t("wheelForm.isCurrentlyFitted")}
-            </Text>
+            <View style={styles.labelRow}>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={20}
+                color={theme.colors.muted}
+              />
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("wheelForm.isCurrentlyFitted")}
+              </Text>
+            </View>
             <Text style={[styles.value, { color: theme.colors.fg }]}>
               {wheel.is_currently_fitted ? t("common.yes") : t("common.no")}
             </Text>
@@ -220,43 +294,51 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingBottom: theme.spacing.sm,
     },
-    actionsRow: {
+    headerRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
     },
-    headerRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-    editLink: { fontWeight: "800" },
-    deleteLink: { fontWeight: "800" },
     title: {
+      flex: 1,
+      minWidth: 0,
       fontSize: theme.typography.title,
       fontWeight: "800",
     },
+    menuButton: {
+      padding: theme.spacing.xs,
+      justifyContent: "center",
+      alignItems: "center",
+    },
     detailsCard: {
-      marginTop: 12,
+      marginTop: theme.spacing.sm,
       borderWidth: 1,
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
-      gap: 6,
+      gap: 0,
     },
-    detailsTitle: { fontSize: theme.typography.body, fontWeight: "800" },
     row: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       gap: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm,
+    },
+    labelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
     },
     label: {
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
       fontWeight: "800",
     },
     value: {
-      fontSize: theme.typography.small,
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.body,
       fontWeight: "400",
+      textAlign: "right",
     },
     loadingContainer: {
       flex: 1,

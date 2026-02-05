@@ -355,14 +355,15 @@ export const pl = {
   },
   documents: {
     title: "Dokumenty",
-    countInfo: "Dokumenty: {{docCount}}, Załączniki: {{attCount}}",
     searchPlaceholder: "Szukaj w dokumentach…",
     addAttachment: "Dodaj załącznik",
     addVehiclePhoto: "Dodaj zdjęcie pojazdu",
     vehiclePhotos: "Zdjęcia pojazdu",
     addVehicleDocument: "Dodaj dokument",
     vehicleDocuments: "Dokumenty pojazdu",
+    vehicleDocumentsWithCount: "Dokumenty pojazdu ({{count}})",
     serviceAttachments: "Załączniki serwisowe",
+    serviceAttachmentsWithCount: "Załączniki serwisowe ({{count}})",
     noPhotos: "Brak zdjęć.",
     noAttachments: "Brak załączników.",
     noVehicleDocuments: "Brak dokumentów pojazdu.",
@@ -448,6 +449,7 @@ export const pl = {
     title: "Opona",
     labels: {
       dimensions: "Wymiary",
+      status: "Status",
     },
   },
   wheelDetail: {
@@ -533,17 +535,22 @@ export const pl = {
     deleteTitle: "Usunąć warsztat?",
     deleteBody: "Tej operacji nie można cofnąć.",
     serviceEntriesAtWorkshop: "Wpisy serwisowe w tym warsztacie",
+    serviceEntriesAtWorkshopWithCount:
+      "Wpisy serwisowe w tym warsztacie ({{count}})",
     noServiceEntries: "Brak powiązanych wpisów.",
     call: "Zadzwoń",
   },
   workshopDetail: {
     title: "Warsztat",
+    actionsTitle: "Opcje",
     edit: "Edytuj",
     delete: "Usuń",
     name: "Nazwa",
     type: "Typ",
     phone: "Telefon",
     address: "Adres",
+    copiedPhone: "Skopiowano telefon",
+    copiedAddress: "Skopiowano adres",
   },
   workshopForm: {
     addTitle: "Dodaj warsztat",
@@ -640,6 +647,7 @@ export const pl = {
   },
   attachments: {
     title: "Załączniki",
+    titleWithCount: "Załączniki ({{count}})",
     add: "Dodaj załącznik",
     uploading: "Wysyłanie…",
     emptyTitle: "Brak załączników",

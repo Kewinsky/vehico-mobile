@@ -353,14 +353,15 @@ export const en = {
   },
   documents: {
     title: "Documents",
-    countInfo: "Documents: {{docCount}}, Attachments: {{attCount}}",
     searchPlaceholder: "Search documents…",
     addAttachment: "Add attachment",
     addVehiclePhoto: "Add vehicle photo",
     vehiclePhotos: "Vehicle photos",
     addVehicleDocument: "Add document",
     vehicleDocuments: "Vehicle documents",
+    vehicleDocumentsWithCount: "Vehicle documents ({{count}})",
     serviceAttachments: "Service attachments",
+    serviceAttachmentsWithCount: "Service attachments ({{count}})",
     noPhotos: "No photos yet.",
     noAttachments: "No attachments yet.",
     noVehicleDocuments: "No vehicle documents yet.",
@@ -446,6 +447,7 @@ export const en = {
     title: "Tire",
     labels: {
       dimensions: "Dimensions",
+      status: "Status",
     },
   },
   wheelDetail: {
@@ -531,17 +533,22 @@ export const en = {
     deleteTitle: "Delete workshop?",
     deleteBody: "This action cannot be undone.",
     serviceEntriesAtWorkshop: "Service entries at this workshop",
+    serviceEntriesAtWorkshopWithCount:
+      "Service entries at this workshop ({{count}})",
     noServiceEntries: "No service entries linked.",
     call: "Call",
   },
   workshopDetail: {
     title: "Workshop",
+    actionsTitle: "Options",
     edit: "Edit",
     delete: "Delete",
     name: "Name",
     type: "Type",
     phone: "Phone",
     address: "Address",
+    copiedPhone: "Phone copied",
+    copiedAddress: "Address copied",
   },
   workshopForm: {
     addTitle: "Add workshop",
@@ -636,6 +643,7 @@ export const en = {
   },
   attachments: {
     title: "Attachments",
+    titleWithCount: "Attachments ({{count}})",
     add: "Add attachment",
     uploading: "Uploading…",
     emptyTitle: "No attachments yet",

@@ -11,6 +11,7 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Attachment } from "../types/domain";
@@ -97,43 +98,88 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
     ]);
   }
 
+  function showActionsMenu() {
+    Alert.alert("", "", [
+      {
+        text: t("common.edit"),
+        onPress: () =>
+          navigation.navigate("ServiceEntryForm", { vehicleId, entryId }),
+      },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: onDelete,
+      },
+      { text: t("common.cancel"), style: "cancel" },
+    ]);
+  }
+
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
       <View style={styles.top}>
         <View style={styles.headerRow}>
-          <Text style={styles.title}>{t("entryDetail.title")}</Text>
-          <View style={styles.actionsRow}>
-            <Pressable
-              onPress={() =>
-                navigation.navigate("ServiceEntryForm", { vehicleId, entryId })
-              }
-              hitSlop={10}
-            >
-              <Text style={styles.editLink}>{t("common.edit")}</Text>
-            </Pressable>
-            <Pressable onPress={() => onDelete()} hitSlop={10}>
-              <Text style={styles.deleteLink}>{t("common.delete")}</Text>
-            </Pressable>
-          </View>
+          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+            {entry?.title || t("entryDetail.title")}
+          </Text>
+          <Pressable
+            onPress={showActionsMenu}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.menuButton,
+              pressed && { opacity: 0.6 },
+            ]}
+          >
+            <Ionicons
+              name="ellipsis-horizontal"
+              size={22}
+              color={theme.colors.fg}
+            />
+          </Pressable>
         </View>
 
         {entry ? (
           <View style={styles.detailsCard}>
-            <Text style={styles.detailsTitle}>{entry.title}</Text>
             <View style={styles.row}>
-              <Text style={styles.label}>
-                {t("entryDetail.labels.serviceDate")}
+              <View style={styles.labelRow}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={20}
+                  color={theme.colors.muted}
+                />
+                <Text style={styles.label}>{t("entryForm.entryTitle")}</Text>
+              </View>
+              <Text style={styles.value} numberOfLines={1} ellipsizeMode="tail">
+                {entry.title}
               </Text>
+            </View>
+            <View style={styles.row}>
+              <View style={styles.labelRow}>
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={theme.colors.muted}
+                />
+                <Text style={styles.label}>
+                  {t("entryDetail.labels.serviceDate")}
+                </Text>
+              </View>
               <Text style={styles.value}>
                 {String(entry.service_date).slice(0, 10)}
               </Text>
             </View>
             {entry.category ? (
               <View style={styles.row}>
-                <Text style={styles.label}>
-                  {t("entryDetail.labels.category")}
-                </Text>
+                <View style={styles.labelRow}>
+                  <Ionicons
+                    name="pricetag-outline"
+                    size={20}
+                    color={theme.colors.muted}
+                  />
+                  <Text style={styles.label}>
+                    {t("entryDetail.labels.category")}
+                  </Text>
+                </View>
                 <Text style={styles.value}>
                   {t(`entryForm.categories.${entry.category}` as any)}
                 </Text>
@@ -141,9 +187,16 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
             ) : null}
             {entry.mileage != null ? (
               <View style={styles.row}>
-                <Text style={styles.label}>
-                  {t("entryDetail.labels.mileage")}
-                </Text>
+                <View style={styles.labelRow}>
+                  <Ionicons
+                    name="speedometer-outline"
+                    size={20}
+                    color={theme.colors.muted}
+                  />
+                  <Text style={styles.label}>
+                    {t("entryDetail.labels.mileage")}
+                  </Text>
+                </View>
                 <Text style={styles.value}>
                   {entry.mileage} {distanceUnit}
                 </Text>
@@ -151,7 +204,16 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
             ) : null}
             {entry.cost != null ? (
               <View style={styles.row}>
-                <Text style={styles.label}>{t("entryDetail.labels.cost")}</Text>
+                <View style={styles.labelRow}>
+                  <Ionicons
+                    name="card-outline"
+                    size={20}
+                    color={theme.colors.muted}
+                  />
+                  <Text style={styles.label}>
+                    {t("entryDetail.labels.cost")}
+                  </Text>
+                </View>
                 <Text style={styles.value}>
                   {entry.cost} {currency}
                 </Text>
@@ -159,10 +221,17 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
             ) : null}
             {entry.description ? (
               <>
-                <View style={styles.row} />
-                <Text style={styles.label}>
-                  {t("entryDetail.labels.description")}
-                </Text>
+                <View style={{ height: theme.spacing.sm }} />
+                <View style={styles.labelRow}>
+                  <Ionicons
+                    name="document-text-outline"
+                    size={20}
+                    color={theme.colors.muted}
+                  />
+                  <Text style={styles.label}>
+                    {t("entryDetail.labels.description")}
+                  </Text>
+                </View>
                 <Text style={styles.bodyValue}>
                   {String(entry.description)}
                 </Text>
@@ -173,7 +242,9 @@ export function ServiceEntryDetailScreen({ route, navigation }: Props) {
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.h2}>{t("attachments.title")}</Text>
+        <Text style={styles.h2}>
+          {t("attachments.titleWithCount", { count: items.length })}
+        </Text>
       </View>
 
       <FlatList
@@ -240,22 +311,22 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingBottom: theme.spacing.sm,
     },
-    actionsRow: {
+    headerRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
     },
-    headerRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-    editLink: { color: theme.colors.accent, fontWeight: "800" },
-    deleteLink: { color: theme.colors.danger, fontWeight: "800" },
     title: {
+      flex: 1,
+      minWidth: 0,
       fontSize: theme.typography.title,
       fontWeight: "800",
       color: theme.colors.fg,
+    },
+    menuButton: {
+      padding: theme.spacing.xs,
+      justifyContent: "center",
+      alignItems: "center",
     },
     detailsCard: {
       marginTop: theme.spacing.sm,
@@ -264,28 +335,32 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
-      gap: theme.spacing.sm / 2,
-    },
-    detailsTitle: {
-      fontSize: theme.typography.body,
-      fontWeight: "800",
-      color: theme.colors.fg,
+      gap: 0,
     },
     row: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       gap: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm,
+    },
+    labelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
     },
     label: {
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
       fontWeight: "800",
       color: theme.colors.muted,
     },
     value: {
-      fontSize: theme.typography.small,
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.body,
       fontWeight: "400",
       color: theme.colors.fg,
+      textAlign: "right",
     },
     bodyValue: {
       marginTop: theme.spacing.sm / 2,
