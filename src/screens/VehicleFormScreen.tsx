@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
   Dimensions,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { Image } from "expo-image";
@@ -28,12 +31,8 @@ import type {
 import { createVehicle } from "../services/vehicles/vehiclesRepo";
 import { uploadVehiclePhoto } from "../services/vehicles/uploadPhoto";
 import { Button } from "../ui/components/Button";
-import { AppHeader } from "../ui/components/AppHeader";
 import { FormScreen } from "../ui/components/FormScreen";
-import { TextField } from "../ui/components/TextField";
-import { PickerField } from "../ui/components/PickerField";
-import { ChoiceChip } from "../ui/components/ChoiceChip";
-import { DateField } from "../ui/components/DateField";
+import { hexToRgba } from "../ui/components/ChoiceChip";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
@@ -41,12 +40,34 @@ import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
 
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function formatYmd(d: Date) {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function parseYmd(ymd: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
+  if (!m) return new Date();
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  // Use local time to avoid UTC date shifting.
+  return new Date(year, month - 1, day);
+}
+
 export function VehicleFormScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const styles = makeStyles(theme);
   const distanceUnit = settings?.distanceUnit ?? "km";
+  const accentBg = useMemo(
+    () => hexToRgba(theme.colors.accent, 0.15),
+    [theme.colors.accent]
+  );
   const [type, setType] = useState<VehicleType>("car");
   const [vin, setVin] = useState("");
   const [make, setMake] = useState("");
@@ -63,6 +84,8 @@ export function VehicleFormScreen({ navigation }: Props) {
   const [notes, setNotes] = useState("");
   const [insuranceValidUntil, setInsuranceValidUntil] = useState("");
   const [inspectionValidUntil, setInspectionValidUntil] = useState("");
+  const [insurancePickerOpen, setInsurancePickerOpen] = useState(false);
+  const [inspectionPickerOpen, setInspectionPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   type PhotoFile = {
     uri: string;
@@ -83,6 +106,49 @@ export function VehicleFormScreen({ navigation }: Props) {
       isNonNegativeNumber(powerHp)
     );
   }, [make, model, year, mileage, engineCapacity, powerHp]);
+
+  function stripExamplePrefix(s: string) {
+    return s
+      .replace(/^e\.g\.\s*/i, "")
+      .replace(/^np\.\s*/i, "")
+      .trim();
+  }
+
+  function makePlaceholder(label: string, example: string) {
+    const ex = stripExamplePrefix(example);
+    return ex ? `${label}: ${ex}` : `${label}:`;
+  }
+
+  function showPicker<T extends string>(opts: {
+    title: string;
+    value: T | null;
+    options: readonly T[];
+    getLabel: (v: T) => string;
+    onChange: (v: T | null) => void;
+    placeholderLabel?: string;
+  }) {
+    const buttons: Array<{
+      text: string;
+      onPress?: () => void;
+      style?: "cancel" | "default" | "destructive";
+    }> = [{ text: t("common.cancel"), style: "cancel" }];
+
+    if (opts.placeholderLabel) {
+      buttons.push({
+        text: opts.placeholderLabel,
+        onPress: () => opts.onChange(null),
+      });
+    }
+
+    opts.options.forEach((opt) => {
+      buttons.push({
+        text: opts.getLabel(opt),
+        onPress: () => opts.onChange(opt),
+      });
+    });
+
+    Alert.alert(opts.title, "", buttons, { cancelable: true });
+  }
 
   function pickSource() {
     const remainingSlots = 6 - photoUris.length;
@@ -342,34 +408,50 @@ export function VehicleFormScreen({ navigation }: Props) {
     <FormScreen
       scrollEnabled={!isDragging}
       header={
-        <AppHeader
-          onBack={() => navigation.goBack()}
-          right={
-            <Pressable
-              onPress={() => {
-                if (canSave && !saving) {
-                  void onSave();
-                }
-              }}
-              hitSlop={10}
-              style={({ pressed }) => [
-                {
-                  width: 40,
-                  height: 40,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity: !canSave || saving ? 0.5 : pressed ? 0.6 : 1,
-                },
-              ]}
-            >
-              <Ionicons
-                name="save-outline"
-                size={24}
-                color={theme.colors.accent}
-              />
-            </Pressable>
-          }
-        />
+        <View
+          style={[
+            styles.topBar,
+            {
+              borderBottomColor: theme.colors.border,
+              backgroundColor: theme.colors.bg,
+            },
+          ]}
+        >
+          <Pressable
+            onPress={() => navigation.goBack()}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.pillButton,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+                opacity: pressed ? 0.75 : 1,
+              },
+            ]}
+          >
+            <Text style={[styles.pillText, { color: theme.colors.fg }]}>
+              {t("common.cancel")}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              if (canSave && !saving) void onSave();
+            }}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.pillButton,
+              {
+                borderColor: theme.colors.accent,
+                backgroundColor: accentBg,
+                opacity: !canSave || saving ? 0.5 : pressed ? 0.75 : 1,
+              },
+            ]}
+          >
+            <Text style={[styles.pillText, { color: theme.colors.accent }]}>
+              {t("common.done")}
+            </Text>
+          </Pressable>
+        </View>
       }
     >
       <View style={{ height: theme.spacing.md }} />
@@ -378,7 +460,7 @@ export function VehicleFormScreen({ navigation }: Props) {
 
       {/* Photos Section */}
       <View style={styles.photosSection}>
-        <Text style={[styles.label, { color: theme.colors.muted }]}>
+        <Text style={styles.sectionTitle}>
           {t("vehicleForm.photos")} ({photoUris.length}/6)
         </Text>
         {photoItems.length > 0 ? (
@@ -402,187 +484,599 @@ export function VehicleFormScreen({ navigation }: Props) {
           />
         ) : null}
         {photoUris.length < 6 && (
-          <View style={styles.addPhotoButtonContainer}>
-            <Button
-              onPress={pickSource}
-              disabled={saving || uploadingPhoto}
-              variant="ghost"
-            >
-              {t("vehicleForm.addPhoto")}
-            </Button>
-          </View>
+          <Button
+            onPress={pickSource}
+            disabled={saving || uploadingPhoto}
+            variant="ghost"
+          >
+            {t("vehicleForm.addPhoto")}
+          </Button>
         )}
       </View>
 
-      <View style={styles.group}>
-        <Text style={[styles.label, { color: theme.colors.muted }]}>
-          {t("vehicleForm.type")}
-        </Text>
-        <View style={styles.typeRow}>
-          <ChoiceChip
-            label={t("vehicleForm.car")}
-            selected={type === "car"}
-            onPress={() => setType("car")}
-            style={styles.typeChip}
+      <View style={{ height: theme.spacing.lg }} />
+
+      <Text style={styles.sectionTitle}>{t("vehicleForm.type")}</Text>
+      <View
+        style={[
+          styles.segmentWrap,
+          {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.bg,
+          },
+        ]}
+      >
+        {(["car", "motorcycle"] as const).map((k) => {
+          const selected = type === k;
+          return (
+            <Pressable
+              key={k}
+              onPress={() => setType(k)}
+              style={({ pressed }) => [
+                styles.segment,
+                selected && styles.segmentSelected,
+                {
+                  borderColor: theme.colors.accent,
+                  backgroundColor: selected ? accentBg : "transparent",
+                  opacity: pressed ? 0.85 : 1,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.segmentText,
+                  {
+                    color: selected ? theme.colors.accent : theme.colors.muted,
+                  },
+                ]}
+              >
+                {k === "car"
+                  ? t("vehicleForm.car")
+                  : t("vehicleForm.motorcycle")}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <View style={{ height: theme.spacing.sm }} />
+
+      <View
+        style={[
+          styles.card,
+          {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.card,
+          },
+        ]}
+      >
+        <View style={styles.row}>
+          <Ionicons
+            name="barcode-outline"
+            size={20}
+            color={theme.colors.accent}
           />
-          <ChoiceChip
-            label={t("vehicleForm.motorcycle")}
-            selected={type === "motorcycle"}
-            onPress={() => setType("motorcycle")}
-            style={styles.typeChip}
+          <TextInput
+            value={vin}
+            onChangeText={setVin}
+            autoCapitalize="characters"
+            editable={!saving}
+            placeholder={makePlaceholder(
+              t("vehicleForm.vinLabel"),
+              t("vehicleForm.placeholderVin")
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.input, { color: theme.colors.fg }]}
+          />
+        </View>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <View style={styles.row}>
+          <Ionicons name="car-outline" size={20} color={theme.colors.accent} />
+          <TextInput
+            value={make}
+            onChangeText={setMake}
+            editable={!saving}
+            placeholder={makePlaceholder(
+              `${t("vehicleForm.makeLabel")}`,
+              t("vehicleForm.placeholderMake")
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.input, { color: theme.colors.fg }]}
+          />
+        </View>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <View style={styles.row}>
+          <Ionicons
+            name="pricetag-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <TextInput
+            value={model}
+            onChangeText={setModel}
+            editable={!saving}
+            placeholder={makePlaceholder(
+              `${t("vehicleForm.modelLabel")}`,
+              t("vehicleForm.placeholderModel")
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.input, { color: theme.colors.fg }]}
+          />
+        </View>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <View style={styles.row}>
+          <Ionicons
+            name="calendar-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <TextInput
+            value={year}
+            onChangeText={setYear}
+            keyboardType="number-pad"
+            maxLength={4}
+            editable={!saving}
+            placeholder={makePlaceholder(
+              `${t("vehicleForm.yearLabel")}`,
+              t("vehicleForm.placeholderYear")
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.input, { color: theme.colors.fg }]}
+          />
+        </View>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <View style={styles.row}>
+          <Ionicons
+            name="speedometer-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <TextInput
+            value={mileage}
+            onChangeText={setMileage}
+            keyboardType="number-pad"
+            editable={!saving}
+            placeholder={makePlaceholder(
+              `${t("vehicleForm.mileageLabel")} (${distanceUnit})`,
+              t("vehicleForm.placeholderMileage")
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.input, { color: theme.colors.fg }]}
           />
         </View>
       </View>
 
       <View style={{ height: theme.spacing.sm }} />
-      <TextField
-        label={t("vehicleForm.vinLabel")}
-        value={vin}
-        onChangeText={setVin}
-        autoCapitalize="characters"
-        placeholder={t("vehicleForm.placeholderVin")}
-      />
-      <DateField
-        label={t("manageVehicle.insuranceLabel")}
-        value={insuranceValidUntil}
-        onChange={setInsuranceValidUntil}
-      />
-      <DateField
-        label={t("manageVehicle.inspectionLabel")}
-        value={inspectionValidUntil}
-        onChange={setInspectionValidUntil}
-      />
-      <TextField
-        label={`${t("vehicleForm.makeLabel")} *`}
-        value={make}
-        onChangeText={setMake}
-        placeholder={t("vehicleForm.placeholderMake")}
-      />
-      <TextField
-        label={`${t("vehicleForm.modelLabel")} *`}
-        value={model}
-        onChangeText={setModel}
-        placeholder={t("vehicleForm.placeholderModel")}
-      />
-      <TextField
-        label={`${t("vehicleForm.yearLabel")} *`}
-        value={year}
-        onChangeText={setYear}
-        keyboardType="number-pad"
-        maxLength={4}
-        placeholder={t("vehicleForm.placeholderYear")}
-      />
-      <TextField
-        label={`${t("vehicleForm.mileageLabel")} (${distanceUnit})`}
-        value={mileage}
-        onChangeText={setMileage}
-        keyboardType="number-pad"
-        placeholder={t("vehicleForm.placeholderMileage")}
-      />
-      <PickerField
-        label={t("vehicleForm.fuelTypeLabel")}
-        value={fuelType}
-        options={["petrol", "diesel", "hybrid", "electric", "lpg"] as const}
-        getLabel={(value) =>
-          t(
-            `vehicleForm.fuelType${
-              value.charAt(0).toUpperCase() + value.slice(1)
-            }` as
-              | "vehicleForm.fuelTypePetrol"
-              | "vehicleForm.fuelTypeDiesel"
-              | "vehicleForm.fuelTypeHybrid"
-              | "vehicleForm.fuelTypeElectric"
-              | "vehicleForm.fuelTypeLpg"
-          )
-        }
-        onChange={setFuelType}
-        placeholder={t("vehicleForm.fuelTypeLabel")}
-      />
-      <TextField
-        label={t("vehicleForm.engineCapacityLabel")}
-        value={engineCapacity}
-        onChangeText={setEngineCapacity}
-        keyboardType="number-pad"
-        placeholder={t("vehicleForm.placeholderEngineCapacity")}
-      />
-      <TextField
-        label={t("vehicleForm.powerHpLabel")}
-        value={powerHp}
-        onChangeText={setPowerHp}
-        keyboardType="number-pad"
-        placeholder={t("vehicleForm.placeholderPowerHp")}
-      />
-      <View style={styles.group}>
-        <Text style={[styles.label, { color: theme.colors.muted }]}>
-          {t("vehicleForm.transmissionLabel")}
-        </Text>
-        <View style={styles.typeRow}>
-          {(["manual", "automatic"] as const).map((tr) => (
-            <ChoiceChip
+
+      <View
+        style={[
+          styles.card,
+          {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.card,
+          },
+        ]}
+      >
+        <Pressable
+          onPress={() =>
+            showPicker<FuelType>({
+              title: t("vehicleForm.fuelTypeLabel"),
+              value: fuelType,
+              options: [
+                "petrol",
+                "diesel",
+                "hybrid",
+                "electric",
+                "lpg",
+              ] as const,
+              getLabel: (value) =>
+                t(
+                  `vehicleForm.fuelType${
+                    value.charAt(0).toUpperCase() + value.slice(1)
+                  }` as
+                    | "vehicleForm.fuelTypePetrol"
+                    | "vehicleForm.fuelTypeDiesel"
+                    | "vehicleForm.fuelTypeHybrid"
+                    | "vehicleForm.fuelTypeElectric"
+                    | "vehicleForm.fuelTypeLpg"
+                ),
+              onChange: setFuelType,
+              placeholderLabel: t("common.all"),
+            })
+          }
+          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
+        >
+          <Ionicons
+            name="water-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+            {fuelType
+              ? t(
+                  `vehicleForm.fuelType${
+                    fuelType.charAt(0).toUpperCase() + fuelType.slice(1)
+                  }` as any
+                )
+              : t("vehicleForm.fuelTypeLabel")}
+          </Text>
+        </Pressable>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <View style={styles.row}>
+          <Ionicons
+            name="construct-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <TextInput
+            value={engineCapacity}
+            onChangeText={setEngineCapacity}
+            keyboardType="number-pad"
+            editable={!saving}
+            placeholder={makePlaceholder(
+              t("vehicleForm.engineCapacityLabel"),
+              t("vehicleForm.placeholderEngineCapacity")
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.input, { color: theme.colors.fg }]}
+          />
+        </View>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <View style={styles.row}>
+          <Ionicons
+            name="flash-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <TextInput
+            value={powerHp}
+            onChangeText={setPowerHp}
+            keyboardType="number-pad"
+            editable={!saving}
+            placeholder={makePlaceholder(
+              t("vehicleForm.powerHpLabel"),
+              t("vehicleForm.placeholderPowerHp")
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.input, { color: theme.colors.fg }]}
+          />
+        </View>
+      </View>
+
+      <View style={{ height: theme.spacing.sm }} />
+
+      <Text style={styles.sectionTitle}>
+        {t("vehicleForm.transmissionLabel")}
+      </Text>
+      <View
+        style={[
+          styles.segmentWrap,
+          {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.bg,
+          },
+        ]}
+      >
+        {(["manual", "automatic"] as const).map((tr) => {
+          const selected = transmission === tr;
+          return (
+            <Pressable
               key={tr}
-              label={t(
-                `vehicleForm.transmission${
-                  tr.charAt(0).toUpperCase() + tr.slice(1)
-                }` as
-                  | "vehicleForm.transmissionManual"
-                  | "vehicleForm.transmissionAutomatic"
-              )}
-              selected={transmission === tr}
               onPress={() => setTransmission(tr)}
-              style={styles.typeChip}
-            />
-          ))}
-        </View>
+              style={({ pressed }) => [
+                styles.segment,
+                selected && styles.segmentSelected,
+                {
+                  borderColor: theme.colors.accent,
+                  backgroundColor: selected ? accentBg : "transparent",
+                  opacity: pressed ? 0.85 : 1,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.segmentText,
+                  {
+                    color: selected ? theme.colors.accent : theme.colors.muted,
+                  },
+                ]}
+              >
+                {t(
+                  `vehicleForm.transmission${
+                    tr.charAt(0).toUpperCase() + tr.slice(1)
+                  }` as any
+                )}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
-      <View style={styles.group}>
-        <Text style={[styles.label, { color: theme.colors.muted }]}>
-          {t("vehicleForm.driveTypeLabel")}
-        </Text>
-        <View style={styles.typeRow}>
-          {(["FWD", "RWD", "AWD"] as const).map((dt) => (
-            <ChoiceChip
+
+      <View style={{ height: theme.spacing.sm }} />
+
+      <Text style={styles.sectionTitle}>{t("vehicleForm.driveTypeLabel")}</Text>
+      <View
+        style={[
+          styles.segmentWrap,
+          {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.bg,
+          },
+        ]}
+      >
+        {(["FWD", "RWD", "AWD"] as const).map((dt) => {
+          const selected = driveType === dt;
+          return (
+            <Pressable
               key={dt}
-              label={dt}
-              selected={driveType === dt}
               onPress={() => setDriveType(dt)}
-              style={styles.typeChip}
+              style={({ pressed }) => [
+                styles.segment,
+                selected && styles.segmentSelected,
+                {
+                  borderColor: theme.colors.accent,
+                  backgroundColor: selected ? accentBg : "transparent",
+                  opacity: pressed ? 0.85 : 1,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.segmentText,
+                  {
+                    color: selected ? theme.colors.accent : theme.colors.muted,
+                  },
+                ]}
+              >
+                {dt}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <View style={{ height: theme.spacing.sm }} />
+
+      <Text style={styles.sectionTitle}>
+        {t("dashboard.stats.insuranceAndInspection")}
+      </Text>
+      <View
+        style={[
+          styles.card,
+          {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.card,
+          },
+        ]}
+      >
+        <Pressable
+          onPress={() => setInsurancePickerOpen(true)}
+          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
+        >
+          <Ionicons
+            name="shield-checkmark-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+            {insuranceValidUntil || t("manageVehicle.insuranceLabel")}
+          </Text>
+          {insuranceValidUntil ? (
+            <Pressable
+              onPress={() => setInsuranceValidUntil("")}
+              hitSlop={10}
+              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={theme.colors.accent}
+              />
+            </Pressable>
+          ) : null}
+        </Pressable>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <Pressable
+          onPress={() => setInspectionPickerOpen(true)}
+          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
+        >
+          <Ionicons
+            name="document-text-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+            {inspectionValidUntil || t("manageVehicle.inspectionLabel")}
+          </Text>
+          {inspectionValidUntil ? (
+            <Pressable
+              onPress={() => setInspectionValidUntil("")}
+              hitSlop={10}
+              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={theme.colors.accent}
+              />
+            </Pressable>
+          ) : null}
+        </Pressable>
+
+        {insurancePickerOpen ? (
+          <View
+            style={[
+              styles.pickerWrap,
+              {
+                borderTopColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <DateTimePicker
+              value={parseYmd(
+                insuranceValidUntil || new Date().toISOString().slice(0, 10)
+              )}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(_, selectedDate) => {
+                setInsurancePickerOpen(false);
+                if (selectedDate)
+                  setInsuranceValidUntil(formatYmd(selectedDate));
+              }}
             />
-          ))}
+          </View>
+        ) : null}
+        {inspectionPickerOpen ? (
+          <View
+            style={[
+              styles.pickerWrap,
+              {
+                borderTopColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <DateTimePicker
+              value={parseYmd(
+                inspectionValidUntil || new Date().toISOString().slice(0, 10)
+              )}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(_, selectedDate) => {
+                setInspectionPickerOpen(false);
+                if (selectedDate)
+                  setInspectionValidUntil(formatYmd(selectedDate));
+              }}
+            />
+          </View>
+        ) : null}
+      </View>
+
+      <View style={{ height: theme.spacing.sm }} />
+
+      <Text style={styles.sectionTitle}>{t("vehicleForm.notesLabel")}</Text>
+      <View
+        style={[
+          styles.card,
+          {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.card,
+          },
+        ]}
+      >
+        <View style={[styles.row, styles.rowMultiline]}>
+          <Ionicons
+            name="create-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <TextInput
+            value={notes}
+            onChangeText={setNotes}
+            editable={!saving}
+            multiline
+            placeholder={makePlaceholder(
+              t("vehicleForm.notesLabel"),
+              t("vehicleForm.placeholderNotes")
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[
+              styles.input,
+              styles.inputMultiline,
+              { color: theme.colors.fg },
+            ]}
+          />
         </View>
       </View>
-      <TextField
-        label={t("vehicleForm.notesLabel")}
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-        placeholder={t("vehicleForm.placeholderNotes")}
-      />
     </FormScreen>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
+    topBar: {
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      paddingBottom: theme.spacing.sm,
+      paddingTop: theme.spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderBottomWidth: 1,
+    },
+    pillButton: {
+      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.md,
+      borderRadius: 9999,
+      borderWidth: 1,
+    },
+    pillText: {
+      fontSize: theme.typography.body,
+      fontWeight: "700",
+    },
     h1: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
       color: theme.colors.fg,
     },
-    group: {
-      gap: theme.spacing.xs,
-      marginTop: theme.spacing.sm,
-      marginBottom: theme.spacing.xs / 2,
+    sectionTitle: {
+      color: theme.colors.fg,
+      fontWeight: "800",
+      fontSize: theme.typography.title,
+      marginBottom: theme.spacing.sm,
     },
-    label: {
-      fontSize: theme.typography.small,
-      fontWeight: "700",
-    },
-    typeRow: {
+    segmentWrap: {
       flexDirection: "row",
-      gap: theme.spacing.sm,
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      padding: 2,
     },
-    typeChip: {
+    segment: {
       flex: 1,
+      borderRadius: theme.radius.md - 2,
+      paddingVertical: theme.spacing.xs - 2,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    segmentSelected: { borderWidth: 1 },
+    segmentText: { fontSize: theme.typography.body, fontWeight: "700" },
+    card: { borderWidth: 1, borderRadius: theme.radius.md, overflow: "hidden" },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    rowMultiline: { alignItems: "flex-start" },
+    divider: { height: 1, width: "100%" },
+    input: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.body,
+      paddingVertical: 0,
+    },
+    inputMultiline: { minHeight: 96, paddingTop: 2 },
+    valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
+    pickerWrap: {
+      borderTopWidth: 1,
+      paddingTop: theme.spacing.xs,
+      paddingBottom: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
     },
     photosSection: {
       gap: theme.spacing.xs,
@@ -604,7 +1098,6 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       overflow: "hidden",
       backgroundColor: theme.colors.card,
-      elevation: 4,
       borderWidth: 1,
       borderColor: theme.colors.border,
     },
@@ -612,9 +1105,6 @@ const makeStyles = (theme: any) =>
       opacity: 0.8,
       transform: [{ scale: 1.05 }],
       zIndex: 10,
-    },
-    addPhotoButtonContainer: {
-      marginTop: theme.spacing.sm,
     },
     photoImageContainer: {
       position: "relative",
@@ -643,7 +1133,7 @@ const makeStyles = (theme: any) =>
       top: theme.spacing.xs,
       left: theme.spacing.xs,
       backgroundColor: theme.colors.accent,
-      borderRadius: theme.radius.sm,
+      borderRadius: theme.radius.md,
       paddingHorizontal: theme.spacing.xs,
       paddingVertical: theme.spacing.xs / 2,
       alignItems: "center",
