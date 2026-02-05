@@ -194,25 +194,41 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
     );
   }
 
+  function showActionsMenu() {
+    Alert.alert("", "", [
+      {
+        text: t("common.edit"),
+        onPress: () => navigation.navigate("ManageVehicleEdit", { vehicleId }),
+      },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: onDeleteVehicle,
+      },
+      { text: t("common.cancel"), style: "cancel" },
+    ]);
+  }
+
   return (
     <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={{ height: theme.spacing.md }} />
       <View style={styles.headerSection}>
         <View style={styles.headerRow}>
           <Text style={styles.h1}>{t("dashboard.tiles.manageTitle")}</Text>
-          <View style={styles.actionsRow}>
-            <Pressable
-              onPress={() =>
-                navigation.navigate("ManageVehicleEdit", { vehicleId })
-              }
-              hitSlop={10}
-            >
-              <Text style={styles.editLink}>{t("common.edit")}</Text>
-            </Pressable>
-            <Pressable onPress={onDeleteVehicle} hitSlop={10}>
-              <Text style={styles.deleteLink}>{t("common.delete")}</Text>
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={showActionsMenu}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.menuButton,
+              pressed && { opacity: 0.6 },
+            ]}
+          >
+            <Ionicons
+              name="ellipsis-horizontal"
+              size={22}
+              color={theme.colors.fg}
+            />
+          </Pressable>
         </View>
       </View>
       <View style={{ height: theme.spacing.md }} />
@@ -616,6 +632,8 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.titleMarginBottom,
     },
     h1: {
+      flex: 1,
+      minWidth: 0,
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
       color: theme.colors.fg,
@@ -633,14 +651,12 @@ const makeStyles = (theme: any) =>
     headerRow: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
-    },
-    editLink: { color: theme.colors.accent, fontWeight: "800" },
-    deleteLink: { color: theme.colors.danger, fontWeight: "800" },
-    actionsRow: {
-      flexDirection: "row",
-      alignItems: "center",
       gap: theme.spacing.sm,
+    },
+    menuButton: {
+      padding: theme.spacing.xs,
+      justifyContent: "center",
+      alignItems: "center",
     },
     muted: {
       marginTop: theme.spacing.sm / 2,

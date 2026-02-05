@@ -214,7 +214,7 @@ export const pl = {
     attachmentsEmpty: "Brak załączników.",
     pendingAttachments: "Załączniki do wysłania: {{count}}",
     workshop: "Warsztat",
-    workshopPlaceholder: "Wybierz warsztat (opcjonalnie)",
+    workshopPlaceholder: "Wybierz warsztat",
   },
   entryDetail: {
     title: "Wpis serwisowy",

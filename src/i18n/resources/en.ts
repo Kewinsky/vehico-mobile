@@ -213,7 +213,7 @@ export const en = {
     attachmentsEmpty: "No attachments yet.",
     pendingAttachments: "Attachments to upload: {{count}}",
     workshop: "Workshop",
-    workshopPlaceholder: "Select workshop (optional)",
+    workshopPlaceholder: "Select workshop",
   },
   entryDetail: {
     title: "Service entry",
