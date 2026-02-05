@@ -82,6 +82,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [datePickerDraft, setDatePickerDraft] = useState<Date>(() => new Date());
   const [distance, setDistance] = useState("");
   const [fuelAmount, setFuelAmount] = useState("");
   const [fuelCost, setFuelCost] = useState("");
@@ -92,6 +93,11 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent]
   );
+
+  function openDatePicker() {
+    setDatePickerDraft(parseYmd(date));
+    setDatePickerOpen(true);
+  }
 
   useEffect(() => {
     if (!entryId) return;
@@ -285,7 +291,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         ]}
       >
         <Pressable
-          onPress={() => setDatePickerOpen(true)}
+          onPress={openDatePicker}
           style={({ pressed }) => [styles.row, { opacity: pressed ? 0.75 : 1 }]}
         >
           <Ionicons
@@ -297,6 +303,75 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
             {date}
           </Text>
         </Pressable>
+
+        {datePickerOpen ? (
+          <View
+            style={[
+              styles.pickerWrap,
+              {
+                borderTopColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <DateTimePicker
+              value={datePickerDraft}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(event, selectedDate) => {
+                if (Platform.OS === "ios") {
+                  if (selectedDate) setDatePickerDraft(selectedDate);
+                  return;
+                }
+
+                setDatePickerOpen(false);
+                if ((event as any)?.type === "dismissed") return;
+                if (selectedDate) setDate(formatYmd(selectedDate));
+              }}
+            />
+
+            {Platform.OS === "ios" ? (
+              <View style={styles.pickerActionsRow}>
+                <Pressable
+                  onPress={() => setDatePickerOpen(false)}
+                  style={({ pressed }) => [
+                    styles.pickerActionBtn,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: "transparent",
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.pickerActionText, { color: theme.colors.muted }]}>
+                    {t("common.cancel")}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setDate(formatYmd(datePickerDraft));
+                    setDatePickerOpen(false);
+                  }}
+                  style={({ pressed }) => [
+                    styles.pickerActionBtn,
+                    {
+                      borderColor: theme.colors.accent,
+                      backgroundColor: accentBg,
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[styles.pickerActionText, { color: theme.colors.accent }]}
+                  >
+                    {t("common.done")}
+                  </Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
@@ -352,27 +427,6 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
           </Text>
         </Pressable>
 
-        {datePickerOpen ? (
-          <View
-            style={[
-              styles.pickerWrap,
-              {
-                borderTopColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <DateTimePicker
-              value={parseYmd(date)}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              onChange={(_, selectedDate) => {
-                setDatePickerOpen(false);
-                if (selectedDate) setDate(formatYmd(selectedDate));
-              }}
-            />
-          </View>
-        ) : null}
       </View>
 
       <View style={{ height: theme.spacing.sm }} />
@@ -513,5 +567,21 @@ const makeStyles = (theme: any) =>
       paddingTop: theme.spacing.xs,
       paddingBottom: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
+    },
+    pickerActionsRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: theme.spacing.sm,
+      paddingTop: theme.spacing.sm,
+    },
+    pickerActionBtn: {
+      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.md,
+      borderRadius: 9999,
+      borderWidth: 1,
+    },
+    pickerActionText: {
+      fontSize: theme.typography.body,
+      fontWeight: "700",
     },
   });

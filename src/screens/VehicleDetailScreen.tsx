@@ -1,5 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import {
+  Alert,
+  FlatList,
+  Keyboard,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { i18n } from "../i18n/i18n";
@@ -24,10 +36,9 @@ import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { TextField } from "../ui/components/TextField";
-import { DateField } from "../ui/components/DateField";
-import { PickerField } from "../ui/components/PickerField";
 import { Ionicons } from "@expo/vector-icons";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
+import { hexToRgba } from "../ui/components/ChoiceChip";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDetail">;
 
@@ -37,12 +48,35 @@ import {
   formatMonthYearPL,
 } from "../utils/dateFormatting";
 
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function formatYmd(d: Date) {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function parseYmd(ymd: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
+  if (!m) return new Date();
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  // Use local time to avoid UTC date shifting.
+  return new Date(year, month - 1, day);
+}
+
 export function VehicleDetailScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
+  const accentBg = useMemo(
+    () => hexToRgba(theme.colors.accent, 0.15),
+    [theme.colors.accent]
+  );
+  const contentPad = theme.layout.contentPaddingHorizontal;
   const { vehicleId } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [items, setItems] = useState<ServiceEntry[]>([]);
@@ -62,11 +96,20 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   >("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [openDatePicker, setOpenDatePicker] = useState<"from" | "to" | null>(
+    null
+  );
+  const [datePickerDraft, setDatePickerDraft] = useState<Date>(new Date());
   const [minCost, setMinCost] = useState("");
   const [maxCost, setMaxCost] = useState("");
   const [showReminders, setShowReminders] = useState(false);
   const [sortOption, setSortOption] = useState<
-    "date-newest" | "date-oldest" | "mileage-highest" | "mileage-lowest"
+    | "date-newest"
+    | "date-oldest"
+    | "title-az"
+    | "title-za"
+    | "cost-asc"
+    | "cost-desc"
   >("date-newest");
 
   const load = useCallback(
@@ -136,6 +179,140 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
     setMaxCost("");
     setShowReminders(false);
     setSortOption("date-newest");
+  }
+
+  const categoryLabel = useMemo(() => {
+    if (categoryFilter === "all") return t("common.all");
+    return t(`entryForm.categories.${categoryFilter}` as any);
+  }, [categoryFilter, t]);
+
+  const sortField = useMemo(() => {
+    const [field] = sortOption.split("-") as [string, string];
+    if (field === "title") return "title" as const;
+    if (field === "cost") return "cost" as const;
+    return "date" as const;
+  }, [sortOption]);
+
+  function setSortField(next: typeof sortField) {
+    if (next === sortField) return;
+    if (next === "date") setSortOption("date-newest");
+    if (next === "title") setSortOption("title-az");
+    if (next === "cost") setSortOption("cost-asc");
+  }
+
+  function openPicker(kind: "from" | "to") {
+    const current = kind === "from" ? dateFrom : dateTo;
+    setDatePickerDraft(
+      parseYmd(current.trim().length === 10 ? current : formatYmd(new Date()))
+    );
+    setOpenDatePicker(kind);
+  }
+
+  function cancelPicker() {
+    setOpenDatePicker(null);
+  }
+
+  function confirmPicker() {
+    if (!openDatePicker) return;
+    const ymd = formatYmd(datePickerDraft);
+    if (openDatePicker === "from") setDateFrom(ymd);
+    if (openDatePicker === "to") setDateTo(ymd);
+    setOpenDatePicker(null);
+  }
+
+  function renderInlineDatePicker() {
+    return (
+      <View
+        style={[
+          styles.pickerWrap,
+          {
+            borderTopColor: theme.colors.border,
+            backgroundColor: theme.colors.card,
+          },
+        ]}
+      >
+        <DateTimePicker
+          value={datePickerDraft}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, selectedDate) => {
+            if (Platform.OS === "ios") {
+              if (selectedDate) setDatePickerDraft(selectedDate);
+              return;
+            }
+
+            setOpenDatePicker(null);
+            if ((event as any)?.type === "dismissed") return;
+            if (!selectedDate) return;
+            const ymd = formatYmd(selectedDate);
+            if (openDatePicker === "from") setDateFrom(ymd);
+            if (openDatePicker === "to") setDateTo(ymd);
+          }}
+        />
+        {Platform.OS === "ios" ? (
+          <View style={styles.pickerActionsRow}>
+            <Pressable
+              onPress={cancelPicker}
+              style={({ pressed }) => [
+                styles.pickerActionBtn,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: "transparent",
+                  opacity: pressed ? 0.8 : 1,
+                },
+              ]}
+            >
+              <Text
+                style={[styles.pickerActionText, { color: theme.colors.muted }]}
+              >
+                {t("common.cancel")}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={confirmPicker}
+              style={({ pressed }) => [
+                styles.pickerActionBtn,
+                {
+                  borderColor: theme.colors.accent,
+                  backgroundColor: accentBg,
+                  opacity: pressed ? 0.8 : 1,
+                },
+              ]}
+            >
+              <Text
+                style={[styles.pickerActionText, { color: theme.colors.accent }]}
+              >
+                {t("common.done")}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
+      </View>
+    );
+  }
+
+  function showCategoryPicker() {
+    const options: ServiceEntryCategory[] = [
+      "maintenance",
+      "repair",
+      "inspection",
+      "upgrade",
+      "oil_engine",
+      "other",
+    ];
+    const buttons: Array<{
+      text: string;
+      onPress?: () => void;
+      style?: "cancel" | "default";
+    }> = [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("common.all"), onPress: () => setCategoryFilter("all") },
+      ...options.map((c) => ({
+        text: t(`entryForm.categories.${c}` as any),
+        onPress: () => setCategoryFilter(c),
+      })),
+    ];
+    Alert.alert(t("timeline.filterCategory"), "", buttons, { cancelable: true });
   }
 
   const timelineRows = useMemo(() => {
@@ -213,22 +390,28 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         } else {
           return a.sortKey > b.sortKey ? 1 : -1;
         }
-      } else {
-        // Sort by mileage
-        const aMileage = a.sortMileage ?? -1;
-        const bMileage = b.sortMileage ?? -1;
-
-        // Entries without mileage go to the end
-        if (aMileage === -1 && bMileage === -1) return 0;
-        if (aMileage === -1) return 1;
-        if (bMileage === -1) return -1;
-
-        if (sortOrder === "highest") {
-          return aMileage < bMileage ? 1 : -1;
-        } else {
-          return aMileage > bMileage ? 1 : -1;
-        }
       }
+
+      if (sortBy === "title") {
+        const aTitle = (a.entry.title ?? "").trim();
+        const bTitle = (b.entry.title ?? "").trim();
+        const cmp = aTitle.localeCompare(bTitle, undefined, {
+          sensitivity: "base",
+        });
+        if (cmp !== 0) return sortOrder === "az" ? cmp : -cmp;
+        // Tiebreaker: newest first
+        return b.sortKey.localeCompare(a.sortKey);
+      }
+
+      // Sort by cost
+      const aCost = a.entry.cost == null ? null : Number(a.entry.cost);
+      const bCost = b.entry.cost == null ? null : Number(b.entry.cost);
+      if (aCost == null && bCost == null) return 0;
+      if (aCost == null) return 1;
+      if (bCost == null) return -1;
+      const diff = aCost - bCost;
+      if (diff !== 0) return sortOrder === "asc" ? diff : -diff;
+      return b.sortKey.localeCompare(a.sortKey);
     });
 
     // Reminders are always sorted by date (newest first)
@@ -237,7 +420,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
     );
 
     // Combine: if sorting by date, mix reminders with service entries
-    // If sorting by mileage, show service entries first, then reminders
+    // If sorting by title/cost, show service entries first, then reminders
     let allRows: Array<(typeof serviceRows)[0] | (typeof reminderRows)[0]>;
 
     if (sortBy === "date") {
@@ -255,7 +438,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         }
       });
     } else {
-      // Sort by mileage: service entries first (sorted by mileage), then reminders
+      // Sort by title/cost: service entries first, then reminders
       allRows = [...sortedServiceRows, ...sortedReminderRows];
     }
 
@@ -292,7 +475,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         grouped.push({ type: "item", item: row });
       }
     } else {
-      // When sorting by mileage, don't add separators - just add items
+      // When sorting by title/cost, don't add separators - just add items
       for (const row of allRows) {
         grouped.push({ type: "item", item: row });
       }
@@ -315,226 +498,6 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
-      <View style={styles.fixedHeader}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{t("dashboard.tiles.serviceTitle")}</Text>
-        </View>
-        <View style={{ height: theme.spacing.sm }} />
-        <View style={styles.searchRow}>
-          <View style={{ flex: 1 }}>
-            <TextField
-              noMarginTop
-              value={query}
-              onChangeText={setQuery}
-              placeholder={t("timeline.searchPlaceholder")}
-              autoCapitalize="none"
-              autoCorrect={false}
-              clearButtonMode="while-editing"
-            />
-          </View>
-          <View
-            style={{
-              marginLeft: theme.spacing.sm,
-              flexDirection: "row",
-              gap: theme.spacing.sm,
-            }}
-          >
-            <View
-              style={[
-                styles.addButton,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <Pressable
-                onPress={() =>
-                  navigation.navigate("ServiceEntryForm", { vehicleId })
-                }
-                style={({ pressed }) => [
-                  styles.addButtonInner,
-                  pressed && { opacity: 0.9 },
-                ]}
-              >
-                <Ionicons name="add" size={24} color={theme.colors.fg} />
-              </Pressable>
-            </View>
-            <View
-              style={[
-                styles.addButton,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-                hasActiveFilters && {
-                  borderColor: theme.colors.accent,
-                },
-              ]}
-            >
-              <Pressable
-                onPress={() => setFiltersOpen((v) => !v)}
-                style={({ pressed }) => [
-                  styles.addButtonInner,
-                  pressed && { opacity: 0.9 },
-                ]}
-              >
-                <Ionicons
-                  name="filter-outline"
-                  size={24}
-                  color={
-                    hasActiveFilters ? theme.colors.accent : theme.colors.fg
-                  }
-                />
-              </Pressable>
-            </View>
-            {hasActiveFilters ? (
-              <View
-                style={[
-                  styles.addButton,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <Pressable
-                  onPress={resetFilters}
-                  style={({ pressed }) => [
-                    styles.addButtonInner,
-                    pressed && { opacity: 0.9 },
-                  ]}
-                >
-                  <Ionicons
-                    name="refresh-outline"
-                    size={24}
-                    color={theme.colors.fg}
-                  />
-                </Pressable>
-              </View>
-            ) : null}
-          </View>
-        </View>
-        {filtersOpen ? (
-          <>
-            <View style={{ height: theme.spacing.sm }} />
-            <View style={styles.filtersCard}>
-              <View style={styles.toggleRow}>
-                <Text style={styles.filtersLabel}>
-                  {t("timeline.showReminders")}
-                </Text>
-                <Pressable
-                  onPress={() => setShowReminders((v) => !v)}
-                  style={[
-                    styles.toggleButton,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: showReminders
-                        ? theme.colors.accent
-                        : theme.colors.card,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color: showReminders ? "#000000" : theme.colors.muted,
-                      fontWeight: "800",
-                      fontSize: theme.typography.small,
-                    }}
-                  >
-                    {showReminders ? t("common.on") : t("common.off")}
-                  </Text>
-                </Pressable>
-              </View>
-
-              <PickerField
-                noMarginTop
-                label={t("timeline.filterCategory")}
-                value={categoryFilter === "all" ? null : categoryFilter}
-                options={
-                  [
-                    "maintenance",
-                    "repair",
-                    "inspection",
-                    "upgrade",
-                    "oil_engine",
-                    "other",
-                  ] as const
-                }
-                getLabel={(value) => t(`entryForm.categories.${value}` as any)}
-                onChange={(value) => setCategoryFilter(value ?? "all")}
-                placeholder={t("common.all")}
-              />
-
-              <View style={{ height: theme.spacing.sm }} />
-              <PickerField
-                noMarginTop
-                label={t("timeline.sortBy")}
-                value={sortOption}
-                options={
-                  [
-                    "date-newest",
-                    "date-oldest",
-                    "mileage-highest",
-                    "mileage-lowest",
-                  ] as const
-                }
-                getLabel={(value) => {
-                  if (value === "date-newest")
-                    return t("timeline.sortOptionDateNewest");
-                  if (value === "date-oldest")
-                    return t("timeline.sortOptionDateOldest");
-                  if (value === "mileage-highest")
-                    return t("timeline.sortOptionMileageHighest");
-                  return t("timeline.sortOptionMileageLowest");
-                }}
-                onChange={(value) => {
-                  if (value) setSortOption(value);
-                }}
-              />
-
-              <View style={{ height: theme.spacing.sm }} />
-              <DateField
-                noMarginTop
-                label={t("timeline.filterFrom")}
-                value={dateFrom}
-                onChange={setDateFrom}
-              />
-              <View style={{ height: theme.spacing.sm }} />
-              <DateField
-                noMarginTop
-                label={t("timeline.filterTo")}
-                value={dateTo}
-                onChange={setDateTo}
-              />
-
-              <View style={{ height: theme.spacing.sm }} />
-              <View style={styles.rangeRow}>
-                <View style={{ flex: 1 }}>
-                  <TextField
-                    noMarginTop
-                    label={t("timeline.filterMinCost")}
-                    value={minCost}
-                    onChangeText={setMinCost}
-                    keyboardType="decimal-pad"
-                    placeholder={t("timeline.placeholderMinCost")}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <TextField
-                    noMarginTop
-                    label={t("timeline.filterMaxCost")}
-                    value={maxCost}
-                    onChangeText={setMaxCost}
-                    keyboardType="decimal-pad"
-                    placeholder={t("timeline.placeholderMaxCost")}
-                  />
-                </View>
-              </View>
-            </View>
-          </>
-        ) : null}
-      </View>
       <FlatList
         data={timelineRows}
         keyExtractor={(e, index) => {
@@ -544,8 +507,545 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
           return `${e.item.kind}:${e.item.id}`;
         }}
         contentContainerStyle={styles.list}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        onTouchStart={Keyboard.dismiss}
         refreshing={refreshing}
         onRefresh={() => void load({ refreshing: true })}
+        ListHeaderComponent={
+          <View
+            style={[
+              styles.fixedHeader,
+              {
+                backgroundColor: theme.colors.bg,
+                marginHorizontal: -contentPad,
+                paddingHorizontal: contentPad,
+              },
+            ]}
+          >
+            <View style={styles.header}>
+              <Text style={styles.title}>{t("dashboard.tiles.serviceTitle")}</Text>
+            </View>
+            <View style={{ height: theme.spacing.sm }} />
+            <View style={styles.searchRow}>
+              <View style={{ flex: 1 }}>
+                <TextField
+                  noMarginTop
+                  value={query}
+                  onChangeText={setQuery}
+                  placeholder={t("timeline.searchPlaceholder")}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  clearButtonMode="while-editing"
+                />
+              </View>
+              <View
+                style={{
+                  marginLeft: theme.spacing.sm,
+                  flexDirection: "row",
+                  gap: theme.spacing.sm,
+                }}
+              >
+                <View
+                  style={[
+                    styles.addButton,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                  ]}
+                >
+                  <Pressable
+                    onPress={() =>
+                      navigation.navigate("ServiceEntryForm", { vehicleId })
+                    }
+                    style={({ pressed }) => [
+                      styles.addButtonInner,
+                      pressed && { opacity: 0.9 },
+                    ]}
+                  >
+                    <Ionicons name="add" size={24} color={theme.colors.fg} />
+                  </Pressable>
+                </View>
+                <View
+                  style={[
+                    styles.addButton,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                    hasActiveFilters && {
+                      borderColor: theme.colors.accent,
+                    },
+                  ]}
+                >
+                  <Pressable
+                    onPress={() => setFiltersOpen((v) => !v)}
+                    style={({ pressed }) => [
+                      styles.addButtonInner,
+                      pressed && { opacity: 0.9 },
+                    ]}
+                  >
+                    <Ionicons
+                      name="filter-outline"
+                      size={24}
+                      color={
+                        hasActiveFilters ? theme.colors.accent : theme.colors.fg
+                      }
+                    />
+                  </Pressable>
+                </View>
+                {hasActiveFilters ? (
+                  <View
+                    style={[
+                      styles.addButton,
+                      {
+                        borderColor: theme.colors.border,
+                        backgroundColor: theme.colors.card,
+                      },
+                    ]}
+                  >
+                    <Pressable
+                      onPress={resetFilters}
+                      style={({ pressed }) => [
+                        styles.addButtonInner,
+                        pressed && { opacity: 0.9 },
+                      ]}
+                    >
+                      <Ionicons
+                        name="refresh-outline"
+                        size={24}
+                        color={theme.colors.fg}
+                      />
+                    </Pressable>
+                  </View>
+                ) : null}
+              </View>
+            </View>
+
+            {filtersOpen ? (
+              <>
+                <View style={{ height: theme.spacing.sm }} />
+                <View
+                  style={[
+                    styles.filtersCard,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                  ]}
+                >
+                  <View style={styles.row}>
+                    <Ionicons
+                      name="notifications-outline"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
+                    <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+                      {t("timeline.showReminders")}
+                    </Text>
+                    <Switch
+                      value={showReminders}
+                      onValueChange={setShowReminders}
+                      trackColor={{
+                        false: theme.colors.border,
+                        true: theme.colors.accent,
+                      }}
+                      thumbColor={
+                        Platform.OS === "android" ? "#ffffff" : undefined
+                      }
+                    />
+                  </View>
+
+                  <View
+                    style={[
+                      styles.divider,
+                      { backgroundColor: theme.colors.border },
+                    ]}
+                  />
+                  <Pressable
+                    onPress={showCategoryPicker}
+                    style={({ pressed }) => [
+                      styles.row,
+                      pressed && { opacity: 0.75 },
+                    ]}
+                  >
+                    <Ionicons
+                      name="pricetag-outline"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
+                    <Text
+                      style={[
+                        styles.valueText,
+                        {
+                          color:
+                            categoryFilter === "all"
+                              ? theme.colors.muted
+                              : theme.colors.fg,
+                        },
+                      ]}
+                    >
+                      {categoryFilter === "all"
+                        ? t("timeline.filterCategory")
+                        : categoryLabel}
+                    </Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color={theme.colors.muted}
+                    />
+                  </Pressable>
+
+                  <View
+                    style={[
+                      styles.divider,
+                      { backgroundColor: theme.colors.border },
+                    ]}
+                  />
+                  <View style={styles.row}>
+                    <Ionicons
+                      name="swap-vertical-outline"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
+                    <View
+                      style={[
+                        styles.segmentWrap,
+                        {
+                          borderColor: theme.colors.border,
+                          backgroundColor: theme.colors.bg,
+                        },
+                      ]}
+                    >
+                      {(["date", "title", "cost"] as const).map((f) => {
+                        const selected = sortField === f;
+                        const label =
+                          f === "date"
+                            ? t("timeline.sortFieldDate")
+                            : f === "title"
+                              ? t("timeline.sortFieldTitle")
+                              : t("timeline.sortFieldAmount");
+                        return (
+                          <Pressable
+                            key={f}
+                            onPress={() => setSortField(f)}
+                            style={({ pressed }) => [
+                              styles.segment,
+                              selected && styles.segmentSelected,
+                              {
+                                borderColor: theme.colors.accent,
+                                backgroundColor: selected
+                                  ? accentBg
+                                  : "transparent",
+                                opacity: pressed ? 0.85 : 1,
+                              },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.segmentTextSmall,
+                                {
+                                  color: selected
+                                    ? theme.colors.accent
+                                    : theme.colors.muted,
+                                },
+                              ]}
+                            >
+                              {label}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  <View
+                    style={[
+                      styles.divider,
+                      { backgroundColor: theme.colors.border },
+                    ]}
+                  />
+                  <View style={styles.row}>
+                    <Ionicons
+                      name="options-outline"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
+                    <View
+                      style={[
+                        styles.segmentWrap,
+                        {
+                          borderColor: theme.colors.border,
+                          backgroundColor: theme.colors.bg,
+                        },
+                      ]}
+                    >
+                      {sortField === "date" ? (
+                        <>
+                          {(["newest", "oldest"] as const).map((o) => {
+                            const selected = sortOption === `date-${o}`;
+                            const label =
+                              o === "newest"
+                                ? t("timeline.sortOrderNewest")
+                                : t("timeline.sortOrderOldest");
+                            return (
+                              <Pressable
+                                key={o}
+                                onPress={() =>
+                                  setSortOption(
+                                    o === "newest"
+                                      ? "date-newest"
+                                      : "date-oldest"
+                                  )
+                                }
+                                style={({ pressed }) => [
+                                  styles.segment,
+                                  selected && styles.segmentSelected,
+                                  {
+                                    borderColor: theme.colors.accent,
+                                    backgroundColor: selected
+                                      ? accentBg
+                                      : "transparent",
+                                    opacity: pressed ? 0.85 : 1,
+                                  },
+                                ]}
+                              >
+                                <Text
+                                  style={[
+                                    styles.segmentTextSmall,
+                                    {
+                                      color: selected
+                                        ? theme.colors.accent
+                                        : theme.colors.muted,
+                                    },
+                                  ]}
+                                >
+                                  {label}
+                                </Text>
+                              </Pressable>
+                            );
+                          })}
+                        </>
+                      ) : sortField === "title" ? (
+                        <>
+                          {(["az", "za"] as const).map((o) => {
+                            const selected = sortOption === `title-${o}`;
+                            const label =
+                              o === "az"
+                                ? t("timeline.sortOrderAz")
+                                : t("timeline.sortOrderZa");
+                            return (
+                              <Pressable
+                                key={o}
+                                onPress={() =>
+                                  setSortOption(
+                                    o === "az" ? "title-az" : "title-za"
+                                  )
+                                }
+                                style={({ pressed }) => [
+                                  styles.segment,
+                                  selected && styles.segmentSelected,
+                                  {
+                                    borderColor: theme.colors.accent,
+                                    backgroundColor: selected
+                                      ? accentBg
+                                      : "transparent",
+                                    opacity: pressed ? 0.85 : 1,
+                                  },
+                                ]}
+                              >
+                                <Text
+                                  style={[
+                                    styles.segmentTextSmall,
+                                    {
+                                      color: selected
+                                        ? theme.colors.accent
+                                        : theme.colors.muted,
+                                    },
+                                  ]}
+                                >
+                                  {label}
+                                </Text>
+                              </Pressable>
+                            );
+                          })}
+                        </>
+                      ) : (
+                        <>
+                          {(["asc", "desc"] as const).map((o) => {
+                            const selected = sortOption === `cost-${o}`;
+                            const label =
+                              o === "asc"
+                                ? t("timeline.sortOrderAmountAsc")
+                                : t("timeline.sortOrderAmountDesc");
+                            return (
+                              <Pressable
+                                key={o}
+                                onPress={() =>
+                                  setSortOption(
+                                    o === "asc" ? "cost-asc" : "cost-desc"
+                                  )
+                                }
+                                style={({ pressed }) => [
+                                  styles.segment,
+                                  selected && styles.segmentSelected,
+                                  {
+                                    borderColor: theme.colors.accent,
+                                    backgroundColor: selected
+                                      ? accentBg
+                                      : "transparent",
+                                    opacity: pressed ? 0.85 : 1,
+                                  },
+                                ]}
+                              >
+                                <Text
+                                  style={[
+                                    styles.segmentTextSmall,
+                                    {
+                                      color: selected
+                                        ? theme.colors.accent
+                                        : theme.colors.muted,
+                                    },
+                                  ]}
+                                >
+                                  {label}
+                                </Text>
+                              </Pressable>
+                            );
+                          })}
+                        </>
+                      )}
+                    </View>
+                  </View>
+
+                  <View
+                    style={[
+                      styles.divider,
+                      { backgroundColor: theme.colors.border },
+                    ]}
+                  />
+                  <Pressable
+                    onPress={() => openPicker("from")}
+                    style={({ pressed }) => [
+                      styles.row,
+                      pressed && { opacity: 0.75 },
+                    ]}
+                  >
+                    <Ionicons
+                      name="calendar-outline"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
+                    <Text
+                      style={[
+                        styles.valueText,
+                        { color: dateFrom ? theme.colors.fg : theme.colors.muted },
+                      ]}
+                    >
+                      {dateFrom || t("timeline.filterFrom")}
+                    </Text>
+                  </Pressable>
+                  {openDatePicker === "from" ? (
+                    <>
+                      {renderInlineDatePicker()}
+                      <View
+                        style={[
+                          styles.divider,
+                          { backgroundColor: theme.colors.border },
+                        ]}
+                      />
+                    </>
+                  ) : (
+                    <View
+                      style={[
+                        styles.divider,
+                        { backgroundColor: theme.colors.border },
+                      ]}
+                    />
+                  )}
+
+                  <Pressable
+                    onPress={() => openPicker("to")}
+                    style={({ pressed }) => [
+                      styles.row,
+                      pressed && { opacity: 0.75 },
+                    ]}
+                  >
+                    <Ionicons
+                      name="calendar-outline"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
+                    <Text
+                      style={[
+                        styles.valueText,
+                        { color: dateTo ? theme.colors.fg : theme.colors.muted },
+                      ]}
+                    >
+                      {dateTo || t("timeline.filterTo")}
+                    </Text>
+                  </Pressable>
+                  {openDatePicker === "to" ? (
+                    <>
+                      {renderInlineDatePicker()}
+                      <View
+                        style={[
+                          styles.divider,
+                          { backgroundColor: theme.colors.border },
+                        ]}
+                      />
+                    </>
+                  ) : (
+                    <View
+                      style={[
+                        styles.divider,
+                        { backgroundColor: theme.colors.border },
+                      ]}
+                    />
+                  )}
+
+                  <View style={styles.row}>
+                    <Ionicons
+                      name="cash-outline"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
+                    <TextInput
+                      value={minCost}
+                      onChangeText={setMinCost}
+                      keyboardType="decimal-pad"
+                      placeholder={`${t("timeline.filterMinCost")} (${currency})`}
+                      placeholderTextColor={theme.colors.muted}
+                      style={[styles.input, { color: theme.colors.fg }]}
+                    />
+                  </View>
+                  <View
+                    style={[
+                      styles.divider,
+                      { backgroundColor: theme.colors.border },
+                    ]}
+                  />
+                  <View style={styles.row}>
+                    <Ionicons
+                      name="cash-outline"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
+                    <TextInput
+                      value={maxCost}
+                      onChangeText={setMaxCost}
+                      keyboardType="decimal-pad"
+                      placeholder={`${t("timeline.filterMaxCost")} (${currency})`}
+                      placeholderTextColor={theme.colors.muted}
+                      style={[styles.input, { color: theme.colors.fg }]}
+                    />
+                  </View>
+                </View>
+              </>
+            ) : null}
+          </View>
+        }
         ListEmptyComponent={
           loading ? (
             <View style={styles.loadingContainer}>
@@ -702,51 +1202,73 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    filtersRow: { flexDirection: "row", gap: 10 },
+    filtersRow: { flexDirection: "row", gap: theme.spacing.sm },
     filtersAction: {
       borderWidth: 1,
-      borderRadius: theme.radius.sm,
+      borderRadius: theme.radius.md,
       paddingVertical: theme.spacing.sm - 2,
       paddingHorizontal: theme.spacing.sm,
       alignSelf: "flex-start",
     },
     filtersCard: {
       borderWidth: 1,
-      borderColor: theme.colors.border,
-      backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
-      gap: 10,
+      overflow: "hidden",
     },
-    filtersLabel: {
-      fontSize: theme.typography.small,
-      fontWeight: "800",
-      color: theme.colors.muted,
-    },
-    toggleRow: {
+    row: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
+      gap: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
     },
-    toggleButton: {
-      borderWidth: 1,
-      borderRadius: theme.radius.sm,
-      paddingVertical: theme.spacing.sm / 2,
-      paddingHorizontal: theme.spacing.sm,
+    divider: { height: 1, width: "100%" },
+    valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
+    input: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.body,
+      paddingVertical: 0,
     },
-    categoryRow: {
+    segmentWrap: {
+      flex: 1,
+      minWidth: 0,
       flexDirection: "row",
-      flexWrap: "wrap",
-      gap: theme.spacing.sm - 2,
-    },
-    chip: {
       borderWidth: 1,
-      borderRadius: theme.radius.sm,
-      paddingVertical: theme.spacing.sm - 2,
-      paddingHorizontal: theme.spacing.sm,
-      backgroundColor: theme.colors.card,
+      borderRadius: theme.radius.md,
+      padding: 2,
     },
-    rangeRow: { flexDirection: "row", gap: theme.spacing.sm - 2 },
+    segment: {
+      flex: 1,
+      borderRadius: theme.radius.md - 2,
+      paddingVertical: theme.spacing.xs - 2,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    segmentSelected: { borderWidth: 1 },
+    segmentTextSmall: { fontSize: theme.typography.small, fontWeight: "700" },
+    pickerWrap: {
+      borderTopWidth: 1,
+      paddingTop: theme.spacing.xs,
+      paddingBottom: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    pickerActionsRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: theme.spacing.sm,
+      paddingTop: theme.spacing.sm,
+    },
+    pickerActionBtn: {
+      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.md,
+      borderRadius: 9999,
+      borderWidth: 1,
+    },
+    pickerActionText: {
+      fontSize: theme.typography.body,
+      fontWeight: "700",
+    },
     loadingContainer: {
       paddingTop: theme.spacing.lg * 2.5,
       paddingBottom: theme.spacing.lg * 2.5,

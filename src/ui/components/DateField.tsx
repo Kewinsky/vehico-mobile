@@ -1,5 +1,5 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -31,6 +31,9 @@ type Props = {
   onChange: (next: string) => void;
   disabled?: boolean;
   noMarginTop?: boolean;
+  pickerId?: string;
+  activePickerId?: string | null;
+  setActivePickerId?: (next: string | null) => void;
 };
 
 export function DateField({
@@ -39,13 +42,29 @@ export function DateField({
   onChange,
   disabled,
   noMarginTop,
+  pickerId,
+  activePickerId,
+  setActivePickerId,
 }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const [open, setOpen] = useState(false);
+  const [openLocal, setOpenLocal] = useState(false);
+  const [draft, setDraft] = useState<Date>(() => new Date());
 
   const dateValue = useMemo(() => parseYmd(value), [value]);
+  const controlled =
+    !!pickerId && typeof setActivePickerId === "function" && activePickerId !== undefined;
+  const open = controlled ? activePickerId === pickerId : openLocal;
+
+  function setOpen(next: boolean) {
+    if (controlled) setActivePickerId?.(next ? (pickerId as string) : null);
+    else setOpenLocal(next);
+  }
+
+  useEffect(() => {
+    if (open) setDraft(dateValue);
+  }, [open, dateValue]);
 
   return (
     <View>
@@ -68,7 +87,7 @@ export function DateField({
       {open ? (
         <View style={styles.pickerWrap}>
           <DateTimePicker
-            value={dateValue}
+            value={draft}
             mode="date"
             display={Platform.OS === "ios" ? "spinner" : "default"}
             themeVariant={mode === "dark" ? "dark" : "light"}
@@ -83,13 +102,22 @@ export function DateField({
                 return;
               }
               // iOS fires continuously while scrolling; keep open until user taps Done.
-              if (selected) onChange(formatYmd(selected));
+              if (selected) setDraft(selected);
             }}
           />
 
           {Platform.OS === "ios" ? (
-            <View style={styles.doneRow}>
+            <View style={styles.actionsRow}>
               <Button onPress={() => setOpen(false)} variant="ghost">
+                {t("common.cancel")}
+              </Button>
+              <Button
+                onPress={() => {
+                  onChange(formatYmd(draft));
+                  setOpen(false);
+                }}
+                variant="ghost"
+              >
                 {t("common.done")}
               </Button>
             </View>
@@ -110,8 +138,11 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       overflow: "hidden",
     },
-    doneRow: {
+    actionsRow: {
       padding: theme.spacing.sm,
       paddingTop: 0,
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: theme.spacing.sm,
     },
   });

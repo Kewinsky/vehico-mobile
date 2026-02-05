@@ -84,8 +84,10 @@ export function VehicleFormScreen({ navigation }: Props) {
   const [notes, setNotes] = useState("");
   const [insuranceValidUntil, setInsuranceValidUntil] = useState("");
   const [inspectionValidUntil, setInspectionValidUntil] = useState("");
-  const [insurancePickerOpen, setInsurancePickerOpen] = useState(false);
-  const [inspectionPickerOpen, setInspectionPickerOpen] = useState(false);
+  const [openDatePicker, setOpenDatePicker] = useState<
+    "insurance" | "inspection" | null
+  >(null);
+  const [datePickerDraft, setDatePickerDraft] = useState<Date>(new Date());
   const [saving, setSaving] = useState(false);
   type PhotoFile = {
     uri: string;
@@ -117,6 +119,98 @@ export function VehicleFormScreen({ navigation }: Props) {
   function makePlaceholder(label: string, example: string) {
     const ex = stripExamplePrefix(example);
     return ex ? `${label}: ${ex}` : `${label}:`;
+  }
+
+  function openPicker(kind: "insurance" | "inspection") {
+    const currentYmd =
+      kind === "insurance" ? insuranceValidUntil : inspectionValidUntil;
+    setDatePickerDraft(
+      parseYmd(currentYmd || new Date().toISOString().slice(0, 10))
+    );
+    setOpenDatePicker(kind);
+  }
+
+  function cancelPicker() {
+    setOpenDatePicker(null);
+  }
+
+  function confirmPicker() {
+    if (!openDatePicker) return;
+    const ymd = formatYmd(datePickerDraft);
+    if (openDatePicker === "insurance") setInsuranceValidUntil(ymd);
+    if (openDatePicker === "inspection") setInspectionValidUntil(ymd);
+    setOpenDatePicker(null);
+  }
+
+  function renderInlineDatePicker() {
+    return (
+      <View
+        style={[
+          styles.pickerWrap,
+          {
+            borderTopColor: theme.colors.border,
+            backgroundColor: theme.colors.card,
+          },
+        ]}
+      >
+        <DateTimePicker
+          value={datePickerDraft}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, selectedDate) => {
+            if (Platform.OS === "ios") {
+              if (selectedDate) setDatePickerDraft(selectedDate);
+              return;
+            }
+
+            // Android: native dialog returns once (set/dismissed).
+            setOpenDatePicker(null);
+            if (event?.type === "dismissed") return;
+            if (selectedDate) {
+              const ymd = formatYmd(selectedDate);
+              if (openDatePicker === "insurance") setInsuranceValidUntil(ymd);
+              if (openDatePicker === "inspection") setInspectionValidUntil(ymd);
+            }
+          }}
+        />
+        {Platform.OS === "ios" ? (
+          <View style={styles.pickerActionsRow}>
+            <Pressable
+              onPress={cancelPicker}
+              style={({ pressed }) => [
+                styles.pickerActionBtn,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: "transparent",
+                  opacity: pressed ? 0.8 : 1,
+                },
+              ]}
+            >
+              <Text style={[styles.pickerActionText, { color: theme.colors.muted }]}>
+                {t("common.cancel")}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={confirmPicker}
+              style={({ pressed }) => [
+                styles.pickerActionBtn,
+                {
+                  borderColor: theme.colors.accent,
+                  backgroundColor: accentBg,
+                  opacity: pressed ? 0.8 : 1,
+                },
+              ]}
+            >
+              <Text
+                style={[styles.pickerActionText, { color: theme.colors.accent }]}
+              >
+                {t("common.done")}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
+      </View>
+    );
   }
 
   function showPicker<T extends string>(opts: {
@@ -862,7 +956,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         ]}
       >
         <Pressable
-          onPress={() => setInsurancePickerOpen(true)}
+          onPress={() => openPicker("insurance")}
           style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
         >
           <Ionicons
@@ -875,7 +969,11 @@ export function VehicleFormScreen({ navigation }: Props) {
           </Text>
           {insuranceValidUntil ? (
             <Pressable
-              onPress={() => setInsuranceValidUntil("")}
+              onPress={(e) => {
+                // Prevent opening the date picker when clearing.
+                e?.stopPropagation?.();
+                setInsuranceValidUntil("");
+              }}
               hitSlop={10}
               style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
             >
@@ -887,11 +985,20 @@ export function VehicleFormScreen({ navigation }: Props) {
             </Pressable>
           ) : null}
         </Pressable>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
+        {openDatePicker === "insurance" ? (
+          <>
+            {renderInlineDatePicker()}
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+          </>
+        ) : (
+          <View
+            style={[styles.divider, { backgroundColor: theme.colors.border }]}
+          />
+        )}
         <Pressable
-          onPress={() => setInspectionPickerOpen(true)}
+          onPress={() => openPicker("inspection")}
           style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
         >
           <Ionicons
@@ -904,7 +1011,11 @@ export function VehicleFormScreen({ navigation }: Props) {
           </Text>
           {inspectionValidUntil ? (
             <Pressable
-              onPress={() => setInspectionValidUntil("")}
+              onPress={(e) => {
+                // Prevent opening the date picker when clearing.
+                e?.stopPropagation?.();
+                setInspectionValidUntil("");
+              }}
               hitSlop={10}
               style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
             >
@@ -916,55 +1027,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             </Pressable>
           ) : null}
         </Pressable>
-
-        {insurancePickerOpen ? (
-          <View
-            style={[
-              styles.pickerWrap,
-              {
-                borderTopColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <DateTimePicker
-              value={parseYmd(
-                insuranceValidUntil || new Date().toISOString().slice(0, 10)
-              )}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              onChange={(_, selectedDate) => {
-                setInsurancePickerOpen(false);
-                if (selectedDate)
-                  setInsuranceValidUntil(formatYmd(selectedDate));
-              }}
-            />
-          </View>
-        ) : null}
-        {inspectionPickerOpen ? (
-          <View
-            style={[
-              styles.pickerWrap,
-              {
-                borderTopColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <DateTimePicker
-              value={parseYmd(
-                inspectionValidUntil || new Date().toISOString().slice(0, 10)
-              )}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              onChange={(_, selectedDate) => {
-                setInspectionPickerOpen(false);
-                if (selectedDate)
-                  setInspectionValidUntil(formatYmd(selectedDate));
-              }}
-            />
-          </View>
-        ) : null}
+        {openDatePicker === "inspection" ? renderInlineDatePicker() : null}
       </View>
 
       <View style={{ height: theme.spacing.sm }} />
@@ -1077,6 +1140,22 @@ const makeStyles = (theme: any) =>
       paddingTop: theme.spacing.xs,
       paddingBottom: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
+    },
+    pickerActionsRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: theme.spacing.sm,
+      paddingTop: theme.spacing.sm,
+    },
+    pickerActionBtn: {
+      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.md,
+      borderRadius: 9999,
+      borderWidth: 1,
+    },
+    pickerActionText: {
+      fontSize: theme.typography.body,
+      fontWeight: "700",
     },
     photosSection: {
       gap: theme.spacing.xs,

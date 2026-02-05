@@ -82,6 +82,9 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const [notes, setNotes] = useState("");
   const [insuranceValidUntil, setInsuranceValidUntil] = useState("");
   const [inspectionValidUntil, setInspectionValidUntil] = useState("");
+  const [activeDateFieldId, setActiveDateFieldId] = useState<string | null>(
+    null
+  );
 
   const load = useCallback(async () => {
     try {
@@ -521,11 +524,17 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             label={t("manageVehicle.insuranceLabel")}
             value={insuranceValidUntil}
             onChange={setInsuranceValidUntil}
+            pickerId="insurance"
+            activePickerId={activeDateFieldId}
+            setActivePickerId={setActiveDateFieldId}
           />
           <DateField
             label={t("manageVehicle.inspectionLabel")}
             value={inspectionValidUntil}
             onChange={setInspectionValidUntil}
+            pickerId="inspection"
+            activePickerId={activeDateFieldId}
+            setActivePickerId={setActiveDateFieldId}
           />
           <TextField
             label={`${t("manageVehicle.makeLabel")} *`}

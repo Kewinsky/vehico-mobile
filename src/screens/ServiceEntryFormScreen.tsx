@@ -94,6 +94,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     new Date().toISOString().slice(0, 10)
   );
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [datePickerDraft, setDatePickerDraft] = useState<Date>(() => new Date());
   const [mileage, setMileage] = useState("");
   const [category, setCategory] = useState<ServiceEntryCategory | null>(null);
   const [entries, setEntries] = useState<EntryRow[]>([{ title: "", cost: "" }]);
@@ -230,6 +231,11 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       isNonNegativeNumber(mileage)
     );
   }, [serviceDate, category, entries, mileage]);
+
+  function openDatePicker() {
+    setDatePickerDraft(parseYmd(serviceDate));
+    setDatePickerOpen(true);
+  }
 
   function stripExamplePrefix(s: string) {
     return s
@@ -620,7 +626,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         ]}
       >
         <Pressable
-          onPress={() => setDatePickerOpen(true)}
+          onPress={openDatePicker}
           style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
         >
           <Ionicons
@@ -632,6 +638,74 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             {serviceDate}
           </Text>
         </Pressable>
+
+        {datePickerOpen ? (
+          <View
+            style={[
+              styles.pickerWrap,
+              {
+                borderTopColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <DateTimePicker
+              value={datePickerDraft}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(event, selectedDate) => {
+                if (Platform.OS === "ios") {
+                  if (selectedDate) setDatePickerDraft(selectedDate);
+                  return;
+                }
+
+                setDatePickerOpen(false);
+                if ((event as any)?.type === "dismissed") return;
+                if (selectedDate) setServiceDate(formatYmd(selectedDate));
+              }}
+            />
+            {Platform.OS === "ios" ? (
+              <View style={styles.pickerActionsRow}>
+                <Pressable
+                  onPress={() => setDatePickerOpen(false)}
+                  style={({ pressed }) => [
+                    styles.pickerActionBtn,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: "transparent",
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.pickerActionText, { color: theme.colors.muted }]}>
+                    {t("common.cancel")}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setServiceDate(formatYmd(datePickerDraft));
+                    setDatePickerOpen(false);
+                  }}
+                  style={({ pressed }) => [
+                    styles.pickerActionBtn,
+                    {
+                      borderColor: theme.colors.accent,
+                      backgroundColor: accentBg,
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[styles.pickerActionText, { color: theme.colors.accent }]}
+                  >
+                    {t("common.done")}
+                  </Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
@@ -708,28 +782,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             style={[styles.input, { color: theme.colors.fg }]}
           />
         </View>
-
-        {datePickerOpen ? (
-          <View
-            style={[
-              styles.pickerWrap,
-              {
-                borderTopColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <DateTimePicker
-              value={parseYmd(serviceDate)}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              onChange={(_, selectedDate) => {
-                setDatePickerOpen(false);
-                if (selectedDate) setServiceDate(formatYmd(selectedDate));
-              }}
-            />
-          </View>
-        ) : null}
       </View>
 
       <View style={{ height: theme.spacing.sm }} />
@@ -737,75 +789,79 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       {isMulti ? (
         <>
           {entries.map((row, index) => (
-            <View
-              key={index}
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.row}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <TextInput
-                  value={row.title}
-                  onChangeText={(text) => updateEntry(index, { title: text })}
-                  editable={!saving && !uploading}
-                  placeholder={makePlaceholder(
-                    `${t("entryForm.entryTitle")}`,
-                    t("entryForm.placeholderTitle")
-                  )}
-                  placeholderTextColor={theme.colors.muted}
-                  style={[styles.input, { color: theme.colors.fg }]}
-                />
-              </View>
+            <View key={index}>
               <View
                 style={[
-                  styles.divider,
-                  { backgroundColor: theme.colors.border },
+                  styles.card,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
                 ]}
-              />
-              <View style={styles.row}>
-                <Ionicons
-                  name="cash-outline"
-                  size={20}
-                  color={theme.colors.accent}
+              >
+                <View style={styles.row}>
+                  <Ionicons
+                    name="document-text-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <TextInput
+                    value={row.title}
+                    onChangeText={(text) => updateEntry(index, { title: text })}
+                    editable={!saving && !uploading}
+                    placeholder={makePlaceholder(
+                      `${t("entryForm.entryTitle")}`,
+                      t("entryForm.placeholderTitle")
+                    )}
+                    placeholderTextColor={theme.colors.muted}
+                    style={[styles.input, { color: theme.colors.fg }]}
+                  />
+                </View>
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
                 />
-                <TextInput
-                  value={row.cost}
-                  onChangeText={(text) => updateEntry(index, { cost: text })}
-                  keyboardType="decimal-pad"
-                  editable={!saving && !uploading}
-                  placeholder={makePlaceholder(
-                    t("entryForm.cost"),
-                    t("entryForm.placeholderCost")
-                  )}
-                  placeholderTextColor={theme.colors.muted}
-                  style={[styles.input, { color: theme.colors.fg }]}
-                />
-                {isMultipleRows && (!entryId || index > 0) ? (
-                  <Pressable
-                    onPress={() => removeEntry(index)}
-                    hitSlop={10}
-                    style={({ pressed }) => [
-                      styles.inlineTrash,
-                      pressed && { opacity: 0.75 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="trash-outline"
-                      size={20}
-                      color={theme.colors.danger}
-                    />
-                  </Pressable>
-                ) : null}
+                <View style={styles.row}>
+                  <Ionicons
+                    name="cash-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <TextInput
+                    value={row.cost}
+                    onChangeText={(text) => updateEntry(index, { cost: text })}
+                    keyboardType="decimal-pad"
+                    editable={!saving && !uploading}
+                    placeholder={makePlaceholder(
+                      t("entryForm.cost"),
+                      t("entryForm.placeholderCost")
+                    )}
+                    placeholderTextColor={theme.colors.muted}
+                    style={[styles.input, { color: theme.colors.fg }]}
+                  />
+                  {isMultipleRows && (!entryId || index > 0) ? (
+                    <Pressable
+                      onPress={() => removeEntry(index)}
+                      hitSlop={10}
+                      style={({ pressed }) => [
+                        styles.inlineTrash,
+                        pressed && { opacity: 0.75 },
+                      ]}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={20}
+                        color={theme.colors.danger}
+                      />
+                    </Pressable>
+                  ) : null}
+                </View>
               </View>
+              {index < entries.length - 1 ? (
+                <View style={{ height: theme.spacing.sm }} />
+              ) : null}
             </View>
           ))}
 
@@ -1140,6 +1196,22 @@ const makeStyles = (theme: any) =>
       paddingTop: theme.spacing.xs,
       paddingBottom: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
+    },
+    pickerActionsRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: theme.spacing.sm,
+      paddingTop: theme.spacing.sm,
+    },
+    pickerActionBtn: {
+      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.md,
+      borderRadius: 9999,
+      borderWidth: 1,
+    },
+    pickerActionText: {
+      fontSize: theme.typography.body,
+      fontWeight: "700",
     },
     segmentWrap: {
       flexDirection: "row",

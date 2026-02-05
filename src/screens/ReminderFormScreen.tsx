@@ -73,6 +73,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     new Date().toISOString().slice(0, 10)
   );
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [datePickerDraft, setDatePickerDraft] = useState<Date>(() => new Date());
   const [dueMileage, setDueMileage] = useState("");
   const [daysBefore, setDaysBefore] = useState("7");
   const [saving, setSaving] = useState(false);
@@ -117,6 +118,11 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   function makePlaceholder(label: string, example: string) {
     const ex = stripExamplePrefix(example);
     return ex ? `${label}: ${ex}` : `${label}:`;
+  }
+
+  function openDatePicker() {
+    setDatePickerDraft(parseYmd(dueDate));
+    setDatePickerOpen(true);
   }
 
   function confirmDelete() {
@@ -351,7 +357,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         {type === "time" ? (
           <>
             <Pressable
-              onPress={() => setDatePickerOpen(true)}
+              onPress={openDatePicker}
               disabled={saving}
               style={({ pressed }) => [
                 styles.row,
@@ -376,27 +382,65 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                 ]}
               >
                 <DateTimePicker
-                  value={parseYmd(dueDate)}
+                  value={datePickerDraft}
                   mode="date"
                   display={Platform.OS === "ios" ? "spinner" : "default"}
                   onChange={(event, selected) => {
-                    if (Platform.OS !== "ios") {
-                      setDatePickerOpen(false);
-                      if ((event as any)?.type === "dismissed") return;
-                      if (selected) setDueDate(formatYmd(selected));
+                    if (Platform.OS === "ios") {
+                      if (selected) setDatePickerDraft(selected);
                       return;
                     }
+
+                    setDatePickerOpen(false);
+                    if ((event as any)?.type === "dismissed") return;
                     if (selected) setDueDate(formatYmd(selected));
                   }}
                 />
                 {Platform.OS === "ios" ? (
-                  <View style={styles.pickerDoneRow}>
-                    <Button
+                  <View style={styles.pickerActionsRow}>
+                    <Pressable
                       onPress={() => setDatePickerOpen(false)}
-                      variant="ghost"
+                      style={({ pressed }) => [
+                        styles.pickerActionBtn,
+                        {
+                          borderColor: theme.colors.border,
+                          backgroundColor: "transparent",
+                          opacity: pressed ? 0.8 : 1,
+                        },
+                      ]}
                     >
-                      {t("common.done")}
-                    </Button>
+                      <Text
+                        style={[
+                          styles.pickerActionText,
+                          { color: theme.colors.muted },
+                        ]}
+                      >
+                        {t("common.cancel")}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        setDueDate(formatYmd(datePickerDraft));
+                        setDatePickerOpen(false);
+                      }}
+                      style={({ pressed }) => [
+                        styles.pickerActionBtn,
+                        {
+                          borderColor: theme.colors.accent,
+                          backgroundColor: accentBg,
+                          opacity: pressed ? 0.8 : 1,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.pickerActionText,
+                          { color: theme.colors.accent },
+                        ]}
+                      >
+                        {t("common.done")}
+                      </Text>
+                    </Pressable>
                   </View>
                 ) : null}
               </View>
@@ -661,8 +705,20 @@ const makeStyles = (theme: any) =>
       paddingBottom: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
     },
-    pickerDoneRow: {
-      paddingTop: 0,
-      alignItems: "flex-end",
+    pickerActionsRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: theme.spacing.sm,
+      paddingTop: theme.spacing.sm,
+    },
+    pickerActionBtn: {
+      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.md,
+      borderRadius: 9999,
+      borderWidth: 1,
+    },
+    pickerActionText: {
+      fontSize: theme.typography.body,
+      fontWeight: "700",
     },
   });
