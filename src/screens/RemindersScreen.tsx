@@ -408,7 +408,7 @@ export function RemindersScreen({ route, navigation }: Props) {
                 <Pressable
                   style={{ flex: 1 }}
                   onPress={() =>
-                    navigation.navigate("ReminderDetail", {
+                    navigation.navigate("ReminderForm", {
                       vehicleId: route.params.vehicleId,
                       reminderId: reminder.id,
                     })

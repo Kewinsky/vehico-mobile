@@ -18,8 +18,6 @@ import { FuelScreen } from "../../screens/FuelScreen";
 import { FuelingEntryFormScreen } from "../../screens/FuelingEntryFormScreen";
 import { RemindersScreen } from "../../screens/RemindersScreen";
 import { ReminderFormScreen } from "../../screens/ReminderFormScreen";
-import { ReminderDetailScreen } from "../../screens/ReminderDetailScreen";
-import { ServiceEntryDetailScreen } from "../../screens/ServiceEntryDetailScreen";
 import { ServiceEntryFormScreen } from "../../screens/ServiceEntryFormScreen";
 import { ProfileScreen } from "../../screens/ProfileScreen";
 import { SettingsScreen } from "../../screens/SettingsScreen";
@@ -137,10 +135,8 @@ export type AppStackParamList = {
   Import: { vehicleId: string };
   AddAttachment: { vehicleId: string };
   ServiceEntryForm: { vehicleId: string; entryId?: string };
-  ServiceEntryDetail: { vehicleId: string; entryId: string };
   FuelingEntryForm: { vehicleId: string; entryId?: string };
   ReminderForm: { vehicleId: string; reminderId?: string };
-  ReminderDetail: { vehicleId: string; reminderId: string };
   Wheels: { vehicleId: string };
   TiresList: { vehicleId: string };
   WheelsList: { vehicleId: string };
@@ -199,10 +195,6 @@ export function RootNavigator() {
           />
           <Stack.Screen name="Reminders" component={RemindersScreen} />
           <Stack.Screen name="ReminderForm" component={ReminderFormScreen} />
-          <Stack.Screen
-            name="ReminderDetail"
-            component={ReminderDetailScreen}
-          />
           <Stack.Screen name="Share" component={ShareScreen} />
           <Stack.Screen name="Marketplace" component={MarketplaceScreen} />
           <Stack.Screen
@@ -258,10 +250,6 @@ export function RootNavigator() {
           <Stack.Screen name="Export" component={ExportScreen} />
           <Stack.Screen name="Import" component={ImportScreen} />
           <Stack.Screen name="AddAttachment" component={AddAttachmentScreen} />
-          <Stack.Screen
-            name="ServiceEntryDetail"
-            component={ServiceEntryDetailScreen}
-          />
           <Stack.Screen
             name="ServiceEntryForm"
             component={ServiceEntryFormScreen}

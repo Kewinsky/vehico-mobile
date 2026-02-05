@@ -387,6 +387,7 @@ export const en = {
     addExpense: "Add expense",
     fuelingSection: "Fueling",
     expensesSection: "Expenses",
+    searchPlaceholder: "Search fueling…",
     noFueling: "No fueling entries yet.",
     noExpenses: "No expenses yet.",
     deleteFuelingTitle: "Delete fueling?",

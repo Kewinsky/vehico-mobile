@@ -22,7 +22,6 @@ import {
 } from "../services/fuel/fuelingEntriesRepo";
 import { useCallback, useEffect, useState } from "react";
 import type { FuelingEntry, GasStation } from "../types/domain";
-import { Button } from "../ui/components/Button";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
@@ -54,6 +53,7 @@ export function FuelScreen({ route, navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [fueling, setFueling] = useState<FuelingEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -120,6 +120,18 @@ export function FuelScreen({ route, navigation }: Props) {
     const to = dateTo.trim().length === 10 ? dateTo.trim() : null;
 
     const filtered = fueling.filter((f) => {
+      const q = query.trim().toLowerCase();
+      if (q.length) {
+        const stationLabel = f.gas_station
+          ? t(`fuelingForm.stations.${f.gas_station}`).toLowerCase()
+          : "";
+        const fuelTypeLabel = f.fuel_type
+          ? t(`fuelingForm.fuelTypes.${f.fuel_type}`).toLowerCase()
+          : "";
+        const hay = `${String(f.date).slice(0, 10)}\n${stationLabel}\n${fuelTypeLabel}\n${f.fuel_cost ?? ""}\n${f.fuel_amount ?? ""}\n${f.distance ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+
       const d = String(f.date).slice(0, 10);
       if (from && d < from) return false;
       if (to && d > to) return false;
@@ -167,7 +179,7 @@ export function FuelScreen({ route, navigation }: Props) {
     }
 
     return grouped;
-  }, [fueling, dateFrom, dateTo, stationFilter, minCost, maxCost]);
+  }, [fueling, query, dateFrom, dateTo, stationFilter, minCost, maxCost, t]);
 
   function confirmDeleteFueling(id: string) {
     Alert.alert(
@@ -199,17 +211,17 @@ export function FuelScreen({ route, navigation }: Props) {
           <Text style={styles.title}>{t("dashboard.tiles.fuelTitle")}</Text>
         </View>
         <View style={{ height: theme.spacing.sm }} />
-        <View style={styles.actionsRow}>
+        <View style={styles.searchRow}>
           <View style={{ flex: 1 }}>
-            <Button
-              onPress={() =>
-                navigation.navigate("FuelingEntryForm", {
-                  vehicleId: route.params.vehicleId,
-                })
-              }
-            >
-              {t("fuelCosts.addFueling")}
-            </Button>
+            <TextField
+              noMarginTop
+              value={query}
+              onChangeText={setQuery}
+              placeholder={t("fuelCosts.searchPlaceholder")}
+              autoCapitalize="none"
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+            />
           </View>
           <View
             style={{
@@ -218,6 +230,30 @@ export function FuelScreen({ route, navigation }: Props) {
               gap: theme.spacing.sm,
             }}
           >
+            <View
+              style={[
+                styles.filterButton,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <Pressable
+                onPress={() =>
+                  navigation.navigate("FuelingEntryForm", {
+                    vehicleId: route.params.vehicleId,
+                  })
+                }
+                style={({ pressed }) => [
+                  styles.filterButtonInner,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <Ionicons name="add" size={24} color={theme.colors.fg} />
+              </Pressable>
+            </View>
+
             <View
               style={[
                 styles.filterButton,
@@ -483,10 +519,7 @@ const makeStyles = (theme: any) =>
     cardMeta: {
       fontSize: theme.typography.small,
     },
-    actionsRow: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
+    searchRow: { flexDirection: "row", alignItems: "center" },
     filterButton: {
       width: theme.spacing.xl + theme.spacing.sm,
       height: theme.spacing.xl + theme.spacing.sm,

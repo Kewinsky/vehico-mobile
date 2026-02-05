@@ -9,7 +9,7 @@ type Props = {
 };
 
 /** Hex color to rgba with alpha */
-function hexToRgba(hex: string, alpha: number): string {
+export function hexToRgba(hex: string, alpha: number): string {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   if (!result) return hex;
   const r = parseInt(result[1], 16);

@@ -389,6 +389,7 @@ export const pl = {
     addExpense: "Dodaj wydatek",
     fuelingSection: "Tankowania",
     expensesSection: "Wydatki",
+    searchPlaceholder: "Szukaj tankowań…",
     noFueling: "Brak tankowań.",
     noExpenses: "Brak wydatków.",
     deleteFuelingTitle: "Usunąć tankowanie?",

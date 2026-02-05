@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
   FlatList,
   Linking,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -18,6 +21,7 @@ import { isValidDate, isNonNegativeNumber } from "../utils/validation";
 import type { Attachment, ServiceEntryCategory } from "../types/domain";
 import {
   createServiceEntry,
+  deleteServiceEntry,
   getServiceEntry,
   updateServiceEntry,
 } from "../services/serviceEntries/serviceEntriesRepo";
@@ -34,17 +38,13 @@ import { listWorkshops } from "../services/workshops/workshopsRepo";
 import type { Workshop } from "../types/domain";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { Button } from "../ui/components/Button";
-import { AppHeader } from "../ui/components/AppHeader";
-import { DateField } from "../ui/components/DateField";
 import { FormScreen } from "../ui/components/FormScreen";
-import { TextField } from "../ui/components/TextField";
-import { PickerField } from "../ui/components/PickerField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { IconButton } from "../ui/components/IconButton";
-import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { Ionicons } from "@expo/vector-icons";
+import { hexToRgba } from "../ui/components/ChoiceChip";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "maintenance",
@@ -57,6 +57,24 @@ const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryForm">;
 
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function formatYmd(d: Date) {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function parseYmd(ymd: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
+  if (!m) return new Date();
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  // Use local time to avoid UTC date shifting.
+  return new Date(year, month - 1, day);
+}
+
 export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
@@ -64,6 +82,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { settings } = useUserSettings();
   const { vehicleId, entryId } = route.params as any;
   const distanceUnit = settings?.distanceUnit ?? "km";
+  const accentBg = useMemo(
+    () => hexToRgba(theme.colors.accent, 0.15),
+    [theme.colors.accent]
+  );
 
   type EntryRow = { title: string; cost: string };
   type FormMode = "single" | "multi";
@@ -71,6 +93,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [serviceDate, setServiceDate] = useState(() =>
     new Date().toISOString().slice(0, 10)
   );
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [mileage, setMileage] = useState("");
   const [category, setCategory] = useState<ServiceEntryCategory | null>(null);
   const [entries, setEntries] = useState<EntryRow[]>([{ title: "", cost: "" }]);
@@ -84,6 +107,12 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   >([]);
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [workshopId, setWorkshopId] = useState<string | null>(null);
+
+  const workshopOptions = useMemo(() => {
+    const ids = workshops.map((w) => w.id);
+    if (workshopId && !ids.includes(workshopId)) return [workshopId, ...ids];
+    return ids;
+  }, [workshops, workshopId]);
 
   const checkAndUpload = useCallback(
     async (params: {
@@ -201,6 +230,68 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       isNonNegativeNumber(mileage)
     );
   }, [serviceDate, category, entries, mileage]);
+
+  function stripExamplePrefix(s: string) {
+    return s
+      .replace(/^e\.g\.\s*/i, "")
+      .replace(/^np\.\s*/i, "")
+      .trim();
+  }
+
+  function makePlaceholder(label: string, example: string) {
+    const ex = stripExamplePrefix(example);
+    return ex ? `${label}: ${ex}` : `${label}:`;
+  }
+
+  function showPicker<T extends string>(opts: {
+    title: string;
+    value: T | null;
+    options: readonly T[];
+    getLabel: (v: T) => string;
+    onChange: (v: T | null) => void;
+    placeholderLabel?: string;
+  }) {
+    const buttons: Array<{
+      text: string;
+      onPress?: () => void;
+      style?: "cancel" | "default" | "destructive";
+    }> = [{ text: t("common.cancel"), style: "cancel" }];
+
+    if (opts.placeholderLabel) {
+      buttons.push({
+        text: opts.placeholderLabel,
+        onPress: () => opts.onChange(null),
+      });
+    }
+
+    opts.options.forEach((opt) => {
+      buttons.push({
+        text: opts.getLabel(opt),
+        onPress: () => opts.onChange(opt),
+      });
+    });
+
+    Alert.alert(opts.title, "", buttons, { cancelable: true });
+  }
+
+  function confirmDeleteEntry() {
+    if (!entryId) return;
+    Alert.alert(t("entryDetail.deleteTitle"), t("entryDetail.deleteBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteServiceEntry(entryId);
+            navigation.goBack();
+          } catch (e: any) {
+            toastError(e?.message ?? t("common.error"));
+          }
+        },
+      },
+    ]);
+  }
 
   function pickAttachment() {
     Alert.alert(
@@ -415,34 +506,50 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   return (
     <FormScreen
       header={
-        <AppHeader
-          onBack={() => navigation.goBack()}
-          right={
-            <Pressable
-              onPress={() => {
-                if (canSave && !saving) {
-                  void onSave();
-                }
-              }}
-              hitSlop={10}
-              style={({ pressed }) => [
-                {
-                  width: 40,
-                  height: 40,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity: !canSave || saving ? 0.5 : pressed ? 0.6 : 1,
-                },
-              ]}
-            >
-              <Ionicons
-                name="save-outline"
-                size={24}
-                color={theme.colors.accent}
-              />
-            </Pressable>
-          }
-        />
+        <View
+          style={[
+            styles.topBar,
+            {
+              borderBottomColor: theme.colors.border,
+              backgroundColor: theme.colors.bg,
+            },
+          ]}
+        >
+          <Pressable
+            onPress={() => navigation.goBack()}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.pillButton,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+                opacity: pressed ? 0.75 : 1,
+              },
+            ]}
+          >
+            <Text style={[styles.pillText, { color: theme.colors.fg }]}>
+              {t("common.cancel")}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              if (canSave && !saving) void onSave();
+            }}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.pillButton,
+              {
+                borderColor: theme.colors.accent,
+                backgroundColor: accentBg,
+                opacity: !canSave || saving ? 0.5 : pressed ? 0.75 : 1,
+              },
+            ]}
+          >
+            <Text style={[styles.pillText, { color: theme.colors.accent }]}>
+              {t("common.done")}
+            </Text>
+          </Pressable>
+        </View>
       }
     >
       <View style={{ height: theme.spacing.md }} />
@@ -450,120 +557,259 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         {entryId ? t("entryForm.editTitle") : t("entryForm.title")}
       </Text>
 
-      {!entryId && (
+      <View style={{ height: theme.spacing.lg }} />
+
+      {!entryId ? (
         <>
-          <View style={styles.modeRow}>
-            {(["single", "multi"] as const).map((m) => (
-              <ChoiceChip
-                key={m}
-                label={
-                  m === "single"
-                    ? t("entryForm.modeSingle")
-                    : t("entryForm.modeMulti")
-                }
-                selected={mode === m}
-                onPress={() => setFormMode(m)}
-                style={styles.modeChoice}
-              />
-            ))}
+          <View style={{ height: theme.spacing.xs }} />
+          <View
+            style={[
+              styles.segmentWrap,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.bg,
+              },
+            ]}
+          >
+            {(["single", "multi"] as const).map((m) => {
+              const selected = mode === m;
+              return (
+                <Pressable
+                  key={m}
+                  onPress={() => setFormMode(m)}
+                  style={({ pressed }) => [
+                    styles.segment,
+                    selected && styles.segmentSelected,
+                    {
+                      borderColor: theme.colors.accent,
+                      backgroundColor: selected ? accentBg : "transparent",
+                      opacity: pressed ? 0.85 : 1,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      {
+                        color: selected
+                          ? theme.colors.accent
+                          : theme.colors.muted,
+                      },
+                    ]}
+                  >
+                    {m === "single"
+                      ? t("entryForm.modeSingle")
+                      : t("entryForm.modeMulti")}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </>
-      )}
+      ) : null}
 
       <View style={{ height: theme.spacing.sm }} />
 
-      <DateField
-        noMarginTop
-        label={`${t("entryForm.serviceDate")} *`}
-        value={serviceDate}
-        onChange={setServiceDate}
-        disabled={saving || uploading}
-      />
-
-      <PickerField
-        label={`${t("entryForm.category")} *`}
-        value={category}
-        options={CATEGORY_OPTIONS}
-        getLabel={(value) => t(`entryForm.categories.${value}` as any)}
-        onChange={(value) => setCategory(value)}
-        placeholder={t("entryForm.category")}
-        disabled={saving || uploading}
-      />
-
-      <TextField
-        label={`${t("entryForm.mileage")} (${distanceUnit})`}
-        value={mileage}
-        onChangeText={setMileage}
-        keyboardType="number-pad"
-        placeholder={t("entryForm.placeholderMileage")}
-      />
-
-      <PickerField
-        label={t("entryForm.workshop")}
-        value={workshopId}
-        options={
-          workshopId && !workshops.some((w) => w.id === workshopId)
-            ? [workshopId, ...workshops.map((w) => w.id)]
-            : workshops.map((w) => w.id)
-        }
-        getLabel={(id) => workshops.find((w) => w.id === id)?.name ?? id}
-        onChange={(id) => setWorkshopId(id)}
-        placeholder={t("entryForm.workshopPlaceholder")}
-        disabled={saving || uploading}
-      />
-
-      {entries.map((row, index) => (
-        <View key={index} style={styles.entryRow}>
-          <View style={styles.entryRowFields}>
-            <View style={styles.entryTitleWrap}>
-              <TextField
-                noMarginTop={index > 0}
-                label={
-                  index === 0 ? `${t("entryForm.entryTitle")} *` : undefined
-                }
-                value={row.title}
-                onChangeText={(text) => updateEntry(index, { title: text })}
-                placeholder={t("entryForm.placeholderTitle")}
-              />
-            </View>
-            <View style={styles.entryCostWrap}>
-              <TextField
-                noMarginTop={index > 0}
-                label={index === 0 ? t("entryForm.cost") : undefined}
-                value={row.cost}
-                onChangeText={(text) => updateEntry(index, { cost: text })}
-                keyboardType="decimal-pad"
-                placeholder={t("entryForm.placeholderCost")}
-              />
-            </View>
-          </View>
-          {isMulti && isMultipleRows && (!entryId || index > 0) && (
-            <View style={styles.entryRemoveWrap}>
-              <Pressable
-                onPress={() => removeEntry(index)}
-                hitSlop={10}
-                style={({ pressed }) => [
-                  styles.entryRemoveBtn,
-                  {
-                    borderColor: theme.colors.danger,
-                    backgroundColor: theme.colors.card,
-                  },
-                  pressed && { opacity: 0.9 },
-                ]}
-              >
-                <Ionicons
-                  name="trash-outline"
-                  size={18}
-                  color={theme.colors.danger}
-                />
-              </Pressable>
-            </View>
-          )}
+      <View
+        style={[
+          styles.card,
+          {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.card,
+          },
+        ]}
+      >
+        <Pressable
+          onPress={() => setDatePickerOpen(true)}
+          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
+        >
+          <Ionicons
+            name="calendar-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+            {serviceDate}
+          </Text>
+        </Pressable>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <Pressable
+          onPress={() =>
+            showPicker<ServiceEntryCategory>({
+              title: t("entryForm.category"),
+              value: category,
+              options: CATEGORY_OPTIONS,
+              getLabel: (v) => t(`entryForm.categories.${v}` as any),
+              onChange: setCategory,
+              placeholderLabel: t("entryForm.category"),
+            })
+          }
+          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
+        >
+          <Ionicons
+            name="pricetag-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+            {category
+              ? t(`entryForm.categories.${category}` as any)
+              : `${t("entryForm.category")}`}
+          </Text>
+        </Pressable>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <Pressable
+          onPress={() =>
+            showPicker<string>({
+              title: t("entryForm.workshop"),
+              value: workshopId,
+              options: workshopOptions,
+              getLabel: (id) => workshops.find((w) => w.id === id)?.name ?? id,
+              onChange: setWorkshopId,
+              placeholderLabel: t("entryForm.workshopPlaceholder"),
+            })
+          }
+          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
+        >
+          <Ionicons
+            name="business-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+            {workshopId
+              ? workshops.find((w) => w.id === workshopId)?.name ?? workshopId
+              : t("entryForm.workshopPlaceholder")}
+          </Text>
+        </Pressable>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <View style={styles.row}>
+          <Ionicons
+            name="speedometer-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <TextInput
+            value={mileage}
+            onChangeText={setMileage}
+            keyboardType="number-pad"
+            editable={!saving && !uploading}
+            placeholder={makePlaceholder(
+              `${t("entryForm.mileage")} (${distanceUnit})`,
+              t("entryForm.placeholderMileage")
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.input, { color: theme.colors.fg }]}
+          />
         </View>
-      ))}
 
-      {isMulti && (
+        {datePickerOpen ? (
+          <View
+            style={[
+              styles.pickerWrap,
+              {
+                borderTopColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <DateTimePicker
+              value={parseYmd(serviceDate)}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(_, selectedDate) => {
+                setDatePickerOpen(false);
+                if (selectedDate) setServiceDate(formatYmd(selectedDate));
+              }}
+            />
+          </View>
+        ) : null}
+      </View>
+
+      <View style={{ height: theme.spacing.sm }} />
+
+      {isMulti ? (
         <>
+          {entries.map((row, index) => (
+            <View
+              key={index}
+              style={[
+                styles.card,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <View style={styles.row}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <TextInput
+                  value={row.title}
+                  onChangeText={(text) => updateEntry(index, { title: text })}
+                  editable={!saving && !uploading}
+                  placeholder={makePlaceholder(
+                    `${t("entryForm.entryTitle")}`,
+                    t("entryForm.placeholderTitle")
+                  )}
+                  placeholderTextColor={theme.colors.muted}
+                  style={[styles.input, { color: theme.colors.fg }]}
+                />
+              </View>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <Ionicons
+                  name="cash-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <TextInput
+                  value={row.cost}
+                  onChangeText={(text) => updateEntry(index, { cost: text })}
+                  keyboardType="decimal-pad"
+                  editable={!saving && !uploading}
+                  placeholder={makePlaceholder(
+                    t("entryForm.cost"),
+                    t("entryForm.placeholderCost")
+                  )}
+                  placeholderTextColor={theme.colors.muted}
+                  style={[styles.input, { color: theme.colors.fg }]}
+                />
+                {isMultipleRows && (!entryId || index > 0) ? (
+                  <Pressable
+                    onPress={() => removeEntry(index)}
+                    hitSlop={10}
+                    style={({ pressed }) => [
+                      styles.inlineTrash,
+                      pressed && { opacity: 0.75 },
+                    ]}
+                  >
+                    <Ionicons
+                      name="trash-outline"
+                      size={20}
+                      color={theme.colors.danger}
+                    />
+                  </Pressable>
+                ) : null}
+              </View>
+            </View>
+          ))}
+
+          <View style={{ height: theme.spacing.sm }} />
           <Button
             onPress={addEntry}
             variant="ghost"
@@ -575,21 +821,101 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             {t("entryForm.multiModeInfo")}
           </Text>
         </>
-      )}
-
-      {!isMulti && (
+      ) : (
         <>
-          <TextField
-            label={t("entryForm.description")}
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            placeholder={t("entryForm.placeholderDescription")}
-          />
+          <View
+            style={[
+              styles.card,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <View style={styles.row}>
+              <Ionicons
+                name="document-text-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <TextInput
+                value={entries[0]?.title ?? ""}
+                onChangeText={(text) => updateEntry(0, { title: text })}
+                editable={!saving && !uploading}
+                placeholder={makePlaceholder(
+                  `${t("entryForm.entryTitle")}`,
+                  t("entryForm.placeholderTitle")
+                )}
+                placeholderTextColor={theme.colors.muted}
+                style={[styles.input, { color: theme.colors.fg }]}
+              />
+            </View>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+            <View style={styles.row}>
+              <Ionicons
+                name="cash-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <TextInput
+                value={entries[0]?.cost ?? ""}
+                onChangeText={(text) => updateEntry(0, { cost: text })}
+                keyboardType="decimal-pad"
+                editable={!saving && !uploading}
+                placeholder={makePlaceholder(
+                  t("entryForm.cost"),
+                  t("entryForm.placeholderCost")
+                )}
+                placeholderTextColor={theme.colors.muted}
+                style={[styles.input, { color: theme.colors.fg }]}
+              />
+            </View>
+          </View>
 
           <View style={{ height: theme.spacing.sm }} />
+          <View
+            style={[
+              styles.card,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <View style={[styles.row, styles.rowMultiline]}>
+              <Ionicons
+                name="create-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <TextInput
+                value={description}
+                onChangeText={setDescription}
+                editable={!saving && !uploading}
+                multiline
+                placeholder={makePlaceholder(
+                  t("entryForm.description"),
+                  t("entryForm.placeholderDescription")
+                )}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  styles.inputMultiline,
+                  { color: theme.colors.fg },
+                ]}
+              />
+            </View>
+          </View>
+
+          <View style={{ height: theme.spacing.lg }} />
           <View style={styles.sectionHeader}>
-            <Text style={styles.h2}>{t("attachments.title")}</Text>
+            <Text style={styles.h2}>
+              {t("attachments.titleWithCount", {
+                count: entryId ? attachments.length : pendingFiles.length,
+              })}
+            </Text>
           </View>
           <View style={{ height: theme.spacing.sm }} />
           <Button
@@ -610,14 +936,23 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 <View style={{ height: theme.spacing.sm }} />
               )}
               renderItem={({ item }) => (
-                <View style={styles.card}>
+                <View
+                  style={[
+                    styles.attachmentCard,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                  ]}
+                >
                   <View style={styles.cardRow}>
                     <Pressable
                       style={{ flex: 1 }}
                       onPress={() => void openAttachment(item)}
                     >
                       <Text style={styles.cardTitle}>
-                        {t("attachments.attachmentLabel")}
+                        {getFileNameFromItem(item) ||
+                          t("attachments.attachmentLabel")}
                       </Text>
                       <Text style={styles.cardMeta}>
                         {(() => {
@@ -673,7 +1008,15 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 <View style={{ height: theme.spacing.sm }} />
               )}
               renderItem={({ item, index }) => (
-                <View style={styles.card}>
+                <View
+                  style={[
+                    styles.attachmentCard,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                  ]}
+                >
                   <View style={styles.cardRow}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.cardTitle}>
@@ -711,34 +1054,44 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           )}
         </>
       )}
+
+      {entryId ? (
+        <>
+          <View style={{ height: theme.spacing.lg }} />
+          <Button variant="destructive" onPress={confirmDeleteEntry}>
+            {t("common.delete")}
+          </Button>
+        </>
+      ) : null}
     </FormScreen>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
+    topBar: {
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      paddingBottom: theme.spacing.sm,
+      paddingTop: theme.spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderBottomWidth: 1,
+    },
+    pillButton: {
+      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.md,
+      borderRadius: 9999,
+      borderWidth: 1,
+    },
+    pillText: {
+      fontSize: theme.typography.body,
+      fontWeight: "700",
+    },
     h1: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
-      marginBottom: theme.spacing.sm,
       color: theme.colors.fg,
-    },
-    modeLabel: {
-      fontSize: theme.typography.small,
-      fontWeight: "800",
-    },
-    modeRow: {
-      flexDirection: "row",
-      gap: theme.spacing.sm,
-      marginTop: theme.spacing.xs,
-    },
-    modeChoice: {
-      flex: 1,
-    },
-    label: {
-      fontSize: theme.typography.small,
-      fontWeight: "800",
-      color: theme.colors.muted,
     },
     h2: {
       fontSize: theme.typography.body,
@@ -751,33 +1104,64 @@ const makeStyles = (theme: any) =>
       color: theme.colors.muted,
       lineHeight: theme.typography.body + 4,
     },
-    pending: {
-      marginTop: theme.spacing.sm,
-      fontSize: theme.typography.small,
-      lineHeight: theme.typography.body + 4,
-      color: theme.colors.muted,
-    },
-    notice: {
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
-      marginBottom: theme.spacing.md,
-    },
     noticeText: {
       marginTop: theme.spacing.sm / 2,
       fontSize: theme.typography.small,
       lineHeight: theme.typography.body + 2,
       color: theme.colors.muted,
     },
-    card: {
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
+    card: { borderWidth: 1, borderRadius: theme.radius.md, overflow: "hidden" },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
     },
+    rowMultiline: { alignItems: "flex-start" },
+    divider: { height: 1, width: "100%" },
+    input: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.body,
+      paddingVertical: 0,
+    },
+    inputMultiline: {
+      minHeight: 96,
+      paddingTop: 2,
+    },
+    valueText: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.body,
+    },
+    pickerWrap: {
+      borderTopWidth: 1,
+      paddingTop: theme.spacing.xs,
+      paddingBottom: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    segmentWrap: {
+      flexDirection: "row",
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      padding: 2,
+    },
+    segment: {
+      flex: 1,
+      borderRadius: theme.radius.md - 2,
+      paddingVertical: theme.spacing.xs - 2,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    segmentSelected: {
+      borderWidth: 1,
+    },
+    segmentText: {
+      fontSize: theme.typography.body,
+      fontWeight: "700",
+    },
+    inlineTrash: { paddingLeft: theme.spacing.sm / 2, paddingVertical: 2 },
     cardRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -789,31 +1173,10 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.small,
       color: theme.colors.muted,
     },
-    entryRow: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      gap: theme.spacing.sm / 2,
-      marginBottom: theme.spacing.xs,
-    },
-    entryRowFields: {
-      flex: 1,
-      flexDirection: "row",
-      gap: theme.spacing.sm / 2,
-      minWidth: 0,
-    },
-    entryTitleWrap: { flex: 2, minWidth: 0 },
-    entryCostWrap: { flex: 1, minWidth: 0 },
-    entryRemoveWrap: {
-      alignSelf: "flex-end",
-      marginBottom: theme.spacing.xs / 2,
-    },
-    entryRemoveBtn: {
-      width: theme.spacing.xl + theme.spacing.sm,
-      height: theme.spacing.xl + theme.spacing.sm,
-      borderRadius: theme.radius.md,
+    attachmentCard: {
       borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
     },
     loadingContainer: {
       paddingTop: theme.spacing.xl + theme.spacing.xs,

@@ -330,7 +330,7 @@ export function WorkshopDetailScreen({ navigation, route }: Props) {
         renderItem={({ item }) => (
           <Pressable
             onPress={() =>
-              navigation.navigate("ServiceEntryDetail", {
+              navigation.navigate("ServiceEntryForm", {
                 vehicleId: item.vehicle_id,
                 entryId: item.id,
               })

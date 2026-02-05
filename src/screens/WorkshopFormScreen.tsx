@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,15 +15,15 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { WorkshopType } from "../types/domain";
 import {
   createWorkshop,
+  deleteWorkshop,
   getWorkshop,
   updateWorkshop,
 } from "../services/workshops/workshopsRepo";
-import { AppHeader } from "../ui/components/AppHeader";
+import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
-import { TextField } from "../ui/components/TextField";
-import { PickerField } from "../ui/components/PickerField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
+import { hexToRgba } from "../ui/components/ChoiceChip";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WorkshopForm">;
 
@@ -34,6 +41,10 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { workshopId } = route.params ?? {};
+  const accentBg = useMemo(
+    () => hexToRgba(theme.colors.accent, 0.15),
+    [theme.colors.accent]
+  );
 
   const [name, setName] = useState("");
   const [workshopType, setWorkshopType] = useState<WorkshopType | null>(
@@ -68,6 +79,68 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
     return name.trim().length > 0 && workshopType != null;
   }, [name, workshopType]);
 
+  function stripExamplePrefix(s: string) {
+    return s
+      .replace(/^e\.g\.\s*/i, "")
+      .replace(/^np\.\s*/i, "")
+      .trim();
+  }
+
+  function makePlaceholder(label: string, example: string) {
+    const ex = stripExamplePrefix(example);
+    return ex ? `${label}: ${ex}` : `${label}:`;
+  }
+
+  function showPicker<T extends string>(opts: {
+    title: string;
+    value: T | null;
+    options: readonly T[];
+    getLabel: (v: T) => string;
+    onChange: (v: T | null) => void;
+    placeholderLabel?: string;
+  }) {
+    const buttons: Array<{
+      text: string;
+      onPress?: () => void;
+      style?: "cancel" | "default" | "destructive";
+    }> = [{ text: t("common.cancel"), style: "cancel" }];
+
+    if (opts.placeholderLabel) {
+      buttons.push({
+        text: opts.placeholderLabel,
+        onPress: () => opts.onChange(null),
+      });
+    }
+
+    opts.options.forEach((opt) => {
+      buttons.push({
+        text: opts.getLabel(opt),
+        onPress: () => opts.onChange(opt),
+      });
+    });
+
+    Alert.alert(opts.title, "", buttons, { cancelable: true });
+  }
+
+  function confirmDelete() {
+    if (!workshopId) return;
+    Alert.alert(t("workshops.deleteTitle"), t("workshops.deleteBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteWorkshop(workshopId);
+            navigation.goBack();
+          } catch (e: any) {
+            toastError(e?.message ?? t("common.error"));
+          }
+        },
+      },
+    ]);
+  }
+
   async function onSave() {
     try {
       setSaving(true);
@@ -93,32 +166,50 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   return (
     <FormScreen
       header={
-        <AppHeader
-          onBack={() => navigation.goBack()}
-          right={
-            <Pressable
-              onPress={() => {
-                if (canSave && !saving) void onSave();
-              }}
-              hitSlop={10}
-              style={({ pressed }) => [
-                {
-                  width: 40,
-                  height: 40,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity: !canSave || saving ? 0.5 : pressed ? 0.6 : 1,
-                },
-              ]}
-            >
-              <Ionicons
-                name="save-outline"
-                size={24}
-                color={theme.colors.accent}
-              />
-            </Pressable>
-          }
-        />
+        <View
+          style={[
+            styles.topBar,
+            {
+              borderBottomColor: theme.colors.border,
+              backgroundColor: theme.colors.bg,
+            },
+          ]}
+        >
+          <Pressable
+            onPress={() => navigation.goBack()}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.pillButton,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+                opacity: pressed ? 0.75 : 1,
+              },
+            ]}
+          >
+            <Text style={[styles.pillText, { color: theme.colors.fg }]}>
+              {t("common.cancel")}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              if (canSave && !saving) void onSave();
+            }}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.pillButton,
+              {
+                borderColor: theme.colors.accent,
+                backgroundColor: accentBg,
+                opacity: !canSave || saving ? 0.5 : pressed ? 0.75 : 1,
+              },
+            ]}
+          >
+            <Text style={[styles.pillText, { color: theme.colors.accent }]}>
+              {t("common.done")}
+            </Text>
+          </Pressable>
+        </View>
       }
     >
       <View style={{ height: theme.spacing.md }} />
@@ -128,49 +219,157 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
 
       <View style={{ height: theme.spacing.lg }} />
 
-      <TextField
-        noMarginTop
-        label={`${t("workshopForm.name")} *`}
-        value={name}
-        onChangeText={setName}
-        placeholder={t("workshopForm.placeholderName")}
-      />
-      <View style={{ height: theme.spacing.sm }} />
-      <PickerField<WorkshopType>
-        noMarginTop
-        label={`${t("workshopForm.workshopType")} *`}
-        value={workshopType}
-        options={WORKSHOP_TYPES}
-        getLabel={(v) => t(`workshopForm.types.${v}`)}
-        onChange={setWorkshopType}
-      />
-      <View style={{ height: theme.spacing.sm }} />
-      <TextField
-        noMarginTop
-        label={t("workshopForm.phoneNumber")}
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        keyboardType="phone-pad"
-        placeholder={t("workshopForm.placeholderPhone")}
-      />
-      <View style={{ height: theme.spacing.sm }} />
-      <TextField
-        noMarginTop
-        label={t("workshopForm.address")}
-        value={address}
-        onChangeText={setAddress}
-        placeholder={t("workshopForm.placeholderAddress")}
-      />
+      <View
+        style={[
+          styles.card,
+          {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.card,
+          },
+        ]}
+      >
+        <View style={styles.row}>
+          <Ionicons
+            name="business-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <TextInput
+            value={name}
+            onChangeText={setName}
+            editable={!saving}
+            placeholder={makePlaceholder(
+              `${t("workshopForm.name")}`,
+              t("workshopForm.placeholderName")
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.input, { color: theme.colors.fg }]}
+          />
+        </View>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <Pressable
+          onPress={() =>
+            showPicker<WorkshopType>({
+              title: t("workshopForm.workshopType"),
+              value: workshopType,
+              options: WORKSHOP_TYPES,
+              getLabel: (v) => t(`workshopForm.types.${v}`),
+              onChange: setWorkshopType,
+            })
+          }
+          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
+        >
+          <Ionicons
+            name="briefcase-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+            {workshopType
+              ? t(`workshopForm.types.${workshopType}`)
+              : `${t("workshopForm.workshopType")}`}
+          </Text>
+        </Pressable>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <View style={styles.row}>
+          <Ionicons name="call-outline" size={20} color={theme.colors.accent} />
+          <TextInput
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            keyboardType="phone-pad"
+            editable={!saving}
+            placeholder={makePlaceholder(
+              t("workshopForm.phoneNumber"),
+              t("workshopForm.placeholderPhone")
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.input, { color: theme.colors.fg }]}
+          />
+        </View>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <View style={styles.row}>
+          <Ionicons
+            name="location-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <TextInput
+            value={address}
+            onChangeText={setAddress}
+            editable={!saving}
+            placeholder={makePlaceholder(
+              t("workshopForm.address"),
+              t("workshopForm.placeholderAddress")
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.input, { color: theme.colors.fg }]}
+          />
+        </View>
+      </View>
+
+      {workshopId ? (
+        <>
+          <View style={{ height: theme.spacing.lg }} />
+          <Button variant="destructive" onPress={confirmDelete}>
+            {t("common.delete")}
+          </Button>
+        </>
+      ) : null}
     </FormScreen>
   );
 }
 
 function makeStyles(theme: any) {
   return StyleSheet.create({
+    topBar: {
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      paddingBottom: theme.spacing.sm,
+      paddingTop: theme.spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderBottomWidth: 1,
+    },
+    pillButton: {
+      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.md,
+      borderRadius: 9999,
+      borderWidth: 1,
+    },
+    pillText: {
+      fontSize: theme.typography.body,
+      fontWeight: "700",
+    },
     h1: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
       color: theme.colors.fg,
+    },
+    card: { borderWidth: 1, borderRadius: theme.radius.md, overflow: "hidden" },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    divider: { height: 1, width: "100%" },
+    input: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.body,
+      paddingVertical: 0,
+    },
+    valueText: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.body,
     },
   });
 }

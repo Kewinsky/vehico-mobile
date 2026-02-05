@@ -68,6 +68,13 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
     return (
       <Screen padding={false}>
         <AppHeader onBack={() => navigation.goBack()} />
+        <View
+          style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>{t("wheels.title")}</Text>
+          </View>
+        </View>
         <View style={styles.loadingContainer}>
           <LoadingIndicator />
         </View>
@@ -78,6 +85,19 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
+      <View
+        style={[
+          styles.fixedHeader,
+          {
+            backgroundColor: theme.colors.bg,
+            borderBottomColor: theme.colors.border,
+          },
+        ]}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>{t("wheels.title")}</Text>
+        </View>
+      </View>
       <ScrollView
         contentContainerStyle={[
           styles.container,
@@ -85,12 +105,6 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.title, { color: theme.colors.fg }]}>
-          {t("wheels.title")}
-        </Text>
-
-        <View style={{ height: theme.spacing.lg }} />
-
         <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
           {t("wheels.currentlyFitted")}
         </Text>
@@ -103,56 +117,77 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
             },
           ]}
         >
-          <View style={styles.cardRow}>
-            <Text style={[styles.cardLabel, { color: theme.colors.muted }]}>
-              {t("wheels.tiresSection")}
-            </Text>
-            {currentTire ? (
-              <Text style={{ color: theme.colors.fg, fontWeight: "600" }}>
-                {currentTire.name} –{" "}
-                {formatTireDimensions(
-                  currentTire.width_mm,
-                  currentTire.aspect_ratio,
-                  currentTire.diameter_inch
-                )}
+          <View style={styles.currentRow}>
+            <Ionicons
+              name="ellipse-outline"
+              size={20}
+              color={theme.colors.muted}
+            />
+            <View style={styles.currentRowText}>
+              <Text style={[styles.cardLabel, { color: theme.colors.muted }]}>
+                {t("wheels.tiresSection")}
               </Text>
-            ) : (
-              <Text style={{ color: theme.colors.muted }}>
-                {t("wheels.noTires")}
+              <Text
+                style={[
+                  styles.cardValue,
+                  { color: currentTire ? theme.colors.fg : theme.colors.muted },
+                ]}
+                numberOfLines={1}
+              >
+                {currentTire
+                  ? `${currentTire.name} · ${formatTireDimensions(
+                      currentTire.width_mm,
+                      currentTire.aspect_ratio,
+                      currentTire.diameter_inch
+                    )}`
+                  : t("wheels.noTires")}
               </Text>
-            )}
+            </View>
           </View>
-          <View style={[styles.cardRow, { marginTop: theme.spacing.sm }]}>
-            <Text style={[styles.cardLabel, { color: theme.colors.muted }]}>
-              {t("wheels.rimsSection")}
-            </Text>
-            {currentWheel ? (
-              <Text style={{ color: theme.colors.fg, fontWeight: "600" }}>
-                {currentWheel.name} –{" "}
-                {formatWheelDimensions(
-                  currentWheel.width_inch,
-                  currentWheel.diameter_inch
-                )}
+          <View
+            style={[styles.divider, { backgroundColor: theme.colors.border }]}
+          />
+          <View style={styles.currentRow}>
+            <Ionicons
+              name="disc-outline"
+              size={20}
+              color={theme.colors.muted}
+            />
+            <View style={styles.currentRowText}>
+              <Text style={[styles.cardLabel, { color: theme.colors.muted }]}>
+                {t("wheels.rimsSection")}
               </Text>
-            ) : (
-              <Text style={{ color: theme.colors.muted }}>
-                {t("wheels.noWheels")}
+              <Text
+                style={[
+                  styles.cardValue,
+                  {
+                    color: currentWheel ? theme.colors.fg : theme.colors.muted,
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {currentWheel
+                  ? `${currentWheel.name} · ${formatWheelDimensions(
+                      currentWheel.width_inch,
+                      currentWheel.diameter_inch
+                    )}`
+                  : t("wheels.noWheels")}
               </Text>
-            )}
+            </View>
           </View>
         </View>
 
-        <View style={{ height: theme.spacing.xl }} />
+        <View style={{ height: theme.spacing.md }} />
 
         <View style={styles.buttonsRow}>
           <Pressable
             onPress={() => navigation.navigate("TiresList", { vehicleId })}
             style={({ pressed }) => [
-              styles.actionCard,
+              styles.tile,
+              pressed && styles.tilePressed,
               {
                 borderColor: theme.colors.border,
                 backgroundColor: theme.colors.card,
-                opacity: pressed ? 0.9 : 1,
               },
             ]}
           >
@@ -161,19 +196,17 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
               size={32}
               color={theme.colors.accent}
             />
-            <Text style={[styles.actionTitle, { color: theme.colors.fg }]}>
-              {t("wheels.tiresSection")}
-            </Text>
+            <Text style={styles.tileTitle}>{t("wheels.tiresSection")}</Text>
           </Pressable>
 
           <Pressable
             onPress={() => navigation.navigate("WheelsList", { vehicleId })}
             style={({ pressed }) => [
-              styles.actionCard,
+              styles.tile,
+              pressed && styles.tilePressed,
               {
                 borderColor: theme.colors.border,
                 backgroundColor: theme.colors.card,
-                opacity: pressed ? 0.9 : 1,
               },
             ]}
           >
@@ -182,9 +215,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
               size={32}
               color={theme.colors.accent}
             />
-            <Text style={[styles.actionTitle, { color: theme.colors.fg }]}>
-              {t("wheels.rimsSection")}
-            </Text>
+            <Text style={styles.tileTitle}>{t("wheels.rimsSection")}</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -199,14 +230,24 @@ function makeStyles(theme: any) {
       alignItems: "center",
       justifyContent: "center",
     },
+    fixedHeader: {
+      paddingTop: theme.spacing.md,
+      paddingBottom: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      borderBottomWidth: 1,
+    },
+    header: {
+      gap: theme.spacing.xs / 2,
+      marginBottom: theme.titleMarginBottom,
+    },
     container: {
-      paddingTop: theme.spacing.sm,
+      paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.xl,
     },
     title: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
-      marginBottom: theme.titleMarginBottom,
+      color: theme.colors.fg,
     },
     sectionTitle: {
       fontSize: theme.typography.body,
@@ -216,35 +257,46 @@ function makeStyles(theme: any) {
     card: {
       borderRadius: theme.radius.md,
       borderWidth: 1,
-      padding: theme.spacing.md,
-    },
-    cardRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      flexWrap: "wrap",
-      gap: theme.spacing.xs,
+      overflow: "hidden",
     },
     cardLabel: {
       fontSize: theme.typography.small,
     },
+    cardValue: {
+      marginTop: 2,
+      fontSize: theme.typography.body,
+      fontWeight: "700",
+    },
+    currentRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    currentRowText: { flex: 1, minWidth: 0 },
+    divider: { height: 1, width: "100%" },
     buttonsRow: {
       flexDirection: "row",
       gap: theme.spacing.md,
     },
-    actionCard: {
+    tile: {
       flex: 1,
-      borderRadius: theme.radius.md,
+      minHeight: 110,
       borderWidth: 1,
-      padding: theme.spacing.lg,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
       alignItems: "center",
       justifyContent: "center",
-      minHeight: theme.spacing.xl * 4 - 8,
+      gap: theme.spacing.sm,
     },
-    actionTitle: {
-      fontSize: theme.typography.small,
-      fontWeight: "600",
-      marginTop: theme.spacing.sm,
+    tilePressed: {
+      opacity: 0.9,
+    },
+    tileTitle: {
+      color: theme.colors.fg,
+      fontSize: theme.typography.body,
+      fontWeight: "800",
       textAlign: "center",
     },
   });

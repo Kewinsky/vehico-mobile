@@ -18,14 +18,14 @@ import { supabase } from "../services/supabase/client";
 function AppContent() {
   const { theme } = useTheme();
 
-  // Handle tap on local notification (reminder) — navigate to ReminderDetail
+  // Handle tap on local notification (reminder) — navigate to ReminderForm (edit)
   useEffect(() => {
     const navigateFromNotification = (data: {
       reminderId?: string;
       vehicleId?: string;
     }) => {
       if (data?.reminderId && data?.vehicleId && navigationRef.isReady()) {
-        navigationRef.navigate("ReminderDetail", {
+        navigationRef.navigate("ReminderForm", {
           vehicleId: data.vehicleId,
           reminderId: data.reminderId,
         });

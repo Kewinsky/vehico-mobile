@@ -594,7 +594,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
               <Pressable
                 style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
                 onPress={() =>
-                  navigation.navigate("ReminderDetail", {
+                  navigation.navigate("ReminderForm", {
                     vehicleId,
                     reminderId: r.id,
                   })
@@ -614,7 +614,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
             <Pressable
               style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
               onPress={() =>
-                navigation.navigate("ServiceEntryDetail", {
+                navigation.navigate("ServiceEntryForm", {
                   entryId: e.id,
                   vehicleId,
                 })
