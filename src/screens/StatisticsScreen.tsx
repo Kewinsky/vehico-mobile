@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -9,10 +9,12 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { StatisticsCard } from "../ui/components/StatisticsCard";
+import { hexToRgba } from "../ui/components/ChoiceChip";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Statistics">;
 
 type PeriodKey = "1m" | "3m" | "6m" | "1y" | "all";
+type StatsTabKey = "metrics" | "charts" | "other";
 
 export function StatisticsScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
@@ -20,6 +22,11 @@ export function StatisticsScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme);
   const [period, setPeriod] = useState<PeriodKey>("3m");
+  const [tab, setTab] = useState<StatsTabKey>("metrics");
+  const accentBg = useMemo(
+    () => hexToRgba(theme.colors.accent, 0.15),
+    [theme.colors.accent]
+  );
 
   const periodOptions: { key: PeriodKey; label: string }[] = [
     { key: "1m", label: t("dashboard.stats.periods.1m") },
@@ -27,6 +34,12 @@ export function StatisticsScreen({ route, navigation }: Props) {
     { key: "6m", label: t("dashboard.stats.periods.6m") },
     { key: "1y", label: t("dashboard.stats.periods.1y") },
     { key: "all", label: t("dashboard.stats.periods.all") },
+  ];
+
+  const tabOptions: { key: StatsTabKey; label: string }[] = [
+    { key: "metrics", label: t("dashboard.stats.tabs.metrics") },
+    { key: "charts", label: t("dashboard.stats.tabs.charts") },
+    { key: "other", label: t("dashboard.stats.tabs.other") },
   ];
 
   return (
@@ -37,32 +50,80 @@ export function StatisticsScreen({ route, navigation }: Props) {
           <Text style={[styles.title, { color: theme.colors.fg }]}>
             {t("dashboard.stats.title")}
           </Text>
-          <View style={styles.periodRow}>
+          <View
+            style={[
+              styles.segmentWrap,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.bg,
+              },
+            ]}
+          >
             {periodOptions.map((p) => {
-              const active = p.key === period;
+              const selected = p.key === period;
               return (
                 <Pressable
                   key={p.key}
                   onPress={() => setPeriod(p.key)}
                   style={({ pressed }) => [
-                    styles.chip,
+                    styles.segment,
+                    selected && styles.segmentSelected,
                     {
-                      borderColor: theme.colors.border,
-                      backgroundColor: active
-                        ? theme.colors.accent
-                        : theme.colors.card,
+                      borderColor: theme.colors.accent,
+                      backgroundColor: selected ? accentBg : "transparent",
+                      opacity: pressed ? 0.85 : 1,
                     },
-                    active && styles.chipActive,
-                    pressed && styles.chipPressed,
                   ]}
                 >
                   <Text
                     style={[
-                      styles.chipText,
-                      { color: active ? "#000000" : theme.colors.fg },
+                      styles.segmentTextSmall,
+                      { color: selected ? theme.colors.accent : theme.colors.muted },
                     ]}
                   >
                     {p.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <View
+            style={[
+              styles.segmentWrap,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.bg,
+              },
+            ]}
+          >
+            {tabOptions.map((x) => {
+              const selected = x.key === tab;
+              return (
+                <Pressable
+                  key={x.key}
+                  onPress={() => setTab(x.key)}
+                  style={({ pressed }) => [
+                    styles.segment,
+                    selected && styles.segmentSelected,
+                    {
+                      borderColor: theme.colors.accent,
+                      backgroundColor: selected ? accentBg : "transparent",
+                      opacity: pressed ? 0.85 : 1,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      {
+                        color: selected
+                          ? theme.colors.accent
+                          : theme.colors.muted,
+                      },
+                    ]}
+                  >
+                    {x.label}
                   </Text>
                 </Pressable>
               );
@@ -81,7 +142,11 @@ export function StatisticsScreen({ route, navigation }: Props) {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <StatisticsCard vehicleId={route.params.vehicleId} period={period} />
+        <StatisticsCard
+          vehicleId={route.params.vehicleId}
+          period={period}
+          tab={tab}
+        />
       </ScrollView>
     </Screen>
   );
@@ -97,30 +162,33 @@ const makeStyles = (theme: any) =>
       borderBottomColor: theme.colors.border,
     },
     header: {
-      gap: theme.spacing.xs / 2,
-      marginBottom: theme.titleMarginBottom,
+      gap: theme.spacing.md,
     },
     title: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
-      marginBottom: theme.spacing.sm,
     },
-    periodRow: {
+    segmentWrap: {
       flexDirection: "row",
-      flexWrap: "wrap",
-      gap: theme.spacing.xs,
-    },
-    chip: {
       borderWidth: 1,
-      paddingHorizontal: theme.spacing.sm,
-      paddingVertical: theme.spacing.xs,
       borderRadius: theme.radius.md,
+      padding: 2,
     },
-    chipActive: {
-      borderColor: theme.colors.accent,
+    segment: {
+      flex: 1,
+      borderRadius: theme.radius.md - 2,
+      paddingVertical: theme.spacing.xs - 2,
+      alignItems: "center",
+      justifyContent: "center",
     },
-    chipPressed: { opacity: 0.92 },
-    chipText: {
+    segmentSelected: {
+      borderWidth: 1,
+    },
+    segmentText: {
+      fontSize: theme.typography.body,
+      fontWeight: "700",
+    },
+    segmentTextSmall: {
       fontSize: theme.typography.small,
       fontWeight: "800",
     },

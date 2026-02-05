@@ -239,6 +239,11 @@ export const en = {
     stats: {
       title: "Statistics",
       empty: "No data for this period.",
+      tabs: {
+        metrics: "Metrics",
+        charts: "Charts",
+        other: "Other",
+      },
       periods: {
         "1m": "1M",
         "3m": "3M",

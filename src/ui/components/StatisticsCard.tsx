@@ -9,6 +9,7 @@ import Svg, {
   Polyline,
   Text as SvgText,
 } from "react-native-svg";
+import { Ionicons } from "@expo/vector-icons";
 
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
@@ -39,6 +40,7 @@ type PeriodKey = "1m" | "3m" | "6m" | "1y" | "all";
 type Props = {
   vehicleId: string;
   period: PeriodKey;
+  tab: "metrics" | "charts" | "other";
 };
 
 type XY = { x: string; y: number };
@@ -289,45 +291,6 @@ function SimpleLineChart({
           strokeDasharray="2,2"
         />
       ))}
-      {xTicks.map((tick, i) => (
-        <SvgLine
-          key={`grid-x-${i}`}
-          x1={tick.x}
-          y1={paddingTop}
-          x2={tick.x}
-          y2={paddingTop + plotH}
-          stroke={grid}
-          strokeWidth={1}
-          strokeDasharray="2,2"
-        />
-      ))}
-      <SvgLine
-        x1={paddingLeft}
-        y1={paddingTop}
-        x2={paddingLeft}
-        y2={paddingTop + plotH}
-        stroke={grid}
-        strokeWidth={1}
-      />
-      <SvgLine
-        x1={paddingLeft}
-        y1={paddingTop + plotH}
-        x2={paddingLeft + plotW}
-        y2={paddingTop + plotH}
-        stroke={grid}
-        strokeWidth={1}
-      />
-      {yTicks.map((tick, i) => (
-        <SvgLine
-          key={`y-${i}`}
-          x1={paddingLeft - 4}
-          y1={tick.y}
-          x2={paddingLeft}
-          y2={tick.y}
-          stroke={grid}
-          strokeWidth={1}
-        />
-      ))}
       {yTicks.map((tick, i) => (
         <SvgText
           key={`y-label-${i}`}
@@ -340,17 +303,6 @@ function SimpleLineChart({
         >
           {formatYLabel(tick.value)}
         </SvgText>
-      ))}
-      {xTicks.map((tick, i) => (
-        <SvgLine
-          key={`x-${i}`}
-          x1={tick.x}
-          y1={paddingTop + plotH}
-          x2={tick.x}
-          y2={paddingTop + plotH + 4}
-          stroke={grid}
-          strokeWidth={1}
-        />
       ))}
       {xTicks.map((tick, i) => (
         <SvgText
@@ -434,7 +386,7 @@ function SimplePieChart({
   );
 }
 
-export function StatisticsCard({ vehicleId, period }: Props) {
+export function StatisticsCard({ vehicleId, period, tab }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
@@ -740,10 +692,8 @@ export function StatisticsCard({ vehicleId, period }: Props) {
     () => [
       theme.colors.accent, // #FFB803 - yellow (for fuel)
       "#10B981", // emerald-500 - green
-      "#EC4899", // pink-500 - pink (replaces amber)
       "#3B82F6", // blue-500 - blue (replaces orange)
       "#A78BFA", // violet-400 - violet
-      "#06B6D4", // cyan-500 - cyan
       "#EF4444", // red-500 - red
     ],
     [theme.colors.accent]
@@ -773,339 +723,426 @@ export function StatisticsCard({ vehicleId, period }: Props) {
         </View>
       ) : (
         <>
-          {/* SECTION 1: Metrics – summary of expenses, fuel, distance */}
-          <View style={styles.metricsRow}>
-            <View style={styles.metric}>
-              <Text style={styles.metricLabel}>
-                {t("dashboard.stats.metrics.totalExpenses")}
-              </Text>
-              <Text style={styles.metricValue}>
-                {fmtMoney(totals.total, currency)}
-              </Text>
-            </View>
-            <View style={styles.metric}>
-              <Text style={styles.metricLabel}>
-                {t("dashboard.stats.metrics.avgMonthlyFuelCost")}
-              </Text>
-              <Text style={styles.metricValue}>
-                {Number.isFinite(monthlySeries.avgMonthlyFuelCost)
-                  ? fmtMoney(monthlySeries.avgMonthlyFuelCost, currency)
-                  : "—"}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.metricsRow}>
-            <View style={styles.metric}>
-              <Text style={styles.metricLabel}>
-                {t("dashboard.stats.metrics.avgFuelConsumption")}
-              </Text>
-              <Text style={styles.metricValue}>
-                {Number.isFinite(totals.avgConsumptionPer100)
-                  ? `${fmtNumber(
-                      totals.avgConsumptionPer100,
-                      1
-                    )} ${fuelUnitLabel}/100 ${distanceUnit}`
-                  : "—"}
-              </Text>
-            </View>
-            <View style={styles.metric}>
-              <Text style={styles.metricLabel}>
-                {t("dashboard.stats.metrics.costPer100")}
-              </Text>
-              <Text style={styles.metricValue}>
-                {Number.isFinite(totals.costPer100)
-                  ? `${fmtNumber(
-                      totals.costPer100,
-                      2
-                    )} ${currency}/100 ${distanceUnit}`
-                  : "—"}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.metricsRow}>
-            <View style={styles.metric}>
-              <Text style={styles.metricLabel}>
-                {t("dashboard.stats.metrics.totalDistance")}
-              </Text>
-              <Text style={styles.metricValue}>
-                {totals.totalDistance > 0
-                  ? `${fmtNumber(totals.totalDistance, 0)} ${distanceUnit}`
-                  : "—"}
-              </Text>
-            </View>
-            <View style={styles.metric}>
-              <Text style={styles.metricLabel}>
-                {t("dashboard.stats.metrics.totalFuel")}
-              </Text>
-              <Text style={styles.metricValue}>
-                {totals.totalFuel > 0
-                  ? `${fmtNumber(totals.totalFuel, 1)} ${fuelUnitLabel}`
-                  : "—"}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.metricsRow}>
-            <View style={styles.metric}>
-              <Text style={styles.metricLabel}>
-                {t("dashboard.stats.metrics.favoriteStation")}
-              </Text>
-              <Text style={styles.metricValue}>
-                {favoriteStation
-                  ? t(`fuelingForm.stations.${favoriteStation}`)
-                  : "—"}
-              </Text>
-            </View>
-            <View style={styles.metric}>
-              <Text style={styles.metricLabel}>
-                {t("dashboard.stats.metrics.avgCostPerLiter", {
-                  unit: fuelUnitLabelSingular,
-                })}
-              </Text>
-              <Text style={styles.metricValue}>
-                {Number.isFinite(totals.avgCostPerLiter)
-                  ? fmtMoney(totals.avgCostPerLiter, currency)
-                  : "—"}
-              </Text>
-            </View>
-          </View>
-
-          {/* SECTION 2: Charts: expenses over time (linear) */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {t("dashboard.stats.charts.expensesOverTime")}
-            </Text>
-            {monthlySeries.data.length > 0 ? (
-              <View style={styles.chartWrap} key={`line-chart-${period}`}>
-                <SimpleLineChart
-                  data={monthlySeries.data}
-                  width={chartWidth}
-                  height={220}
-                  stroke={theme.colors.accent}
-                  grid={theme.colors.border}
-                  textColor={theme.colors.muted}
-                  currency={currency}
-                />
+          {tab === "metrics" ? (
+            <>
+              <View
+                style={[
+                  styles.heroCard,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                ]}
+              >
+                <Text style={styles.heroLabel}>
+                  {t("dashboard.stats.metrics.totalExpenses")}
+                </Text>
+                <Text style={styles.heroValue}>
+                  {fmtMoney(totals.total, currency)}
+                </Text>
+                <Text style={styles.heroMeta}>
+                  {t("dashboard.stats.categories.fuel")}:{" "}
+                  {fmtMoneyRounded(totals.fuelCost, currency)} ·{" "}
+                  {t("dashboard.tiles.serviceTitle")}:{" "}
+                  {fmtMoneyRounded(totals.serviceCost, currency)}
+                </Text>
               </View>
-            ) : (
-              <Text style={styles.empty}>{t("dashboard.stats.empty")}</Text>
-            )}
-          </View>
 
-          {/* SECTION 3: Charts: distance over time (linear) */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {t("dashboard.stats.charts.distanceOverTime")}
-            </Text>
-            {monthlyDistanceSeries.length > 0 ? (
-              <View style={styles.chartWrap} key={`distance-chart-${period}`}>
-                <SimpleLineChart
-                  data={monthlyDistanceSeries}
-                  width={chartWidth}
-                  height={220}
-                  stroke={theme.colors.accent}
-                  grid={theme.colors.border}
-                  textColor={theme.colors.muted}
-                  currency={currency}
-                  yFormat="number"
-                  yUnit={distanceUnit}
-                />
-              </View>
-            ) : (
-              <Text style={styles.empty}>{t("dashboard.stats.empty")}</Text>
-            )}
-          </View>
-
-          {/* SECTION 4: Charts: expenses by category (pie) */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {t("dashboard.stats.charts.expensesByCategory")}
-            </Text>
-            {expensesByCategory.length > 0 ? (
-              <View key={`pie-chart-${period}`}>
-                <View style={styles.chartWrap}>
-                  <SimplePieChart
-                    data={categorySeries.map((c) => ({
-                      label: c.label,
-                      value: c.value,
-                    }))}
-                    size={Math.min(chartWidth - 40, isNarrow ? 200 : 240)}
-                    colors={categorySeries.map((c) => c.color)}
+              <View style={styles.tilesRow}>
+                <View style={styles.tile}>
+                  <Ionicons
+                    name="cash-outline"
+                    size={22}
+                    color={theme.colors.accent}
                   />
+                  <Text style={styles.tileLabel}>
+                    {t("dashboard.stats.metrics.avgMonthlyFuelCost")}
+                  </Text>
+                  <Text style={styles.tileValue} numberOfLines={1}>
+                    {Number.isFinite(monthlySeries.avgMonthlyFuelCost)
+                      ? fmtMoney(monthlySeries.avgMonthlyFuelCost, currency)
+                      : "—"}
+                  </Text>
                 </View>
-
-                <View style={styles.legend}>
-                  {categorySeries.map((c) => (
-                    <View key={c.key} style={styles.legendRow}>
-                      <View
-                        style={[styles.legendDot, { backgroundColor: c.color }]}
-                      />
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.legendLabel} numberOfLines={1}>
-                          {c.label}
-                        </Text>
-                      </View>
-                      <Text style={styles.legendValue}>
-                        {fmtPct(
-                          totalByCategory > 0
-                            ? (c.value / totalByCategory) * 100
-                            : Number.NaN
-                        )}{" "}
-                        · {fmtMoney(c.value, currency)}
-                      </Text>
-                    </View>
-                  ))}
+                <View style={styles.tile}>
+                  <Ionicons
+                    name="speedometer-outline"
+                    size={22}
+                    color={theme.colors.accent}
+                  />
+                  <Text style={styles.tileLabel}>
+                    {t("dashboard.stats.metrics.avgFuelConsumption")}
+                  </Text>
+                  <Text style={styles.tileValue} numberOfLines={1}>
+                    {Number.isFinite(totals.avgConsumptionPer100)
+                      ? `${fmtNumber(
+                          totals.avgConsumptionPer100,
+                          1
+                        )} ${fuelUnitLabel}/100 ${distanceUnit}`
+                      : "—"}
+                  </Text>
                 </View>
               </View>
-            ) : (
-              <Text style={styles.empty}>{t("dashboard.stats.empty")}</Text>
-            )}
-          </View>
 
-          {/* SECTION 5: Wymiana oleju (ostatnia + interwały) */}
-          {(lastOilChange != null ||
-            Number.isFinite(oilIntervals.avgKm) ||
-            Number.isFinite(oilIntervals.avgMonths)) && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {t("dashboard.stats.oilChange")}
-              </Text>
-              <View style={styles.infoCard}>
-                {lastOilChange != null && (
-                  <>
-                    <View style={styles.infoRow}>
-                      <Text style={styles.infoRowLabel}>
-                        {t("dashboard.stats.lastOilChangeDate")}
-                      </Text>
-                      <Text style={styles.infoRowValue}>
-                        {lastOilChange.service_date.slice(0, 10)}
-                      </Text>
+              <View style={styles.tilesRow}>
+                <View style={styles.tile}>
+                  <Ionicons
+                    name="calculator-outline"
+                    size={22}
+                    color={theme.colors.accent}
+                  />
+                  <Text style={styles.tileLabel}>
+                    {t("dashboard.stats.metrics.costPer100")}
+                  </Text>
+                  <Text style={styles.tileValue} numberOfLines={1}>
+                    {Number.isFinite(totals.costPer100)
+                      ? `${fmtNumber(
+                          totals.costPer100,
+                          2
+                        )} ${currency}/100 ${distanceUnit}`
+                      : "—"}
+                  </Text>
+                </View>
+                <View style={styles.tile}>
+                  <Ionicons
+                    name="pricetag-outline"
+                    size={22}
+                    color={theme.colors.accent}
+                  />
+                  <Text style={styles.tileLabel}>
+                    {t("dashboard.stats.metrics.avgCostPerLiter", {
+                      unit: fuelUnitLabelSingular,
+                    })}
+                  </Text>
+                  <Text style={styles.tileValue} numberOfLines={1}>
+                    {Number.isFinite(totals.avgCostPerLiter)
+                      ? fmtMoney(totals.avgCostPerLiter, currency)
+                      : "—"}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.tilesRow}>
+                <View style={styles.tile}>
+                  <Ionicons
+                    name="map-outline"
+                    size={22}
+                    color={theme.colors.accent}
+                  />
+                  <Text style={styles.tileLabel}>
+                    {t("dashboard.stats.metrics.totalDistance")}
+                  </Text>
+                  <Text style={styles.tileValue} numberOfLines={1}>
+                    {totals.totalDistance > 0
+                      ? `${fmtNumber(totals.totalDistance, 0)} ${distanceUnit}`
+                      : "—"}
+                  </Text>
+                </View>
+                <View style={styles.tile}>
+                  <Ionicons
+                    name="location-outline"
+                    size={22}
+                    color={theme.colors.accent}
+                  />
+                  <Text style={styles.tileLabel}>
+                    {t("dashboard.stats.metrics.favoriteStation")}
+                  </Text>
+                  <Text style={styles.tileValue} numberOfLines={1}>
+                    {favoriteStation
+                      ? t(`fuelingForm.stations.${favoriteStation}`)
+                      : "—"}
+                  </Text>
+                </View>
+              </View>
+            </>
+          ) : null}
+
+          {tab === "charts" ? (
+            <>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>
+                  {t("dashboard.stats.charts.expensesOverTime")}
+                </Text>
+                {monthlySeries.data.length > 0 ? (
+                  <View style={styles.chartWrap} key={`line-chart-${period}`}>
+                    <SimpleLineChart
+                      data={monthlySeries.data}
+                      width={chartWidth}
+                      height={220}
+                      stroke={theme.colors.accent}
+                      grid={theme.colors.border}
+                      textColor={theme.colors.muted}
+                      currency={currency}
+                    />
+                  </View>
+                ) : (
+                  <Text style={styles.empty}>{t("dashboard.stats.empty")}</Text>
+                )}
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>
+                  {t("dashboard.stats.charts.distanceOverTime")}
+                </Text>
+                {monthlyDistanceSeries.length > 0 ? (
+                  <View
+                    style={styles.chartWrap}
+                    key={`distance-chart-${period}`}
+                  >
+                    <SimpleLineChart
+                      data={monthlyDistanceSeries}
+                      width={chartWidth}
+                      height={220}
+                      stroke={theme.colors.accent}
+                      grid={theme.colors.border}
+                      textColor={theme.colors.muted}
+                      currency={currency}
+                      yFormat="number"
+                      yUnit={distanceUnit}
+                    />
+                  </View>
+                ) : (
+                  <Text style={styles.empty}>{t("dashboard.stats.empty")}</Text>
+                )}
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>
+                  {t("dashboard.stats.charts.expensesByCategory")}
+                </Text>
+                {expensesByCategory.length > 0 ? (
+                  <View key={`pie-chart-${period}`}>
+                    <View style={styles.chartWrap}>
+                      <SimplePieChart
+                        data={categorySeries.map((c) => ({
+                          label: c.label,
+                          value: c.value,
+                        }))}
+                        size={Math.min(chartWidth - 40, isNarrow ? 200 : 240)}
+                        colors={categorySeries.map((c) => c.color)}
+                      />
                     </View>
-                    {lastOilChange.mileage != null && (
+
+                    <View style={styles.legend}>
+                      {categorySeries.map((c) => (
+                        <View key={c.key} style={styles.legendRow}>
+                          <View
+                            style={[
+                              styles.legendDot,
+                              { backgroundColor: c.color },
+                            ]}
+                          />
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.legendLabel} numberOfLines={1}>
+                              {c.label}
+                            </Text>
+                          </View>
+                          <View style={styles.legendValueWrap}>
+                            <Text style={styles.legendMoney}>
+                              {fmtMoney(c.value, currency)}
+                            </Text>
+                            <Text style={styles.legendPct}>
+                              {fmtPct(
+                                totalByCategory > 0
+                                  ? (c.value / totalByCategory) * 100
+                                  : Number.NaN
+                              )}
+                            </Text>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                ) : (
+                  <Text style={styles.empty}>{t("dashboard.stats.empty")}</Text>
+                )}
+              </View>
+            </>
+          ) : null}
+
+          {tab === "other" ? (
+            <>
+              {(lastOilChange != null ||
+                Number.isFinite(oilIntervals.avgKm) ||
+                Number.isFinite(oilIntervals.avgMonths)) && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>
+                    {t("dashboard.stats.oilChange")}
+                  </Text>
+                  <View style={styles.infoCard}>
+                    {lastOilChange != null && (
+                      <>
+                        <View style={styles.infoRow}>
+                          <Ionicons
+                            name="calendar-outline"
+                            size={18}
+                            color={theme.colors.muted}
+                          />
+                          <Text style={styles.infoRowLabel}>
+                            {t("dashboard.stats.lastOilChangeDate")}
+                          </Text>
+                          <Text style={styles.infoRowValue}>
+                            {lastOilChange.service_date.slice(0, 10)}
+                          </Text>
+                        </View>
+                        {lastOilChange.mileage != null && (
+                          <View style={styles.infoRow}>
+                            <Ionicons
+                              name="speedometer-outline"
+                              size={18}
+                              color={theme.colors.muted}
+                            />
+                            <Text style={styles.infoRowLabel}>
+                              {t("dashboard.stats.lastOilChangeMileage")}
+                            </Text>
+                            <Text style={styles.infoRowValue}>
+                              {fmtNumber(lastOilChange.mileage, 0)} {distanceUnit}
+                            </Text>
+                          </View>
+                        )}
+                      </>
+                    )}
+                    {Number.isFinite(oilIntervals.avgKm) && (
                       <View style={styles.infoRow}>
+                        <Ionicons
+                          name="repeat-outline"
+                          size={18}
+                          color={theme.colors.muted}
+                        />
                         <Text style={styles.infoRowLabel}>
-                          {t("dashboard.stats.lastOilChangeMileage")}
+                          {t("dashboard.stats.oilIntervalAvg", {
+                            unit: distanceUnit,
+                          })}
                         </Text>
                         <Text style={styles.infoRowValue}>
-                          {fmtNumber(lastOilChange.mileage, 0)} {distanceUnit}
+                          {fmtNumber(oilIntervals.avgKm, 0)} {distanceUnit}
                         </Text>
                       </View>
                     )}
-                  </>
-                )}
-                {Number.isFinite(oilIntervals.avgKm) && (
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoRowLabel}>
-                      {t("dashboard.stats.oilIntervalAvg", {
-                        unit: distanceUnit,
-                      })}
-                    </Text>
-                    <Text style={styles.infoRowValue}>
-                      {fmtNumber(oilIntervals.avgKm, 0)} {distanceUnit}
-                    </Text>
+                    {Number.isFinite(oilIntervals.avgMonths) && (
+                      <View style={styles.infoRow}>
+                        <Ionicons
+                          name="time-outline"
+                          size={18}
+                          color={theme.colors.muted}
+                        />
+                        <Text style={styles.infoRowLabel}>
+                          {t("dashboard.stats.oilIntervalAvgMonths")}
+                        </Text>
+                        <Text style={styles.infoRowValue}>
+                          {fmtNumber(oilIntervals.avgMonths, 1)}{" "}
+                          {t("dashboard.stats.months")}
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                )}
-                {Number.isFinite(oilIntervals.avgMonths) && (
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoRowLabel}>
-                      {t("dashboard.stats.oilIntervalAvgMonths")}
-                    </Text>
-                    <Text style={styles.infoRowValue}>
-                      {fmtNumber(oilIntervals.avgMonths, 1)}{" "}
-                      {t("dashboard.stats.months")}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          )}
+                </View>
+              )}
 
-          {/* SECTION 6: Ubezpieczenie i przegląd */}
-          {(vehicle?.insurance_valid_until != null ||
-            vehicle?.inspection_valid_until != null) && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {t("dashboard.stats.insuranceAndInspection")}
-              </Text>
-              <View style={styles.infoCard}>
-                {vehicle?.insurance_valid_until != null && (
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoRowLabel}>
-                      {t("dashboard.stats.insuranceValidUntil")}
-                    </Text>
-                    <Text style={styles.infoRowValue}>
-                      {vehicle.insurance_valid_until}
-                    </Text>
+              {(vehicle?.insurance_valid_until != null ||
+                vehicle?.inspection_valid_until != null) && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>
+                    {t("dashboard.stats.insuranceAndInspection")}
+                  </Text>
+                  <View style={styles.infoCard}>
+                    {vehicle?.insurance_valid_until != null && (
+                      <View style={styles.infoRow}>
+                        <Ionicons
+                          name="shield-checkmark-outline"
+                          size={18}
+                          color={theme.colors.muted}
+                        />
+                        <Text style={styles.infoRowLabel}>
+                          {t("dashboard.stats.insuranceValidUntil")}
+                        </Text>
+                        <Text style={styles.infoRowValue}>
+                          {vehicle.insurance_valid_until}
+                        </Text>
+                      </View>
+                    )}
+                    {vehicle?.inspection_valid_until != null && (
+                      <View style={styles.infoRow}>
+                        <Ionicons
+                          name="document-text-outline"
+                          size={18}
+                          color={theme.colors.muted}
+                        />
+                        <Text style={styles.infoRowLabel}>
+                          {t("dashboard.stats.inspectionValidUntil")}
+                        </Text>
+                        <Text style={styles.infoRowValue}>
+                          {vehicle.inspection_valid_until}
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                )}
-                {vehicle?.inspection_valid_until != null && (
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoRowLabel}>
-                      {t("dashboard.stats.inspectionValidUntil")}
-                    </Text>
-                    <Text style={styles.infoRowValue}>
-                      {vehicle.inspection_valid_until}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          )}
+                </View>
+              )}
 
-          {/* SECTION 7: Założone felgi i opony */}
-          {(currentTire != null || currentWheel != null) && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {t("dashboard.stats.fittedWheelsAndTires")}
-              </Text>
-              <View style={styles.infoCard}>
-                {currentTire != null && (
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoRowLabel}>
-                      {t("dashboard.stats.currentTire")}
-                    </Text>
-                    <View style={styles.infoRowValueWrap}>
-                      <Text
-                        style={styles.infoRowValue}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {currentTire.name} ·{" "}
-                        {formatTireDimensions(
-                          currentTire.width_mm,
-                          currentTire.aspect_ratio,
-                          currentTire.diameter_inch
-                        )}{" "}
-                        · {t(`tireForm.types.${currentTire.tire_type}`)}
-                      </Text>
-                    </View>
+              {(currentTire != null || currentWheel != null) && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>
+                    {t("dashboard.stats.fittedWheelsAndTires")}
+                  </Text>
+                  <View style={styles.infoCard}>
+                    {currentTire != null && (
+                      <View style={styles.infoRow}>
+                        <Ionicons
+                          name="ellipse-outline"
+                          size={18}
+                          color={theme.colors.muted}
+                        />
+                        <Text style={styles.infoRowLabel}>
+                          {t("dashboard.stats.currentTire")}
+                        </Text>
+                        <View style={styles.infoRowValueWrap}>
+                          <Text
+                            style={styles.infoRowValue}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {currentTire.name} ·{" "}
+                            {formatTireDimensions(
+                              currentTire.width_mm,
+                              currentTire.aspect_ratio,
+                              currentTire.diameter_inch
+                            )}{" "}
+                            · {t(`tireForm.types.${currentTire.tire_type}`)}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                    {currentWheel != null && (
+                      <View style={styles.infoRow}>
+                        <Ionicons
+                          name="disc-outline"
+                          size={18}
+                          color={theme.colors.muted}
+                        />
+                        <Text style={styles.infoRowLabel}>
+                          {t("dashboard.stats.currentWheel")}
+                        </Text>
+                        <View style={styles.infoRowValueWrap}>
+                          <Text
+                            style={styles.infoRowValue}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {currentWheel.name} ·{" "}
+                            {formatWheelDimensions(
+                              currentWheel.width_inch,
+                              currentWheel.diameter_inch
+                            )}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
                   </View>
-                )}
-                {currentWheel != null && (
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoRowLabel}>
-                      {t("dashboard.stats.currentWheel")}
-                    </Text>
-                    <View style={styles.infoRowValueWrap}>
-                      <Text
-                        style={styles.infoRowValue}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {currentWheel.name} ·{" "}
-                        {formatWheelDimensions(
-                          currentWheel.width_inch,
-                          currentWheel.diameter_inch
-                        )}
-                      </Text>
-                    </View>
-                  </View>
-                )}
-              </View>
-            </View>
-          )}
+                </View>
+              )}
+            </>
+          ) : null}
         </>
       )}
     </View>
@@ -1122,8 +1159,29 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
       paddingVertical: theme.spacing.xl,
     },
-    metricsRow: { flexDirection: "row", gap: theme.spacing.sm },
-    metric: {
+    heroCard: {
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.lg,
+      gap: theme.spacing.xs,
+    },
+    heroLabel: {
+      color: theme.colors.muted,
+      fontWeight: "800",
+      fontSize: theme.typography.small,
+    },
+    heroValue: {
+      color: theme.colors.fg,
+      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+    },
+    heroMeta: {
+      color: theme.colors.muted,
+      fontWeight: "700",
+      fontSize: theme.typography.small,
+    },
+    tilesRow: { flexDirection: "row", gap: theme.spacing.sm },
+    tile: {
       flex: 1,
       borderWidth: 1,
       borderColor: theme.colors.border,
@@ -1132,12 +1190,12 @@ const makeStyles = (theme: any) =>
       padding: theme.spacing.md,
       gap: theme.spacing.xs,
     },
-    metricLabel: {
+    tileLabel: {
       color: theme.colors.muted,
-      fontWeight: "700",
+      fontWeight: "800",
       fontSize: theme.typography.small,
     },
-    metricValue: {
+    tileValue: {
       color: theme.colors.fg,
       fontWeight: "800",
       fontSize: theme.typography.body,
@@ -1162,7 +1220,6 @@ const makeStyles = (theme: any) =>
     },
     infoRow: {
       flexDirection: "row",
-      justifyContent: "space-between",
       alignItems: "center",
       gap: theme.spacing.sm,
     },
@@ -1170,10 +1227,11 @@ const makeStyles = (theme: any) =>
       color: theme.colors.muted,
       fontWeight: "700",
       fontSize: theme.typography.body,
-      flexShrink: 0,
+      flex: 1,
+      minWidth: 0,
     },
     infoRowValueWrap: {
-      flex: 1,
+      flexShrink: 1,
       minWidth: 0,
     },
     infoRowValue: {
@@ -1219,7 +1277,17 @@ const makeStyles = (theme: any) =>
       fontWeight: "800",
       fontSize: theme.typography.small,
     },
-    legendValue: {
+    legendValueWrap: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+    },
+    legendMoney: {
+      color: theme.colors.fg,
+      fontWeight: "800",
+      fontSize: theme.typography.small,
+    },
+    legendPct: {
       color: theme.colors.muted,
       fontWeight: "800",
       fontSize: theme.typography.small,

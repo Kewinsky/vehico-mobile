@@ -240,6 +240,11 @@ export const pl = {
     stats: {
       title: "Statystyki",
       empty: "Brak danych dla tego okresu.",
+      tabs: {
+        metrics: "Metryki",
+        charts: "Wykresy",
+        other: "Inne",
+      },
       periods: {
         "1m": "1M",
         "3m": "3M",
