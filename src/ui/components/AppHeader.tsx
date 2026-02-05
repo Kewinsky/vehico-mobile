@@ -1,10 +1,30 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Image } from "expo-image";
-import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { useTheme } from "../ThemeProvider";
+import { useAuth } from "../../app/providers/AuthProvider";
+import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+
+function getInitials(user: {
+  user_metadata?: { full_name?: string };
+  email?: string | null;
+}): string {
+  const name = user?.user_metadata?.full_name?.trim();
+  if (name) {
+    const parts = name.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0])
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+  const email = user?.email ?? "";
+  return email.slice(0, 2).toUpperCase() || "??";
+}
 
 export function AppHeader({
   onBack,
@@ -15,15 +35,18 @@ export function AppHeader({
   right?: ReactNode;
   title?: string;
 }) {
-  const { theme, mode } = useTheme();
-  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const { user } = useAuth();
+  const route = useRoute();
+  const navigation =
+    useNavigation<
+      NativeStackNavigationProp<AppStackParamList, keyof AppStackParamList>
+    >();
   const styles = makeStyles(theme);
 
-  // Choose logo based on theme mode
-  const logoSource =
-    mode === "dark"
-      ? require("../../../assets/icon-dark-no-bg.png")
-      : require("../../../assets/icon-light-no-bg.png");
+  const isProfileScreen = route.name === "Profile";
+  const showInitials = !!user && right === undefined && !isProfileScreen;
+  const initials = user ? getInitials(user) : "";
 
   return (
     <View style={styles.root}>
@@ -46,16 +69,30 @@ export function AppHeader({
           {title}
         </Text>
       ) : (
-        <View style={styles.logoContainer}>
-          <Image
-            source={logoSource}
-            style={styles.logo}
-            contentFit="contain"
-            transition={200}
-          />
-        </View>
+        <View style={styles.center} />
       )}
-      <View style={styles.right}>{right ?? null}</View>
+      <View style={styles.right}>
+        {right !== undefined ? (
+          right
+        ) : showInitials ? (
+          <Pressable
+            onPress={() => navigation.navigate("Profile")}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.avatarButton,
+              { backgroundColor: theme.colors.accent + "30" },
+              pressed && styles.backButtonPressed,
+            ]}
+          >
+            <Text
+              style={[styles.avatarText, { color: theme.colors.accent }]}
+              numberOfLines={1}
+            >
+              {initials}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -77,6 +114,9 @@ const makeStyles = (theme: any) =>
       alignItems: "flex-start",
       justifyContent: "center",
     },
+    center: {
+      flex: 1,
+    },
     right: {
       width: theme.spacing.lg * 2,
       alignItems: "flex-end",
@@ -90,19 +130,21 @@ const makeStyles = (theme: any) =>
     backButtonPressed: {
       opacity: 0.6,
     },
+    avatarButton: {
+      width: theme.spacing.lg + theme.spacing.sm,
+      height: theme.spacing.lg + theme.spacing.sm,
+      borderRadius: 9999,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    avatarText: {
+      fontSize: theme.typography.small,
+      fontWeight: "700",
+    },
     title: {
       color: theme.colors.fg,
       fontWeight: "800",
       letterSpacing: 0.2,
       fontSize: theme.typography.small,
-    },
-    logoContainer: {
-      height: theme.spacing.xl,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    logo: {
-      width: 100,
-      height: theme.spacing.xl,
     },
   });

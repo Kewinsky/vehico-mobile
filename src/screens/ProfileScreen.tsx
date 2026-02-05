@@ -1,15 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useAuth } from "../app/providers/AuthProvider";
@@ -98,7 +90,10 @@ export function ProfileScreen({ navigation }: Props) {
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
       <ScrollView
-        contentContainerStyle={[styles.container, { paddingHorizontal: theme.layout.contentPaddingHorizontal }]}
+        contentContainerStyle={[
+          styles.container,
+          { paddingHorizontal: theme.layout.contentPaddingHorizontal },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         <Text style={[styles.title, { color: theme.colors.fg }]}>
@@ -147,49 +142,32 @@ export function ProfileScreen({ navigation }: Props) {
           </Text>
         </View>
 
-        <View style={styles.spacer} />
-
-        <Pressable
-          onPress={() => navigation.navigate("Settings")}
-          style={[styles.linkRow, { borderColor: theme.colors.border }]}
-        >
-          <Ionicons
-            name="settings-outline"
-            size={22}
-            color={theme.colors.accent}
-          />
-          <View style={styles.linkTextWrap}>
-            <Text style={[styles.linkTitle, { color: theme.colors.fg }]}>
-              {t("profile.settings")}
-            </Text>
-            <Text style={[styles.linkSubtitle, { color: theme.colors.muted }]}>
-              {t("profile.settingsSubtitle")}
-            </Text>
-          </View>
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={theme.colors.muted}
-          />
-        </Pressable>
-
-        <View style={styles.spacer} />
-
-        <Button onPress={onSignOut} variant="ghost">
-          {t("profile.signOut")}
-        </Button>
-
-        <View style={{ height: theme.spacing.md }} />
-
         <Button
           onPress={onDeleteAccount}
           variant="destructive"
           disabled={deleting}
+          style={styles.deleteButton}
         >
           {deleting ? t("common.loading") : t("profile.deleteAccount")}
         </Button>
 
-        <View style={{ height: theme.spacing.xl * 2 }} />
+        <View style={styles.bottomSpacer} />
+
+        <View style={styles.bottomActions}>
+          <View style={styles.bottomActionCol}>
+            <Button
+              variant="outlined"
+              onPress={() => navigation.navigate("Settings")}
+            >
+              {t("profile.settings")}
+            </Button>
+          </View>
+          <View style={styles.bottomActionCol}>
+            <Button variant="primary" onPress={onSignOut}>
+              {t("profile.signOut")}
+            </Button>
+          </View>
+        </View>
       </ScrollView>
     </Screen>
   );
@@ -198,11 +176,12 @@ export function ProfileScreen({ navigation }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     container: {
+      flexGrow: 1,
       paddingTop: theme.spacing.md,
+      paddingBottom: theme.spacing.xl,
     },
     title: {
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
       fontWeight: "700",
       marginBottom: theme.titleMarginBottom,
     },
@@ -230,27 +209,19 @@ const makeStyles = (theme: any) =>
       height: 1,
       marginVertical: theme.spacing.sm,
     },
-    spacer: {
-      height: theme.spacing.lg,
+    deleteButton: {
+      marginTop: theme.spacing.md,
     },
-    linkRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.sm,
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-    },
-    linkTextWrap: {
+    bottomSpacer: {
       flex: 1,
+      minHeight: theme.spacing.xl * 2,
     },
-    linkTitle: {
-      fontSize: theme.typography.body,
-      fontWeight: "800",
+    bottomActions: {
+      marginTop: theme.spacing.md,
+      flexDirection: "row",
+      gap: theme.spacing.sm,
     },
-    linkSubtitle: {
-      fontSize: theme.typography.xs,
-      marginTop: theme.spacing.xs / 4,
+    bottomActionCol: {
+      flex: 1,
     },
   });

@@ -6,7 +6,7 @@ import { useTheme } from "../ThemeProvider";
 type ButtonProps = PropsWithChildren<{
   onPress: () => void;
   disabled?: boolean;
-  variant?: "primary" | "ghost" | "destructive";
+  variant?: "primary" | "ghost" | "destructive" | "outlined";
   style?: any;
 }>;
 
@@ -28,8 +28,10 @@ export function Button({
         variant === "primary"
           ? styles.primary
           : variant === "destructive"
-            ? styles.destructive
-            : styles.ghost,
+          ? styles.destructive
+          : variant === "outlined"
+          ? styles.outlined
+          : styles.ghost,
         disabled && styles.disabled,
         pressed && !disabled && styles.pressed,
         style,
@@ -41,8 +43,10 @@ export function Button({
           variant === "primary"
             ? styles.textPrimary
             : variant === "destructive"
-              ? styles.textDestructive
-              : styles.textGhost,
+            ? styles.textDestructive
+            : variant === "outlined"
+            ? styles.textOutlined
+            : styles.textGhost,
         ]}
       >
         {children}
@@ -75,6 +79,10 @@ const makeStyles = (theme: any) =>
       backgroundColor: theme.colors.card,
       borderColor: theme.colors.border,
     },
+    outlined: {
+      backgroundColor: "transparent",
+      borderColor: theme.colors.accent,
+    },
     destructive: {
       backgroundColor: theme.colors.danger,
       borderColor: theme.colors.danger,
@@ -97,6 +105,9 @@ const makeStyles = (theme: any) =>
     },
     textGhost: {
       color: theme.colors.fg,
+    },
+    textOutlined: {
+      color: theme.colors.accent,
     },
     textDestructive: {
       color: theme.colors.bg,

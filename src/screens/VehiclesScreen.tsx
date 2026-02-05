@@ -21,7 +21,6 @@ import {
   listVehiclePhotos,
   getVehiclePhotoUrl,
 } from "../services/vehicles/uploadPhoto";
-import { useAuth } from "../app/providers/AuthProvider";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { AppHeader } from "../ui/components/AppHeader";
@@ -162,7 +161,6 @@ export function VehiclesScreen({ navigation }: Props) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
-  const { signOut } = useAuth();
   const [items, setItems] = useState<Vehicle[]>([]);
   const [photoUrlsMap, setPhotoUrlsMap] = useState<Map<string, string[]>>(
     new Map()
@@ -183,12 +181,6 @@ export function VehiclesScreen({ navigation }: Props) {
       distanceUnit === "km" ? "km" : "miles"
     }`;
   };
-
-  function onSignOut() {
-    signOut().catch((e: any) => {
-      toastError(e?.message ?? t("common.error"));
-    });
-  }
 
   const load = useCallback(
     async (opts?: { refreshing?: boolean; showLoading?: boolean }) => {
@@ -244,24 +236,6 @@ export function VehiclesScreen({ navigation }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader />
-      <View style={styles.top}>
-        <View style={styles.actions}>
-          <Pressable
-            onPress={() => navigation.navigate("Profile")}
-            hitSlop={10}
-          >
-            <Text style={[styles.actionText, { color: theme.colors.accent }]}>
-              {t("profile.title")}
-            </Text>
-          </Pressable>
-          <Pressable onPress={onSignOut} hitSlop={10}>
-            <Text style={[styles.actionText, { color: theme.colors.danger }]}>
-              {t("common.signOut")}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-
       <View style={styles.body}>
         {loading && items.length === 0 ? (
           <View style={styles.loadingContainer}>
@@ -377,22 +351,9 @@ export function VehiclesScreen({ navigation }: Props) {
 
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
-    top: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      alignItems: "center",
-    },
-    actions: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm + 2,
-    },
-    actionText: { fontWeight: "800", color: theme.colors.muted },
     body: {
       flex: 1,
+      paddingTop: theme.spacing.md,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     emptyContainer: {

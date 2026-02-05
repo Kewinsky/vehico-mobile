@@ -323,7 +323,7 @@ export const en = {
     displayNamePlaceholder: "Your name",
     email: "Email",
     emailReadOnly: "Email cannot be changed here.",
-    settings: "App settings",
+    settings: "Settings",
     settingsSubtitle: "Currency, units, theme, language.",
     signOut: "Sign out",
     deleteAccount: "Delete account",

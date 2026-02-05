@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Linking } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as LinkingModule from "expo-linking";
 import * as Notifications from "expo-notifications";
 
@@ -124,12 +125,14 @@ function AppContent() {
 
 export function Root() {
   return (
-    <AuthProvider>
-      <UserSettingsProvider>
-        <ThemeProvider>
-          <AppContent />
-        </ThemeProvider>
-      </UserSettingsProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <UserSettingsProvider>
+          <ThemeProvider>
+            <AppContent />
+          </ThemeProvider>
+        </UserSettingsProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

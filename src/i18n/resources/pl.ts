@@ -325,7 +325,7 @@ export const pl = {
     displayNamePlaceholder: "Twoje imię lub nazwa",
     email: "E-mail",
     emailReadOnly: "E-mailu nie można zmienić tutaj.",
-    settings: "Ustawienia aplikacji",
+    settings: "Ustawienia",
     settingsSubtitle: "Waluta, jednostki, motyw, język.",
     signOut: "Wyloguj",
     deleteAccount: "Usuń konto",
