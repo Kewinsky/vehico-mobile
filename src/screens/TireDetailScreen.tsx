@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -117,179 +124,200 @@ export function TireDetailScreen({ route, navigation }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
-      <View style={[styles.top, { backgroundColor: theme.colors.bg }]}>
-        <View style={styles.headerRow}>
-          <Text
-            style={[styles.title, { color: theme.colors.fg }]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {tire.name || t("tireDetail.title")}
-          </Text>
-          <Pressable
-            onPress={showActionsMenu}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.menuButton,
-              pressed && { opacity: 0.6 },
-            ]}
-          >
-            <Ionicons
-              name="ellipsis-horizontal"
-              size={22}
-              color={theme.colors.fg}
-            />
-          </Pressable>
-        </View>
-
-        <View
-          style={[
-            styles.detailsCard,
-            {
-              borderColor: theme.colors.border,
-              backgroundColor: theme.colors.card,
-            },
-          ]}
-        >
-          <View style={styles.row}>
-            <View style={styles.labelRow}>
-              <Ionicons
-                name="document-text-outline"
-                size={20}
-                color={theme.colors.muted}
-              />
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("tireForm.name")}
-              </Text>
-            </View>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + theme.spacing.lg },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.content}>
+          <View style={styles.headerRow}>
             <Text
-              style={[styles.value, { color: theme.colors.fg }]}
+              style={[styles.h1, { color: theme.colors.fg }]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {tire.name}
+              {tire.name || t("tireDetail.title")}
             </Text>
+            <Pressable
+              onPress={showActionsMenu}
+              hitSlop={10}
+              style={({ pressed }) => [
+                styles.menuButton,
+                pressed && { opacity: 0.6 },
+              ]}
+            >
+              <Ionicons
+                name="ellipsis-horizontal"
+                size={22}
+                color={theme.colors.fg}
+              />
+            </Pressable>
           </View>
-          <View style={styles.row}>
-            <View style={styles.labelRow}>
+
+          <View
+            style={[
+              styles.card,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <View style={styles.row}>
+              <Ionicons
+                name="pricetag-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <View style={styles.rowContent}>
+                <Text style={[styles.label, { color: theme.colors.muted }]}>
+                  {t("tireForm.name")}
+                </Text>
+                <Text
+                  style={[styles.value, { color: theme.colors.fg }]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {tire.name}
+                </Text>
+              </View>
+            </View>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+            <View style={styles.row}>
               <Ionicons
                 name="resize-outline"
                 size={20}
-                color={theme.colors.muted}
+                color={theme.colors.accent}
               />
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("tireDetail.labels.dimensions")}
-              </Text>
+              <View style={styles.rowContent}>
+                <Text style={[styles.label, { color: theme.colors.muted }]}>
+                  {t("tireDetail.labels.dimensions")}
+                </Text>
+                <Text style={[styles.value, { color: theme.colors.fg }]}>
+                  {dims}
+                </Text>
+              </View>
             </View>
-            <Text style={[styles.value, { color: theme.colors.fg }]}>
-              {dims}
-            </Text>
-          </View>
-          <View style={styles.row}>
-            <View style={styles.labelRow}>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+            <View style={styles.row}>
               <Ionicons
                 name="layers-outline"
                 size={20}
-                color={theme.colors.muted}
+                color={theme.colors.accent}
               />
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("tireForm.tireType")}
-              </Text>
-            </View>
-            <Text style={[styles.value, { color: theme.colors.fg }]}>
-              {t(`tireForm.types.${tire.tire_type}`)}
-            </Text>
-          </View>
-          {tire.dot?.trim() ? (
-            <View style={styles.row}>
-              <View style={styles.labelRow}>
-                <Ionicons
-                  name="barcode-outline"
-                  size={20}
-                  color={theme.colors.muted}
-                />
+              <View style={styles.rowContent}>
                 <Text style={[styles.label, { color: theme.colors.muted }]}>
-                  {t("tireForm.dot")}
+                  {t("tireForm.tireType")}
+                </Text>
+                <Text style={[styles.value, { color: theme.colors.fg }]}>
+                  {t(`tireForm.types.${tire.tire_type}`)}
                 </Text>
               </View>
-              <Text style={[styles.value, { color: theme.colors.fg }]}>
-                DOT {tire.dot.trim()}
-              </Text>
             </View>
-          ) : null}
-          <View style={styles.row}>
-            <View style={styles.labelRow}>
+            {tire.dot?.trim() ? (
+              <>
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+                <View style={styles.row}>
+                  <Ionicons
+                    name="barcode-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <View style={styles.rowContent}>
+                    <Text style={[styles.label, { color: theme.colors.muted }]}>
+                      {t("tireForm.dot")}
+                    </Text>
+                    <Text style={[styles.value, { color: theme.colors.fg }]}>
+                      DOT {tire.dot.trim()}
+                    </Text>
+                  </View>
+                </View>
+              </>
+            ) : null}
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+            <View style={styles.row}>
               <Ionicons
                 name="checkmark-circle-outline"
                 size={20}
-                color={theme.colors.muted}
+                color={theme.colors.accent}
               />
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("tireDetail.labels.status")}
-              </Text>
+              <View style={styles.rowContent}>
+                <Text style={[styles.label, { color: theme.colors.muted }]}>
+                  {t("tireDetail.labels.status")}
+                </Text>
+                <Text style={[styles.value, { color: theme.colors.fg }]}>
+                  {tire.is_currently_fitted ? t("common.yes") : t("common.no")}
+                </Text>
+              </View>
             </View>
-            <Text style={[styles.value, { color: theme.colors.fg }]}>
-              {tire.is_currently_fitted ? t("common.yes") : t("common.no")}
-            </Text>
           </View>
         </View>
-      </View>
+      </ScrollView>
     </Screen>
   );
 }
 
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
-    top: {
-      paddingTop: theme.spacing.md,
+    scroll: { flex: 1 },
+    scrollContent: {
+      flexGrow: 1,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingBottom: theme.spacing.sm,
     },
     headerRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: theme.spacing.sm,
+      marginVertical: theme.spacing.md,
     },
-    title: {
+    h1: {
       flex: 1,
       minWidth: 0,
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
     },
     menuButton: {
-      padding: theme.spacing.xs,
       justifyContent: "center",
       alignItems: "center",
     },
-    detailsCard: {
-      marginTop: theme.spacing.sm,
+    card: {
       borderWidth: 1,
       borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
-      gap: 0,
+      overflow: "hidden",
     },
     row: {
       flexDirection: "row",
-      justifyContent: "space-between",
       alignItems: "center",
       gap: theme.spacing.sm,
       paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
     },
-    labelRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-    },
-    label: {
-      fontSize: theme.typography.body,
-      fontWeight: "800",
-    },
-    value: {
+    rowContent: {
       flex: 1,
       minWidth: 0,
+    },
+    divider: { height: 1, width: "100%" },
+    label: {
+      fontSize: theme.typography.small,
+      fontWeight: "600",
+      marginBottom: 2,
+    },
+    value: {
       fontSize: theme.typography.body,
       fontWeight: "400",
-      textAlign: "right",
     },
     loadingContainer: {
       flex: 1,

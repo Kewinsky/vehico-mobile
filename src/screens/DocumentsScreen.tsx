@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -38,14 +39,13 @@ import { Button } from "../ui/components/Button";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { TextField } from "../ui/components/TextField";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
 export function DocumentsScreen({ route, navigation }: Props) {
   const { t, i18n } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [vehicleDocs, setVehicleDocs] = useState<VehicleDocument[]>([]);
   const [attachments, setAttachments] = useState<VehicleAttachment[]>([]);
@@ -276,17 +276,34 @@ export function DocumentsScreen({ route, navigation }: Props) {
             {t("dashboard.tiles.docsTitle")}
           </Text>
         </View>
-        <View style={{ height: theme.spacing.sm }} />
-        <TextField
-          noMarginTop
-          value={query}
-          onChangeText={setQuery}
-          placeholder={t("documents.searchPlaceholder")}
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-          blurOnSubmit={true}
-        />
+        <View
+          style={[
+            styles.searchBarWrap,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <Ionicons
+            name="search-outline"
+            size={20}
+            color={theme.colors.muted}
+            style={styles.searchBarIcon}
+          />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t("documents.searchPlaceholder")}
+            placeholderTextColor={theme.colors.muted}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+            blurOnSubmit={true}
+            keyboardAppearance={mode === "dark" ? "dark" : "light"}
+            style={[styles.searchBarInput, { color: theme.colors.fg }]}
+          />
+        </View>
         <View style={{ height: theme.spacing.sm }} />
         <View style={styles.buttonsRow}>
           <View style={{ flex: 1 }}>
@@ -522,6 +539,23 @@ const makeStyles = (theme: any) =>
       marginTop: theme.spacing.sm - 2,
       fontSize: theme.typography.body,
       fontWeight: "800",
+    },
+    searchBarWrap: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      height: theme.spacing.lg * 2,
+      paddingLeft: theme.spacing.sm,
+    },
+    searchBarIcon: {
+      marginRight: theme.spacing.xs,
+    },
+    searchBarInput: {
+      flex: 1,
+      height: "100%",
+      paddingVertical: 0,
+      fontSize: theme.typography.body,
     },
     buttonsRow: {
       flexDirection: "row",

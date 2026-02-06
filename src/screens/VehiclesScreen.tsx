@@ -379,7 +379,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingBottom: insets.bottom + theme.spacing.xl,
     },
     listFooter: {
-      paddingTop: theme.spacing.sm,
+      paddingTop: theme.spacing.md,
     },
     vehicleCard: {
       borderRadius: theme.radius.md,
@@ -437,18 +437,5 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     vehicleMetaOverlay: {
       color: "rgba(255,255,255,0.92)",
-    },
-    pill: {
-      paddingHorizontal: theme.spacing.sm - 2,
-      paddingVertical: theme.spacing.sm / 2,
-      borderRadius: 999,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
-    },
-    pillText: {
-      fontSize: theme.typography.xs,
-      fontWeight: "800",
-      color: theme.colors.muted,
     },
   });

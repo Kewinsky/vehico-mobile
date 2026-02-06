@@ -73,7 +73,9 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     new Date().toISOString().slice(0, 10)
   );
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [datePickerDraft, setDatePickerDraft] = useState<Date>(() => new Date());
+  const [datePickerDraft, setDatePickerDraft] = useState<Date>(
+    () => new Date()
+  );
   const [dueMileage, setDueMileage] = useState("");
   const [daysBefore, setDaysBefore] = useState("7");
   const [saving, setSaving] = useState(false);
@@ -247,13 +249,9 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         </View>
       }
     >
-      <View style={{ height: theme.spacing.md }} />
       <Text style={styles.h1}>
         {reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle")}
       </Text>
-
-      <View style={{ height: theme.spacing.lg }} />
-
       <View
         style={[
           styles.card,
@@ -490,7 +488,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         )}
       </View>
 
-      <View style={{ height: theme.spacing.md }} />
+      <View style={{ height: theme.spacing.sm }} />
 
       <View
         style={[
@@ -529,7 +527,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
       {reminderId ? (
         <>
-          <View style={{ height: theme.spacing.md }} />
+          <View style={{ height: theme.spacing.sm }} />
           <View
             style={[
               styles.card,
@@ -604,7 +602,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             </View>
           </View>
 
-          <View style={{ height: theme.spacing.lg }} />
+          <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
           <Button variant="destructive" onPress={confirmDelete}>
             {t("common.delete")}
           </Button>
@@ -637,6 +635,7 @@ const makeStyles = (theme: any) =>
     },
     h1: {
       fontSize: theme.typography.largeTitle,
+      marginVertical: theme.spacing.md,
       fontWeight: "700",
       color: theme.colors.fg,
     },

@@ -247,7 +247,7 @@ export function TireFormScreen({ navigation, route }: Props) {
         {tireId ? t("tireForm.editTitle") : t("tireForm.addTitle")}
       </Text>
 
-      <View style={{ height: theme.spacing.lg }} />
+      <View style={{ height: theme.spacing.md }} />
 
       <View
         style={[
@@ -360,7 +360,7 @@ export function TireFormScreen({ navigation, route }: Props) {
           <Ionicons
             name="options-outline"
             size={20}
-            color={theme.colors.muted}
+            color={theme.colors.accent}
           />
           <Text style={[styles.valueText, { color: theme.colors.fg }]}>
             {tireType
@@ -408,7 +408,7 @@ export function TireFormScreen({ navigation, route }: Props) {
 
       {tireId ? (
         <>
-          <View style={{ height: theme.spacing.lg }} />
+          <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
           <Button variant="destructive" onPress={confirmDelete}>
             {t("common.delete")}
           </Button>

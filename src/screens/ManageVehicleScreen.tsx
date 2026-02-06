@@ -211,27 +211,23 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
 
   return (
     <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
-      <View style={{ height: theme.spacing.md }} />
-      <View style={styles.headerSection}>
-        <View style={styles.headerRow}>
-          <Text style={styles.h1}>{t("dashboard.tiles.manageTitle")}</Text>
-          <Pressable
-            onPress={showActionsMenu}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.menuButton,
-              pressed && { opacity: 0.6 },
-            ]}
-          >
-            <Ionicons
-              name="ellipsis-horizontal"
-              size={22}
-              color={theme.colors.fg}
-            />
-          </Pressable>
-        </View>
+      <View style={styles.headerRow}>
+        <Text style={styles.h1}>{t("dashboard.tiles.manageTitle")}</Text>
+        <Pressable
+          onPress={showActionsMenu}
+          hitSlop={10}
+          style={({ pressed }) => [
+            styles.menuButton,
+            pressed && { opacity: 0.6 },
+          ]}
+        >
+          <Ionicons
+            name="ellipsis-horizontal"
+            size={22}
+            color={theme.colors.fg}
+          />
+        </Pressable>
       </View>
-      <View style={{ height: theme.spacing.md }} />
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -627,10 +623,6 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    headerSection: {
-      gap: theme.spacing.xs / 2,
-      marginBottom: theme.titleMarginBottom,
-    },
     h1: {
       flex: 1,
       minWidth: 0,
@@ -651,10 +643,9 @@ const makeStyles = (theme: any) =>
     headerRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: theme.spacing.sm,
+      marginVertical: theme.spacing.md,
     },
     menuButton: {
-      padding: theme.spacing.xs,
       justifyContent: "center",
       alignItems: "center",
     },

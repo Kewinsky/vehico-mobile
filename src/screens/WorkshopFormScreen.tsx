@@ -212,12 +212,9 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
         </View>
       }
     >
-      <View style={{ height: theme.spacing.md }} />
       <Text style={styles.h1}>
         {workshopId ? t("workshopForm.editTitle") : t("workshopForm.addTitle")}
       </Text>
-
-      <View style={{ height: theme.spacing.lg }} />
 
       <View
         style={[
@@ -315,7 +312,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
 
       {workshopId ? (
         <>
-          <View style={{ height: theme.spacing.lg }} />
+          <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
           <Button variant="destructive" onPress={confirmDelete}>
             {t("common.delete")}
           </Button>
@@ -348,6 +345,7 @@ function makeStyles(theme: any) {
     },
     h1: {
       fontSize: theme.typography.largeTitle,
+      marginVertical: theme.spacing.md,
       fontWeight: "700",
       color: theme.colors.fg,
     },

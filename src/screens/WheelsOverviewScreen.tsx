@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -68,11 +68,9 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
     return (
       <Screen padding={false}>
         <AppHeader onBack={() => navigation.goBack()} />
-        <View
-          style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}
-        >
+        <View style={styles.fixedHeader}>
           <View style={styles.header}>
-            <Text style={styles.title}>{t("wheels.title")}</Text>
+            <Text style={styles.h1}>{t("wheels.title")}</Text>
           </View>
         </View>
         <View style={styles.loadingContainer}>
@@ -85,26 +83,56 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
-      <View
-        style={[
-          styles.fixedHeader,
-          {
-            backgroundColor: theme.colors.bg,
-            borderBottomColor: theme.colors.border,
-          },
-        ]}
-      >
+      <View style={styles.fixedHeader}>
         <View style={styles.header}>
-          <Text style={styles.title}>{t("wheels.title")}</Text>
+          <Text style={styles.h1}>{t("wheels.title")}</Text>
         </View>
       </View>
-      <ScrollView
-        contentContainerStyle={[
-          styles.container,
-          { paddingHorizontal: theme.layout.contentPaddingHorizontal },
-        ]}
-        showsVerticalScrollIndicator={false}
+      <View
+        style={{ paddingHorizontal: theme.layout.contentPaddingHorizontal }}
       >
+        <View style={styles.buttonsRow}>
+          <Pressable
+            onPress={() => navigation.navigate("TiresList", { vehicleId })}
+            style={({ pressed }) => [
+              styles.tile,
+              pressed && styles.tilePressed,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <Ionicons
+              name="ellipse-outline"
+              size={32}
+              color={theme.colors.accent}
+            />
+            <Text style={styles.tileTitle}>{t("wheels.tiresSection")}</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => navigation.navigate("WheelsList", { vehicleId })}
+            style={({ pressed }) => [
+              styles.tile,
+              pressed && styles.tilePressed,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <Ionicons
+              name="disc-outline"
+              size={32}
+              color={theme.colors.accent}
+            />
+            <Text style={styles.tileTitle}>{t("wheels.rimsSection")}</Text>
+          </Pressable>
+        </View>
+
+        <View style={{ height: theme.spacing.md }} />
+
         <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
           {t("wheels.currentlyFitted")}
         </Text>
@@ -176,49 +204,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
             </View>
           </View>
         </View>
-
-        <View style={{ height: theme.spacing.md }} />
-
-        <View style={styles.buttonsRow}>
-          <Pressable
-            onPress={() => navigation.navigate("TiresList", { vehicleId })}
-            style={({ pressed }) => [
-              styles.tile,
-              pressed && styles.tilePressed,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <Ionicons
-              name="ellipse-outline"
-              size={32}
-              color={theme.colors.accent}
-            />
-            <Text style={styles.tileTitle}>{t("wheels.tiresSection")}</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => navigation.navigate("WheelsList", { vehicleId })}
-            style={({ pressed }) => [
-              styles.tile,
-              pressed && styles.tilePressed,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <Ionicons
-              name="disc-outline"
-              size={32}
-              color={theme.colors.accent}
-            />
-            <Text style={styles.tileTitle}>{t("wheels.rimsSection")}</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
+      </View>
     </Screen>
   );
 }
@@ -231,20 +217,13 @@ function makeStyles(theme: any) {
       justifyContent: "center",
     },
     fixedHeader: {
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      borderBottomWidth: 1,
     },
     header: {
       gap: theme.spacing.xs / 2,
-      marginBottom: theme.titleMarginBottom,
     },
-    container: {
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.xl,
-    },
-    title: {
+    h1: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
       color: theme.colors.fg,

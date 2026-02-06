@@ -35,7 +35,6 @@ import { TimelineItem } from "../ui/components/TimelineItem";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
-import { TextField } from "../ui/components/TextField";
 import { Ionicons } from "@expo/vector-icons";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { hexToRgba } from "../ui/components/ChoiceChip";
@@ -68,7 +67,7 @@ function parseYmd(ymd: string): Date {
 
 export function VehicleDetailScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
@@ -76,7 +75,6 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent]
   );
-  const contentPad = theme.layout.contentPaddingHorizontal;
   const { vehicleId } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [items, setItems] = useState<ServiceEntry[]>([]);
@@ -280,7 +278,10 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
               ]}
             >
               <Text
-                style={[styles.pickerActionText, { color: theme.colors.accent }]}
+                style={[
+                  styles.pickerActionText,
+                  { color: theme.colors.accent },
+                ]}
               >
                 {t("common.done")}
               </Text>
@@ -312,7 +313,9 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         onPress: () => setCategoryFilter(c),
       })),
     ];
-    Alert.alert(t("timeline.filterCategory"), "", buttons, { cancelable: true });
+    Alert.alert(t("timeline.filterCategory"), "", buttons, {
+      cancelable: true,
+    });
   }
 
   const timelineRows = useMemo(() => {
@@ -513,30 +516,38 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         refreshing={refreshing}
         onRefresh={() => void load({ refreshing: true })}
         ListHeaderComponent={
-          <View
-            style={[
-              styles.fixedHeader,
-              {
-                backgroundColor: theme.colors.bg,
-                marginHorizontal: -contentPad,
-                paddingHorizontal: contentPad,
-              },
-            ]}
-          >
+          <View style={styles.fixedHeader}>
             <View style={styles.header}>
-              <Text style={styles.title}>{t("dashboard.tiles.serviceTitle")}</Text>
+              <Text style={styles.title}>
+                {t("dashboard.tiles.serviceTitle")}
+              </Text>
             </View>
-            <View style={{ height: theme.spacing.sm }} />
             <View style={styles.searchRow}>
-              <View style={{ flex: 1 }}>
-                <TextField
-                  noMarginTop
+              <View
+                style={[
+                  styles.searchBarWrap,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="search-outline"
+                  size={20}
+                  color={theme.colors.muted}
+                  style={styles.searchBarIcon}
+                />
+                <TextInput
                   value={query}
                   onChangeText={setQuery}
                   placeholder={t("timeline.searchPlaceholder")}
+                  placeholderTextColor={theme.colors.muted}
                   autoCapitalize="none"
                   autoCorrect={false}
                   clearButtonMode="while-editing"
+                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
+                  style={[styles.searchBarInput, { color: theme.colors.fg }]}
                 />
               </View>
               <View
@@ -641,7 +652,9 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                       size={20}
                       color={theme.colors.accent}
                     />
-                    <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+                    <Text
+                      style={[styles.valueText, { color: theme.colors.fg }]}
+                    >
                       {t("timeline.showReminders")}
                     </Text>
                     <Switch
@@ -724,8 +737,8 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                           f === "date"
                             ? t("timeline.sortFieldDate")
                             : f === "title"
-                              ? t("timeline.sortFieldTitle")
-                              : t("timeline.sortFieldAmount");
+                            ? t("timeline.sortFieldTitle")
+                            : t("timeline.sortFieldAmount");
                         return (
                           <Pressable
                             key={f}
@@ -940,7 +953,11 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                     <Text
                       style={[
                         styles.valueText,
-                        { color: dateFrom ? theme.colors.fg : theme.colors.muted },
+                        {
+                          color: dateFrom
+                            ? theme.colors.fg
+                            : theme.colors.muted,
+                        },
                       ]}
                     >
                       {dateFrom || t("timeline.filterFrom")}
@@ -980,7 +997,9 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                     <Text
                       style={[
                         styles.valueText,
-                        { color: dateTo ? theme.colors.fg : theme.colors.muted },
+                        {
+                          color: dateTo ? theme.colors.fg : theme.colors.muted,
+                        },
                       ]}
                     >
                       {dateTo || t("timeline.filterTo")}
@@ -1015,7 +1034,9 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                       value={minCost}
                       onChangeText={setMinCost}
                       keyboardType="decimal-pad"
-                      placeholder={`${t("timeline.filterMinCost")} (${currency})`}
+                      placeholder={`${t(
+                        "timeline.filterMinCost"
+                      )} (${currency})`}
                       placeholderTextColor={theme.colors.muted}
                       style={[styles.input, { color: theme.colors.fg }]}
                     />
@@ -1036,7 +1057,9 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                       value={maxCost}
                       onChangeText={setMaxCost}
                       keyboardType="decimal-pad"
-                      placeholder={`${t("timeline.filterMaxCost")} (${currency})`}
+                      placeholder={`${t(
+                        "timeline.filterMaxCost"
+                      )} (${currency})`}
                       placeholderTextColor={theme.colors.muted}
                       style={[styles.input, { color: theme.colors.fg }]}
                     />
@@ -1161,33 +1184,44 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      paddingBottom: theme.spacing.sm,
       backgroundColor: theme.colors.bg,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
     list: {
-      paddingTop: theme.spacing.sm,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingBottom: insets.bottom + theme.spacing.xl,
     },
     header: {
       gap: theme.spacing.xs / 2,
-      marginBottom: theme.titleMarginBottom,
-    },
-    headerRow: {
-      flexDirection: "row",
-      alignItems: "center",
     },
     title: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
       color: theme.colors.fg,
+      marginVertical: theme.spacing.md,
     },
     editLink: { color: theme.colors.accent, fontWeight: "800" },
     searchRow: { flexDirection: "row", alignItems: "center" },
+    searchBarWrap: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      height: theme.spacing.lg * 2,
+      paddingLeft: theme.spacing.sm,
+    },
+    searchBarIcon: {
+      marginRight: theme.spacing.xs,
+    },
+    searchBarInput: {
+      flex: 1,
+      height: "100%",
+      paddingVertical: 0,
+      fontSize: theme.typography.body,
+    },
     addButton: {
       width: theme.spacing.xl + theme.spacing.sm,
       height: theme.spacing.xl + theme.spacing.sm,

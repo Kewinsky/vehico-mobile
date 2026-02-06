@@ -129,8 +129,6 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
       <View style={styles.wrap}>
         <Text style={styles.h1}>{t("marketplace.historyTitle")}</Text>
 
-        <View style={{ height: theme.spacing.md }} />
-
         {loading ? (
           <View style={styles.loadingContainer}>
             <LoadingIndicator />
@@ -207,12 +205,12 @@ const makeStyles = (theme: any) =>
     wrap: {
       flex: 1,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.md,
     },
     h1: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
       color: theme.colors.fg,
+      marginVertical: theme.spacing.md,
     },
     loadingContainer: {
       flex: 1,
@@ -235,7 +233,7 @@ const makeStyles = (theme: any) =>
     },
     postTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontWeight: "700",
       marginBottom: theme.spacing.xs,
     },
     postDate: {

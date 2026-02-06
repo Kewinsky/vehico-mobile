@@ -35,6 +35,7 @@ export function FormScreen({
         scrollEnabled={scrollEnabled}
         nestedScrollEnabled={false}
         contentContainerStyle={{
+          flexGrow: 1,
           paddingHorizontal: theme.layout.contentPaddingHorizontal,
           paddingBottom: insets.bottom + theme.spacing.lg,
         }}
@@ -42,7 +43,7 @@ export function FormScreen({
         keyboardDismissMode="on-drag"
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View>{children}</View>
+          <View style={{ flex: 1 }}>{children}</View>
         </TouchableWithoutFeedback>
       </ScrollView>
     </View>

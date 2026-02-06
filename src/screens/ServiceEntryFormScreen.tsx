@@ -94,7 +94,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     new Date().toISOString().slice(0, 10)
   );
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [datePickerDraft, setDatePickerDraft] = useState<Date>(() => new Date());
+  const [datePickerDraft, setDatePickerDraft] = useState<Date>(
+    () => new Date()
+  );
   const [mileage, setMileage] = useState("");
   const [category, setCategory] = useState<ServiceEntryCategory | null>(null);
   const [entries, setEntries] = useState<EntryRow[]>([{ title: "", cost: "" }]);
@@ -563,11 +565,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         {entryId ? t("entryForm.editTitle") : t("entryForm.title")}
       </Text>
 
-      <View style={{ height: theme.spacing.lg }} />
-
       {!entryId ? (
         <>
-          <View style={{ height: theme.spacing.xs }} />
+          <View style={{ height: theme.spacing.sm }} />
           <View
             style={[
               styles.segmentWrap,
@@ -677,7 +677,12 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     },
                   ]}
                 >
-                  <Text style={[styles.pickerActionText, { color: theme.colors.muted }]}>
+                  <Text
+                    style={[
+                      styles.pickerActionText,
+                      { color: theme.colors.muted },
+                    ]}
+                  >
                     {t("common.cancel")}
                   </Text>
                 </Pressable>
@@ -696,7 +701,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   ]}
                 >
                   <Text
-                    style={[styles.pickerActionText, { color: theme.colors.accent }]}
+                    style={[
+                      styles.pickerActionText,
+                      { color: theme.colors.accent },
+                    ]}
                   >
                     {t("common.done")}
                   </Text>
@@ -1113,7 +1121,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
       {entryId ? (
         <>
-          <View style={{ height: theme.spacing.lg }} />
+          <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
           <Button variant="destructive" onPress={confirmDeleteEntry}>
             {t("common.delete")}
           </Button>

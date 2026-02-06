@@ -7,8 +7,8 @@ import * as Clipboard from "expo-clipboard";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { resolveMarketplacePostContent } from "../services/marketplace/marketplaceRepo";
-import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { AppHeader } from "../ui/components/AppHeader";
+import { SegmentTabs } from "../ui/components/SegmentTabs";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
@@ -67,22 +67,14 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
           </Text>
         </View>
 
-        <View style={styles.langRow}>
-          <View style={styles.langCol}>
-            <ChoiceChip
-              label={t("marketplace.languagePl")}
-              selected={displayLang === "pl"}
-              onPress={() => setDisplayLang("pl")}
-            />
-          </View>
-          <View style={styles.langCol}>
-            <ChoiceChip
-              label={t("marketplace.languageEn")}
-              selected={displayLang === "en"}
-              onPress={() => setDisplayLang("en")}
-            />
-          </View>
-        </View>
+        <SegmentTabs<"pl" | "en">
+          value={displayLang}
+          options={[
+            { value: "pl", label: t("marketplace.languagePl") },
+            { value: "en", label: t("marketplace.languageEn") },
+          ]}
+          onChange={(v) => setDisplayLang(v)}
+        />
 
         <View style={{ height: theme.spacing.md }} />
 
@@ -116,8 +108,6 @@ const makeStyles = (theme: any) =>
     },
     scrollContent: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.xl,
     },
     header: {
       gap: theme.spacing.xs / 2,
@@ -126,14 +116,7 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
       color: theme.colors.fg,
-    },
-    langRow: {
-      flexDirection: "row",
-      gap: theme.spacing.sm,
-      marginTop: theme.spacing.sm,
-    },
-    langCol: {
-      flex: 1,
+      marginVertical: theme.spacing.md,
     },
     contentContainer: {
       borderWidth: 1,
@@ -147,7 +130,6 @@ const makeStyles = (theme: any) =>
     contentText: {
       flex: 1,
       fontSize: theme.typography.small,
-      fontFamily: "monospace",
       lineHeight: theme.typography.body + 4,
     },
   });

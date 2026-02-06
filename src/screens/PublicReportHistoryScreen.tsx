@@ -131,8 +131,6 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
       <View style={styles.wrap}>
         <Text style={styles.h1}>{t("share.historyTitle")}</Text>
 
-        <View style={{ height: theme.spacing.md }} />
-
         {loading ? (
           <View style={styles.loadingContainer}>
             <LoadingIndicator />
@@ -209,12 +207,12 @@ const makeStyles = (theme: any) =>
     wrap: {
       flex: 1,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.md,
     },
     h1: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
       color: theme.colors.fg,
+      marginVertical: theme.spacing.md,
     },
     loadingContainer: {
       flex: 1,
@@ -236,9 +234,9 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     reportTitle: {
-      fontSize: theme.typography.small,
-      fontWeight: "800",
-      marginBottom: 4,
+      fontSize: theme.typography.body,
+      fontWeight: "700",
+      marginBottom: theme.spacing.xs,
     },
     reportDate: {
       fontSize: theme.typography.xs,

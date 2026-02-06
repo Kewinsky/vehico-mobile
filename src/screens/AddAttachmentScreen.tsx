@@ -4,6 +4,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -19,8 +20,8 @@ import { uploadAttachment } from "../services/attachments/attachmentsRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
-import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
+import { Ionicons } from "@expo/vector-icons";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
@@ -28,7 +29,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "AddAttachment">;
 
 export function AddAttachmentScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
 
@@ -185,17 +186,35 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         <View>
           <Text style={styles.h1}>{t("documents.addAttachment")}</Text>
           <View style={{ height: theme.spacing.sm }} />
-          <TextField
-            noMarginTop
-            value={query}
-            onChangeText={setQuery}
-            placeholder={t("timeline.searchPlaceholder")}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-            blurOnSubmit={true}
-          />
-          <View style={{ height: theme.spacing.sm + 2 }} />
+          <View
+            style={[
+              styles.searchBarWrap,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <Ionicons
+              name="search-outline"
+              size={20}
+              color={theme.colors.muted}
+              style={styles.searchBarIcon}
+            />
+            <TextInput
+              value={query}
+              onChangeText={setQuery}
+              placeholder={t("timeline.searchPlaceholder")}
+              placeholderTextColor={theme.colors.muted}
+              autoCapitalize="none"
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+              blurOnSubmit={true}
+              keyboardAppearance={mode === "dark" ? "dark" : "light"}
+              style={[styles.searchBarInput, { color: theme.colors.fg }]}
+            />
+          </View>
+          <View style={{ height: theme.spacing.sm }} />
         </View>
       </View>
       <FlatList
@@ -270,6 +289,23 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
       color: theme.colors.fg,
+    },
+    searchBarWrap: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      height: theme.spacing.lg * 2,
+      paddingLeft: theme.spacing.sm,
+    },
+    searchBarIcon: {
+      marginRight: theme.spacing.xs,
+    },
+    searchBarInput: {
+      flex: 1,
+      height: "100%",
+      paddingVertical: 0,
+      fontSize: theme.typography.body,
     },
     card: {
       borderWidth: 1,

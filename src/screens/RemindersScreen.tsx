@@ -7,6 +7,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -30,7 +31,6 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
-import { TextField } from "../ui/components/TextField";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 
@@ -58,11 +58,10 @@ function parseYmd(ymd: string): Date {
 
 export function RemindersScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const contentPad = theme.layout.contentPaddingHorizontal;
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent]
@@ -184,7 +183,10 @@ export function RemindersScreen({ route, navigation }: Props) {
       <View
         style={[
           styles.pickerWrap,
-          { borderTopColor: theme.colors.border, backgroundColor: theme.colors.card },
+          {
+            borderTopColor: theme.colors.border,
+            backgroundColor: theme.colors.card,
+          },
         ]}
       >
         <DateTimePicker
@@ -236,7 +238,10 @@ export function RemindersScreen({ route, navigation }: Props) {
               ]}
             >
               <Text
-                style={[styles.pickerActionText, { color: theme.colors.accent }]}
+                style={[
+                  styles.pickerActionText,
+                  { color: theme.colors.accent },
+                ]}
               >
                 {t("common.done")}
               </Text>
@@ -332,39 +337,44 @@ export function RemindersScreen({ route, navigation }: Props) {
         }}
         contentContainerStyle={{
           paddingHorizontal: theme.layout.contentPaddingHorizontal,
-          paddingTop: theme.spacing.sm,
           paddingBottom: insets.bottom + theme.spacing.xl,
         }}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
         onTouchStart={Keyboard.dismiss}
         ListHeaderComponent={
-          <View
-            style={[
-              styles.fixedHeader,
-              {
-                backgroundColor: theme.colors.bg,
-                marginHorizontal: -contentPad,
-                paddingHorizontal: contentPad,
-              },
-            ]}
-          >
+          <View style={styles.fixedHeader}>
             <View style={styles.header}>
               <Text style={[styles.title, { color: theme.colors.fg }]}>
                 {t("dashboard.tiles.remindersTitle")}
               </Text>
             </View>
-            <View style={{ height: theme.spacing.sm }} />
             <View style={styles.searchRow}>
-              <View style={{ flex: 1 }}>
-                <TextField
-                  noMarginTop
+              <View
+                style={[
+                  styles.searchBarWrap,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="search-outline"
+                  size={20}
+                  color={theme.colors.muted}
+                  style={styles.searchBarIcon}
+                />
+                <TextInput
                   value={query}
                   onChangeText={setQuery}
                   placeholder={t("reminders.searchPlaceholder")}
+                  placeholderTextColor={theme.colors.muted}
                   autoCapitalize="none"
                   autoCorrect={false}
                   clearButtonMode="while-editing"
+                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
+                  style={[styles.searchBarInput, { color: theme.colors.fg }]}
                 />
               </View>
               <View
@@ -486,8 +496,8 @@ export function RemindersScreen({ route, navigation }: Props) {
                           status === "all"
                             ? t("reminders.filterAll")
                             : status === "active"
-                              ? t("reminderDetail.status.active")
-                              : t("reminderDetail.status.done");
+                            ? t("reminderDetail.status.active")
+                            : t("reminderDetail.status.done");
                         return (
                           <Pressable
                             key={status}
@@ -543,7 +553,11 @@ export function RemindersScreen({ route, navigation }: Props) {
                     <Text
                       style={[
                         styles.valueText,
-                        { color: dateFrom ? theme.colors.fg : theme.colors.muted },
+                        {
+                          color: dateFrom
+                            ? theme.colors.fg
+                            : theme.colors.muted,
+                        },
                       ]}
                     >
                       {dateFrom || t("timeline.filterFrom")}
@@ -583,7 +597,9 @@ export function RemindersScreen({ route, navigation }: Props) {
                     <Text
                       style={[
                         styles.valueText,
-                        { color: dateTo ? theme.colors.fg : theme.colors.muted },
+                        {
+                          color: dateTo ? theme.colors.fg : theme.colors.muted,
+                        },
                       ]}
                     >
                       {dateTo || t("timeline.filterTo")}
@@ -684,7 +700,7 @@ export function RemindersScreen({ route, navigation }: Props) {
                       style={[
                         {
                           color: theme.colors.muted,
-                          marginTop: theme.spacing.xs - 2,
+                          marginTop: theme.spacing.xs,
                           lineHeight: 18,
                         },
                         isDone && { opacity: 0.6 },
@@ -740,17 +756,16 @@ const makeStyles = (theme: any) =>
     fixedHeader: {
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.md,
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       backgroundColor: theme.colors.bg,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
     header: {
       gap: theme.spacing.xs / 2,
-      marginBottom: theme.titleMarginBottom,
     },
     title: {
       fontSize: theme.typography.largeTitle,
+      marginBottom: theme.spacing.md,
       fontWeight: "700",
       color: theme.colors.fg,
     },
@@ -771,6 +786,24 @@ const makeStyles = (theme: any) =>
     },
 
     searchRow: { flexDirection: "row", alignItems: "center" },
+    searchBarWrap: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      height: theme.spacing.lg * 2,
+      paddingLeft: theme.spacing.sm,
+    },
+    searchBarIcon: {
+      marginRight: theme.spacing.xs,
+    },
+    searchBarInput: {
+      flex: 1,
+      height: "100%",
+      paddingVertical: 0,
+      fontSize: theme.typography.body,
+    },
     addButton: {
       width: theme.spacing.xl + theme.spacing.sm,
       height: theme.spacing.xl + theme.spacing.sm,

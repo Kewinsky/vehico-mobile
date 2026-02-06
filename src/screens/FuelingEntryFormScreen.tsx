@@ -82,7 +82,9 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [datePickerDraft, setDatePickerDraft] = useState<Date>(() => new Date());
+  const [datePickerDraft, setDatePickerDraft] = useState<Date>(
+    () => new Date()
+  );
   const [distance, setDistance] = useState("");
   const [fuelAmount, setFuelAmount] = useState("");
   const [fuelCost, setFuelCost] = useState("");
@@ -274,13 +276,9 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         </View>
       }
     >
-      <View style={{ height: theme.spacing.md }} />
       <Text style={styles.h1}>
         {entryId ? t("fuelingForm.editTitle") : t("fuelingForm.addTitle")}
       </Text>
-
-      <View style={{ height: theme.spacing.lg }} />
-
       <View
         style={[
           styles.card,
@@ -343,7 +341,12 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
                     },
                   ]}
                 >
-                  <Text style={[styles.pickerActionText, { color: theme.colors.muted }]}>
+                  <Text
+                    style={[
+                      styles.pickerActionText,
+                      { color: theme.colors.muted },
+                    ]}
+                  >
                     {t("common.cancel")}
                   </Text>
                 </Pressable>
@@ -362,7 +365,10 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
                   ]}
                 >
                   <Text
-                    style={[styles.pickerActionText, { color: theme.colors.accent }]}
+                    style={[
+                      styles.pickerActionText,
+                      { color: theme.colors.accent },
+                    ]}
                   >
                     {t("common.done")}
                   </Text>
@@ -426,7 +432,6 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               : t("fuelingForm.gasStation")}
           </Text>
         </Pressable>
-
       </View>
 
       <View style={{ height: theme.spacing.sm }} />
@@ -502,7 +507,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
 
       {entryId ? (
         <>
-          <View style={{ height: theme.spacing.lg }} />
+          <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
           <Button variant="destructive" onPress={confirmDelete}>
             {t("common.delete")}
           </Button>
@@ -535,6 +540,7 @@ const makeStyles = (theme: any) =>
     },
     h1: {
       fontSize: theme.typography.largeTitle,
+      marginVertical: theme.spacing.md,
       fontWeight: "700",
       color: theme.colors.fg,
     },

@@ -186,7 +186,9 @@ export function VehicleFormScreen({ navigation }: Props) {
                 },
               ]}
             >
-              <Text style={[styles.pickerActionText, { color: theme.colors.muted }]}>
+              <Text
+                style={[styles.pickerActionText, { color: theme.colors.muted }]}
+              >
                 {t("common.cancel")}
               </Text>
             </Pressable>
@@ -202,7 +204,10 @@ export function VehicleFormScreen({ navigation }: Props) {
               ]}
             >
               <Text
-                style={[styles.pickerActionText, { color: theme.colors.accent }]}
+                style={[
+                  styles.pickerActionText,
+                  { color: theme.colors.accent },
+                ]}
               >
                 {t("common.done")}
               </Text>
@@ -588,7 +593,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         )}
       </View>
 
-      <View style={{ height: theme.spacing.lg }} />
+      <View style={{ height: theme.spacing.md }} />
 
       <Text style={styles.sectionTitle}>{t("vehicleForm.type")}</Text>
       <View

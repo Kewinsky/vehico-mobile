@@ -80,15 +80,13 @@ export function WheelsListScreen({ route, navigation }: Props) {
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
       <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.fg }]}>
-            {t("wheels.rimsSection")}
-          </Text>
-        </View>
-        <View style={{ height: theme.spacing.sm }} />
+        <Text style={[styles.title, { color: theme.colors.fg }]}>
+          {t("wheels.rimsSection")}
+        </Text>
         <Button onPress={() => navigation.navigate("WheelForm", { vehicleId })}>
           {t("wheels.addWheelSingle")}
         </Button>
+        <View style={{ height: theme.spacing.md }} />
       </View>
       <FlatList
         data={wheels}
@@ -191,19 +189,15 @@ export function WheelsListScreen({ route, navigation }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
-    header: {
-      gap: theme.spacing.xs / 2,
-      marginBottom: theme.titleMarginBottom,
-    },
+
     title: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
+      marginVertical: theme.spacing.md,
     },
     card: {
       borderWidth: 1,

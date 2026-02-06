@@ -74,6 +74,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     fixedHeader: {
       paddingTop: theme.spacing.md,
+      paddingBottom: theme.spacing.md,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     header: {
@@ -86,8 +87,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     list: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.md,
-      paddingBottom: insets.bottom + theme.spacing.lg,
       gap: theme.spacing.xs,
     },
     row: {

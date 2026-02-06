@@ -207,7 +207,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
         {wheelId ? t("wheelForm.editTitle") : t("wheelForm.addTitle")}
       </Text>
 
-      <View style={{ height: theme.spacing.lg }} />
+      <View style={{ height: theme.spacing.sm }} />
 
       <View
         style={[
@@ -306,7 +306,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons name="grid-outline" size={20} color={theme.colors.muted} />
+          <Ionicons name="grid-outline" size={20} color={theme.colors.accent} />
           <TextInput
             value={boltPattern}
             onChangeText={setBoltPattern}
@@ -406,7 +406,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
 
       {wheelId ? (
         <>
-          <View style={{ height: theme.spacing.lg }} />
+          <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
           <Button variant="destructive" onPress={confirmDelete}>
             {t("common.delete")}
           </Button>

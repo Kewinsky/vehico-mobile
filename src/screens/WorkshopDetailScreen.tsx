@@ -161,51 +161,49 @@ export function WorkshopDetailScreen({ navigation, route }: Props) {
 
   const renderHeader = () => (
     <>
-      <View style={[styles.top, { backgroundColor: theme.colors.bg }]}>
-        <View style={styles.headerRow}>
-          <Text
-            style={[styles.screenTitle, { color: theme.colors.fg }]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {workshop.name || t("workshopDetail.title")}
-          </Text>
-          <Pressable
-            onPress={showActionsMenu}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.menuButton,
-              pressed && { opacity: 0.6 },
-            ]}
-          >
-            <Ionicons
-              name="ellipsis-horizontal"
-              size={22}
-              color={theme.colors.fg}
-            />
-          </Pressable>
-        </View>
-
-        <View
-          style={[
-            styles.detailsCard,
-            {
-              borderColor: theme.colors.border,
-              backgroundColor: theme.colors.card,
-            },
+      <View style={styles.headerRow}>
+        <Text
+          style={[styles.h1, { color: theme.colors.fg }]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {workshop.name || t("workshopDetail.title")}
+        </Text>
+        <Pressable
+          onPress={showActionsMenu}
+          hitSlop={10}
+          style={({ pressed }) => [
+            styles.menuButton,
+            pressed && { opacity: 0.6 },
           ]}
         >
-          <View style={styles.row}>
-            <View style={styles.labelRow}>
-              <Ionicons
-                name="business-outline"
-                size={20}
-                color={theme.colors.muted}
-              />
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("workshopForm.name")}
-              </Text>
-            </View>
+          <Ionicons
+            name="ellipsis-horizontal"
+            size={22}
+            color={theme.colors.fg}
+          />
+        </Pressable>
+      </View>
+
+      <View
+        style={[
+          styles.card,
+          {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.card,
+          },
+        ]}
+      >
+        <View style={styles.row}>
+          <Ionicons
+            name="business-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <View style={styles.rowContent}>
+            <Text style={[styles.label, { color: theme.colors.muted }]}>
+              {t("workshopForm.name")}
+            </Text>
             <Text
               style={[styles.value, { color: theme.colors.fg }]}
               numberOfLines={1}
@@ -214,40 +212,43 @@ export function WorkshopDetailScreen({ navigation, route }: Props) {
               {workshop.name}
             </Text>
           </View>
-          <View style={styles.row}>
-            <View style={styles.labelRow}>
-              <Ionicons
-                name="construct-outline"
-                size={20}
-                color={theme.colors.muted}
-              />
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("workshopForm.workshopType")}
-              </Text>
-            </View>
+        </View>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <View style={styles.row}>
+          <Ionicons
+            name="construct-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <View style={styles.rowContent}>
+            <Text style={[styles.label, { color: theme.colors.muted }]}>
+              {t("workshopForm.workshopType")}
+            </Text>
             <Text style={[styles.value, { color: theme.colors.fg }]}>
               {getWorkshopTypeLabel(workshop.workshop_type)}
             </Text>
           </View>
-          {workshop.phone_number ? (
-            <View style={styles.row}>
-              <View style={styles.labelRow}>
-                <Ionicons
-                  name="call-outline"
-                  size={20}
-                  color={theme.colors.muted}
-                />
+        </View>
+        {workshop.phone_number ? (
+          <>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+            <Pressable
+              onPress={onCopyPhone}
+              style={({ pressed }) => [styles.row, pressed && { opacity: 0.8 }]}
+            >
+              <Ionicons
+                name="call-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <View style={styles.rowContent}>
                 <Text style={[styles.label, { color: theme.colors.muted }]}>
                   {t("workshopDetail.phone")}
                 </Text>
-              </View>
-              <Pressable
-                onPress={onCopyPhone}
-                style={({ pressed }) => [
-                  styles.phoneRow,
-                  { opacity: pressed ? 0.8 : 1 },
-                ]}
-              >
                 <Text
                   style={[styles.value, { color: theme.colors.fg }]}
                   numberOfLines={1}
@@ -255,33 +256,36 @@ export function WorkshopDetailScreen({ navigation, route }: Props) {
                 >
                   <Ionicons
                     name="copy-outline"
-                    size={18}
-                    color={theme.colors.fg}
+                    size={16}
+                    color={theme.colors.muted}
                   />{" "}
                   {workshop.phone_number}
                 </Text>
-              </Pressable>
-            </View>
-          ) : null}
-          {workshop.address ? (
-            <View style={styles.rowAddress}>
-              <View style={styles.labelRow}>
-                <Ionicons
-                  name="location-outline"
-                  size={20}
-                  color={theme.colors.muted}
-                />
+              </View>
+            </Pressable>
+          </>
+        ) : null}
+        {workshop.address ? (
+          <>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+            <Pressable
+              onPress={onCopyAddress}
+              style={({ pressed }) => [
+                styles.rowAddress,
+                pressed && { opacity: 0.8 },
+              ]}
+            >
+              <Ionicons
+                name="location-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <View style={styles.rowContent}>
                 <Text style={[styles.label, { color: theme.colors.muted }]}>
                   {t("workshopDetail.address")}
                 </Text>
-              </View>
-              <Pressable
-                onPress={onCopyAddress}
-                style={({ pressed }) => [
-                  styles.addressRow,
-                  { opacity: pressed ? 0.8 : 1 },
-                ]}
-              >
                 <Text
                   style={[
                     styles.value,
@@ -291,15 +295,15 @@ export function WorkshopDetailScreen({ navigation, route }: Props) {
                 >
                   <Ionicons
                     name="copy-outline"
-                    size={18}
-                    color={theme.colors.fg}
+                    size={16}
+                    color={theme.colors.muted}
                   />{" "}
                   {workshop.address}
                 </Text>
-              </Pressable>
-            </View>
-          ) : null}
-        </View>
+              </View>
+            </Pressable>
+          </>
+        ) : null}
       </View>
 
       <View style={styles.sectionHeader}>
@@ -340,6 +344,7 @@ export function WorkshopDetailScreen({ navigation, route }: Props) {
             <View
               style={[
                 styles.card,
+                styles.entryCard,
                 {
                   borderColor: theme.colors.border,
                   backgroundColor: theme.colors.card,
@@ -387,84 +392,60 @@ function makeStyles(theme: any, insets: { bottom: number }) {
       justifyContent: "center",
       paddingBottom: insets.bottom + theme.spacing.xl,
     },
-    top: {
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.sm,
-    },
     headerRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: theme.spacing.sm,
+      marginVertical: theme.spacing.md,
     },
-    screenTitle: {
+    h1: {
       flex: 1,
       minWidth: 0,
-      fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontSize: theme.typography.largeTitle,
+      fontWeight: "700",
     },
     menuButton: {
-      padding: theme.spacing.xs,
       justifyContent: "center",
       alignItems: "center",
     },
-    detailsCard: {
-      marginTop: theme.spacing.sm,
+    card: {
       borderWidth: 1,
       borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
-      gap: 0,
+      overflow: "hidden",
     },
     row: {
       flexDirection: "row",
-      justifyContent: "space-between",
       alignItems: "center",
       gap: theme.spacing.sm,
       paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
     },
     rowAddress: {
       flexDirection: "row",
-      justifyContent: "space-between",
       alignItems: "flex-start",
       gap: theme.spacing.sm,
       paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
     },
-    labelRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-    },
-    phoneRow: {
+    rowContent: {
       flex: 1,
       minWidth: 0,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      gap: theme.spacing.sm,
     },
-    addressRow: {
-      flex: 1,
-      minWidth: 0,
-      flexDirection: "row",
-      alignItems: "flex-start",
-      justifyContent: "flex-end",
-    },
+    divider: { height: 1, width: "100%" },
     label: {
-      fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontSize: theme.typography.small,
+      fontWeight: "600",
+      marginBottom: 2,
     },
     value: {
-      flex: 1,
-      minWidth: 0,
       fontSize: theme.typography.body,
       fontWeight: "400",
-      textAlign: "right",
     },
     valueWrap: {
-      textAlign: "right",
+      flex: 1,
     },
     sectionHeader: {
       paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.sm,
+      paddingBottom: theme.spacing.xs,
     },
     sectionTitle: {
       fontSize: theme.typography.body,
@@ -478,9 +459,7 @@ function makeStyles(theme: any, insets: { bottom: number }) {
       fontSize: theme.typography.small,
       marginTop: theme.spacing.xs,
     },
-    card: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
+    entryCard: {
       padding: theme.spacing.md,
     },
     cardRow: {
