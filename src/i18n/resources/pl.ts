@@ -100,7 +100,8 @@ export const pl = {
     step3Desc:
       "Wygeneruj publiczny raport i podeślij go komu chcesz. Bez chaosu w PDF-ach i wiadomościach.",
     featuresSectionTitle: "Co jest w aplikacji?",
-    featuresSectionDesc: "Wszystko, czego potrzebujesz do prowadzenia i udostępniania historii pojazdu.",
+    featuresSectionDesc:
+      "Wszystko, czego potrzebujesz do prowadzenia i udostępniania historii pojazdu.",
     feature1Title: "Historia serwisowa",
     feature1Description:
       "Prowadź szczegółowe zapisy wszystkich napraw i konserwacji ze zdjęciami i dokumentami.",
@@ -402,7 +403,7 @@ export const pl = {
     removePhotoTitle: "Usunąć zdjęcie?",
     removePhotoBody: "Tej operacji nie można cofnąć.",
     removeAttachmentTitle: "Usunąć załącznik?",
-    removeAttachmentBody: "Plik zostanie usunięty z pamięci (storage).",
+    removeAttachmentBody: "Plik zostanie usunięty z pamięci.",
     attachmentLabel: "Załącznik",
     documentLabel: "Dokument",
     photoLabel: "Zdjęcie",
@@ -696,7 +697,7 @@ export const pl = {
     deleteEntryTitle: "Usunąć wpis?",
     deleteEntryBody: "To usunie wpis serwisowy i jego załączniki.",
     removeAttachmentTitle: "Usunąć załącznik?",
-    removeAttachmentBody: "Plik zostanie usunięty z pamięci (storage).",
+    removeAttachmentBody: "Plik zostanie usunięty z pamięci.",
   },
   dataPortability: {
     title: "Eksport / Import",
