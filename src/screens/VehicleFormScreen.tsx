@@ -37,6 +37,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
+import { FollowCursorTextInput } from "../ui/components/FollowCursorTextInput";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
 
@@ -1053,7 +1054,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             size={20}
             color={theme.colors.accent}
           />
-          <TextInput
+          <FollowCursorTextInput
             value={notes}
             onChangeText={setNotes}
             editable={!saving}

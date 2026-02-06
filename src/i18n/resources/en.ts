@@ -81,8 +81,21 @@ export const en = {
   },
   landing: {
     title: "Vehico",
+    badge: "Public vehicle report in one link",
     subtitle:
       "Track your vehicle maintenance, fuel consumption, and expenses all in one place.",
+    heroLead:
+      "Create a clean, professional vehicle report for sharing. Photos, service history, fueling and stats — in one minimal, readable view.",
+    howTitle: "How does Vehico work?",
+    howDesc: "Capture your car's history in minutes, then generate a public share link.",
+    step1Title: "Add your car and core details",
+    step1Desc: "Fill in the essentials (e.g. VIN, mileage, specs) and prepare a clear overview.",
+    step2Title: "Track service and fueling",
+    step2Desc: "Add entries with cost, date and category — so the report reflects real ownership.",
+    step3Title: "Share a report link",
+    step3Desc: "Generate a public report and send it anywhere. No messy PDFs or endless messages.",
+    featuresSectionTitle: "What's inside the app?",
+    featuresSectionDesc: "Everything you need to maintain and share your vehicle history.",
     feature1Title: "Service History",
     feature1Description:
       "Keep detailed records of all maintenance and repairs with photos and documents.",
@@ -97,6 +110,8 @@ export const en = {
       "Analyze your expenses and track trends with comprehensive reports.",
     getStarted: "Get Started",
     alreadyHaveAccount: "Already have an account? ",
+    terms: "Terms",
+    privacy: "Privacy",
   },
   vehicles: {
     title: "Vehicles",

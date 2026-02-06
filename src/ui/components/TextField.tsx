@@ -2,24 +2,34 @@ import type { ComponentProps } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 
 import { useTheme } from "../ThemeProvider";
+import { FollowCursorTextInput } from "./FollowCursorTextInput";
 
 type Props = ComponentProps<typeof TextInput> & {
   label?: string;
   helperText?: string;
   noMarginTop?: boolean;
+  followCursor?: boolean;
 };
 
 export function TextField(props: Props) {
   const { theme, mode } = useTheme();
   const styles = makeStyles(theme);
-  const { label, helperText, noMarginTop, style, multiline, ...inputProps } =
-    props;
+  const {
+    label,
+    helperText,
+    noMarginTop,
+    style,
+    multiline,
+    followCursor,
+    ...inputProps
+  } = props;
   const isMultiline = multiline === true;
+  const Input = isMultiline && followCursor ? FollowCursorTextInput : TextInput;
   return (
     <View style={[styles.field, noMarginTop && styles.fieldNoTop]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
       <View style={[styles.wrap, isMultiline && styles.wrapMultiline]}>
-        <TextInput
+        <Input
           placeholderTextColor={theme.colors.muted}
           keyboardAppearance={mode === "dark" ? "dark" : "light"}
           multiline={multiline}

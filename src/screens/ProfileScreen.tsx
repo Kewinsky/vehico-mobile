@@ -177,16 +177,14 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       flexGrow: 1,
-      paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.xl,
     },
     title: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
-      marginBottom: theme.titleMarginBottom,
+      marginVertical: theme.spacing.md,
     },
     card: {
-      marginTop: theme.spacing.md,
       borderWidth: 1,
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,

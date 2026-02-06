@@ -169,6 +169,7 @@ export function ImportScreen({ navigation, route }: Props) {
         onChangeText={setCsv}
         placeholder={t("import.placeholder")}
         multiline
+        followCursor
         editable={!importing}
       />
       <View style={{ height: theme.spacing.sm }} />

@@ -516,97 +516,48 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         refreshing={refreshing}
         onRefresh={() => void load({ refreshing: true })}
         ListHeaderComponent={
-          <View style={styles.fixedHeader}>
-            <View style={styles.header}>
-              <Text style={styles.title}>
-                {t("dashboard.tiles.serviceTitle")}
-              </Text>
-            </View>
-            <View style={styles.searchRow}>
-              <View
-                style={[
-                  styles.searchBarWrap,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name="search-outline"
-                  size={20}
-                  color={theme.colors.muted}
-                  style={styles.searchBarIcon}
-                />
-                <TextInput
-                  value={query}
-                  onChangeText={setQuery}
-                  placeholder={t("timeline.searchPlaceholder")}
-                  placeholderTextColor={theme.colors.muted}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  clearButtonMode="while-editing"
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  style={[styles.searchBarInput, { color: theme.colors.fg }]}
-                />
+          <>
+            <View style={styles.fixedHeader}>
+              <View style={styles.header}>
+                <Text style={styles.title}>
+                  {t("dashboard.tiles.serviceTitle")}
+                </Text>
               </View>
-              <View
-                style={{
-                  marginLeft: theme.spacing.sm,
-                  flexDirection: "row",
-                  gap: theme.spacing.sm,
-                }}
-              >
+              <View style={styles.searchRow}>
                 <View
                   style={[
-                    styles.addButton,
+                    styles.searchBarWrap,
                     {
                       borderColor: theme.colors.border,
                       backgroundColor: theme.colors.card,
                     },
                   ]}
                 >
-                  <Pressable
-                    onPress={() =>
-                      navigation.navigate("ServiceEntryForm", { vehicleId })
-                    }
-                    style={({ pressed }) => [
-                      styles.addButtonInner,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                  >
-                    <Ionicons name="add" size={24} color={theme.colors.fg} />
-                  </Pressable>
+                  <Ionicons
+                    name="search-outline"
+                    size={20}
+                    color={theme.colors.muted}
+                    style={styles.searchBarIcon}
+                  />
+                  <TextInput
+                    value={query}
+                    onChangeText={setQuery}
+                    placeholder={t("timeline.searchPlaceholder")}
+                    placeholderTextColor={theme.colors.muted}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    clearButtonMode="while-editing"
+                    keyboardAppearance={mode === "dark" ? "dark" : "light"}
+                    style={[styles.searchBarInput, { color: theme.colors.fg }]}
+                  />
                 </View>
                 <View
-                  style={[
-                    styles.addButton,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                    hasActiveFilters && {
-                      borderColor: theme.colors.accent,
-                    },
-                  ]}
+                  style={{
+                    marginLeft: theme.spacing.sm,
+                    flexDirection: "row",
+                    gap: theme.spacing.sm,
+                  }}
                 >
-                  <Pressable
-                    onPress={() => setFiltersOpen((v) => !v)}
-                    style={({ pressed }) => [
-                      styles.addButtonInner,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="filter-outline"
-                      size={24}
-                      color={
-                        hasActiveFilters ? theme.colors.accent : theme.colors.fg
-                      }
-                    />
-                  </Pressable>
-                </View>
-                {hasActiveFilters ? (
                   <View
                     style={[
                       styles.addButton,
@@ -617,457 +568,515 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                     ]}
                   >
                     <Pressable
-                      onPress={resetFilters}
+                      onPress={() =>
+                        navigation.navigate("ServiceEntryForm", { vehicleId })
+                      }
+                      style={({ pressed }) => [
+                        styles.addButtonInner,
+                        pressed && { opacity: 0.9 },
+                      ]}
+                    >
+                      <Ionicons name="add" size={24} color={theme.colors.fg} />
+                    </Pressable>
+                  </View>
+                  <View
+                    style={[
+                      styles.addButton,
+                      {
+                        borderColor: theme.colors.border,
+                        backgroundColor: theme.colors.card,
+                      },
+                      hasActiveFilters && {
+                        borderColor: theme.colors.accent,
+                      },
+                    ]}
+                  >
+                    <Pressable
+                      onPress={() => setFiltersOpen((v) => !v)}
                       style={({ pressed }) => [
                         styles.addButtonInner,
                         pressed && { opacity: 0.9 },
                       ]}
                     >
                       <Ionicons
-                        name="refresh-outline"
+                        name="filter-outline"
                         size={24}
-                        color={theme.colors.fg}
+                        color={
+                          hasActiveFilters
+                            ? theme.colors.accent
+                            : theme.colors.fg
+                        }
                       />
                     </Pressable>
                   </View>
-                ) : null}
-              </View>
-            </View>
-
-            {filtersOpen ? (
-              <>
-                <View style={{ height: theme.spacing.sm }} />
-                <View
-                  style={[
-                    styles.filtersCard,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
-                  <View style={styles.row}>
-                    <Ionicons
-                      name="notifications-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[styles.valueText, { color: theme.colors.fg }]}
-                    >
-                      {t("timeline.showReminders")}
-                    </Text>
-                    <Switch
-                      value={showReminders}
-                      onValueChange={setShowReminders}
-                      trackColor={{
-                        false: theme.colors.border,
-                        true: theme.colors.accent,
-                      }}
-                      thumbColor={
-                        Platform.OS === "android" ? "#ffffff" : undefined
-                      }
-                    />
-                  </View>
-
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                  <Pressable
-                    onPress={showCategoryPicker}
-                    style={({ pressed }) => [
-                      styles.row,
-                      pressed && { opacity: 0.75 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="pricetag-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[
-                        styles.valueText,
-                        {
-                          color:
-                            categoryFilter === "all"
-                              ? theme.colors.muted
-                              : theme.colors.fg,
-                        },
-                      ]}
-                    >
-                      {categoryFilter === "all"
-                        ? t("timeline.filterCategory")
-                        : categoryLabel}
-                    </Text>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={20}
-                      color={theme.colors.muted}
-                    />
-                  </Pressable>
-
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                  <View style={styles.row}>
-                    <Ionicons
-                      name="swap-vertical-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
+                  {hasActiveFilters ? (
                     <View
                       style={[
-                        styles.segmentWrap,
+                        styles.addButton,
                         {
                           borderColor: theme.colors.border,
-                          backgroundColor: theme.colors.bg,
+                          backgroundColor: theme.colors.card,
                         },
                       ]}
                     >
-                      {(["date", "title", "cost"] as const).map((f) => {
-                        const selected = sortField === f;
-                        const label =
-                          f === "date"
-                            ? t("timeline.sortFieldDate")
-                            : f === "title"
-                            ? t("timeline.sortFieldTitle")
-                            : t("timeline.sortFieldAmount");
-                        return (
-                          <Pressable
-                            key={f}
-                            onPress={() => setSortField(f)}
-                            style={({ pressed }) => [
-                              styles.segment,
-                              selected && styles.segmentSelected,
-                              {
-                                borderColor: theme.colors.accent,
-                                backgroundColor: selected
-                                  ? accentBg
-                                  : "transparent",
-                                opacity: pressed ? 0.85 : 1,
-                              },
-                            ]}
-                          >
-                            <Text
-                              style={[
-                                styles.segmentTextSmall,
+                      <Pressable
+                        onPress={resetFilters}
+                        style={({ pressed }) => [
+                          styles.addButtonInner,
+                          pressed && { opacity: 0.9 },
+                        ]}
+                      >
+                        <Ionicons
+                          name="refresh-outline"
+                          size={24}
+                          color={theme.colors.fg}
+                        />
+                      </Pressable>
+                    </View>
+                  ) : null}
+                </View>
+              </View>
+
+              {filtersOpen ? (
+                <>
+                  <View style={{ height: theme.spacing.sm }} />
+                  <View
+                    style={[
+                      styles.filtersCard,
+                      {
+                        borderColor: theme.colors.border,
+                        backgroundColor: theme.colors.card,
+                      },
+                    ]}
+                  >
+                    <View style={styles.row}>
+                      <Ionicons
+                        name="notifications-outline"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <Text
+                        style={[styles.valueText, { color: theme.colors.fg }]}
+                      >
+                        {t("timeline.showReminders")}
+                      </Text>
+                      <Switch
+                        value={showReminders}
+                        onValueChange={setShowReminders}
+                        trackColor={{
+                          false: theme.colors.border,
+                          true: theme.colors.accent,
+                        }}
+                        thumbColor={
+                          Platform.OS === "android" ? "#ffffff" : undefined
+                        }
+                      />
+                    </View>
+
+                    <View
+                      style={[
+                        styles.divider,
+                        { backgroundColor: theme.colors.border },
+                      ]}
+                    />
+                    <Pressable
+                      onPress={showCategoryPicker}
+                      style={({ pressed }) => [
+                        styles.row,
+                        pressed && { opacity: 0.75 },
+                      ]}
+                    >
+                      <Ionicons
+                        name="pricetag-outline"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <Text
+                        style={[
+                          styles.valueText,
+                          {
+                            color:
+                              categoryFilter === "all"
+                                ? theme.colors.muted
+                                : theme.colors.fg,
+                          },
+                        ]}
+                      >
+                        {categoryFilter === "all"
+                          ? t("timeline.filterCategory")
+                          : categoryLabel}
+                      </Text>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={20}
+                        color={theme.colors.muted}
+                      />
+                    </Pressable>
+
+                    <View
+                      style={[
+                        styles.divider,
+                        { backgroundColor: theme.colors.border },
+                      ]}
+                    />
+                    <View style={styles.row}>
+                      <Ionicons
+                        name="swap-vertical-outline"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <View
+                        style={[
+                          styles.segmentWrap,
+                          {
+                            borderColor: theme.colors.border,
+                            backgroundColor: theme.colors.bg,
+                          },
+                        ]}
+                      >
+                        {(["date", "title", "cost"] as const).map((f) => {
+                          const selected = sortField === f;
+                          const label =
+                            f === "date"
+                              ? t("timeline.sortFieldDate")
+                              : f === "title"
+                              ? t("timeline.sortFieldTitle")
+                              : t("timeline.sortFieldAmount");
+                          return (
+                            <Pressable
+                              key={f}
+                              onPress={() => setSortField(f)}
+                              style={({ pressed }) => [
+                                styles.segment,
+                                selected && styles.segmentSelected,
                                 {
-                                  color: selected
-                                    ? theme.colors.accent
-                                    : theme.colors.muted,
+                                  borderColor: theme.colors.accent,
+                                  backgroundColor: selected
+                                    ? accentBg
+                                    : "transparent",
+                                  opacity: pressed ? 0.85 : 1,
                                 },
                               ]}
                             >
-                              {label}
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
+                              <Text
+                                style={[
+                                  styles.segmentTextSmall,
+                                  {
+                                    color: selected
+                                      ? theme.colors.accent
+                                      : theme.colors.muted,
+                                  },
+                                ]}
+                              >
+                                {label}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
                     </View>
-                  </View>
 
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                  <View style={styles.row}>
-                    <Ionicons
-                      name="options-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <View
-                      style={[
-                        styles.segmentWrap,
-                        {
-                          borderColor: theme.colors.border,
-                          backgroundColor: theme.colors.bg,
-                        },
-                      ]}
-                    >
-                      {sortField === "date" ? (
-                        <>
-                          {(["newest", "oldest"] as const).map((o) => {
-                            const selected = sortOption === `date-${o}`;
-                            const label =
-                              o === "newest"
-                                ? t("timeline.sortOrderNewest")
-                                : t("timeline.sortOrderOldest");
-                            return (
-                              <Pressable
-                                key={o}
-                                onPress={() =>
-                                  setSortOption(
-                                    o === "newest"
-                                      ? "date-newest"
-                                      : "date-oldest"
-                                  )
-                                }
-                                style={({ pressed }) => [
-                                  styles.segment,
-                                  selected && styles.segmentSelected,
-                                  {
-                                    borderColor: theme.colors.accent,
-                                    backgroundColor: selected
-                                      ? accentBg
-                                      : "transparent",
-                                    opacity: pressed ? 0.85 : 1,
-                                  },
-                                ]}
-                              >
-                                <Text
-                                  style={[
-                                    styles.segmentTextSmall,
-                                    {
-                                      color: selected
-                                        ? theme.colors.accent
-                                        : theme.colors.muted,
-                                    },
-                                  ]}
-                                >
-                                  {label}
-                                </Text>
-                              </Pressable>
-                            );
-                          })}
-                        </>
-                      ) : sortField === "title" ? (
-                        <>
-                          {(["az", "za"] as const).map((o) => {
-                            const selected = sortOption === `title-${o}`;
-                            const label =
-                              o === "az"
-                                ? t("timeline.sortOrderAz")
-                                : t("timeline.sortOrderZa");
-                            return (
-                              <Pressable
-                                key={o}
-                                onPress={() =>
-                                  setSortOption(
-                                    o === "az" ? "title-az" : "title-za"
-                                  )
-                                }
-                                style={({ pressed }) => [
-                                  styles.segment,
-                                  selected && styles.segmentSelected,
-                                  {
-                                    borderColor: theme.colors.accent,
-                                    backgroundColor: selected
-                                      ? accentBg
-                                      : "transparent",
-                                    opacity: pressed ? 0.85 : 1,
-                                  },
-                                ]}
-                              >
-                                <Text
-                                  style={[
-                                    styles.segmentTextSmall,
-                                    {
-                                      color: selected
-                                        ? theme.colors.accent
-                                        : theme.colors.muted,
-                                    },
-                                  ]}
-                                >
-                                  {label}
-                                </Text>
-                              </Pressable>
-                            );
-                          })}
-                        </>
-                      ) : (
-                        <>
-                          {(["asc", "desc"] as const).map((o) => {
-                            const selected = sortOption === `cost-${o}`;
-                            const label =
-                              o === "asc"
-                                ? t("timeline.sortOrderAmountAsc")
-                                : t("timeline.sortOrderAmountDesc");
-                            return (
-                              <Pressable
-                                key={o}
-                                onPress={() =>
-                                  setSortOption(
-                                    o === "asc" ? "cost-asc" : "cost-desc"
-                                  )
-                                }
-                                style={({ pressed }) => [
-                                  styles.segment,
-                                  selected && styles.segmentSelected,
-                                  {
-                                    borderColor: theme.colors.accent,
-                                    backgroundColor: selected
-                                      ? accentBg
-                                      : "transparent",
-                                    opacity: pressed ? 0.85 : 1,
-                                  },
-                                ]}
-                              >
-                                <Text
-                                  style={[
-                                    styles.segmentTextSmall,
-                                    {
-                                      color: selected
-                                        ? theme.colors.accent
-                                        : theme.colors.muted,
-                                    },
-                                  ]}
-                                >
-                                  {label}
-                                </Text>
-                              </Pressable>
-                            );
-                          })}
-                        </>
-                      )}
-                    </View>
-                  </View>
-
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                  <Pressable
-                    onPress={() => openPicker("from")}
-                    style={({ pressed }) => [
-                      styles.row,
-                      pressed && { opacity: 0.75 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="calendar-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[
-                        styles.valueText,
-                        {
-                          color: dateFrom
-                            ? theme.colors.fg
-                            : theme.colors.muted,
-                        },
-                      ]}
-                    >
-                      {dateFrom || t("timeline.filterFrom")}
-                    </Text>
-                  </Pressable>
-                  {openDatePicker === "from" ? (
-                    <>
-                      {renderInlineDatePicker()}
-                      <View
-                        style={[
-                          styles.divider,
-                          { backgroundColor: theme.colors.border },
-                        ]}
-                      />
-                    </>
-                  ) : (
                     <View
                       style={[
                         styles.divider,
                         { backgroundColor: theme.colors.border },
                       ]}
                     />
-                  )}
-
-                  <Pressable
-                    onPress={() => openPicker("to")}
-                    style={({ pressed }) => [
-                      styles.row,
-                      pressed && { opacity: 0.75 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="calendar-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[
-                        styles.valueText,
-                        {
-                          color: dateTo ? theme.colors.fg : theme.colors.muted,
-                        },
-                      ]}
-                    >
-                      {dateTo || t("timeline.filterTo")}
-                    </Text>
-                  </Pressable>
-                  {openDatePicker === "to" ? (
-                    <>
-                      {renderInlineDatePicker()}
+                    <View style={styles.row}>
+                      <Ionicons
+                        name="options-outline"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
                       <View
                         style={[
-                          styles.divider,
-                          { backgroundColor: theme.colors.border },
+                          styles.segmentWrap,
+                          {
+                            borderColor: theme.colors.border,
+                            backgroundColor: theme.colors.bg,
+                          },
                         ]}
-                      />
-                    </>
-                  ) : (
+                      >
+                        {sortField === "date" ? (
+                          <>
+                            {(["newest", "oldest"] as const).map((o) => {
+                              const selected = sortOption === `date-${o}`;
+                              const label =
+                                o === "newest"
+                                  ? t("timeline.sortOrderNewest")
+                                  : t("timeline.sortOrderOldest");
+                              return (
+                                <Pressable
+                                  key={o}
+                                  onPress={() =>
+                                    setSortOption(
+                                      o === "newest"
+                                        ? "date-newest"
+                                        : "date-oldest"
+                                    )
+                                  }
+                                  style={({ pressed }) => [
+                                    styles.segment,
+                                    selected && styles.segmentSelected,
+                                    {
+                                      borderColor: theme.colors.accent,
+                                      backgroundColor: selected
+                                        ? accentBg
+                                        : "transparent",
+                                      opacity: pressed ? 0.85 : 1,
+                                    },
+                                  ]}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.segmentTextSmall,
+                                      {
+                                        color: selected
+                                          ? theme.colors.accent
+                                          : theme.colors.muted,
+                                      },
+                                    ]}
+                                  >
+                                    {label}
+                                  </Text>
+                                </Pressable>
+                              );
+                            })}
+                          </>
+                        ) : sortField === "title" ? (
+                          <>
+                            {(["az", "za"] as const).map((o) => {
+                              const selected = sortOption === `title-${o}`;
+                              const label =
+                                o === "az"
+                                  ? t("timeline.sortOrderAz")
+                                  : t("timeline.sortOrderZa");
+                              return (
+                                <Pressable
+                                  key={o}
+                                  onPress={() =>
+                                    setSortOption(
+                                      o === "az" ? "title-az" : "title-za"
+                                    )
+                                  }
+                                  style={({ pressed }) => [
+                                    styles.segment,
+                                    selected && styles.segmentSelected,
+                                    {
+                                      borderColor: theme.colors.accent,
+                                      backgroundColor: selected
+                                        ? accentBg
+                                        : "transparent",
+                                      opacity: pressed ? 0.85 : 1,
+                                    },
+                                  ]}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.segmentTextSmall,
+                                      {
+                                        color: selected
+                                          ? theme.colors.accent
+                                          : theme.colors.muted,
+                                      },
+                                    ]}
+                                  >
+                                    {label}
+                                  </Text>
+                                </Pressable>
+                              );
+                            })}
+                          </>
+                        ) : (
+                          <>
+                            {(["asc", "desc"] as const).map((o) => {
+                              const selected = sortOption === `cost-${o}`;
+                              const label =
+                                o === "asc"
+                                  ? t("timeline.sortOrderAmountAsc")
+                                  : t("timeline.sortOrderAmountDesc");
+                              return (
+                                <Pressable
+                                  key={o}
+                                  onPress={() =>
+                                    setSortOption(
+                                      o === "asc" ? "cost-asc" : "cost-desc"
+                                    )
+                                  }
+                                  style={({ pressed }) => [
+                                    styles.segment,
+                                    selected && styles.segmentSelected,
+                                    {
+                                      borderColor: theme.colors.accent,
+                                      backgroundColor: selected
+                                        ? accentBg
+                                        : "transparent",
+                                      opacity: pressed ? 0.85 : 1,
+                                    },
+                                  ]}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.segmentTextSmall,
+                                      {
+                                        color: selected
+                                          ? theme.colors.accent
+                                          : theme.colors.muted,
+                                      },
+                                    ]}
+                                  >
+                                    {label}
+                                  </Text>
+                                </Pressable>
+                              );
+                            })}
+                          </>
+                        )}
+                      </View>
+                    </View>
+
                     <View
                       style={[
                         styles.divider,
                         { backgroundColor: theme.colors.border },
                       ]}
                     />
-                  )}
+                    <Pressable
+                      onPress={() => openPicker("from")}
+                      style={({ pressed }) => [
+                        styles.row,
+                        pressed && { opacity: 0.75 },
+                      ]}
+                    >
+                      <Ionicons
+                        name="calendar-outline"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <Text
+                        style={[
+                          styles.valueText,
+                          {
+                            color: dateFrom
+                              ? theme.colors.fg
+                              : theme.colors.muted,
+                          },
+                        ]}
+                      >
+                        {dateFrom || t("timeline.filterFrom")}
+                      </Text>
+                    </Pressable>
+                    {openDatePicker === "from" ? (
+                      <>
+                        {renderInlineDatePicker()}
+                        <View
+                          style={[
+                            styles.divider,
+                            { backgroundColor: theme.colors.border },
+                          ]}
+                        />
+                      </>
+                    ) : (
+                      <View
+                        style={[
+                          styles.divider,
+                          { backgroundColor: theme.colors.border },
+                        ]}
+                      />
+                    )}
 
-                  <View style={styles.row}>
-                    <Ionicons
-                      name="cash-outline"
-                      size={20}
-                      color={theme.colors.accent}
+                    <Pressable
+                      onPress={() => openPicker("to")}
+                      style={({ pressed }) => [
+                        styles.row,
+                        pressed && { opacity: 0.75 },
+                      ]}
+                    >
+                      <Ionicons
+                        name="calendar-outline"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <Text
+                        style={[
+                          styles.valueText,
+                          {
+                            color: dateTo
+                              ? theme.colors.fg
+                              : theme.colors.muted,
+                          },
+                        ]}
+                      >
+                        {dateTo || t("timeline.filterTo")}
+                      </Text>
+                    </Pressable>
+                    {openDatePicker === "to" ? (
+                      <>
+                        {renderInlineDatePicker()}
+                        <View
+                          style={[
+                            styles.divider,
+                            { backgroundColor: theme.colors.border },
+                          ]}
+                        />
+                      </>
+                    ) : (
+                      <View
+                        style={[
+                          styles.divider,
+                          { backgroundColor: theme.colors.border },
+                        ]}
+                      />
+                    )}
+
+                    <View style={styles.row}>
+                      <Ionicons
+                        name="cash-outline"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <TextInput
+                        value={minCost}
+                        onChangeText={setMinCost}
+                        keyboardType="decimal-pad"
+                        placeholder={`${t(
+                          "timeline.filterMinCost"
+                        )} (${currency})`}
+                        placeholderTextColor={theme.colors.muted}
+                        style={[styles.input, { color: theme.colors.fg }]}
+                      />
+                    </View>
+                    <View
+                      style={[
+                        styles.divider,
+                        { backgroundColor: theme.colors.border },
+                      ]}
                     />
-                    <TextInput
-                      value={minCost}
-                      onChangeText={setMinCost}
-                      keyboardType="decimal-pad"
-                      placeholder={`${t(
-                        "timeline.filterMinCost"
-                      )} (${currency})`}
-                      placeholderTextColor={theme.colors.muted}
-                      style={[styles.input, { color: theme.colors.fg }]}
-                    />
+                    <View style={styles.row}>
+                      <Ionicons
+                        name="cash-outline"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <TextInput
+                        value={maxCost}
+                        onChangeText={setMaxCost}
+                        keyboardType="decimal-pad"
+                        placeholder={`${t(
+                          "timeline.filterMaxCost"
+                        )} (${currency})`}
+                        placeholderTextColor={theme.colors.muted}
+                        style={[styles.input, { color: theme.colors.fg }]}
+                      />
+                    </View>
                   </View>
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                  <View style={styles.row}>
-                    <Ionicons
-                      name="cash-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <TextInput
-                      value={maxCost}
-                      onChangeText={setMaxCost}
-                      keyboardType="decimal-pad"
-                      placeholder={`${t(
-                        "timeline.filterMaxCost"
-                      )} (${currency})`}
-                      placeholderTextColor={theme.colors.muted}
-                      style={[styles.input, { color: theme.colors.fg }]}
-                    />
-                  </View>
-                </View>
-              </>
+                </>
+              ) : null}
+            </View>
+            {showReminders ? (
+              <View style={{ height: theme.spacing.md }} />
             ) : null}
-          </View>
+          </>
         }
         ListEmptyComponent={
           loading ? (
@@ -1184,7 +1193,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingBottom: theme.spacing.sm,
+      paddingBottom: theme.spacing.md,
       backgroundColor: theme.colors.bg,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,

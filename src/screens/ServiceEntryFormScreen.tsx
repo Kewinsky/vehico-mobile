@@ -45,6 +45,7 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../ui/components/ChoiceChip";
+import { FollowCursorTextInput } from "../ui/components/FollowCursorTextInput";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "maintenance",
@@ -954,7 +955,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 size={20}
                 color={theme.colors.accent}
               />
-              <TextInput
+              <FollowCursorTextInput
                 value={description}
                 onChangeText={setDescription}
                 editable={!saving && !uploading}
