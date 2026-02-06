@@ -22,6 +22,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Workshops">;
 
@@ -39,6 +40,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<WorkshopType | "all">("all");
   const [sortOrder, setSortOrder] = useState<"az" | "za">("az");
+  const { isPremium, workshopsLimit } = useEntitlements();
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -125,6 +127,28 @@ export function WorkshopsScreen({ navigation, route }: Props) {
     Alert.alert(t("workshops.filterByType"), "", buttons, { cancelable: true });
   }
 
+  function onAddWorkshopPress() {
+    if (isPremium) {
+      navigation.navigate("WorkshopForm", {});
+      return;
+    }
+    if (items.length >= workshopsLimit) {
+      Alert.alert(
+        t("limits.workshopLimitReachedTitle"),
+        t("limits.workshopLimitReachedBody", { limit: workshopsLimit }),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("limits.upgradeToPremium"),
+            onPress: () => navigation.navigate("Shop"),
+          },
+        ]
+      );
+      return;
+    }
+    navigation.navigate("WorkshopForm", {});
+  }
+
   if (loading) {
     return (
       <Screen padding={false}>
@@ -201,7 +225,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
                   ]}
                 >
                   <Pressable
-                    onPress={() => navigation.navigate("WorkshopForm", {})}
+                    onPress={onAddWorkshopPress}
                     style={({ pressed }) => [
                       styles.addButtonInner,
                       pressed && { opacity: 0.9 },

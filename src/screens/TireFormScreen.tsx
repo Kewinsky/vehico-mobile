@@ -20,10 +20,12 @@ import {
   deleteVehicleTire,
   getVehicleTire,
   updateVehicleTire,
+  listVehicleTires,
 } from "../services/tires/tiresRepo";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 
@@ -41,6 +43,7 @@ const TIRE_TYPES: TireType[] = [
 export function TireFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { isPremium, tiresPerVehicleLimit } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId, tireId } = route.params;
   const accentBg = useMemo(
@@ -170,6 +173,25 @@ export function TireFormScreen({ navigation, route }: Props) {
         toastError(t("validation.dotInvalid"));
         return;
       }
+      // Check tire limit (only for new tires)
+      if (!tireId && !isPremium) {
+        const tires = await listVehicleTires(vehicleId);
+        if (tires.length >= tiresPerVehicleLimit) {
+          Alert.alert(
+            t("limits.tireLimitReachedTitle"),
+            t("limits.tireLimitReachedBody", { limit: tiresPerVehicleLimit }),
+            [
+              { text: t("common.cancel"), style: "cancel" },
+              {
+                text: t("limits.upgradeToPremium"),
+                onPress: () => navigation.navigate("Shop"),
+              },
+            ]
+          );
+          return;
+        }
+      }
+
       const payload = {
         vehicle_id: vehicleId,
         name: name.trim(),

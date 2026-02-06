@@ -28,6 +28,7 @@ import {
 } from "../services/reminders/remindersRepo";
 import { cancelLocalReminder } from "../services/push/localReminderNotifications";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
@@ -81,6 +82,7 @@ export function RemindersScreen({ route, navigation }: Props) {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "done">(
     "all"
   );
+  const { isPremium, remindersLimit } = useEntitlements();
 
   const load = useCallback(
     async (opts?: { refreshing?: boolean; showLoading?: boolean }) => {
@@ -394,11 +396,33 @@ export function RemindersScreen({ route, navigation }: Props) {
                   ]}
                 >
                   <Pressable
-                    onPress={() =>
+                    onPress={() => {
+                      if (isPremium) {
+                        navigation.navigate("ReminderForm", {
+                          vehicleId: route.params.vehicleId,
+                        });
+                        return;
+                      }
+                      if (items.length >= remindersLimit) {
+                        Alert.alert(
+                          t("limits.reminderLimitReachedTitle"),
+                          t("limits.reminderLimitReachedBody", {
+                            limit: remindersLimit,
+                          }),
+                          [
+                            { text: t("common.cancel"), style: "cancel" },
+                            {
+                              text: t("limits.upgradeToPremium"),
+                              onPress: () => navigation.navigate("Shop"),
+                            },
+                          ]
+                        );
+                        return;
+                      }
                       navigation.navigate("ReminderForm", {
                         vehicleId: route.params.vehicleId,
-                      })
-                    }
+                      });
+                    }}
                     style={({ pressed }) => [
                       styles.addButtonInner,
                       pressed && { opacity: 0.9 },

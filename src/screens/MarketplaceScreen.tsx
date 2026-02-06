@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,7 @@ import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Marketplace">;
 
@@ -20,6 +21,7 @@ export function MarketplaceScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const { canGenerateListing, isPremium } = useEntitlements();
 
   const load = useCallback(async () => {
     try {
@@ -36,6 +38,24 @@ export function MarketplaceScreen({ navigation, route }: Props) {
 
   const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
 
+  function onGeneratePress() {
+    if (!canGenerateListing && !isPremium) {
+      Alert.alert(
+        t("limits.listingLimitReachedTitle"),
+        t("limits.noListingsRemaining"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("limits.upgradeToPremium"),
+            onPress: () => navigation.navigate("Shop"),
+          },
+        ]
+      );
+      return;
+    }
+    navigation.navigate("MarketplaceConfigure", { vehicleId });
+  }
+
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
@@ -45,11 +65,7 @@ export function MarketplaceScreen({ navigation, route }: Props) {
         </View>
       </View>
       <View style={styles.content}>
-        <Button
-          onPress={() =>
-            navigation.navigate("MarketplaceConfigure", { vehicleId })
-          }
-        >
+        <Button onPress={onGeneratePress}>
           {t("marketplace.generateButton")}
         </Button>
         <View style={{ height: theme.spacing.xs }} />

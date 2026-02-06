@@ -28,7 +28,7 @@ import type {
   TransmissionType,
   DriveType,
 } from "../types/domain";
-import { createVehicle } from "../services/vehicles/vehiclesRepo";
+import { createVehicle, listVehicles } from "../services/vehicles/vehiclesRepo";
 import { uploadVehiclePhoto } from "../services/vehicles/uploadPhoto";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
@@ -36,6 +36,7 @@ import { hexToRgba } from "../ui/components/ChoiceChip";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { FollowCursorTextInput } from "../ui/components/FollowCursorTextInput";
 
@@ -63,6 +64,7 @@ export function VehicleFormScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
+  const { vehiclesLimit, isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = makeStyles(theme);
   const distanceUnit = settings?.distanceUnit ?? "km";
   const accentBg = useMemo(
@@ -456,6 +458,25 @@ export function VehicleFormScreen({ navigation }: Props) {
         return;
       }
 
+      // Check vehicle limit
+      if (!isPremium) {
+        const vehicles = await listVehicles();
+        if (vehicles.length >= vehiclesLimit) {
+          Alert.alert(
+            t("limits.vehicleLimitReachedTitle"),
+            t("limits.vehicleLimitReachedBody", { limit: vehiclesLimit }),
+            [
+              { text: t("common.cancel"), style: "cancel" },
+              {
+                text: t("limits.upgradeToPremium"),
+                onPress: () => navigation.navigate("Shop"),
+              },
+            ]
+          );
+          return;
+        }
+      }
+
       const created = await createVehicle({
         type,
         vin: vin.trim().length ? vin.trim() : null,
@@ -488,11 +509,13 @@ export function VehicleFormScreen({ navigation }: Props) {
               fileUri: photo.uri,
               mimeType: photo.mimeType,
               fileName: photo.fileName,
+              maxPhotos: photosPerVehicleLimit,
             });
           }
         } catch (e: any) {
           // Log error but don't block navigation
           console.error("Failed to upload photos:", e);
+          toastError(e?.message ?? t("common.error"));
         }
       }
 

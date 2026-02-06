@@ -1,4 +1,4 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -17,6 +17,7 @@ import { Button } from "../ui/components/Button";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "TiresList">;
 
@@ -38,6 +39,7 @@ export function TiresListScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
+  const { isPremium, tiresPerVehicleLimit } = useEntitlements();
 
   const [tires, setTires] = useState<VehicleTire[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,6 +73,28 @@ export function TiresListScreen({ route, navigation }: Props) {
     return unsub;
   }, [navigation, load]);
 
+  function onAddTirePress() {
+    if (isPremium) {
+      navigation.navigate("TireForm", { vehicleId });
+      return;
+    }
+    if (tires.length >= tiresPerVehicleLimit) {
+      Alert.alert(
+        t("limits.tireLimitReachedTitle"),
+        t("limits.tireLimitReachedBody", { limit: tiresPerVehicleLimit }),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("limits.upgradeToPremium"),
+            onPress: () => navigation.navigate("Shop"),
+          },
+        ]
+      );
+      return;
+    }
+    navigation.navigate("TireForm", { vehicleId });
+  }
+
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
@@ -78,7 +102,7 @@ export function TiresListScreen({ route, navigation }: Props) {
         <Text style={[styles.title, { color: theme.colors.fg }]}>
           {t("wheels.tiresSection")}
         </Text>
-        <Button onPress={() => navigation.navigate("TireForm", { vehicleId })}>
+        <Button onPress={onAddTirePress}>
           {t("wheels.addTireSingle")}
         </Button>
         <View style={{ height: theme.spacing.md }} />

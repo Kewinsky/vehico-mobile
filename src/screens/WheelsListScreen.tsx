@@ -1,4 +1,4 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -17,6 +17,7 @@ import { Button } from "../ui/components/Button";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WheelsList">;
 
@@ -43,6 +44,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
+  const { isPremium, wheelsPerVehicleLimit } = useEntitlements();
 
   const [wheels, setWheels] = useState<VehicleWheel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +78,28 @@ export function WheelsListScreen({ route, navigation }: Props) {
     return unsub;
   }, [navigation, load]);
 
+  function onAddWheelPress() {
+    if (isPremium) {
+      navigation.navigate("WheelForm", { vehicleId });
+      return;
+    }
+    if (wheels.length >= wheelsPerVehicleLimit) {
+      Alert.alert(
+        t("limits.wheelLimitReachedTitle"),
+        t("limits.wheelLimitReachedBody", { limit: wheelsPerVehicleLimit }),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("limits.upgradeToPremium"),
+            onPress: () => navigation.navigate("Shop"),
+          },
+        ]
+      );
+      return;
+    }
+    navigation.navigate("WheelForm", { vehicleId });
+  }
+
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
@@ -83,7 +107,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
         <Text style={[styles.title, { color: theme.colors.fg }]}>
           {t("wheels.rimsSection")}
         </Text>
-        <Button onPress={() => navigation.navigate("WheelForm", { vehicleId })}>
+        <Button onPress={onAddWheelPress}>
           {t("wheels.addWheelSingle")}
         </Button>
         <View style={{ height: theme.spacing.md }} />

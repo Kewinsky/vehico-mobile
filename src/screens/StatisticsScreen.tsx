@@ -78,7 +78,11 @@ export function StatisticsScreen({ route, navigation }: Props) {
                   <Text
                     style={[
                       styles.segmentTextSmall,
-                      { color: selected ? theme.colors.accent : theme.colors.muted },
+                      {
+                        color: selected
+                          ? theme.colors.accent
+                          : theme.colors.muted,
+                      },
                     ]}
                   >
                     {p.label}
@@ -133,10 +137,8 @@ export function StatisticsScreen({ route, navigation }: Props) {
       </View>
       <ScrollView
         contentContainerStyle={[
-          styles.scrollContent,
           {
             paddingHorizontal: theme.layout.contentPaddingHorizontal,
-            paddingTop: theme.spacing.sm,
             paddingBottom: insets.bottom + theme.spacing.xl,
           },
         ]}
@@ -155,8 +157,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
@@ -192,5 +193,4 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.small,
       fontWeight: "800",
     },
-    scrollContent: {},
   });

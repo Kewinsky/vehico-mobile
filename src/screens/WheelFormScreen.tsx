@@ -19,10 +19,12 @@ import {
   deleteVehicleWheel,
   getVehicleWheel,
   updateVehicleWheel,
+  listVehicleWheels,
 } from "../services/wheels/wheelsRepo";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 
@@ -31,6 +33,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "WheelForm">;
 export function WheelFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { isPremium, wheelsPerVehicleLimit } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId, wheelId } = route.params;
   const accentBg = useMemo(
@@ -128,6 +131,25 @@ export function WheelFormScreen({ navigation, route }: Props) {
         toastError(t("validation.etInvalid"));
         return;
       }
+      // Check wheel limit (only for new wheels)
+      if (!wheelId && !isPremium) {
+        const wheels = await listVehicleWheels(vehicleId);
+        if (wheels.length >= wheelsPerVehicleLimit) {
+          Alert.alert(
+            t("limits.wheelLimitReachedTitle"),
+            t("limits.wheelLimitReachedBody", { limit: wheelsPerVehicleLimit }),
+            [
+              { text: t("common.cancel"), style: "cancel" },
+              {
+                text: t("limits.upgradeToPremium"),
+                onPress: () => navigation.navigate("Shop"),
+              },
+            ]
+          );
+          return;
+        }
+      }
+
       const payload = {
         vehicle_id: vehicleId,
         name: name.trim(),

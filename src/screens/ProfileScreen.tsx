@@ -153,6 +153,14 @@ export function ProfileScreen({ navigation }: Props) {
 
         <View style={styles.bottomSpacer} />
 
+        <Button
+          variant="outlined"
+          onPress={() => navigation.navigate("Shop")}
+          style={styles.shopButton}
+        >
+          {t("profile.shop")}
+        </Button>
+
         <View style={styles.bottomActions}>
           <View style={styles.bottomActionCol}>
             <Button
@@ -208,6 +216,9 @@ const makeStyles = (theme: any) =>
       marginVertical: theme.spacing.sm,
     },
     deleteButton: {
+      marginTop: theme.spacing.md,
+    },
+    shopButton: {
       marginTop: theme.spacing.md,
     },
     bottomSpacer: {

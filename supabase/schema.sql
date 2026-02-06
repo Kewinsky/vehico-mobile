@@ -962,6 +962,8 @@ declare
   v_snapshot public.reports;
   v_snapshot_data jsonb;
   v_snapshot_count integer;
+  v_can_generate jsonb;
+  v_photo_count integer;
 begin
   -- Verify user owns the vehicle
   if not exists (
@@ -973,7 +975,31 @@ begin
     raise exception 'Vehicle not found or access denied';
   end if;
 
-  -- Check snapshot limit (3 per vehicle)
+  -- Check if user can generate a report (entitlements check)
+  v_can_generate := public.can_generate_report();
+  if not (v_can_generate->>'allowed')::boolean then
+    raise exception '%', coalesce(v_can_generate->>'reason', 'Cannot generate report');
+  end if;
+
+  -- Limit photos in report to 40 total (vehicle photos + temp photos)
+  v_photo_count := jsonb_array_length(p_selected_vehicle_photo_ids) + jsonb_array_length(p_temp_photos_data);
+  if v_photo_count > 40 then
+    -- Trim to 40: keep all vehicle photos, then temp photos up to limit
+    declare
+      v_vehicle_count integer := jsonb_array_length(p_selected_vehicle_photo_ids);
+      v_max_temp integer := greatest(0, 40 - v_vehicle_count);
+    begin
+      if jsonb_array_length(p_temp_photos_data) > v_max_temp then
+        p_temp_photos_data := (
+          select jsonb_agg(elem)
+          from jsonb_array_elements(p_temp_photos_data) with ordinality as t(elem, idx)
+          where idx <= v_max_temp
+        );
+      end if;
+    end;
+  end if;
+
+  -- Check snapshot limit (3 per vehicle) - remove oldest if exceeded
   select count(*) into v_snapshot_count
   from public.reports
   where vehicle_id = p_vehicle_id;
@@ -1002,6 +1028,9 @@ begin
   insert into public.reports (vehicle_id, snapshot_data)
   values (p_vehicle_id, v_snapshot_data)
   returning * into v_snapshot;
+
+  -- Consume one report (for free users)
+  perform public.consume_report();
 
   return v_snapshot;
 end;
@@ -1278,3 +1307,968 @@ using (
       and v.owner_id = auth.uid()
   )
 );
+
+-- ================
+-- Entitlements (monetization)
+-- ================
+
+-- Entitlements table: user plan, limits, and remaining credits
+drop table if exists public.entitlements cascade;
+create table if not exists public.entitlements (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  plan text not null default 'free' check (plan in ('free', 'premium', 'lifetime')),
+  reports_remaining integer not null default 0 check (reports_remaining >= 0),
+  listings_remaining integer not null default 0 check (listings_remaining >= 0),
+  vehicles_limit integer not null default 1 check (vehicles_limit > 0),
+  photos_per_vehicle_limit integer not null default 6 check (photos_per_vehicle_limit > 0),
+  tires_per_vehicle_limit integer not null default 1 check (tires_per_vehicle_limit > 0), -- 1 set (komplet) dla free, unlimited dla premium
+  wheels_per_vehicle_limit integer not null default 1 check (wheels_per_vehicle_limit > 0), -- 1 set (komplet) dla free, unlimited dla premium
+  workshops_limit integer not null default 3 check (workshops_limit > 0), -- 3 warsztaty dla free, unlimited dla premium
+  reminders_limit integer not null default 5 check (reminders_limit > 0), -- 5 przypomnień dla free, unlimited dla premium
+  premium_until timestamptz, -- null for free/lifetime, set for premium subscription
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+drop index if exists public.entitlements_user_id_idx;
+create index if not exists entitlements_user_id_idx on public.entitlements(user_id);
+
+-- RLS for entitlements
+alter table public.entitlements enable row level security;
+
+drop policy if exists entitlements_select_own on public.entitlements;
+create policy entitlements_select_own
+on public.entitlements for select
+to authenticated
+using (user_id = auth.uid());
+
+drop policy if exists entitlements_update_own on public.entitlements;
+create policy entitlements_update_own
+on public.entitlements for update
+to authenticated
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+-- Trigger: initialize entitlements when user is created
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.entitlements (
+    user_id,
+    plan,
+    reports_remaining,
+    listings_remaining,
+    vehicles_limit,
+    photos_per_vehicle_limit,
+    tires_per_vehicle_limit,
+    wheels_per_vehicle_limit,
+    workshops_limit,
+    reminders_limit,
+    premium_until
+  ) values (
+    new.id,
+    'free',
+    0, -- Free plan: 0 free reports/listings (payment required from first use)
+    0,
+    1, -- Free: 1 vehicle
+    6, -- Free: 6 photos per vehicle
+    1, -- Free: 1 set (komplet) opon per pojazd
+    1, -- Free: 1 set (komplet) felg per pojazd
+    3, -- Free: 3 warsztaty
+    5, -- Free: 5 przypomnień
+    null
+  );
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- ================
+-- RPC Functions for entitlements
+-- ================
+
+-- Check if user can generate a report
+drop function if exists public.can_generate_report();
+create or replace function public.can_generate_report()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_entitlement public.entitlements;
+  v_allowed boolean;
+  v_reason text;
+begin
+  -- Get user entitlements
+  select * into v_entitlement
+  from public.entitlements
+  where user_id = auth.uid();
+
+  if v_entitlement is null then
+    -- Should not happen if trigger works, but handle gracefully
+    return jsonb_build_object(
+      'allowed', false,
+      'reason', 'Entitlements not found. Please contact support.'
+    );
+  end if;
+
+  -- Premium/Lifetime: always allowed
+  if v_entitlement.plan in ('premium', 'lifetime') then
+    v_allowed := true;
+    v_reason := null;
+  -- Premium subscription: check premium_until
+  elsif v_entitlement.premium_until is not null and v_entitlement.premium_until > now() then
+    v_allowed := true;
+    v_reason := null;
+  -- Free: check reports_remaining
+  else
+    v_allowed := (v_entitlement.reports_remaining > 0);
+    if not v_allowed then
+      v_reason := 'No remaining reports. Purchase a pack or upgrade to Premium.';
+    end if;
+  end if;
+
+  return jsonb_build_object(
+    'allowed', v_allowed,
+    'reason', v_reason,
+    'reports_remaining', v_entitlement.reports_remaining,
+    'plan', v_entitlement.plan
+  );
+end;
+$$;
+
+grant execute on function public.can_generate_report() to authenticated;
+
+-- Check if user can generate a listing (marketplace post)
+drop function if exists public.can_generate_listing();
+create or replace function public.can_generate_listing()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_entitlement public.entitlements;
+  v_allowed boolean;
+  v_reason text;
+begin
+  -- Get user entitlements
+  select * into v_entitlement
+  from public.entitlements
+  where user_id = auth.uid();
+
+  if v_entitlement is null then
+    return jsonb_build_object(
+      'allowed', false,
+      'reason', 'Entitlements not found. Please contact support.'
+    );
+  end if;
+
+  -- Premium/Lifetime: always allowed
+  if v_entitlement.plan in ('premium', 'lifetime') then
+    v_allowed := true;
+    v_reason := null;
+  -- Premium subscription: check premium_until
+  elsif v_entitlement.premium_until is not null and v_entitlement.premium_until > now() then
+    v_allowed := true;
+    v_reason := null;
+  -- Free: check listings_remaining
+  else
+    v_allowed := (v_entitlement.listings_remaining > 0);
+    if not v_allowed then
+      v_reason := 'No remaining listings. Purchase a pack or upgrade to Premium.';
+    end if;
+  end if;
+
+  return jsonb_build_object(
+    'allowed', v_allowed,
+    'reason', v_reason,
+    'listings_remaining', v_entitlement.listings_remaining,
+    'plan', v_entitlement.plan
+  );
+end;
+$$;
+
+grant execute on function public.can_generate_listing() to authenticated;
+
+-- Consume one report (decrease reports_remaining for free users)
+drop function if exists public.consume_report();
+create or replace function public.consume_report()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_entitlement public.entitlements;
+begin
+  -- Get user entitlements
+  select * into v_entitlement
+  from public.entitlements
+  where user_id = auth.uid();
+
+  if v_entitlement is null then
+    raise exception 'Entitlements not found';
+  end if;
+
+  -- Premium/Lifetime: no consumption needed
+  if v_entitlement.plan in ('premium', 'lifetime') then
+    return;
+  end if;
+
+  -- Premium subscription: no consumption needed
+  if v_entitlement.premium_until is not null and v_entitlement.premium_until > now() then
+    return;
+  end if;
+
+  -- Free: consume one report
+  if v_entitlement.reports_remaining <= 0 then
+    raise exception 'No remaining reports';
+  end if;
+
+  update public.entitlements
+  set reports_remaining = reports_remaining - 1,
+      updated_at = now()
+  where user_id = auth.uid();
+end;
+$$;
+
+grant execute on function public.consume_report() to authenticated;
+
+-- Consume one listing (decrease listings_remaining for free users)
+drop function if exists public.consume_listing();
+create or replace function public.consume_listing()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_entitlement public.entitlements;
+begin
+  -- Get user entitlements
+  select * into v_entitlement
+  from public.entitlements
+  where user_id = auth.uid();
+
+  if v_entitlement is null then
+    raise exception 'Entitlements not found';
+  end if;
+
+  -- Premium/Lifetime: no consumption needed
+  if v_entitlement.plan in ('premium', 'lifetime') then
+    return;
+  end if;
+
+  -- Premium subscription: no consumption needed
+  if v_entitlement.premium_until is not null and v_entitlement.premium_until > now() then
+    return;
+  end if;
+
+  -- Free: consume one listing
+  if v_entitlement.listings_remaining <= 0 then
+    raise exception 'No remaining listings';
+  end if;
+
+  update public.entitlements
+  set listings_remaining = listings_remaining - 1,
+      updated_at = now()
+  where user_id = auth.uid();
+end;
+$$;
+
+grant execute on function public.consume_listing() to authenticated;
+
+-- Create marketplace post with entitlement check
+drop function if exists public.create_marketplace_post(uuid, text, numeric, jsonb);
+create or replace function public.create_marketplace_post(
+  p_vehicle_id uuid,
+  p_platform text,
+  p_price numeric,
+  p_content jsonb
+)
+returns public.posts
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_post public.posts;
+  v_can_generate jsonb;
+begin
+  -- Verify user owns the vehicle
+  if not exists (
+    select 1
+    from public.vehicles v
+    where v.id = p_vehicle_id
+      and v.owner_id = auth.uid()
+  ) then
+    raise exception 'Vehicle not found or access denied';
+  end if;
+
+  -- Check if user can generate a listing
+  v_can_generate := public.can_generate_listing();
+  if not (v_can_generate->>'allowed')::boolean then
+    raise exception '%', coalesce(v_can_generate->>'reason', 'Cannot generate listing');
+  end if;
+
+  -- Create post
+  insert into public.posts (
+    vehicle_id,
+    user_id,
+    platform,
+    price,
+    content,
+    title
+  ) values (
+    p_vehicle_id,
+    auth.uid(),
+    p_platform,
+    p_price,
+    p_content,
+    null
+  )
+  returning * into v_post;
+
+  -- Consume one listing (for free users)
+  perform public.consume_listing();
+
+  return v_post;
+end;
+$$;
+
+grant execute on function public.create_marketplace_post(uuid, text, numeric, jsonb) to authenticated;
+
+-- Check if user can create a vehicle (check vehicles_limit)
+drop function if exists public.can_create_vehicle();
+create or replace function public.can_create_vehicle()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_entitlement public.entitlements;
+  v_vehicle_count integer;
+  v_allowed boolean;
+  v_reason text;
+begin
+  -- Get user entitlements
+  select * into v_entitlement
+  from public.entitlements
+  where user_id = auth.uid();
+
+  if v_entitlement is null then
+    return jsonb_build_object(
+      'allowed', false,
+      'reason', 'Entitlements not found. Please contact support.'
+    );
+  end if;
+
+  -- Count user's vehicles
+  select count(*) into v_vehicle_count
+  from public.vehicles
+  where owner_id = auth.uid();
+
+  -- Premium/Lifetime: unlimited (vehicles_limit = 999)
+  if v_entitlement.plan in ('premium', 'lifetime') or 
+     (v_entitlement.premium_until is not null and v_entitlement.premium_until > now()) then
+    v_allowed := true;
+    v_reason := null;
+  -- Free: check limit
+  else
+    v_allowed := (v_vehicle_count < v_entitlement.vehicles_limit);
+    if not v_allowed then
+      v_reason := format('Vehicle limit reached (%d). Upgrade to Premium for unlimited vehicles.', v_entitlement.vehicles_limit);
+    end if;
+  end if;
+
+  return jsonb_build_object(
+    'allowed', v_allowed,
+    'reason', v_reason,
+    'vehicles_limit', v_entitlement.vehicles_limit,
+    'vehicles_count', v_vehicle_count,
+    'plan', v_entitlement.plan
+  );
+end;
+$$;
+
+grant execute on function public.can_create_vehicle() to authenticated;
+
+-- Check if user can add a tire to vehicle (check tires_per_vehicle_limit)
+drop function if exists public.can_add_tire(uuid);
+create or replace function public.can_add_tire(p_vehicle_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_entitlement public.entitlements;
+  v_tire_count integer;
+  v_allowed boolean;
+  v_reason text;
+begin
+  -- Verify ownership
+  if not exists (
+    select 1 from public.vehicles v
+    where v.id = p_vehicle_id and v.owner_id = auth.uid()
+  ) then
+    return jsonb_build_object(
+      'allowed', false,
+      'reason', 'Vehicle not found or access denied'
+    );
+  end if;
+
+  -- Get user entitlements
+  select * into v_entitlement
+  from public.entitlements
+  where user_id = auth.uid();
+
+  if v_entitlement is null then
+    return jsonb_build_object(
+      'allowed', false,
+      'reason', 'Entitlements not found'
+    );
+  end if;
+
+  -- Count tires for this vehicle
+  select count(*) into v_tire_count
+  from public.tires
+  where vehicle_id = p_vehicle_id;
+
+  -- Premium/Lifetime: unlimited
+  if v_entitlement.plan in ('premium', 'lifetime') or 
+     (v_entitlement.premium_until is not null and v_entitlement.premium_until > now()) then
+    v_allowed := true;
+    v_reason := null;
+  -- Free: check limit (1 set = komplet)
+  else
+    v_allowed := (v_tire_count < v_entitlement.tires_per_vehicle_limit);
+    if not v_allowed then
+      v_reason := format('Tire limit reached (%d set per vehicle). Upgrade to Premium for unlimited tires.', v_entitlement.tires_per_vehicle_limit);
+    end if;
+  end if;
+
+  return jsonb_build_object(
+    'allowed', v_allowed,
+    'reason', v_reason,
+    'tires_limit', v_entitlement.tires_per_vehicle_limit,
+    'tires_count', v_tire_count,
+    'plan', v_entitlement.plan
+  );
+end;
+$$;
+
+grant execute on function public.can_add_tire(uuid) to authenticated;
+
+-- Check if user can add a wheel to vehicle (check wheels_per_vehicle_limit)
+drop function if exists public.can_add_wheel(uuid);
+create or replace function public.can_add_wheel(p_vehicle_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_entitlement public.entitlements;
+  v_wheel_count integer;
+  v_allowed boolean;
+  v_reason text;
+begin
+  -- Verify ownership
+  if not exists (
+    select 1 from public.vehicles v
+    where v.id = p_vehicle_id and v.owner_id = auth.uid()
+  ) then
+    return jsonb_build_object(
+      'allowed', false,
+      'reason', 'Vehicle not found or access denied'
+    );
+  end if;
+
+  -- Get user entitlements
+  select * into v_entitlement
+  from public.entitlements
+  where user_id = auth.uid();
+
+  if v_entitlement is null then
+    return jsonb_build_object(
+      'allowed', false,
+      'reason', 'Entitlements not found'
+    );
+  end if;
+
+  -- Count wheels for this vehicle
+  select count(*) into v_wheel_count
+  from public.wheels
+  where vehicle_id = p_vehicle_id;
+
+  -- Premium/Lifetime: unlimited
+  if v_entitlement.plan in ('premium', 'lifetime') or 
+     (v_entitlement.premium_until is not null and v_entitlement.premium_until > now()) then
+    v_allowed := true;
+    v_reason := null;
+  -- Free: check limit (1 set = komplet)
+  else
+    v_allowed := (v_wheel_count < v_entitlement.wheels_per_vehicle_limit);
+    if not v_allowed then
+      v_reason := format('Wheel limit reached (%d set per vehicle). Upgrade to Premium for unlimited wheels.', v_entitlement.wheels_per_vehicle_limit);
+    end if;
+  end if;
+
+  return jsonb_build_object(
+    'allowed', v_allowed,
+    'reason', v_reason,
+    'wheels_limit', v_entitlement.wheels_per_vehicle_limit,
+    'wheels_count', v_wheel_count,
+    'plan', v_entitlement.plan
+  );
+end;
+$$;
+
+grant execute on function public.can_add_wheel(uuid) to authenticated;
+
+-- Check if user can create a workshop (check workshops_limit)
+drop function if exists public.can_create_workshop();
+create or replace function public.can_create_workshop()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_entitlement public.entitlements;
+  v_workshop_count integer;
+  v_allowed boolean;
+  v_reason text;
+begin
+  -- Get user entitlements
+  select * into v_entitlement
+  from public.entitlements
+  where user_id = auth.uid();
+
+  if v_entitlement is null then
+    return jsonb_build_object(
+      'allowed', false,
+      'reason', 'Entitlements not found'
+    );
+  end if;
+
+  -- Count user's workshops
+  select count(*) into v_workshop_count
+  from public.workshops
+  where owner_id = auth.uid();
+
+  -- Premium/Lifetime: unlimited (workshops_limit = 999)
+  if v_entitlement.plan in ('premium', 'lifetime') or 
+     (v_entitlement.premium_until is not null and v_entitlement.premium_until > now()) then
+    v_allowed := true;
+    v_reason := null;
+  -- Free: check limit
+  else
+    v_allowed := (v_workshop_count < v_entitlement.workshops_limit);
+    if not v_allowed then
+      v_reason := format('Workshop limit reached (%d). Upgrade to Premium for unlimited workshops.', v_entitlement.workshops_limit);
+    end if;
+  end if;
+
+  return jsonb_build_object(
+    'allowed', v_allowed,
+    'reason', v_reason,
+    'workshops_limit', v_entitlement.workshops_limit,
+    'workshops_count', v_workshop_count,
+    'plan', v_entitlement.plan
+  );
+end;
+$$;
+
+grant execute on function public.can_create_workshop() to authenticated;
+
+-- Check if user can create a reminder (check reminders_limit)
+drop function if exists public.can_create_reminder();
+create or replace function public.can_create_reminder()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_entitlement public.entitlements;
+  v_reminder_count integer;
+  v_allowed boolean;
+  v_reason text;
+begin
+  -- Get user entitlements
+  select * into v_entitlement
+  from public.entitlements
+  where user_id = auth.uid();
+
+  if v_entitlement is null then
+    return jsonb_build_object(
+      'allowed', false,
+      'reason', 'Entitlements not found'
+    );
+  end if;
+
+  -- Count user's reminders (across all vehicles)
+  select count(*) into v_reminder_count
+  from public.reminders r
+  join public.vehicles v on v.id = r.vehicle_id
+  where v.owner_id = auth.uid();
+
+  -- Premium/Lifetime: unlimited (reminders_limit = 999)
+  if v_entitlement.plan in ('premium', 'lifetime') or 
+     (v_entitlement.premium_until is not null and v_entitlement.premium_until > now()) then
+    v_allowed := true;
+    v_reason := null;
+  -- Free: check limit
+  else
+    v_allowed := (v_reminder_count < v_entitlement.reminders_limit);
+    if not v_allowed then
+      v_reason := format('Reminder limit reached (%d). Upgrade to Premium for unlimited reminders.', v_entitlement.reminders_limit);
+    end if;
+  end if;
+
+  return jsonb_build_object(
+    'allowed', v_allowed,
+    'reason', v_reason,
+    'reminders_limit', v_entitlement.reminders_limit,
+    'reminders_count', v_reminder_count,
+    'plan', v_entitlement.plan
+  );
+end;
+$$;
+
+grant execute on function public.can_create_reminder() to authenticated;
+
+-- Create vehicle with entitlement check
+drop function if exists public.create_vehicle(
+  text, text, text, integer, integer, integer, text, text, text, text, date, date
+);
+create or replace function public.create_vehicle(
+  p_type text,
+  p_vin text,
+  p_make text,
+  p_model text,
+  p_production_year integer,
+  p_mileage integer,
+  p_engine_capacity integer,
+  p_power_hp integer,
+  p_fuel_type text,
+  p_transmission text,
+  p_drive_type text,
+  p_notes text,
+  p_insurance_valid_until date,
+  p_inspection_valid_until date
+)
+returns public.vehicles
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_vehicle public.vehicles;
+  v_can_create jsonb;
+begin
+  -- Check if user can create a vehicle
+  v_can_create := public.can_create_vehicle();
+  if not (v_can_create->>'allowed')::boolean then
+    raise exception '%', coalesce(v_can_create->>'reason', 'Cannot create vehicle');
+  end if;
+
+  -- Create vehicle
+  insert into public.vehicles (
+    owner_id,
+    type,
+    vin,
+    make,
+    model,
+    production_year,
+    mileage,
+    engine_capacity,
+    power_hp,
+    fuel_type,
+    transmission,
+    drive_type,
+    notes,
+    insurance_valid_until,
+    inspection_valid_until
+  ) values (
+    auth.uid(),
+    p_type,
+    p_vin,
+    p_make,
+    p_model,
+    p_production_year,
+    p_mileage,
+    p_engine_capacity,
+    p_power_hp,
+    p_fuel_type,
+    p_transmission,
+    p_drive_type,
+    p_notes,
+    p_insurance_valid_until,
+    p_inspection_valid_until
+  )
+  returning * into v_vehicle;
+
+  return v_vehicle;
+end;
+$$;
+
+grant execute on function public.create_vehicle(text, text, text, integer, integer, integer, text, text, text, text, date, date) to authenticated;
+
+-- Create tire with entitlement check
+drop function if exists public.create_tire(uuid, text, integer, integer, integer, text, text, boolean);
+create or replace function public.create_tire(
+  p_vehicle_id uuid,
+  p_name text,
+  p_width_mm integer,
+  p_aspect_ratio integer,
+  p_diameter_inch integer,
+  p_tire_type text,
+  p_dot text,
+  p_is_currently_fitted boolean
+)
+returns public.tires
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_tire public.tires;
+  v_can_add jsonb;
+begin
+  -- Verify ownership
+  if not exists (
+    select 1 from public.vehicles v
+    where v.id = p_vehicle_id and v.owner_id = auth.uid()
+  ) then
+    raise exception 'Vehicle not found or access denied';
+  end if;
+
+  -- Check if user can add a tire
+  v_can_add := public.can_add_tire(p_vehicle_id);
+  if not (v_can_add->>'allowed')::boolean then
+    raise exception '%', coalesce(v_can_add->>'reason', 'Cannot add tire');
+  end if;
+
+  -- If setting as currently fitted, unset others
+  if p_is_currently_fitted then
+    update public.tires
+    set is_currently_fitted = false
+    where vehicle_id = p_vehicle_id;
+  end if;
+
+  -- Create tire
+  insert into public.tires (
+    vehicle_id,
+    name,
+    width_mm,
+    aspect_ratio,
+    diameter_inch,
+    tire_type,
+    dot,
+    is_currently_fitted
+  ) values (
+    p_vehicle_id,
+    p_name,
+    p_width_mm,
+    p_aspect_ratio,
+    p_diameter_inch,
+    p_tire_type,
+    p_dot,
+    p_is_currently_fitted
+  )
+  returning * into v_tire;
+
+  return v_tire;
+end;
+$$;
+
+grant execute on function public.create_tire(uuid, text, integer, integer, integer, text, text, boolean) to authenticated;
+
+-- Create wheel with entitlement check
+drop function if exists public.create_wheel(uuid, text, numeric, integer, integer, text, numeric, text, numeric, boolean);
+create or replace function public.create_wheel(
+  p_vehicle_id uuid,
+  p_name text,
+  p_width_inch numeric,
+  p_diameter_inch integer,
+  p_et_offset integer,
+  p_bolt_pattern text,
+  p_center_bore_mm numeric,
+  p_bolt_type text,
+  p_weight_kg numeric,
+  p_is_currently_fitted boolean
+)
+returns public.wheels
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_wheel public.wheels;
+  v_can_add jsonb;
+begin
+  -- Verify ownership
+  if not exists (
+    select 1 from public.vehicles v
+    where v.id = p_vehicle_id and v.owner_id = auth.uid()
+  ) then
+    raise exception 'Vehicle not found or access denied';
+  end if;
+
+  -- Check if user can add a wheel
+  v_can_add := public.can_add_wheel(p_vehicle_id);
+  if not (v_can_add->>'allowed')::boolean then
+    raise exception '%', coalesce(v_can_add->>'reason', 'Cannot add wheel');
+  end if;
+
+  -- If setting as currently fitted, unset others
+  if p_is_currently_fitted then
+    update public.wheels
+    set is_currently_fitted = false
+    where vehicle_id = p_vehicle_id;
+  end if;
+
+  -- Create wheel
+  insert into public.wheels (
+    vehicle_id,
+    name,
+    width_inch,
+    diameter_inch,
+    et_offset,
+    bolt_pattern,
+    center_bore_mm,
+    bolt_type,
+    weight_kg,
+    is_currently_fitted
+  ) values (
+    p_vehicle_id,
+    p_name,
+    p_width_inch,
+    p_diameter_inch,
+    p_et_offset,
+    p_bolt_pattern,
+    p_center_bore_mm,
+    p_bolt_type,
+    p_weight_kg,
+    p_is_currently_fitted
+  )
+  returning * into v_wheel;
+
+  return v_wheel;
+end;
+$$;
+
+grant execute on function public.create_wheel(uuid, text, numeric, integer, integer, text, numeric, text, numeric, boolean) to authenticated;
+
+-- Create workshop with entitlement check
+drop function if exists public.create_workshop(text, text, text, text);
+create or replace function public.create_workshop(
+  p_name text,
+  p_workshop_type text,
+  p_phone_number text,
+  p_address text
+)
+returns public.workshops
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_workshop public.workshops;
+  v_can_create jsonb;
+begin
+  -- Check if user can create a workshop
+  v_can_create := public.can_create_workshop();
+  if not (v_can_create->>'allowed')::boolean then
+    raise exception '%', coalesce(v_can_create->>'reason', 'Cannot create workshop');
+  end if;
+
+  -- Create workshop
+  insert into public.workshops (
+    owner_id,
+    name,
+    workshop_type,
+    phone_number,
+    address
+  ) values (
+    auth.uid(),
+    p_name,
+    p_workshop_type,
+    p_phone_number,
+    p_address
+  )
+  returning * into v_workshop;
+
+  return v_workshop;
+end;
+$$;
+
+grant execute on function public.create_workshop(text, text, text, text) to authenticated;
+
+-- Create reminder with entitlement check
+drop function if exists public.create_reminder(uuid, text, date, integer, text);
+create or replace function public.create_reminder(
+  p_vehicle_id uuid,
+  p_title text,
+  p_due_date date,
+  p_due_mileage integer,
+  p_type text
+)
+returns public.reminders
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_reminder public.reminders;
+  v_can_create jsonb;
+begin
+  -- Verify ownership
+  if not exists (
+    select 1 from public.vehicles v
+    where v.id = p_vehicle_id and v.owner_id = auth.uid()
+  ) then
+    raise exception 'Vehicle not found or access denied';
+  end if;
+
+  -- Check if user can create a reminder
+  v_can_create := public.can_create_reminder();
+  if not (v_can_create->>'allowed')::boolean then
+    raise exception '%', coalesce(v_can_create->>'reason', 'Cannot create reminder');
+  end if;
+
+  -- Create reminder
+  insert into public.reminders (
+    vehicle_id,
+    title,
+    due_date,
+    due_mileage,
+    type
+  ) values (
+    p_vehicle_id,
+    p_title,
+    p_due_date,
+    p_due_mileage,
+    p_type
+  )
+  returning * into v_reminder;
+
+  return v_reminder;
+end;
+$$;
+
+grant execute on function public.create_reminder(uuid, text, date, integer, text) to authenticated;

@@ -49,6 +49,7 @@ import { WheelFormScreen } from "../../screens/WheelFormScreen";
 import { WorkshopsScreen } from "../../screens/WorkshopsScreen";
 import { WorkshopDetailScreen } from "../../screens/WorkshopDetailScreen";
 import { WorkshopFormScreen } from "../../screens/WorkshopFormScreen";
+import { ShopScreen } from "../../screens/ShopScreen";
 
 export type AppStackParamList = {
   Landing: undefined;
@@ -147,6 +148,7 @@ export type AppStackParamList = {
   Workshops: undefined;
   WorkshopDetail: { workshopId: string };
   WorkshopForm: { workshopId?: string };
+  Shop: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -267,6 +269,7 @@ export function RootNavigator() {
             component={WorkshopDetailScreen}
           />
           <Stack.Screen name="WorkshopForm" component={WorkshopFormScreen} />
+          <Stack.Screen name="Shop" component={ShopScreen} />
         </>
       )}
     </Stack.Navigator>

@@ -45,6 +45,7 @@ import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { DateField } from "../ui/components/DateField";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
@@ -52,6 +53,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicleEdit">;
 
 export function ManageVehicleEditScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
+  const { photosPerVehicleLimit, isPremium } = useEntitlements();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const styles = makeStyles(theme);
@@ -289,9 +291,19 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
 
   async function pickFromFiles() {
     try {
-      const remainingSlots = 6 - photos.length;
+      const remainingSlots = photosPerVehicleLimit - photos.length;
       if (remainingSlots <= 0) {
-        toastError(t("vehicleForm.maxPhotosReached"));
+        Alert.alert(
+          t("limits.photoLimitReachedTitle"),
+          t("limits.photoLimitReachedBody", { limit: photosPerVehicleLimit }),
+          [
+            { text: t("common.cancel"), style: "cancel" },
+            ...(isPremium ? [] : [{
+              text: t("limits.upgradeToPremium"),
+              onPress: () => navigation.navigate("Shop"),
+            }]),
+          ]
+        );
         return;
       }
       setUploadingPhoto(true);
@@ -313,6 +325,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             fileUri: asset.uri,
             mimeType: asset.mimeType ?? null,
             fileName: asset.name ?? null,
+            maxPhotos: photosPerVehicleLimit,
           })
         )
         .filter((promise): promise is Promise<VehiclePhoto> => !!promise);

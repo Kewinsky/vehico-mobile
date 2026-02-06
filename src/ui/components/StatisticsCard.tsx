@@ -73,7 +73,10 @@ function monthKeyFromYyyyMm(yyyyMm: string): Date | null {
   return new Date(y, mm - 1, 1);
 }
 
-function listMonthKeysInclusive(startYyyyMm: string, endYyyyMm: string): string[] {
+function listMonthKeysInclusive(
+  startYyyyMm: string,
+  endYyyyMm: string
+): string[] {
   const start = monthKeyFromYyyyMm(startYyyyMm);
   const end = monthKeyFromYyyyMm(endYyyyMm);
   if (!start || !end) return [];
@@ -997,7 +1000,10 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
                       colors={categorySeries.map((c) => c.color)}
                     />
                     {categorySeries.length === 0 ? (
-                      <View pointerEvents="none" style={styles.chartEmptyOverlay}>
+                      <View
+                        pointerEvents="none"
+                        style={styles.chartEmptyOverlay}
+                      >
                         <Text style={styles.empty}>
                           {t("dashboard.stats.empty")}
                         </Text>
@@ -1077,7 +1083,8 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
                               {t("dashboard.stats.lastOilChangeMileage")}
                             </Text>
                             <Text style={styles.infoRowValue}>
-                              {fmtNumber(lastOilChange.mileage, 0)} {distanceUnit}
+                              {fmtNumber(lastOilChange.mileage, 0)}{" "}
+                              {distanceUnit}
                             </Text>
                           </View>
                         )}
@@ -1233,6 +1240,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     container: {
+      marginTop: theme.spacing.md,
       gap: theme.spacing.md,
     },
     loading: {
