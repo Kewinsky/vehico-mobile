@@ -63,6 +63,31 @@ function monthKey(d: Date) {
   return `${yyyy}-${mm}`;
 }
 
+function monthKeyFromYyyyMm(yyyyMm: string): Date | null {
+  const m = /^(\d{4})-(\d{2})$/.exec(yyyyMm);
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mm = Number(m[2]);
+  if (!Number.isFinite(y) || !Number.isFinite(mm) || mm < 1 || mm > 12)
+    return null;
+  return new Date(y, mm - 1, 1);
+}
+
+function listMonthKeysInclusive(startYyyyMm: string, endYyyyMm: string): string[] {
+  const start = monthKeyFromYyyyMm(startYyyyMm);
+  const end = monthKeyFromYyyyMm(endYyyyMm);
+  if (!start || !end) return [];
+  if (start > end) return [];
+
+  const out: string[] = [];
+  const cur = new Date(start.getTime());
+  while (cur <= end) {
+    out.push(monthKey(cur));
+    cur.setMonth(cur.getMonth() + 1);
+  }
+  return out;
+}
+
 function parseDateLoose(input: string): Date | null {
   // Accepts YYYY-MM-DD or full ISO.
   const d = new Date(input);
@@ -317,12 +342,14 @@ function SimpleLineChart({
           {tick.label}
         </SvgText>
       ))}
-      <Polyline
-        points={points.map((p) => `${p.x},${p.y}`).join(" ")}
-        fill="none"
-        stroke={stroke}
-        strokeWidth={2.5}
-      />
+      {points.length > 0 ? (
+        <Polyline
+          points={points.map((p) => `${p.x},${p.y}`).join(" ")}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={2.5}
+        />
+      ) : null}
       {points.length > 0 ? (
         <>
           <Circle cx={points[0].x} cy={points[0].y} r={3} fill={stroke} />
@@ -500,6 +527,32 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
     return { service: serviceIn, fueling: fuelingIn };
   }, [period, fueling, service]);
 
+  const monthRange = useMemo(() => {
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10); // YYYY-MM-DD
+    const currentMonthStr = todayStr.slice(0, 7); // YYYY-MM
+
+    if (period === "all") {
+      return { startMonthStr: null as string | null, currentMonthStr };
+    }
+
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth(); // 0-11
+
+    let monthsBack = 0;
+    if (period === "1m") monthsBack = 0; // Current month only
+    else if (period === "3m") monthsBack = 2; // Current + 2 previous
+    else if (period === "6m") monthsBack = 5; // Current + 5 previous
+    else if (period === "1y") monthsBack = 11; // Current + 11 previous
+
+    const startDate = new Date(currentYear, currentMonth - monthsBack, 1);
+    const startMonthStr = `${startDate.getFullYear()}-${String(
+      startDate.getMonth() + 1
+    ).padStart(2, "0")}`;
+
+    return { startMonthStr, currentMonthStr };
+  }, [period]);
+
   const totals = useMemo(() => {
     const serviceCost = filtered.service.reduce(
       (sum, x) => sum + Number(x.cost ?? 0),
@@ -579,8 +632,18 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
       add(d, Number(s.cost ?? 0));
     }
 
-    const keys = Object.keys(byMonth).sort();
-    const data = keys.map((k) => ({ x: k, y: byMonth[k] ?? 0 }));
+    const keysWithData = Object.keys(byMonth).sort();
+    const monthKeys =
+      period === "all"
+        ? keysWithData.length > 0
+          ? listMonthKeysInclusive(keysWithData[0]!, monthRange.currentMonthStr)
+          : []
+        : listMonthKeysInclusive(
+            monthRange.startMonthStr!,
+            monthRange.currentMonthStr
+          );
+
+    const data = monthKeys.map((k) => ({ x: k, y: byMonth[k] ?? 0 }));
 
     const monthsWithFuel = new Set<string>();
     for (const f of filtered.fueling) {
@@ -594,7 +657,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
         : Number.NaN;
 
     return { data, avgMonthlyFuelCost };
-  }, [filtered.service, filtered.fueling, totals.fuelCost]);
+  }, [filtered.service, filtered.fueling, totals.fuelCost, period, monthRange]);
 
   const favoriteStation = useMemo(() => {
     const countByStation: Record<string, number> = {};
@@ -621,9 +684,19 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
       const k = monthKey(d);
       byMonth[k] = (byMonth[k] ?? 0) + Number(f.distance ?? 0);
     }
-    const keys = Object.keys(byMonth).sort();
-    return keys.map((k) => ({ x: k, y: byMonth[k] ?? 0 }));
-  }, [filtered.fueling]);
+    const keysWithData = Object.keys(byMonth).sort();
+    const monthKeys =
+      period === "all"
+        ? keysWithData.length > 0
+          ? listMonthKeysInclusive(keysWithData[0]!, monthRange.currentMonthStr)
+          : []
+        : listMonthKeysInclusive(
+            monthRange.startMonthStr!,
+            monthRange.currentMonthStr
+          );
+
+    return monthKeys.map((k) => ({ x: k, y: byMonth[k] ?? 0 }));
+  }, [filtered.fueling, period, monthRange]);
 
   const lastOilChange = useMemo(() => {
     const oilEntries = service
@@ -863,66 +936,76 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
                 <Text style={styles.sectionTitle}>
                   {t("dashboard.stats.charts.expensesOverTime")}
                 </Text>
-                {monthlySeries.data.length > 0 ? (
-                  <View style={styles.chartWrap} key={`line-chart-${period}`}>
-                    <SimpleLineChart
-                      data={monthlySeries.data}
-                      width={chartWidth}
-                      height={220}
-                      stroke={theme.colors.accent}
-                      grid={theme.colors.border}
-                      textColor={theme.colors.muted}
-                      currency={currency}
-                    />
-                  </View>
-                ) : (
-                  <Text style={styles.empty}>{t("dashboard.stats.empty")}</Text>
-                )}
+                <View style={styles.chartWrap} key={`line-chart-${period}`}>
+                  <SimpleLineChart
+                    data={monthlySeries.data}
+                    width={chartWidth}
+                    height={220}
+                    stroke={theme.colors.accent}
+                    grid={theme.colors.border}
+                    textColor={theme.colors.muted}
+                    currency={currency}
+                  />
+                  {monthlySeries.data.length === 0 ? (
+                    <View pointerEvents="none" style={styles.chartEmptyOverlay}>
+                      <Text style={styles.empty}>
+                        {t("dashboard.stats.empty")}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
               </View>
 
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>
                   {t("dashboard.stats.charts.distanceOverTime")}
                 </Text>
-                {monthlyDistanceSeries.length > 0 ? (
-                  <View
-                    style={styles.chartWrap}
-                    key={`distance-chart-${period}`}
-                  >
-                    <SimpleLineChart
-                      data={monthlyDistanceSeries}
-                      width={chartWidth}
-                      height={220}
-                      stroke={theme.colors.accent}
-                      grid={theme.colors.border}
-                      textColor={theme.colors.muted}
-                      currency={currency}
-                      yFormat="number"
-                      yUnit={distanceUnit}
-                    />
-                  </View>
-                ) : (
-                  <Text style={styles.empty}>{t("dashboard.stats.empty")}</Text>
-                )}
+                <View style={styles.chartWrap} key={`distance-chart-${period}`}>
+                  <SimpleLineChart
+                    data={monthlyDistanceSeries}
+                    width={chartWidth}
+                    height={220}
+                    stroke={theme.colors.accent}
+                    grid={theme.colors.border}
+                    textColor={theme.colors.muted}
+                    currency={currency}
+                    yFormat="number"
+                    yUnit={distanceUnit}
+                  />
+                  {monthlyDistanceSeries.length === 0 ? (
+                    <View pointerEvents="none" style={styles.chartEmptyOverlay}>
+                      <Text style={styles.empty}>
+                        {t("dashboard.stats.empty")}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
               </View>
 
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>
                   {t("dashboard.stats.charts.expensesByCategory")}
                 </Text>
-                {expensesByCategory.length > 0 ? (
-                  <View key={`pie-chart-${period}`}>
-                    <View style={styles.chartWrap}>
-                      <SimplePieChart
-                        data={categorySeries.map((c) => ({
-                          label: c.label,
-                          value: c.value,
-                        }))}
-                        size={Math.min(chartWidth - 40, isNarrow ? 200 : 240)}
-                        colors={categorySeries.map((c) => c.color)}
-                      />
-                    </View>
+                <View key={`pie-chart-${period}`}>
+                  <View style={styles.chartWrap}>
+                    <SimplePieChart
+                      data={categorySeries.map((c) => ({
+                        label: c.label,
+                        value: c.value,
+                      }))}
+                      size={Math.min(chartWidth - 40, isNarrow ? 200 : 240)}
+                      colors={categorySeries.map((c) => c.color)}
+                    />
+                    {categorySeries.length === 0 ? (
+                      <View pointerEvents="none" style={styles.chartEmptyOverlay}>
+                        <Text style={styles.empty}>
+                          {t("dashboard.stats.empty")}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
 
+                  {categorySeries.length > 0 ? (
                     <View style={styles.legend}>
                       {categorySeries.map((c) => (
                         <View key={c.key} style={styles.legendRow}>
@@ -952,10 +1035,8 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
                         </View>
                       ))}
                     </View>
-                  </View>
-                ) : (
-                  <Text style={styles.empty}>{t("dashboard.stats.empty")}</Text>
-                )}
+                  ) : null}
+                </View>
               </View>
             </>
           ) : null}
@@ -1248,6 +1329,17 @@ const makeStyles = (theme: any) =>
       padding: theme.spacing.md,
       alignItems: "center",
       justifyContent: "center",
+      position: "relative",
+    },
+    chartEmptyOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: theme.spacing.md,
     },
     pieBox: {
       borderWidth: 1,
