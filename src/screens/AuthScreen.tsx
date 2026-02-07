@@ -38,7 +38,7 @@ export function AuthScreen({ navigation }: Props) {
       setEmail("");
       setMagicLinkSent(false);
       setSentEmail("");
-    }, [])
+    }, []),
   );
 
   const emailTrimmed = useMemo(() => email.trim(), [email]);
@@ -51,7 +51,7 @@ export function AuthScreen({ navigation }: Props) {
 
   const canSubmit = useMemo(
     () => emailTrimmed.length > 0 && isValidEmail && !isSubmitting,
-    [emailTrimmed, isValidEmail, isSubmitting]
+    [emailTrimmed, isValidEmail, isSubmitting],
   );
 
   async function sendMagicLink() {
@@ -155,7 +155,7 @@ export function AuthScreen({ navigation }: Props) {
 
       const result = await WebBrowser.openAuthSessionAsync(
         data.url,
-        redirectTo
+        redirectTo,
       );
 
       if (result.type === "success") {

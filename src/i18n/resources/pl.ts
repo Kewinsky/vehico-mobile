@@ -31,24 +31,32 @@ export const pl = {
   },
   limits: {
     vehicleLimitReachedTitle: "Osiągnięto limit pojazdów",
-    vehicleLimitReachedBody: "Osiągnięto limit {{limit}} pojazdu(ów). Przejdź na Premium, aby mieć nielimitowane pojazdy.",
+    vehicleLimitReachedBody:
+      "Osiągnięto limit {{limit}} pojazdu(ów). Przejdź na Premium, aby mieć nielimitowane pojazdy.",
     tireLimitReachedTitle: "Osiągnięto limit opon",
-    tireLimitReachedBody: "Osiągnięto limit {{limit}} kompletu(ów) opon na pojazd. Przejdź na Premium, aby mieć nielimitowane opony.",
+    tireLimitReachedBody:
+      "Osiągnięto limit {{limit}} kompletu(ów) opon na pojazd. Przejdź na Premium, aby mieć nielimitowane opony.",
     wheelLimitReachedTitle: "Osiągnięto limit felg",
-    wheelLimitReachedBody: "Osiągnięto limit {{limit}} kompletu(ów) felg na pojazd. Przejdź na Premium, aby mieć nielimitowane felgi.",
+    wheelLimitReachedBody:
+      "Osiągnięto limit {{limit}} kompletu(ów) felg na pojazd. Przejdź na Premium, aby mieć nielimitowane felgi.",
     workshopLimitReachedTitle: "Osiągnięto limit warsztatów",
-    workshopLimitReachedBody: "Osiągnięto limit {{limit}} warsztatu(ów). Przejdź na Premium, aby mieć nielimitowane warsztaty.",
+    workshopLimitReachedBody:
+      "Osiągnięto limit {{limit}} warsztatu(ów). Przejdź na Premium, aby mieć nielimitowane warsztaty.",
     reminderLimitReachedTitle: "Osiągnięto limit przypomnień",
-    reminderLimitReachedBody: "Osiągnięto limit {{limit}} przypomnienia(eń). Przejdź na Premium, aby mieć nielimitowane przypomnienia.",
+    reminderLimitReachedBody:
+      "Osiągnięto limit {{limit}} przypomnienia(eń). Przejdź na Premium, aby mieć nielimitowane przypomnienia.",
     photoLimitReachedTitle: "Osiągnięto limit zdjęć",
-    photoLimitReachedBody: "Osiągnięto limit {{limit}} zdjęć na pojazd. Przejdź na Premium, aby mieć do 40 zdjęć.",
+    photoLimitReachedBody:
+      "Osiągnięto limit {{limit}} zdjęć na pojazd. Przejdź na Premium, aby mieć do 40 zdjęć.",
     reportLimitReachedTitle: "Osiągnięto limit raportów",
     listingLimitReachedTitle: "Osiągnięto limit ogłoszeń",
     upgradeToPremium: "Przejdź na Premium",
     reportsRemaining: "Pozostało raportów: {{count}}",
     listingsRemaining: "Pozostało ogłoszeń: {{count}}",
-    noReportsRemaining: "Brak pozostałych raportów. Kup paczkę lub przejdź na Premium.",
-    noListingsRemaining: "Brak pozostałych ogłoszeń. Kup paczkę lub przejdź na Premium.",
+    noReportsRemaining:
+      "Brak pozostałych raportów. Kup paczkę lub przejdź na Premium.",
+    noListingsRemaining:
+      "Brak pozostałych ogłoszeń. Kup paczkę lub przejdź na Premium.",
   },
   auth: {
     title: "Zaloguj się",
@@ -390,6 +398,49 @@ export const pl = {
     deleteAccountNotAvailable:
       "Usunięcie konta nie jest dostępne w aplikacji. Skontaktuj się z pomocą techniczną.",
     displayNameUpdated: "Nazwa zaktualizowana",
+    shop: "Sklep",
+  },
+  shop: {
+    title: "Sklep",
+    premiumActive: "Masz aktywny plan Premium",
+    packs: "Paczki",
+    subscriptions: "Subskrypcje",
+    oneTime: "Jednorazowy zakup",
+    tapToPurchase: "Kliknij, aby kupić",
+    planActive: "Plan aktywny",
+    purchaseSuccess: "Zakup zakończony pomyślnie!",
+    unknownProduct: "Nieznany produkt",
+    premiumIsActive: "Premium jest aktywne",
+    premiumIsActiveBody:
+      "Masz już aktywny plan Premium. Zakup nie jest potrzebny.",
+    confirmPurchase: "Potwierdź zakup",
+    buy: "Kup",
+    products: {
+      pack_3_reports: {
+        name: "Paczka 3 raportów",
+        description: "Wygeneruj 3 raporty publiczne",
+      },
+      pack_3_listings: {
+        name: "Paczka 3 ogłoszeń",
+        description: "Wygeneruj 3 ogłoszenia",
+      },
+      pack_3plus3: {
+        name: "3 raporty + 3 ogłoszenia",
+        description: "Wygeneruj 3 raporty i 3 ogłoszenia",
+      },
+      premium_monthly: {
+        name: "Premium miesięcznie",
+        description: "Nielimitowane raporty, ogłoszenia, pojazdy i więcej",
+      },
+      premium_yearly: {
+        name: "Premium rocznie",
+        description: "Nielimitowane wszystko - najlepsza cena",
+      },
+      lifetime: {
+        name: "Premium na zawsze",
+        description: "Jednorazowa płatność, dostęp na zawsze",
+      },
+    },
   },
   settings: {
     title: "Ustawienia",

@@ -82,7 +82,7 @@ export function ProfileScreen({ navigation }: Props) {
           style: "destructive",
           onPress: () => void performDeleteAccount(),
         },
-      ]
+      ],
     );
   }
 
@@ -152,14 +152,6 @@ export function ProfileScreen({ navigation }: Props) {
         </Button>
 
         <View style={styles.bottomSpacer} />
-
-        <Button
-          variant="outlined"
-          onPress={() => navigation.navigate("Shop")}
-          style={styles.shopButton}
-        >
-          {t("profile.shop")}
-        </Button>
 
         <View style={styles.bottomActions}>
           <View style={styles.bottomActionCol}>
