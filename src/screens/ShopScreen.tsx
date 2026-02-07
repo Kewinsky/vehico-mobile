@@ -36,7 +36,7 @@ const SECTIONS: Array<{
 }> = [
   { type: "consumable", titleKey: "packs" },
   { type: "subscription", titleKey: "subscriptions" },
-  { type: "lifetime", titleKey: "oneTime", highlight: true },
+  { type: "lifetime", titleKey: "oneTime" },
 ];
 
 export function ShopScreen({ navigation }: Props) {
@@ -90,9 +90,7 @@ export function ShopScreen({ navigation }: Props) {
   function getTapLabel(product: Product): string {
     const isPremiumProduct =
       product.type === "subscription" || product.type === "lifetime";
-    return isPremium && isPremiumProduct
-      ? t("shop.planActive")
-      : t("shop.tapToPurchase");
+    return isPremium && isPremiumProduct ? t("shop.planActive") : "";
   }
 
   function renderProductCard(product: Product, highlight: boolean) {
@@ -124,7 +122,7 @@ export function ShopScreen({ navigation }: Props) {
           <Text style={styles.productDescription}>
             {t(`shop.products.${product.id}.description`)}
           </Text>
-          <Text style={styles.tapHint}>{tapLabel}</Text>
+          {tapLabel ? <Text style={styles.tapHint}>{tapLabel}</Text> : null}
         </Card>
       </Pressable>
     );
@@ -235,7 +233,6 @@ function makeStyles(theme: AppTheme) {
     },
     productDescription: {
       fontSize: typography.small,
-      marginBottom: spacing.md,
       color: colors.muted,
     },
     tapHint: {
