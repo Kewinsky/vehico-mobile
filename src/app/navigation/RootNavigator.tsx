@@ -179,6 +179,8 @@ export function RootNavigator() {
         </>
       ) : (
         <>
+          <Stack.Screen name="TermsOfUse" component={TermsOfUseScreen} />
+          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
           <Stack.Screen name="Vehicles" component={VehiclesScreen} />
           <Stack.Screen name="VehicleForm" component={VehicleFormScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />

@@ -71,7 +71,10 @@ export function SegmentTabs<T extends string>({
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     wrap: {
-      flex: 1,
+      // NOTE: don't use flex:1 here — inside ScrollView content it can
+      // stretch vertically depending on siblings and cause "jumping" height.
+      alignSelf: "stretch",
+      width: "100%",
       minWidth: 0,
       flexDirection: "row",
       borderWidth: 1,

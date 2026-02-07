@@ -14,7 +14,10 @@ import { Ionicons } from "@expo/vector-icons";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Card } from "../ui/components/Card";
+import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
+import { hexToRgba } from "../ui/components/ChoiceChip";
+import { SegmentTabs } from "../ui/components/SegmentTabs";
 import type { AppTheme } from "../ui/theme";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -29,21 +32,21 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Shop">;
 
-const SECTIONS: Array<{
-  type: Product["type"];
-  titleKey: "packs" | "subscriptions" | "oneTime";
-  highlight?: boolean;
-}> = [
-  { type: "consumable", titleKey: "packs" },
-  { type: "subscription", titleKey: "subscriptions" },
-  { type: "lifetime", titleKey: "oneTime" },
-];
+type TabKey = "packs" | "subscriptions";
+
+const DEFAULT_PACK: ProductId = "pack_3plus3";
+const DEFAULT_SUBSCRIPTION: ProductId = "lifetime";
+const LIFETIME_DISCOUNT_PERCENT = 30;
 
 export function ShopScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { refresh, isPremium } = useEntitlements();
   const [purchasing, setPurchasing] = useState<ProductId | null>(null);
+  const [tab, setTab] = useState<TabKey>("subscriptions");
+  const [selectedPack, setSelectedPack] = useState<ProductId>(DEFAULT_PACK);
+  const [selectedSubscription, setSelectedSubscription] =
+    useState<ProductId>(DEFAULT_SUBSCRIPTION);
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   async function handlePurchase(productId: ProductId) {
@@ -53,7 +56,6 @@ export function ShopScreen({ navigation }: Props) {
       await mockPurchase(productId);
       await refresh();
       toastSuccess(t("shop.purchaseSuccess"));
-      navigation.goBack();
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -63,17 +65,15 @@ export function ShopScreen({ navigation }: Props) {
 
   function confirmPurchase(productId: ProductId) {
     if (purchasing) return;
-    const product = PRODUCTS.find((p) => p.id === productId);
-    if (!product) {
-      toastError(t("shop.unknownProduct"));
-      return;
-    }
-    const isPremiumProduct =
-      product.type === "subscription" || product.type === "lifetime";
-    if (isPremium && isPremiumProduct) {
+    if (isPremium) {
       Alert.alert(t("shop.premiumIsActive"), t("shop.premiumIsActiveBody"), [
         { text: "OK" },
       ]);
+      return;
+    }
+    const product = PRODUCTS.find((p) => p.id === productId);
+    if (!product) {
+      toastError(t("shop.unknownProduct"));
       return;
     }
     Alert.alert(
@@ -87,46 +87,210 @@ export function ShopScreen({ navigation }: Props) {
     );
   }
 
-  function getTapLabel(product: Product): string {
-    const isPremiumProduct =
-      product.type === "subscription" || product.type === "lifetime";
-    return isPremium && isPremiumProduct ? t("shop.planActive") : "";
+  const selectedId = tab === "packs" ? selectedPack : selectedSubscription;
+  const accentBg = useMemo(
+    () => hexToRgba(theme.colors.accent, 0.15),
+    [theme.colors.accent],
+  );
+
+  function getProduct(productId: ProductId): Product | undefined {
+    return PRODUCTS.find((p) => p.id === productId);
   }
 
-  function renderProductCard(product: Product, highlight: boolean) {
-    const tapLabel = getTapLabel(product);
-    const cardStyle = highlight
-      ? [styles.productCard, styles.productCardHighlight]
-      : styles.productCard;
+  // (old price / crossed-out price intentionally removed for this layout)
+
+  function HeroIconCluster() {
+    return (
+      <View
+        style={[
+          styles.heroIconWrap,
+          { backgroundColor: theme.colors.accent + "18" },
+        ]}
+      >
+        <View
+          style={[
+            styles.heroIconDot,
+            styles.heroIconDotTop,
+            {
+              backgroundColor: theme.colors.card,
+              borderColor: theme.colors.border,
+            },
+          ]}
+        >
+          <Ionicons
+            name="car-sport-outline"
+            size={24}
+            color={theme.colors.accent}
+          />
+        </View>
+        <View
+          style={[
+            styles.heroIconDot,
+            styles.heroIconDotLeft,
+            {
+              backgroundColor: theme.colors.card,
+              borderColor: theme.colors.border,
+            },
+          ]}
+        >
+          <Ionicons
+            name="document-text-outline"
+            size={22}
+            color={theme.colors.accent}
+          />
+        </View>
+        <View
+          style={[
+            styles.heroIconDot,
+            styles.heroIconDotRight,
+            {
+              backgroundColor: theme.colors.card,
+              borderColor: theme.colors.border,
+            },
+          ]}
+        >
+          <Ionicons
+            name="megaphone-outline"
+            size={22}
+            color={theme.colors.accent}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  function FeatureRow({ text }: { text: string }) {
+    return (
+      <View style={styles.featureRow}>
+        <View
+          style={[
+            styles.featureIcon,
+            { backgroundColor: theme.colors.accent + "18" },
+          ]}
+        >
+          <Ionicons name="checkmark" size={16} color={theme.colors.accent} />
+        </View>
+        <Text style={[styles.featureText, { color: theme.colors.fg }]}>
+          {text}
+        </Text>
+      </View>
+    );
+  }
+
+  function PriceCard({
+    productId,
+    label,
+    badge,
+  }: {
+    productId: ProductId;
+    label: string;
+    badge?: string;
+  }) {
+    const product = getProduct(productId);
+    const selected = selectedId === productId;
+    const disabled = isPremium || purchasing !== null;
+    const price = product?.price ?? "—";
+
+    const cardStyle = [
+      styles.optionCard,
+      {
+        backgroundColor: selected ? accentBg : theme.colors.card,
+        borderColor: selected ? theme.colors.accent : theme.colors.border,
+      },
+    ];
 
     return (
       <Pressable
-        key={product.id}
-        onPress={() => confirmPurchase(product.id)}
-        disabled={purchasing !== null}
-        style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}
+        key={productId}
+        disabled={disabled}
+        onPress={() => {
+          if (tab === "packs") setSelectedPack(productId);
+          else setSelectedSubscription(productId);
+        }}
+        style={({ pressed }) => [
+          { width: "100%", opacity: pressed && !disabled ? 0.9 : 1 },
+        ]}
       >
         <Card style={cardStyle}>
-          <View style={styles.productHeader}>
-            <Text style={styles.productName}>
-              {t(`shop.products.${product.id}.name`)}
-            </Text>
-            <View style={styles.productRight}>
-              {purchasing === product.id ? (
+          <View style={styles.optionRow}>
+            <View
+              style={[
+                styles.radioOuter,
+                {
+                  borderColor: selected ? theme.colors.accent : theme.colors.muted,
+                  backgroundColor: "transparent",
+                },
+              ]}
+            >
+              {selected ? (
+                <View
+                  style={[
+                    styles.radioInner,
+                    { backgroundColor: theme.colors.accent },
+                  ]}
+                />
+              ) : null}
+            </View>
+
+            <View style={styles.optionMain}>
+              <View style={styles.optionTitleRow}>
+                <Text
+                  style={[styles.optionTitle, { color: theme.colors.fg }]}
+                  numberOfLines={1}
+                >
+                  {label}
+                </Text>
+                {badge ? (
+                  <View
+                    style={[
+                      styles.inlineBadge,
+                      {
+                        backgroundColor: theme.colors.accent,
+                        borderColor: theme.colors.accent,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.inlineBadgeText, { color: "#000000" }]}
+                    >
+                      {badge}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            </View>
+
+            <View style={styles.optionRight}>
+              {purchasing === productId ? (
                 <LoadingIndicator size="small" />
               ) : (
-                <Text style={styles.productPrice}>{product.price}</Text>
+                <Text
+                  style={[styles.optionPrice, { color: theme.colors.fg }]}
+                  numberOfLines={1}
+                >
+                  {price}
+                </Text>
               )}
             </View>
           </View>
-          <Text style={styles.productDescription}>
-            {t(`shop.products.${product.id}.description`)}
-          </Text>
-          {tapLabel ? <Text style={styles.tapHint}>{tapLabel}</Text> : null}
         </Card>
       </Pressable>
     );
   }
+
+  const canPurchase = !isPremium && purchasing === null;
+
+  const packs = {
+    left: "pack_3_reports" as const,
+    middle: "pack_3plus3" as const,
+    right: "pack_3_listings" as const,
+  };
+
+  const subs = {
+    left: "premium_monthly" as const,
+    middle: "lifetime" as const,
+    right: "premium_yearly" as const,
+  };
 
   return (
     <Screen padding={false}>
@@ -137,25 +301,142 @@ export function ShopScreen({ navigation }: Props) {
           { paddingHorizontal: theme.layout.contentPaddingHorizontal },
         ]}
       >
-        <Text style={styles.title}>{t("shop.title")}</Text>
+        <SegmentTabs<TabKey>
+          value={tab}
+          options={[
+            { value: "packs", label: t("shop.packs") },
+            { value: "subscriptions", label: t("shop.subscriptions") },
+          ]}
+          onChange={setTab}
+        />
 
         {isPremium && (
           <Card style={styles.premiumBadge}>
             <Ionicons name="star" size={24} color={theme.colors.accent} />
-            <Text style={styles.premiumText}>{t("shop.premiumActive")}</Text>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.premiumText}>{t("shop.premiumActive")}</Text>
+              <Text
+                style={[styles.premiumSubtext, { color: theme.colors.muted }]}
+              >
+                {t("shop.currentPlan")}
+              </Text>
+            </View>
           </Card>
         )}
 
-        {SECTIONS.map(({ type, titleKey, highlight = false }) => {
-          const products = PRODUCTS.filter((p) => p.type === type);
-          if (products.length === 0) return null;
-          return (
-            <View key={type} style={styles.section}>
-              <Text style={styles.sectionTitle}>{t(`shop.${titleKey}`)}</Text>
-              {products.map((product) => renderProductCard(product, highlight))}
-            </View>
-          );
-        })}
+        <View style={styles.hero}>
+          <HeroIconCluster />
+          <Text style={[styles.heroTitle, { color: theme.colors.fg }]}>
+            {tab === "subscriptions"
+              ? t("shop.unlockPremium")
+              : t("shop.packsHeadline")}
+          </Text>
+          <View style={styles.features}>
+            {tab === "subscriptions" ? (
+              <>
+                <FeatureRow
+                  text={t("shop.premiumFeatures.unlimitedVehicles")}
+                />
+                <FeatureRow text={t("shop.premiumFeatures.photos6x")} />
+                <FeatureRow
+                  text={t("shop.premiumFeatures.unlimitedReportsPosts")}
+                />
+                <FeatureRow
+                  text={t("shop.premiumFeatures.remindersWorkshops")}
+                />
+              </>
+            ) : (
+              <>
+                <FeatureRow text={t("shop.packsFeatures.payOnce")} />
+                <FeatureRow text={t("shop.packsFeatures.noSubscription")} />
+              </>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.pricingSection}>
+          <View style={styles.pricingCol}>
+            {tab === "packs" ? (
+              <>
+                <PriceCard
+                  productId={packs.left}
+                  label={t("shop.packCards.reports")}
+                />
+                <PriceCard
+                  productId={packs.middle}
+                  label={t("shop.packCards.reportsPlusPosts")}
+                  badge={t("shop.bestDeal")}
+                />
+                <PriceCard
+                  productId={packs.right}
+                  label={t("shop.packCards.posts")}
+                />
+              </>
+            ) : (
+              <>
+                <PriceCard
+                  productId={subs.left}
+                  label={t("shop.subCards.monthly")}
+                />
+                <PriceCard
+                  productId={subs.middle}
+                  label={t("shop.subCards.lifetime")}
+                  badge={t("shop.saveDiscountBadge", {
+                    percent: LIFETIME_DISCOUNT_PERCENT,
+                  })}
+                />
+                <PriceCard
+                  productId={subs.right}
+                  label={t("shop.subCards.yearly")}
+                />
+              </>
+            )}
+          </View>
+
+          {isPremium && tab === "packs" ? (
+            <Text style={[styles.blockedHint, { color: theme.colors.muted }]}>
+              {t("shop.packsBlockedWhilePremium")}
+            </Text>
+          ) : null}
+
+          <View style={{ height: theme.spacing.lg }} />
+
+          <Button
+            onPress={() => confirmPurchase(selectedId)}
+            disabled={!canPurchase}
+          >
+            {purchasing
+              ? t("common.loading")
+              : tab === "packs"
+                ? t("shop.buyPack")
+                : t("shop.unlockPremium")}
+          </Button>
+
+          <View style={{ height: theme.spacing.lg }} />
+
+          <View style={styles.footerRow}>
+            <Pressable
+              onPress={() => navigation.navigate("TermsOfUse")}
+              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Text style={[styles.footerLink, { color: theme.colors.accent }]}>
+                {t("terms.title")}
+              </Text>
+            </Pressable>
+            <Text style={[styles.footerText, { color: theme.colors.muted }]}>
+              {" "}
+              {t("common.and")}{" "}
+            </Text>
+            <Pressable
+              onPress={() => navigation.navigate("PrivacyPolicy")}
+              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Text style={[styles.footerLink, { color: theme.colors.accent }]}>
+                {t("privacy.title")}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
       </ScrollView>
     </Screen>
   );
@@ -167,18 +448,14 @@ function makeStyles(theme: AppTheme) {
     container: {
       flexGrow: 1,
       paddingBottom: spacing.xl,
-    },
-    title: {
-      fontSize: typography.largeTitle,
-      fontWeight: "700",
-      marginVertical: spacing.md,
-      color: colors.fg,
+      paddingTop: spacing.md,
     },
     premiumBadge: {
       flexDirection: "row",
       alignItems: "center",
       padding: spacing.md,
       marginBottom: spacing.lg,
+      marginTop: spacing.md,
       gap: spacing.sm,
       borderWidth: 2,
       borderColor: colors.accent,
@@ -189,67 +466,161 @@ function makeStyles(theme: AppTheme) {
       fontWeight: "600",
       color: colors.accent,
     },
-    section: {
-      marginBottom: spacing.xl,
-    },
-    sectionTitle: {
-      fontSize: typography.title,
+    premiumSubtext: {
+      marginTop: 2,
+      fontSize: typography.body,
       fontWeight: "600",
-      marginBottom: spacing.md,
-      color: colors.fg,
     },
-    productCard: {
-      padding: spacing.md,
-      marginBottom: spacing.md,
-      borderWidth: 1,
-      borderRadius: radius.md,
-      borderColor: colors.border,
-      backgroundColor: colors.card,
-    },
-    productCardHighlight: {
-      borderColor: colors.accent,
-    },
-    productHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
+    hero: {
       alignItems: "center",
-      marginBottom: spacing.xs,
+      paddingTop: spacing.lg,
+      paddingBottom: spacing.lg,
+      gap: spacing.md,
     },
-    productRight: {
-      alignItems: "flex-end",
+    heroIconWrap: {
+      width: 132,
+      height: 132,
+      borderRadius: 132 / 2,
+      alignItems: "center",
       justifyContent: "center",
-      minHeight: 20,
     },
-    productName: {
-      fontSize: typography.title,
-      fontWeight: "600",
-      flex: 1,
-      color: colors.fg,
+    heroIconDot: {
+      position: "absolute",
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
     },
-    productPrice: {
+    heroIconDotTop: {
+      top: 18,
+    },
+    heroIconDotLeft: {
+      left: 18,
+      bottom: 22,
+    },
+    heroIconDotRight: {
+      right: 18,
+      bottom: 22,
+    },
+    heroTitle: {
       fontSize: typography.title,
       fontWeight: "700",
-      color: colors.accent,
+      textAlign: "center",
     },
-    productDescription: {
+    features: {
+      width: "100%",
+      maxWidth: 420,
+      gap: spacing.sm,
+      paddingTop: spacing.xs,
+    },
+    featureRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    featureIcon: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    featureText: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: typography.body,
+      fontWeight: "600",
+    },
+    pricingSection: {
+      paddingTop: spacing.md,
+    },
+    pricingCol: {
+      flexDirection: "column",
+      gap: spacing.sm,
+      alignItems: "stretch",
+    },
+    optionCard: {
+      borderRadius: radius.md + 8,
+    },
+    optionRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+      gap: spacing.md,
+      minHeight: 72,
+    },
+    radioOuter: {
+      width: 22,
+      height: 22,
+      borderRadius: 999,
+      borderWidth: 2,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    radioInner: {
+      width: 10,
+      height: 10,
+      borderRadius: 999,
+    },
+    optionMain: {
+      flex: 1,
+      minWidth: 0,
+    },
+    optionTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      minWidth: 0,
+    },
+    optionTitle: {
+      fontSize: typography.body,
+      fontWeight: "700",
+      flexShrink: 1,
+      minWidth: 0,
+    },
+    inlineBadge: {
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 4,
+      borderRadius: 999,
+      borderWidth: 1,
+      flexShrink: 0,
+    },
+    inlineBadgeText: {
       fontSize: typography.small,
-      color: colors.muted,
     },
-    tapHint: {
+    optionRight: {
+      alignItems: "flex-end",
+      justifyContent: "center",
+      minWidth: 76,
+    },
+    optionPrice: {
+      fontSize: typography.body,
+      fontWeight: "700",
+    },
+    blockedHint: {
+      marginTop: spacing.md,
+      fontSize: typography.body,
+      textAlign: "center",
+      fontWeight: "600",
+    },
+    footerRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingTop: spacing.sm,
+      gap: 2,
+    },
+    footerText: {
+      fontSize: typography.small,
+    },
+    footerLink: {
       fontSize: typography.small,
       fontWeight: "600",
-      color: colors.muted,
-    },
-    note: {
-      marginTop: spacing.lg,
-      padding: spacing.md,
-      borderRadius: radius.sm,
-      backgroundColor: colors.bg + "80",
-    },
-    noteText: {
-      fontSize: typography.small,
-      textAlign: "center",
-      color: colors.muted,
+      textDecorationLine: "underline",
     },
   });
 }
