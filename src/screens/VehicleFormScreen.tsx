@@ -32,6 +32,7 @@ import { createVehicle, listVehicles } from "../services/vehicles/vehiclesRepo";
 import { uploadVehiclePhoto } from "../services/vehicles/uploadPhoto";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
+import { SegmentTabs } from "../ui/components/SegmentTabs";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../ui/ThemeProvider";
@@ -620,47 +621,14 @@ export function VehicleFormScreen({ navigation }: Props) {
       <View style={{ height: theme.spacing.md }} />
 
       <Text style={styles.sectionTitle}>{t("vehicleForm.type")}</Text>
-      <View
-        style={[
-          styles.segmentWrap,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.bg,
-          },
+      <SegmentTabs<VehicleType>
+        value={type}
+        options={[
+          { value: "car", label: t("vehicleForm.car") },
+          { value: "motorcycle", label: t("vehicleForm.motorcycle") },
         ]}
-      >
-        {(["car", "motorcycle"] as const).map((k) => {
-          const selected = type === k;
-          return (
-            <Pressable
-              key={k}
-              onPress={() => setType(k)}
-              style={({ pressed }) => [
-                styles.segment,
-                selected && styles.segmentSelected,
-                {
-                  borderColor: theme.colors.accent,
-                  backgroundColor: selected ? accentBg : "transparent",
-                  opacity: pressed ? 0.85 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  {
-                    color: selected ? theme.colors.accent : theme.colors.muted,
-                  },
-                ]}
-              >
-                {k === "car"
-                  ? t("vehicleForm.car")
-                  : t("vehicleForm.motorcycle")}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+        onChange={setType}
+      />
 
       <View style={{ height: theme.spacing.sm }} />
 
@@ -883,92 +851,27 @@ export function VehicleFormScreen({ navigation }: Props) {
       <Text style={styles.sectionTitle}>
         {t("vehicleForm.transmissionLabel")}
       </Text>
-      <View
-        style={[
-          styles.segmentWrap,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.bg,
-          },
+      <SegmentTabs<TransmissionType>
+        value={transmission ?? "manual"}
+        options={[
+          { value: "manual", label: t("vehicleForm.transmissionManual") },
+          { value: "automatic", label: t("vehicleForm.transmissionAutomatic") },
         ]}
-      >
-        {(["manual", "automatic"] as const).map((tr) => {
-          const selected = transmission === tr;
-          return (
-            <Pressable
-              key={tr}
-              onPress={() => setTransmission(tr)}
-              style={({ pressed }) => [
-                styles.segment,
-                selected && styles.segmentSelected,
-                {
-                  borderColor: theme.colors.accent,
-                  backgroundColor: selected ? accentBg : "transparent",
-                  opacity: pressed ? 0.85 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  {
-                    color: selected ? theme.colors.accent : theme.colors.muted,
-                  },
-                ]}
-              >
-                {t(
-                  `vehicleForm.transmission${
-                    tr.charAt(0).toUpperCase() + tr.slice(1)
-                  }` as any
-                )}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+        onChange={setTransmission}
+      />
 
       <View style={{ height: theme.spacing.sm }} />
 
       <Text style={styles.sectionTitle}>{t("vehicleForm.driveTypeLabel")}</Text>
-      <View
-        style={[
-          styles.segmentWrap,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.bg,
-          },
+      <SegmentTabs<DriveType>
+        value={driveType ?? "FWD"}
+        options={[
+          { value: "FWD", label: "FWD" },
+          { value: "RWD", label: "RWD" },
+          { value: "AWD", label: "AWD" },
         ]}
-      >
-        {(["FWD", "RWD", "AWD"] as const).map((dt) => {
-          const selected = driveType === dt;
-          return (
-            <Pressable
-              key={dt}
-              onPress={() => setDriveType(dt)}
-              style={({ pressed }) => [
-                styles.segment,
-                selected && styles.segmentSelected,
-                {
-                  borderColor: theme.colors.accent,
-                  backgroundColor: selected ? accentBg : "transparent",
-                  opacity: pressed ? 0.85 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  {
-                    color: selected ? theme.colors.accent : theme.colors.muted,
-                  },
-                ]}
-              >
-                {dt}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+        onChange={setDriveType}
+      />
 
       <View style={{ height: theme.spacing.sm }} />
 

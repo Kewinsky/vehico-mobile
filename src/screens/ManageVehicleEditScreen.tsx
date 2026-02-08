@@ -41,7 +41,7 @@ import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { PickerField } from "../ui/components/PickerField";
-import { ChoiceChip } from "../ui/components/ChoiceChip";
+import { SegmentTabs } from "../ui/components/SegmentTabs";
 import { DateField } from "../ui/components/DateField";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
@@ -509,20 +509,14 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             <Text style={[styles.label, { color: theme.colors.muted }]}>
               {t("vehicleForm.type")}
             </Text>
-            <View style={styles.typeRow}>
-              <ChoiceChip
-                label={t("vehicleForm.car")}
-                selected={type === "car"}
-                onPress={() => setType("car")}
-                style={styles.typeChip}
-              />
-              <ChoiceChip
-                label={t("vehicleForm.motorcycle")}
-                selected={type === "motorcycle"}
-                onPress={() => setType("motorcycle")}
-                style={styles.typeChip}
-              />
-            </View>
+            <SegmentTabs<VehicleType>
+              value={type}
+              options={[
+                { value: "car", label: t("vehicleForm.car") },
+                { value: "motorcycle", label: t("vehicleForm.motorcycle") },
+              ]}
+              onChange={setType}
+            />
           </View>
 
           <View style={{ height: theme.spacing.sm }} />
@@ -608,39 +602,31 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             <Text style={[styles.label, { color: theme.colors.muted }]}>
               {t("vehicleForm.transmissionLabel")}
             </Text>
-            <View style={styles.typeRow}>
-              {(["manual", "automatic"] as const).map((tr) => (
-                <ChoiceChip
-                  key={tr}
-                  label={t(
-                    `vehicleForm.transmission${
-                      tr.charAt(0).toUpperCase() + tr.slice(1)
-                    }` as
-                      | "vehicleForm.transmissionManual"
-                      | "vehicleForm.transmissionAutomatic"
-                  )}
-                  selected={transmission === tr}
-                  onPress={() => setTransmission(tr)}
-                  style={styles.typeChip}
-                />
-              ))}
-            </View>
+            <SegmentTabs<TransmissionType>
+              value={transmission ?? "manual"}
+              options={[
+                { value: "manual", label: t("vehicleForm.transmissionManual") },
+                {
+                  value: "automatic",
+                  label: t("vehicleForm.transmissionAutomatic"),
+                },
+              ]}
+              onChange={setTransmission}
+            />
           </View>
           <View style={styles.group}>
             <Text style={[styles.label, { color: theme.colors.muted }]}>
               {t("vehicleForm.driveTypeLabel")}
             </Text>
-            <View style={styles.typeRow}>
-              {(["FWD", "RWD", "AWD"] as const).map((dt) => (
-                <ChoiceChip
-                  key={dt}
-                  label={dt}
-                  selected={driveType === dt}
-                  onPress={() => setDriveType(dt)}
-                  style={styles.typeChip}
-                />
-              ))}
-            </View>
+            <SegmentTabs<DriveType>
+              value={driveType ?? "FWD"}
+              options={[
+                { value: "FWD", label: "FWD" },
+                { value: "RWD", label: "RWD" },
+                { value: "AWD", label: "AWD" },
+              ]}
+              onChange={setDriveType}
+            />
           </View>
           <TextField
             label={t("vehicleForm.notesLabel")}
@@ -765,13 +751,5 @@ const makeStyles = (theme: any) =>
     label: {
       fontSize: theme.typography.small,
       fontWeight: "700",
-    },
-    typeRow: {
-      flexDirection: "row",
-      gap: theme.spacing.sm,
-      flexWrap: "wrap",
-    },
-    typeChip: {
-      flex: 1,
     },
   });
