@@ -65,7 +65,7 @@ export function RemindersScreen({ route, navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
   const [items, setItems] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,11 +76,11 @@ export function RemindersScreen({ route, navigation }: Props) {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [openDatePicker, setOpenDatePicker] = useState<"from" | "to" | null>(
-    null
+    null,
   );
   const [datePickerDraft, setDatePickerDraft] = useState<Date>(new Date());
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "done">(
-    "all"
+    "all",
   );
   const { isPremium, remindersLimit } = useEntitlements();
 
@@ -102,7 +102,7 @@ export function RemindersScreen({ route, navigation }: Props) {
         }
       }
     },
-    [route.params.vehicleId, t]
+    [route.params.vehicleId, t],
   );
 
   useEffect(() => {
@@ -110,7 +110,7 @@ export function RemindersScreen({ route, navigation }: Props) {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false })
+      () => void load({ showLoading: false }),
     );
     return unsub;
   }, [navigation, load]);
@@ -120,30 +120,13 @@ export function RemindersScreen({ route, navigation }: Props) {
       const newStatus = currentStatus === "active" ? "done" : "active";
       await updateReminder(reminderId, { status: newStatus });
       setItems((prev) =>
-        prev.map((r) => (r.id === reminderId ? { ...r, status: newStatus } : r))
+        prev.map((r) =>
+          r.id === reminderId ? { ...r, status: newStatus } : r,
+        ),
       );
     } catch (err: any) {
       toastError(err?.message ?? t("common.error"));
     }
-  }
-
-  function confirmDelete(id: string) {
-    Alert.alert(t("reminders.deleteTitle"), t("reminders.deleteBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("common.delete"),
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await cancelLocalReminder(id);
-            await deleteReminder(id);
-            setItems((prev) => prev.filter((x) => x.id !== id));
-          } catch (err: any) {
-            toastError(err?.message ?? t("common.error"));
-          }
-        },
-      },
-    ]);
   }
 
   const hasActiveFilters = useMemo(() => {
@@ -163,7 +146,7 @@ export function RemindersScreen({ route, navigation }: Props) {
   function openPicker(kind: "from" | "to") {
     const current = kind === "from" ? dateFrom : dateTo;
     setDatePickerDraft(
-      parseYmd(current.trim().length === 10 ? current : formatYmd(new Date()))
+      parseYmd(current.trim().length === 10 ? current : formatYmd(new Date())),
     );
     setOpenDatePicker(kind);
   }
@@ -415,7 +398,7 @@ export function RemindersScreen({ route, navigation }: Props) {
                               text: t("limits.upgradeToPremium"),
                               onPress: () => navigation.navigate("Shop"),
                             },
-                          ]
+                          ],
                         );
                         return;
                       }
@@ -520,8 +503,8 @@ export function RemindersScreen({ route, navigation }: Props) {
                           status === "all"
                             ? t("reminders.filterAll")
                             : status === "active"
-                            ? t("reminderDetail.status.active")
-                            : t("reminderDetail.status.done");
+                              ? t("reminderDetail.status.active")
+                              : t("reminderDetail.status.done");
                         return (
                           <Pressable
                             key={status}
@@ -647,12 +630,6 @@ export function RemindersScreen({ route, navigation }: Props) {
         }
         refreshing={refreshing}
         onRefresh={() => void load({ refreshing: true })}
-        ItemSeparatorComponent={({ leadingItem }) => {
-          if (leadingItem && leadingItem.type === "separator") {
-            return null;
-          }
-          return <View style={{ height: theme.spacing.sm }} />;
-        }}
         renderItem={({ item }) => {
           if (item.type === "separator") {
             const monthYearText =
@@ -908,9 +885,8 @@ const makeStyles = (theme: any) =>
       fontWeight: "700",
     },
     separator: {
-      marginTop: theme.spacing.md + 4,
-      marginBottom: theme.spacing.xs,
-      paddingVertical: theme.spacing.xs,
+      marginTop: theme.spacing.lg,
+      marginBottom: theme.spacing.sm,
     },
     separatorText: {
       fontSize: theme.typography.small,

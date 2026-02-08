@@ -158,7 +158,7 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
       paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      marginHorizontal: theme.layout.contentPaddingHorizontal,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },

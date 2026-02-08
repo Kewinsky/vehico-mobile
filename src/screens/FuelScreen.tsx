@@ -73,7 +73,7 @@ export function FuelScreen({ route, navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
   const [fueling, setFueling] = useState<FuelingEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +82,7 @@ export function FuelScreen({ route, navigation }: Props) {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [openDatePicker, setOpenDatePicker] = useState<"from" | "to" | null>(
-    null
+    null,
   );
   const [datePickerDraft, setDatePickerDraft] = useState<Date>(new Date());
   const [stationFilter, setStationFilter] = useState<GasStation | null>(null);
@@ -110,7 +110,7 @@ export function FuelScreen({ route, navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [route.params.vehicleId, t]
+    [route.params.vehicleId, t],
   );
 
   useEffect(() => {
@@ -118,7 +118,7 @@ export function FuelScreen({ route, navigation }: Props) {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false })
+      () => void load({ showLoading: false }),
     );
     return unsub;
   }, [navigation, load]);
@@ -144,7 +144,7 @@ export function FuelScreen({ route, navigation }: Props) {
   function openPicker(kind: "from" | "to") {
     const current = kind === "from" ? dateFrom : dateTo;
     setDatePickerDraft(
-      parseYmd(current.trim().length === 10 ? current : formatYmd(new Date()))
+      parseYmd(current.trim().length === 10 ? current : formatYmd(new Date())),
     );
     setOpenDatePicker(kind);
   }
@@ -268,7 +268,7 @@ export function FuelScreen({ route, navigation }: Props) {
           : "";
         const hay = `${String(f.date).slice(
           0,
-          10
+          10,
         )}\n${stationLabel}\n${fuelTypeLabel}\n${f.fuel_cost ?? ""}\n${
           f.fuel_amount ?? ""
         }\n${f.distance ?? ""}`.toLowerCase();
@@ -342,7 +342,7 @@ export function FuelScreen({ route, navigation }: Props) {
             }
           },
         },
-      ]
+      ],
     );
   }
 
@@ -633,7 +633,7 @@ export function FuelScreen({ route, navigation }: Props) {
                       onChangeText={setMinCost}
                       keyboardType="decimal-pad"
                       placeholder={`${t(
-                        "timeline.filterMinCost"
+                        "timeline.filterMinCost",
                       )} (${currency})`}
                       placeholderTextColor={theme.colors.muted}
                       style={[styles.input, { color: theme.colors.fg }]}
@@ -656,7 +656,7 @@ export function FuelScreen({ route, navigation }: Props) {
                       onChangeText={setMaxCost}
                       keyboardType="decimal-pad"
                       placeholder={`${t(
-                        "timeline.filterMaxCost"
+                        "timeline.filterMaxCost",
                       )} (${currency})`}
                       placeholderTextColor={theme.colors.muted}
                       style={[styles.input, { color: theme.colors.fg }]}
@@ -667,12 +667,6 @@ export function FuelScreen({ route, navigation }: Props) {
             ) : null}
           </View>
         }
-        ItemSeparatorComponent={({ leadingItem }) => {
-          if (leadingItem && leadingItem.type === "separator") {
-            return null;
-          }
-          return <View style={{ height: theme.spacing.sm }} />;
-        }}
         renderItem={({ item }) => {
           if (item.type === "separator") {
             const monthYearText =
@@ -899,8 +893,7 @@ const makeStyles = (theme: any) =>
     },
     separator: {
       marginTop: theme.spacing.lg,
-      marginBottom: theme.spacing.xs,
-      paddingVertical: theme.spacing.xs,
+      marginBottom: theme.spacing.sm,
     },
     separatorText: {
       fontSize: theme.typography.small,

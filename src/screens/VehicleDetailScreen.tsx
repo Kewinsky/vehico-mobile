@@ -73,7 +73,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
   const { vehicleId } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
@@ -95,7 +95,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [openDatePicker, setOpenDatePicker] = useState<"from" | "to" | null>(
-    null
+    null,
   );
   const [datePickerDraft, setDatePickerDraft] = useState<Date>(new Date());
   const [minCost, setMinCost] = useState("");
@@ -131,7 +131,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         const countMap: Record<string, number> = {};
         for (const entry of data) {
           const entryAttachments = attachments.filter(
-            (att) => att.service_entry_id === entry.id
+            (att) => att.service_entry_id === entry.id,
           );
           countMap[entry.id] = entryAttachments.length;
         }
@@ -145,7 +145,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         }
       }
     },
-    [vehicleId, t]
+    [vehicleId, t],
   );
 
   useEffect(() => {
@@ -153,7 +153,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false })
+      () => void load({ showLoading: false }),
     );
     return unsub;
   }, [navigation, load]);
@@ -201,7 +201,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   function openPicker(kind: "from" | "to") {
     const current = kind === "from" ? dateFrom : dateTo;
     setDatePickerDraft(
-      parseYmd(current.trim().length === 10 ? current : formatYmd(new Date()))
+      parseYmd(current.trim().length === 10 ? current : formatYmd(new Date())),
     );
     setOpenDatePicker(kind);
   }
@@ -419,7 +419,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
 
     // Reminders are always sorted by date (newest first)
     const sortedReminderRows = [...reminderRows].sort((a, b) =>
-      a.sortKey === b.sortKey ? 0 : a.sortKey < b.sortKey ? 1 : -1
+      a.sortKey === b.sortKey ? 0 : a.sortKey < b.sortKey ? 1 : -1,
     );
 
     // Combine: if sorting by date, mix reminders with service entries
@@ -740,8 +740,8 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                             f === "date"
                               ? t("timeline.sortFieldDate")
                               : f === "title"
-                              ? t("timeline.sortFieldTitle")
-                              : t("timeline.sortFieldAmount");
+                                ? t("timeline.sortFieldTitle")
+                                : t("timeline.sortFieldAmount");
                           return (
                             <Pressable
                               key={f}
@@ -812,7 +812,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                                     setSortOption(
                                       o === "newest"
                                         ? "date-newest"
-                                        : "date-oldest"
+                                        : "date-oldest",
                                     )
                                   }
                                   style={({ pressed }) => [
@@ -856,7 +856,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                                   key={o}
                                   onPress={() =>
                                     setSortOption(
-                                      o === "az" ? "title-az" : "title-za"
+                                      o === "az" ? "title-az" : "title-za",
                                     )
                                   }
                                   style={({ pressed }) => [
@@ -900,7 +900,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                                   key={o}
                                   onPress={() =>
                                     setSortOption(
-                                      o === "asc" ? "cost-asc" : "cost-desc"
+                                      o === "asc" ? "cost-asc" : "cost-desc",
                                     )
                                   }
                                   style={({ pressed }) => [
@@ -1040,7 +1040,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                         onChangeText={setMinCost}
                         keyboardType="decimal-pad"
                         placeholder={`${t(
-                          "timeline.filterMinCost"
+                          "timeline.filterMinCost",
                         )} (${currency})`}
                         placeholderTextColor={theme.colors.muted}
                         style={[styles.input, { color: theme.colors.fg }]}
@@ -1063,7 +1063,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                         onChangeText={setMaxCost}
                         keyboardType="decimal-pad"
                         placeholder={`${t(
-                          "timeline.filterMaxCost"
+                          "timeline.filterMaxCost",
                         )} (${currency})`}
                         placeholderTextColor={theme.colors.muted}
                         style={[styles.input, { color: theme.colors.fg }]}
@@ -1177,13 +1177,6 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
               />
             </Pressable>
           );
-        }}
-        ItemSeparatorComponent={({ leadingItem }) => {
-          // Don't add separator before separator items
-          if (leadingItem && leadingItem.type === "separator") {
-            return null;
-          }
-          return <View style={{ height: theme.spacing.sm }} />;
         }}
       />
     </Screen>
@@ -1333,8 +1326,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     separator: {
       marginTop: theme.spacing.lg,
-      marginBottom: theme.spacing.xs,
-      paddingVertical: theme.spacing.xs,
+      marginBottom: theme.spacing.sm,
     },
     separatorText: {
       fontSize: theme.typography.small,
