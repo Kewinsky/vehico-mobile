@@ -238,7 +238,10 @@ export function VehiclesScreen({ navigation }: Props) {
 
   return (
     <Screen padding={false}>
-      <AppHeader />
+      <AppHeader
+        showShopIcon={!isPremium}
+        onShopPress={() => navigation.navigate("Shop")}
+      />
       <View style={styles.body}>
         {loading && items.length === 0 ? (
           <View style={styles.loadingContainer}>

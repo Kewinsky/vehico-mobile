@@ -25,7 +25,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
   const [tab, setTab] = useState<StatsTabKey>("metrics");
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
 
   const periodOptions: { key: PeriodKey; label: string }[] = [
@@ -186,11 +186,11 @@ const makeStyles = (theme: any) =>
       borderWidth: 1,
     },
     segmentText: {
-      fontSize: theme.typography.body,
+      fontSize: theme.typography.small,
       fontWeight: "700",
     },
     segmentTextSmall: {
       fontSize: theme.typography.small,
-      fontWeight: "800",
+      fontWeight: "700",
     },
   });

@@ -19,7 +19,6 @@ import { FuelingEntryFormScreen } from "../../screens/FuelingEntryFormScreen";
 import { RemindersScreen } from "../../screens/RemindersScreen";
 import { ReminderFormScreen } from "../../screens/ReminderFormScreen";
 import { ServiceEntryFormScreen } from "../../screens/ServiceEntryFormScreen";
-import { ProfileScreen } from "../../screens/ProfileScreen";
 import { SettingsScreen } from "../../screens/SettingsScreen";
 import { DataPortabilityScreen } from "../../screens/DataPortabilityScreen";
 import { ExportScreen } from "../../screens/ExportScreen";
@@ -50,6 +49,7 @@ import { WorkshopsScreen } from "../../screens/WorkshopsScreen";
 import { WorkshopDetailScreen } from "../../screens/WorkshopDetailScreen";
 import { WorkshopFormScreen } from "../../screens/WorkshopFormScreen";
 import { ShopScreen } from "../../screens/ShopScreen";
+import { AppearanceScreen } from "../../screens/AppearanceScreen";
 
 export type AppStackParamList = {
   Landing: undefined;
@@ -59,8 +59,8 @@ export type AppStackParamList = {
   PrivacyPolicy: undefined;
   Vehicles: undefined;
   VehicleForm: undefined;
-  Profile: undefined;
   Settings: undefined;
+  Appearance: undefined;
   VehicleDashboard: { vehicleId: string };
   VehicleDetail: { vehicleId: string };
   Documents: { vehicleId: string };
@@ -183,8 +183,8 @@ export function RootNavigator() {
           <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
           <Stack.Screen name="Vehicles" component={VehiclesScreen} />
           <Stack.Screen name="VehicleForm" component={VehicleFormScreen} />
-          <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Appearance" component={AppearanceScreen} />
           <Stack.Screen
             name="VehicleDashboard"
             component={VehicleDashboardScreen}

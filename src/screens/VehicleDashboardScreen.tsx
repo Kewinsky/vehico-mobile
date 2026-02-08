@@ -18,6 +18,7 @@ import * as Clipboard from "expo-clipboard";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Vehicle } from "../types/domain";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
@@ -39,6 +40,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, insets);
   const { vehicleId } = route.params;
+  const { isPremium } = useEntitlements();
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
@@ -211,7 +213,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     <Screen padding={false}>
       <AppHeader
         onBack={() => navigation.goBack()}
-        showShopIcon
+        showShopIcon={!isPremium}
         onShopPress={() => navigation.navigate("Shop")}
       />
       {loading ? (

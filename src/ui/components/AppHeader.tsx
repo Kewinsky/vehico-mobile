@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Crown } from "lucide-react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -49,8 +50,11 @@ export function AppHeader({
   const styles = makeStyles(theme);
 
   const hideProfileAvatar =
-    route.name === "Profile" || route.name === "Settings";
-  const showInitials = !!user && right === undefined && !hideProfileAvatar && !showShopIcon;
+    route.name === "Settings" ||
+    route.name === "Appearance" ||
+    route.name === "Shop";
+  const showInitials =
+    !!user && right === undefined && !hideProfileAvatar && !showShopIcon;
   const initials = user ? getInitials(user) : "";
 
   return (
@@ -89,11 +93,11 @@ export function AppHeader({
                 pressed && styles.backButtonPressed,
               ]}
             >
-              <Ionicons name="storefront" size={22} color={theme.colors.fg} />
+              <Crown size={22} color={theme.colors.accent} />
             </Pressable>
             {user && (
               <Pressable
-                onPress={() => navigation.navigate("Profile")}
+                onPress={() => navigation.navigate("Settings")}
                 hitSlop={10}
                 style={({ pressed }) => [
                   styles.avatarButton,
@@ -112,7 +116,7 @@ export function AppHeader({
           </View>
         ) : showInitials ? (
           <Pressable
-            onPress={() => navigation.navigate("Profile")}
+            onPress={() => navigation.navigate("Settings")}
             hitSlop={10}
             style={({ pressed }) => [
               styles.avatarButton,
