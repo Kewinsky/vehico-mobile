@@ -1178,6 +1178,13 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
             </Pressable>
           );
         }}
+        ItemSeparatorComponent={({ leadingItem }) => {
+          // Don't add separator before separator items
+          if (leadingItem && leadingItem.type === "separator") {
+            return null;
+          }
+          return <View style={{ height: theme.spacing.sm }} />;
+        }}
       />
     </Screen>
   );

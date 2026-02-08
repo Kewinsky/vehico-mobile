@@ -630,6 +630,12 @@ export function RemindersScreen({ route, navigation }: Props) {
         }
         refreshing={refreshing}
         onRefresh={() => void load({ refreshing: true })}
+        ItemSeparatorComponent={({ leadingItem }) => {
+          if (leadingItem && leadingItem.type === "separator") {
+            return null;
+          }
+          return <View style={{ height: theme.spacing.sm }} />;
+        }}
         renderItem={({ item }) => {
           if (item.type === "separator") {
             const monthYearText =

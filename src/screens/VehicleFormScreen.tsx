@@ -70,7 +70,7 @@ export function VehicleFormScreen({ navigation }: Props) {
   const distanceUnit = settings?.distanceUnit ?? "km";
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
   const [type, setType] = useState<VehicleType>("car");
   const [vin, setVin] = useState("");
@@ -82,7 +82,7 @@ export function VehicleFormScreen({ navigation }: Props) {
   const [powerHp, setPowerHp] = useState("");
   const [fuelType, setFuelType] = useState<FuelType | null>(null);
   const [transmission, setTransmission] = useState<TransmissionType | null>(
-    null
+    null,
   );
   const [driveType, setDriveType] = useState<DriveType | null>(null);
   const [notes, setNotes] = useState("");
@@ -129,7 +129,7 @@ export function VehicleFormScreen({ navigation }: Props) {
     const currentYmd =
       kind === "insurance" ? insuranceValidUntil : inspectionValidUntil;
     setDatePickerDraft(
-      parseYmd(currentYmd || new Date().toISOString().slice(0, 10))
+      parseYmd(currentYmd || new Date().toISOString().slice(0, 10)),
     );
     setOpenDatePicker(kind);
   }
@@ -276,7 +276,7 @@ export function VehicleFormScreen({ navigation }: Props) {
           text: t("attachments.files"),
           onPress: () => void pickFromFiles(),
         },
-      ]
+      ],
     );
   }
 
@@ -429,7 +429,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             style={styles.photoDeleteButton}
             hitSlop={5}
           >
-            <Ionicons name="close" size={16} color={theme.colors.accent} />
+            <Ionicons name="close" size={16} color="#000000" />
           </Pressable>
         </View>
       </View>
@@ -441,7 +441,7 @@ export function VehicleFormScreen({ navigation }: Props) {
       setSaving(true);
       if (!isValidProductionYear(year)) {
         toastError(
-          t("validation.invalidYear", { max: new Date().getFullYear() + 2 })
+          t("validation.invalidYear", { max: new Date().getFullYear() + 2 }),
         );
         return;
       }
@@ -472,7 +472,7 @@ export function VehicleFormScreen({ navigation }: Props) {
                 text: t("limits.upgradeToPremium"),
                 onPress: () => navigation.navigate("Shop"),
               },
-            ]
+            ],
           );
           return;
         }
@@ -654,7 +654,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               t("vehicleForm.vinLabel"),
-              t("vehicleForm.placeholderVin")
+              t("vehicleForm.placeholderVin"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -671,7 +671,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               `${t("vehicleForm.makeLabel")}`,
-              t("vehicleForm.placeholderMake")
+              t("vehicleForm.placeholderMake"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -692,7 +692,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               `${t("vehicleForm.modelLabel")}`,
-              t("vehicleForm.placeholderModel")
+              t("vehicleForm.placeholderModel"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -715,7 +715,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               `${t("vehicleForm.yearLabel")}`,
-              t("vehicleForm.placeholderYear")
+              t("vehicleForm.placeholderYear"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -737,7 +737,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               `${t("vehicleForm.mileageLabel")} (${distanceUnit})`,
-              t("vehicleForm.placeholderMileage")
+              t("vehicleForm.placeholderMileage"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -777,7 +777,7 @@ export function VehicleFormScreen({ navigation }: Props) {
                     | "vehicleForm.fuelTypeDiesel"
                     | "vehicleForm.fuelTypeHybrid"
                     | "vehicleForm.fuelTypeElectric"
-                    | "vehicleForm.fuelTypeLpg"
+                    | "vehicleForm.fuelTypeLpg",
                 ),
               onChange: setFuelType,
               placeholderLabel: t("common.all"),
@@ -795,7 +795,7 @@ export function VehicleFormScreen({ navigation }: Props) {
               ? t(
                   `vehicleForm.fuelType${
                     fuelType.charAt(0).toUpperCase() + fuelType.slice(1)
-                  }` as any
+                  }` as any,
                 )
               : t("vehicleForm.fuelTypeLabel")}
           </Text>
@@ -816,7 +816,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               t("vehicleForm.engineCapacityLabel"),
-              t("vehicleForm.placeholderEngineCapacity")
+              t("vehicleForm.placeholderEngineCapacity"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -838,7 +838,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               t("vehicleForm.powerHpLabel"),
-              t("vehicleForm.placeholderPowerHp")
+              t("vehicleForm.placeholderPowerHp"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -909,11 +909,7 @@ export function VehicleFormScreen({ navigation }: Props) {
               hitSlop={10}
               style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
             >
-              <Ionicons
-                name="close-circle"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <Ionicons name="close-circle" size={20} color="#000000" />
             </Pressable>
           ) : null}
         </Pressable>
@@ -951,11 +947,7 @@ export function VehicleFormScreen({ navigation }: Props) {
               hitSlop={10}
               style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
             >
-              <Ionicons
-                name="close-circle"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <Ionicons name="close-circle" size={20} color="#000000" />
             </Pressable>
           ) : null}
         </Pressable>
@@ -987,7 +979,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             multiline
             placeholder={makePlaceholder(
               t("vehicleForm.notesLabel"),
-              t("vehicleForm.placeholderNotes")
+              t("vehicleForm.placeholderNotes"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[

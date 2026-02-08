@@ -303,7 +303,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
             style={styles.photoDeleteButton}
             hitSlop={5}
           >
-            <Ionicons name="close" size={16} color={theme.colors.fg} />
+            <Ionicons name="close" size={16} color="#000000" />
           </Pressable>
         )}
       </View>
@@ -518,7 +518,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
                     <View style={styles.vehiclePhotosList}>
                       {vehiclePhotos.map((photo) => {
                         const isSelected = selectedVehiclePhotoIds.has(
-                          photo.id
+                          photo.id,
                         );
                         return (
                           <Pressable

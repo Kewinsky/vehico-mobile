@@ -667,6 +667,12 @@ export function FuelScreen({ route, navigation }: Props) {
             ) : null}
           </View>
         }
+        ItemSeparatorComponent={({ leadingItem }) => {
+          if (leadingItem && leadingItem.type === "separator") {
+            return null;
+          }
+          return <View style={{ height: theme.spacing.sm }} />;
+        }}
         renderItem={({ item }) => {
           if (item.type === "separator") {
             const monthYearText =
