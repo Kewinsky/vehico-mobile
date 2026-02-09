@@ -95,9 +95,9 @@ export const en = {
       "We'll send you a secure link to sign in. No password required.",
     bySigningIn: "By signing in, you agree to our",
     termsOfService: "Terms of Service",
-    rateLimitExceeded: "Too many requests",
+    rateLimitExceeded: "Too many sign-in attempts",
     rateLimitMessage:
-      "Please wait a few minutes before requesting another magic link.",
+      "Please wait a few minutes before trying again.",
     confirmEmailTitle: "Check your email",
     confirmEmailBody:
       "We've sent a confirmation email to {{email}}. Click the link in the email to verify your account.",

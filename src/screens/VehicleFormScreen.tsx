@@ -618,7 +618,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         )}
       </View>
 
-      <View style={{ height: theme.spacing.md }} />
+      <View style={{ height: theme.spacing.xl }} />
 
       <Text style={styles.sectionTitle}>{t("vehicleForm.type")}</Text>
       <SegmentTabs<VehicleType>
@@ -846,7 +846,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         </View>
       </View>
 
-      <View style={{ height: theme.spacing.sm }} />
+      <View style={{ height: theme.spacing.xl }} />
 
       <Text style={styles.sectionTitle}>
         {t("vehicleForm.transmissionLabel")}
@@ -860,7 +860,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         onChange={setTransmission}
       />
 
-      <View style={{ height: theme.spacing.sm }} />
+      <View style={{ height: theme.spacing.xl }} />
 
       <Text style={styles.sectionTitle}>{t("vehicleForm.driveTypeLabel")}</Text>
       <SegmentTabs<DriveType>
@@ -873,7 +873,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         onChange={setDriveType}
       />
 
-      <View style={{ height: theme.spacing.sm }} />
+      <View style={{ height: theme.spacing.xl }} />
 
       <Text style={styles.sectionTitle}>
         {t("dashboard.stats.insuranceAndInspection")}
@@ -954,7 +954,7 @@ export function VehicleFormScreen({ navigation }: Props) {
         {openDatePicker === "inspection" ? renderInlineDatePicker() : null}
       </View>
 
-      <View style={{ height: theme.spacing.sm }} />
+      <View style={{ height: theme.spacing.xl }} />
 
       <Text style={styles.sectionTitle}>{t("vehicleForm.notesLabel")}</Text>
       <View
@@ -1082,9 +1082,7 @@ const makeStyles = (theme: any) =>
       fontWeight: "700",
     },
     photosSection: {
-      gap: theme.spacing.xs,
       marginTop: theme.spacing.sm,
-      marginBottom: theme.spacing.xs / 2,
     },
     photosGrid: {
       flexDirection: "row",

@@ -666,7 +666,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             )}
           </View>
 
-          <View style={{ height: theme.spacing.md }} />
+          <View style={{ height: theme.spacing.xl }} />
 
           <Text style={styles.sectionTitle}>{t("vehicleForm.type")}</Text>
           <SegmentTabs<VehicleType>
@@ -918,7 +918,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             onChange={setTransmission}
           />
 
-          <View style={{ height: theme.spacing.sm }} />
+          <View style={{ height: theme.spacing.xl }} />
 
           <Text style={styles.sectionTitle}>
             {t("vehicleForm.driveTypeLabel")}
@@ -933,7 +933,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             onChange={setDriveType}
           />
 
-          <View style={{ height: theme.spacing.sm }} />
+          <View style={{ height: theme.spacing.xl }} />
 
           <Text style={styles.sectionTitle}>
             {t("dashboard.stats.insuranceAndInspection")}

@@ -96,9 +96,9 @@ export const pl = {
       "Wyślemy Ci bezpieczny link do logowania. Hasło nie jest wymagane.",
     bySigningIn: "Logując się, akceptujesz nasz",
     termsOfService: "Regulamin",
-    rateLimitExceeded: "Zbyt wiele prób",
+    rateLimitExceeded: "Zbyt wiele prób przy logowaniu",
     rateLimitMessage:
-      "Poczekaj kilka minut przed ponownym wysłaniem linku magicznego.",
+      "Poczekaj kilka minut przed ponownym wysłaniem linku.",
     confirmEmailTitle: "Sprawdź swoją skrzynkę",
     confirmEmailBody:
       "Wysłaliśmy e-mail potwierdzający na adres {{email}}. Kliknij link w e-mailu, aby zweryfikować swoje konto.",
@@ -146,7 +146,7 @@ export const pl = {
     getStarted: "Rozpocznij",
     alreadyHaveAccount: "Masz już konto? ",
     terms: "Regulamin",
-    privacy: "Prywatność",
+    privacy: "Polityka prywatności",
   },
   vehicles: {
     title: "Pojazdy",

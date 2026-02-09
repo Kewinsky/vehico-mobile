@@ -62,14 +62,14 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t]
+    [vehicleId, t],
   );
 
   useEffect(() => {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false })
+      () => void load({ showLoading: false }),
     );
     return unsub;
   }, [navigation, load]);
@@ -482,7 +482,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     menuItem: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      paddingHorizontal: theme.spacing.lg,
       paddingVertical: theme.spacing.sm,
       gap: theme.spacing.sm,
     },
