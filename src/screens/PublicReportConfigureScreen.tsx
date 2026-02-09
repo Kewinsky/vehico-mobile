@@ -282,20 +282,19 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           transition={200}
         />
         {item.isVehiclePhoto && (
-          <View style={styles.photoCheckboxContainer}>
-            <Pressable
-              onPress={() => item.photoId && toggleVehiclePhoto(item.photoId)}
-              style={[
-                styles.photoCheckbox,
-                selectedVehiclePhotoIds.has(item.photoId || "") &&
-                  styles.photoCheckboxChecked,
-              ]}
-            >
-              {selectedVehiclePhotoIds.has(item.photoId || "") && (
-                <Ionicons name="checkmark" size={16} color="#000000" />
-              )}
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={() => item.photoId && toggleVehiclePhoto(item.photoId)}
+            style={[
+              styles.photoCheckbox,
+              selectedVehiclePhotoIds.has(item.photoId || "") &&
+                styles.photoCheckboxChecked,
+            ]}
+            hitSlop={5}
+          >
+            {selectedVehiclePhotoIds.has(item.photoId || "") && (
+              <Ionicons name="checkmark" size={16} color="#000000" />
+            )}
+          </Pressable>
         )}
         {!item.isVehiclePhoto && (
           <Pressable
@@ -303,7 +302,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
             style={styles.photoDeleteButton}
             hitSlop={5}
           >
-            <Ionicons name="close" size={16} color="#000000" />
+            <Ionicons name="close" size={16} color={theme.colors.fg} />
           </Pressable>
         )}
       </View>
@@ -534,12 +533,13 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
                               style={styles.vehiclePhotoThumbnail}
                               contentFit="cover"
                             />
-                            <View
+                            <Pressable
                               style={[
                                 styles.vehiclePhotoCheckbox,
                                 isSelected &&
                                   styles.vehiclePhotoCheckboxChecked,
                               ]}
+                              hitSlop={5}
                             >
                               {isSelected && (
                                 <Ionicons
@@ -548,7 +548,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
                                   color="#000000"
                                 />
                               )}
-                            </View>
+                            </Pressable>
                           </Pressable>
                         );
                       })}
@@ -686,16 +686,20 @@ const makeStyles = (theme: any) =>
     vehiclePhotoThumbnail: { width: "100%", height: "100%" },
     vehiclePhotoCheckbox: {
       position: "absolute",
-      top: theme.spacing.xs / 2,
-      right: theme.spacing.xs / 2,
-      width: theme.spacing.lg,
-      height: theme.spacing.lg,
-      borderRadius: theme.radius.sm,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      top: 4,
+      right: 4,
+      width: 28,
+      height: 28,
       alignItems: "center",
       justifyContent: "center",
+      backgroundColor: theme.colors.bg,
+      borderRadius: theme.radius.md,
+      opacity: 0.7,
     },
-    vehiclePhotoCheckboxChecked: { backgroundColor: theme.colors.accent },
+    vehiclePhotoCheckboxChecked: {
+      backgroundColor: theme.colors.accent,
+      opacity: 1,
+    },
     photoCard: { margin: theme.spacing.xs },
     photoImageContainer: {
       width: "100%",
@@ -706,30 +710,33 @@ const makeStyles = (theme: any) =>
       position: "relative",
     },
     photoImage: { width: "100%", height: "100%" },
-    photoCheckboxContainer: {
-      position: "absolute",
-      top: theme.spacing.xs / 2,
-      right: theme.spacing.xs / 2,
-    },
     photoCheckbox: {
-      width: theme.spacing.lg,
-      height: theme.spacing.lg,
-      borderRadius: theme.radius.sm,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      position: "absolute",
+      top: 4,
+      right: 4,
+      width: 28,
+      height: 28,
       alignItems: "center",
       justifyContent: "center",
+      backgroundColor: theme.colors.bg,
+      borderRadius: theme.radius.md,
+      opacity: 0.7,
     },
-    photoCheckboxChecked: { backgroundColor: theme.colors.accent },
+    photoCheckboxChecked: {
+      backgroundColor: theme.colors.accent,
+      opacity: 1,
+    },
     photoDeleteButton: {
       position: "absolute",
-      top: theme.spacing.xs / 2,
-      right: theme.spacing.xs / 2,
-      width: theme.spacing.lg,
-      height: theme.spacing.lg,
-      borderRadius: theme.radius.sm,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      top: 4,
+      right: 4,
+      width: 28,
+      height: 28,
       alignItems: "center",
       justifyContent: "center",
+      backgroundColor: theme.colors.bg,
+      borderRadius: theme.radius.md,
+      opacity: 0.7,
     },
     addPhotoButtons: { marginTop: theme.spacing.md },
     addPhotoButton: { marginBottom: theme.spacing.xs },

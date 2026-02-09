@@ -554,7 +554,7 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             style={styles.photoDeleteButton}
             hitSlop={5}
           >
-            <Ionicons name="close" size={16} color="#000000" />
+            <Ionicons name="close" size={16} color={theme.colors.fg} />
           </Pressable>
         </View>
       </View>
@@ -971,7 +971,11 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                   hitSlop={10}
                   style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
                 >
-                  <Ionicons name="close-circle" size={20} color="#000000" />
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
                 </Pressable>
               ) : null}
             </Pressable>
@@ -1017,7 +1021,11 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                   hitSlop={10}
                   style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
                 >
-                  <Ionicons name="close-circle" size={20} color="#000000" />
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
                 </Pressable>
               ) : null}
             </Pressable>

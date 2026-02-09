@@ -578,7 +578,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                 onPress={() => setFullScreenIndex(null)}
                 hitSlop={12}
               >
-                <Ionicons name="close" size={28} color="#000000" />
+                <Ionicons name="close" size={28} color="#FFFFFF" />
               </Pressable>
               {fullScreenIndex !== null && photoUrls.length > 0 && (
                 <FlatList

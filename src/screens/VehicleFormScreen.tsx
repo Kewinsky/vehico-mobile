@@ -429,7 +429,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             style={styles.photoDeleteButton}
             hitSlop={5}
           >
-            <Ionicons name="close" size={16} color="#000000" />
+            <Ionicons name="close" size={16} color={theme.colors.fg} />
           </Pressable>
         </View>
       </View>
