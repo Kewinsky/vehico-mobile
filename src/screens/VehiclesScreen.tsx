@@ -28,6 +28,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
+import { useAuth } from "../app/providers/AuthProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 
@@ -158,9 +159,25 @@ function VehicleCardImage({
   );
 }
 
+function getFirstName(fullName: string | null | undefined): string {
+  const name = fullName?.trim();
+  if (!name) return "";
+  const parts = name.split(/\s+/).filter(Boolean);
+  return parts[0] ?? "";
+}
+
+/** Returns "morning" | "afternoon" | "evening" based on current hour (local time). */
+function getTimeOfDay(): "morning" | "afternoon" | "evening" {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 18) return "afternoon";
+  return "evening";
+}
+
 export function VehiclesScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const [items, setItems] = useState<Vehicle[]>([]);
@@ -174,6 +191,18 @@ export function VehiclesScreen({ navigation }: Props) {
   const { settings } = useUserSettings();
   const { isPremium, vehiclesLimit } = useEntitlements();
   const distanceUnit = settings?.distanceUnit ?? "km";
+
+  const firstName = getFirstName(user?.user_metadata?.full_name);
+  const timeOfDay = getTimeOfDay();
+  const greetingKey =
+    timeOfDay === "morning"
+      ? "vehicles.greetingMorning"
+      : timeOfDay === "afternoon"
+        ? "vehicles.greetingAfternoon"
+        : "vehicles.greetingEvening";
+  const headerTitle = firstName
+    ? t(greetingKey, { name: firstName })
+    : t("vehicles.title");
 
   // Convert mileage from km to miles if needed
   const formatMileage = (mileage: number | null | undefined): string => {
@@ -261,6 +290,7 @@ export function VehiclesScreen({ navigation }: Props) {
   return (
     <Screen padding={false}>
       <AppHeader
+        title={headerTitle}
         showShopIcon={!isPremium}
         onShopPress={() => navigation.navigate("Shop")}
       />

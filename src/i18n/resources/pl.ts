@@ -238,6 +238,10 @@ export const pl = {
   },
   vehicles: {
     title: "Pojazdy",
+    greeting: "Cześć, {{name}}!",
+    greetingMorning: "Dzień dobry, {{name}}!",
+    greetingAfternoon: "Witaj, {{name}}!",
+    greetingEvening: "Dobry wieczór, {{name}}!",
     emptyTitle: "Brak pojazdów",
     emptyBody: "Dodaj swój pierwszy samochód lub motocykl.",
     addVehicle: "Dodaj pojazd",

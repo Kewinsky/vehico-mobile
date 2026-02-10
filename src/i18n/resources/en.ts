@@ -236,6 +236,10 @@ export const en = {
   },
   vehicles: {
     title: "Vehicles",
+    greeting: "Hello, {{name}}!",
+    greetingMorning: "Good morning, {{name}}!",
+    greetingAfternoon: "Good afternoon, {{name}}!",
+    greetingEvening: "Good evening, {{name}}!",
     emptyTitle: "No vehicles yet",
     emptyBody: "Add your first car or motorcycle.",
     addVehicle: "Add vehicle",

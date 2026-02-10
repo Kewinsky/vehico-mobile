@@ -78,11 +78,14 @@ export function AppHeader({
         ) : null}
       </View>
       {title ? (
-        <Text style={styles.title} numberOfLines={1}>
+        <Text
+          style={[styles.title, onBack ? styles.titleWithBack : undefined]}
+          numberOfLines={2}
+        >
           {title}
         </Text>
       ) : (
-        <View style={styles.center} />
+        <View style={styles.titleSpacer} />
       )}
       <View style={styles.right}>
         {right !== undefined ? (
@@ -148,20 +151,21 @@ const makeStyles = (theme: any) =>
       paddingHorizontal: theme.spacing.md,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
+      justifyContent: "flex-start",
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
       backgroundColor: theme.colors.bg,
     },
     left: {
-      width: theme.spacing.lg * 2,
       alignItems: "flex-start",
       justifyContent: "center",
     },
-    center: {
+    titleSpacer: {
       flex: 1,
+      justifyContent: "center",
     },
     right: {
+      marginLeft: "auto",
       minWidth: theme.spacing.lg * 2,
       alignItems: "flex-end",
       justifyContent: "center",
@@ -197,9 +201,13 @@ const makeStyles = (theme: any) =>
       fontWeight: "700",
     },
     title: {
+      flex: 1,
       color: theme.colors.fg,
-      fontWeight: "800",
-      letterSpacing: 0.2,
-      fontSize: theme.typography.small,
+      fontWeight: "700",
+      fontSize: theme.typography.title,
+      textAlign: "left",
+    },
+    titleWithBack: {
+      marginLeft: theme.spacing.xs,
     },
   });
