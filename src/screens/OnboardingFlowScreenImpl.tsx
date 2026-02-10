@@ -30,6 +30,7 @@ import type {
   TransmissionType,
   VehicleType,
 } from "../types/domain";
+import { normalizeDisplayName } from "../utils/displayName";
 import {
   isNonNegativeNumber,
   isValidProductionYear,
@@ -375,7 +376,7 @@ export function OnboardingFlowScreen({ navigation }: Props) {
       // Create vehicle when entering confirmation step (so step text is true).
       await ensureVehicleCreated();
 
-      const trimmedName = name.trim();
+      const normalizedName = normalizeDisplayName(name);
       const existing = (freshSession.user.user_metadata ?? {}) as Record<
         string,
         any
@@ -384,8 +385,8 @@ export function OnboardingFlowScreen({ navigation }: Props) {
         data: {
           ...existing,
           has_completed_onboarding: true,
-          name: trimmedName,
-          full_name: trimmedName,
+          name: normalizedName,
+          full_name: normalizedName,
         },
       });
       if (error) {

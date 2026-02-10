@@ -8,12 +8,13 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTheme } from "../ThemeProvider";
 import { useAuth } from "../../app/providers/AuthProvider";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { normalizeDisplayName } from "../../utils/displayName";
 
 function getInitials(user: {
   user_metadata?: { full_name?: string };
   email?: string | null;
 }): string {
-  const name = user?.user_metadata?.full_name?.trim();
+  const name = normalizeDisplayName(user?.user_metadata?.full_name);
   if (name) {
     const parts = name.split(/\s+/).filter(Boolean);
     if (parts.length >= 2) {

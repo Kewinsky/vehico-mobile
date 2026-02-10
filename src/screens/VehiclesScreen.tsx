@@ -31,6 +31,7 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { useAuth } from "../app/providers/AuthProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
+import { normalizeDisplayName } from "../utils/displayName";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 
@@ -192,7 +193,10 @@ export function VehiclesScreen({ navigation }: Props) {
   const { isPremium, vehiclesLimit } = useEntitlements();
   const distanceUnit = settings?.distanceUnit ?? "km";
 
-  const firstName = getFirstName(user?.user_metadata?.full_name);
+  const normalizedName = normalizeDisplayName(
+    user?.user_metadata?.full_name as string | undefined,
+  );
+  const firstName = getFirstName(normalizedName);
   const timeOfDay = getTimeOfDay();
   const greetingKey =
     timeOfDay === "morning"

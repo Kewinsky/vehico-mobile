@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useAuth } from "../app/providers/AuthProvider";
+import { normalizeDisplayName } from "../utils/displayName";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
@@ -29,7 +30,7 @@ function getInitials(user: {
   user_metadata?: { full_name?: string };
   email?: string | null;
 }): string {
-  const name = user?.user_metadata?.full_name?.trim();
+  const name = normalizeDisplayName(user?.user_metadata?.full_name);
   if (name) {
     const parts = name.split(/\s+/).filter(Boolean);
     if (parts.length >= 2) {
@@ -58,7 +59,7 @@ export function SettingsScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const displayNameFromUser =
-    (user?.user_metadata?.full_name as string | undefined)?.trim() || "";
+    normalizeDisplayName(user?.user_metadata?.full_name as string | undefined);
   const email = user?.email ?? "";
   const displayLabel = displayNameFromUser || email || "—";
 
@@ -72,14 +73,15 @@ export function SettingsScreen({ navigation }: Props) {
 
   const saveDisplayName = useCallback(async () => {
     const trimmed = editName.trim();
-    if (trimmed === displayNameFromUser) {
+    const normalized = normalizeDisplayName(trimmed || undefined);
+    if (normalized === displayNameFromUser) {
       setIsEditingName(false);
       return;
     }
     try {
       setSaving(true);
       const { error } = await supabase.auth.updateUser({
-        data: { full_name: trimmed || null },
+        data: { full_name: normalized || null },
       });
       if (error) throw error;
       toastSuccess(t("profile.displayNameUpdated"));
