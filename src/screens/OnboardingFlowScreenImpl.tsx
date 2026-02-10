@@ -14,7 +14,7 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as Notifications from "expo-notifications";
@@ -41,6 +41,7 @@ import { supabase } from "../services/supabase/client";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { useAuth } from "../app/providers/AuthProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { DriveTypeIcon } from "../ui/components/DriveTypeIcon";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Onboarding">;
 
@@ -766,8 +767,8 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                   ]}
                 >
                   <View style={styles.row}>
-                    <Ionicons
-                      name="settings-outline"
+                    <MaterialCommunityIcons
+                      name="engine"
                       size={20}
                       color={theme.colors.accent}
                     />
@@ -1191,8 +1192,8 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                           { backgroundColor: theme.colors.accent + "25" },
                         ]}
                       >
-                        <Ionicons
-                          name="settings-outline"
+                        <MaterialCommunityIcons
+                          name="engine"
                           size={18}
                           color={theme.colors.accent}
                         />
@@ -1306,8 +1307,8 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                           { backgroundColor: theme.colors.accent + "25" },
                         ]}
                       >
-                        <Ionicons
-                          name="swap-horizontal-outline"
+                        <MaterialCommunityIcons
+                          name="car-shift-pattern"
                           size={18}
                           color={theme.colors.accent}
                         />
@@ -1347,11 +1348,7 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                           { backgroundColor: theme.colors.accent + "25" },
                         ]}
                       >
-                        <Ionicons
-                          name="git-branch-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
+                        <DriveTypeIcon size={18} color={theme.colors.accent} />
                       </View>
                       <View style={styles.detailContent}>
                         <Text

@@ -526,7 +526,7 @@ export function FuelScreen({ route, navigation }: Props) {
                     <Ionicons
                       name="chevron-forward"
                       size={20}
-                      color={theme.colors.muted}
+                      color={theme.colors.accent}
                     />
                   </Pressable>
 

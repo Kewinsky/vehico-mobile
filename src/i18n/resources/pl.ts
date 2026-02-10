@@ -682,7 +682,7 @@ export const pl = {
     title: "Opona",
     labels: {
       dimensions: "Wymiary",
-      status: "Status",
+      status: "W użyciu",
     },
   },
   wheelDetail: {

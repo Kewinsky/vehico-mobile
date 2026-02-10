@@ -179,7 +179,7 @@ export function TiresListScreen({ route, navigation }: Props) {
                 <Ionicons
                   name="chevron-forward"
                   size={22}
-                  color={theme.colors.muted}
+                  color={theme.colors.accent}
                 />
               </View>
             </View>
@@ -212,6 +212,7 @@ const makeStyles = (theme: any) =>
       marginHorizontal: theme.layout.contentPaddingHorizontal,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
+      marginBottom: theme.spacing.md,
     },
     title: {
       fontSize: theme.typography.largeTitle,

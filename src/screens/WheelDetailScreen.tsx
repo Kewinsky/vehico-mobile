@@ -10,7 +10,9 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, AntDesign } from "@expo/vector-icons";
+import { BoltPatternIcon } from "../ui/components/BoltPatternIcon";
+import { BoltTypeIcon } from "../ui/components/BoltTypeIcon";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { VehicleWheel } from "../types/domain";
@@ -128,219 +130,209 @@ export function WheelDetailScreen({ route, navigation }: Props) {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.content}>
-          <View style={styles.headerRow}>
-            <Text
-              style={[styles.h1, { color: theme.colors.fg }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {wheel.name || t("wheelDetail.title")}
-            </Text>
-            <Pressable
-              onPress={showActionsMenu}
-              hitSlop={10}
-              style={({ pressed }) => [
-                styles.menuButton,
-                pressed && { opacity: 0.6 },
-              ]}
-            >
-              <Ionicons
-                name="ellipsis-horizontal"
-                size={22}
-                color={theme.colors.fg}
-              />
-            </Pressable>
-          </View>
-
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
+        <View style={styles.headerRow}>
+          <Text
+            style={[styles.h1, { color: theme.colors.fg }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {wheel.name || t("wheelDetail.title")}
+          </Text>
+          <Pressable
+            onPress={showActionsMenu}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.menuButton,
+              pressed && { opacity: 0.6 },
             ]}
           >
-            <View style={styles.row}>
-              <Ionicons
-                name="pricetag-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <View style={styles.rowContent}>
-                <Text style={[styles.label, { color: theme.colors.muted }]}>
-                  {t("wheelForm.name")}
-                </Text>
-                <Text
-                  style={[styles.value, { color: theme.colors.fg }]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {wheel.name}
-                </Text>
-              </View>
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            <Ionicons
+              name="ellipsis-horizontal"
+              size={22}
+              color={theme.colors.fg}
             />
-            <View style={styles.row}>
-              <Ionicons
-                name="resize-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <View style={styles.rowContent}>
-                <Text style={[styles.label, { color: theme.colors.muted }]}>
-                  {t("wheelDetail.labels.dimensions")}
-                </Text>
-                <Text style={[styles.value, { color: theme.colors.fg }]}>
-                  {dims}
-                </Text>
-              </View>
-            </View>
-            {wheel.et_offset != null ? (
-              <>
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-                <View style={styles.row}>
-                  <Ionicons
-                    name="speedometer-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <View style={styles.rowContent}>
-                    <Text style={[styles.label, { color: theme.colors.muted }]}>
-                      {t("wheelForm.etOffset")}
-                    </Text>
-                    <Text style={[styles.value, { color: theme.colors.fg }]}>
-                      ET{wheel.et_offset}
-                    </Text>
-                  </View>
-                </View>
-              </>
-            ) : null}
-            {wheel.bolt_pattern?.trim() ? (
-              <>
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-                <View style={styles.row}>
-                  <Ionicons
-                    name="grid-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <View style={styles.rowContent}>
-                    <Text style={[styles.label, { color: theme.colors.muted }]}>
-                      {t("wheelForm.boltPattern")}
-                    </Text>
-                    <Text style={[styles.value, { color: theme.colors.fg }]}>
-                      {wheel.bolt_pattern}
-                    </Text>
-                  </View>
-                </View>
-              </>
-            ) : null}
-            {wheel.center_bore_mm != null ? (
-              <>
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-                <View style={styles.row}>
-                  <Ionicons
-                    name="disc-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <View style={styles.rowContent}>
-                    <Text style={[styles.label, { color: theme.colors.muted }]}>
-                      {t("wheelForm.centerBore")}
-                    </Text>
-                    <Text style={[styles.value, { color: theme.colors.fg }]}>
-                      {t("wheels.centerBoreAbbr")} {wheel.center_bore_mm}mm
-                    </Text>
-                  </View>
-                </View>
-              </>
-            ) : null}
-            {wheel.bolt_type?.trim() ? (
-              <>
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-                <View style={styles.row}>
-                  <Ionicons
-                    name="construct-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <View style={styles.rowContent}>
-                    <Text style={[styles.label, { color: theme.colors.muted }]}>
-                      {t("wheelForm.boltType")}
-                    </Text>
-                    <Text style={[styles.value, { color: theme.colors.fg }]}>
-                      {wheel.bolt_type}
-                    </Text>
-                  </View>
-                </View>
-              </>
-            ) : null}
-            {wheel.weight_kg != null ? (
-              <>
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-                <View style={styles.row}>
-                  <Ionicons
-                    name="barbell-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <View style={styles.rowContent}>
-                    <Text style={[styles.label, { color: theme.colors.muted }]}>
-                      {t("wheelForm.weight")}
-                    </Text>
-                    <Text style={[styles.value, { color: theme.colors.fg }]}>
-                      {wheel.weight_kg} kg
-                    </Text>
-                  </View>
-                </View>
-              </>
-            ) : null}
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+          </Pressable>
+        </View>
+
+        <View
+          style={[
+            styles.card,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <View style={styles.row}>
+            <Ionicons
+              name="pricetag-outline"
+              size={20}
+              color={theme.colors.accent}
             />
-            <View style={styles.row}>
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={20}
-                color={theme.colors.accent}
+            <View style={styles.rowContent}>
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("wheelForm.name")}
+              </Text>
+              <Text
+                style={[styles.value, { color: theme.colors.fg }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {wheel.name}
+              </Text>
+            </View>
+          </View>
+          <View
+            style={[styles.divider, { backgroundColor: theme.colors.border }]}
+          />
+          <View style={styles.row}>
+            <Ionicons
+              name="resize-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <View style={styles.rowContent}>
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("wheelDetail.labels.dimensions")}
+              </Text>
+              <Text style={[styles.value, { color: theme.colors.fg }]}>
+                {dims}
+              </Text>
+            </View>
+          </View>
+          {wheel.et_offset != null ? (
+            <>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
               />
-              <View style={styles.rowContent}>
-                <Text style={[styles.label, { color: theme.colors.muted }]}>
-                  {t("wheelForm.isCurrentlyFitted")}
-                </Text>
-                <Text style={[styles.value, { color: theme.colors.fg }]}>
-                  {wheel.is_currently_fitted ? t("common.yes") : t("common.no")}
-                </Text>
+              <View style={styles.row}>
+                <AntDesign
+                  name="column-width"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <View style={styles.rowContent}>
+                  <Text style={[styles.label, { color: theme.colors.muted }]}>
+                    {t("wheelForm.etOffset")}
+                  </Text>
+                  <Text style={[styles.value, { color: theme.colors.fg }]}>
+                    ET{wheel.et_offset}
+                  </Text>
+                </View>
               </View>
+            </>
+          ) : null}
+          {wheel.bolt_pattern?.trim() ? (
+            <>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <BoltPatternIcon size={20} color={theme.colors.accent} />
+                <View style={styles.rowContent}>
+                  <Text style={[styles.label, { color: theme.colors.muted }]}>
+                    {t("wheelForm.boltPattern")}
+                  </Text>
+                  <Text style={[styles.value, { color: theme.colors.fg }]}>
+                    {wheel.bolt_pattern}
+                  </Text>
+                </View>
+              </View>
+            </>
+          ) : null}
+          {wheel.center_bore_mm != null ? (
+            <>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <Ionicons
+                  name="disc-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <View style={styles.rowContent}>
+                  <Text style={[styles.label, { color: theme.colors.muted }]}>
+                    {t("wheelForm.centerBore")}
+                  </Text>
+                  <Text style={[styles.value, { color: theme.colors.fg }]}>
+                    {wheel.center_bore_mm}mm
+                  </Text>
+                </View>
+              </View>
+            </>
+          ) : null}
+          {wheel.bolt_type?.trim() ? (
+            <>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <BoltTypeIcon size={20} color={theme.colors.accent} />
+                <View style={styles.rowContent}>
+                  <Text style={[styles.label, { color: theme.colors.muted }]}>
+                    {t("wheelForm.boltType")}
+                  </Text>
+                  <Text style={[styles.value, { color: theme.colors.fg }]}>
+                    {wheel.bolt_type}
+                  </Text>
+                </View>
+              </View>
+            </>
+          ) : null}
+          {wheel.weight_kg != null ? (
+            <>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <Ionicons
+                  name="barbell-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <View style={styles.rowContent}>
+                  <Text style={[styles.label, { color: theme.colors.muted }]}>
+                    {t("wheelForm.weight")}
+                  </Text>
+                  <Text style={[styles.value, { color: theme.colors.fg }]}>
+                    {wheel.weight_kg} kg
+                  </Text>
+                </View>
+              </View>
+            </>
+          ) : null}
+          <View
+            style={[styles.divider, { backgroundColor: theme.colors.border }]}
+          />
+          <View style={styles.row}>
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <View style={styles.rowContent}>
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("wheelForm.isCurrentlyFitted")}
+              </Text>
+              <Text style={[styles.value, { color: theme.colors.fg }]}>
+                {wheel.is_currently_fitted ? t("common.yes") : t("common.no")}
+              </Text>
             </View>
           </View>
         </View>

@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { isPositiveNumber, isValidEt, parseDecimal } from "../utils/validation";
@@ -27,6 +27,8 @@ import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { hexToRgba } from "../ui/components/ChoiceChip";
+import { BoltPatternIcon } from "../ui/components/BoltPatternIcon";
+import { BoltTypeIcon } from "../ui/components/BoltTypeIcon";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WheelForm">;
 
@@ -38,7 +40,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
   const { vehicleId, wheelId } = route.params;
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
 
   const [name, setName] = useState("");
@@ -63,7 +65,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
         setEtOffset(wheel.et_offset != null ? String(wheel.et_offset) : "");
         setBoltPattern(wheel.bolt_pattern ?? "");
         setCenterBore(
-          wheel.center_bore_mm != null ? String(wheel.center_bore_mm) : ""
+          wheel.center_bore_mm != null ? String(wheel.center_bore_mm) : "",
         );
         setBoltType(wheel.bolt_type ?? "");
         setWeight(wheel.weight_kg != null ? String(wheel.weight_kg) : "");
@@ -144,7 +146,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
                 text: t("limits.upgradeToPremium"),
                 onPress: () => navigation.navigate("Shop"),
               },
-            ]
+            ],
           );
           return;
         }
@@ -252,7 +254,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               `${t("wheelForm.name")}`,
-              t("wheelForm.placeholderName")
+              t("wheelForm.placeholderName"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -274,7 +276,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               `${t("wheelForm.width")}`,
-              t("wheelForm.placeholderWidth")
+              t("wheelForm.placeholderWidth"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -296,7 +298,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               `${t("wheelForm.diameter")}`,
-              t("wheelForm.placeholderDiameter")
+              t("wheelForm.placeholderDiameter"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -306,8 +308,8 @@ export function WheelFormScreen({ navigation, route }: Props) {
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons
-            name="swap-horizontal-outline"
+          <AntDesign
+            name="column-width"
             size={20}
             color={theme.colors.accent}
           />
@@ -318,7 +320,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               t("wheelForm.etOffset"),
-              t("wheelForm.placeholderEtOffset")
+              t("wheelForm.placeholderEtOffset"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -328,14 +330,14 @@ export function WheelFormScreen({ navigation, route }: Props) {
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons name="grid-outline" size={20} color={theme.colors.accent} />
+          <BoltPatternIcon size={20} color={theme.colors.accent} />
           <TextInput
             value={boltPattern}
             onChangeText={setBoltPattern}
             editable={!saving}
             placeholder={makePlaceholder(
               t("wheelForm.boltPattern"),
-              t("wheelForm.placeholderBoltPattern")
+              t("wheelForm.placeholderBoltPattern"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -357,7 +359,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               t("wheelForm.centerBore"),
-              t("wheelForm.placeholderCenterBore")
+              t("wheelForm.placeholderCenterBore"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -367,18 +369,14 @@ export function WheelFormScreen({ navigation, route }: Props) {
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons
-            name="construct-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <BoltTypeIcon size={20} color={theme.colors.accent} />
           <TextInput
             value={boltType}
             onChangeText={setBoltType}
             editable={!saving}
             placeholder={makePlaceholder(
               t("wheelForm.boltType"),
-              t("wheelForm.placeholderBoltType")
+              t("wheelForm.placeholderBoltType"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -400,7 +398,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               t("wheelForm.weight"),
-              t("wheelForm.placeholderWeight")
+              t("wheelForm.placeholderWeight"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -410,7 +408,11 @@ export function WheelFormScreen({ navigation, route }: Props) {
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons name="car-outline" size={20} color={theme.colors.accent} />
+          <Ionicons
+            name="checkmark-circle-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
           <Text style={[styles.valueText, { color: theme.colors.fg }]}>
             {t("wheelForm.isCurrentlyFitted")}
           </Text>

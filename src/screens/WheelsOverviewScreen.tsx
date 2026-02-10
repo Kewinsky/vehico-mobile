@@ -19,6 +19,8 @@ import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
+import { RimIcon } from "../ui/components/RimIcon";
+import { TireIcon } from "../ui/components/TireIcon";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Wheels">;
 
@@ -49,14 +51,14 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t]
+    [vehicleId, t],
   );
 
   useEffect(() => {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false })
+      () => void load({ showLoading: false }),
     );
     return unsub;
   }, [navigation, load]);
@@ -103,11 +105,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
               },
             ]}
           >
-            <Ionicons
-              name="ellipse-outline"
-              size={32}
-              color={theme.colors.accent}
-            />
+            <TireIcon size={32} color={theme.colors.accent} />
             <Text style={styles.tileTitle}>{t("wheels.tiresSection")}</Text>
           </Pressable>
 
@@ -122,11 +120,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
               },
             ]}
           >
-            <Ionicons
-              name="disc-outline"
-              size={32}
-              color={theme.colors.accent}
-            />
+            <RimIcon size={32} color={theme.colors.accent} />
             <Text style={styles.tileTitle}>{t("wheels.rimsSection")}</Text>
           </Pressable>
         </View>
@@ -146,11 +140,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
           ]}
         >
           <View style={styles.currentRow}>
-            <Ionicons
-              name="ellipse-outline"
-              size={20}
-              color={theme.colors.muted}
-            />
+            <TireIcon size={20} color={theme.colors.muted} />
             <View style={styles.currentRowText}>
               <Text style={[styles.cardLabel, { color: theme.colors.muted }]}>
                 {t("wheels.tiresSection")}
@@ -166,7 +156,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
                   ? `${currentTire.name} · ${formatTireDimensions(
                       currentTire.width_mm,
                       currentTire.aspect_ratio,
-                      currentTire.diameter_inch
+                      currentTire.diameter_inch,
                     )}`
                   : t("wheels.noTires")}
               </Text>
@@ -176,11 +166,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
             style={[styles.divider, { backgroundColor: theme.colors.border }]}
           />
           <View style={styles.currentRow}>
-            <Ionicons
-              name="disc-outline"
-              size={20}
-              color={theme.colors.muted}
-            />
+            <RimIcon size={20} color={theme.colors.muted} />
             <View style={styles.currentRowText}>
               <Text style={[styles.cardLabel, { color: theme.colors.muted }]}>
                 {t("wheels.rimsSection")}
@@ -197,7 +183,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
                 {currentWheel
                   ? `${currentWheel.name} · ${formatWheelDimensions(
                       currentWheel.width_inch,
-                      currentWheel.diameter_inch
+                      currentWheel.diameter_inch,
                     )}`
                   : t("wheels.noWheels")}
               </Text>

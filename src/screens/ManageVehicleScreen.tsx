@@ -13,7 +13,7 @@ import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import { useSharedValue } from "react-native-reanimated";
@@ -26,6 +26,7 @@ import {
   getVehiclePhotoUrl,
 } from "../services/vehicles/uploadPhoto";
 import { AppHeader } from "../ui/components/AppHeader";
+import { DriveTypeIcon } from "../ui/components/DriveTypeIcon";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
@@ -337,8 +338,8 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                         { backgroundColor: theme.colors.accent + "25" },
                       ]}
                     >
-                      <Ionicons
-                        name="settings-outline"
+                      <MaterialCommunityIcons
+                        name="engine"
                         size={18}
                         color={theme.colors.accent}
                       />
@@ -387,8 +388,8 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                         { backgroundColor: theme.colors.accent + "25" },
                       ]}
                     >
-                      <Ionicons
-                        name="cog-outline"
+                      <MaterialCommunityIcons
+                        name="car-shift-pattern"
                         size={18}
                         color={theme.colors.accent}
                       />
@@ -418,8 +419,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                         { backgroundColor: theme.colors.accent + "25" },
                       ]}
                     >
-                      <Ionicons
-                        name="git-branch-outline"
+                      <DriveTypeIcon
                         size={18}
                         color={theme.colors.accent}
                       />

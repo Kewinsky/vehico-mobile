@@ -69,7 +69,11 @@ export function AppHeader({
               pressed && styles.backButtonPressed,
             ]}
           >
-            <Ionicons name="chevron-back" size={22} color={theme.colors.fg} />
+            <Ionicons
+              name="chevron-back"
+              size={22}
+              color={theme.colors.accent}
+            />
           </Pressable>
         ) : null}
       </View>

@@ -709,7 +709,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
                       <Ionicons
                         name="chevron-forward"
                         size={20}
-                        color={theme.colors.muted}
+                        color={theme.colors.accent}
                       />
                     </Pressable>
 

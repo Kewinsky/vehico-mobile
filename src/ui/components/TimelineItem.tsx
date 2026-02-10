@@ -49,7 +49,7 @@ export function TimelineItem({
           <Ionicons
             name="chevron-forward"
             size={22}
-            color={theme.colors.muted}
+            color={theme.colors.accent}
           />
         </View>
       </View>

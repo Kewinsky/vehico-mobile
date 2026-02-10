@@ -679,7 +679,7 @@ export const en = {
     title: "Tire",
     labels: {
       dimensions: "Dimensions",
-      status: "Status",
+      status: "In use",
     },
   },
   wheelDetail: {

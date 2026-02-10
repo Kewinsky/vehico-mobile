@@ -24,6 +24,7 @@ import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
+import { WheelsIcon } from "../ui/components/WheelsIcon";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
@@ -269,6 +270,8 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                 <Fuel size={32} color={theme.colors.accent} />
               ) : item.key === "data" ? (
                 <Database size={32} color={theme.colors.accent} />
+              ) : item.key === "wheels" ? (
+                <WheelsIcon size={48} color={theme.colors.accent} />
               ) : (
                 <Ionicons
                   name={item.icon}

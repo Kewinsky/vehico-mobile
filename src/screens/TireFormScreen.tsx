@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { TireType } from "../types/domain";
@@ -28,6 +28,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { hexToRgba } from "../ui/components/ChoiceChip";
+import { SunSnowIcon } from "lucide-react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "TireForm">;
 
@@ -48,7 +49,7 @@ export function TireFormScreen({ navigation, route }: Props) {
   const { vehicleId, tireId } = route.params;
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
 
   const [name, setName] = useState("");
@@ -186,7 +187,7 @@ export function TireFormScreen({ navigation, route }: Props) {
                 text: t("limits.upgradeToPremium"),
                 onPress: () => navigation.navigate("Shop"),
               },
-            ]
+            ],
           );
           return;
         }
@@ -292,7 +293,51 @@ export function TireFormScreen({ navigation, route }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               `${t("tireForm.name")}`,
-              t("tireForm.placeholderName")
+              t("tireForm.placeholderName"),
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.input, { color: theme.colors.fg }]}
+          />
+        </View>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <View style={styles.row}>
+          <AntDesign
+            name="column-width"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <TextInput
+            value={width}
+            onChangeText={setWidth}
+            keyboardType="number-pad"
+            editable={!saving}
+            placeholder={makePlaceholder(
+              `${t("tireForm.width")}`,
+              t("tireForm.placeholderWidth"),
+            )}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.input, { color: theme.colors.fg }]}
+          />
+        </View>
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <View style={styles.row}>
+          <AntDesign
+            name="column-height"
+            size={20}
+            color={theme.colors.accent}
+          />
+          <TextInput
+            value={profile}
+            onChangeText={setProfile}
+            keyboardType="number-pad"
+            editable={!saving}
+            placeholder={makePlaceholder(
+              `${t("tireForm.profile")}`,
+              t("tireForm.placeholderProfile"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -308,57 +353,13 @@ export function TireFormScreen({ navigation, route }: Props) {
             color={theme.colors.accent}
           />
           <TextInput
-            value={width}
-            onChangeText={setWidth}
-            keyboardType="number-pad"
-            editable={!saving}
-            placeholder={makePlaceholder(
-              `${t("tireForm.width")}`,
-              t("tireForm.placeholderWidth")
-            )}
-            placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
-          />
-        </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <Ionicons
-            name="analytics-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <TextInput
-            value={profile}
-            onChangeText={setProfile}
-            keyboardType="number-pad"
-            editable={!saving}
-            placeholder={makePlaceholder(
-              `${t("tireForm.profile")}`,
-              t("tireForm.placeholderProfile")
-            )}
-            placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
-          />
-        </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <Ionicons
-            name="ellipse-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <TextInput
             value={diameter}
             onChangeText={setDiameter}
             keyboardType="number-pad"
             editable={!saving}
             placeholder={makePlaceholder(
               `${t("tireForm.diameter")}`,
-              t("tireForm.placeholderDiameter")
+              t("tireForm.placeholderDiameter"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -379,11 +380,7 @@ export function TireFormScreen({ navigation, route }: Props) {
           }
           style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
         >
-          <Ionicons
-            name="options-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <SunSnowIcon size={20} color={theme.colors.accent} />
           <Text style={[styles.valueText, { color: theme.colors.fg }]}>
             {tireType
               ? t(`tireForm.types.${tireType}`)
@@ -394,7 +391,11 @@ export function TireFormScreen({ navigation, route }: Props) {
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons name="time-outline" size={20} color={theme.colors.accent} />
+          <Ionicons
+            name="calendar-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
           <TextInput
             value={dot}
             onChangeText={setDot}
@@ -402,7 +403,7 @@ export function TireFormScreen({ navigation, route }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               t("tireForm.dot"),
-              t("tireForm.placeholderDot")
+              t("tireForm.placeholderDot"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -412,7 +413,11 @@ export function TireFormScreen({ navigation, route }: Props) {
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons name="car-outline" size={20} color={theme.colors.accent} />
+          <Ionicons
+            name="checkmark-circle-outline"
+            size={20}
+            color={theme.colors.accent}
+          />
           <Text style={[styles.valueText, { color: theme.colors.fg }]}>
             {t("tireForm.isCurrentlyFitted")}
           </Text>

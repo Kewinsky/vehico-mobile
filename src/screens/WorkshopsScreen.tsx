@@ -32,7 +32,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
   const [items, setItems] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,14 +55,14 @@ export function WorkshopsScreen({ navigation, route }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [t]
+    [t],
   );
 
   useEffect(() => {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false })
+      () => void load({ showLoading: false }),
     );
     return unsub;
   }, [navigation, load]);
@@ -78,7 +78,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
         (w) =>
           w.name.toLowerCase().includes(q) ||
           (w.phone_number ?? "").toLowerCase().includes(q) ||
-          (w.address ?? "").toLowerCase().includes(q)
+          (w.address ?? "").toLowerCase().includes(q),
       );
     }
     const sorted = [...list].sort((a, b) => {
@@ -142,7 +142,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
             text: t("limits.upgradeToPremium"),
             onPress: () => navigation.navigate("Shop"),
           },
-        ]
+        ],
       );
       return;
     }
@@ -331,7 +331,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
                     <Ionicons
                       name="chevron-forward"
                       size={20}
-                      color={theme.colors.muted}
+                      color={theme.colors.accent}
                     />
                   </Pressable>
 
@@ -443,7 +443,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
                 <Ionicons
                   name="chevron-forward"
                   size={22}
-                  color={theme.colors.muted}
+                  color={theme.colors.accent}
                 />
               </View>
             </View>
@@ -462,7 +462,7 @@ function makeStyles(theme: any) {
       backgroundColor: theme.colors.bg,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
-      marginBottom: theme.spacing.sm,
+      marginBottom: theme.spacing.md,
     },
     header: {
       gap: theme.spacing.xs / 2,

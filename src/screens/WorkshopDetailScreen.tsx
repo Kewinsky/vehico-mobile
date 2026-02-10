@@ -64,7 +64,7 @@ export function WorkshopDetailScreen({ navigation, route }: Props) {
         else setLoading(false);
       }
     },
-    [workshopId, t]
+    [workshopId, t],
   );
 
   useEffect(() => {
@@ -370,7 +370,7 @@ export function WorkshopDetailScreen({ navigation, route }: Props) {
                 <Ionicons
                   name="chevron-forward"
                   size={22}
-                  color={theme.colors.muted}
+                  color={theme.colors.accent}
                 />
               </View>
             </View>
