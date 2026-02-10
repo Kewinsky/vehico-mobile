@@ -690,109 +690,149 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
             ]}
           >
             <View style={styles.row}>
-              <Ionicons
-                name="barcode-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="barcode-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("vehicleForm.vinLabel")}
+                </Text>
+              </View>
               <TextInput
                 value={vin}
                 onChangeText={setVin}
                 autoCapitalize="characters"
                 editable={!saving}
-                placeholder={makePlaceholder(
-                  t("vehicleForm.vinLabel"),
-                  t("vehicleForm.placeholderVin"),
-                )}
+                placeholder={t("vehicleForm.placeholderVin")}
                 placeholderTextColor={theme.colors.muted}
-                style={[styles.input, { color: theme.colors.fg }]}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
               />
             </View>
             <View
               style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
             <View style={styles.row}>
-              <Ionicons
-                name="car-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="car-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("vehicleForm.makeLabel")}
+                </Text>
+              </View>
               <TextInput
                 value={make}
                 onChangeText={setMake}
                 editable={!saving}
-                placeholder={makePlaceholder(
-                  t("vehicleForm.makeLabel"),
-                  t("vehicleForm.placeholderMake"),
-                )}
+                placeholder={t("vehicleForm.placeholderMake")}
                 placeholderTextColor={theme.colors.muted}
-                style={[styles.input, { color: theme.colors.fg }]}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
               />
             </View>
             <View
               style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
             <View style={styles.row}>
-              <Ionicons
-                name="pricetag-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="pricetag-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("vehicleForm.modelLabel")}
+                </Text>
+              </View>
               <TextInput
                 value={model}
                 onChangeText={setModel}
                 editable={!saving}
-                placeholder={makePlaceholder(
-                  t("vehicleForm.modelLabel"),
-                  t("vehicleForm.placeholderModel"),
-                )}
+                placeholder={t("vehicleForm.placeholderModel")}
                 placeholderTextColor={theme.colors.muted}
-                style={[styles.input, { color: theme.colors.fg }]}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
               />
             </View>
             <View
               style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
             <View style={styles.row}>
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("vehicleForm.yearLabel")}
+                </Text>
+              </View>
               <TextInput
                 value={year}
                 onChangeText={setYear}
                 keyboardType="number-pad"
                 maxLength={4}
                 editable={!saving}
-                placeholder={makePlaceholder(
-                  t("vehicleForm.yearLabel"),
-                  t("vehicleForm.placeholderYear"),
-                )}
+                placeholder={t("vehicleForm.placeholderYear")}
                 placeholderTextColor={theme.colors.muted}
-                style={[styles.input, { color: theme.colors.fg }]}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
               />
             </View>
             <View
               style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
             <View style={styles.row}>
-              <Ionicons
-                name="speedometer-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="speedometer-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("vehicleForm.mileageLabel")} ({distanceUnit})
+                </Text>
+              </View>
               <TextInput
                 value={mileage}
                 onChangeText={setMileage}
                 keyboardType="number-pad"
                 editable={!saving}
-                placeholder={makePlaceholder(
-                  `${t("vehicleForm.mileageLabel")} (${distanceUnit})`,
-                  t("vehicleForm.placeholderMileage"),
-                )}
+                placeholder={t("vehicleForm.placeholderMileage")}
                 placeholderTextColor={theme.colors.muted}
-                style={[styles.input, { color: theme.colors.fg }]}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
               />
             </View>
           </View>
@@ -840,63 +880,96 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                 pressed && { opacity: 0.75 },
               ]}
             >
-              <Ionicons
-                name="water-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="water-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("vehicleForm.fuelTypeLabel")}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color: fuelType ? theme.colors.fg : theme.colors.muted,
+                    textAlign: "right",
+                  },
+                ]}
+                numberOfLines={1}
+              >
                 {fuelType
                   ? t(
                       `vehicleForm.fuelType${
                         fuelType.charAt(0).toUpperCase() + fuelType.slice(1)
                       }` as any,
                     )
-                  : t("vehicleForm.fuelTypeLabel")}
+                  : t("common.all")}
               </Text>
             </Pressable>
             <View
               style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
             <View style={styles.row}>
-              <Ionicons
-                name="construct-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="construct-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("vehicleForm.engineCapacityLabel")}
+                </Text>
+              </View>
               <TextInput
                 value={engineCapacity}
                 onChangeText={setEngineCapacity}
                 keyboardType="number-pad"
                 editable={!saving}
-                placeholder={makePlaceholder(
-                  t("vehicleForm.engineCapacityLabel"),
-                  t("vehicleForm.placeholderEngineCapacity"),
-                )}
+                placeholder={t("vehicleForm.placeholderEngineCapacity")}
                 placeholderTextColor={theme.colors.muted}
-                style={[styles.input, { color: theme.colors.fg }]}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
               />
             </View>
             <View
               style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
             <View style={styles.row}>
-              <Ionicons
-                name="flash-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="flash-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("vehicleForm.powerHpLabel")}
+                </Text>
+              </View>
               <TextInput
                 value={powerHp}
                 onChangeText={setPowerHp}
                 keyboardType="number-pad"
                 editable={!saving}
-                placeholder={makePlaceholder(
-                  t("vehicleForm.powerHpLabel"),
-                  t("vehicleForm.placeholderPowerHp"),
-                )}
+                placeholder={t("vehicleForm.placeholderPowerHp")}
                 placeholderTextColor={theme.colors.muted}
-                style={[styles.input, { color: theme.colors.fg }]}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
               />
             </View>
           </View>
@@ -954,30 +1027,52 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                 pressed && { opacity: 0.75 },
               ]}
             >
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.valueText, { color: theme.colors.fg }]}>
-                {insuranceValidUntil || t("manageVehicle.insuranceLabel")}
-              </Text>
-              {insuranceValidUntil ? (
-                <Pressable
-                  onPress={(e) => {
-                    e?.stopPropagation?.();
-                    setInsuranceValidUntil("");
-                  }}
-                  hitSlop={10}
-                  style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
                 >
-                  <Ionicons
-                    name="close-circle"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                </Pressable>
-              ) : null}
+                  {t("manageVehicle.insuranceLabel")}
+                </Text>
+              </View>
+              <View style={styles.rowRight}>
+                <Text
+                  style={[
+                    styles.valueText,
+                    {
+                      color: insuranceValidUntil
+                        ? theme.colors.fg
+                        : theme.colors.muted,
+                      textAlign: "right",
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {insuranceValidUntil || "—"}
+                </Text>
+                {insuranceValidUntil ? (
+                  <Pressable
+                    onPress={(e) => {
+                      e?.stopPropagation?.();
+                      setInsuranceValidUntil("");
+                    }}
+                    hitSlop={10}
+                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                  >
+                    <Ionicons
+                      name="close-circle"
+                      size={20}
+                      color={theme.colors.fg}
+                      style={{ marginLeft: theme.spacing.xs }}
+                    />
+                  </Pressable>
+                ) : null}
+              </View>
             </Pressable>
             {openDatePicker === "insurance" ? (
               <>
@@ -1004,30 +1099,52 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
                 pressed && { opacity: 0.75 },
               ]}
             >
-              <Ionicons
-                name="document-text-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.valueText, { color: theme.colors.fg }]}>
-                {inspectionValidUntil || t("manageVehicle.inspectionLabel")}
-              </Text>
-              {inspectionValidUntil ? (
-                <Pressable
-                  onPress={(e) => {
-                    e?.stopPropagation?.();
-                    setInspectionValidUntil("");
-                  }}
-                  hitSlop={10}
-                  style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
                 >
-                  <Ionicons
-                    name="close-circle"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                </Pressable>
-              ) : null}
+                  {t("manageVehicle.inspectionLabel")}
+                </Text>
+              </View>
+              <View style={styles.rowRight}>
+                <Text
+                  style={[
+                    styles.valueText,
+                    {
+                      color: inspectionValidUntil
+                        ? theme.colors.fg
+                        : theme.colors.muted,
+                      textAlign: "right",
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {inspectionValidUntil || "—"}
+                </Text>
+                {inspectionValidUntil ? (
+                  <Pressable
+                    onPress={(e) => {
+                      e?.stopPropagation?.();
+                      setInspectionValidUntil("");
+                    }}
+                    hitSlop={10}
+                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                  >
+                    <Ionicons
+                      name="close-circle"
+                      size={20}
+                      color={theme.colors.fg}
+                      style={{ marginLeft: theme.spacing.xs }}
+                    />
+                  </Pressable>
+                ) : null}
+              </View>
             </Pressable>
             {openDatePicker === "inspection" ? renderInlineDatePicker() : null}
           </View>
@@ -1044,28 +1161,36 @@ export function ManageVehicleEditScreen({ navigation, route }: Props) {
               },
             ]}
           >
-            <View style={[styles.row, styles.rowMultiline]}>
-              <Ionicons
-                name="create-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <FollowCursorTextInput
-                value={notes}
-                onChangeText={setNotes}
-                editable={!saving}
-                multiline
-                placeholder={makePlaceholder(
-                  t("vehicleForm.notesLabel"),
-                  t("vehicleForm.placeholderNotes"),
-                )}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  styles.inputMultiline,
-                  { color: theme.colors.fg },
-                ]}
-              />
+            <View
+              style={{
+                paddingVertical: theme.spacing.sm,
+                paddingHorizontal: theme.spacing.md,
+              }}
+            >
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="create-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("vehicleForm.notesLabel")}
+                </Text>
+              </View>
+              <View style={{ marginTop: theme.spacing.xs }}>
+                <FollowCursorTextInput
+                  value={notes}
+                  onChangeText={setNotes}
+                  editable={!saving}
+                  multiline
+                  placeholder={t("vehicleForm.placeholderNotes")}
+                  placeholderTextColor={theme.colors.muted}
+                  style={[styles.inputMultiline, { color: theme.colors.fg }]}
+                />
+              </View>
             </View>
           </View>
         </>
@@ -1118,6 +1243,20 @@ const makeStyles = (theme: any) =>
       paddingVertical: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
     },
+    rowLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      flex: 0,
+      flexShrink: 1,
+    },
+    rowRight: {
+      flex: 1,
+      minWidth: 0,
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+    },
     rowMultiline: { alignItems: "flex-start" },
     divider: { height: 1, width: "100%" },
     input: {
@@ -1127,6 +1266,10 @@ const makeStyles = (theme: any) =>
       paddingVertical: 0,
     },
     inputMultiline: { minHeight: 96, paddingTop: 2 },
+    label: {
+      fontSize: theme.typography.body,
+      fontWeight: "600",
+    },
     valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
     pickerWrap: {
       borderTopWidth: 1,

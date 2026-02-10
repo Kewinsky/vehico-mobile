@@ -74,18 +74,18 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const [type, setType] = useState<ReminderType>("time");
   const [status, setStatus] = useState<ReminderStatus>("active");
   const [dueDate, setDueDate] = useState(() =>
-    new Date().toISOString().slice(0, 10)
+    new Date().toISOString().slice(0, 10),
   );
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [datePickerDraft, setDatePickerDraft] = useState<Date>(
-    () => new Date()
+    () => new Date(),
   );
   const [dueMileage, setDueMileage] = useState("");
   const [daysBefore, setDaysBefore] = useState("7");
   const [saving, setSaving] = useState(false);
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
 
   useEffect(() => {
@@ -151,7 +151,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             }
           },
         },
-      ]
+      ],
     );
   }
 
@@ -183,7 +183,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                 text: t("limits.upgradeToPremium"),
                 onPress: () => navigation.navigate("Shop"),
               },
-            ]
+            ],
           );
           return;
         }
@@ -285,21 +285,29 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         ]}
       >
         <View style={styles.row}>
-          <Ionicons
-            name="document-text-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="document-text-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("reminderForm.titleLabel")}
+            </Text>
+          </View>
           <TextInput
             value={title}
             onChangeText={setTitle}
-            placeholder={makePlaceholder(
-              `${t("reminderForm.titleLabel")}`,
-              t("reminderForm.placeholderTitle")
-            )}
+            placeholder={t("reminderForm.placeholderTitle")}
             placeholderTextColor={theme.colors.muted}
             editable={!saving}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
             autoCorrect={false}
           />
         </View>
@@ -308,11 +316,19 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         />
 
         <View style={styles.row}>
-          <Ionicons
-            name="options-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="options-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("reminderForm.type")}
+            </Text>
+          </View>
           <View style={styles.segmentWrap}>
             <Pressable
               onPress={() => setType("time")}
@@ -385,13 +401,30 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                 pressed && !saving ? { opacity: 0.85 } : null,
               ]}
             >
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.valueText, { color: theme.colors.fg }]}>
-                {makePlaceholder(t("reminderForm.dueDate"), dueDate)}
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("reminderForm.dueDate")}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color: theme.colors.fg,
+                    textAlign: "right",
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {dueDate}
               </Text>
             </Pressable>
 
@@ -472,40 +505,59 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             />
 
             <View style={styles.row}>
-              <Ionicons
-                name="notifications-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="notifications-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("reminderForm.daysBefore")}
+                </Text>
+              </View>
               <TextInput
                 value={daysBefore}
                 onChangeText={setDaysBefore}
-                placeholder={makePlaceholder(t("reminderForm.daysBefore"), "7")}
+                placeholder="7"
                 placeholderTextColor={theme.colors.muted}
                 keyboardType="number-pad"
                 editable={!saving}
-                style={[styles.input, { color: theme.colors.fg }]}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
               />
             </View>
           </>
         ) : (
           <View style={styles.row}>
-            <Ionicons
-              name="speedometer-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="speedometer-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text
+                style={[styles.label, { color: theme.colors.muted }]}
+                numberOfLines={1}
+              >
+                {t("reminderForm.dueMileage", { unit: distanceUnit })}
+              </Text>
+            </View>
             <TextInput
               value={dueMileage}
               onChangeText={setDueMileage}
-              placeholder={makePlaceholder(
-                t("reminderForm.dueMileage", { unit: distanceUnit }),
-                t("reminderForm.placeholderDueMileage")
-              )}
+              placeholder={t("reminderForm.placeholderDueMileage")}
               placeholderTextColor={theme.colors.muted}
               keyboardType="number-pad"
               editable={!saving}
-              style={[styles.input, { color: theme.colors.fg }]}
+              style={[
+                styles.input,
+                { color: theme.colors.fg, textAlign: "right" },
+              ]}
             />
           </View>
         )}
@@ -522,29 +574,37 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           },
         ]}
       >
-        <View style={[styles.row, styles.rowMultiline]}>
-          <Ionicons
-            name="create-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <FollowCursorTextInput
-            value={notes}
-            onChangeText={setNotes}
-            placeholder={makePlaceholder(
-              t("reminderForm.notesLabel"),
-              t("reminderForm.placeholderNotes")
-            )}
-            placeholderTextColor={theme.colors.muted}
-            editable={!saving}
-            multiline
-            textAlignVertical="top"
-            style={[
-              styles.input,
-              styles.inputMultiline,
-              { color: theme.colors.fg },
-            ]}
-          />
+        <View
+          style={{
+            paddingVertical: theme.spacing.sm,
+            paddingHorizontal: theme.spacing.md,
+          }}
+        >
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="create-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("reminderForm.notesLabel")}
+            </Text>
+          </View>
+          <View style={{ marginTop: theme.spacing.xs }}>
+            <FollowCursorTextInput
+              value={notes}
+              onChangeText={setNotes}
+              placeholder={t("reminderForm.placeholderNotes")}
+              placeholderTextColor={theme.colors.muted}
+              editable={!saving}
+              multiline
+              textAlignVertical="top"
+              style={[styles.inputMultiline, { color: theme.colors.fg }]}
+            />
+          </View>
         </View>
       </View>
 
@@ -561,11 +621,19 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             ]}
           >
             <View style={styles.row}>
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("reminderForm.status")}
+                </Text>
+              </View>
               <View style={styles.segmentWrap}>
                 <Pressable
                   onPress={() => setStatus("active")}
@@ -674,6 +742,20 @@ const makeStyles = (theme: any) =>
       paddingVertical: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
     },
+    rowLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      flex: 0,
+      flexShrink: 1,
+    },
+    rowRight: {
+      flex: 1,
+      minWidth: 0,
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+    },
     rowMultiline: {
       alignItems: "flex-start",
     },
@@ -690,6 +772,10 @@ const makeStyles = (theme: any) =>
     inputMultiline: {
       minHeight: 96,
       paddingTop: 2,
+    },
+    label: {
+      fontSize: theme.typography.body,
+      fontWeight: "600",
     },
     valueText: {
       flex: 1,
@@ -718,7 +804,7 @@ const makeStyles = (theme: any) =>
       borderColor: theme.colors.border,
     },
     segmentText: {
-      fontSize: theme.typography.body,
+      fontSize: theme.typography.small,
       fontWeight: "700",
     },
     pickerWrap: {

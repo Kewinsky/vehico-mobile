@@ -412,7 +412,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
         renderItem={({ item }) => (
           <Pressable
             onPress={() =>
-              navigation.navigate("WorkshopDetail", { workshopId: item.id })
+              navigation.navigate("WorkshopForm", { workshopId: item.id })
             }
             style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
           >

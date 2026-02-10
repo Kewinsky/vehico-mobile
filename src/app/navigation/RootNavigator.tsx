@@ -44,7 +44,6 @@ import { WheelsListScreen } from "../../screens/WheelsListScreen";
 import { TireFormScreen } from "../../screens/TireFormScreen";
 import { WheelFormScreen } from "../../screens/WheelFormScreen";
 import { WorkshopsScreen } from "../../screens/WorkshopsScreen";
-import { WorkshopDetailScreen } from "../../screens/WorkshopDetailScreen";
 import { WorkshopFormScreen } from "../../screens/WorkshopFormScreen";
 import { ShopScreen } from "../../screens/ShopScreen";
 import { AppearanceScreen } from "../../screens/AppearanceScreen";
@@ -144,7 +143,6 @@ export type AppStackParamList = {
   TireForm: { vehicleId: string; tireId?: string };
   WheelForm: { vehicleId: string; wheelId?: string };
   Workshops: undefined;
-  WorkshopDetail: { workshopId: string };
   WorkshopForm: { workshopId?: string };
   Shop: undefined;
 };
@@ -269,10 +267,6 @@ export function RootNavigator() {
           <Stack.Screen name="TireForm" component={TireFormScreen} />
           <Stack.Screen name="WheelForm" component={WheelFormScreen} />
           <Stack.Screen name="Workshops" component={WorkshopsScreen} />
-          <Stack.Screen
-            name="WorkshopDetail"
-            component={WorkshopDetailScreen}
-          />
           <Stack.Screen name="WorkshopForm" component={WorkshopFormScreen} />
           <Stack.Screen name="Shop" component={ShopScreen} />
         </>

@@ -248,21 +248,29 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
         ]}
       >
         <View style={styles.row}>
-          <Ionicons
-            name="business-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="business-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("workshopForm.name")}
+            </Text>
+          </View>
           <TextInput
             value={name}
             onChangeText={setName}
             editable={!saving}
-            placeholder={makePlaceholder(
-              `${t("workshopForm.name")}`,
-              t("workshopForm.placeholderName")
-            )}
+            placeholder={t("workshopForm.placeholderName")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </View>
         <View
@@ -280,54 +288,87 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
           }
           style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
         >
-          <Ionicons
-            name="briefcase-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="briefcase-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("workshopForm.workshopType")}
+            </Text>
+          </View>
+          <Text
+            style={[
+              styles.valueText,
+              {
+                color: workshopType ? theme.colors.fg : theme.colors.muted,
+                textAlign: "right",
+              },
+            ]}
+            numberOfLines={1}
+          >
             {workshopType
               ? t(`workshopForm.types.${workshopType}`)
-              : `${t("workshopForm.workshopType")}`}
+              : "—"}
           </Text>
         </Pressable>
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons name="call-outline" size={20} color={theme.colors.accent} />
+          <View style={styles.rowLeft}>
+            <Ionicons name="call-outline" size={20} color={theme.colors.accent} />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("workshopForm.phoneNumber")}
+            </Text>
+          </View>
           <TextInput
             value={phoneNumber}
             onChangeText={setPhoneNumber}
             keyboardType="phone-pad"
             editable={!saving}
-            placeholder={makePlaceholder(
-              t("workshopForm.phoneNumber"),
-              t("workshopForm.placeholderPhone")
-            )}
+            placeholder={t("workshopForm.placeholderPhone")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </View>
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons
-            name="location-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="location-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("workshopForm.address")}
+            </Text>
+          </View>
           <TextInput
             value={address}
             onChangeText={setAddress}
             editable={!saving}
-            placeholder={makePlaceholder(
-              t("workshopForm.address"),
-              t("workshopForm.placeholderAddress")
-            )}
+            placeholder={t("workshopForm.placeholderAddress")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </View>
       </View>
@@ -379,12 +420,30 @@ function makeStyles(theme: any) {
       paddingVertical: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
     },
+    rowLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      flex: 0,
+      flexShrink: 1,
+    },
+    rowRight: {
+      flex: 1,
+      minWidth: 0,
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+    },
     divider: { height: 1, width: "100%" },
     input: {
       flex: 1,
       minWidth: 0,
       fontSize: theme.typography.body,
       paddingVertical: 0,
+    },
+    label: {
+      fontSize: theme.typography.body,
+      fontWeight: "600",
     },
     valueText: {
       flex: 1,

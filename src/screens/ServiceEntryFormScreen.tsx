@@ -85,18 +85,18 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const distanceUnit = settings?.distanceUnit ?? "km";
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
 
   type EntryRow = { title: string; cost: string };
   type FormMode = "single" | "multi";
   const [mode, setMode] = useState<FormMode>("single");
   const [serviceDate, setServiceDate] = useState(() =>
-    new Date().toISOString().slice(0, 10)
+    new Date().toISOString().slice(0, 10),
   );
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [datePickerDraft, setDatePickerDraft] = useState<Date>(
-    () => new Date()
+    () => new Date(),
   );
   const [mileage, setMileage] = useState("");
   const [category, setCategory] = useState<ServiceEntryCategory | null>(null);
@@ -128,7 +128,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     }) => {
       await uploadAttachment(params);
     },
-    []
+    [],
   );
 
   const reloadAttachments = useCallback(async (id: string) => {
@@ -174,7 +174,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
   function updateEntry(index: number, patch: Partial<EntryRow>) {
     setEntries((prev) =>
-      prev.map((row, i) => (i === index ? { ...row, ...patch } : row))
+      prev.map((row, i) => (i === index ? { ...row, ...patch } : row)),
     );
   }
 
@@ -221,7 +221,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             }
           },
         },
-      ]
+      ],
     );
   }
 
@@ -314,7 +314,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           onPress: () => void pickFromGallery(),
         },
         { text: t("attachments.files"), onPress: () => void pickFromFiles() },
-      ]
+      ],
     );
   }
 
@@ -630,12 +630,26 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           onPress={openDatePicker}
           style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
         >
-          <Ionicons
-            name="calendar-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="calendar-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("entryForm.serviceDate")}
+            </Text>
+          </View>
+          <Text
+            style={[
+              styles.valueText,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
+            numberOfLines={1}
+          >
             {serviceDate}
           </Text>
         </Pressable>
@@ -726,20 +740,37 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               options: CATEGORY_OPTIONS,
               getLabel: (v) => t(`entryForm.categories.${v}` as any),
               onChange: setCategory,
-              placeholderLabel: t("entryForm.category"),
+              placeholderLabel: t("entryForm.categoryPlaceholder"),
             })
           }
           style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
         >
-          <Ionicons
-            name="pricetag-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="pricetag-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("entryForm.category")}
+            </Text>
+          </View>
+          <Text
+            style={[
+              styles.valueText,
+              {
+                color: category ? theme.colors.fg : theme.colors.muted,
+                textAlign: "right",
+              },
+            ]}
+            numberOfLines={1}
+          >
             {category
               ? t(`entryForm.categories.${category}` as any)
-              : `${t("entryForm.category")}`}
+              : t("entryForm.categoryPlaceholder")}
           </Text>
         </Pressable>
         <View
@@ -758,14 +789,31 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           }
           style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
         >
-          <Ionicons
-            name="business-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <Text style={[styles.valueText, { color: theme.colors.fg }]}>
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="business-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("entryForm.workshop")}
+            </Text>
+          </View>
+          <Text
+            style={[
+              styles.valueText,
+              {
+                color: workshopId ? theme.colors.fg : theme.colors.muted,
+                textAlign: "right",
+              },
+            ]}
+            numberOfLines={1}
+          >
             {workshopId
-              ? workshops.find((w) => w.id === workshopId)?.name ?? workshopId
+              ? (workshops.find((w) => w.id === workshopId)?.name ?? workshopId)
               : t("entryForm.workshopPlaceholder")}
           </Text>
         </Pressable>
@@ -773,22 +821,30 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons
-            name="speedometer-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="speedometer-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("entryForm.mileage")} ({distanceUnit})
+            </Text>
+          </View>
           <TextInput
             value={mileage}
             onChangeText={setMileage}
             keyboardType="number-pad"
             editable={!saving && !uploading}
-            placeholder={makePlaceholder(
-              `${t("entryForm.mileage")} (${distanceUnit})`,
-              t("entryForm.placeholderMileage")
-            )}
+            placeholder={t("entryForm.placeholderMileage")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </View>
       </View>
@@ -809,21 +865,29 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 ]}
               >
                 <View style={styles.row}>
-                  <Ionicons
-                    name="document-text-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
+                  <View style={styles.rowLeft}>
+                    <Ionicons
+                      name="document-text-outline"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
+                    <Text
+                      style={[styles.label, { color: theme.colors.muted }]}
+                      numberOfLines={1}
+                    >
+                      {t("entryForm.entryTitle")}
+                    </Text>
+                  </View>
                   <TextInput
                     value={row.title}
                     onChangeText={(text) => updateEntry(index, { title: text })}
                     editable={!saving && !uploading}
-                    placeholder={makePlaceholder(
-                      `${t("entryForm.entryTitle")}`,
-                      t("entryForm.placeholderTitle")
-                    )}
+                    placeholder={t("entryForm.placeholderTitle")}
                     placeholderTextColor={theme.colors.muted}
-                    style={[styles.input, { color: theme.colors.fg }]}
+                    style={[
+                      styles.input,
+                      { color: theme.colors.fg, textAlign: "right" },
+                    ]}
                   />
                 </View>
                 <View
@@ -833,22 +897,30 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   ]}
                 />
                 <View style={styles.row}>
-                  <Ionicons
-                    name="cash-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
+                  <View style={styles.rowLeft}>
+                    <Ionicons
+                      name="cash-outline"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
+                    <Text
+                      style={[styles.label, { color: theme.colors.muted }]}
+                      numberOfLines={1}
+                    >
+                      {t("entryForm.cost")}
+                    </Text>
+                  </View>
                   <TextInput
                     value={row.cost}
                     onChangeText={(text) => updateEntry(index, { cost: text })}
                     keyboardType="decimal-pad"
                     editable={!saving && !uploading}
-                    placeholder={makePlaceholder(
-                      t("entryForm.cost"),
-                      t("entryForm.placeholderCost")
-                    )}
+                    placeholder={t("entryForm.placeholderCost")}
                     placeholderTextColor={theme.colors.muted}
-                    style={[styles.input, { color: theme.colors.fg }]}
+                    style={[
+                      styles.input,
+                      { color: theme.colors.fg, textAlign: "right" },
+                    ]}
                   />
                   {isMultipleRows && (!entryId || index > 0) ? (
                     <Pressable
@@ -898,43 +970,59 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             ]}
           >
             <View style={styles.row}>
-              <Ionicons
-                name="document-text-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("entryForm.entryTitle")}
+                </Text>
+              </View>
               <TextInput
                 value={entries[0]?.title ?? ""}
                 onChangeText={(text) => updateEntry(0, { title: text })}
                 editable={!saving && !uploading}
-                placeholder={makePlaceholder(
-                  `${t("entryForm.entryTitle")}`,
-                  t("entryForm.placeholderTitle")
-                )}
+                placeholder={t("entryForm.placeholderTitle")}
                 placeholderTextColor={theme.colors.muted}
-                style={[styles.input, { color: theme.colors.fg }]}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
               />
             </View>
             <View
               style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
             <View style={styles.row}>
-              <Ionicons
-                name="cash-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="cash-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("entryForm.cost")}
+                </Text>
+              </View>
               <TextInput
                 value={entries[0]?.cost ?? ""}
                 onChangeText={(text) => updateEntry(0, { cost: text })}
                 keyboardType="decimal-pad"
                 editable={!saving && !uploading}
-                placeholder={makePlaceholder(
-                  t("entryForm.cost"),
-                  t("entryForm.placeholderCost")
-                )}
+                placeholder={t("entryForm.placeholderCost")}
                 placeholderTextColor={theme.colors.muted}
-                style={[styles.input, { color: theme.colors.fg }]}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
               />
             </View>
           </View>
@@ -949,28 +1037,39 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               },
             ]}
           >
-            <View style={[styles.row, styles.rowMultiline]}>
-              <Ionicons
-                name="create-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <FollowCursorTextInput
-                value={description}
-                onChangeText={setDescription}
-                editable={!saving && !uploading}
-                multiline
-                placeholder={makePlaceholder(
-                  t("entryForm.description"),
-                  t("entryForm.placeholderDescription")
-                )}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  styles.inputMultiline,
-                  { color: theme.colors.fg },
-                ]}
-              />
+            <View
+              style={{
+                paddingVertical: theme.spacing.sm,
+                paddingHorizontal: theme.spacing.md,
+              }}
+            >
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="create-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("entryForm.description")}
+                </Text>
+              </View>
+              <View style={{ marginTop: theme.spacing.xs }}>
+                <FollowCursorTextInput
+                  value={description}
+                  onChangeText={setDescription}
+                  editable={!saving && !uploading}
+                  multiline
+                  placeholder={t("entryForm.placeholderDescription")}
+                  placeholderTextColor={theme.colors.muted}
+                  style={[
+                    styles.inputMultiline,
+                    { color: theme.colors.fg },
+                  ]}
+                />
+              </View>
             </View>
           </View>
 
@@ -1031,10 +1130,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                               day: "2-digit",
                               month: "2-digit",
                               year: "numeric",
-                            }
+                            },
                           );
                           return `${t(
-                            "documents.added"
+                            "documents.added",
                           )} ${formattedDate} · ${ext}`;
                         })()}
                       </Text>
@@ -1094,7 +1193,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     <IconButton
                       onPress={() => {
                         setPendingFiles((prev) =>
-                          prev.filter((_, i) => i !== index)
+                          prev.filter((_, i) => i !== index),
                         );
                       }}
                       variant="danger"
@@ -1183,6 +1282,20 @@ const makeStyles = (theme: any) =>
       paddingVertical: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
     },
+    rowLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      flex: 0,
+      flexShrink: 1,
+    },
+    rowRight: {
+      flex: 1,
+      minWidth: 0,
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+    },
     rowMultiline: { alignItems: "flex-start" },
     divider: { height: 1, width: "100%" },
     input: {
@@ -1194,6 +1307,10 @@ const makeStyles = (theme: any) =>
     inputMultiline: {
       minHeight: 96,
       paddingTop: 2,
+    },
+    label: {
+      fontSize: theme.typography.body,
+      fontWeight: "600",
     },
     valueText: {
       flex: 1,
