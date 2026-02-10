@@ -131,7 +131,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
           <Pressable
             style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
             onPress={() =>
-              navigation.navigate("WheelDetail", {
+              navigation.navigate("WheelForm", {
                 vehicleId,
                 wheelId: item.id,
               })

@@ -243,188 +243,256 @@ export function WheelFormScreen({ navigation, route }: Props) {
         ]}
       >
         <View style={styles.row}>
-          <Ionicons
-            name="pricetag-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="pricetag-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("wheelForm.name")}
+            </Text>
+          </View>
           <TextInput
             value={name}
             onChangeText={setName}
             editable={!saving}
-            placeholder={makePlaceholder(
-              `${t("wheelForm.name")}`,
-              t("wheelForm.placeholderName"),
-            )}
+            placeholder={t("wheelForm.placeholderName")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </View>
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons
-            name="resize-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="resize-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("wheelForm.width")}
+            </Text>
+          </View>
           <TextInput
             value={width}
             onChangeText={setWidth}
             keyboardType="decimal-pad"
             editable={!saving}
-            placeholder={makePlaceholder(
-              `${t("wheelForm.width")}`,
-              t("wheelForm.placeholderWidth"),
-            )}
+            placeholder={t("wheelForm.placeholderWidth")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </View>
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons
-            name="ellipse-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="ellipse-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("wheelForm.diameter")}
+            </Text>
+          </View>
           <TextInput
             value={diameter}
             onChangeText={setDiameter}
             keyboardType="number-pad"
             editable={!saving}
-            placeholder={makePlaceholder(
-              `${t("wheelForm.diameter")}`,
-              t("wheelForm.placeholderDiameter"),
-            )}
+            placeholder={t("wheelForm.placeholderDiameter")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </View>
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <AntDesign
-            name="column-width"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <View style={styles.rowLeft}>
+            <AntDesign
+              name="column-width"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("wheelForm.etOffset")}
+            </Text>
+          </View>
           <TextInput
             value={etOffset}
             onChangeText={setEtOffset}
             keyboardType="number-pad"
             editable={!saving}
-            placeholder={makePlaceholder(
-              t("wheelForm.etOffset"),
-              t("wheelForm.placeholderEtOffset"),
-            )}
+            placeholder={t("wheelForm.placeholderEtOffset")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </View>
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <BoltPatternIcon size={20} color={theme.colors.accent} />
+          <View style={styles.rowLeft}>
+            <BoltPatternIcon size={20} color={theme.colors.accent} />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("wheelForm.boltPattern")}
+            </Text>
+          </View>
           <TextInput
             value={boltPattern}
             onChangeText={setBoltPattern}
             editable={!saving}
-            placeholder={makePlaceholder(
-              t("wheelForm.boltPattern"),
-              t("wheelForm.placeholderBoltPattern"),
-            )}
+            placeholder={t("wheelForm.placeholderBoltPattern")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </View>
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons
-            name="radio-button-on-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="radio-button-on-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("wheelForm.centerBore")}
+            </Text>
+          </View>
           <TextInput
             value={centerBore}
             onChangeText={setCenterBore}
             keyboardType="decimal-pad"
             editable={!saving}
-            placeholder={makePlaceholder(
-              t("wheelForm.centerBore"),
-              t("wheelForm.placeholderCenterBore"),
-            )}
+            placeholder={t("wheelForm.placeholderCenterBore")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </View>
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <BoltTypeIcon size={20} color={theme.colors.accent} />
+          <View style={styles.rowLeft}>
+            <BoltTypeIcon size={20} color={theme.colors.accent} />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("wheelForm.boltType")}
+            </Text>
+          </View>
           <TextInput
             value={boltType}
             onChangeText={setBoltType}
             editable={!saving}
-            placeholder={makePlaceholder(
-              t("wheelForm.boltType"),
-              t("wheelForm.placeholderBoltType"),
-            )}
+            placeholder={t("wheelForm.placeholderBoltType")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </View>
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons
-            name="barbell-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="barbell-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("wheelForm.weight")}
+            </Text>
+          </View>
           <TextInput
             value={weight}
             onChangeText={setWeight}
             keyboardType="decimal-pad"
             editable={!saving}
-            placeholder={makePlaceholder(
-              t("wheelForm.weight"),
-              t("wheelForm.placeholderWeight"),
-            )}
+            placeholder={t("wheelForm.placeholderWeight")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </View>
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons
-            name="checkmark-circle-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <Text style={[styles.valueText, { color: theme.colors.fg }]}>
-            {t("wheelForm.isCurrentlyFitted")}
-          </Text>
-          <Switch
-            value={isCurrentlyFitted}
-            onValueChange={setIsCurrentlyFitted}
-            trackColor={{
-              false: theme.colors.border,
-              true: theme.colors.accent,
-            }}
-            thumbColor="#fff"
-          />
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text style={[styles.label, { color: theme.colors.muted }]}>
+              {t("wheelForm.isCurrentlyFitted")}
+            </Text>
+          </View>
+          <View style={styles.rowRight}>
+            <Switch
+              value={isCurrentlyFitted}
+              onValueChange={setIsCurrentlyFitted}
+              trackColor={{
+                false: theme.colors.border,
+                true: theme.colors.accent,
+              }}
+              thumbColor="#fff"
+            />
+          </View>
         </View>
       </View>
 
@@ -474,12 +542,30 @@ function makeStyles(theme: any) {
       paddingVertical: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
     },
+    rowLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      flex: 0,
+      flexShrink: 1,
+    },
+    rowRight: {
+      flex: 1,
+      minWidth: 0,
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+    },
     divider: { height: 1, width: "100%" },
     input: {
       flex: 1,
       minWidth: 0,
       fontSize: theme.typography.body,
       paddingVertical: 0,
+    },
+    label: {
+      fontSize: theme.typography.body,
+      fontWeight: "600",
     },
     valueText: {
       flex: 1,

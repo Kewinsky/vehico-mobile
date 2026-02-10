@@ -126,7 +126,7 @@ export function TiresListScreen({ route, navigation }: Props) {
           <Pressable
             style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
             onPress={() =>
-              navigation.navigate("TireDetail", { vehicleId, tireId: item.id })
+              navigation.navigate("TireForm", { vehicleId, tireId: item.id })
             }
           >
             <View
