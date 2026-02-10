@@ -2,6 +2,9 @@ export const en = {
   common: {
     appName: "Vehico",
     continue: "Continue",
+    back: "Back",
+    next: "Next",
+    saving: "Saving…",
     all: "All",
     cancel: "Cancel",
     done: "Done",
@@ -77,6 +80,7 @@ export const en = {
     google: "Google",
     facebook: "Facebook",
     signedInSuccessfully: "Signed in successfully",
+    sessionExpired: "Your session has expired. Please sign in again.",
     magicLinkSent: "Magic link sent",
     magicLinkSentTitle: "Check your email",
     magicLinkSentBody:
@@ -96,8 +100,7 @@ export const en = {
     bySigningIn: "By signing in, you agree to our",
     termsOfService: "Terms of Service",
     rateLimitExceeded: "Too many sign-in attempts",
-    rateLimitMessage:
-      "Please wait a few minutes before trying again.",
+    rateLimitMessage: "Please wait a few minutes before trying again.",
     confirmEmailTitle: "Check your email",
     confirmEmailBody:
       "We've sent a confirmation email to {{email}}. Click the link in the email to verify your account.",
@@ -114,7 +117,7 @@ export const en = {
     subtitle:
       "Track your vehicle maintenance, fuel consumption, and expenses all in one place.",
     heroLead:
-      "Create a clean, professional vehicle report for sharing. Photos, service history, fueling and stats — in one minimal, readable view.",
+      "Create a clean, professional vehicle report for sharing. Photos, service history, fueling and stats – in one minimal, readable view.",
     howTitle: "How does Vehico work?",
     howDesc:
       "Capture your car's history in minutes, then generate a public share link.",
@@ -123,7 +126,7 @@ export const en = {
       "Fill in the essentials (e.g. VIN, mileage, specs) and prepare a clear overview.",
     step2Title: "Track service and fueling",
     step2Desc:
-      "Add entries with cost, date and category — so the report reflects real ownership.",
+      "Add entries with cost, date and category – so the report reflects real ownership.",
     step3Title: "Share a report link",
     step3Desc:
       "Generate a public report and send it anywhere. No messy PDFs or endless messages.",
@@ -144,8 +147,92 @@ export const en = {
       "Analyze your expenses and track trends with comprehensive reports.",
     getStarted: "Get Started",
     alreadyHaveAccount: "Already have an account? ",
-    terms: "Terms",
-    privacy: "Privacy",
+    terms: "Terms of Use",
+    privacy: "Privacy Policy",
+  },
+  onboarding: {
+    welcome: {
+      title: "Welcome to Vehico",
+      subtitle:
+        "Let's set up your first vehicle. It takes about a minute – you can skip optional fields.",
+      getStarted: "Get started",
+      useDifferentAccount: "Use a different account",
+    },
+    name: {
+      title: "What's your name?",
+      label: "Name",
+      placeholder: "e.g. Alex",
+      required: "Please enter your name.",
+      minLength: "Name must be at least 2 characters.",
+    },
+    vehicle: {
+      type: {
+        title: "Vehicle type",
+        car: "Car",
+        motorcycle: "Motorcycle",
+      },
+      makeModel: {
+        title: "Make and model",
+        makeRequired: "Make is required.",
+        modelRequired: "Model is required.",
+        makeMinLength: "Make must be at least 2 characters.",
+        modelMinLength: "Model must be at least 2 characters.",
+      },
+      year: {
+        title: "Production year",
+        invalid: "Please enter a valid production year.",
+      },
+      vin: {
+        title: "VIN",
+        subtitle: "Add it now or skip – you can always edit later.",
+        skip: "Skip VIN",
+        exactLength: "VIN must be exactly 17 characters.",
+      },
+      mileage: {
+        title: "Mileage",
+        subtitle: "If you know it, add the current mileage.",
+        skip: "Skip mileage",
+      },
+      specs: {
+        title: "Technical details",
+        subtitle: "Add what you know – you can fill the rest later.",
+        skipAll: "Skip technical details",
+        engineMin: "Engine capacity must be greater than 1.",
+        powerMin: "Power must be greater than 1.",
+      },
+      photo: {
+        title: "Vehicle photo",
+        subtitle: "A photo helps you quickly recognize your vehicle.",
+        addPhoto: "Add photo",
+        changePhoto: "Change photo",
+        skip: "Skip photo",
+      },
+      confirm: {
+        title: "All set",
+        subtitleAdded: "Your vehicle {{make}} {{model}}, {{year}} was added.",
+        subtitleNotAdded:
+          "Your vehicle {{make}} {{model}}, {{year}} is ready. You can add it later.",
+      },
+    },
+    notifications: {
+      title: "Notifications",
+      subtitle:
+        "Enable notifications to get reminders about service and important dates.",
+      enablePush: "Enable notifications",
+    },
+    complete: {
+      title: "Let's go",
+      subtitle: "Here’s what you can do in the app:",
+      features: {
+        service: "Track service history",
+        fueling: "Log fueling and costs",
+        wheels: "Manage wheels and tires",
+        reminders: "Set reminders",
+        documents: "Store documents and photos",
+      },
+      cta: "Go to my vehicles",
+      doneToast: "Onboarding completed",
+    },
   },
   vehicles: {
     title: "Vehicles",
@@ -411,7 +498,8 @@ export const en = {
     packsHeadline: "Buy Packs",
     bestDeal: "Best deal",
     buyPack: "Buy Pack",
-    packsBlockedWhilePremium: "Packs can’t be purchased while Premium is active",
+    packsBlockedWhilePremium:
+      "Packs can’t be purchased while Premium is active",
     saveDiscountBadge: "Save -{{percent}}%",
     premiumFeatures: {
       unlimitedVehicles: "Unlimited vehicles",

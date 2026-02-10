@@ -128,7 +128,11 @@ export function AuthScreen({ navigation }: Props) {
       throw new Error("Session was not created");
     }
 
-    toastSuccess(t("auth.signedInSuccessfully"));
+    const hasCompletedOnboarding =
+      sessionData.session.user?.user_metadata?.has_completed_onboarding === true;
+    if (hasCompletedOnboarding) {
+      toastSuccess(t("auth.signedInSuccessfully"));
+    }
   }
 
   async function signInWithOAuth(provider: "google" | "facebook") {
@@ -197,7 +201,13 @@ export function AuthScreen({ navigation }: Props) {
       });
 
       if (error) throw error;
-      toastSuccess(t("auth.signedInSuccessfully"));
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const hasCompletedOnboarding =
+        sessionData.session?.user?.user_metadata?.has_completed_onboarding === true;
+      if (hasCompletedOnboarding) {
+        toastSuccess(t("auth.signedInSuccessfully"));
+      }
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {

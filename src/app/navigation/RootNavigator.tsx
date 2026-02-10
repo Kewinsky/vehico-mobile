@@ -50,6 +50,7 @@ import { WorkshopDetailScreen } from "../../screens/WorkshopDetailScreen";
 import { WorkshopFormScreen } from "../../screens/WorkshopFormScreen";
 import { ShopScreen } from "../../screens/ShopScreen";
 import { AppearanceScreen } from "../../screens/AppearanceScreen";
+import { OnboardingFlowScreen } from "../../screens/OnboardingFlowScreenImpl";
 
 export type AppStackParamList = {
   Landing: undefined;
@@ -57,6 +58,7 @@ export type AppStackParamList = {
   EmailConfirmation: { email?: string };
   TermsOfUse: undefined;
   PrivacyPolicy: undefined;
+  Onboarding: undefined;
   Vehicles: undefined;
   VehicleForm: undefined;
   Settings: undefined;
@@ -168,7 +170,13 @@ export function RootNavigator() {
     <Stack.Navigator
       key={session ? "authenticated" : "unauthenticated"}
       screenOptions={{ headerShown: false }}
-      initialRouteName={session ? "Vehicles" : "Landing"}
+      initialRouteName={
+        session
+          ? session.user.user_metadata?.has_completed_onboarding === true
+            ? "Vehicles"
+            : "Onboarding"
+          : "Landing"
+      }
     >
       {!session ? (
         <>
@@ -181,6 +189,7 @@ export function RootNavigator() {
         <>
           <Stack.Screen name="TermsOfUse" component={TermsOfUseScreen} />
           <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+          <Stack.Screen name="Onboarding" component={OnboardingFlowScreen} />
           <Stack.Screen name="Vehicles" component={VehiclesScreen} />
           <Stack.Screen name="VehicleForm" component={VehicleFormScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />

@@ -2,6 +2,9 @@ export const pl = {
   common: {
     appName: "Vehico",
     continue: "Dalej",
+    back: "Wstecz",
+    next: "Dalej",
+    saving: "Zapisywanie…",
     all: "Wszystkie",
     cancel: "Anuluj",
     done: "Gotowe",
@@ -77,6 +80,7 @@ export const pl = {
     google: "Google",
     facebook: "Facebook",
     signedInSuccessfully: "Zalogowano pomyślnie",
+    sessionExpired: "Sesja wygasła. Zaloguj się ponownie.",
     magicLinkSent: "Link magiczny wysłany",
     magicLinkSentTitle: "Sprawdź swoją skrzynkę",
     magicLinkSentBody:
@@ -97,8 +101,7 @@ export const pl = {
     bySigningIn: "Logując się, akceptujesz nasz",
     termsOfService: "Regulamin",
     rateLimitExceeded: "Zbyt wiele prób przy logowaniu",
-    rateLimitMessage:
-      "Poczekaj kilka minut przed ponownym wysłaniem linku.",
+    rateLimitMessage: "Poczekaj kilka minut przed ponownym wysłaniem linku.",
     confirmEmailTitle: "Sprawdź swoją skrzynkę",
     confirmEmailBody:
       "Wysłaliśmy e-mail potwierdzający na adres {{email}}. Kliknij link w e-mailu, aby zweryfikować swoje konto.",
@@ -115,7 +118,7 @@ export const pl = {
     subtitle:
       "Śledź konserwację pojazdu, zużycie paliwa i wydatki w jednym miejscu.",
     heroLead:
-      "Twórz schludny, profesjonalny raport auta do udostępnienia. Zdjęcia, historia serwisowa, tankowania i statystyki — w jednym, czytelnym widoku.",
+      "Twórz schludny, profesjonalny raport auta do udostępnienia. Zdjęcia, historia serwisowa, tankowania i statystyki – w jednym, czytelnym widoku.",
     howTitle: "Jak działa Vehico?",
     howDesc:
       "W kilka minut zbierasz historię auta, a potem generujesz publiczny link do raportu.",
@@ -124,7 +127,7 @@ export const pl = {
       "Uzupełnij najważniejsze informacje (np. VIN, przebieg, specyfikację) i przygotuj opis.",
     step2Title: "Zapisuj serwis i tankowania",
     step2Desc:
-      "Dodawaj wpisy z kosztami, datą i kategorią — dzięki temu raport ma realną historię.",
+      "Dodawaj wpisy z kosztami, datą i kategorią – dzięki temu raport ma realną historię.",
     step3Title: "Udostępnij raport linkiem",
     step3Desc:
       "Wygeneruj publiczny raport i podeślij go komu chcesz. Bez chaosu w PDF-ach i wiadomościach.",
@@ -147,6 +150,91 @@ export const pl = {
     alreadyHaveAccount: "Masz już konto? ",
     terms: "Regulamin",
     privacy: "Polityka prywatności",
+  },
+  onboarding: {
+    welcome: {
+      title: "Witaj w Vehico",
+      subtitle:
+        "Ustawmy Twój pierwszy pojazd. Zajmie to około minutę – opcjonalne pola możesz pominąć.",
+      getStarted: "Zaczynamy",
+      useDifferentAccount: "Użyj innego konta",
+    },
+    name: {
+      title: "Jak masz na imię?",
+      label: "Imię",
+      placeholder: "np. Alex",
+      required: "Wpisz swoje imię.",
+      minLength: "Imię musi mieć co najmniej 2 znaki.",
+    },
+    vehicle: {
+      type: {
+        title: "Typ pojazdu",
+        car: "Samochód",
+        motorcycle: "Motocykl",
+      },
+      makeModel: {
+        title: "Marka i model",
+        makeRequired: "Marka jest wymagana.",
+        modelRequired: "Model jest wymagany.",
+        makeMinLength: "Marka musi mieć co najmniej 2 znaki.",
+        modelMinLength: "Model musi mieć co najmniej 2 znaki.",
+      },
+      year: {
+        title: "Rok produkcji",
+        invalid: "Wpisz poprawny rok produkcji.",
+      },
+      vin: {
+        title: "VIN",
+        subtitle: "Dodaj teraz albo pomiń – zawsze możesz edytować później.",
+        skip: "Pomiń VIN",
+        exactLength: "VIN musi mieć dokładnie 17 znaków.",
+      },
+      mileage: {
+        title: "Przebieg",
+        subtitle: "Jeśli go znasz, dodaj aktualny przebieg.",
+        skip: "Pomiń przebieg",
+      },
+      specs: {
+        title: "Dane techniczne",
+        subtitle: "Dodaj to, co wiesz – resztę uzupełnisz później.",
+        skipAll: "Pomiń dane techniczne",
+        engineMin: "Pojemność silnika musi być większa niż 1.",
+        powerMin: "Moc musi być większa niż 1.",
+      },
+      photo: {
+        title: "Zdjęcie pojazdu",
+        subtitle: "Zdjęcie pomoże szybciej rozpoznać pojazd.",
+        addPhoto: "Dodaj zdjęcie",
+        changePhoto: "Zmień zdjęcie",
+        skip: "Pomiń zdjęcie",
+      },
+      confirm: {
+        title: "Gotowe",
+        subtitleAdded:
+          "Twój pojazd {{make}} {{model}}, {{year}} został dodany.",
+        subtitleNotAdded:
+          "Twój pojazd {{make}} {{model}}, {{year}} jest gotowy. Dodasz go później.",
+      },
+    },
+    notifications: {
+      title: "Powiadomienia",
+      subtitle:
+        "Włącz powiadomienia, aby dostawać przypomnienia o serwisie i ważnych terminach.",
+      enablePush: "Włącz powiadomienia",
+    },
+    complete: {
+      title: "Zaczynamy",
+      subtitle: "Oto, co możesz zrobić w aplikacji:",
+      features: {
+        service: "Prowadź historię serwisu",
+        fueling: "Zapisuj tankowania i koszty",
+        wheels: "Zarządzaj kołami i oponami",
+        reminders: "Ustawiaj przypomnienia",
+        documents: "Trzymaj dokumenty i zdjęcia",
+      },
+      cta: "Przejdź do moich pojazdów",
+      doneToast: "Onboarding ukończony",
+    },
   },
   vehicles: {
     title: "Pojazdy",
