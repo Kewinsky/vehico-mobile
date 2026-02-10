@@ -1,4 +1,11 @@
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -23,7 +30,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "WheelsList">;
 
 function wheelSubtitle(
   wheel: VehicleWheel,
-  t: (key: string) => string
+  t: (key: string) => string,
 ): string {
   const dims = formatWheelDimensions(wheel.width_inch, wheel.diameter_inch);
   const parts: string[] = [dims];
@@ -66,14 +73,14 @@ export function WheelsListScreen({ route, navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t]
+    [vehicleId, t],
   );
 
   useEffect(() => {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false })
+      () => void load({ showLoading: false }),
     );
     return unsub;
   }, [navigation, load]);
@@ -93,7 +100,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
             text: t("limits.upgradeToPremium"),
             onPress: () => navigation.navigate("Shop"),
           },
-        ]
+        ],
       );
       return;
     }
@@ -107,9 +114,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
         <Text style={[styles.title, { color: theme.colors.fg }]}>
           {t("wheels.rimsSection")}
         </Text>
-        <Button onPress={onAddWheelPress}>
-          {t("wheels.addWheelSingle")}
-        </Button>
+        <Button onPress={onAddWheelPress}>{t("wheels.addWheelSingle")}</Button>
         <View style={{ height: theme.spacing.md }} />
       </View>
       <FlatList
@@ -117,7 +122,6 @@ export function WheelsListScreen({ route, navigation }: Props) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={{
           paddingHorizontal: theme.layout.contentPaddingHorizontal,
-          paddingTop: theme.spacing.sm,
           paddingBottom: insets.bottom + theme.spacing.xl,
         }}
         ItemSeparatorComponent={() => (
@@ -213,7 +217,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      marginHorizontal: theme.layout.contentPaddingHorizontal,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },

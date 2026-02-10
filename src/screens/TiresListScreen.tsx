@@ -1,4 +1,11 @@
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -25,7 +32,7 @@ function tireSubtitle(tire: VehicleTire, t: (key: string) => string): string {
   const dims = formatTireDimensions(
     tire.width_mm,
     tire.aspect_ratio,
-    tire.diameter_inch
+    tire.diameter_inch,
   );
   const typeLabel = t(`tireForm.types.${tire.tire_type}`);
   const parts = [dims, typeLabel];
@@ -61,14 +68,14 @@ export function TiresListScreen({ route, navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t]
+    [vehicleId, t],
   );
 
   useEffect(() => {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false })
+      () => void load({ showLoading: false }),
     );
     return unsub;
   }, [navigation, load]);
@@ -88,7 +95,7 @@ export function TiresListScreen({ route, navigation }: Props) {
             text: t("limits.upgradeToPremium"),
             onPress: () => navigation.navigate("Shop"),
           },
-        ]
+        ],
       );
       return;
     }
@@ -102,9 +109,7 @@ export function TiresListScreen({ route, navigation }: Props) {
         <Text style={[styles.title, { color: theme.colors.fg }]}>
           {t("wheels.tiresSection")}
         </Text>
-        <Button onPress={onAddTirePress}>
-          {t("wheels.addTireSingle")}
-        </Button>
+        <Button onPress={onAddTirePress}>{t("wheels.addTireSingle")}</Button>
         <View style={{ height: theme.spacing.md }} />
       </View>
       <FlatList
@@ -112,7 +117,6 @@ export function TiresListScreen({ route, navigation }: Props) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={{
           paddingHorizontal: theme.layout.contentPaddingHorizontal,
-          paddingTop: theme.spacing.sm,
           paddingBottom: insets.bottom + theme.spacing.xl,
         }}
         ItemSeparatorComponent={() => (
@@ -205,7 +209,7 @@ export function TiresListScreen({ route, navigation }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      marginHorizontal: theme.layout.contentPaddingHorizontal,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },

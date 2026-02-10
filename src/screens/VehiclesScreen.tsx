@@ -165,7 +165,7 @@ export function VehiclesScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const [items, setItems] = useState<Vehicle[]>([]);
   const [photoUrlsMap, setPhotoUrlsMap] = useState<Map<string, string[]>>(
-    new Map()
+    new Map(),
   );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -208,10 +208,10 @@ export function VehiclesScreen({ navigation }: Props) {
             } catch (error) {
               console.error(
                 `Failed to load photos for vehicle ${vehicle.id}:`,
-                error
+                error,
               );
             }
-          })
+          }),
         );
         setPhotoUrlsMap(urlsMap);
       } catch (e: any) {
@@ -223,7 +223,7 @@ export function VehiclesScreen({ navigation }: Props) {
         }
       }
     },
-    [t]
+    [t],
   );
 
   useEffect(() => {
@@ -231,10 +231,32 @@ export function VehiclesScreen({ navigation }: Props) {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false })
+      () => void load({ showLoading: false }),
     );
     return unsub;
   }, [navigation, load]);
+
+  const handleAddVehicle = () => {
+    if (isPremium) {
+      navigation.navigate("VehicleForm");
+      return;
+    }
+    if (items.length >= vehiclesLimit) {
+      Alert.alert(
+        t("limits.vehicleLimitReachedTitle"),
+        t("limits.vehicleLimitReachedBody", { limit: vehiclesLimit }),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("limits.upgradeToPremium"),
+            onPress: () => navigation.navigate("Shop"),
+          },
+        ],
+      );
+      return;
+    }
+    navigation.navigate("VehicleForm");
+  };
 
   return (
     <Screen padding={false}>
@@ -251,156 +273,103 @@ export function VehiclesScreen({ navigation }: Props) {
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyTitle}>{t("vehicles.emptyTitle")}</Text>
             <Text style={styles.emptyBody}>{t("vehicles.emptyBody")}</Text>
-            <View style={{ height: theme.spacing.sm }} />
-            <Button
-              onPress={() => {
-                if (isPremium) {
-                  navigation.navigate("VehicleForm");
-                  return;
-                }
-                if (items.length >= vehiclesLimit) {
-                  Alert.alert(
-                    t("limits.vehicleLimitReachedTitle"),
-                    t("limits.vehicleLimitReachedBody", {
-                      limit: vehiclesLimit,
-                    }),
-                    [
-                      { text: t("common.cancel"), style: "cancel" },
-                      {
-                        text: t("limits.upgradeToPremium"),
-                        onPress: () => navigation.navigate("Shop"),
-                      },
-                    ]
-                  );
-                  return;
-                }
-                navigation.navigate("VehicleForm");
-              }}
-            >
-              {t("vehicles.addVehicle")}
-            </Button>
           </View>
         ) : (
-          <>
-            <FlatList
-              data={items}
-              keyExtractor={(v) => v.id}
-              contentContainerStyle={styles.list}
-              refreshing={refreshing}
-              onRefresh={() => void load({ refreshing: true })}
-              ItemSeparatorComponent={() => (
-                <View style={{ height: theme.spacing.xs }} />
-              )}
-              renderItem={({ item }) => (
-                <Pressable
-                  onPress={() =>
-                    navigation.navigate("VehicleDashboard", {
-                      vehicleId: item.id,
-                    })
-                  }
-                  style={({ pressed }) => [
-                    styles.vehicleCard,
-                    pressed && styles.vehicleCardPressed,
-                  ]}
-                >
-                  <View style={styles.vehicleImageContainer}>
-                    {(() => {
-                      const photoUrls = photoUrlsMap.get(item.id) || [];
-                      const carouselWidth =
-                        windowWidth -
-                        (theme.layout?.contentPaddingHorizontal ??
-                          theme.spacing.md) *
-                          2;
+          <FlatList
+            data={items}
+            keyExtractor={(v) => v.id}
+            contentContainerStyle={styles.list}
+            refreshing={refreshing}
+            onRefresh={() => void load({ refreshing: true })}
+            ItemSeparatorComponent={() => (
+              <View style={{ height: theme.spacing.md }} />
+            )}
+            renderItem={({ item }) => (
+              <Pressable
+                onPress={() =>
+                  navigation.navigate("VehicleDashboard", {
+                    vehicleId: item.id,
+                  })
+                }
+                style={({ pressed }) => [
+                  styles.vehicleCard,
+                  pressed && styles.vehicleCardPressed,
+                ]}
+              >
+                <View style={styles.vehicleImageContainer}>
+                  {(() => {
+                    const photoUrls = photoUrlsMap.get(item.id) || [];
+                    const carouselWidth =
+                      windowWidth -
+                      (theme.layout?.contentPaddingHorizontal ??
+                        theme.spacing.md) *
+                        2;
 
-                      if (photoUrls.length === 0) {
-                        return (
-                          <>
-                            <View style={styles.vehicleImagePlaceholder}>
-                              <Text style={styles.vehicleImagePlaceholderText}>
-                                {item.type === "car" ? "🚗" : "🏍️"}
-                              </Text>
-                            </View>
-                            <View style={styles.vehicleImageContent}>
-                              <Text
-                                style={[
-                                  styles.vehicleTitle,
-                                  styles.vehicleTitleOverlay,
-                                ]}
-                                numberOfLines={2}
-                              >
-                                {`${item.make} ${item.model}`}
-                              </Text>
-                              <Text
-                                style={[
-                                  styles.vehicleMeta,
-                                  styles.vehicleMetaOverlay,
-                                ]}
-                                numberOfLines={1}
-                              >
-                                {item.production_year}
-                                {item.power_hp
-                                  ? ` · ${item.power_hp}${
-                                      i18n.language === "pl" ? "KM" : "HP"
-                                    }`
-                                  : ""}
-                                {item.mileage
-                                  ? ` · ${formatMileage(item.mileage)}`
-                                  : ""}
-                              </Text>
-                            </View>
-                          </>
-                        );
-                      }
-
+                    if (photoUrls.length === 0) {
                       return (
-                        <VehicleCardImage
-                          item={item}
-                          photoUrls={photoUrls}
-                          carouselWidth={carouselWidth}
-                          theme={theme}
-                          styles={styles}
-                          formatMileage={formatMileage}
-                          i18n={i18n}
-                        />
+                        <>
+                          <View style={styles.vehicleImagePlaceholder}>
+                            <Text style={styles.vehicleImagePlaceholderText}>
+                              {item.type === "car" ? "🚗" : "🏍️"}
+                            </Text>
+                          </View>
+                          <View style={styles.vehicleImageContent}>
+                            <Text
+                              style={[
+                                styles.vehicleTitle,
+                                styles.vehicleTitleOverlay,
+                              ]}
+                              numberOfLines={2}
+                            >
+                              {`${item.make} ${item.model}`}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.vehicleMeta,
+                                styles.vehicleMetaOverlay,
+                              ]}
+                              numberOfLines={1}
+                            >
+                              {item.production_year}
+                              {item.power_hp
+                                ? ` · ${item.power_hp}${
+                                    i18n.language === "pl" ? "KM" : "HP"
+                                  }`
+                                : ""}
+                              {item.mileage
+                                ? ` · ${formatMileage(item.mileage)}`
+                                : ""}
+                            </Text>
+                          </View>
+                        </>
                       );
-                    })()}
-                  </View>
-                </Pressable>
-              )}
-              ListFooterComponent={
-                <View style={styles.listFooter}>
-                  <Button
-                    onPress={() => {
-                      if (isPremium) {
-                        navigation.navigate("VehicleForm");
-                        return;
-                      }
-                      if (items.length >= vehiclesLimit) {
-                        Alert.alert(
-                          t("limits.vehicleLimitReachedTitle"),
-                          t("limits.vehicleLimitReachedBody", {
-                            limit: vehiclesLimit,
-                          }),
-                          [
-                            { text: t("common.cancel"), style: "cancel" },
-                            {
-                              text: t("limits.upgradeToPremium"),
-                              onPress: () => navigation.navigate("Shop"),
-                            },
-                          ]
-                        );
-                        return;
-                      }
-                      navigation.navigate("VehicleForm");
-                    }}
-                  >
-                    {t("vehicles.addVehicle")}
-                  </Button>
+                    }
+
+                    return (
+                      <VehicleCardImage
+                        item={item}
+                        photoUrls={photoUrls}
+                        carouselWidth={carouselWidth}
+                        theme={theme}
+                        styles={styles}
+                        formatMileage={formatMileage}
+                        i18n={i18n}
+                      />
+                    );
+                  })()}
                 </View>
-              }
-            />
-          </>
+              </Pressable>
+            )}
+          />
         )}
+      </View>
+      <View
+        style={[
+          styles.footer,
+          { paddingBottom: insets.bottom + theme.spacing.md },
+        ]}
+      >
+        <Button onPress={handleAddVehicle}>{t("vehicles.addVehicle")}</Button>
       </View>
     </Screen>
   );
@@ -430,10 +399,15 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       alignItems: "center",
     },
     list: {
-      paddingBottom: insets.bottom + theme.spacing.xl,
+      paddingBottom:
+        insets.bottom + theme.spacing.md * 2 + 52 /* footer button + padding */,
     },
-    listFooter: {
+    footer: {
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.border,
+      backgroundColor: theme.colors.bg,
     },
     vehicleCard: {
       borderRadius: theme.radius.md,

@@ -344,7 +344,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
             count: vehicleDocs.length,
           })}
         </Text>
-        <View style={{ height: theme.spacing.sm }} />
         {vehicleDocs
           .filter((d) => {
             const q = query.trim().toLowerCase();
@@ -430,13 +429,13 @@ export function DocumentsScreen({ route, navigation }: Props) {
           </Text>
         ) : null}
 
-        <View style={{ height: 18 }} />
+        <View style={{ height: theme.spacing.xl }} />
+
         <Text style={[styles.section, { color: theme.colors.fg }]}>
           {t("documents.serviceAttachmentsWithCount", {
             count: attachments.length,
           })}
         </Text>
-        <View style={{ height: theme.spacing.sm }} />
         {attachments
           .filter((a) => {
             const q = query.trim().toLowerCase();

@@ -328,10 +328,7 @@ export function OnboardingFlowScreen({ navigation }: Props) {
     }
 
     try {
-      // Create vehicle when entering confirmation step (so step text is true).
       if (currentStep === 8) {
-        setSaving(true);
-        await ensureVehicleCreated();
         setCurrentStep(9);
         return;
       }
@@ -374,7 +371,7 @@ export function OnboardingFlowScreen({ navigation }: Props) {
         return;
       }
 
-      // Ensure vehicle exists (if possible) before finishing.
+      // Create vehicle when entering confirmation step (so step text is true).
       await ensureVehicleCreated();
 
       const trimmedName = name.trim();
