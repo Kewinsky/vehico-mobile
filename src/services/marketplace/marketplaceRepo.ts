@@ -99,18 +99,13 @@ export async function saveMarketplacePost(
 
   if (!user) throw new Error("User not authenticated");
 
-  const { data, error } = await supabase
-    .from("posts")
-    .insert({
-      vehicle_id: input.vehicleId,
-      user_id: user.id,
-      platform: input.platform ?? "generic",
-      price: input.price ?? null,
-      content: input.content,
-      title: null,
-    })
-    .select("*")
-    .single();
+  // Use RPC function that checks entitlements and consumes listing
+  const { data, error } = await supabase.rpc("create_marketplace_post", {
+    p_vehicle_id: input.vehicleId,
+    p_platform: input.platform ?? "generic",
+    p_price: input.price ?? null,
+    p_content: input.content,
+  });
 
   if (error) throw error;
   return data as MarketplacePost;

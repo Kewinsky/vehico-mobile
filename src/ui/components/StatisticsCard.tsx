@@ -45,18 +45,6 @@ type Props = {
 
 type XY = { x: string; y: number };
 
-function startOfDay(d: Date) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
-
-function addMonths(d: Date, months: number) {
-  const x = new Date(d);
-  x.setMonth(x.getMonth() + months);
-  return x;
-}
-
 function monthKey(d: Date) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -73,7 +61,10 @@ function monthKeyFromYyyyMm(yyyyMm: string): Date | null {
   return new Date(y, mm - 1, 1);
 }
 
-function listMonthKeysInclusive(startYyyyMm: string, endYyyyMm: string): string[] {
+function listMonthKeysInclusive(
+  startYyyyMm: string,
+  endYyyyMm: string,
+): string[] {
   const start = monthKeyFromYyyyMm(startYyyyMm);
   const end = monthKeyFromYyyyMm(endYyyyMm);
   if (!start || !end) return [];
@@ -203,7 +194,7 @@ function donutSlicePath(
   rOuter: number,
   rInner: number,
   startAngle: number,
-  endAngle: number
+  endAngle: number,
 ) {
   const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
 
@@ -483,14 +474,17 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
       const currentMonth = today.getMonth(); // 0-11
 
       let monthsBack = 0;
-      if (period === "1m") monthsBack = 0; // Current month only
-      else if (period === "3m") monthsBack = 2; // Current + 2 previous
-      else if (period === "6m") monthsBack = 5; // Current + 5 previous
+      if (period === "1m")
+        monthsBack = 0; // Current month only
+      else if (period === "3m")
+        monthsBack = 2; // Current + 2 previous
+      else if (period === "6m")
+        monthsBack = 5; // Current + 5 previous
       else if (period === "1y") monthsBack = 11; // Current + 11 previous
 
       const startDate = new Date(currentYear, currentMonth - monthsBack, 1);
       startMonthStr = `${startDate.getFullYear()}-${String(
-        startDate.getMonth() + 1
+        startDate.getMonth() + 1,
       ).padStart(2, "0")}`;
     }
 
@@ -540,14 +534,17 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
     const currentMonth = today.getMonth(); // 0-11
 
     let monthsBack = 0;
-    if (period === "1m") monthsBack = 0; // Current month only
-    else if (period === "3m") monthsBack = 2; // Current + 2 previous
-    else if (period === "6m") monthsBack = 5; // Current + 5 previous
+    if (period === "1m")
+      monthsBack = 0; // Current month only
+    else if (period === "3m")
+      monthsBack = 2; // Current + 2 previous
+    else if (period === "6m")
+      monthsBack = 5; // Current + 5 previous
     else if (period === "1y") monthsBack = 11; // Current + 11 previous
 
     const startDate = new Date(currentYear, currentMonth - monthsBack, 1);
     const startMonthStr = `${startDate.getFullYear()}-${String(
-      startDate.getMonth() + 1
+      startDate.getMonth() + 1,
     ).padStart(2, "0")}`;
 
     return { startMonthStr, currentMonthStr };
@@ -556,19 +553,19 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
   const totals = useMemo(() => {
     const serviceCost = filtered.service.reduce(
       (sum, x) => sum + Number(x.cost ?? 0),
-      0
+      0,
     );
     const fuelCost = filtered.fueling.reduce(
       (sum, x) => sum + Number(x.fuel_cost ?? 0),
-      0
+      0,
     );
     const totalDistance = filtered.fueling.reduce(
       (sum, x) => sum + Number(x.distance ?? 0),
-      0
+      0,
     );
     const totalFuel = filtered.fueling.reduce(
       (sum, x) => sum + Number(x.fuel_amount ?? 0),
-      0
+      0,
     );
     const total = serviceCost + fuelCost;
     const avgConsumptionPer100 =
@@ -640,7 +637,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
           : []
         : listMonthKeysInclusive(
             monthRange.startMonthStr!,
-            monthRange.currentMonthStr
+            monthRange.currentMonthStr,
           );
 
     const data = monthKeys.map((k) => ({ x: k, y: byMonth[k] ?? 0 }));
@@ -692,7 +689,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
           : []
         : listMonthKeysInclusive(
             monthRange.startMonthStr!,
-            monthRange.currentMonthStr
+            monthRange.currentMonthStr,
           );
 
     return monthKeys.map((k) => ({ x: k, y: byMonth[k] ?? 0 }));
@@ -704,7 +701,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
       .sort(
         (a, b) =>
           new Date(b.service_date).getTime() -
-          new Date(a.service_date).getTime()
+          new Date(a.service_date).getTime(),
       );
     return oilEntries[0] ?? null;
   }, [service]);
@@ -715,7 +712,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
       .sort(
         (a, b) =>
           new Date(a.service_date).getTime() -
-          new Date(b.service_date).getTime()
+          new Date(b.service_date).getTime(),
       );
     if (oilEntries.length < 2)
       return { avgKm: Number.NaN, avgMonths: Number.NaN };
@@ -758,7 +755,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
     theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
   const chartWidth = Math.max(
     280,
-    windowWidth - contentPadding * 2 - theme.spacing.md * 2 - 20
+    windowWidth - contentPadding * 2 - theme.spacing.md * 2 - 20,
   );
 
   const palette = useMemo(
@@ -769,7 +766,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
       "#A78BFA", // violet-400 - violet
       "#EF4444", // red-500 - red
     ],
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
 
   const categorySeries = useMemo(
@@ -778,12 +775,12 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
         ...x,
         color: palette[idx % palette.length],
       })),
-    [expensesByCategory, palette]
+    [expensesByCategory, palette],
   );
 
   const totalByCategory = useMemo(
     () => categorySeries.reduce((s, x) => s + clampNonNeg(x.value), 0),
-    [categorySeries]
+    [categorySeries],
   );
 
   const isNarrow = windowWidth < 380;
@@ -850,7 +847,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
                     {Number.isFinite(totals.avgConsumptionPer100)
                       ? `${fmtNumber(
                           totals.avgConsumptionPer100,
-                          1
+                          1,
                         )} ${fuelUnitLabel}/100 ${distanceUnit}`
                       : "—"}
                   </Text>
@@ -871,7 +868,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
                     {Number.isFinite(totals.costPer100)
                       ? `${fmtNumber(
                           totals.costPer100,
-                          2
+                          2,
                         )} ${currency}/100 ${distanceUnit}`
                       : "—"}
                   </Text>
@@ -997,7 +994,10 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
                       colors={categorySeries.map((c) => c.color)}
                     />
                     {categorySeries.length === 0 ? (
-                      <View pointerEvents="none" style={styles.chartEmptyOverlay}>
+                      <View
+                        pointerEvents="none"
+                        style={styles.chartEmptyOverlay}
+                      >
                         <Text style={styles.empty}>
                           {t("dashboard.stats.empty")}
                         </Text>
@@ -1028,7 +1028,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
                               {fmtPct(
                                 totalByCategory > 0
                                   ? (c.value / totalByCategory) * 100
-                                  : Number.NaN
+                                  : Number.NaN,
                               )}
                             </Text>
                           </View>
@@ -1077,7 +1077,8 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
                               {t("dashboard.stats.lastOilChangeMileage")}
                             </Text>
                             <Text style={styles.infoRowValue}>
-                              {fmtNumber(lastOilChange.mileage, 0)} {distanceUnit}
+                              {fmtNumber(lastOilChange.mileage, 0)}{" "}
+                              {distanceUnit}
                             </Text>
                           </View>
                         )}
@@ -1187,7 +1188,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
                             {formatTireDimensions(
                               currentTire.width_mm,
                               currentTire.aspect_ratio,
-                              currentTire.diameter_inch
+                              currentTire.diameter_inch,
                             )}{" "}
                             · {t(`tireForm.types.${currentTire.tire_type}`)}
                           </Text>
@@ -1213,7 +1214,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
                             {currentWheel.name} ·{" "}
                             {formatWheelDimensions(
                               currentWheel.width_inch,
-                              currentWheel.diameter_inch
+                              currentWheel.diameter_inch,
                             )}
                           </Text>
                         </View>
@@ -1233,6 +1234,7 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     container: {
+      marginTop: theme.spacing.md,
       gap: theme.spacing.md,
     },
     loading: {
@@ -1248,12 +1250,12 @@ const makeStyles = (theme: any) =>
     },
     heroLabel: {
       color: theme.colors.muted,
-      fontWeight: "800",
+      fontWeight: "700",
       fontSize: theme.typography.small,
     },
     heroValue: {
       color: theme.colors.fg,
-      fontWeight: "800",
+      fontWeight: "700",
       fontSize: theme.typography.largeTitle,
     },
     heroMeta: {

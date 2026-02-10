@@ -36,6 +36,7 @@ import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
@@ -78,6 +79,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
+  const { canGenerateReport, isPremium, reportsRemaining } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId, reportOptions, selectedVehiclePhotoIds, tempPhotos } =
     route.params;
@@ -135,6 +137,12 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   async function handleGenerateReport() {
     if (!confirmed) {
       toastError(t("publicReport.confirmationRequired"));
+      return;
+    }
+
+    // Check entitlements
+    if (!canGenerateReport) {
+      navigation.navigate("Shop");
       return;
     }
 
@@ -453,6 +461,32 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
           />
         </View>
 
+        {/* Entitlements info */}
+        {!isPremium && (
+          <View style={styles.section}>
+            <View
+              style={[
+                styles.limitInfo,
+                {
+                  backgroundColor: theme.colors.card,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+            >
+              <Ionicons
+                name="information-circle"
+                size={20}
+                color={theme.colors.muted}
+              />
+              <Text style={[styles.limitText, { color: theme.colors.muted }]}>
+                {canGenerateReport
+                  ? t("limits.reportsRemaining", { count: reportsRemaining })
+                  : t("limits.noReportsRemaining")}
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Confirmation Checkbox */}
         <View style={styles.section}>
           <Pressable
@@ -476,7 +510,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
       <View style={styles.footer}>
         <Button
           onPress={handleGenerateReport}
-          disabled={!confirmed || generating}
+          disabled={!confirmed || generating || !canGenerateReport}
         >
           {generating ? (
             <View

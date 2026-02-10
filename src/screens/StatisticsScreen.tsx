@@ -25,7 +25,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
   const [tab, setTab] = useState<StatsTabKey>("metrics");
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
 
   const periodOptions: { key: PeriodKey; label: string }[] = [
@@ -78,7 +78,11 @@ export function StatisticsScreen({ route, navigation }: Props) {
                   <Text
                     style={[
                       styles.segmentTextSmall,
-                      { color: selected ? theme.colors.accent : theme.colors.muted },
+                      {
+                        color: selected
+                          ? theme.colors.accent
+                          : theme.colors.muted,
+                      },
                     ]}
                   >
                     {p.label}
@@ -133,10 +137,8 @@ export function StatisticsScreen({ route, navigation }: Props) {
       </View>
       <ScrollView
         contentContainerStyle={[
-          styles.scrollContent,
           {
             paddingHorizontal: theme.layout.contentPaddingHorizontal,
-            paddingTop: theme.spacing.sm,
             paddingBottom: insets.bottom + theme.spacing.xl,
           },
         ]}
@@ -155,9 +157,8 @@ export function StatisticsScreen({ route, navigation }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      paddingVertical: theme.spacing.md,
+      marginHorizontal: theme.layout.contentPaddingHorizontal,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
@@ -185,12 +186,11 @@ const makeStyles = (theme: any) =>
       borderWidth: 1,
     },
     segmentText: {
-      fontSize: theme.typography.body,
+      fontSize: theme.typography.small,
       fontWeight: "700",
     },
     segmentTextSmall: {
       fontSize: theme.typography.small,
-      fontWeight: "800",
+      fontWeight: "700",
     },
-    scrollContent: {},
   });

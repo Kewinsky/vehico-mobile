@@ -28,14 +28,16 @@ import type {
   TransmissionType,
   DriveType,
 } from "../types/domain";
-import { createVehicle } from "../services/vehicles/vehiclesRepo";
+import { createVehicle, listVehicles } from "../services/vehicles/vehiclesRepo";
 import { uploadVehiclePhoto } from "../services/vehicles/uploadPhoto";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
+import { SegmentTabs } from "../ui/components/SegmentTabs";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { FollowCursorTextInput } from "../ui/components/FollowCursorTextInput";
 
@@ -63,11 +65,12 @@ export function VehicleFormScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
+  const { vehiclesLimit, isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = makeStyles(theme);
   const distanceUnit = settings?.distanceUnit ?? "km";
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
   const [type, setType] = useState<VehicleType>("car");
   const [vin, setVin] = useState("");
@@ -79,7 +82,7 @@ export function VehicleFormScreen({ navigation }: Props) {
   const [powerHp, setPowerHp] = useState("");
   const [fuelType, setFuelType] = useState<FuelType | null>(null);
   const [transmission, setTransmission] = useState<TransmissionType | null>(
-    null
+    null,
   );
   const [driveType, setDriveType] = useState<DriveType | null>(null);
   const [notes, setNotes] = useState("");
@@ -126,7 +129,7 @@ export function VehicleFormScreen({ navigation }: Props) {
     const currentYmd =
       kind === "insurance" ? insuranceValidUntil : inspectionValidUntil;
     setDatePickerDraft(
-      parseYmd(currentYmd || new Date().toISOString().slice(0, 10))
+      parseYmd(currentYmd || new Date().toISOString().slice(0, 10)),
     );
     setOpenDatePicker(kind);
   }
@@ -273,7 +276,7 @@ export function VehicleFormScreen({ navigation }: Props) {
           text: t("attachments.files"),
           onPress: () => void pickFromFiles(),
         },
-      ]
+      ],
     );
   }
 
@@ -426,7 +429,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             style={styles.photoDeleteButton}
             hitSlop={5}
           >
-            <Ionicons name="close" size={16} color={theme.colors.accent} />
+            <Ionicons name="close" size={16} color={theme.colors.fg} />
           </Pressable>
         </View>
       </View>
@@ -438,7 +441,7 @@ export function VehicleFormScreen({ navigation }: Props) {
       setSaving(true);
       if (!isValidProductionYear(year)) {
         toastError(
-          t("validation.invalidYear", { max: new Date().getFullYear() + 2 })
+          t("validation.invalidYear", { max: new Date().getFullYear() + 2 }),
         );
         return;
       }
@@ -454,6 +457,25 @@ export function VehicleFormScreen({ navigation }: Props) {
       if (powerHp.trim() && !isNonNegativeNumber(powerHp)) {
         toastError(t("validation.nonNegativeRequired"));
         return;
+      }
+
+      // Check vehicle limit
+      if (!isPremium) {
+        const vehicles = await listVehicles();
+        if (vehicles.length >= vehiclesLimit) {
+          Alert.alert(
+            t("limits.vehicleLimitReachedTitle"),
+            t("limits.vehicleLimitReachedBody", { limit: vehiclesLimit }),
+            [
+              { text: t("common.cancel"), style: "cancel" },
+              {
+                text: t("limits.upgradeToPremium"),
+                onPress: () => navigation.navigate("Shop"),
+              },
+            ],
+          );
+          return;
+        }
       }
 
       const created = await createVehicle({
@@ -488,11 +510,13 @@ export function VehicleFormScreen({ navigation }: Props) {
               fileUri: photo.uri,
               mimeType: photo.mimeType,
               fileName: photo.fileName,
+              maxPhotos: photosPerVehicleLimit,
             });
           }
         } catch (e: any) {
           // Log error but don't block navigation
           console.error("Failed to upload photos:", e);
+          toastError(e?.message ?? t("common.error"));
         }
       }
 
@@ -594,50 +618,17 @@ export function VehicleFormScreen({ navigation }: Props) {
         )}
       </View>
 
-      <View style={{ height: theme.spacing.md }} />
+      <View style={{ height: theme.spacing.xl }} />
 
       <Text style={styles.sectionTitle}>{t("vehicleForm.type")}</Text>
-      <View
-        style={[
-          styles.segmentWrap,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.bg,
-          },
+      <SegmentTabs<VehicleType>
+        value={type}
+        options={[
+          { value: "car", label: t("vehicleForm.car") },
+          { value: "motorcycle", label: t("vehicleForm.motorcycle") },
         ]}
-      >
-        {(["car", "motorcycle"] as const).map((k) => {
-          const selected = type === k;
-          return (
-            <Pressable
-              key={k}
-              onPress={() => setType(k)}
-              style={({ pressed }) => [
-                styles.segment,
-                selected && styles.segmentSelected,
-                {
-                  borderColor: theme.colors.accent,
-                  backgroundColor: selected ? accentBg : "transparent",
-                  opacity: pressed ? 0.85 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  {
-                    color: selected ? theme.colors.accent : theme.colors.muted,
-                  },
-                ]}
-              >
-                {k === "car"
-                  ? t("vehicleForm.car")
-                  : t("vehicleForm.motorcycle")}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+        onChange={setType}
+      />
 
       <View style={{ height: theme.spacing.sm }} />
 
@@ -663,7 +654,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               t("vehicleForm.vinLabel"),
-              t("vehicleForm.placeholderVin")
+              t("vehicleForm.placeholderVin"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -680,7 +671,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               `${t("vehicleForm.makeLabel")}`,
-              t("vehicleForm.placeholderMake")
+              t("vehicleForm.placeholderMake"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -701,7 +692,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               `${t("vehicleForm.modelLabel")}`,
-              t("vehicleForm.placeholderModel")
+              t("vehicleForm.placeholderModel"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -724,7 +715,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               `${t("vehicleForm.yearLabel")}`,
-              t("vehicleForm.placeholderYear")
+              t("vehicleForm.placeholderYear"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -746,7 +737,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               `${t("vehicleForm.mileageLabel")} (${distanceUnit})`,
-              t("vehicleForm.placeholderMileage")
+              t("vehicleForm.placeholderMileage"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -786,7 +777,7 @@ export function VehicleFormScreen({ navigation }: Props) {
                     | "vehicleForm.fuelTypeDiesel"
                     | "vehicleForm.fuelTypeHybrid"
                     | "vehicleForm.fuelTypeElectric"
-                    | "vehicleForm.fuelTypeLpg"
+                    | "vehicleForm.fuelTypeLpg",
                 ),
               onChange: setFuelType,
               placeholderLabel: t("common.all"),
@@ -804,7 +795,7 @@ export function VehicleFormScreen({ navigation }: Props) {
               ? t(
                   `vehicleForm.fuelType${
                     fuelType.charAt(0).toUpperCase() + fuelType.slice(1)
-                  }` as any
+                  }` as any,
                 )
               : t("vehicleForm.fuelTypeLabel")}
           </Text>
@@ -825,7 +816,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               t("vehicleForm.engineCapacityLabel"),
-              t("vehicleForm.placeholderEngineCapacity")
+              t("vehicleForm.placeholderEngineCapacity"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -847,7 +838,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             editable={!saving}
             placeholder={makePlaceholder(
               t("vehicleForm.powerHpLabel"),
-              t("vehicleForm.placeholderPowerHp")
+              t("vehicleForm.placeholderPowerHp"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
@@ -855,99 +846,34 @@ export function VehicleFormScreen({ navigation }: Props) {
         </View>
       </View>
 
-      <View style={{ height: theme.spacing.sm }} />
+      <View style={{ height: theme.spacing.xl }} />
 
       <Text style={styles.sectionTitle}>
         {t("vehicleForm.transmissionLabel")}
       </Text>
-      <View
-        style={[
-          styles.segmentWrap,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.bg,
-          },
+      <SegmentTabs<TransmissionType>
+        value={transmission ?? "manual"}
+        options={[
+          { value: "manual", label: t("vehicleForm.transmissionManual") },
+          { value: "automatic", label: t("vehicleForm.transmissionAutomatic") },
         ]}
-      >
-        {(["manual", "automatic"] as const).map((tr) => {
-          const selected = transmission === tr;
-          return (
-            <Pressable
-              key={tr}
-              onPress={() => setTransmission(tr)}
-              style={({ pressed }) => [
-                styles.segment,
-                selected && styles.segmentSelected,
-                {
-                  borderColor: theme.colors.accent,
-                  backgroundColor: selected ? accentBg : "transparent",
-                  opacity: pressed ? 0.85 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  {
-                    color: selected ? theme.colors.accent : theme.colors.muted,
-                  },
-                ]}
-              >
-                {t(
-                  `vehicleForm.transmission${
-                    tr.charAt(0).toUpperCase() + tr.slice(1)
-                  }` as any
-                )}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+        onChange={setTransmission}
+      />
 
-      <View style={{ height: theme.spacing.sm }} />
+      <View style={{ height: theme.spacing.xl }} />
 
       <Text style={styles.sectionTitle}>{t("vehicleForm.driveTypeLabel")}</Text>
-      <View
-        style={[
-          styles.segmentWrap,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.bg,
-          },
+      <SegmentTabs<DriveType>
+        value={driveType ?? "FWD"}
+        options={[
+          { value: "FWD", label: "FWD" },
+          { value: "RWD", label: "RWD" },
+          { value: "AWD", label: "AWD" },
         ]}
-      >
-        {(["FWD", "RWD", "AWD"] as const).map((dt) => {
-          const selected = driveType === dt;
-          return (
-            <Pressable
-              key={dt}
-              onPress={() => setDriveType(dt)}
-              style={({ pressed }) => [
-                styles.segment,
-                selected && styles.segmentSelected,
-                {
-                  borderColor: theme.colors.accent,
-                  backgroundColor: selected ? accentBg : "transparent",
-                  opacity: pressed ? 0.85 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  {
-                    color: selected ? theme.colors.accent : theme.colors.muted,
-                  },
-                ]}
-              >
-                {dt}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+        onChange={setDriveType}
+      />
 
-      <View style={{ height: theme.spacing.sm }} />
+      <View style={{ height: theme.spacing.xl }} />
 
       <Text style={styles.sectionTitle}>
         {t("dashboard.stats.insuranceAndInspection")}
@@ -983,11 +909,7 @@ export function VehicleFormScreen({ navigation }: Props) {
               hitSlop={10}
               style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
             >
-              <Ionicons
-                name="close-circle"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <Ionicons name="close-circle" size={20} color="#000000" />
             </Pressable>
           ) : null}
         </Pressable>
@@ -1025,18 +947,14 @@ export function VehicleFormScreen({ navigation }: Props) {
               hitSlop={10}
               style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
             >
-              <Ionicons
-                name="close-circle"
-                size={20}
-                color={theme.colors.accent}
-              />
+              <Ionicons name="close-circle" size={20} color="#000000" />
             </Pressable>
           ) : null}
         </Pressable>
         {openDatePicker === "inspection" ? renderInlineDatePicker() : null}
       </View>
 
-      <View style={{ height: theme.spacing.sm }} />
+      <View style={{ height: theme.spacing.xl }} />
 
       <Text style={styles.sectionTitle}>{t("vehicleForm.notesLabel")}</Text>
       <View
@@ -1061,7 +979,7 @@ export function VehicleFormScreen({ navigation }: Props) {
             multiline
             placeholder={makePlaceholder(
               t("vehicleForm.notesLabel"),
-              t("vehicleForm.placeholderNotes")
+              t("vehicleForm.placeholderNotes"),
             )}
             placeholderTextColor={theme.colors.muted}
             style={[
@@ -1164,9 +1082,7 @@ const makeStyles = (theme: any) =>
       fontWeight: "700",
     },
     photosSection: {
-      gap: theme.spacing.xs,
       marginTop: theme.spacing.sm,
-      marginBottom: theme.spacing.xs / 2,
     },
     photosGrid: {
       flexDirection: "row",

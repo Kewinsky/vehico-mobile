@@ -2,6 +2,9 @@ export const en = {
   common: {
     appName: "Vehico",
     continue: "Continue",
+    back: "Back",
+    next: "Next",
+    saving: "Saving…",
     all: "All",
     cancel: "Cancel",
     done: "Done",
@@ -29,6 +32,35 @@ export const en = {
     dotInvalid: "DOT must be exactly 4 digits.",
     etInvalid: "ET must be 1–2 digits.",
   },
+  limits: {
+    vehicleLimitReachedTitle: "Vehicle Limit Reached",
+    vehicleLimitReachedBody:
+      "You have reached the limit of {{limit}} vehicle(s). Upgrade to Premium for unlimited vehicles.",
+    tireLimitReachedTitle: "Tire Limit Reached",
+    tireLimitReachedBody:
+      "You have reached the limit of {{limit}} tire set(s) per vehicle. Upgrade to Premium for unlimited tires.",
+    wheelLimitReachedTitle: "Wheel Limit Reached",
+    wheelLimitReachedBody:
+      "You have reached the limit of {{limit}} wheel set(s) per vehicle. Upgrade to Premium for unlimited wheels.",
+    workshopLimitReachedTitle: "Workshop Limit Reached",
+    workshopLimitReachedBody:
+      "You have reached the limit of {{limit}} workshop(s). Upgrade to Premium for unlimited workshops.",
+    reminderLimitReachedTitle: "Reminder Limit Reached",
+    reminderLimitReachedBody:
+      "You have reached the limit of {{limit}} reminder(s). Upgrade to Premium for unlimited reminders.",
+    photoLimitReachedTitle: "Photo Limit Reached",
+    photoLimitReachedBody:
+      "You have reached the limit of {{limit}} photos per vehicle. Upgrade to Premium for up to 40 photos.",
+    reportLimitReachedTitle: "Report Limit Reached",
+    listingLimitReachedTitle: "Listing Limit Reached",
+    upgradeToPremium: "Upgrade to Premium",
+    reportsRemaining: "Reports remaining: {{count}}",
+    listingsRemaining: "Listings remaining: {{count}}",
+    noReportsRemaining:
+      "No reports remaining. Purchase a pack or upgrade to Premium.",
+    noListingsRemaining:
+      "No listings remaining. Purchase a pack or upgrade to Premium.",
+  },
   auth: {
     title: "Sign in",
     signUpTitle: "Create account",
@@ -48,6 +80,7 @@ export const en = {
     google: "Google",
     facebook: "Facebook",
     signedInSuccessfully: "Signed in successfully",
+    sessionExpired: "Your session has expired. Please sign in again.",
     magicLinkSent: "Magic link sent",
     magicLinkSentTitle: "Check your email",
     magicLinkSentBody:
@@ -66,9 +99,8 @@ export const en = {
       "We'll send you a secure link to sign in. No password required.",
     bySigningIn: "By signing in, you agree to our",
     termsOfService: "Terms of Service",
-    rateLimitExceeded: "Too many requests",
-    rateLimitMessage:
-      "Please wait a few minutes before requesting another magic link.",
+    rateLimitExceeded: "Too many sign-in attempts",
+    rateLimitMessage: "Please wait a few minutes before trying again.",
     confirmEmailTitle: "Check your email",
     confirmEmailBody:
       "We've sent a confirmation email to {{email}}. Click the link in the email to verify your account.",
@@ -85,17 +117,22 @@ export const en = {
     subtitle:
       "Track your vehicle maintenance, fuel consumption, and expenses all in one place.",
     heroLead:
-      "Create a clean, professional vehicle report for sharing. Photos, service history, fueling and stats — in one minimal, readable view.",
+      "Create a clean, professional vehicle report for sharing. Photos, service history, fueling and stats – in one minimal, readable view.",
     howTitle: "How does Vehico work?",
-    howDesc: "Capture your car's history in minutes, then generate a public share link.",
+    howDesc:
+      "Capture your car's history in minutes, then generate a public share link.",
     step1Title: "Add your car and core details",
-    step1Desc: "Fill in the essentials (e.g. VIN, mileage, specs) and prepare a clear overview.",
+    step1Desc:
+      "Fill in the essentials (e.g. VIN, mileage, specs) and prepare a clear overview.",
     step2Title: "Track service and fueling",
-    step2Desc: "Add entries with cost, date and category — so the report reflects real ownership.",
+    step2Desc:
+      "Add entries with cost, date and category – so the report reflects real ownership.",
     step3Title: "Share a report link",
-    step3Desc: "Generate a public report and send it anywhere. No messy PDFs or endless messages.",
+    step3Desc:
+      "Generate a public report and send it anywhere. No messy PDFs or endless messages.",
     featuresSectionTitle: "What's inside the app?",
-    featuresSectionDesc: "Everything you need to maintain and share your vehicle history.",
+    featuresSectionDesc:
+      "Everything you need to maintain and share your vehicle history.",
     feature1Title: "Service History",
     feature1Description:
       "Keep detailed records of all maintenance and repairs with photos and documents.",
@@ -110,8 +147,92 @@ export const en = {
       "Analyze your expenses and track trends with comprehensive reports.",
     getStarted: "Get Started",
     alreadyHaveAccount: "Already have an account? ",
-    terms: "Terms",
-    privacy: "Privacy",
+    terms: "Terms of Use",
+    privacy: "Privacy Policy",
+  },
+  onboarding: {
+    welcome: {
+      title: "Welcome to Vehico",
+      subtitle:
+        "Let's set up your first vehicle. It takes about a minute – you can skip optional fields.",
+      getStarted: "Get started",
+      useDifferentAccount: "Use a different account",
+    },
+    name: {
+      title: "What's your name?",
+      label: "Name",
+      placeholder: "e.g. Alex",
+      required: "Please enter your name.",
+      minLength: "Name must be at least 2 characters.",
+    },
+    vehicle: {
+      type: {
+        title: "Vehicle type",
+        car: "Car",
+        motorcycle: "Motorcycle",
+      },
+      makeModel: {
+        title: "Make and model",
+        makeRequired: "Make is required.",
+        modelRequired: "Model is required.",
+        makeMinLength: "Make must be at least 2 characters.",
+        modelMinLength: "Model must be at least 2 characters.",
+      },
+      year: {
+        title: "Production year",
+        invalid: "Please enter a valid production year.",
+      },
+      vin: {
+        title: "VIN",
+        subtitle: "Add it now or skip – you can always edit later.",
+        skip: "Skip VIN",
+        exactLength: "VIN must be exactly 17 characters.",
+      },
+      mileage: {
+        title: "Mileage",
+        subtitle: "If you know it, add the current mileage.",
+        skip: "Skip mileage",
+      },
+      specs: {
+        title: "Technical details",
+        subtitle: "Add what you know – you can fill the rest later.",
+        skipAll: "Skip technical details",
+        engineMin: "Engine capacity must be greater than 1.",
+        powerMin: "Power must be greater than 1.",
+      },
+      photo: {
+        title: "Vehicle photo",
+        subtitle: "A photo helps you quickly recognize your vehicle.",
+        addPhoto: "Add photo",
+        changePhoto: "Change photo",
+        skip: "Skip photo",
+      },
+      confirm: {
+        title: "All set",
+        subtitleAdded: "Your vehicle {{make}} {{model}}, {{year}} was added.",
+        subtitleNotAdded:
+          "Your vehicle {{make}} {{model}}, {{year}} is ready. You can add it later.",
+      },
+    },
+    notifications: {
+      title: "Notifications",
+      subtitle:
+        "Enable notifications to get reminders about service and important dates.",
+      enablePush: "Enable notifications",
+    },
+    complete: {
+      title: "Let's go",
+      subtitle: "Here’s what you can do in the app:",
+      features: {
+        service: "Track service history",
+        fueling: "Log fueling and costs",
+        wheels: "Manage wheels and tires",
+        reminders: "Set reminders",
+        documents: "Store documents and photos",
+      },
+      cta: "Go to my vehicles",
+      doneToast: "Onboarding completed",
+    },
   },
   vehicles: {
     title: "Vehicles",
@@ -362,10 +483,93 @@ export const en = {
     deleteAccountNotAvailable:
       "Account deletion is not available in the app. Please contact support.",
     displayNameUpdated: "Display name updated",
+    shop: "Shop",
+  },
+  shop: {
+    title: "Shop",
+    premiumActive: "You have an active Premium plan",
+    currentPlan: "Current plan",
+    packs: "Packs",
+    subscriptions: "Subscriptions",
+    oneTime: "One-time purchase",
+    perMonth: "per month",
+    perYear: "per year",
+    unlockPremium: "Unlock Premium",
+    packsHeadline: "Buy Packs",
+    bestDeal: "Best deal",
+    buyPack: "Buy Pack",
+    packsBlockedWhilePremium:
+      "Packs can’t be purchased while Premium is active",
+    saveDiscountBadge: "Save -{{percent}}%",
+    premiumFeatures: {
+      unlimitedVehicles: "Unlimited vehicles",
+      photos6x: "You can upload 6× more photos than on Free",
+      unlimitedReportsPosts: "Generate reports and posts without limits",
+      remindersWorkshops: "Reminders, workshops, and more without limits",
+    },
+    packsFeatures: {
+      payOnce: "Pay once, generate on demand",
+      noSubscription: "No subscription",
+    },
+    packCards: {
+      reports: "3 Reports",
+      reportsPlusPosts: "3R + 3P",
+      posts: "3 Posts",
+    },
+    subCards: {
+      monthly: "Monthly",
+      yearly: "Yearly",
+      lifetime: "Lifetime",
+    },
+    tapToPurchase: "Tap to purchase",
+    planActive: "Plan active",
+    purchaseSuccess: "Purchase completed successfully!",
+    unknownProduct: "Unknown product",
+    premiumIsActive: "Premium is active",
+    premiumIsActiveBody:
+      "You already have an active Premium plan. No purchase needed.",
+    confirmPurchase: "Confirm purchase",
+    buy: "Buy",
+    products: {
+      pack_3_reports: {
+        name: "3 Reports Pack",
+        description: "Generate 3 public reports",
+      },
+      pack_3_listings: {
+        name: "3 Posts Pack",
+        description: "Generate 3 marketplace posts",
+      },
+      pack_3plus3: {
+        name: "3 Reports + 3 Posts",
+        description: "Generate 3 reports and 3 posts",
+      },
+      premium_monthly: {
+        name: "Premium Monthly",
+        description: "Unlimited reports, posts, vehicles, and more",
+      },
+      premium_yearly: {
+        name: "Premium Yearly",
+        description: "Unlimited everything - best value",
+      },
+      lifetime: {
+        name: "Lifetime Premium",
+        description: "One-time payment, lifetime access",
+      },
+    },
   },
   settings: {
     title: "Settings",
     subtitle: "Applied immediately and saved per account.",
+    profileButton: "Profile",
+    shopButton: "Shop & Premium",
+    shopSubtitle: "Unlock exclusive features",
+    appearanceButton: "Appearance",
+    appearanceSubtitle: "Theme, language, units",
+    tabUnits: "Units",
+    tabDisplay: "Display",
+    supportTitle: "Support",
+    supportSubtitle: "Contact us",
+    signOutSubtitle: "Sign out of your account",
     currency: "Currency",
     distanceUnit: "Distance unit",
     distanceUnitKm: "Kilometers",

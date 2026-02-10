@@ -38,7 +38,7 @@ export function AuthScreen({ navigation }: Props) {
       setEmail("");
       setMagicLinkSent(false);
       setSentEmail("");
-    }, [])
+    }, []),
   );
 
   const emailTrimmed = useMemo(() => email.trim(), [email]);
@@ -51,7 +51,7 @@ export function AuthScreen({ navigation }: Props) {
 
   const canSubmit = useMemo(
     () => emailTrimmed.length > 0 && isValidEmail && !isSubmitting,
-    [emailTrimmed, isValidEmail, isSubmitting]
+    [emailTrimmed, isValidEmail, isSubmitting],
   );
 
   async function sendMagicLink() {
@@ -73,12 +73,17 @@ export function AuthScreen({ navigation }: Props) {
       });
 
       if (error) {
-        // Check for rate limit error
+        // Check for rate limit error (Supabase 429 / "too many" / "rate limit")
+        const msg = error.message?.toLowerCase() ?? "";
         if (
-          error.message.includes("rate limit") ||
-          error.message.includes("Rate limit")
+          msg.includes("rate limit") ||
+          msg.includes("too many") ||
+          msg.includes("429") ||
+          msg.includes("email rate limit")
         ) {
-          toastError(t("auth.rateLimitExceeded"));
+          toastError(
+            `${t("auth.rateLimitExceeded")}. ${t("auth.rateLimitMessage")}`,
+          );
           return;
         }
         throw error;
@@ -123,7 +128,11 @@ export function AuthScreen({ navigation }: Props) {
       throw new Error("Session was not created");
     }
 
-    toastSuccess(t("auth.signedInSuccessfully"));
+    const hasCompletedOnboarding =
+      sessionData.session.user?.user_metadata?.has_completed_onboarding === true;
+    if (hasCompletedOnboarding) {
+      toastSuccess(t("auth.signedInSuccessfully"));
+    }
   }
 
   async function signInWithOAuth(provider: "google" | "facebook") {
@@ -155,7 +164,7 @@ export function AuthScreen({ navigation }: Props) {
 
       const result = await WebBrowser.openAuthSessionAsync(
         data.url,
-        redirectTo
+        redirectTo,
       );
 
       if (result.type === "success") {
@@ -192,7 +201,13 @@ export function AuthScreen({ navigation }: Props) {
       });
 
       if (error) throw error;
-      toastSuccess(t("auth.signedInSuccessfully"));
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const hasCompletedOnboarding =
+        sessionData.session?.user?.user_metadata?.has_completed_onboarding === true;
+      if (hasCompletedOnboarding) {
+        toastSuccess(t("auth.signedInSuccessfully"));
+      }
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -223,18 +238,17 @@ export function AuthScreen({ navigation }: Props) {
             </Text>
           </View>
 
-          <View style={styles.actions}>
-            <Button
-              variant="ghost"
-              onPress={() => {
-                setMagicLinkSent(false);
-                setEmail("");
-                setSentEmail("");
-              }}
-            >
-              {t("auth.sendAnotherLink")}
-            </Button>
-          </View>
+          <Button
+            variant="ghost"
+            style={styles.magicLinkButton}
+            onPress={() => {
+              setMagicLinkSent(false);
+              setEmail("");
+              setSentEmail("");
+            }}
+          >
+            {t("auth.sendAnotherLink")}
+          </Button>
         </View>
       </FormScreen>
     );
@@ -242,161 +256,131 @@ export function AuthScreen({ navigation }: Props) {
 
   return (
     <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
-      <View style={{ height: theme.spacing.sm + 2 }} />
-      <View style={styles.container}>
-        <View style={styles.headerBlock}>
-          <Text style={[styles.authTitle, { color: theme.colors.fg }]}>
-            {t("auth.title")}
-          </Text>
-        </View>
-        {/* Magic Link Section */}
-        <View style={styles.magicLinkSection}>
-          <TextField
-            noMarginTop
-            label={`${t("auth.emailLabel")} *`}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="email-address"
-            placeholder={t("auth.emailPlaceholder")}
-            editable={!isSubmitting && !isSocialLoading}
-          />
+      <Text style={[styles.authTitle, { color: theme.colors.fg }]}>
+        {t("auth.title")}
+      </Text>
+      {/* Magic Link Section */}
+      <View style={styles.magicLinkSection}>
+        <TextField
+          noMarginTop
+          label={`${t("auth.emailLabel")} *`}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          placeholder={t("auth.emailPlaceholder")}
+          editable={!isSubmitting && !isSocialLoading}
+        />
 
-          <View style={styles.actions}>
-            <Button onPress={sendMagicLink} disabled={!canSubmit}>
-              {isSubmitting ? t("auth.sendingLink") : t("auth.sendMagicLink")}
-            </Button>
+        <Button onPress={sendMagicLink} disabled={!canSubmit}>
+          {isSubmitting ? t("auth.sendingLink") : t("auth.sendMagicLink")}
+        </Button>
+      </View>
 
-            {/* Test account — only in development */}
-            {ENV.APP_ENV === "development" && (
-              <>
-                <View style={{ height: theme.spacing.sm }} />
-                <Button
-                  onPress={signInWithTestAccount}
-                  disabled={isSubmitting}
-                  variant="ghost"
-                >
-                  {isSubmitting
-                    ? t("common.loading")
-                    : "🧪 Test Account (test@user.com)"}
-                </Button>
-              </>
-            )}
-          </View>
+      <Text style={[styles.magicLinkHint, { color: theme.colors.muted }]}>
+        {t("auth.magicLinkHint")}
+      </Text>
 
-          <Text style={[styles.magicLinkHint, { color: theme.colors.muted }]}>
-            {t("auth.magicLinkHint")}
-          </Text>
-        </View>
+      {/* Divider */}
+      <View style={styles.divider}>
+        <View
+          style={[styles.dividerLine, { backgroundColor: theme.colors.border }]}
+        />
+        <Text style={[styles.dividerText, { color: theme.colors.muted }]}>
+          {t("auth.orContinueWith")}
+        </Text>
+        <View
+          style={[styles.dividerLine, { backgroundColor: theme.colors.border }]}
+        />
+      </View>
 
-        {/* Divider */}
-        <View style={styles.divider}>
-          <View
-            style={[
-              styles.dividerLine,
-              { backgroundColor: theme.colors.border },
+      {/* Social Auth Section */}
+      <View style={styles.socialSection}>
+        <View style={styles.socialButtons}>
+          <Pressable
+            onPress={signInWithFacebook}
+            disabled={!!isSocialLoading}
+            style={({ pressed }) => [
+              styles.socialButton,
+              {
+                backgroundColor: theme.colors.card,
+                borderColor: theme.colors.border,
+                opacity: isSocialLoading === "facebook" || pressed ? 0.7 : 1,
+              },
             ]}
-          />
-          <Text style={[styles.dividerText, { color: theme.colors.muted }]}>
-            {t("auth.orContinueWith")}
-          </Text>
-          <View
-            style={[
-              styles.dividerLine,
-              { backgroundColor: theme.colors.border },
-            ]}
-          />
-        </View>
-
-        {/* Social Auth Section */}
-        <View style={styles.socialSection}>
-          <View style={styles.socialButtons}>
-            <Pressable
-              onPress={signInWithFacebook}
-              disabled={!!isSocialLoading}
-              style={({ pressed }) => [
-                styles.socialButton,
-                {
-                  backgroundColor: theme.colors.card,
-                  borderColor: theme.colors.border,
-                  opacity: isSocialLoading === "facebook" || pressed ? 0.7 : 1,
-                },
-              ]}
-            >
-              <Ionicons
-                name="logo-facebook"
-                size={20}
-                color={theme.colors.fg}
-              />
-              <Text
-                style={[styles.socialButtonText, { color: theme.colors.fg }]}
-              >
-                {isSocialLoading === "facebook"
-                  ? t("common.loading")
-                  : t("auth.facebook")}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={signInWithGoogle}
-              disabled={!!isSocialLoading}
-              style={({ pressed }) => [
-                styles.socialButton,
-                {
-                  backgroundColor: theme.colors.card,
-                  borderColor: theme.colors.border,
-                  opacity: isSocialLoading === "google" || pressed ? 0.7 : 1,
-                },
-              ]}
-            >
-              <Ionicons name="logo-google" size={20} color={theme.colors.fg} />
-              <Text
-                style={[styles.socialButtonText, { color: theme.colors.fg }]}
-              >
-                {isSocialLoading === "google"
-                  ? t("common.loading")
-                  : t("auth.google")}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Terms & Privacy Footer */}
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: theme.colors.muted }]}>
-            {t("auth.bySigningIn")}{" "}
-            <Text
-              style={[styles.footerLink, { color: theme.colors.accent }]}
-              onPress={() => navigation.navigate("TermsOfUse")}
-            >
-              {t("auth.termsOfService")}
-            </Text>{" "}
-            {t("common.and")}{" "}
-            <Text
-              style={[styles.footerLink, { color: theme.colors.accent }]}
-              onPress={() => navigation.navigate("PrivacyPolicy")}
-            >
-              {t("auth.privacyPolicy")}
+          >
+            <Ionicons name="logo-facebook" size={20} color={theme.colors.fg} />
+            <Text style={[styles.socialButtonText, { color: theme.colors.fg }]}>
+              {isSocialLoading === "facebook"
+                ? t("common.loading")
+                : t("auth.facebook")}
             </Text>
-            .
-          </Text>
+          </Pressable>
+          <Pressable
+            onPress={signInWithGoogle}
+            disabled={!!isSocialLoading}
+            style={({ pressed }) => [
+              styles.socialButton,
+              {
+                backgroundColor: theme.colors.card,
+                borderColor: theme.colors.border,
+                opacity: isSocialLoading === "google" || pressed ? 0.7 : 1,
+              },
+            ]}
+          >
+            <Ionicons name="logo-google" size={20} color={theme.colors.fg} />
+            <Text style={[styles.socialButtonText, { color: theme.colors.fg }]}>
+              {isSocialLoading === "google"
+                ? t("common.loading")
+                : t("auth.google")}
+            </Text>
+          </Pressable>
         </View>
       </View>
+
+      {/* Terms & Privacy Footer */}
+      <View style={styles.footer}>
+        <Text style={[styles.footerText, { color: theme.colors.muted }]}>
+          {t("auth.bySigningIn")}{" "}
+          <Text
+            style={[styles.footerLink, { color: theme.colors.accent }]}
+            onPress={() => navigation.navigate("TermsOfUse")}
+          >
+            {t("auth.termsOfService")}
+          </Text>{" "}
+          {t("common.and")}{" "}
+          <Text
+            style={[styles.footerLink, { color: theme.colors.accent }]}
+            onPress={() => navigation.navigate("PrivacyPolicy")}
+          >
+            {t("auth.privacyPolicy")}
+          </Text>
+          .
+        </Text>
+      </View>
+      {/* Test account — only in development */}
+      {ENV.APP_ENV === "development" && (
+        <Button
+          onPress={signInWithTestAccount}
+          disabled={isSubmitting}
+          variant="ghost"
+        >
+          {isSubmitting
+            ? t("common.loading")
+            : "🧪 Test Account (test@user.com)"}
+        </Button>
+      )}
     </FormScreen>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    container: {
-      gap: theme.spacing.md,
-    },
-    headerBlock: {
-      marginBottom: theme.titleMarginBottom,
-    },
     authTitle: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
+      marginVertical: theme.spacing.md,
     },
     socialSection: {
       gap: theme.spacing.sm,
@@ -423,7 +407,7 @@ const makeStyles = (theme: any) =>
     divider: {
       flexDirection: "row",
       alignItems: "center",
-      marginVertical: theme.spacing.sm,
+      marginVertical: theme.spacing.md,
       gap: theme.spacing.sm,
     },
     dividerLine: {
@@ -437,12 +421,10 @@ const makeStyles = (theme: any) =>
     magicLinkSection: {
       gap: theme.spacing.sm,
     },
-    actions: {
-      paddingTop: theme.spacing.xs,
-    },
     magicLinkHint: {
       fontSize: theme.typography.small,
       textAlign: "center",
+      marginTop: theme.spacing.sm,
     },
     footer: {
       paddingTop: theme.spacing.md,
@@ -471,8 +453,10 @@ const makeStyles = (theme: any) =>
     content: {
       alignItems: "center",
       gap: theme.spacing.md,
-      marginBottom: theme.spacing.xl,
       width: "100%",
+    },
+    magicLinkButton: {
+      marginTop: theme.spacing.xl,
     },
     title: {
       fontSize: theme.typography.title,

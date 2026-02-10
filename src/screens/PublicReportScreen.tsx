@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ActivityIndicator, Alert } from "react-native";
+import { StyleSheet, Text, View, Alert } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -12,6 +12,7 @@ import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReport">;
 
@@ -21,6 +22,7 @@ export function PublicReportScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const { canGenerateReport, isPremium } = useEntitlements();
 
   const load = useCallback(async () => {
     try {
@@ -37,6 +39,24 @@ export function PublicReportScreen({ navigation, route }: Props) {
 
   const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
 
+  function onGeneratePress() {
+    if (!canGenerateReport && !isPremium) {
+      Alert.alert(
+        t("limits.reportLimitReachedTitle"),
+        t("limits.noReportsRemaining"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("limits.upgradeToPremium"),
+            onPress: () => navigation.navigate("Shop"),
+          },
+        ]
+      );
+      return;
+    }
+    navigation.navigate("PublicReportConfigure", { vehicleId });
+  }
+
   return (
     <Screen padding={false}>
       <AppHeader onBack={() => navigation.goBack()} />
@@ -46,11 +66,7 @@ export function PublicReportScreen({ navigation, route }: Props) {
         </View>
       </View>
       <View style={styles.content}>
-        <Button
-          onPress={() =>
-            navigation.navigate("PublicReportConfigure", { vehicleId })
-          }
-        >
+        <Button onPress={onGeneratePress}>
           {t("publicReport.generateButton")}
         </Button>
         <View style={{ height: theme.spacing.xs }} />

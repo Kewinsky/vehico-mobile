@@ -31,6 +31,7 @@ import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
@@ -77,6 +78,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
+  const { canGenerateListing, isPremium, listingsRemaining } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const {
     vehicleId,
@@ -128,6 +130,12 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   async function handleGeneratePost() {
     if (!confirmed) {
       toastError(t("marketplace.confirmationRequired"));
+      return;
+    }
+
+    // Check entitlements
+    if (!canGenerateListing) {
+      navigation.navigate("Shop");
       return;
     }
 
@@ -451,6 +459,32 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
           />
         </View>
 
+        {/* Entitlements info */}
+        {!isPremium && (
+          <View style={styles.section}>
+            <View
+              style={[
+                styles.limitInfo,
+                {
+                  backgroundColor: theme.colors.card,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+            >
+              <Ionicons
+                name="information-circle"
+                size={20}
+                color={theme.colors.muted}
+              />
+              <Text style={[styles.limitText, { color: theme.colors.muted }]}>
+                {canGenerateListing
+                  ? t("limits.listingsRemaining", { count: listingsRemaining })
+                  : t("limits.noListingsRemaining")}
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Confirmation Checkbox */}
         <View style={styles.section}>
           <Pressable
@@ -474,7 +508,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
       <View style={styles.footer}>
         <Button
           onPress={handleGeneratePost}
-          disabled={!confirmed || generating}
+          disabled={!confirmed || generating || !canGenerateListing}
         >
           {generating ? (
             <View
@@ -591,6 +625,18 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
       lineHeight: theme.typography.body + 4,
       color: theme.colors.fg,
+    },
+    limitInfo: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      padding: theme.spacing.md,
+      borderRadius: theme.radius.md,
+      borderWidth: 1,
+    },
+    limitText: {
+      fontSize: theme.typography.small,
+      flex: 1,
     },
     footer: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,

@@ -10,6 +10,7 @@ import { RootNavigator } from "./navigation/RootNavigator";
 import { navigationRef } from "./navigationRef";
 import { AuthProvider } from "./providers/AuthProvider";
 import { UserSettingsProvider } from "./providers/UserSettingsProvider";
+import { EntitlementsProvider } from "./providers/EntitlementsProvider";
 import { ThemeProvider, useTheme } from "../ui/ThemeProvider";
 import { AppToasts } from "../ui/toast/AppToasts";
 import { setThemeColorsGetter } from "../ui/toast/toast";
@@ -128,9 +129,11 @@ export function Root() {
     <SafeAreaProvider>
       <AuthProvider>
         <UserSettingsProvider>
-          <ThemeProvider>
-            <AppContent />
-          </ThemeProvider>
+          <EntitlementsProvider>
+            <ThemeProvider>
+              <AppContent />
+            </ThemeProvider>
+          </EntitlementsProvider>
         </UserSettingsProvider>
       </AuthProvider>
     </SafeAreaProvider>

@@ -152,7 +152,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t]
+    [vehicleId, t],
   );
 
   useEffect(() => {
@@ -160,7 +160,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false })
+      () => void load({ showLoading: false }),
     );
     return unsub;
   }, [navigation, load]);
@@ -190,7 +190,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
             }
           },
         },
-      ]
+      ],
     );
   }
 
@@ -405,7 +405,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                                 vehicle.transmission.slice(1)
                               }` as
                                 | "vehicleForm.transmissionManual"
-                                | "vehicleForm.transmissionAutomatic"
+                                | "vehicleForm.transmissionAutomatic",
                             )
                           : "N/A"}
                       </Text>
@@ -465,7 +465,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                                 | "vehicleForm.fuelTypeDiesel"
                                 | "vehicleForm.fuelTypeHybrid"
                                 | "vehicleForm.fuelTypeElectric"
-                                | "vehicleForm.fuelTypeLpg"
+                                | "vehicleForm.fuelTypeLpg",
                             )
                           : "N/A"}
                       </Text>
@@ -578,7 +578,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                 onPress={() => setFullScreenIndex(null)}
                 hitSlop={12}
               >
-                <Ionicons name="close" size={28} color="#fff" />
+                <Ionicons name="close" size={28} color="#FFFFFF" />
               </Pressable>
               {fullScreenIndex !== null && photoUrls.length > 0 && (
                 <FlatList

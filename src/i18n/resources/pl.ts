@@ -2,6 +2,9 @@ export const pl = {
   common: {
     appName: "Vehico",
     continue: "Dalej",
+    back: "Wstecz",
+    next: "Dalej",
+    saving: "Zapisywanie…",
     all: "Wszystkie",
     cancel: "Anuluj",
     done: "Gotowe",
@@ -29,6 +32,35 @@ export const pl = {
     dotInvalid: "DOT musi mieć dokładnie 4 cyfry.",
     etInvalid: "ET musi mieć 1–2 cyfry.",
   },
+  limits: {
+    vehicleLimitReachedTitle: "Osiągnięto limit pojazdów",
+    vehicleLimitReachedBody:
+      "Osiągnięto limit {{limit}} pojazdu(ów). Przejdź na Premium, aby mieć nielimitowane pojazdy.",
+    tireLimitReachedTitle: "Osiągnięto limit opon",
+    tireLimitReachedBody:
+      "Osiągnięto limit {{limit}} kompletu(ów) opon na pojazd. Przejdź na Premium, aby mieć nielimitowane opony.",
+    wheelLimitReachedTitle: "Osiągnięto limit felg",
+    wheelLimitReachedBody:
+      "Osiągnięto limit {{limit}} kompletu(ów) felg na pojazd. Przejdź na Premium, aby mieć nielimitowane felgi.",
+    workshopLimitReachedTitle: "Osiągnięto limit warsztatów",
+    workshopLimitReachedBody:
+      "Osiągnięto limit {{limit}} warsztatu(ów). Przejdź na Premium, aby mieć nielimitowane warsztaty.",
+    reminderLimitReachedTitle: "Osiągnięto limit przypomnień",
+    reminderLimitReachedBody:
+      "Osiągnięto limit {{limit}} przypomnienia(eń). Przejdź na Premium, aby mieć nielimitowane przypomnienia.",
+    photoLimitReachedTitle: "Osiągnięto limit zdjęć",
+    photoLimitReachedBody:
+      "Osiągnięto limit {{limit}} zdjęć na pojazd. Przejdź na Premium, aby mieć do 40 zdjęć.",
+    reportLimitReachedTitle: "Osiągnięto limit raportów",
+    listingLimitReachedTitle: "Osiągnięto limit ogłoszeń",
+    upgradeToPremium: "Przejdź na Premium",
+    reportsRemaining: "Pozostało raportów: {{count}}",
+    listingsRemaining: "Pozostało ogłoszeń: {{count}}",
+    noReportsRemaining:
+      "Brak pozostałych raportów. Kup paczkę lub przejdź na Premium.",
+    noListingsRemaining:
+      "Brak pozostałych ogłoszeń. Kup paczkę lub przejdź na Premium.",
+  },
   auth: {
     title: "Zaloguj się",
     signUpTitle: "Utwórz konto",
@@ -48,6 +80,7 @@ export const pl = {
     google: "Google",
     facebook: "Facebook",
     signedInSuccessfully: "Zalogowano pomyślnie",
+    sessionExpired: "Sesja wygasła. Zaloguj się ponownie.",
     magicLinkSent: "Link magiczny wysłany",
     magicLinkSentTitle: "Sprawdź swoją skrzynkę",
     magicLinkSentBody:
@@ -67,9 +100,8 @@ export const pl = {
       "Wyślemy Ci bezpieczny link do logowania. Hasło nie jest wymagane.",
     bySigningIn: "Logując się, akceptujesz nasz",
     termsOfService: "Regulamin",
-    rateLimitExceeded: "Zbyt wiele prób",
-    rateLimitMessage:
-      "Poczekaj kilka minut przed ponownym wysłaniem linku magicznego.",
+    rateLimitExceeded: "Zbyt wiele prób przy logowaniu",
+    rateLimitMessage: "Poczekaj kilka minut przed ponownym wysłaniem linku.",
     confirmEmailTitle: "Sprawdź swoją skrzynkę",
     confirmEmailBody:
       "Wysłaliśmy e-mail potwierdzający na adres {{email}}. Kliknij link w e-mailu, aby zweryfikować swoje konto.",
@@ -86,7 +118,7 @@ export const pl = {
     subtitle:
       "Śledź konserwację pojazdu, zużycie paliwa i wydatki w jednym miejscu.",
     heroLead:
-      "Twórz schludny, profesjonalny raport auta do udostępnienia. Zdjęcia, historia serwisowa, tankowania i statystyki — w jednym, czytelnym widoku.",
+      "Twórz schludny, profesjonalny raport auta do udostępnienia. Zdjęcia, historia serwisowa, tankowania i statystyki – w jednym, czytelnym widoku.",
     howTitle: "Jak działa Vehico?",
     howDesc:
       "W kilka minut zbierasz historię auta, a potem generujesz publiczny link do raportu.",
@@ -95,7 +127,7 @@ export const pl = {
       "Uzupełnij najważniejsze informacje (np. VIN, przebieg, specyfikację) i przygotuj opis.",
     step2Title: "Zapisuj serwis i tankowania",
     step2Desc:
-      "Dodawaj wpisy z kosztami, datą i kategorią — dzięki temu raport ma realną historię.",
+      "Dodawaj wpisy z kosztami, datą i kategorią – dzięki temu raport ma realną historię.",
     step3Title: "Udostępnij raport linkiem",
     step3Desc:
       "Wygeneruj publiczny raport i podeślij go komu chcesz. Bez chaosu w PDF-ach i wiadomościach.",
@@ -117,7 +149,92 @@ export const pl = {
     getStarted: "Rozpocznij",
     alreadyHaveAccount: "Masz już konto? ",
     terms: "Regulamin",
-    privacy: "Prywatność",
+    privacy: "Polityka prywatności",
+  },
+  onboarding: {
+    welcome: {
+      title: "Witaj w Vehico",
+      subtitle:
+        "Ustawmy Twój pierwszy pojazd. Zajmie to około minutę – opcjonalne pola możesz pominąć.",
+      getStarted: "Zaczynamy",
+      useDifferentAccount: "Użyj innego konta",
+    },
+    name: {
+      title: "Jak masz na imię?",
+      label: "Imię",
+      placeholder: "np. Alex",
+      required: "Wpisz swoje imię.",
+      minLength: "Imię musi mieć co najmniej 2 znaki.",
+    },
+    vehicle: {
+      type: {
+        title: "Typ pojazdu",
+        car: "Samochód",
+        motorcycle: "Motocykl",
+      },
+      makeModel: {
+        title: "Marka i model",
+        makeRequired: "Marka jest wymagana.",
+        modelRequired: "Model jest wymagany.",
+        makeMinLength: "Marka musi mieć co najmniej 2 znaki.",
+        modelMinLength: "Model musi mieć co najmniej 2 znaki.",
+      },
+      year: {
+        title: "Rok produkcji",
+        invalid: "Wpisz poprawny rok produkcji.",
+      },
+      vin: {
+        title: "VIN",
+        subtitle: "Dodaj teraz albo pomiń – zawsze możesz edytować później.",
+        skip: "Pomiń VIN",
+        exactLength: "VIN musi mieć dokładnie 17 znaków.",
+      },
+      mileage: {
+        title: "Przebieg",
+        subtitle: "Jeśli go znasz, dodaj aktualny przebieg.",
+        skip: "Pomiń przebieg",
+      },
+      specs: {
+        title: "Dane techniczne",
+        subtitle: "Dodaj to, co wiesz – resztę uzupełnisz później.",
+        skipAll: "Pomiń dane techniczne",
+        engineMin: "Pojemność silnika musi być większa niż 1.",
+        powerMin: "Moc musi być większa niż 1.",
+      },
+      photo: {
+        title: "Zdjęcie pojazdu",
+        subtitle: "Zdjęcie pomoże szybciej rozpoznać pojazd.",
+        addPhoto: "Dodaj zdjęcie",
+        changePhoto: "Zmień zdjęcie",
+        skip: "Pomiń zdjęcie",
+      },
+      confirm: {
+        title: "Gotowe",
+        subtitleAdded:
+          "Twój pojazd {{make}} {{model}}, {{year}} został dodany.",
+        subtitleNotAdded:
+          "Twój pojazd {{make}} {{model}}, {{year}} jest gotowy. Dodasz go później.",
+      },
+    },
+    notifications: {
+      title: "Powiadomienia",
+      subtitle:
+        "Włącz powiadomienia, aby dostawać przypomnienia o serwisie i ważnych terminach.",
+      enablePush: "Włącz powiadomienia",
+    },
+    complete: {
+      title: "Zaczynamy",
+      subtitle: "Oto, co możesz zrobić w aplikacji:",
+      features: {
+        service: "Prowadź historię serwisu",
+        fueling: "Zapisuj tankowania i koszty",
+        wheels: "Zarządzaj kołami i oponami",
+        reminders: "Ustawiaj przypomnienia",
+        documents: "Trzymaj dokumenty i zdjęcia",
+      },
+      cta: "Przejdź do moich pojazdów",
+      doneToast: "Onboarding ukończony",
+    },
   },
   vehicles: {
     title: "Pojazdy",
@@ -369,10 +486,93 @@ export const pl = {
     deleteAccountNotAvailable:
       "Usunięcie konta nie jest dostępne w aplikacji. Skontaktuj się z pomocą techniczną.",
     displayNameUpdated: "Nazwa zaktualizowana",
+    shop: "Sklep",
+  },
+  shop: {
+    title: "Sklep",
+    premiumActive: "Masz aktywny plan Premium",
+    currentPlan: "Aktualny plan",
+    packs: "Paczki",
+    subscriptions: "Subskrypcje",
+    oneTime: "Jednorazowy zakup",
+    perMonth: "na miesiąc",
+    perYear: "na rok",
+    unlockPremium: "Odblokuj Premium",
+    packsHeadline: "Kup paczki",
+    bestDeal: "Najlepsza oferta",
+    buyPack: "Kup paczkę",
+    packsBlockedWhilePremium:
+      "Nie możesz kupić paczek, gdy Premium jest aktywne",
+    saveDiscountBadge: "Oszczędź -{{percent}}%",
+    premiumFeatures: {
+      unlimitedVehicles: "Nielimitowane pojazdy",
+      photos6x: "Możesz dodać 6× więcej zdjęć niż na Free",
+      unlimitedReportsPosts: "Generuj raporty i ogłoszenia bez ograniczeń",
+      remindersWorkshops: "Przypomnienia, warsztaty i wiele więcej bez limitów",
+    },
+    packsFeatures: {
+      payOnce: "Zapłać raz, generuj na żądanie",
+      noSubscription: "Bez subskrypcji",
+    },
+    packCards: {
+      reports: "3 Raporty",
+      reportsPlusPosts: "3R + 3O",
+      posts: "3 Ogłoszenia",
+    },
+    subCards: {
+      monthly: "Miesięcznie",
+      yearly: "Rocznie",
+      lifetime: "Na zawsze",
+    },
+    tapToPurchase: "Kliknij, aby kupić",
+    planActive: "Plan aktywny",
+    purchaseSuccess: "Zakup zakończony pomyślnie!",
+    unknownProduct: "Nieznany produkt",
+    premiumIsActive: "Premium jest aktywne",
+    premiumIsActiveBody:
+      "Masz już aktywny plan Premium. Zakup nie jest potrzebny.",
+    confirmPurchase: "Potwierdź zakup",
+    buy: "Kup",
+    products: {
+      pack_3_reports: {
+        name: "Paczka 3 raportów",
+        description: "Wygeneruj 3 raporty publiczne",
+      },
+      pack_3_listings: {
+        name: "Paczka 3 ogłoszeń",
+        description: "Wygeneruj 3 ogłoszenia",
+      },
+      pack_3plus3: {
+        name: "3 raporty + 3 ogłoszenia",
+        description: "Wygeneruj 3 raporty i 3 ogłoszenia",
+      },
+      premium_monthly: {
+        name: "Premium miesięcznie",
+        description: "Nielimitowane raporty, ogłoszenia, pojazdy i więcej",
+      },
+      premium_yearly: {
+        name: "Premium rocznie",
+        description: "Nielimitowane wszystko - najlepsza cena",
+      },
+      lifetime: {
+        name: "Premium na zawsze",
+        description: "Jednorazowa płatność, dostęp na zawsze",
+      },
+    },
   },
   settings: {
     title: "Ustawienia",
     subtitle: "Zmiany są natychmiastowe i zapisywane per konto.",
+    profileButton: "Profil",
+    shopButton: "Sklep i Premium",
+    shopSubtitle: "Odblokuj ekskluzywne funkcje",
+    appearanceButton: "Wygląd",
+    appearanceSubtitle: "Motyw, język, jednostki",
+    tabUnits: "Jednostki",
+    tabDisplay: "Wyświetlanie",
+    supportTitle: "Wsparcie",
+    supportSubtitle: "Skontaktuj się z nami",
+    signOutSubtitle: "Wyloguj się z konta",
     currency: "Waluta",
     distanceUnit: "Jednostka dystansu",
     distanceUnitKm: "Kilometry",

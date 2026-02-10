@@ -18,10 +18,12 @@ import {
   deleteWorkshop,
   getWorkshop,
   updateWorkshop,
+  listWorkshops,
 } from "../services/workshops/workshopsRepo";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 
@@ -39,6 +41,7 @@ const WORKSHOP_TYPES: WorkshopType[] = [
 export function WorkshopFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { isPremium, workshopsLimit } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { workshopId } = route.params ?? {};
   const accentBg = useMemo(
@@ -144,6 +147,25 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   async function onSave() {
     try {
       setSaving(true);
+      // Check workshop limit (only for new workshops)
+      if (!workshopId && !isPremium) {
+        const workshops = await listWorkshops();
+        if (workshops.length >= workshopsLimit) {
+          Alert.alert(
+            t("limits.workshopLimitReachedTitle"),
+            t("limits.workshopLimitReachedBody", { limit: workshopsLimit }),
+            [
+              { text: t("common.cancel"), style: "cancel" },
+              {
+                text: t("limits.upgradeToPremium"),
+                onPress: () => navigation.navigate("Shop"),
+              },
+            ]
+          );
+          return;
+        }
+      }
+
       const payload = {
         name: name.trim(),
         workshop_type: workshopType!,

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Crown } from "lucide-react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -30,10 +31,14 @@ export function AppHeader({
   onBack,
   right,
   title,
+  showShopIcon,
+  onShopPress,
 }: {
   onBack?: () => void;
   right?: ReactNode;
   title?: string;
+  showShopIcon?: boolean;
+  onShopPress?: () => void;
 }) {
   const { theme } = useTheme();
   const { user } = useAuth();
@@ -45,8 +50,11 @@ export function AppHeader({
   const styles = makeStyles(theme);
 
   const hideProfileAvatar =
-    route.name === "Profile" || route.name === "Settings";
-  const showInitials = !!user && right === undefined && !hideProfileAvatar;
+    route.name === "Settings" ||
+    route.name === "Appearance" ||
+    route.name === "Shop";
+  const showInitials =
+    !!user && right === undefined && !hideProfileAvatar && !showShopIcon;
   const initials = user ? getInitials(user) : "";
 
   return (
@@ -75,9 +83,40 @@ export function AppHeader({
       <View style={styles.right}>
         {right !== undefined ? (
           right
+        ) : showShopIcon && onShopPress ? (
+          <View style={styles.rightIcons}>
+            <Pressable
+              onPress={onShopPress}
+              hitSlop={10}
+              style={({ pressed }) => [
+                styles.iconButton,
+                pressed && styles.backButtonPressed,
+              ]}
+            >
+              <Crown size={22} color={theme.colors.accent} />
+            </Pressable>
+            {user && (
+              <Pressable
+                onPress={() => navigation.navigate("Settings")}
+                hitSlop={10}
+                style={({ pressed }) => [
+                  styles.avatarButton,
+                  { backgroundColor: theme.colors.accent + "30" },
+                  pressed && styles.backButtonPressed,
+                ]}
+              >
+                <Text
+                  style={[styles.avatarText, { color: theme.colors.accent }]}
+                  numberOfLines={1}
+                >
+                  {initials}
+                </Text>
+              </Pressable>
+            )}
+          </View>
         ) : showInitials ? (
           <Pressable
-            onPress={() => navigation.navigate("Profile")}
+            onPress={() => navigation.navigate("Settings")}
             hitSlop={10}
             style={({ pressed }) => [
               styles.avatarButton,
@@ -119,9 +158,20 @@ const makeStyles = (theme: any) =>
       flex: 1,
     },
     right: {
-      width: theme.spacing.lg * 2,
+      minWidth: theme.spacing.lg * 2,
       alignItems: "flex-end",
       justifyContent: "center",
+    },
+    rightIcons: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
+    iconButton: {
+      width: theme.spacing.xl + theme.spacing.xs,
+      height: theme.spacing.xl + theme.spacing.xs,
+      justifyContent: "center",
+      alignItems: "center",
     },
     backButton: {
       width: theme.spacing.xl + theme.spacing.xs,

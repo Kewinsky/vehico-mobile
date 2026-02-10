@@ -3,7 +3,7 @@ import { supabase } from "../supabase/client";
 import { fetchBlob, randomId } from "../storage/uploadUtils";
 import * as ImageManipulator from "expo-image-manipulator";
 
-const MAX_PHOTOS = 6;
+const DEFAULT_MAX_PHOTOS = 6;
 
 /**
  * Lists all photos for a vehicle, ordered by display_order
@@ -23,7 +23,7 @@ export async function listVehiclePhotos(
 /**
  * Uploads a photo for a vehicle and returns the VehiclePhoto
  * The photo is stored in: {vehicleId}/{timestamp}-{randomId}.jpg
- * Maximum 6 photos per vehicle
+ * Maximum photos per vehicle is determined by user's plan (default: 6 for free, 40 for premium)
  * All photos are converted to JPEG format for maximum compatibility
  */
 export async function uploadVehiclePhoto(params: {
@@ -31,11 +31,13 @@ export async function uploadVehiclePhoto(params: {
   fileUri: string;
   mimeType?: string | null;
   fileName?: string | null;
+  maxPhotos?: number; // Optional limit override (from entitlements)
 }): Promise<VehiclePhoto> {
+  const maxPhotos = params.maxPhotos ?? DEFAULT_MAX_PHOTOS;
   // Check current count
   const existing = await listVehiclePhotos(params.vehicleId);
-  if (existing.length >= MAX_PHOTOS) {
-    throw new Error(`Maximum ${MAX_PHOTOS} photos allowed`);
+  if (existing.length >= maxPhotos) {
+    throw new Error(`Maximum ${maxPhotos} photos allowed`);
   }
 
   // Convert all photos to JPEG for maximum compatibility

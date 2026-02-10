@@ -19,7 +19,6 @@ import { FuelingEntryFormScreen } from "../../screens/FuelingEntryFormScreen";
 import { RemindersScreen } from "../../screens/RemindersScreen";
 import { ReminderFormScreen } from "../../screens/ReminderFormScreen";
 import { ServiceEntryFormScreen } from "../../screens/ServiceEntryFormScreen";
-import { ProfileScreen } from "../../screens/ProfileScreen";
 import { SettingsScreen } from "../../screens/SettingsScreen";
 import { DataPortabilityScreen } from "../../screens/DataPortabilityScreen";
 import { ExportScreen } from "../../screens/ExportScreen";
@@ -49,6 +48,9 @@ import { WheelFormScreen } from "../../screens/WheelFormScreen";
 import { WorkshopsScreen } from "../../screens/WorkshopsScreen";
 import { WorkshopDetailScreen } from "../../screens/WorkshopDetailScreen";
 import { WorkshopFormScreen } from "../../screens/WorkshopFormScreen";
+import { ShopScreen } from "../../screens/ShopScreen";
+import { AppearanceScreen } from "../../screens/AppearanceScreen";
+import { OnboardingFlowScreen } from "../../screens/OnboardingFlowScreenImpl";
 
 export type AppStackParamList = {
   Landing: undefined;
@@ -56,10 +58,11 @@ export type AppStackParamList = {
   EmailConfirmation: { email?: string };
   TermsOfUse: undefined;
   PrivacyPolicy: undefined;
+  Onboarding: undefined;
   Vehicles: undefined;
   VehicleForm: undefined;
-  Profile: undefined;
   Settings: undefined;
+  Appearance: undefined;
   VehicleDashboard: { vehicleId: string };
   VehicleDetail: { vehicleId: string };
   Documents: { vehicleId: string };
@@ -147,6 +150,7 @@ export type AppStackParamList = {
   Workshops: undefined;
   WorkshopDetail: { workshopId: string };
   WorkshopForm: { workshopId?: string };
+  Shop: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -166,7 +170,13 @@ export function RootNavigator() {
     <Stack.Navigator
       key={session ? "authenticated" : "unauthenticated"}
       screenOptions={{ headerShown: false }}
-      initialRouteName={session ? "Vehicles" : "Landing"}
+      initialRouteName={
+        session
+          ? session.user.user_metadata?.has_completed_onboarding === true
+            ? "Vehicles"
+            : "Onboarding"
+          : "Landing"
+      }
     >
       {!session ? (
         <>
@@ -177,10 +187,13 @@ export function RootNavigator() {
         </>
       ) : (
         <>
+          <Stack.Screen name="TermsOfUse" component={TermsOfUseScreen} />
+          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+          <Stack.Screen name="Onboarding" component={OnboardingFlowScreen} />
           <Stack.Screen name="Vehicles" component={VehiclesScreen} />
           <Stack.Screen name="VehicleForm" component={VehicleFormScreen} />
-          <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Appearance" component={AppearanceScreen} />
           <Stack.Screen
             name="VehicleDashboard"
             component={VehicleDashboardScreen}
@@ -267,6 +280,7 @@ export function RootNavigator() {
             component={WorkshopDetailScreen}
           />
           <Stack.Screen name="WorkshopForm" component={WorkshopFormScreen} />
+          <Stack.Screen name="Shop" component={ShopScreen} />
         </>
       )}
     </Stack.Navigator>

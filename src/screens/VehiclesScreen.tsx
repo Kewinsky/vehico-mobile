@@ -21,6 +21,7 @@ import {
   listVehiclePhotos,
   getVehiclePhotoUrl,
 } from "../services/vehicles/uploadPhoto";
+import { Alert } from "react-native";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { AppHeader } from "../ui/components/AppHeader";
@@ -28,6 +29,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 
@@ -170,6 +172,7 @@ export function VehiclesScreen({ navigation }: Props) {
 
   const windowWidth = Dimensions.get("window").width;
   const { settings } = useUserSettings();
+  const { isPremium, vehiclesLimit } = useEntitlements();
   const distanceUnit = settings?.distanceUnit ?? "km";
 
   // Convert mileage from km to miles if needed
@@ -235,7 +238,10 @@ export function VehiclesScreen({ navigation }: Props) {
 
   return (
     <Screen padding={false}>
-      <AppHeader />
+      <AppHeader
+        showShopIcon={!isPremium}
+        onShopPress={() => navigation.navigate("Shop")}
+      />
       <View style={styles.body}>
         {loading && items.length === 0 ? (
           <View style={styles.loadingContainer}>
@@ -246,7 +252,31 @@ export function VehiclesScreen({ navigation }: Props) {
             <Text style={styles.emptyTitle}>{t("vehicles.emptyTitle")}</Text>
             <Text style={styles.emptyBody}>{t("vehicles.emptyBody")}</Text>
             <View style={{ height: theme.spacing.sm }} />
-            <Button onPress={() => navigation.navigate("VehicleForm")}>
+            <Button
+              onPress={() => {
+                if (isPremium) {
+                  navigation.navigate("VehicleForm");
+                  return;
+                }
+                if (items.length >= vehiclesLimit) {
+                  Alert.alert(
+                    t("limits.vehicleLimitReachedTitle"),
+                    t("limits.vehicleLimitReachedBody", {
+                      limit: vehiclesLimit,
+                    }),
+                    [
+                      { text: t("common.cancel"), style: "cancel" },
+                      {
+                        text: t("limits.upgradeToPremium"),
+                        onPress: () => navigation.navigate("Shop"),
+                      },
+                    ]
+                  );
+                  return;
+                }
+                navigation.navigate("VehicleForm");
+              }}
+            >
               {t("vehicles.addVehicle")}
             </Button>
           </View>
@@ -339,7 +369,31 @@ export function VehiclesScreen({ navigation }: Props) {
               )}
               ListFooterComponent={
                 <View style={styles.listFooter}>
-                  <Button onPress={() => navigation.navigate("VehicleForm")}>
+                  <Button
+                    onPress={() => {
+                      if (isPremium) {
+                        navigation.navigate("VehicleForm");
+                        return;
+                      }
+                      if (items.length >= vehiclesLimit) {
+                        Alert.alert(
+                          t("limits.vehicleLimitReachedTitle"),
+                          t("limits.vehicleLimitReachedBody", {
+                            limit: vehiclesLimit,
+                          }),
+                          [
+                            { text: t("common.cancel"), style: "cancel" },
+                            {
+                              text: t("limits.upgradeToPremium"),
+                              onPress: () => navigation.navigate("Shop"),
+                            },
+                          ]
+                        );
+                        return;
+                      }
+                      navigation.navigate("VehicleForm");
+                    }}
+                  >
                     {t("vehicles.addVehicle")}
                   </Button>
                 </View>

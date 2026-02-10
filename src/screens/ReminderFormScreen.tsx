@@ -24,6 +24,7 @@ import {
   deleteReminder,
   getReminder,
   updateReminder,
+  listReminders,
 } from "../services/reminders/remindersRepo";
 import {
   cancelLocalReminder,
@@ -33,6 +34,7 @@ import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../ui/components/ChoiceChip";
@@ -62,6 +64,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
+  const { isPremium, remindersLimit } = useEntitlements();
   const styles = makeStyles(theme);
   const { vehicleId, reminderId } = route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
@@ -167,6 +170,25 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         toastError(t("validation.nonNegativeRequired"));
         return;
       }
+      // Check reminder limit (only for new reminders)
+      if (!reminderId && !isPremium) {
+        const existingReminders = await listReminders(vehicleId);
+        if (existingReminders.length >= remindersLimit) {
+          Alert.alert(
+            t("limits.reminderLimitReachedTitle"),
+            t("limits.reminderLimitReachedBody", { limit: remindersLimit }),
+            [
+              { text: t("common.cancel"), style: "cancel" },
+              {
+                text: t("limits.upgradeToPremium"),
+                onPress: () => navigation.navigate("Shop"),
+              },
+            ]
+          );
+          return;
+        }
+      }
+
       const payload = {
         vehicle_id: vehicleId,
         type,

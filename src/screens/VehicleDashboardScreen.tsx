@@ -18,6 +18,7 @@ import * as Clipboard from "expo-clipboard";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Vehicle } from "../types/domain";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
@@ -39,6 +40,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, insets);
   const { vehicleId } = route.params;
+  const { isPremium } = useEntitlements();
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
@@ -60,14 +62,14 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t]
+    [vehicleId, t],
   );
 
   useEffect(() => {
     void load();
     const unsub = navigation.addListener(
       "focus",
-      () => void load({ showLoading: false })
+      () => void load({ showLoading: false }),
     );
     return unsub;
   }, [navigation, load]);
@@ -209,7 +211,11 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
   return (
     <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+      <AppHeader
+        onBack={() => navigation.goBack()}
+        showShopIcon={!isPremium}
+        onShopPress={() => navigation.navigate("Shop")}
+      />
       {loading ? (
         <View
           style={{
@@ -476,7 +482,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     menuItem: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      paddingHorizontal: theme.spacing.lg,
       paddingVertical: theme.spacing.sm,
       gap: theme.spacing.sm,
     },
