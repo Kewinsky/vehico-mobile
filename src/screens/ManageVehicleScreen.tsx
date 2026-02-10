@@ -28,6 +28,7 @@ import {
 import { AppHeader } from "../ui/components/AppHeader";
 import { DriveTypeIcon } from "../ui/components/DriveTypeIcon";
 import { FormScreen } from "../ui/components/FormScreen";
+import { Button } from "../ui/components/Button";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
@@ -195,39 +196,38 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
     );
   }
 
-  function showActionsMenu() {
-    Alert.alert("", "", [
-      {
-        text: t("common.edit"),
-        onPress: () => navigation.navigate("ManageVehicleEdit", { vehicleId }),
-      },
-      {
-        text: t("common.delete"),
-        style: "destructive",
-        onPress: onDeleteVehicle,
-      },
-      { text: t("common.cancel"), style: "cancel" },
-    ]);
-  }
-
   return (
-    <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <FormScreen
+      header={<AppHeader onBack={() => navigation.goBack()} />}
+      footer={
+        vehicle ? (
+          <View
+            style={{
+              flexDirection: "row",
+              gap: theme.spacing.sm,
+            }}
+          >
+            <View style={{ flex: 1 }}>
+              <Button
+                variant="ghost"
+                onPress={() =>
+                  navigation.navigate("VehicleForm", { vehicleId })
+                }
+              >
+                {t("common.edit")}
+              </Button>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button variant="destructive" onPress={onDeleteVehicle}>
+                {t("common.delete")}
+              </Button>
+            </View>
+          </View>
+        ) : null
+      }
+    >
       <View style={styles.headerRow}>
         <Text style={styles.h1}>{t("dashboard.tiles.manageTitle")}</Text>
-        <Pressable
-          onPress={showActionsMenu}
-          hitSlop={10}
-          style={({ pressed }) => [
-            styles.menuButton,
-            pressed && { opacity: 0.6 },
-          ]}
-        >
-          <Ionicons
-            name="ellipsis-horizontal"
-            size={22}
-            color={theme.colors.fg}
-          />
-        </Pressable>
       </View>
 
       {loading ? (
@@ -419,10 +419,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                         { backgroundColor: theme.colors.accent + "25" },
                       ]}
                     >
-                      <DriveTypeIcon
-                        size={18}
-                        color={theme.colors.accent}
-                      />
+                      <DriveTypeIcon size={18} color={theme.colors.accent} />
                     </View>
                     <View style={styles.detailContent}>
                       <Text style={styles.detailLabel}>

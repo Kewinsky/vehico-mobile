@@ -92,7 +92,7 @@ const makeStyles = (theme: any) =>
       borderWidth: 1,
     },
     textMd: {
-      fontSize: theme.typography.body,
+      fontSize: theme.typography.small,
       fontWeight: "700",
     },
     textSm: {

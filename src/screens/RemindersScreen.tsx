@@ -178,6 +178,11 @@ export function RemindersScreen({ route, navigation }: Props) {
           value={datePickerDraft}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}
+          themeVariant={
+            Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
+              ? "dark"
+              : "light"
+          }
           onChange={(event, selectedDate) => {
             if (Platform.OS === "ios") {
               if (selectedDate) setDatePickerDraft(selectedDate);
@@ -702,21 +707,6 @@ export function RemindersScreen({ route, navigation }: Props) {
                           unit: distanceUnit,
                         })}
                   </Text>
-                  {reminder.notes ? (
-                    <Text
-                      style={[
-                        {
-                          color: theme.colors.muted,
-                          marginTop: theme.spacing.xs,
-                          lineHeight: 18,
-                        },
-                        isDone && { opacity: 0.6 },
-                      ]}
-                      numberOfLines={3}
-                    >
-                      {reminder.notes}
-                    </Text>
-                  ) : null}
                 </Pressable>
                 <IconButton
                   onPress={() => toggleStatus(reminder.id, reminder.status)}

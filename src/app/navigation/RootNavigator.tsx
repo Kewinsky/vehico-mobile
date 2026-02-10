@@ -12,7 +12,6 @@ import { VehicleFormScreen } from "../../screens/VehicleFormScreen";
 import { VehicleDashboardScreen } from "../../screens/VehicleDashboardScreen";
 import { VehicleDetailScreen } from "../../screens/VehicleDetailScreen";
 import { ManageVehicleScreen } from "../../screens/ManageVehicleScreen";
-import { ManageVehicleEditScreen } from "../../screens/ManageVehicleEditScreen";
 import { DocumentsScreen } from "../../screens/DocumentsScreen";
 import { FuelScreen } from "../../screens/FuelScreen";
 import { FuelingEntryFormScreen } from "../../screens/FuelingEntryFormScreen";
@@ -57,7 +56,7 @@ export type AppStackParamList = {
   PrivacyPolicy: undefined;
   Onboarding: undefined;
   Vehicles: undefined;
-  VehicleForm: undefined;
+  VehicleForm: { vehicleId?: string };
   Settings: undefined;
   Appearance: undefined;
   VehicleDashboard: { vehicleId: string };
@@ -129,7 +128,6 @@ export type AppStackParamList = {
   };
   PublicReportHistory: { vehicleId: string };
   ManageVehicle: { vehicleId: string };
-  ManageVehicleEdit: { vehicleId: string };
   DataPortability: { vehicleId: string };
   Export: { vehicleId: string };
   Import: { vehicleId: string };
@@ -246,10 +244,6 @@ export function RootNavigator() {
             component={PublicReportHistoryScreen}
           />
           <Stack.Screen name="ManageVehicle" component={ManageVehicleScreen} />
-          <Stack.Screen
-            name="ManageVehicleEdit"
-            component={ManageVehicleEditScreen}
-          />
           <Stack.Screen
             name="DataPortability"
             component={DataPortabilityScreen}

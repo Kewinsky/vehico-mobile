@@ -439,6 +439,11 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                   value={datePickerDraft}
                   mode="date"
                   display={Platform.OS === "ios" ? "spinner" : "default"}
+                  themeVariant={
+                    Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
+                      ? "dark"
+                      : "light"
+                  }
                   onChange={(event, selected) => {
                     if (Platform.OS === "ios") {
                       if (selected) setDatePickerDraft(selected);

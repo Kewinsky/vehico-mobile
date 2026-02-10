@@ -98,27 +98,24 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
           </Text>
         </View>
 
-        <Card style={styles.card}>
-          <Text style={styles.cardTitle}>{t("share.qrCodeTitle")}</Text>
-          <View style={styles.qrContainer}>
-            <View
-              style={[
-                styles.qrWrapper,
-                {
-                  backgroundColor: theme.colors.card,
-                  borderColor: theme.colors.border,
-                },
-              ]}
-            >
-              <QRCode
-                value={url}
-                size={qrSize}
-                color={mode === "dark" ? "#ffffff" : "#000000"}
-                backgroundColor={theme.colors.card}
-              />
-            </View>
+        <View style={styles.qrContainer}>
+          <View
+            style={[
+              styles.qrWrapper,
+              {
+                backgroundColor: theme.colors.card,
+                borderColor: theme.colors.border,
+              },
+            ]}
+          >
+            <QRCode
+              value={url}
+              size={qrSize}
+              color={mode === "dark" ? "#ffffff" : "#000000"}
+              backgroundColor={theme.colors.card}
+            />
           </View>
-        </Card>
+        </View>
 
         <View style={styles.actions}>
           <Button onPress={handleOpenInBrowser}>

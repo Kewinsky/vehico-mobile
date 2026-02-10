@@ -176,6 +176,11 @@ export function FuelScreen({ route, navigation }: Props) {
           value={datePickerDraft}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}
+          themeVariant={
+            Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
+              ? "dark"
+              : "light"
+          }
           onChange={(event, selectedDate) => {
             if (Platform.OS === "ios") {
               if (selectedDate) setDatePickerDraft(selectedDate);

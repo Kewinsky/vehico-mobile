@@ -32,11 +32,13 @@ export function FormScreen({
   header,
   scrollEnabled = true,
   scrollRef,
+  footer,
 }: PropsWithChildren<{
   padding?: boolean;
   header?: ReactNode;
   scrollEnabled?: boolean;
   scrollRef?: React.RefObject<ScrollViewInstance | null>;
+  footer?: ReactNode;
 }>) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
@@ -58,25 +60,46 @@ export function FormScreen({
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <FormScreenScrollRefContext.Provider value={effectiveScrollRef}>
-          <ScrollView
-            ref={effectiveScrollRef}
-            scrollEnabled={scrollEnabled}
-            nestedScrollEnabled={false}
-            contentContainerStyle={{
-              flexGrow: 1,
-              paddingHorizontal: theme.layout.contentPaddingHorizontal,
-              paddingBottom: insets.bottom + theme.spacing.lg,
-            }}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "none"}
-          >
-            <TouchableWithoutFeedback
-              onPress={Keyboard.dismiss}
-              accessible={false}
+          <View style={{ flex: 1 }}>
+            <ScrollView
+              ref={effectiveScrollRef}
+              scrollEnabled={scrollEnabled}
+              nestedScrollEnabled={false}
+              contentContainerStyle={{
+                flexGrow: 1,
+                paddingHorizontal: theme.layout.contentPaddingHorizontal,
+                paddingBottom: footer
+                  ? theme.spacing.lg
+                  : insets.bottom + theme.spacing.lg,
+              }}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode={
+                Platform.OS === "ios" ? "interactive" : "none"
+              }
             >
-              <View style={{ flexGrow: 1, flexShrink: 0 }}>{children}</View>
-            </TouchableWithoutFeedback>
-          </ScrollView>
+              <TouchableWithoutFeedback
+                onPress={Keyboard.dismiss}
+                accessible={false}
+              >
+                <View style={{ flexGrow: 1, flexShrink: 0 }}>{children}</View>
+              </TouchableWithoutFeedback>
+            </ScrollView>
+
+            {footer ? (
+              <View
+                style={{
+                  paddingHorizontal: theme.layout.contentPaddingHorizontal,
+                  paddingTop: theme.spacing.sm,
+                  paddingBottom: insets.bottom + theme.spacing.sm,
+                  backgroundColor: theme.colors.bg,
+                  borderTopWidth: 1,
+                  borderTopColor: theme.colors.border,
+                }}
+              >
+                {footer}
+              </View>
+            ) : null}
+          </View>
         </FormScreenScrollRefContext.Provider>
       </KeyboardAvoidingView>
     </View>

@@ -881,6 +881,7 @@ export const pl = {
     removePhotoConfirm: "Czy na pewno chcesz usunąć to zdjęcie?",
     insuranceLabel: "Ubezpieczenie",
     inspectionLabel: "Przegląd",
+    selectDate: "Wybierz datę",
   },
   attachments: {
     title: "Załączniki",
@@ -955,7 +956,6 @@ export const pl = {
     linkCopied: "Link skopiowany do schowka",
     cannotOpenUrl: "Nie można otworzyć linku",
     generatingLink: "Generowanie linku...",
-    qrCodeTitle: "Zeskanuj, aby zobaczyć raport",
     qrCodeSubtitle:
       "Każdy może zeskanować ten kod QR, aby zobaczyć raport pojazdu.",
     historyTitle: "Historia raportów",
