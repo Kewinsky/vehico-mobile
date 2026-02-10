@@ -20,15 +20,11 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
-import {
-  listFuelingEntries,
-  deleteFuelingEntry,
-} from "../services/fuel/fuelingEntriesRepo";
+import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
 import { useCallback, useEffect, useState } from "react";
 import type { FuelingEntry, GasStation } from "../types/domain";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
-import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { hexToRgba } from "../ui/components/ChoiceChip";
@@ -328,28 +324,6 @@ export function FuelScreen({ route, navigation }: Props) {
 
     return grouped;
   }, [fueling, query, dateFrom, dateTo, stationFilter, minCost, maxCost, t]);
-
-  function confirmDeleteFueling(id: string) {
-    Alert.alert(
-      t("fuelCosts.deleteFuelingTitle"),
-      t("fuelCosts.deleteFuelingBody"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("common.delete"),
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteFuelingEntry(id);
-              setFueling((prev) => prev.filter((x) => x.id !== id));
-            } catch (err: any) {
-              toastError(err?.message ?? t("common.error"));
-            }
-          },
-        },
-      ],
-    );
-  }
 
   return (
     <Screen padding={false}>
@@ -697,60 +671,57 @@ export function FuelScreen({ route, navigation }: Props) {
 
           const entry = item.item;
           return (
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
+            <Pressable
+              style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+              onPress={() =>
+                navigation.navigate("FuelingEntryForm", {
+                  vehicleId: route.params.vehicleId,
+                  entryId: entry.id,
+                })
+              }
             >
-              <View style={styles.cardRow}>
-                <Pressable
-                  style={{ flex: 1 }}
-                  onPress={() =>
-                    navigation.navigate("FuelingEntryForm", {
-                      vehicleId: route.params.vehicleId,
-                      entryId: entry.id,
-                    })
-                  }
-                >
-                  <Text style={[styles.cardTitle, { color: theme.colors.fg }]}>
-                    {entry.date}
-                    {entry.fuel_type
-                      ? ` · ${t(`fuelingForm.fuelTypes.${entry.fuel_type}`)}`
-                      : ""}
-                    {entry.gas_station
-                      ? ` · ${t(`fuelingForm.stations.${entry.gas_station}`)}`
-                      : ""}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.cardMeta,
-                      {
-                        color: theme.colors.muted,
-                        marginTop: theme.spacing.xs / 2,
-                      },
-                    ]}
-                  >
-                    {Number(entry.distance).toFixed(1)} {distanceUnit} ·{" "}
-                    {Number(entry.fuel_amount).toFixed(1)} {fuelUnitLabel} ·{" "}
-                    {Number(entry.fuel_cost).toFixed(2)} {currency}
-                  </Text>
-                </Pressable>
-                <IconButton
-                  onPress={() => confirmDeleteFueling(entry.id)}
-                  variant="danger"
-                >
+              <View
+                style={[
+                  styles.card,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                ]}
+              >
+                <View style={styles.cardRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.cardTitle, { color: theme.colors.fg }]}>
+                      {entry.date}
+                      {entry.fuel_type
+                        ? ` · ${t(`fuelingForm.fuelTypes.${entry.fuel_type}`)}`
+                        : ""}
+                      {entry.gas_station
+                        ? ` · ${t(`fuelingForm.stations.${entry.gas_station}`)}`
+                        : ""}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.cardMeta,
+                        {
+                          color: theme.colors.muted,
+                          marginTop: theme.spacing.xs / 2,
+                        },
+                      ]}
+                    >
+                      {Number(entry.distance).toFixed(1)} {distanceUnit} ·{" "}
+                      {Number(entry.fuel_amount).toFixed(1)} {fuelUnitLabel} ·{" "}
+                      {Number(entry.fuel_cost).toFixed(2)} {currency}
+                    </Text>
+                  </View>
                   <Ionicons
-                    name="trash-outline"
-                    size={24}
-                    color={theme.colors.danger}
+                    name="chevron-forward"
+                    size={22}
+                    color={theme.colors.accent}
                   />
-                </IconButton>
+                </View>
               </View>
-            </View>
+            </Pressable>
           );
         }}
         ListEmptyComponent={
@@ -801,7 +772,7 @@ const makeStyles = (theme: any) =>
     card: {
       borderWidth: 1,
       borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
+      padding: theme.spacing.sm,
     },
     cardRow: {
       flexDirection: "row",

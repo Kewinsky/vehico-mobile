@@ -339,7 +339,12 @@ export function DocumentsScreen({ route, navigation }: Props) {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <Text style={[styles.section, { color: theme.colors.fg }]}>
+        <Text
+          style={[
+            styles.section,
+            { color: theme.colors.fg, marginBottom: theme.spacing.xs },
+          ]}
+        >
           {t("documents.vehicleDocumentsWithCount", {
             count: vehicleDocs.length,
           })}
@@ -422,16 +427,19 @@ export function DocumentsScreen({ route, navigation }: Props) {
             const description = d.description || "";
             return description.toLowerCase().includes(q);
           }).length === 0 ? (
-          <Text
-            style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}
-          >
+          <Text style={{ color: theme.colors.muted }}>
             {t("documents.noVehicleDocuments")}
           </Text>
         ) : null}
 
         <View style={{ height: theme.spacing.xl }} />
 
-        <Text style={[styles.section, { color: theme.colors.fg }]}>
+        <Text
+          style={[
+            styles.section,
+            { color: theme.colors.fg, marginBottom: theme.spacing.xs },
+          ]}
+        >
           {t("documents.serviceAttachmentsWithCount", {
             count: attachments.length,
           })}
@@ -459,7 +467,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
                     style={{ flex: 1 }}
                     onPress={() => void openAttachment(item)}
                   >
-                    <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
+                    <Text style={{ color: theme.colors.fg, fontWeight: "700" }}>
                       {item.serviceEntryTitle
                         ? item.serviceEntryTitle
                         : t("documents.attachmentLabel")}
@@ -500,9 +508,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
           const title = a.serviceEntryTitle || "";
           return title.toLowerCase().includes(q);
         }).length === 0 && !loading ? (
-          <Text
-            style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}
-          >
+          <Text style={{ color: theme.colors.muted }}>
             {t("documents.noAttachments")}
           </Text>
         ) : null}

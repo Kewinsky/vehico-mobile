@@ -547,7 +547,7 @@ function makeStyles(theme: any) {
     card: {
       borderRadius: theme.radius.md,
       borderWidth: 1,
-      padding: theme.spacing.md,
+      padding: theme.spacing.sm,
       marginBottom: theme.spacing.sm,
     },
     cardRow: {
