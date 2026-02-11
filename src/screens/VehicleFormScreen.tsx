@@ -54,6 +54,7 @@ import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { FollowCursorTextInput } from "../ui/components/FollowCursorTextInput";
+import { DriveTypeIcon } from "../ui/components/DriveTypeIcon";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
 
@@ -1215,7 +1216,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
             <View style={styles.row}>
               <View style={styles.rowLeft}>
                 <MaterialCommunityIcons
-                  name="cog"
+                  name="car-shift-pattern"
                   size={20}
                   color={theme.colors.accent}
                 />
@@ -1248,11 +1249,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
             />
             <View style={styles.row}>
               <View style={styles.rowLeft}>
-                <Ionicons
-                  name="git-branch-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
+                <DriveTypeIcon size={20} color={theme.colors.accent} />
                 <Text
                   style={[styles.label, { color: theme.colors.muted }]}
                   numberOfLines={1}
@@ -1366,7 +1363,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
             >
               <View style={styles.rowLeft}>
                 <Ionicons
-                  name="document-text-outline"
+                  name="checkmark-done-outline"
                   size={20}
                   color={theme.colors.accent}
                 />
@@ -1433,7 +1430,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
             >
               <View style={styles.rowLeft}>
                 <Ionicons
-                  name="create-outline"
+                  name="document-text-outline"
                   size={20}
                   color={theme.colors.accent}
                 />

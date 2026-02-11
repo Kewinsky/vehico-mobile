@@ -56,7 +56,7 @@ export function TireFormScreen({ navigation, route }: Props) {
   const [width, setWidth] = useState("");
   const [profile, setProfile] = useState("");
   const [diameter, setDiameter] = useState("");
-  const [tireType, setTireType] = useState<TireType | null>("summer");
+  const [tireType, setTireType] = useState<TireType | null>(null);
   const [dot, setDot] = useState("");
   const [isCurrentlyFitted, setIsCurrentlyFitted] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -396,6 +396,7 @@ export function TireFormScreen({ navigation, route }: Props) {
               options: TIRE_TYPES,
               getLabel: (v) => t(`tireForm.types.${v}`),
               onChange: setTireType,
+              placeholderLabel: t("tireForm.placeholderTireType"),
             })
           }
           style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
@@ -419,7 +420,7 @@ export function TireFormScreen({ navigation, route }: Props) {
             ]}
             numberOfLines={1}
           >
-            {tireType ? t(`tireForm.types.${tireType}`) : "—"}
+            {tireType ? t(`tireForm.types.${tireType}`) : t("tireForm.placeholderTireType")}
           </Text>
         </Pressable>
         <View

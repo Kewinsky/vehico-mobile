@@ -720,6 +720,7 @@ export const en = {
     profile: "Aspect ratio",
     diameter: "Rim diameter",
     tireType: "Tire type",
+    placeholderTireType: "Select tire type",
     dot: "DOT (date code)",
     isCurrentlyFitted: "Currently on vehicle",
     placeholderName: "e.g. Summer 205",

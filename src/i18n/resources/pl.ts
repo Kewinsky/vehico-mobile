@@ -723,6 +723,7 @@ export const pl = {
     profile: "Profil",
     diameter: "Średnica felgi",
     tireType: "Typ opon",
+    placeholderTireType: "Wybierz typ opon",
     dot: "DOT (kod daty)",
     isCurrentlyFitted: "Aktualnie na pojeździe",
     placeholderName: "np. Letnie 205",
