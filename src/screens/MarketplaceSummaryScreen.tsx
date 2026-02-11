@@ -195,8 +195,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
 
   if (loading) {
     return (
-      <Screen padding={false}>
-        <AppHeader onBack={() => navigation.goBack()} />
+      <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
         <View style={styles.loadingContainer}>
           <LoadingIndicator />
         </View>
@@ -211,8 +210,33 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   const hasNotes = (vehicle?.notes?.trim() ?? "").length > 0;
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen
+      padding={false}
+      header={<AppHeader onBack={() => navigation.goBack()} />}
+      footer={
+        <Button
+          onPress={handleGeneratePost}
+          disabled={!confirmed || generating || !canGenerateListing}
+        >
+          {generating ? (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: theme.spacing.sm,
+              }}
+            >
+              <ActivityIndicator size="small" color="#000000" />
+              <Text style={{ color: "#000000", fontWeight: "700" }}>
+                {t("marketplace.generating")}
+              </Text>
+            </View>
+          ) : (
+            t("marketplace.generatePostButton")
+          )}
+        </Button>
+      }
+    >
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -504,30 +528,6 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
           </Pressable>
         </View>
       </ScrollView>
-
-      <View style={styles.footer}>
-        <Button
-          onPress={handleGeneratePost}
-          disabled={!confirmed || generating || !canGenerateListing}
-        >
-          {generating ? (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: theme.spacing.sm,
-              }}
-            >
-              <ActivityIndicator size="small" color="#000000" />
-              <Text style={{ color: "#000000", fontWeight: "700" }}>
-                {t("marketplace.generating")}
-              </Text>
-            </View>
-          ) : (
-            t("marketplace.generatePostButton")
-          )}
-        </Button>
-      </View>
     </Screen>
   );
 }
@@ -538,7 +538,7 @@ const makeStyles = (theme: any) =>
     scrollContent: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.xl,
+      paddingBottom: theme.spacing.xl * 2,
     },
     header: {
       gap: theme.spacing.xs / 2,
@@ -637,12 +637,5 @@ const makeStyles = (theme: any) =>
     limitText: {
       fontSize: theme.typography.small,
       flex: 1,
-    },
-    footer: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingVertical: theme.spacing.md,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
     },
   });

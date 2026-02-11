@@ -13,6 +13,7 @@ import { Button } from "../ui/components/Button";
 import { AppHeader } from "../ui/components/AppHeader";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { ENV } from "../config/env";
@@ -25,6 +26,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "Auth">;
 export function AuthScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -340,7 +342,12 @@ export function AuthScreen({ navigation }: Props) {
       </View>
 
       {/* Terms & Privacy Footer */}
-      <View style={styles.footer}>
+      <View
+        style={[
+          styles.footer,
+          { paddingBottom: insets.bottom + theme.spacing.md },
+        ]}
+      >
         <Text style={[styles.footerText, { color: theme.colors.muted }]}>
           {t("auth.bySigningIn")}{" "}
           <Text
@@ -427,7 +434,11 @@ const makeStyles = (theme: any) =>
       marginTop: theme.spacing.sm,
     },
     footer: {
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.border,
+      backgroundColor: theme.colors.bg,
     },
     footerText: {
       fontSize: theme.typography.small,

@@ -9,10 +9,10 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { Button } from "../ui/components/Button";
+import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Landing">;
@@ -20,21 +20,55 @@ type Props = NativeStackScreenProps<AppStackParamList, "Landing">;
 export function LandingScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top },
-      ]}
+    <Screen
+      padding={false}
+      footer={
+        <>
+          <Button onPress={() => navigation.navigate("Auth")}>
+            {t("landing.getStarted")}
+          </Button>
+          <View style={styles.legalRow}>
+            <Pressable
+              onPress={() => navigation.navigate("TermsOfUse")}
+              hitSlop={8}
+              style={({ pressed }) => [
+                styles.legalLink,
+                pressed && { opacity: 0.7 },
+              ]}
+            >
+              <Text style={[styles.legalText, { color: theme.colors.muted }]}>
+                {t("landing.terms")}
+              </Text>
+            </Pressable>
+            <Text
+              style={[styles.legalSeparator, { color: theme.colors.muted }]}
+            >
+              ·
+            </Text>
+            <Pressable
+              onPress={() => navigation.navigate("PrivacyPolicy")}
+              hitSlop={8}
+              style={({ pressed }) => [
+                styles.legalLink,
+                pressed && { opacity: 0.7 },
+              ]}
+            >
+              <Text style={[styles.legalText, { color: theme.colors.muted }]}>
+                {t("landing.privacy")}
+              </Text>
+            </Pressable>
+          </View>
+        </>
+      }
     >
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: theme.spacing.lg },
+          { paddingBottom: theme.spacing.xl * 2 },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -81,50 +115,7 @@ export function LandingScreen({ navigation }: Props) {
           </View>
         </View>
       </ScrollView>
-
-      {/* CTA + legal — przypięte do dołu */}
-      <View
-        style={[
-          styles.footer,
-          { paddingBottom: insets.bottom + theme.spacing.md },
-        ]}
-      >
-        <Button onPress={() => navigation.navigate("Auth")}>
-          {t("landing.getStarted")}
-        </Button>
-        <View style={styles.legalRow}>
-          <Pressable
-            onPress={() => navigation.navigate("TermsOfUse")}
-            hitSlop={8}
-            style={({ pressed }) => [
-              styles.legalLink,
-              pressed && { opacity: 0.7 },
-            ]}
-          >
-            <Text style={[styles.legalText, { color: theme.colors.muted }]}>
-              {t("landing.terms")}
-            </Text>
-          </Pressable>
-          <Text
-            style={[styles.legalSeparator, { color: theme.colors.muted }]}
-          >
-            ·
-          </Text>
-          <Pressable
-            onPress={() => navigation.navigate("PrivacyPolicy")}
-            hitSlop={8}
-            style={({ pressed }) => [
-              styles.legalLink,
-              pressed && { opacity: 0.7 },
-            ]}
-          >
-            <Text style={[styles.legalText, { color: theme.colors.muted }]}>
-              {t("landing.privacy")}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-    </View>
+    </Screen>
   );
 }
 
@@ -200,12 +191,6 @@ const makeStyles = (theme: any) =>
     featuresList: {
       gap: theme.spacing.sm,
       marginTop: theme.spacing.xs,
-    },
-    footer: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.md,
-      gap: theme.spacing.md,
-      backgroundColor: theme.colors.bg,
     },
     legalRow: {
       flexDirection: "row",

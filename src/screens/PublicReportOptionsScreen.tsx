@@ -83,8 +83,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={handleBack} />
+    <Screen padding={false} header={<AppHeader onBack={handleBack} />}>
       <ScrollView
         contentContainerStyle={styles.wrap}
         keyboardShouldPersistTaps="handled"

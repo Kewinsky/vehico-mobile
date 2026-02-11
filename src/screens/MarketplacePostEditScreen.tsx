@@ -83,36 +83,40 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false}>
-      <AppHeader
-        onBack={() => navigation.goBack()}
-        right={
-          <Pressable
-            onPress={() => {
-              if (!saving && hasContent) {
-                void handleSave();
-              }
-            }}
-            disabled={saving || !hasContent}
-            hitSlop={10}
-            style={({ pressed }) => [
-              {
-                width: 40,
-                height: 40,
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: !hasContent || saving ? 0.5 : pressed ? 0.6 : 1,
-              },
-            ]}
-          >
-            <Ionicons
-              name="save-outline"
-              size={24}
-              color={theme.colors.accent}
-            />
-          </Pressable>
-        }
-      />
+    <Screen
+      padding={false}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          right={
+            <Pressable
+              onPress={() => {
+                if (!saving && hasContent) {
+                  void handleSave();
+                }
+              }}
+              disabled={saving || !hasContent}
+              hitSlop={10}
+              style={({ pressed }) => [
+                {
+                  width: 40,
+                  height: 40,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: !hasContent || saving ? 0.5 : pressed ? 0.6 : 1,
+                },
+              ]}
+            >
+              <Ionicons
+                name="save-outline"
+                size={24}
+                color={theme.colors.accent}
+              />
+            </Pressable>
+          }
+        />
+      }
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}

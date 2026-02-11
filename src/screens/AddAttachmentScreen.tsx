@@ -180,8 +180,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
   }, [items, query]);
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
         <View>
           <Text style={styles.h1}>{t("documents.addAttachment")}</Text>

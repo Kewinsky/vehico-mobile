@@ -252,6 +252,13 @@ export function TireFormScreen({ navigation, route }: Props) {
           </Pressable>
         </View>
       }
+      footer={
+        tireId ? (
+          <Button variant="destructive" onPress={confirmDelete}>
+            {t("common.delete")}
+          </Button>
+        ) : null
+      }
     >
       <View style={{ height: theme.spacing.md }} />
       <Text style={styles.h1}>
@@ -483,15 +490,6 @@ export function TireFormScreen({ navigation, route }: Props) {
           </View>
         </View>
       </View>
-
-      {tireId ? (
-        <>
-          <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
-          <Button variant="destructive" onPress={confirmDelete}>
-            {t("common.delete")}
-          </Button>
-        </>
-      ) : null}
     </FormScreen>
   );
 }

@@ -233,6 +233,13 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
           </Pressable>
         </View>
       }
+      footer={
+        workshopId ? (
+          <Button variant="destructive" onPress={confirmDelete}>
+            {t("common.delete")}
+          </Button>
+        ) : null
+      }
     >
       <Text style={styles.h1}>
         {workshopId ? t("workshopForm.editTitle") : t("workshopForm.addTitle")}
@@ -372,15 +379,6 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
           />
         </View>
       </View>
-
-      {workshopId ? (
-        <>
-          <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
-          <Button variant="destructive" onPress={confirmDelete}>
-            {t("common.delete")}
-          </Button>
-        </>
-      ) : null}
     </FormScreen>
   );
 }

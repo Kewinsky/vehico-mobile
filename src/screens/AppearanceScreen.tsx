@@ -119,8 +119,7 @@ export function AppearanceScreen({ navigation }: Props) {
 
   if (!settings) {
     return (
-      <Screen padding={false}>
-        <AppHeader onBack={() => navigation.goBack()} />
+      <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
         <View
           style={[
             styles.loadingWrap,
@@ -137,8 +136,7 @@ export function AppearanceScreen({ navigation }: Props) {
     mode === "dark" ? "moon-outline" : "sunny-outline";
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <ScrollView
         contentContainerStyle={[
           styles.container,

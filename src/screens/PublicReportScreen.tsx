@@ -2,7 +2,6 @@ import { StyleSheet, Text, View, Alert } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
@@ -50,7 +49,7 @@ export function PublicReportScreen({ navigation, route }: Props) {
             text: t("limits.upgradeToPremium"),
             onPress: () => navigation.navigate("Shop"),
           },
-        ]
+        ],
       );
       return;
     }
@@ -58,12 +57,9 @@ export function PublicReportScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={styles.fixedHeader}>
-        <View style={styles.header}>
-          <Text style={styles.h1}>{t("publicReport.title")}</Text>
-        </View>
+        <Text style={styles.h1}>{t("publicReport.title")}</Text>
       </View>
       <View style={styles.content}>
         <Button onPress={onGeneratePress}>
@@ -88,11 +84,8 @@ export function PublicReportScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingTop: theme.spacing.md,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    header: {
-      gap: theme.spacing.xs / 2,
     },
     h1: {
       fontSize: theme.typography.largeTitle,
@@ -101,29 +94,5 @@ const makeStyles = (theme: any) =>
     },
     content: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.md,
-    },
-    infoCard: {
-      backgroundColor: theme.colors.card,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
-      gap: theme.spacing.sm,
-    },
-    infoHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-    },
-    infoTitle: {
-      fontSize: theme.typography.body,
-      fontWeight: "800",
-      color: theme.colors.fg,
-    },
-    infoText: {
-      fontSize: theme.typography.small,
-      lineHeight: theme.typography.body + 4,
-      color: theme.colors.muted,
     },
   });

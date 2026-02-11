@@ -68,8 +68,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
 
   if (loading) {
     return (
-      <Screen padding={false}>
-        <AppHeader onBack={() => navigation.goBack()} />
+      <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
         <View style={styles.fixedHeader}>
           <View style={styles.header}>
             <Text style={styles.h1}>{t("wheels.title")}</Text>
@@ -83,8 +82,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
           <Text style={styles.h1}>{t("wheels.title")}</Text>

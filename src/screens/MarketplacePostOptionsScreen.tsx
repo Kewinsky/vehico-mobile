@@ -53,8 +53,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={handleBack} />
+    <Screen padding={false} header={<AppHeader onBack={handleBack} />}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

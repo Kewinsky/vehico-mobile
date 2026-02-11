@@ -211,12 +211,16 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   }, [showMenu]);
 
   return (
-    <Screen padding={false}>
-      <AppHeader
-        onBack={() => navigation.goBack()}
-        showShopIcon={!isPremium}
-        onShopPress={() => navigation.navigate("Shop")}
-      />
+    <Screen
+      padding={false}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
+    >
       {loading ? (
         <View
           style={{

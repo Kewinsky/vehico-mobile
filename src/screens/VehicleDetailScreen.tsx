@@ -504,8 +504,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   ]);
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <FlatList
         data={timelineRows}
         keyExtractor={(e, index) => {

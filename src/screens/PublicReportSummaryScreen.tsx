@@ -203,8 +203,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
 
   if (loading) {
     return (
-      <Screen padding={false}>
-        <AppHeader onBack={() => navigation.goBack()} />
+      <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
         <View style={styles.loadingContainer}>
           <LoadingIndicator />
         </View>
@@ -219,8 +218,33 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const hasNotes = (vehicle?.notes?.trim() ?? "").length > 0;
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen
+      padding={false}
+      header={<AppHeader onBack={() => navigation.goBack()} />}
+      footer={
+        <Button
+          onPress={handleGenerateReport}
+          disabled={!confirmed || generating || !canGenerateReport}
+        >
+          {generating ? (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: theme.spacing.sm,
+              }}
+            >
+              <ActivityIndicator size="small" color="#000000" />
+              <Text style={{ color: "#000000", fontWeight: "700" }}>
+                {t("publicReport.generating")}
+              </Text>
+            </View>
+          ) : (
+            t("publicReport.generateReportButton")
+          )}
+        </Button>
+      }
+    >
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -506,30 +530,6 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
           </Pressable>
         </View>
       </ScrollView>
-
-      <View style={styles.footer}>
-        <Button
-          onPress={handleGenerateReport}
-          disabled={!confirmed || generating || !canGenerateReport}
-        >
-          {generating ? (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: theme.spacing.sm,
-              }}
-            >
-              <ActivityIndicator size="small" color="#000000" />
-              <Text style={{ color: "#000000", fontWeight: "700" }}>
-                {t("publicReport.generating")}
-              </Text>
-            </View>
-          ) : (
-            t("publicReport.generateReportButton")
-          )}
-        </Button>
-      </View>
     </Screen>
   );
 }
@@ -540,7 +540,7 @@ const makeStyles = (theme: any) =>
     scrollContent: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.xl,
+      paddingBottom: theme.spacing.xl * 2,
     },
     header: {
       gap: theme.spacing.xs / 2,
@@ -628,11 +628,16 @@ const makeStyles = (theme: any) =>
       lineHeight: theme.typography.body + 4,
       color: theme.colors.fg,
     },
-    footer: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingVertical: theme.spacing.md,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
+    limitInfo: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      padding: theme.spacing.md,
+      borderRadius: theme.radius.md,
+      borderWidth: 1,
+    },
+    limitText: {
+      fontSize: theme.typography.small,
+      flex: 1,
     },
   });

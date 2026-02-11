@@ -49,7 +49,7 @@ export function MarketplaceScreen({ navigation, route }: Props) {
             text: t("limits.upgradeToPremium"),
             onPress: () => navigation.navigate("Shop"),
           },
-        ]
+        ],
       );
       return;
     }
@@ -57,12 +57,9 @@ export function MarketplaceScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={styles.fixedHeader}>
-        <View style={styles.header}>
-          <Text style={styles.h1}>{t("marketplace.screenTitle")}</Text>
-        </View>
+        <Text style={styles.h1}>{t("marketplace.screenTitle")}</Text>
       </View>
       <View style={styles.content}>
         <Button onPress={onGeneratePress}>
@@ -87,13 +84,10 @@ export function MarketplaceScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
-      paddingTop: theme.spacing.md,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
-    header: {
-      gap: theme.spacing.xs / 2,
-      marginBottom: theme.titleMarginBottom,
-    },
+
     h1: {
       fontSize: theme.typography.largeTitle,
       fontWeight: "700",
@@ -101,6 +95,5 @@ const makeStyles = (theme: any) =>
     },
     content: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.md,
     },
   });

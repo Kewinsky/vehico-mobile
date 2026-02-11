@@ -196,38 +196,41 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
     );
   }
 
+  function openActions() {
+    if (!vehicle) return;
+    Alert.alert(t("dashboard.tiles.manageTitle"), undefined, [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("common.edit"),
+        onPress: () => navigation.navigate("VehicleForm", { vehicleId }),
+      },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: onDeleteVehicle,
+      },
+    ]);
+  }
+
   return (
     <FormScreen
       header={<AppHeader onBack={() => navigation.goBack()} />}
-      footer={
-        vehicle ? (
-          <View
-            style={{
-              flexDirection: "row",
-              gap: theme.spacing.sm,
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <Button
-                variant="ghost"
-                onPress={() =>
-                  navigation.navigate("VehicleForm", { vehicleId })
-                }
-              >
-                {t("common.edit")}
-              </Button>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Button variant="destructive" onPress={onDeleteVehicle}>
-                {t("common.delete")}
-              </Button>
-            </View>
-          </View>
-        ) : null
-      }
     >
       <View style={styles.headerRow}>
         <Text style={styles.h1}>{t("dashboard.tiles.manageTitle")}</Text>
+        {vehicle ? (
+          <Pressable
+            onPress={openActions}
+            hitSlop={10}
+            style={styles.menuButton}
+          >
+            <Ionicons
+              name="ellipsis-horizontal"
+              size={20}
+              color={theme.colors.fg}
+            />
+          </Pressable>
+        ) : null}
       </View>
 
       {loading ? (

@@ -52,13 +52,13 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
   const [saving, setSaving] = useState(false);
 
   const [displayLang, setDisplayLang] = useState<"pl" | "en">(
-    (settings?.language as "pl" | "en") ?? "pl"
+    (settings?.language as "pl" | "en") ?? "pl",
   );
   const displayContent = useMemo(() => {
     if (typeof content === "string") {
       return resolveMarketplacePostContent(content, displayLang);
     }
-    return content ? content[displayLang] ?? "" : "";
+    return content ? (content[displayLang] ?? "") : "";
   }, [content, displayLang]);
 
   function handleContentChange(newText: string) {
@@ -81,7 +81,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
 
   // Public report selection
   const [publicReports, setPublicReports] = useState<PublicReportSnapshot[]>(
-    []
+    [],
   );
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [loadingReports, setLoadingReports] = useState(false);
@@ -114,7 +114,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
       let publicReportUrl: string | null = null;
       if (selectedReportId) {
         const selectedReport = publicReports.find(
-          (r) => r.id === selectedReportId
+          (r) => r.id === selectedReportId,
         );
         if (selectedReport) {
           publicReportUrl = await getPublicPageUrl(selectedReport.public_id);
@@ -206,7 +206,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
             void handleGenerate();
           },
         },
-      ]
+      ],
     );
   }
 
@@ -373,7 +373,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
                 if (!report) return t("marketplace.noReport");
                 const date = formatDateDisplay(
                   report.created_at,
-                  i18n.language
+                  i18n.language,
                 );
                 return report.title || `${t("marketplace.report")} - ${date}`;
               }}

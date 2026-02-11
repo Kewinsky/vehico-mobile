@@ -126,8 +126,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={styles.wrap}>
         <Text style={styles.h1}>{t("share.historyTitle")}</Text>
 

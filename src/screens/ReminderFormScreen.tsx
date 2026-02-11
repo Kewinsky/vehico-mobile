@@ -271,6 +271,13 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           </Pressable>
         </View>
       }
+      footer={
+        reminderId ? (
+          <Button variant="destructive" onPress={confirmDelete}>
+            {t("common.delete")}
+          </Button>
+        ) : null
+      }
     >
       <Text style={styles.h1}>
         {reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle")}
@@ -612,98 +619,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           </View>
         </View>
       </View>
-
-      {reminderId ? (
-        <>
-          <View style={{ height: theme.spacing.sm }} />
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="checkmark-circle-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("reminderForm.status")}
-                </Text>
-              </View>
-              <View style={styles.segmentWrap}>
-                <Pressable
-                  onPress={() => setStatus("active")}
-                  style={[
-                    styles.segment,
-                    status === "active" && [
-                      styles.segmentSelected,
-                      {
-                        backgroundColor: accentBg,
-                        borderColor: theme.colors.accent,
-                      },
-                    ],
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      {
-                        color:
-                          status === "active"
-                            ? theme.colors.accent
-                            : theme.colors.muted,
-                      },
-                    ]}
-                  >
-                    {t("reminderForm.statusActive")}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => setStatus("done")}
-                  style={[
-                    styles.segment,
-                    status === "done" && [
-                      styles.segmentSelected,
-                      {
-                        backgroundColor: accentBg,
-                        borderColor: theme.colors.accent,
-                      },
-                    ],
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      {
-                        color:
-                          status === "done"
-                            ? theme.colors.accent
-                            : theme.colors.muted,
-                      },
-                    ]}
-                  >
-                    {t("reminderForm.statusDone")}
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          </View>
-
-          <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
-          <Button variant="destructive" onPress={confirmDelete}>
-            {t("common.delete")}
-          </Button>
-        </>
-      ) : null}
     </FormScreen>
   );
 }

@@ -38,8 +38,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
   );
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
           <Text style={styles.h1}>{t("dataPortability.title")}</Text>

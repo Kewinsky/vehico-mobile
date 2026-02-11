@@ -151,8 +151,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
 
   if (loading) {
     return (
-      <Screen padding={false}>
-        <AppHeader onBack={() => navigation.goBack()} />
+      <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
         <View style={styles.loadingContainer}>
           <LoadingIndicator />
         </View>
@@ -161,8 +160,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}

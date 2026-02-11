@@ -14,9 +14,10 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "../ThemeProvider";
+
+import { AppLayout } from "./AppLayout";
 
 const FormScreenScrollRefContext = createContext<
   React.RefObject<ScrollViewInstance | null> | null
@@ -40,20 +41,12 @@ export function FormScreen({
   scrollRef?: React.RefObject<ScrollViewInstance | null>;
   footer?: ReactNode;
 }>) {
-  const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const internalScrollRef = useRef<ScrollViewInstance | null>(null);
   const effectiveScrollRef = scrollRef ?? internalScrollRef;
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: theme.colors.bg,
-        paddingTop: insets.top,
-      }}
-    >
-      {header}
+    <AppLayout header={header} footer={footer} contentPadding={false}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -67,10 +60,10 @@ export function FormScreen({
               nestedScrollEnabled={false}
               contentContainerStyle={{
                 flexGrow: 1,
-                paddingHorizontal: theme.layout.contentPaddingHorizontal,
-                paddingBottom: footer
-                  ? theme.spacing.lg
-                  : insets.bottom + theme.spacing.lg,
+                paddingHorizontal: padding
+                  ? theme.layout.contentPaddingHorizontal
+                  : 0,
+                paddingBottom: theme.spacing.lg,
               }}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode={
@@ -84,24 +77,9 @@ export function FormScreen({
                 <View style={{ flexGrow: 1, flexShrink: 0 }}>{children}</View>
               </TouchableWithoutFeedback>
             </ScrollView>
-
-            {footer ? (
-              <View
-                style={{
-                  paddingHorizontal: theme.layout.contentPaddingHorizontal,
-                  paddingTop: theme.spacing.sm,
-                  paddingBottom: insets.bottom + theme.spacing.sm,
-                  backgroundColor: theme.colors.bg,
-                  borderTopWidth: 1,
-                  borderTopColor: theme.colors.border,
-                }}
-              >
-                {footer}
-              </View>
-            ) : null}
           </View>
         </FormScreenScrollRefContext.Provider>
       </KeyboardAvoidingView>
-    </View>
+    </AppLayout>
   );
 }

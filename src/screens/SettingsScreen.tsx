@@ -152,8 +152,7 @@ export function SettingsScreen({ navigation }: Props) {
   );
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <ScrollView
         contentContainerStyle={[
           styles.container,

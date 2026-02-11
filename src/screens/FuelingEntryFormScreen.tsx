@@ -275,6 +275,13 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
           </Pressable>
         </View>
       }
+      footer={
+        entryId ? (
+          <Button variant="destructive" onPress={confirmDelete}>
+            {t("common.delete")}
+          </Button>
+        ) : null
+      }
     >
       <Text style={styles.h1}>
         {entryId ? t("fuelingForm.editTitle") : t("fuelingForm.addTitle")}
@@ -581,15 +588,6 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
           />
         </View>
       </View>
-
-      {entryId ? (
-        <>
-          <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
-          <Button variant="destructive" onPress={confirmDelete}>
-            {t("common.delete")}
-          </Button>
-        </>
-      ) : null}
     </FormScreen>
   );
 }

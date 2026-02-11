@@ -378,8 +378,13 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   );
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen
+      padding={false}
+      header={<AppHeader onBack={() => navigation.goBack()} />}
+      footer={
+        <Button onPress={handleNext}>{t("publicReport.nextButton")}</Button>
+      }
+    >
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -580,10 +585,6 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           </>
         )}
       </ScrollView>
-
-      <View style={styles.footer}>
-        <Button onPress={handleNext}>{t("publicReport.nextButton")}</Button>
-      </View>
     </Screen>
   );
 }
@@ -740,11 +741,4 @@ const makeStyles = (theme: any) =>
     },
     addPhotoButtons: { marginTop: theme.spacing.md },
     addPhotoButton: { marginBottom: theme.spacing.xs },
-    footer: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingVertical: theme.spacing.md,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
-    },
   });

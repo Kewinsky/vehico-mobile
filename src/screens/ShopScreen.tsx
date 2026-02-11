@@ -293,8 +293,46 @@ export function ShopScreen({ navigation }: Props) {
   };
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen
+      padding={false}
+      header={<AppHeader onBack={() => navigation.goBack()} />}
+      footer={
+        <>
+          <Button
+            onPress={() => confirmPurchase(selectedId)}
+            disabled={!canPurchase}
+          >
+            {purchasing
+              ? t("common.loading")
+              : tab === "packs"
+                ? t("shop.buyPack")
+                : t("shop.unlockPremium")}
+          </Button>
+          <View style={styles.footerRow}>
+            <Pressable
+              onPress={() => navigation.navigate("TermsOfUse")}
+              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Text style={[styles.footerLink, { color: theme.colors.accent }]}>
+                {t("terms.title")}
+              </Text>
+            </Pressable>
+            <Text style={[styles.footerText, { color: theme.colors.muted }]}>
+              {" "}
+              {t("common.and")}{" "}
+            </Text>
+            <Pressable
+              onPress={() => navigation.navigate("PrivacyPolicy")}
+              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Text style={[styles.footerLink, { color: theme.colors.accent }]}>
+                {t("privacy.title")}
+              </Text>
+            </Pressable>
+          </View>
+        </>
+      }
+    >
       <ScrollView
         contentContainerStyle={[
           styles.container,
@@ -398,44 +436,6 @@ export function ShopScreen({ navigation }: Props) {
               {t("shop.packsBlockedWhilePremium")}
             </Text>
           ) : null}
-
-          <View style={{ height: theme.spacing.lg }} />
-
-          <Button
-            onPress={() => confirmPurchase(selectedId)}
-            disabled={!canPurchase}
-          >
-            {purchasing
-              ? t("common.loading")
-              : tab === "packs"
-                ? t("shop.buyPack")
-                : t("shop.unlockPremium")}
-          </Button>
-
-          <View style={{ height: theme.spacing.lg }} />
-
-          <View style={styles.footerRow}>
-            <Pressable
-              onPress={() => navigation.navigate("TermsOfUse")}
-              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-            >
-              <Text style={[styles.footerLink, { color: theme.colors.accent }]}>
-                {t("terms.title")}
-              </Text>
-            </Pressable>
-            <Text style={[styles.footerText, { color: theme.colors.muted }]}>
-              {" "}
-              {t("common.and")}{" "}
-            </Text>
-            <Pressable
-              onPress={() => navigation.navigate("PrivacyPolicy")}
-              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-            >
-              <Text style={[styles.footerLink, { color: theme.colors.accent }]}>
-                {t("privacy.title")}
-              </Text>
-            </Pressable>
-          </View>
         </View>
       </ScrollView>
     </Screen>
@@ -447,7 +447,7 @@ function makeStyles(theme: AppTheme) {
   return StyleSheet.create({
     container: {
       flexGrow: 1,
-      paddingBottom: spacing.xl,
+      paddingBottom: spacing.xl * 2,
       paddingTop: spacing.md,
     },
     premiumBadge: {

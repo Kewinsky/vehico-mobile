@@ -199,6 +199,23 @@ export function DocumentsScreen({ route, navigation }: Props) {
     }
   }
 
+  function openAddPicker() {
+    Alert.alert(t("documents.addVehicleDocument"), undefined, [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("documents.addVehicleDocument"),
+        onPress: () => pickVehicleDocument(),
+      },
+      {
+        text: t("documents.addAttachment"),
+        onPress: () =>
+          navigation.navigate("AddAttachment", {
+            vehicleId: route.params.vehicleId,
+          }),
+      },
+    ]);
+  }
+
   async function editDocumentDescription(doc: VehicleDocument) {
     Alert.prompt(
       t("documents.editDescriptionTitle"),
@@ -268,8 +285,15 @@ export function DocumentsScreen({ route, navigation }: Props) {
   }
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen
+      padding={false}
+      header={<AppHeader onBack={() => navigation.goBack()} />}
+      footer={
+        <Button onPress={openAddPicker} disabled={uploading}>
+          {t("documents.addVehicleDocument")}
+        </Button>
+      }
+    >
       <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.fg }]}>
@@ -305,36 +329,12 @@ export function DocumentsScreen({ route, navigation }: Props) {
           />
         </View>
         <View style={{ height: theme.spacing.sm }} />
-        <View style={styles.buttonsRow}>
-          <View style={{ flex: 1 }}>
-            <Button
-              onPress={pickVehicleDocument}
-              variant="ghost"
-              disabled={uploading}
-            >
-              {t("documents.addVehicleDocument")}
-            </Button>
-          </View>
-          <View style={{ width: theme.spacing.sm }} />
-          <View style={{ flex: 1 }}>
-            <Button
-              onPress={() =>
-                navigation.navigate("AddAttachment", {
-                  vehicleId: route.params.vehicleId,
-                })
-              }
-              variant="ghost"
-            >
-              {t("documents.addAttachment")}
-            </Button>
-          </View>
-        </View>
       </View>
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: theme.layout.contentPaddingHorizontal,
           paddingTop: theme.spacing.sm,
-          paddingBottom: theme.spacing.xl,
+          paddingBottom: theme.spacing.xl * 2,
         }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
@@ -561,10 +561,6 @@ const makeStyles = (theme: any) =>
       height: "100%",
       paddingVertical: 0,
       fontSize: theme.typography.body,
-    },
-    buttonsRow: {
-      flexDirection: "row",
-      alignItems: "center",
     },
     card: {
       borderWidth: 1,

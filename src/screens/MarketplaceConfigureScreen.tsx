@@ -190,8 +190,13 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   );
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen
+      padding={false}
+      header={<AppHeader onBack={() => navigation.goBack()} />}
+      footer={
+        <Button onPress={handleNext}>{t("marketplace.nextButton")}</Button>
+      }
+    >
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -378,10 +383,6 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
           </>
         )}
       </ScrollView>
-
-      <View style={styles.footer}>
-        <Button onPress={handleNext}>{t("marketplace.nextButton")}</Button>
-      </View>
     </Screen>
   );
 }
@@ -460,12 +461,5 @@ const makeStyles = (theme: any) =>
       flex: 1,
       fontSize: theme.typography.body,
       color: theme.colors.fg,
-    },
-    footer: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingVertical: theme.spacing.md,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
     },
   });

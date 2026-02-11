@@ -271,7 +271,7 @@ export function VehiclesScreen({ navigation }: Props) {
 
   const handleAddVehicle = () => {
     if (isPremium) {
-      navigation.navigate("VehicleForm");
+      navigation.navigate("VehicleForm", {});
       return;
     }
     if (items.length >= vehiclesLimit) {
@@ -288,16 +288,23 @@ export function VehiclesScreen({ navigation }: Props) {
       );
       return;
     }
-    navigation.navigate("VehicleForm");
+    navigation.navigate("VehicleForm", {});
   };
 
   return (
-    <Screen padding={false}>
-      <AppHeader
-        title={headerTitle}
-        showShopIcon={!isPremium}
-        onShopPress={() => navigation.navigate("Shop")}
-      />
+    <Screen
+      padding={false}
+      header={
+        <AppHeader
+          title={headerTitle}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
+      footer={
+        <Button onPress={handleAddVehicle}>{t("vehicles.addVehicle")}</Button>
+      }
+    >
       <View style={styles.body}>
         {loading && items.length === 0 ? (
           <View style={styles.loadingContainer}>
@@ -397,14 +404,6 @@ export function VehiclesScreen({ navigation }: Props) {
           />
         )}
       </View>
-      <View
-        style={[
-          styles.footer,
-          { paddingBottom: insets.bottom + theme.spacing.md },
-        ]}
-      >
-        <Button onPress={handleAddVehicle}>{t("vehicles.addVehicle")}</Button>
-      </View>
     </Screen>
   );
 }
@@ -435,13 +434,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     list: {
       paddingBottom:
         insets.bottom + theme.spacing.md * 2 + 52 /* footer button + padding */,
-    },
-    footer: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.md,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
     },
     vehicleCard: {
       borderRadius: theme.radius.md,

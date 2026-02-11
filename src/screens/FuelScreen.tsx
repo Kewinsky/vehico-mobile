@@ -326,8 +326,7 @@ export function FuelScreen({ route, navigation }: Props) {
   }, [fueling, query, dateFrom, dateTo, stationFilter, minCost, maxCost, t]);
 
   return (
-    <Screen padding={false}>
-      <AppHeader onBack={() => navigation.goBack()} />
+    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <FlatList
         data={filteredFuelingWithSeparators}
         keyExtractor={(item, index) => {

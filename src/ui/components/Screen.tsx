@@ -1,33 +1,30 @@
-import type { PropsWithChildren } from "react";
-import { StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { PropsWithChildren, ReactNode } from "react";
 
-import { useTheme } from "../ThemeProvider";
+import { AppLayout } from "./AppLayout";
 
-type ScreenProps = PropsWithChildren<{
+export type ScreenProps = PropsWithChildren<{
+  /** Whether to apply horizontal padding to root (when no header). */
   padding?: boolean;
+  /** Header (e.g. <AppHeader />) – rendered above content. */
+  header?: ReactNode;
+  /** Bottom bar with buttons – style (safe area, border) is defined in AppLayout. */
+  footer?: ReactNode;
 }>;
 
-export function Screen({ children, padding = true }: ScreenProps) {
-  const insets = useSafeAreaInsets();
-  const { theme } = useTheme();
-
+/** Shared screen layout – delegates to AppLayout (single footer definition across the app). */
+export function Screen({
+  children,
+  padding = true,
+  header,
+  footer,
+}: ScreenProps) {
   return (
-    <View
-      style={[
-        styles.root,
-        { paddingTop: insets.top },
-        padding && { paddingHorizontal: theme.layout.contentPaddingHorizontal },
-        { backgroundColor: theme.colors.bg },
-      ]}
+    <AppLayout
+      header={header}
+      footer={footer}
+      contentPadding={padding && !header}
     >
       {children}
-    </View>
+    </AppLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-});
