@@ -44,7 +44,6 @@ export function AppLayout({
       {footer != null ? (
         <View
           style={[
-            styles.footer,
             {
               paddingHorizontal: theme.layout.contentPaddingHorizontal,
               paddingTop: theme.spacing.md,
@@ -68,8 +67,5 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  footer: {
-    borderTopWidth: 1,
   },
 });

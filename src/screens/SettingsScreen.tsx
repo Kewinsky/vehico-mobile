@@ -1,14 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
-  Modal,
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -54,7 +52,7 @@ type RowItem = {
 
 export function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { theme, mode } = useTheme();
+  const { theme } = useTheme();
   const { user, signOut } = useAuth();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
@@ -63,19 +61,12 @@ export function SettingsScreen({ navigation }: Props) {
   const email = user?.email ?? "";
   const displayLabel = displayNameFromUser || email || "—";
 
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [editName, setEditName] = useState(displayNameFromUser);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!isEditingName) setEditName(displayNameFromUser);
-  }, [displayNameFromUser, isEditingName]);
-
-  const saveDisplayName = useCallback(async () => {
-    const trimmed = editName.trim();
+  const saveDisplayNameFromPrompt = useCallback(async (nextName?: string) => {
+    const trimmed = (nextName ?? "").trim();
     const normalized = normalizeDisplayName(trimmed || undefined);
     if (normalized === displayNameFromUser) {
-      setIsEditingName(false);
       return;
     }
     try {
@@ -85,21 +76,30 @@ export function SettingsScreen({ navigation }: Props) {
       });
       if (error) throw error;
       toastSuccess(t("profile.displayNameUpdated"));
-      setIsEditingName(false);
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
       setSaving(false);
     }
-  }, [editName, displayNameFromUser, t]);
+  }, [displayNameFromUser, t]);
 
-  function openEditNameModal() {
-    setEditName(displayNameFromUser);
-    setIsEditingName(true);
-  }
-
-  function closeEditNameModal() {
-    if (!saving) setIsEditingName(false);
+  function openEditNamePrompt() {
+    if (saving) return;
+    Alert.prompt(
+      t("profile.displayName"),
+      t("profile.displayNamePlaceholder"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.save"),
+          onPress: (value: string | undefined) => {
+            void saveDisplayNameFromPrompt(value);
+          },
+        },
+      ],
+      "plain-text",
+      displayNameFromUser,
+    );
   }
 
   function onSignOut() {
@@ -178,7 +178,8 @@ export function SettingsScreen({ navigation }: Props) {
           </View>
 
           <Pressable
-            onPress={openEditNameModal}
+            onPress={openEditNamePrompt}
+            disabled={saving}
             style={styles.nameRow}
             hitSlop={8}
           >
@@ -196,73 +197,6 @@ export function SettingsScreen({ navigation }: Props) {
             />
           </Pressable>
         </View>
-
-        <Modal
-          visible={isEditingName}
-          transparent
-          animationType="fade"
-          onRequestClose={closeEditNameModal}
-        >
-          <Pressable
-            style={[
-              styles.modalOverlay,
-              { backgroundColor: theme.colors.bg + "E6" },
-            ]}
-            onPress={closeEditNameModal}
-          >
-            <Pressable
-              style={[
-                styles.modalContent,
-                {
-                  backgroundColor: theme.colors.card,
-                  borderColor: theme.colors.border,
-                },
-              ]}
-              onPress={(e) => e.stopPropagation()}
-            >
-              <SafeAreaView edges={[]} style={styles.modalSafe}>
-                <Text style={[styles.modalTitle, { color: theme.colors.fg }]}>
-                  {t("profile.displayName")}
-                </Text>
-                <TextInput
-                  value={editName}
-                  onChangeText={setEditName}
-                  placeholder={t("profile.displayNamePlaceholder")}
-                  placeholderTextColor={theme.colors.muted}
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  style={[
-                    styles.modalInput,
-                    {
-                      color: theme.colors.fg,
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.bg,
-                    },
-                  ]}
-                  autoFocus
-                  editable={!saving}
-                />
-                <View style={styles.modalActions}>
-                  <Button
-                    variant="outlined"
-                    onPress={closeEditNameModal}
-                    disabled={saving}
-                    style={[styles.modalButton, styles.modalButtonCol]}
-                  >
-                    {t("common.cancel")}
-                  </Button>
-                  <Button
-                    variant="primary"
-                    onPress={saveDisplayName}
-                    disabled={saving}
-                    style={[styles.modalButton, styles.modalButtonCol]}
-                  >
-                    {saving ? t("common.loading") : t("common.save")}
-                  </Button>
-                </View>
-              </SafeAreaView>
-            </Pressable>
-          </Pressable>
-        </Modal>
 
         <View
           style={[
@@ -357,47 +291,6 @@ const makeStyles = (theme: any) =>
     },
     pencilIcon: {
       marginLeft: 2,
-    },
-    modalOverlay: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      padding: theme.spacing.lg,
-    },
-    modalContent: {
-      width: "100%",
-      maxWidth: 340,
-      borderRadius: theme.radius.md,
-      borderWidth: 1,
-      padding: theme.spacing.lg,
-      overflow: "hidden",
-    },
-    modalSafe: {
-      width: "100%",
-    },
-    modalTitle: {
-      fontSize: theme.typography.body,
-      fontWeight: "600",
-      marginBottom: theme.spacing.sm,
-    },
-    modalInput: {
-      height: 44,
-      borderWidth: 1,
-      borderRadius: theme.radius.sm,
-      paddingHorizontal: theme.spacing.sm,
-      fontSize: theme.typography.body,
-      marginBottom: theme.spacing.md,
-    },
-    modalActions: {
-      flexDirection: "row",
-      gap: theme.spacing.sm,
-      flexWrap: "nowrap",
-    },
-    modalButton: {
-      minWidth: 0,
-    },
-    modalButtonCol: {
-      flex: 1,
     },
     list: {
       borderRadius: theme.radius.md,

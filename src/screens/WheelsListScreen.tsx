@@ -9,7 +9,6 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
@@ -48,7 +47,6 @@ function wheelSubtitle(
 export function WheelsListScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
   const { isPremium, wheelsPerVehicleLimit } = useEntitlements();
@@ -108,20 +106,24 @@ export function WheelsListScreen({ route, navigation }: Props) {
   }
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <Screen
+      padding={false}
+      header={<AppHeader onBack={() => navigation.goBack()} />}
+      footer={
+        <Button onPress={onAddWheelPress}>{t("wheels.addWheelSingle")}</Button>
+      }
+    >
       <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
         <Text style={[styles.title, { color: theme.colors.fg }]}>
           {t("wheels.rimsSection")}
         </Text>
-        <Button onPress={onAddWheelPress}>{t("wheels.addWheelSingle")}</Button>
-        <View style={{ height: theme.spacing.md }} />
       </View>
       <FlatList
         data={wheels}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{
           paddingHorizontal: theme.layout.contentPaddingHorizontal,
-          paddingBottom: insets.bottom + theme.spacing.xl,
+          paddingBottom: theme.spacing.xl,
         }}
         ItemSeparatorComponent={() => (
           <View style={{ height: theme.spacing.sm }} />
@@ -198,12 +200,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
               <LoadingIndicator />
             </View>
           ) : (
-            <Text
-              style={[
-                styles.emptyText,
-                { color: theme.colors.muted, marginTop: theme.spacing.xs },
-              ]}
-            >
+            <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
               {t("wheels.noWheels")}
             </Text>
           )
@@ -217,9 +214,6 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
       marginHorizontal: theme.layout.contentPaddingHorizontal,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-      marginBottom: theme.spacing.md,
     },
 
     title: {

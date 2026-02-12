@@ -131,7 +131,8 @@ export function AuthScreen({ navigation }: Props) {
     }
 
     const hasCompletedOnboarding =
-      sessionData.session.user?.user_metadata?.has_completed_onboarding === true;
+      sessionData.session.user?.user_metadata?.has_completed_onboarding ===
+      true;
     if (hasCompletedOnboarding) {
       toastSuccess(t("auth.signedInSuccessfully"));
     }
@@ -206,7 +207,8 @@ export function AuthScreen({ navigation }: Props) {
 
       const { data: sessionData } = await supabase.auth.getSession();
       const hasCompletedOnboarding =
-        sessionData.session?.user?.user_metadata?.has_completed_onboarding === true;
+        sessionData.session?.user?.user_metadata?.has_completed_onboarding ===
+        true;
       if (hasCompletedOnboarding) {
         toastSuccess(t("auth.signedInSuccessfully"));
       }
@@ -342,14 +344,10 @@ export function AuthScreen({ navigation }: Props) {
       </View>
 
       {/* Terms & Privacy Footer */}
-      <View
-        style={[
-          styles.footer,
-          { paddingBottom: insets.bottom + theme.spacing.md },
-        ]}
-      >
+      <View style={[styles.footer]}>
         <Text style={[styles.footerText, { color: theme.colors.muted }]}>
-          {t("auth.bySigningIn")}{" "}
+          {t("auth.bySigningIn")}
+          {"\n"}
           <Text
             style={[styles.footerLink, { color: theme.colors.accent }]}
             onPress={() => navigation.navigate("TermsOfUse")}
@@ -434,11 +432,7 @@ const makeStyles = (theme: any) =>
       marginTop: theme.spacing.sm,
     },
     footer: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
     },
     footerText: {
       fontSize: theme.typography.small,

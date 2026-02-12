@@ -328,7 +328,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
             style={[styles.searchBarInput, { color: theme.colors.fg }]}
           />
         </View>
-        <View style={{ height: theme.spacing.sm }} />
       </View>
       <ScrollView
         contentContainerStyle={{

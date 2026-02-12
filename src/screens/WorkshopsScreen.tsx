@@ -151,7 +151,10 @@ export function WorkshopsScreen({ navigation, route }: Props) {
 
   if (loading) {
     return (
-      <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+      <Screen
+        padding={false}
+        header={<AppHeader onBack={() => navigation.goBack()} />}
+      >
         <View style={styles.loadingContainer}>
           <LoadingIndicator />
         </View>
@@ -160,7 +163,10 @@ export function WorkshopsScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <Screen
+      padding={false}
+      header={<AppHeader onBack={() => navigation.goBack()} />}
+    >
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
@@ -435,7 +441,7 @@ export function WorkshopsScreen({ navigation, route }: Props) {
                     style={[styles.cardSubtitle, { color: theme.colors.muted }]}
                     numberOfLines={1}
                   >
-                    {getWorkshopTypeLabel(item.workshop_type)}
+                    {item.address}
                   </Text>
                 </View>
                 <Ionicons

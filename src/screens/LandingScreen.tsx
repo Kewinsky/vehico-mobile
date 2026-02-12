@@ -43,9 +43,7 @@ export function LandingScreen({ navigation }: Props) {
                 {t("landing.terms")}
               </Text>
             </Pressable>
-            <Text
-              style={[styles.legalSeparator, { color: theme.colors.muted }]}
-            >
+            <Text style={[styles.legalText, { color: theme.colors.muted }]}>
               ·
             </Text>
             <Pressable
@@ -198,13 +196,9 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
       gap: theme.spacing.xs,
     },
-    legalLink: {},
     legalText: {
-      fontSize: theme.typography.xs,
-      fontWeight: "600",
-    },
-    legalSeparator: {
-      fontSize: theme.typography.xs,
+      fontSize: theme.typography.small,
+      fontWeight: "700",
     },
   });
 

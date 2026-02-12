@@ -750,6 +750,39 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
     return { avgKm, avgMonths };
   }, [service]);
 
+  const lastOilChangeDateLabel = lastOilChange?.service_date
+    ? lastOilChange.service_date.slice(0, 10)
+    : "—";
+  const lastOilChangeMileageLabel =
+    lastOilChange?.mileage != null
+      ? `${fmtNumber(lastOilChange.mileage, 0)} ${distanceUnit}`
+      : "—";
+  const oilIntervalAvgKmLabel = Number.isFinite(oilIntervals.avgKm)
+    ? `${fmtNumber(oilIntervals.avgKm, 0)} ${distanceUnit}`
+    : "—";
+  const oilIntervalAvgMonthsLabel = Number.isFinite(oilIntervals.avgMonths)
+    ? `${fmtNumber(oilIntervals.avgMonths, 1)} ${t("dashboard.stats.months")}`
+    : "—";
+
+  const insuranceValidUntilLabel = vehicle?.insurance_valid_until ?? "—";
+  const inspectionValidUntilLabel = vehicle?.inspection_valid_until ?? "—";
+
+  const currentTireLabel =
+    currentTire != null
+      ? `${currentTire.name} · ${formatTireDimensions(
+          currentTire.width_mm,
+          currentTire.aspect_ratio,
+          currentTire.diameter_inch,
+        )} · ${t(`tireForm.types.${currentTire.tire_type}`)}`
+      : "—";
+  const currentWheelLabel =
+    currentWheel != null
+      ? `${currentWheel.name} · ${formatWheelDimensions(
+          currentWheel.width_inch,
+          currentWheel.diameter_inch,
+        )}`
+      : "—";
+
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const contentPadding =
     theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
@@ -1043,186 +1076,147 @@ export function StatisticsCard({ vehicleId, period, tab }: Props) {
 
           {tab === "other" ? (
             <>
-              {(lastOilChange != null ||
-                Number.isFinite(oilIntervals.avgKm) ||
-                Number.isFinite(oilIntervals.avgMonths)) && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>
-                    {t("dashboard.stats.oilChange")}
-                  </Text>
-                  <View style={styles.infoCard}>
-                    {lastOilChange != null && (
-                      <>
-                        <View style={styles.infoRow}>
-                          <Ionicons
-                            name="calendar-outline"
-                            size={18}
-                            color={theme.colors.muted}
-                          />
-                          <Text style={styles.infoRowLabel}>
-                            {t("dashboard.stats.lastOilChangeDate")}
-                          </Text>
-                          <Text style={styles.infoRowValue}>
-                            {lastOilChange.service_date.slice(0, 10)}
-                          </Text>
-                        </View>
-                        {lastOilChange.mileage != null && (
-                          <View style={styles.infoRow}>
-                            <Ionicons
-                              name="speedometer-outline"
-                              size={18}
-                              color={theme.colors.muted}
-                            />
-                            <Text style={styles.infoRowLabel}>
-                              {t("dashboard.stats.lastOilChangeMileage")}
-                            </Text>
-                            <Text style={styles.infoRowValue}>
-                              {fmtNumber(lastOilChange.mileage, 0)}{" "}
-                              {distanceUnit}
-                            </Text>
-                          </View>
-                        )}
-                      </>
-                    )}
-                    {Number.isFinite(oilIntervals.avgKm) && (
-                      <View style={styles.infoRow}>
-                        <Ionicons
-                          name="repeat-outline"
-                          size={18}
-                          color={theme.colors.muted}
-                        />
-                        <Text style={styles.infoRowLabel}>
-                          {t("dashboard.stats.oilIntervalAvg", {
-                            unit: distanceUnit,
-                          })}
-                        </Text>
-                        <Text style={styles.infoRowValue}>
-                          {fmtNumber(oilIntervals.avgKm, 0)} {distanceUnit}
-                        </Text>
-                      </View>
-                    )}
-                    {Number.isFinite(oilIntervals.avgMonths) && (
-                      <View style={styles.infoRow}>
-                        <Ionicons
-                          name="time-outline"
-                          size={18}
-                          color={theme.colors.muted}
-                        />
-                        <Text style={styles.infoRowLabel}>
-                          {t("dashboard.stats.oilIntervalAvgMonths")}
-                        </Text>
-                        <Text style={styles.infoRowValue}>
-                          {fmtNumber(oilIntervals.avgMonths, 1)}{" "}
-                          {t("dashboard.stats.months")}
-                        </Text>
-                      </View>
-                    )}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>
+                  {t("dashboard.stats.oilChange")}
+                </Text>
+                <View style={styles.infoCard}>
+                  <View style={styles.infoRow}>
+                    <Ionicons
+                      name="calendar-outline"
+                      size={18}
+                      color={theme.colors.muted}
+                    />
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.lastOilChangeDate")}
+                    </Text>
+                    <Text style={styles.infoRowValue}>
+                      {lastOilChangeDateLabel}
+                    </Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Ionicons
+                      name="speedometer-outline"
+                      size={18}
+                      color={theme.colors.muted}
+                    />
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.lastOilChangeMileage")}
+                    </Text>
+                    <Text style={styles.infoRowValue}>
+                      {lastOilChangeMileageLabel}
+                    </Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Ionicons
+                      name="repeat-outline"
+                      size={18}
+                      color={theme.colors.muted}
+                    />
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.oilIntervalAvg", {
+                        unit: distanceUnit,
+                      })}
+                    </Text>
+                    <Text style={styles.infoRowValue}>
+                      {oilIntervalAvgKmLabel}
+                    </Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Ionicons
+                      name="time-outline"
+                      size={18}
+                      color={theme.colors.muted}
+                    />
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.oilIntervalAvgMonths")}
+                    </Text>
+                    <Text style={styles.infoRowValue}>
+                      {oilIntervalAvgMonthsLabel}
+                    </Text>
                   </View>
                 </View>
-              )}
+              </View>
 
-              {(vehicle?.insurance_valid_until != null ||
-                vehicle?.inspection_valid_until != null) && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>
-                    {t("dashboard.stats.insuranceAndInspection")}
-                  </Text>
-                  <View style={styles.infoCard}>
-                    {vehicle?.insurance_valid_until != null && (
-                      <View style={styles.infoRow}>
-                        <Ionicons
-                          name="shield-checkmark-outline"
-                          size={18}
-                          color={theme.colors.muted}
-                        />
-                        <Text style={styles.infoRowLabel}>
-                          {t("dashboard.stats.insuranceValidUntil")}
-                        </Text>
-                        <Text style={styles.infoRowValue}>
-                          {vehicle.insurance_valid_until}
-                        </Text>
-                      </View>
-                    )}
-                    {vehicle?.inspection_valid_until != null && (
-                      <View style={styles.infoRow}>
-                        <Ionicons
-                          name="document-text-outline"
-                          size={18}
-                          color={theme.colors.muted}
-                        />
-                        <Text style={styles.infoRowLabel}>
-                          {t("dashboard.stats.inspectionValidUntil")}
-                        </Text>
-                        <Text style={styles.infoRowValue}>
-                          {vehicle.inspection_valid_until}
-                        </Text>
-                      </View>
-                    )}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>
+                  {t("dashboard.stats.insuranceAndInspection")}
+                </Text>
+                <View style={styles.infoCard}>
+                  <View style={styles.infoRow}>
+                    <Ionicons
+                      name="shield-checkmark-outline"
+                      size={18}
+                      color={theme.colors.muted}
+                    />
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.insuranceValidUntil")}
+                    </Text>
+                    <Text style={styles.infoRowValue}>
+                      {insuranceValidUntilLabel}
+                    </Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Ionicons
+                      name="document-text-outline"
+                      size={18}
+                      color={theme.colors.muted}
+                    />
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.inspectionValidUntil")}
+                    </Text>
+                    <Text style={styles.infoRowValue}>
+                      {inspectionValidUntilLabel}
+                    </Text>
                   </View>
                 </View>
-              )}
+              </View>
 
-              {(currentTire != null || currentWheel != null) && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>
-                    {t("dashboard.stats.fittedWheelsAndTires")}
-                  </Text>
-                  <View style={styles.infoCard}>
-                    {currentTire != null && (
-                      <View style={styles.infoRow}>
-                        <Ionicons
-                          name="ellipse-outline"
-                          size={18}
-                          color={theme.colors.muted}
-                        />
-                        <Text style={styles.infoRowLabel}>
-                          {t("dashboard.stats.currentTire")}
-                        </Text>
-                        <View style={styles.infoRowValueWrap}>
-                          <Text
-                            style={styles.infoRowValue}
-                            numberOfLines={1}
-                            ellipsizeMode="tail"
-                          >
-                            {currentTire.name} ·{" "}
-                            {formatTireDimensions(
-                              currentTire.width_mm,
-                              currentTire.aspect_ratio,
-                              currentTire.diameter_inch,
-                            )}{" "}
-                            · {t(`tireForm.types.${currentTire.tire_type}`)}
-                          </Text>
-                        </View>
-                      </View>
-                    )}
-                    {currentWheel != null && (
-                      <View style={styles.infoRow}>
-                        <Ionicons
-                          name="disc-outline"
-                          size={18}
-                          color={theme.colors.muted}
-                        />
-                        <Text style={styles.infoRowLabel}>
-                          {t("dashboard.stats.currentWheel")}
-                        </Text>
-                        <View style={styles.infoRowValueWrap}>
-                          <Text
-                            style={styles.infoRowValue}
-                            numberOfLines={1}
-                            ellipsizeMode="tail"
-                          >
-                            {currentWheel.name} ·{" "}
-                            {formatWheelDimensions(
-                              currentWheel.width_inch,
-                              currentWheel.diameter_inch,
-                            )}
-                          </Text>
-                        </View>
-                      </View>
-                    )}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>
+                  {t("dashboard.stats.fittedWheelsAndTires")}
+                </Text>
+                <View style={styles.infoCard}>
+                  <View style={styles.infoRow}>
+                    <Ionicons
+                      name="ellipse-outline"
+                      size={18}
+                      color={theme.colors.muted}
+                    />
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.currentTire")}
+                    </Text>
+                    <View style={styles.infoRowValueWrap}>
+                      <Text
+                        style={styles.infoRowValue}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {currentTireLabel}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Ionicons
+                      name="disc-outline"
+                      size={18}
+                      color={theme.colors.muted}
+                    />
+                    <Text style={styles.infoRowLabel}>
+                      {t("dashboard.stats.currentWheel")}
+                    </Text>
+                    <View style={styles.infoRowValueWrap}>
+                      <Text
+                        style={styles.infoRowValue}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {currentWheelLabel}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              )}
+              </View>
             </>
           ) : null}
         </>
