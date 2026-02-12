@@ -18,7 +18,6 @@ import type { ServiceEntry } from "../types/domain";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { uploadAttachment } from "../services/attachments/attachmentsRepo";
 import { AppHeader } from "../ui/components/AppHeader";
-import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";

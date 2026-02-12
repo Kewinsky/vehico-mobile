@@ -329,7 +329,7 @@ export function FuelScreen({ route, navigation }: Props) {
     <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <FlatList
         data={filteredFuelingWithSeparators}
-        keyExtractor={(item, index) => {
+        keyExtractor={(item) => {
           if (item.type === "separator") {
             return `separator-${item.monthYearKey}`;
           }

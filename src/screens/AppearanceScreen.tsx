@@ -161,7 +161,7 @@ export function AppearanceScreen({ navigation }: Props) {
             <Text style={[styles.cardTitle, { color: theme.colors.fg }]}>
               {t(cardLabelKey)}
             </Text>
-            {items.map(({ key, icon, labelKey, options }, idx) => {
+            {items.map(({ key, icon, labelKey, options }) => {
               const currentIcon = key === "theme" ? themeIcon : icon;
               const value = settings[key];
               return (

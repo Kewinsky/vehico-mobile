@@ -1,40 +1,21 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { getVehicle } from "../services/vehicles/vehiclesRepo";
-import type { Vehicle } from "../types/domain";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
-import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Share">;
 
 export function ShareScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
-  const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
-
-  const load = useCallback(async () => {
-    try {
-      const v = await getVehicle(vehicleId);
-      setVehicle(v);
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
-    }
-  }, [vehicleId, t]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
 
   const tiles = useMemo(
     () => [
@@ -86,7 +67,7 @@ export function ShareScreen({ navigation, route }: Props) {
   );
 }
 
-const makeStyles = (theme: any, insets: { bottom: number }) =>
+const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
       paddingTop: theme.spacing.md,

@@ -29,7 +29,6 @@ import {
 } from "../services/publicPages/publicPagesRepo";
 import {
   uploadReportPhotos,
-  type TempReportPhoto,
 } from "../services/publicPages/uploadReportPhoto";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";

@@ -22,11 +22,9 @@ import { useTheme } from "../ui/ThemeProvider";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Reminder } from "../types/domain";
 import {
-  deleteReminder,
   listReminders,
   updateReminder,
 } from "../services/reminders/remindersRepo";
-import { cancelLocalReminder } from "../services/push/localReminderNotifications";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
@@ -318,7 +316,7 @@ export function RemindersScreen({ route, navigation }: Props) {
     <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <FlatList
         data={filteredItemsWithSeparators}
-        keyExtractor={(item, index) => {
+        keyExtractor={(item) => {
           if (item.type === "separator") {
             return `separator-${item.monthYearKey}`;
           }

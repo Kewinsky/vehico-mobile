@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -182,15 +182,6 @@ export function OnboardingFlowScreen({ navigation }: Props) {
 
     Alert.alert(opts.title, "", buttons, { cancelable: true });
   }
-
-  const supportsSkip = useMemo(() => {
-    return (
-      currentStep === 5 || // vin
-      currentStep === 6 || // mileage
-      currentStep === 7 || // specs
-      currentStep === 8 // photo
-    );
-  }, [currentStep]);
 
   function onBack() {
     if (!canGoBack) return;

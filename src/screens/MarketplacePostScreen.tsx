@@ -11,7 +11,6 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as Clipboard from "expo-clipboard";
 import { formatDateDisplay } from "../utils/dateFormatting";
-import { i18n } from "../i18n/i18n";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
@@ -75,8 +74,8 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
   const [includeServiceStats, setIncludeServiceStats] = useState(false);
   const [includeNotes, setIncludeNotes] = useState(false);
   const [includeWheelsTires, setIncludeWheelsTires] = useState(false);
-  const [includeInsurance, setIncludeInsurance] = useState(true);
-  const [includeInspection, setIncludeInspection] = useState(true);
+  const includeInsurance = true;
+  const includeInspection = true;
   const [includePublicReport, setIncludePublicReport] = useState(false);
 
   // Public report selection

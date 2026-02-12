@@ -23,7 +23,6 @@ import {
   isNonNegativeNumber,
 } from "../utils/validation";
 import type {
-  Vehicle,
   VehiclePhoto,
   VehicleType,
   FuelType,
@@ -90,7 +89,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     [theme.colors.accent],
   );
   const [loading, setLoading] = useState(isEditMode);
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [type, setType] = useState<VehicleType>("car");
@@ -128,7 +126,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     try {
       setLoading(true);
       const v = await getVehicle(vehicleId);
-      setVehicle(v);
       setType(v.type);
       setVin(v.vin ?? "");
       setMake(v.make);
@@ -168,18 +165,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       isNonNegativeNumber(powerHp)
     );
   }, [make, model, year, mileage, engineCapacity, powerHp]);
-
-  function stripExamplePrefix(s: string) {
-    return s
-      .replace(/^e\.g\.\s*/i, "")
-      .replace(/^np\.\s*/i, "")
-      .trim();
-  }
-
-  function makePlaceholder(label: string, example: string) {
-    const ex = stripExamplePrefix(example);
-    return ex ? `${label}: ${ex}` : `${label}:`;
-  }
 
   function openPicker(kind: "insurance" | "inspection") {
     const currentYmd =

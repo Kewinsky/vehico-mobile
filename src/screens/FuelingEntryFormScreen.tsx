@@ -127,18 +127,6 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     );
   }, [date, distance, fuelAmount, fuelCost]);
 
-  function stripExamplePrefix(s: string) {
-    return s
-      .replace(/^e\.g\.\s*/i, "")
-      .replace(/^np\.\s*/i, "")
-      .trim();
-  }
-
-  function makePlaceholder(label: string, example: string) {
-    const ex = stripExamplePrefix(example);
-    return ex ? `${label}: ${ex}` : `${label}:`;
-  }
-
   function confirmDelete() {
     if (!entryId) return;
     Alert.alert(

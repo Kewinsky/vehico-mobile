@@ -24,7 +24,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { content, vehicleTitle, vehicleId, postTitle } = route.params;
+  const { content, vehicleId, postTitle } = route.params;
   const [displayLang, setDisplayLang] = useState<"pl" | "en">(
     (settings?.language as "pl" | "en") ?? "pl"
   );

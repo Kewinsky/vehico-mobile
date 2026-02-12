@@ -16,7 +16,6 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useAuth } from "../app/providers/AuthProvider";
 import { normalizeDisplayName } from "../utils/displayName";
 import { AppHeader } from "../ui/components/AppHeader";
-import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";

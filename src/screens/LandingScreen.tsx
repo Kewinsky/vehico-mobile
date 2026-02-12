@@ -5,7 +5,6 @@ import {
   View,
   ScrollView,
   Pressable,
-  Image,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -199,6 +198,10 @@ const makeStyles = (theme: any) =>
     legalText: {
       fontSize: theme.typography.small,
       fontWeight: "700",
+    },
+    legalLink: {
+      paddingVertical: theme.spacing.xs / 2,
+      paddingHorizontal: theme.spacing.xs / 2,
     },
   });
 

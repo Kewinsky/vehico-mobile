@@ -22,13 +22,10 @@ import type {
   Reminder,
   ServiceEntry,
   ServiceEntryCategory,
-  Vehicle,
 } from "../types/domain";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { listReminders } from "../services/reminders/remindersRepo";
-import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import { listVehicleAttachments } from "../services/attachments/attachmentsRepo";
-import { Button } from "../ui/components/Button";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { TimelineItem } from "../ui/components/TimelineItem";
@@ -76,7 +73,6 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
     [theme.colors.accent],
   );
   const { vehicleId } = route.params;
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [attachmentsCount, setAttachmentsCount] = useState<
@@ -117,13 +113,11 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
           if (opts?.refreshing) setRefreshing(true);
           else setLoading(true);
         }
-        const [v, data, rs, attachments] = await Promise.all([
-          getVehicle(vehicleId),
+        const [data, rs, attachments] = await Promise.all([
           listServiceEntries(vehicleId),
           listReminders(vehicleId),
           listVehicleAttachments(vehicleId),
         ]);
-        setVehicle(v);
         setItems(data);
         setReminders(rs);
 
@@ -507,7 +501,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
     <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
       <FlatList
         data={timelineRows}
-        keyExtractor={(e, index) => {
+        keyExtractor={(e) => {
           if (e.type === "separator") {
             return `separator-${e.monthYearKey}`;
           }
@@ -1115,10 +1109,6 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
           const rowItem = item.item;
           if (rowItem.kind === "reminder") {
             const r = rowItem.reminder;
-            const dateLabel =
-              r.type === "time" && r.due_date
-                ? formatDateDisplay(r.due_date, i18n.language)
-                : t("reminderForm.mileage");
             const dueText =
               r.type === "time"
                 ? t("reminders.dueTime", { date: r.due_date ?? "" })

@@ -324,10 +324,6 @@ export const pl = {
     sortOptionMileageHighest: "Przebieg (najwyższy)",
     sortOptionMileageLowest: "Przebieg (najniższy)",
   },
-  public: {
-    generate: "Generuj link publiczny",
-    note: "Nie jest indeksowane przez wyszukiwarki (noindex). Każdy z linkiem może to zobaczyć.",
-  },
   entryForm: {
     title: "Nowy wpis serwisowy",
     editTitle: "Edytuj wpis serwisowy",
@@ -379,11 +375,6 @@ export const pl = {
       cost: "Koszt",
       description: "Opis",
     },
-  },
-  tabs: {
-    dashboard: "Panel",
-    placeholder: "Placeholder",
-    profile: "Profil",
   },
   dashboard: {
     backToVehicles: "Wróć do pojazdów",
@@ -684,19 +675,6 @@ export const pl = {
     placeholderNotes: "np. Użyć oleju syntetycznego",
     placeholderDueMileage: "np. 60000",
   },
-  tireDetail: {
-    title: "Opona",
-    labels: {
-      dimensions: "Wymiary",
-      status: "W użyciu",
-    },
-  },
-  wheelDetail: {
-    title: "Felga",
-    labels: {
-      dimensions: "Wymiary",
-    },
-  },
   wheels: {
     title: "Koła",
     currentlyFitted: "W użyciu",
@@ -842,20 +820,6 @@ export const pl = {
       other: "Inne",
     },
   },
-  expenseForm: {
-    addTitle: "Dodaj wydatek",
-    editTitle: "Edytuj wydatek",
-    date: "Data",
-    category: "Kategoria",
-    amount: "Kwota",
-    note: "Notatka",
-    categories: {
-      service: "Serwis",
-      parts: "Części",
-      insurance: "Ubezpieczenie",
-      other: "Inne",
-    },
-  },
   manageVehicle: {
     title: "Zarządzaj pojazdem",
     editTitle: "Edytuj pojazd",
@@ -872,8 +836,6 @@ export const pl = {
     addPhoto: "Dodaj zdjęcie",
     changePhoto: "Zmień zdjęcie",
     removePhoto: "Usuń zdjęcie",
-    photosTitle: "Zdjęcia pojazdu",
-    photosSubtitle: "To osobne od załączników do wpisów serwisowych.",
     deleteVehicle: "Usuń pojazd",
     deleteVehicleTitle: "Usunąć pojazd?",
     deleteVehicleBody: "To ukryje pojazd i wszystkie jego dane.",

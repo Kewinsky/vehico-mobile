@@ -92,7 +92,6 @@ export async function listLocalAttachments(
 }
 
 export async function listAllLocalAttachmentsByVehicle(
-  vehicleId: string,
   serviceEntryIds: string[]
 ): Promise<LocalAttachmentRow[]> {
   if (serviceEntryIds.length === 0) return [];

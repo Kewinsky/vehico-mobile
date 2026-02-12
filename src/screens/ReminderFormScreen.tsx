@@ -114,18 +114,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     return okTitle && isPositiveNumber(dueMileage);
   }, [type, dueDate, dueMileage, title]);
 
-  function stripExamplePrefix(s: string) {
-    return s
-      .replace(/^e\.g\.\s*/i, "")
-      .replace(/^np\.\s*/i, "")
-      .trim();
-  }
-
-  function makePlaceholder(label: string, example: string) {
-    const ex = stripExamplePrefix(example);
-    return ex ? `${label}: ${ex}` : `${label}:`;
-  }
-
   function openDatePicker() {
     setDatePickerDraft(parseYmd(dueDate));
     setDatePickerOpen(true);

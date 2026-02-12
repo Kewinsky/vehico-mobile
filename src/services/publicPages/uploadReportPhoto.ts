@@ -75,7 +75,7 @@ export async function uploadReportPhotos(params: {
     fileName?: string | null;
   }>;
 }): Promise<TempReportPhoto[]> {
-  const uploadPromises = params.photos.map((photo, index) =>
+  const uploadPromises = params.photos.map((photo) =>
     uploadReportPhoto({
       reportId: params.reportId,
       fileUri: photo.fileUri,

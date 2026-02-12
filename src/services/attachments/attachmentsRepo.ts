@@ -98,7 +98,7 @@ export async function listVehicleAttachments(
 ): Promise<VehicleAttachment[]> {
   const entries = await listServiceEntries(vehicleId);
   const entryIds = entries.map((e) => e.id);
-  const localRows = await listAllLocalAttachmentsByVehicle(vehicleId, entryIds);
+  const localRows = await listAllLocalAttachmentsByVehicle(entryIds);
   const titleMap = new Map(entries.map((e) => [e.id, e.title]));
 
   return localRows.map((row) => ({

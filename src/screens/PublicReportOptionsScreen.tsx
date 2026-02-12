@@ -4,7 +4,6 @@ import {
   View,
   Linking,
   ScrollView,
-  Pressable,
   Share,
   useWindowDimensions,
   Platform,
@@ -12,16 +11,14 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
-import { Card } from "../ui/components/Card";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
-import { toastSuccess, toastError } from "../ui/toast/toast";
+import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportOptions">;
 
@@ -29,7 +26,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { url, vehicleTitle, vehicleId, reportTitle } = route.params;
+  const { url, vehicleId, reportTitle } = route.params;
   const { width } = useWindowDimensions();
 
   const qrSize = useMemo(() => {
@@ -51,15 +48,6 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
       navigation.replace("PublicReport", { vehicleId });
     }
   };
-
-  async function handleCopyLink() {
-    try {
-      await Clipboard.setStringAsync(url);
-      toastSuccess(t("share.linkCopied"));
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
-    }
-  }
 
   async function handleOpenInBrowser() {
     try {

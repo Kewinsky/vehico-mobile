@@ -82,18 +82,6 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
     return name.trim().length > 0 && workshopType != null;
   }, [name, workshopType]);
 
-  function stripExamplePrefix(s: string) {
-    return s
-      .replace(/^e\.g\.\s*/i, "")
-      .replace(/^np\.\s*/i, "")
-      .trim();
-  }
-
-  function makePlaceholder(label: string, example: string) {
-    const ex = stripExamplePrefix(example);
-    return ex ? `${label}: ${ex}` : `${label}:`;
-  }
-
   function showPicker<T extends string>(opts: {
     title: string;
     value: T | null;

@@ -28,7 +28,6 @@ import {
 import { AppHeader } from "../ui/components/AppHeader";
 import { DriveTypeIcon } from "../ui/components/DriveTypeIcon";
 import { FormScreen } from "../ui/components/FormScreen";
-import { Button } from "../ui/components/Button";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
@@ -71,7 +70,7 @@ function VehicleCarousel({
           data={photoUrls}
           width={width}
           height={height}
-          onProgressChange={(offsetProgress, absoluteProgress) => {
+          onProgressChange={(_, absoluteProgress) => {
             progress.value = absoluteProgress;
             currentIndexRef.current = absoluteProgress;
           }}

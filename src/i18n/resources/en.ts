@@ -322,10 +322,6 @@ export const en = {
     sortOptionMileageHighest: "Mileage (highest)",
     sortOptionMileageLowest: "Mileage (lowest)",
   },
-  public: {
-    generate: "Generate public link",
-    note: "Not indexed by search engines (noindex). Anyone with the link can view it.",
-  },
   entryForm: {
     title: "New service entry",
     editTitle: "Edit service entry",
@@ -377,11 +373,6 @@ export const en = {
       cost: "Cost",
       description: "Description",
     },
-  },
-  tabs: {
-    dashboard: "Dashboard",
-    placeholder: "Placeholder",
-    profile: "Profile",
   },
   dashboard: {
     backToVehicles: "Back to vehicles",
@@ -681,19 +672,6 @@ export const en = {
     placeholderNotes: "e.g. Use synthetic oil",
     placeholderDueMileage: "e.g. 60000",
   },
-  tireDetail: {
-    title: "Tire",
-    labels: {
-      dimensions: "Dimensions",
-      status: "In use",
-    },
-  },
-  wheelDetail: {
-    title: "Rim",
-    labels: {
-      dimensions: "Dimensions",
-    },
-  },
   wheels: {
     title: "Wheels",
     currentlyFitted: "In use",
@@ -836,20 +814,6 @@ export const en = {
       circle_k: "Circle K",
       mol: "MOL",
       moya: "Moya",
-      other: "Other",
-    },
-  },
-  expenseForm: {
-    addTitle: "Add expense",
-    editTitle: "Edit expense",
-    date: "Date",
-    category: "Category",
-    amount: "Amount",
-    note: "Note",
-    categories: {
-      service: "Service",
-      parts: "Parts",
-      insurance: "Insurance",
       other: "Other",
     },
   },
@@ -1009,9 +973,6 @@ export const en = {
     optionPhotosNoData: "(no photos)",
     noData: "No data",
     notIncluded: "Not included",
-    vehicleInfo: "Vehicle information",
-    serviceEntries: "Service entries",
-    fueling: "Fueling entries",
     fuelingStats: "Fueling statistics",
     serviceStats: "Service statistics",
     photosSection: "Photos",
@@ -1031,14 +992,7 @@ export const en = {
     serviceHistory: "Service history",
     includedData: "Included data",
     photos: "Photos",
-    serviceEntriesCount: "Service entries",
-    fuelingEntriesCount: "Fueling entries",
-    photosPreview: "Photos",
     includedWithCount: "Included ({{count}})",
-    photosPreviewButton: "Preview",
-    dataUsedForCharts:
-      "This data will be used to prepare charts and statistics in the report.",
-    wheelsAndTires: "Wheels and tires",
     included: "Included",
     confirmationCheckbox:
       "I confirm the information is correct and understand the report cannot be edited.",

@@ -1,8 +1,6 @@
-import { useMemo, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { useTheme } from "../ThemeProvider";
 import { TextField } from "./TextField";
 
 type Props<T extends string> = {
@@ -27,8 +25,6 @@ export function PickerField<T extends string>({
   placeholder,
 }: Props<T>) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const handlePress = () => {
     if (disabled) return;
@@ -74,5 +70,3 @@ export function PickerField<T extends string>({
     </View>
   );
 }
-
-const makeStyles = (theme: any) => StyleSheet.create({});

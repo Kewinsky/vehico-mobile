@@ -85,18 +85,6 @@ export function WheelFormScreen({ navigation, route }: Props) {
     );
   }, [name, width, diameter, etOffset]);
 
-  function stripExamplePrefix(s: string) {
-    return s
-      .replace(/^e\.g\.\s*/i, "")
-      .replace(/^np\.\s*/i, "")
-      .trim();
-  }
-
-  function makePlaceholder(label: string, example: string) {
-    const ex = stripExamplePrefix(example);
-    return ex ? `${label}: ${ex}` : `${label}:`;
-  }
-
   function confirmDelete() {
     if (!wheelId) return;
     Alert.alert(t("wheels.deleteWheelTitle"), t("wheels.deleteWheelBody"), [

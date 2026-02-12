@@ -3,7 +3,6 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
@@ -15,8 +14,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "DataPortability">;
 export function DataPortabilityScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
-  const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
 
   const tiles = useMemo(
@@ -69,7 +67,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
   );
 }
 
-const makeStyles = (theme: any, insets: { bottom: number }) =>
+const makeStyles = (theme: any) =>
   StyleSheet.create({
     fixedHeader: {
       paddingTop: theme.spacing.md,

@@ -201,33 +201,6 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
     }
   }
 
-  async function pickFromCamera() {
-    try {
-      const remainingSlots = MAX_PHOTOS - totalPhotoCount;
-      if (remainingSlots <= 0) {
-        toastError(t("publicReport.maxPhotosReached"));
-        return;
-      }
-      const perm = await ImagePicker.requestCameraPermissionsAsync();
-      if (!perm.granted)
-        throw new Error(t("attachments.cameraPermissionDenied"));
-      const result = await ImagePicker.launchCameraAsync({ quality: 1 });
-      if (result.canceled) return;
-      const asset = result.assets?.[0];
-      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-      const newPhoto = {
-        id: `${Date.now()}-${Math.random()}`,
-        fileUri: asset.uri,
-        displayOrder: totalPhotoCount,
-        mimeType: asset.mimeType ?? null,
-        fileName: asset.fileName ?? null,
-      };
-      setTempPhotos([...tempPhotos, newPhoto]);
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
-    }
-  }
-
   function removeTempPhoto(id: string) {
     setTempPhotos(tempPhotos.filter((p) => p.id !== id));
   }
@@ -310,7 +283,6 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   );
 
   function handleNext() {
-    const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
     navigation.navigate("PublicReportSummary", {
       vehicleId,
       reportOptions: {

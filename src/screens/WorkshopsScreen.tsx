@@ -26,7 +26,7 @@ import { useEntitlements } from "../app/providers/EntitlementsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Workshops">;
 
-export function WorkshopsScreen({ navigation, route }: Props) {
+export function WorkshopsScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);

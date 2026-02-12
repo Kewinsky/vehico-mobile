@@ -13,7 +13,6 @@ import { Button } from "../ui/components/Button";
 import { AppHeader } from "../ui/components/AppHeader";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { ENV } from "../config/env";
@@ -26,7 +25,6 @@ type Props = NativeStackScreenProps<AppStackParamList, "Auth">;
 export function AuthScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
