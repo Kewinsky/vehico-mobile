@@ -83,7 +83,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [datePickerDraft, setDatePickerDraft] = useState<Date>(
-    () => new Date()
+    () => new Date(),
   );
   const [distance, setDistance] = useState("");
   const [fuelAmount, setFuelAmount] = useState("");
@@ -93,7 +93,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const [saving, setSaving] = useState(false);
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
 
   function openDatePicker() {
@@ -146,7 +146,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
             }
           },
         },
-      ]
+      ],
     );
   }
 
@@ -554,7 +554,11 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         />
         <View style={styles.row}>
           <View style={styles.rowLeft}>
-            <Ionicons name="card-outline" size={20} color={theme.colors.accent} />
+            <Ionicons
+              name="card-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
             <Text
               style={[styles.label, { color: theme.colors.muted }]}
               numberOfLines={1}

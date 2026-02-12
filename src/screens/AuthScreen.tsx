@@ -359,7 +359,6 @@ export function AuthScreen({ navigation }: Props) {
           >
             {t("auth.privacyPolicy")}
           </Text>
-          .
         </Text>
       </View>
       {/* Test account — only in development */}

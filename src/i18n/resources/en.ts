@@ -53,13 +53,15 @@ export const en = {
       "You have reached the limit of {{limit}} photos per vehicle. Upgrade to Premium for up to 40 photos.",
     reportLimitReachedTitle: "Report Limit Reached",
     listingLimitReachedTitle: "Listing Limit Reached",
+    premiumRequiredTitle: "Premium Required",
+    premiumRequiredBody:
+      "This feature is available only with an active Premium plan.",
     upgradeToPremium: "Upgrade to Premium",
     reportsRemaining: "Reports remaining: {{count}}",
     listingsRemaining: "Listings remaining: {{count}}",
-    noReportsRemaining:
-      "No reports remaining. Purchase a pack or upgrade to Premium.",
+    noReportsRemaining: "No reports remaining. Upgrade to Premium to continue.",
     noListingsRemaining:
-      "No listings remaining. Purchase a pack or upgrade to Premium.",
+      "No listings remaining. Upgrade to Premium to continue.",
   },
   auth: {
     title: "Sign in",
@@ -210,8 +212,7 @@ export const en = {
       confirm: {
         title: "All set",
         subtitleAdded: "Your vehicle {{make}} {{model}}, {{year}} was added.",
-        subtitleNotAdded:
-          "Your vehicle {{make}} {{model}}, {{year}} is ready. You can add it later.",
+        subtitleNotAdded: "Your vehicle {{make}} {{model}}, {{year}} is ready.",
       },
     },
     notifications: {
@@ -527,6 +528,9 @@ export const en = {
       "You already have an active Premium plan. No purchase needed.",
     confirmPurchase: "Confirm purchase",
     buy: "Buy",
+    openPaywall: "Open Paywall",
+    restorePurchases: "Restore Purchases",
+    manageSubscription: "Manage Subscription",
     products: {
       pack_3_reports: {
         name: "3 Reports Pack",
@@ -558,7 +562,7 @@ export const en = {
     title: "Settings",
     subtitle: "Applied immediately and saved per account.",
     profileButton: "Profile",
-    shopButton: "Shop & Premium",
+    shopButton: "Subscription",
     shopSubtitle: "Unlock exclusive features",
     appearanceButton: "Appearance",
     appearanceSubtitle: "Theme, language, units",
@@ -566,6 +570,7 @@ export const en = {
     tabDisplay: "Display",
     supportTitle: "Support",
     supportSubtitle: "Contact us",
+    restorePurchasesSubtitle: "Restore previous purchase",
     signOutSubtitle: "Sign out of your account",
     currency: "Currency",
     distanceUnit: "Distance unit",

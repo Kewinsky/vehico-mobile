@@ -29,8 +29,6 @@ begin
   insert into public.entitlements (
     user_id,
     plan,
-    reports_remaining,
-    listings_remaining,
     vehicles_limit,
     photos_per_vehicle_limit,
     tires_per_vehicle_limit,
@@ -38,14 +36,13 @@ begin
     workshops_limit,
     reminders_limit,
     premium_until,
+    product_id,
     created_at,
     updated_at
   )
   select
     u.id as user_id,
     'free'::text as plan,
-    0 as reports_remaining,
-    0 as listings_remaining,
     1 as vehicles_limit,
     6 as photos_per_vehicle_limit,
     1 as tires_per_vehicle_limit,
@@ -53,13 +50,12 @@ begin
     3 as workshops_limit,
     5 as reminders_limit,
     null::timestamptz as premium_until,
+    null::text as product_id,
     now() as created_at,
     now() as updated_at
   from auth.users u
   on conflict (user_id) do update set
     plan = excluded.plan,
-    reports_remaining = excluded.reports_remaining,
-    listings_remaining = excluded.listings_remaining,
     vehicles_limit = excluded.vehicles_limit,
     photos_per_vehicle_limit = excluded.photos_per_vehicle_limit,
     tires_per_vehicle_limit = excluded.tires_per_vehicle_limit,
@@ -67,6 +63,7 @@ begin
     workshops_limit = excluded.workshops_limit,
     reminders_limit = excluded.reminders_limit,
     premium_until = excluded.premium_until,
+    product_id = excluded.product_id,
     updated_at = now();
 end;
 $$;

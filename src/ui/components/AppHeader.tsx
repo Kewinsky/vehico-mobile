@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Crown } from "lucide-react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -101,7 +100,11 @@ export function AppHeader({
                 pressed && styles.backButtonPressed,
               ]}
             >
-              <Crown size={22} color={theme.colors.accent} />
+              <MaterialCommunityIcons
+                name="crown"
+                size={22}
+                color={theme.colors.accent}
+              />
             </Pressable>
             {user && (
               <Pressable

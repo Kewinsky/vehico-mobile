@@ -1,4 +1,5 @@
 import {
+  Alert,
   Animated,
   FlatList,
   Pressable,
@@ -82,6 +83,25 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     }
   }
 
+  function handleSharePress() {
+    if (isPremium) {
+      navigation.navigate("Share", { vehicleId });
+      return;
+    }
+
+    Alert.alert(
+      t("limits.premiumRequiredTitle"),
+      t("limits.premiumRequiredBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("limits.upgradeToPremium"),
+          onPress: () => navigation.navigate("Shop"),
+        },
+      ],
+    );
+  }
+
   const tiles: Tile[] = [
     {
       key: "stats",
@@ -135,7 +155,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       key: "share",
       title: t("dashboard.tiles.shareTitle"),
       icon: "share-social",
-      onPress: () => navigation.navigate("Share", { vehicleId }),
+      onPress: handleSharePress,
     },
     {
       key: "data",

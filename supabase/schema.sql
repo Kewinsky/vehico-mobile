@@ -1029,7 +1029,7 @@ begin
   values (p_vehicle_id, v_snapshot_data)
   returning * into v_snapshot;
 
-  -- Consume one report (for free users)
+  -- Validate premium-only report access
   perform public.consume_report();
 
   return v_snapshot;
@@ -1312,13 +1312,11 @@ using (
 -- Entitlements (monetization)
 -- ================
 
--- Entitlements table: user plan, limits, and remaining credits
+-- Entitlements table: user plan and feature limits
 drop table if exists public.entitlements cascade;
 create table if not exists public.entitlements (
   user_id uuid primary key references auth.users(id) on delete cascade,
   plan text not null default 'free' check (plan in ('free', 'premium', 'lifetime')),
-  reports_remaining integer not null default 0 check (reports_remaining >= 0),
-  listings_remaining integer not null default 0 check (listings_remaining >= 0),
   vehicles_limit integer not null default 1 check (vehicles_limit > 0),
   photos_per_vehicle_limit integer not null default 6 check (photos_per_vehicle_limit > 0),
   tires_per_vehicle_limit integer not null default 1 check (tires_per_vehicle_limit > 0), -- 1 set (komplet) dla free, unlimited dla premium
@@ -1326,6 +1324,7 @@ create table if not exists public.entitlements (
   workshops_limit integer not null default 3 check (workshops_limit > 0), -- 3 warsztaty dla free, unlimited dla premium
   reminders_limit integer not null default 5 check (reminders_limit > 0), -- 5 przypomnień dla free, unlimited dla premium
   premium_until timestamptz, -- null for free/lifetime, set for premium subscription
+  product_id text, -- monthly, yearly, or lifetime when premium; null when free
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -1360,26 +1359,24 @@ begin
   insert into public.entitlements (
     user_id,
     plan,
-    reports_remaining,
-    listings_remaining,
     vehicles_limit,
     photos_per_vehicle_limit,
     tires_per_vehicle_limit,
     wheels_per_vehicle_limit,
     workshops_limit,
     reminders_limit,
-    premium_until
+    premium_until,
+    product_id
   ) values (
     new.id,
     'free',
-    0, -- Free plan: 0 free reports/listings (payment required from first use)
-    0,
     1, -- Free: 1 vehicle
     6, -- Free: 6 photos per vehicle
     1, -- Free: 1 set (komplet) opon per pojazd
     1, -- Free: 1 set (komplet) felg per pojazd
     3, -- Free: 3 warsztaty
     5, -- Free: 5 przypomnień
+    null,
     null
   );
   return new;
@@ -1429,18 +1426,15 @@ begin
   elsif v_entitlement.premium_until is not null and v_entitlement.premium_until > now() then
     v_allowed := true;
     v_reason := null;
-  -- Free: check reports_remaining
+  -- Free: not allowed (premium required)
   else
-    v_allowed := (v_entitlement.reports_remaining > 0);
-    if not v_allowed then
-      v_reason := 'No remaining reports. Purchase a pack or upgrade to Premium.';
-    end if;
+    v_allowed := false;
+    v_reason := 'Premium plan required to generate reports.';
   end if;
 
   return jsonb_build_object(
     'allowed', v_allowed,
     'reason', v_reason,
-    'reports_remaining', v_entitlement.reports_remaining,
     'plan', v_entitlement.plan
   );
 end;
@@ -1481,18 +1475,15 @@ begin
   elsif v_entitlement.premium_until is not null and v_entitlement.premium_until > now() then
     v_allowed := true;
     v_reason := null;
-  -- Free: check listings_remaining
+  -- Free: not allowed (premium required)
   else
-    v_allowed := (v_entitlement.listings_remaining > 0);
-    if not v_allowed then
-      v_reason := 'No remaining listings. Purchase a pack or upgrade to Premium.';
-    end if;
+    v_allowed := false;
+    v_reason := 'Premium plan required to generate listings.';
   end if;
 
   return jsonb_build_object(
     'allowed', v_allowed,
     'reason', v_reason,
-    'listings_remaining', v_entitlement.listings_remaining,
     'plan', v_entitlement.plan
   );
 end;
@@ -1500,7 +1491,7 @@ $$;
 
 grant execute on function public.can_generate_listing() to authenticated;
 
--- Consume one report (decrease reports_remaining for free users)
+-- Consume one report (premium only)
 drop function if exists public.consume_report();
 create or replace function public.consume_report()
 returns void
@@ -1530,21 +1521,13 @@ begin
     return;
   end if;
 
-  -- Free: consume one report
-  if v_entitlement.reports_remaining <= 0 then
-    raise exception 'No remaining reports';
-  end if;
-
-  update public.entitlements
-  set reports_remaining = reports_remaining - 1,
-      updated_at = now()
-  where user_id = auth.uid();
+  raise exception 'Premium plan required to generate reports';
 end;
 $$;
 
 grant execute on function public.consume_report() to authenticated;
 
--- Consume one listing (decrease listings_remaining for free users)
+-- Consume one listing (premium only)
 drop function if exists public.consume_listing();
 create or replace function public.consume_listing()
 returns void
@@ -1574,15 +1557,7 @@ begin
     return;
   end if;
 
-  -- Free: consume one listing
-  if v_entitlement.listings_remaining <= 0 then
-    raise exception 'No remaining listings';
-  end if;
-
-  update public.entitlements
-  set listings_remaining = listings_remaining - 1,
-      updated_at = now()
-  where user_id = auth.uid();
+  raise exception 'Premium plan required to generate listings';
 end;
 $$;
 
@@ -1639,7 +1614,7 @@ begin
   )
   returning * into v_post;
 
-  -- Consume one listing (for free users)
+  -- Validate premium-only listing access
   perform public.consume_listing();
 
   return v_post;

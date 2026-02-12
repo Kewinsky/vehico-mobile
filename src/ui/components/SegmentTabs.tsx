@@ -26,7 +26,7 @@ export function SegmentTabs<T extends string>({
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
 
   return (
@@ -71,8 +71,6 @@ export function SegmentTabs<T extends string>({
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     wrap: {
-      // NOTE: don't use flex:1 here — inside ScrollView content it can
-      // stretch vertically depending on siblings and cause "jumping" height.
       alignSelf: "stretch",
       width: "100%",
       minWidth: 0,
@@ -100,4 +98,3 @@ const makeStyles = (theme: any) =>
       fontWeight: "700",
     },
   });
-

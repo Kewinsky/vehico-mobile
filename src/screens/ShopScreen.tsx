@@ -9,7 +9,8 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import Purchases from "react-native-purchases";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
@@ -17,53 +18,99 @@ import { Card } from "../ui/components/Card";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { hexToRgba } from "../ui/components/ChoiceChip";
-import { SegmentTabs } from "../ui/components/SegmentTabs";
 import type { AppTheme } from "../ui/theme";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
-import {
-  mockPurchase,
-  PRODUCTS,
-  type Product,
-  type ProductId,
-} from "../services/payments/mockPurchase";
+import type { RevenueCatProductId } from "../services/payments/revenuecat";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Shop">;
-
-type TabKey = "packs" | "subscriptions";
-
-const DEFAULT_PACK: ProductId = "pack_3plus3";
-const DEFAULT_SUBSCRIPTION: ProductId = "lifetime";
+const DEFAULT_SUBSCRIPTION: RevenueCatProductId = "lifetime";
 const LIFETIME_DISCOUNT_PERCENT = 30;
 
 export function ShopScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { refresh, isPremium } = useEntitlements();
-  const [purchasing, setPurchasing] = useState<ProductId | null>(null);
-  const [tab, setTab] = useState<TabKey>("subscriptions");
-  const [selectedPack, setSelectedPack] = useState<ProductId>(DEFAULT_PACK);
+  const {
+    refresh,
+    isPremium,
+    currentPlanProductId,
+    revenueCatProducts,
+    purchaseRevenueCatProduct,
+    restoreRevenueCatPurchases,
+    presentRevenueCatCustomerCenter,
+  } = useEntitlements();
+  const [purchasing, setPurchasing] = useState<RevenueCatProductId | null>(
+    null,
+  );
+  const [actionLoading, setActionLoading] = useState<
+    "restore" | "customerCenter" | null
+  >(null);
   const [selectedSubscription, setSelectedSubscription] =
-    useState<ProductId>(DEFAULT_SUBSCRIPTION);
+    useState<RevenueCatProductId>(DEFAULT_SUBSCRIPTION);
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  async function handlePurchase(productId: ProductId) {
+  const selectedId = isPremium
+    ? (currentPlanProductId ?? DEFAULT_SUBSCRIPTION)
+    : selectedSubscription;
+
+  async function handlePurchase(productId: RevenueCatProductId) {
     if (purchasing) return;
     try {
       setPurchasing(productId);
-      await mockPurchase(productId);
+      await purchaseRevenueCatProduct(productId);
       await refresh();
       toastSuccess(t("shop.purchaseSuccess"));
     } catch (e: any) {
+      if (
+        e?.userCancelled ||
+        e?.code === Purchases.PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR
+      ) {
+        return;
+      }
       toastError(e?.message ?? t("common.error"));
     } finally {
       setPurchasing(null);
     }
   }
 
-  function confirmPurchase(productId: ProductId) {
+  async function handleOpenCustomerCenter() {
+    if (actionLoading || purchasing) return;
+    try {
+      setActionLoading("customerCenter");
+      await presentRevenueCatCustomerCenter();
+      await refresh();
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  function getProductName(productId: RevenueCatProductId): string {
+    switch (productId) {
+      case "monthly":
+        return t("shop.subCards.monthly");
+      case "yearly":
+        return t("shop.subCards.yearly");
+      case "lifetime":
+        return t("shop.subCards.lifetime");
+      default:
+        return productId;
+    }
+  }
+
+  function getProductDescription(productId: RevenueCatProductId): string {
+    const fallbackMap: Record<RevenueCatProductId, string> = {
+      monthly: t("shop.products.premium_monthly.description"),
+      yearly: t("shop.products.premium_yearly.description"),
+      lifetime: t("shop.products.lifetime.description"),
+    };
+    return revenueCatProducts[productId]?.description ?? fallbackMap[productId];
+  }
+
+  function confirmPurchase(productId: RevenueCatProductId) {
     if (purchasing) return;
     if (isPremium) {
       Alert.alert(t("shop.premiumIsActive"), t("shop.premiumIsActiveBody"), [
@@ -71,14 +118,11 @@ export function ShopScreen({ navigation }: Props) {
       ]);
       return;
     }
-    const product = PRODUCTS.find((p) => p.id === productId);
-    if (!product) {
-      toastError(t("shop.unknownProduct"));
-      return;
-    }
+    const price = revenueCatProducts[productId]?.priceString ?? "—";
+
     Alert.alert(
       t("shop.confirmPurchase"),
-      `${t(`shop.products.${product.id}.name`)}\n${product.price}\n\n${t(`shop.products.${product.id}.description`)}`,
+      `${getProductName(productId)}\n${price}\n\n${getProductDescription(productId)}`,
       [
         { text: t("common.cancel"), style: "cancel" },
         { text: t("shop.buy"), onPress: () => void handlePurchase(productId) },
@@ -87,19 +131,18 @@ export function ShopScreen({ navigation }: Props) {
     );
   }
 
-  const selectedId = tab === "packs" ? selectedPack : selectedSubscription;
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
   );
 
-  function getProduct(productId: ProductId): Product | undefined {
-    return PRODUCTS.find((p) => p.id === productId);
+  function getProductPrice(productId: RevenueCatProductId): string {
+    return revenueCatProducts[productId]?.priceString ?? "—";
   }
 
   // (old price / crossed-out price intentionally removed for this layout)
 
-  function HeroIconCluster() {
+  function HeroPremiumIcon() {
     return (
       <View
         style={[
@@ -107,54 +150,11 @@ export function ShopScreen({ navigation }: Props) {
           { backgroundColor: theme.colors.accent + "18" },
         ]}
       >
-        <View
-          style={[
-            styles.heroIconDot,
-            styles.heroIconDotTop,
-            {
-              backgroundColor: theme.colors.card,
-              borderColor: theme.colors.border,
-            },
-          ]}
-        >
-          <Ionicons
-            name="car-sport-outline"
-            size={24}
-            color={theme.colors.accent}
-          />
-        </View>
-        <View
-          style={[
-            styles.heroIconDot,
-            styles.heroIconDotLeft,
-            {
-              backgroundColor: theme.colors.card,
-              borderColor: theme.colors.border,
-            },
-          ]}
-        >
-          <Ionicons
-            name="document-text-outline"
-            size={22}
-            color={theme.colors.accent}
-          />
-        </View>
-        <View
-          style={[
-            styles.heroIconDot,
-            styles.heroIconDotRight,
-            {
-              backgroundColor: theme.colors.card,
-              borderColor: theme.colors.border,
-            },
-          ]}
-        >
-          <Ionicons
-            name="megaphone-outline"
-            size={22}
-            color={theme.colors.accent}
-          />
-        </View>
+        <MaterialCommunityIcons
+          name="crown"
+          size={64}
+          color={theme.colors.accent}
+        />
       </View>
     );
   }
@@ -182,20 +182,28 @@ export function ShopScreen({ navigation }: Props) {
     label,
     badge,
   }: {
-    productId: ProductId;
+    productId: RevenueCatProductId;
     label: string;
     badge?: string;
   }) {
-    const product = getProduct(productId);
     const selected = selectedId === productId;
-    const disabled = isPremium || purchasing !== null;
-    const price = product?.price ?? "—";
+    const disabled = isPremium || purchasing !== null || actionLoading !== null;
+    const grayedOut = isPremium && !selected;
+    const price = getProductPrice(productId);
 
     const cardStyle = [
       styles.optionCard,
       {
-        backgroundColor: selected ? accentBg : theme.colors.card,
-        borderColor: selected ? theme.colors.accent : theme.colors.border,
+        backgroundColor: grayedOut
+          ? theme.colors.border + "40"
+          : selected
+            ? accentBg
+            : theme.colors.card,
+        borderColor: grayedOut
+          ? theme.colors.border
+          : selected
+            ? theme.colors.accent
+            : theme.colors.border,
       },
     ];
 
@@ -204,11 +212,13 @@ export function ShopScreen({ navigation }: Props) {
         key={productId}
         disabled={disabled}
         onPress={() => {
-          if (tab === "packs") setSelectedPack(productId);
-          else setSelectedSubscription(productId);
+          if (!isPremium) setSelectedSubscription(productId);
         }}
         style={({ pressed }) => [
-          { width: "100%", opacity: pressed && !disabled ? 0.9 : 1 },
+          {
+            width: "100%",
+            opacity: grayedOut ? 0.6 : pressed && !disabled ? 0.9 : 1,
+          },
         ]}
       >
         <Card style={cardStyle}>
@@ -217,7 +227,9 @@ export function ShopScreen({ navigation }: Props) {
               style={[
                 styles.radioOuter,
                 {
-                  borderColor: selected ? theme.colors.accent : theme.colors.muted,
+                  borderColor: selected
+                    ? theme.colors.accent
+                    : theme.colors.muted,
                   backgroundColor: "transparent",
                 },
               ]}
@@ -235,7 +247,10 @@ export function ShopScreen({ navigation }: Props) {
             <View style={styles.optionMain}>
               <View style={styles.optionTitleRow}>
                 <Text
-                  style={[styles.optionTitle, { color: theme.colors.fg }]}
+                  style={[
+                    styles.optionTitle,
+                    { color: grayedOut ? theme.colors.muted : theme.colors.fg },
+                  ]}
                   numberOfLines={1}
                 >
                   {label}
@@ -265,7 +280,12 @@ export function ShopScreen({ navigation }: Props) {
                 <LoadingIndicator size="small" />
               ) : (
                 <Text
-                  style={[styles.optionPrice, { color: theme.colors.fg }]}
+                  style={[
+                    styles.optionPrice,
+                    {
+                      color: grayedOut ? theme.colors.muted : theme.colors.fg,
+                    },
+                  ]}
                   numberOfLines={1}
                 >
                   {price}
@@ -278,18 +298,13 @@ export function ShopScreen({ navigation }: Props) {
     );
   }
 
-  const canPurchase = !isPremium && purchasing === null;
+  const canPurchase =
+    purchasing === null && actionLoading === null && !isPremium;
 
-  const packs = {
-    left: "pack_3_reports" as const,
-    middle: "pack_3plus3" as const,
-    right: "pack_3_listings" as const,
-  };
-
-  const subs = {
-    left: "premium_monthly" as const,
+  const subs: Record<"left" | "middle" | "right", RevenueCatProductId> = {
+    left: "monthly" as const,
     middle: "lifetime" as const,
-    right: "premium_yearly" as const,
+    right: "yearly" as const,
   };
 
   return (
@@ -298,16 +313,25 @@ export function ShopScreen({ navigation }: Props) {
       header={<AppHeader onBack={() => navigation.goBack()} />}
       footer={
         <>
-          <Button
-            onPress={() => confirmPurchase(selectedId)}
-            disabled={!canPurchase}
-          >
-            {purchasing
-              ? t("common.loading")
-              : tab === "packs"
-                ? t("shop.buyPack")
-                : t("shop.unlockPremium")}
-          </Button>
+          <View style={styles.footerButtons}>
+            {isPremium ? (
+              <Button
+                onPress={() => void handleOpenCustomerCenter()}
+                disabled={actionLoading !== null}
+              >
+                {actionLoading === "customerCenter"
+                  ? t("common.loading")
+                  : t("shop.manageSubscription")}
+              </Button>
+            ) : (
+              <Button
+                onPress={() => confirmPurchase(selectedId)}
+                disabled={!canPurchase}
+              >
+                {purchasing ? t("common.loading") : t("shop.unlockPremium")}
+              </Button>
+            )}
+          </View>
           <View style={styles.footerRow}>
             <Pressable
               onPress={() => navigation.navigate("TermsOfUse")}
@@ -339,15 +363,6 @@ export function ShopScreen({ navigation }: Props) {
           { paddingHorizontal: theme.layout.contentPaddingHorizontal },
         ]}
       >
-        <SegmentTabs<TabKey>
-          value={tab}
-          options={[
-            { value: "packs", label: t("shop.packs") },
-            { value: "subscriptions", label: t("shop.subscriptions") },
-          ]}
-          onChange={setTab}
-        />
-
         {isPremium && (
           <Card style={styles.premiumBadge}>
             <Ionicons name="star" size={24} color={theme.colors.accent} />
@@ -363,79 +378,38 @@ export function ShopScreen({ navigation }: Props) {
         )}
 
         <View style={styles.hero}>
-          <HeroIconCluster />
+          <HeroPremiumIcon />
           <Text style={[styles.heroTitle, { color: theme.colors.fg }]}>
-            {tab === "subscriptions"
-              ? t("shop.unlockPremium")
-              : t("shop.packsHeadline")}
+            {t("shop.unlockPremium")}
           </Text>
           <View style={styles.features}>
-            {tab === "subscriptions" ? (
-              <>
-                <FeatureRow
-                  text={t("shop.premiumFeatures.unlimitedVehicles")}
-                />
-                <FeatureRow text={t("shop.premiumFeatures.photos6x")} />
-                <FeatureRow
-                  text={t("shop.premiumFeatures.unlimitedReportsPosts")}
-                />
-                <FeatureRow
-                  text={t("shop.premiumFeatures.remindersWorkshops")}
-                />
-              </>
-            ) : (
-              <>
-                <FeatureRow text={t("shop.packsFeatures.payOnce")} />
-                <FeatureRow text={t("shop.packsFeatures.noSubscription")} />
-              </>
-            )}
+            <FeatureRow text={t("shop.premiumFeatures.unlimitedVehicles")} />
+            <FeatureRow text={t("shop.premiumFeatures.photos6x")} />
+            <FeatureRow
+              text={t("shop.premiumFeatures.unlimitedReportsPosts")}
+            />
+            <FeatureRow text={t("shop.premiumFeatures.remindersWorkshops")} />
           </View>
         </View>
 
         <View style={styles.pricingSection}>
           <View style={styles.pricingCol}>
-            {tab === "packs" ? (
-              <>
-                <PriceCard
-                  productId={packs.left}
-                  label={t("shop.packCards.reports")}
-                />
-                <PriceCard
-                  productId={packs.middle}
-                  label={t("shop.packCards.reportsPlusPosts")}
-                  badge={t("shop.bestDeal")}
-                />
-                <PriceCard
-                  productId={packs.right}
-                  label={t("shop.packCards.posts")}
-                />
-              </>
-            ) : (
-              <>
-                <PriceCard
-                  productId={subs.left}
-                  label={t("shop.subCards.monthly")}
-                />
-                <PriceCard
-                  productId={subs.middle}
-                  label={t("shop.subCards.lifetime")}
-                  badge={t("shop.saveDiscountBadge", {
-                    percent: LIFETIME_DISCOUNT_PERCENT,
-                  })}
-                />
-                <PriceCard
-                  productId={subs.right}
-                  label={t("shop.subCards.yearly")}
-                />
-              </>
-            )}
+            <PriceCard
+              productId={subs.left}
+              label={t("shop.subCards.monthly")}
+            />
+            <PriceCard
+              productId={subs.middle}
+              label={t("shop.subCards.lifetime")}
+              badge={t("shop.saveDiscountBadge", {
+                percent: LIFETIME_DISCOUNT_PERCENT,
+              })}
+            />
+            <PriceCard
+              productId={subs.right}
+              label={t("shop.subCards.yearly")}
+            />
           </View>
-
-          {isPremium && tab === "packs" ? (
-            <Text style={[styles.blockedHint, { color: theme.colors.muted }]}>
-              {t("shop.packsBlockedWhilePremium")}
-            </Text>
-          ) : null}
         </View>
       </ScrollView>
     </Screen>
@@ -454,8 +428,6 @@ function makeStyles(theme: AppTheme) {
       flexDirection: "row",
       alignItems: "center",
       padding: spacing.md,
-      marginBottom: spacing.lg,
-      marginTop: spacing.md,
       gap: spacing.sm,
       borderWidth: 2,
       borderColor: colors.accent,
@@ -478,31 +450,11 @@ function makeStyles(theme: AppTheme) {
       gap: spacing.md,
     },
     heroIconWrap: {
-      width: 132,
-      height: 132,
-      borderRadius: 132 / 2,
+      width: 100,
+      height: 100,
+      borderRadius: 50,
       alignItems: "center",
       justifyContent: "center",
-    },
-    heroIconDot: {
-      position: "absolute",
-      width: 52,
-      height: 52,
-      borderRadius: 26,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    heroIconDotTop: {
-      top: 18,
-    },
-    heroIconDotLeft: {
-      left: 18,
-      bottom: 22,
-    },
-    heroIconDotRight: {
-      right: 18,
-      bottom: 22,
     },
     heroTitle: {
       fontSize: typography.title,
@@ -534,7 +486,8 @@ function makeStyles(theme: AppTheme) {
       fontWeight: "600",
     },
     pricingSection: {
-      paddingTop: spacing.md,
+      paddingTop: spacing.lg,
+      paddingHorizontal: spacing.md,
     },
     pricingCol: {
       flexDirection: "column",
@@ -605,6 +558,9 @@ function makeStyles(theme: AppTheme) {
       fontSize: typography.body,
       textAlign: "center",
       fontWeight: "600",
+    },
+    footerButtons: {
+      gap: spacing.sm,
     },
     footerRow: {
       flexDirection: "row",

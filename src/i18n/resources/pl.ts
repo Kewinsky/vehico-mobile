@@ -53,13 +53,16 @@ export const pl = {
       "Osiągnięto limit {{limit}} zdjęć na pojazd. Przejdź na Premium, aby mieć do 40 zdjęć.",
     reportLimitReachedTitle: "Osiągnięto limit raportów",
     listingLimitReachedTitle: "Osiągnięto limit ogłoszeń",
+    premiumRequiredTitle: "Wymagany Premium",
+    premiumRequiredBody:
+      "Ta funkcja jest dostępna tylko przy aktywnym planie Premium.",
     upgradeToPremium: "Przejdź na Premium",
     reportsRemaining: "Pozostało raportów: {{count}}",
     listingsRemaining: "Pozostało ogłoszeń: {{count}}",
     noReportsRemaining:
-      "Brak pozostałych raportów. Kup paczkę lub przejdź na Premium.",
+      "Brak pozostałych raportów. Przejdź na Premium, aby kontynuować.",
     noListingsRemaining:
-      "Brak pozostałych ogłoszeń. Kup paczkę lub przejdź na Premium.",
+      "Brak pozostałych ogłoszeń. Przejdź na Premium, aby kontynuować.",
   },
   auth: {
     title: "Zaloguj się",
@@ -213,7 +216,7 @@ export const pl = {
         subtitleAdded:
           "Twój pojazd {{make}} {{model}}, {{year}} został dodany.",
         subtitleNotAdded:
-          "Twój pojazd {{make}} {{model}}, {{year}} jest gotowy. Dodasz go później.",
+          "Twój pojazd {{make}} {{model}}, {{year}} jest gotowy.",
       },
     },
     notifications: {
@@ -530,6 +533,9 @@ export const pl = {
       "Masz już aktywny plan Premium. Zakup nie jest potrzebny.",
     confirmPurchase: "Potwierdź zakup",
     buy: "Kup",
+    openPaywall: "Otwórz paywall",
+    restorePurchases: "Przywróć zakupy",
+    manageSubscription: "Zarządzaj subskrypcją",
     products: {
       pack_3_reports: {
         name: "Paczka 3 raportów",
@@ -561,7 +567,7 @@ export const pl = {
     title: "Ustawienia",
     subtitle: "Zmiany są natychmiastowe i zapisywane per konto.",
     profileButton: "Profil",
-    shopButton: "Sklep i Premium",
+    shopButton: "Subskrypcja",
     shopSubtitle: "Odblokuj ekskluzywne funkcje",
     appearanceButton: "Wygląd",
     appearanceSubtitle: "Motyw, język, jednostki",
@@ -569,6 +575,7 @@ export const pl = {
     tabDisplay: "Wyświetlanie",
     supportTitle: "Wsparcie",
     supportSubtitle: "Skontaktuj się z nami",
+    restorePurchasesSubtitle: "Przywróć wcześniejszy zakup",
     signOutSubtitle: "Wyloguj się z konta",
     currency: "Waluta",
     distanceUnit: "Jednostka dystansu",

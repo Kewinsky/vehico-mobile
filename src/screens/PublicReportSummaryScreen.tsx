@@ -27,9 +27,7 @@ import {
   getPublicPageUrl,
   updatePublicReportTempPhotos,
 } from "../services/publicPages/publicPagesRepo";
-import {
-  uploadReportPhotos,
-} from "../services/publicPages/uploadReportPhoto";
+import { uploadReportPhotos } from "../services/publicPages/uploadReportPhoto";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
@@ -61,8 +59,8 @@ function InfoCard({
         ? t("publicReport.includedWithCount", { count })
         : t("publicReport.included")
       : status === "noData"
-      ? t("publicReport.noData")
-      : t("publicReport.notIncluded");
+        ? t("publicReport.noData")
+        : t("publicReport.notIncluded");
   const valueColor =
     status === "included" ? theme.colors.accent : theme.colors.muted;
 
@@ -78,7 +76,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
-  const { canGenerateReport, isPremium, reportsRemaining } = useEntitlements();
+  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId, reportOptions, selectedVehiclePhotoIds, tempPhotos } =
     route.params;
@@ -94,7 +92,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const [confirmed, setConfirmed] = useState(false);
 
   const [vehiclePhotoUrls, setVehiclePhotoUrls] = useState<Map<string, string>>(
-    new Map()
+    new Map(),
   );
 
   const load = useCallback(async () => {
@@ -140,7 +138,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
     }
 
     // Check entitlements
-    if (!canGenerateReport) {
+    if (!isPremium) {
       navigation.navigate("Shop");
       return;
     }
@@ -152,7 +150,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
         vehicleId,
         selectedVehiclePhotoIds,
         [],
-        reportOptions
+        reportOptions,
       );
 
       if (tempPhotos.length > 0) {
@@ -202,7 +200,10 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
 
   if (loading) {
     return (
-      <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+      <Screen
+        padding={false}
+        header={<AppHeader onBack={() => navigation.goBack()} />}
+      >
         <View style={styles.loadingContainer}>
           <LoadingIndicator />
         </View>
@@ -223,7 +224,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
       footer={
         <Button
           onPress={handleGenerateReport}
-          disabled={!confirmed || generating || !canGenerateReport}
+          disabled={!confirmed || generating || !isPremium}
         >
           {generating ? (
             <View
@@ -351,7 +352,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                       | "vehicleForm.fuelTypeDiesel"
                       | "vehicleForm.fuelTypeHybrid"
                       | "vehicleForm.fuelTypeElectric"
-                      | "vehicleForm.fuelTypeLpg"
+                      | "vehicleForm.fuelTypeLpg",
                   )}
                 </Text>
               </View>
@@ -502,9 +503,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                 color={theme.colors.muted}
               />
               <Text style={[styles.limitText, { color: theme.colors.muted }]}>
-                {canGenerateReport
-                  ? t("limits.reportsRemaining", { count: reportsRemaining })
-                  : t("limits.noReportsRemaining")}
+                {t("limits.premiumRequiredBody")}
               </Text>
             </View>
           </View>
