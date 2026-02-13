@@ -69,13 +69,16 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
 
   if (loading) {
     return (
-      <Screen padding={false} header={
-        <AppHeader
-          onBack={() => navigation.goBack()}
-          showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
-        />
-      }>
+      <Screen
+        padding={false}
+        header={
+          <AppHeader
+            onBack={() => navigation.goBack()}
+            showShopIcon={!isPremium}
+            onShopPress={() => navigation.navigate("Shop")}
+          />
+        }
+      >
         <View style={styles.fixedHeader}>
           <View style={styles.header}>
             <Text style={styles.h1}>{t("wheels.title")}</Text>
@@ -89,13 +92,16 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false} header={
+    <Screen
+      padding={false}
+      header={
         <AppHeader
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
-      }>
+      }
+    >
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
           <Text style={styles.h1}>{t("wheels.title")}</Text>
