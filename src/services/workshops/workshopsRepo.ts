@@ -9,11 +9,26 @@ export type NewWorkshopInput = {
   address?: string | null;
 };
 
-export async function listWorkshops(): Promise<Workshop[]> {
-  const { data, error } = await supabase
-    .from("workshops")
-    .select("*")
-    .order("name", { ascending: true });
+export type ListWorkshopsOptions = {
+  /** When set (e.g. free plan), return only first N by created_at. */
+  limit?: number;
+};
+
+export async function listWorkshops(
+  options?: ListWorkshopsOptions,
+): Promise<Workshop[]> {
+  const query =
+    options?.limit != null
+      ? supabase
+          .from("workshops")
+          .select("*")
+          .order("created_at", { ascending: true })
+          .limit(options.limit)
+      : supabase
+          .from("workshops")
+          .select("*")
+          .order("name", { ascending: true });
+  const { data, error } = await query;
   if (error) throw error;
   return (data ?? []) as Workshop[];
 }

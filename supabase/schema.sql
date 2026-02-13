@@ -146,19 +146,6 @@ create table if not exists public.reminders (
 drop index if exists public.reminders_vehicle_id_idx;
 create index if not exists reminders_vehicle_id_idx on public.reminders(vehicle_id);
 
--- User settings (persist per user)
-drop table if exists public.user_settings cascade;
-create table if not exists public.user_settings (
-  user_id uuid primary key default auth.uid(),
-  currency text not null default 'PLN' check (currency in ('PLN', 'EUR')),
-  distance_unit text not null default 'km' check (distance_unit in ('km', 'miles')),
-  fuel_unit text not null default 'liters' check (fuel_unit in ('liters', 'gallons')),
-  theme text not null default 'system' check (theme in ('system', 'light', 'dark')),
-  language text not null default 'en' check (language in ('en', 'pl')),
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
 -- Photos (up to 6 photos per vehicle)
 drop table if exists public.photos cascade;
 create table if not exists public.photos (
@@ -250,7 +237,6 @@ alter table public.service_entries enable row level security;
 alter table public.reports enable row level security;
 alter table public.fueling_entries enable row level security;
 alter table public.reminders enable row level security;
-alter table public.user_settings enable row level security;
 alter table public.photos enable row level security;
 alter table public.posts enable row level security;
 alter table public.tires enable row level security;
@@ -517,26 +503,6 @@ using (
   )
 );
 
--- User settings: owner can read/upsert own row
-drop policy if exists user_settings_select_own on public.user_settings;
-create policy user_settings_select_own
-on public.user_settings for select
-to authenticated
-using (user_id = auth.uid());
-
-drop policy if exists user_settings_insert_own on public.user_settings;
-create policy user_settings_insert_own
-on public.user_settings for insert
-to authenticated
-with check (user_id = auth.uid());
-
-drop policy if exists user_settings_update_own on public.user_settings;
-create policy user_settings_update_own
-on public.user_settings for update
-to authenticated
-using (user_id = auth.uid())
-with check (user_id = auth.uid());
-
 -- Vehicle photos: allowed if vehicle belongs to user (authenticated only, no public access)
 drop policy if exists photos_select_own_vehicle on public.photos;
 create policy photos_select_own_vehicle
@@ -653,7 +619,7 @@ with check (user_id = auth.uid());
 -- Functions for public reports
 -- ================
 
--- RPC: anon can fetch a single report by public_id only (no listing)
+-- RPC: anon can fetch a single report by public_id only when report owner has active premium
 drop function if exists public.get_public_report_by_id(text);
 create or replace function public.get_public_report_by_id(p_public_id text)
 returns setof public.reports
@@ -661,7 +627,16 @@ language sql
 security definer
 set search_path = public
 as $$
-  select * from public.reports where public_id = p_public_id limit 1;
+  select r.*
+  from public.reports r
+  join public.vehicles v on v.id = r.vehicle_id
+  join public.entitlements e on e.user_id = v.owner_id
+  where r.public_id = p_public_id
+    and (
+      e.plan in ('premium', 'lifetime')
+      or (e.premium_until is not null and e.premium_until > now())
+    )
+  limit 1;
 $$;
 grant execute on function public.get_public_report_by_id(text) to anon;
 grant execute on function public.get_public_report_by_id(text) to authenticated;
@@ -1029,7 +1004,7 @@ begin
   values (p_vehicle_id, v_snapshot_data)
   returning * into v_snapshot;
 
-  -- Consume one report (for free users)
+  -- Validate premium-only report access
   perform public.consume_report();
 
   return v_snapshot;
@@ -1312,13 +1287,11 @@ using (
 -- Entitlements (monetization)
 -- ================
 
--- Entitlements table: user plan, limits, and remaining credits
+-- Entitlements table: user plan and feature limits
 drop table if exists public.entitlements cascade;
 create table if not exists public.entitlements (
   user_id uuid primary key references auth.users(id) on delete cascade,
   plan text not null default 'free' check (plan in ('free', 'premium', 'lifetime')),
-  reports_remaining integer not null default 0 check (reports_remaining >= 0),
-  listings_remaining integer not null default 0 check (listings_remaining >= 0),
   vehicles_limit integer not null default 1 check (vehicles_limit > 0),
   photos_per_vehicle_limit integer not null default 6 check (photos_per_vehicle_limit > 0),
   tires_per_vehicle_limit integer not null default 1 check (tires_per_vehicle_limit > 0), -- 1 set (komplet) dla free, unlimited dla premium
@@ -1326,12 +1299,17 @@ create table if not exists public.entitlements (
   workshops_limit integer not null default 3 check (workshops_limit > 0), -- 3 warsztaty dla free, unlimited dla premium
   reminders_limit integer not null default 5 check (reminders_limit > 0), -- 5 przypomnień dla free, unlimited dla premium
   premium_until timestamptz, -- null for free/lifetime, set for premium subscription
+  product_id text, -- monthly, yearly, or lifetime when premium; null when free
+  free_plan_vehicle_id uuid references public.vehicles(id) on delete set null, -- vehicle visible on free; set only on picker Save; cleared when premium
+  downgraded_at timestamptz, -- when user downgraded to free; used for 90-day retention cleanup
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 drop index if exists public.entitlements_user_id_idx;
 create index if not exists entitlements_user_id_idx on public.entitlements(user_id);
+drop index if exists public.entitlements_free_plan_vehicle_id_idx;
+create index if not exists entitlements_free_plan_vehicle_id_idx on public.entitlements(free_plan_vehicle_id) where free_plan_vehicle_id is not null;
 
 -- RLS for entitlements
 alter table public.entitlements enable row level security;
@@ -1360,26 +1338,24 @@ begin
   insert into public.entitlements (
     user_id,
     plan,
-    reports_remaining,
-    listings_remaining,
     vehicles_limit,
     photos_per_vehicle_limit,
     tires_per_vehicle_limit,
     wheels_per_vehicle_limit,
     workshops_limit,
     reminders_limit,
-    premium_until
+    premium_until,
+    product_id
   ) values (
     new.id,
     'free',
-    0, -- Free plan: 0 free reports/listings (payment required from first use)
-    0,
     1, -- Free: 1 vehicle
     6, -- Free: 6 photos per vehicle
     1, -- Free: 1 set (komplet) opon per pojazd
     1, -- Free: 1 set (komplet) felg per pojazd
     3, -- Free: 3 warsztaty
     5, -- Free: 5 przypomnień
+    null,
     null
   );
   return new;
@@ -1429,18 +1405,15 @@ begin
   elsif v_entitlement.premium_until is not null and v_entitlement.premium_until > now() then
     v_allowed := true;
     v_reason := null;
-  -- Free: check reports_remaining
+  -- Free: not allowed (premium required)
   else
-    v_allowed := (v_entitlement.reports_remaining > 0);
-    if not v_allowed then
-      v_reason := 'No remaining reports. Purchase a pack or upgrade to Premium.';
-    end if;
+    v_allowed := false;
+    v_reason := 'Premium plan required to generate reports.';
   end if;
 
   return jsonb_build_object(
     'allowed', v_allowed,
     'reason', v_reason,
-    'reports_remaining', v_entitlement.reports_remaining,
     'plan', v_entitlement.plan
   );
 end;
@@ -1481,18 +1454,15 @@ begin
   elsif v_entitlement.premium_until is not null and v_entitlement.premium_until > now() then
     v_allowed := true;
     v_reason := null;
-  -- Free: check listings_remaining
+  -- Free: not allowed (premium required)
   else
-    v_allowed := (v_entitlement.listings_remaining > 0);
-    if not v_allowed then
-      v_reason := 'No remaining listings. Purchase a pack or upgrade to Premium.';
-    end if;
+    v_allowed := false;
+    v_reason := 'Premium plan required to generate listings.';
   end if;
 
   return jsonb_build_object(
     'allowed', v_allowed,
     'reason', v_reason,
-    'listings_remaining', v_entitlement.listings_remaining,
     'plan', v_entitlement.plan
   );
 end;
@@ -1500,7 +1470,7 @@ $$;
 
 grant execute on function public.can_generate_listing() to authenticated;
 
--- Consume one report (decrease reports_remaining for free users)
+-- Consume one report (premium only)
 drop function if exists public.consume_report();
 create or replace function public.consume_report()
 returns void
@@ -1530,21 +1500,13 @@ begin
     return;
   end if;
 
-  -- Free: consume one report
-  if v_entitlement.reports_remaining <= 0 then
-    raise exception 'No remaining reports';
-  end if;
-
-  update public.entitlements
-  set reports_remaining = reports_remaining - 1,
-      updated_at = now()
-  where user_id = auth.uid();
+  raise exception 'Premium plan required to generate reports';
 end;
 $$;
 
 grant execute on function public.consume_report() to authenticated;
 
--- Consume one listing (decrease listings_remaining for free users)
+-- Consume one listing (premium only)
 drop function if exists public.consume_listing();
 create or replace function public.consume_listing()
 returns void
@@ -1574,15 +1536,7 @@ begin
     return;
   end if;
 
-  -- Free: consume one listing
-  if v_entitlement.listings_remaining <= 0 then
-    raise exception 'No remaining listings';
-  end if;
-
-  update public.entitlements
-  set listings_remaining = listings_remaining - 1,
-      updated_at = now()
-  where user_id = auth.uid();
+  raise exception 'Premium plan required to generate listings';
 end;
 $$;
 
@@ -1639,7 +1593,7 @@ begin
   )
   returning * into v_post;
 
-  -- Consume one listing (for free users)
+  -- Validate premium-only listing access
   perform public.consume_listing();
 
   return v_post;

@@ -24,6 +24,7 @@ import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
 import { useCallback, useEffect, useState } from "react";
 import type { FuelingEntry, GasStation } from "../types/domain";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
@@ -65,6 +66,7 @@ export function FuelScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
+  const { isPremium } = useEntitlements();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const accentBg = useMemo(
@@ -326,7 +328,13 @@ export function FuelScreen({ route, navigation }: Props) {
   }, [fueling, query, dateFrom, dateTo, stationFilter, minCost, maxCost, t]);
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <Screen padding={false} header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }>
       <FlatList
         data={filteredFuelingWithSeparators}
         keyExtractor={(item) => {

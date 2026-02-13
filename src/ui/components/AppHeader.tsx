@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Crown } from "lucide-react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -9,6 +8,7 @@ import { useTheme } from "../ThemeProvider";
 import { useAuth } from "../../app/providers/AuthProvider";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { normalizeDisplayName } from "../../utils/displayName";
+import { Crown } from "lucide-react-native";
 
 function getInitials(user: {
   user_metadata?: { full_name?: string };
@@ -89,9 +89,7 @@ export function AppHeader({
         <View style={styles.titleSpacer} />
       )}
       <View style={styles.right}>
-        {right !== undefined ? (
-          right
-        ) : showShopIcon && onShopPress ? (
+        {showShopIcon && onShopPress ? (
           <View style={styles.rightIcons}>
             <Pressable
               onPress={onShopPress}
@@ -121,7 +119,10 @@ export function AppHeader({
                 </Text>
               </Pressable>
             )}
+            {right}
           </View>
+        ) : right !== undefined ? (
+          right
         ) : showInitials ? (
           <Pressable
             onPress={() => navigation.navigate("Settings")}

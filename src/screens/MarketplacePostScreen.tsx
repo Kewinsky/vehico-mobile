@@ -33,6 +33,7 @@ import { PickerField } from "../ui/components/PickerField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplacePost">;
@@ -41,6 +42,7 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
+  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
 
@@ -210,7 +212,13 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
   }
 
   return (
-    <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <FormScreen header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }>
       <View style={{ height: theme.spacing.md }} />
 
       <Text style={styles.h1}>{t("marketplace.title")}</Text>

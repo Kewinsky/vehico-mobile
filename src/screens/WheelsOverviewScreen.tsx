@@ -16,6 +16,7 @@ import {
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { RimIcon } from "../ui/components/RimIcon";
@@ -26,6 +27,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "Wheels">;
 export function WheelsOverviewScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
 
@@ -67,7 +69,13 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
 
   if (loading) {
     return (
-      <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+      <Screen padding={false} header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }>
         <View style={styles.fixedHeader}>
           <View style={styles.header}>
             <Text style={styles.h1}>{t("wheels.title")}</Text>
@@ -81,7 +89,13 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <Screen padding={false} header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }>
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
           <Text style={styles.h1}>{t("wheels.title")}</Text>

@@ -10,6 +10,7 @@ import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Import">;
@@ -46,6 +47,7 @@ function parseCsvLine(line: string): string[] {
 export function ImportScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
 
@@ -155,7 +157,15 @@ export function ImportScreen({ navigation, route }: Props) {
   }
 
   return (
-    <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <FormScreen
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
+    >
       <View style={{ height: theme.spacing.md }} />
       <View style={styles.headerSection}>
         <Text style={styles.h1}>{t("import.title")}</Text>

@@ -137,7 +137,9 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       setSaving(true);
       // Check workshop limit (only for new workshops)
       if (!workshopId && !isPremium) {
-        const workshops = await listWorkshops();
+        const workshops = await listWorkshops(
+          isPremium ? undefined : { limit: workshopsLimit },
+        );
         if (workshops.length >= workshopsLimit) {
           Alert.alert(
             t("limits.workshopLimitReachedTitle"),

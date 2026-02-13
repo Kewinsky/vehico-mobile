@@ -11,6 +11,7 @@ import * as Linking from "expo-linking";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
+import { Crown } from "lucide-react-native";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useAuth } from "../app/providers/AuthProvider";
@@ -20,6 +21,7 @@ import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { supabase } from "../services/supabase/client";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Settings">;
 
@@ -43,7 +45,7 @@ function getInitials(user: {
 
 type RowItem = {
   id: string;
-  icon: React.ComponentProps<typeof Ionicons>["name"];
+  icon: React.ComponentProps<typeof Ionicons>["name"] | React.ReactNode;
   title: string;
   subtitle: string;
   onPress: () => void;
@@ -53,34 +55,40 @@ export function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { user, signOut } = useAuth();
+  const { restoreRevenueCatPurchases, refresh } = useEntitlements();
+  const [restoreLoading, setRestoreLoading] = useState(false);
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const displayNameFromUser =
-    normalizeDisplayName(user?.user_metadata?.full_name as string | undefined);
+  const displayNameFromUser = normalizeDisplayName(
+    user?.user_metadata?.full_name as string | undefined,
+  );
   const email = user?.email ?? "";
   const displayLabel = displayNameFromUser || email || "—";
 
   const [saving, setSaving] = useState(false);
 
-  const saveDisplayNameFromPrompt = useCallback(async (nextName?: string) => {
-    const trimmed = (nextName ?? "").trim();
-    const normalized = normalizeDisplayName(trimmed || undefined);
-    if (normalized === displayNameFromUser) {
-      return;
-    }
-    try {
-      setSaving(true);
-      const { error } = await supabase.auth.updateUser({
-        data: { full_name: normalized || null },
-      });
-      if (error) throw error;
-      toastSuccess(t("profile.displayNameUpdated"));
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
-    } finally {
-      setSaving(false);
-    }
-  }, [displayNameFromUser, t]);
+  const saveDisplayNameFromPrompt = useCallback(
+    async (nextName?: string) => {
+      const trimmed = (nextName ?? "").trim();
+      const normalized = normalizeDisplayName(trimmed || undefined);
+      if (normalized === displayNameFromUser) {
+        return;
+      }
+      try {
+        setSaving(true);
+        const { error } = await supabase.auth.updateUser({
+          data: { full_name: normalized || null },
+        });
+        if (error) throw error;
+        toastSuccess(t("profile.displayNameUpdated"));
+      } catch (e: any) {
+        toastError(e?.message ?? t("common.error"));
+      } finally {
+        setSaving(false);
+      }
+    },
+    [displayNameFromUser, t],
+  );
 
   function openEditNamePrompt() {
     if (saving) return;
@@ -116,8 +124,22 @@ export function SettingsScreen({ navigation }: Props) {
     }
   }
 
+  async function onRestorePurchases() {
+    if (restoreLoading) return;
+    try {
+      setRestoreLoading(true);
+      await restoreRevenueCatPurchases();
+      await refresh();
+      toastSuccess(t("shop.purchaseSuccess"));
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    } finally {
+      setRestoreLoading(false);
+    }
+  }
+
   const rows: RowItem[] = useMemo(
-    () => [
+    (): RowItem[] => [
       {
         id: "appearance",
         icon: "options-outline",
@@ -127,10 +149,19 @@ export function SettingsScreen({ navigation }: Props) {
       },
       {
         id: "shop",
-        icon: "cart-outline",
+        icon: <Crown size={22} color={theme.colors.accent} />,
         title: t("settings.shopButton"),
         subtitle: t("settings.shopSubtitle"),
         onPress: () => navigation.navigate("Shop"),
+      },
+      {
+        id: "restore-purchases",
+        icon: "refresh-circle-outline",
+        title: t("shop.restorePurchases"),
+        subtitle: restoreLoading
+          ? t("common.loading")
+          : t("settings.restorePurchasesSubtitle"),
+        onPress: () => void onRestorePurchases(),
       },
       {
         id: "support",
@@ -147,11 +178,14 @@ export function SettingsScreen({ navigation }: Props) {
         onPress: onSignOut,
       },
     ],
-    [t, navigation],
+    [t, navigation, restoreLoading, theme.colors.accent],
   );
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <Screen
+      padding={false}
+      header={<AppHeader onBack={() => navigation.goBack()} />}
+    >
       <ScrollView
         contentContainerStyle={[
           styles.container,
@@ -217,12 +251,16 @@ export function SettingsScreen({ navigation }: Props) {
                 pressed && styles.rowPressed,
               ]}
             >
-              <Ionicons
-                name={row.icon}
-                size={22}
-                color={theme.colors.accent}
-                style={styles.rowIcon}
-              />
+              {typeof row.icon === "string" ? (
+                <Ionicons
+                  name={row.icon as React.ComponentProps<typeof Ionicons>["name"]}
+                  size={22}
+                  color={theme.colors.accent}
+                  style={styles.rowIcon}
+                />
+              ) : (
+                <View style={styles.rowIcon}>{row.icon}</View>
+              )}
               <View style={styles.rowText}>
                 <Text
                   style={[styles.rowTitle, { color: theme.colors.fg }]}

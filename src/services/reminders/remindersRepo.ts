@@ -15,12 +15,24 @@ type NewReminder = {
   enabled: boolean;
 };
 
-export async function listReminders(vehicleId: string): Promise<Reminder[]> {
-  const { data, error } = await supabase
+export type ListRemindersOptions = {
+  /** When set (e.g. free plan), return only first N by created_at (newest first). */
+  limit?: number;
+};
+
+export async function listReminders(
+  vehicleId: string,
+  options?: ListRemindersOptions,
+): Promise<Reminder[]> {
+  let query = supabase
     .from("reminders")
     .select("*")
     .eq("vehicle_id", vehicleId)
     .order("created_at", { ascending: false });
+  if (options?.limit != null) {
+    query = query.limit(options.limit);
+  }
+  const { data, error } = await query;
   if (error) throw error;
   return (data ?? []) as Reminder[];
 }

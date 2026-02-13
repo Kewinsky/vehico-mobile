@@ -42,6 +42,12 @@ export const pl = {
     wheelLimitReachedTitle: "Osiągnięto limit felg",
     wheelLimitReachedBody:
       "Osiągnięto limit {{limit}} kompletu(ów) felg na pojazd. Przejdź na Premium, aby mieć nielimitowane felgi.",
+    fittedTireLimitReachedTitle: "Maks. zestawów na pojazd",
+    fittedTireLimitReachedBody:
+      "Możesz oznaczyć co najwyżej 2 zestawy opon jako aktualnie założone na tym samym pojeździe.",
+    fittedWheelLimitReachedTitle: "Maks. zestawów na pojazd",
+    fittedWheelLimitReachedBody:
+      "Możesz oznaczyć co najwyżej 2 zestawy felg jako aktualnie założone na tym samym pojeździe.",
     workshopLimitReachedTitle: "Osiągnięto limit warsztatów",
     workshopLimitReachedBody:
       "Osiągnięto limit {{limit}} warsztatu(ów). Przejdź na Premium, aby mieć nielimitowane warsztaty.",
@@ -53,13 +59,16 @@ export const pl = {
       "Osiągnięto limit {{limit}} zdjęć na pojazd. Przejdź na Premium, aby mieć do 40 zdjęć.",
     reportLimitReachedTitle: "Osiągnięto limit raportów",
     listingLimitReachedTitle: "Osiągnięto limit ogłoszeń",
+    premiumRequiredTitle: "Wymagany Premium",
+    premiumRequiredBody:
+      "Ta funkcja jest dostępna tylko przy aktywnym planie Premium.",
     upgradeToPremium: "Przejdź na Premium",
     reportsRemaining: "Pozostało raportów: {{count}}",
     listingsRemaining: "Pozostało ogłoszeń: {{count}}",
     noReportsRemaining:
-      "Brak pozostałych raportów. Kup paczkę lub przejdź na Premium.",
+      "Brak pozostałych raportów. Przejdź na Premium, aby kontynuować.",
     noListingsRemaining:
-      "Brak pozostałych ogłoszeń. Kup paczkę lub przejdź na Premium.",
+      "Brak pozostałych ogłoszeń. Przejdź na Premium, aby kontynuować.",
   },
   auth: {
     title: "Zaloguj się",
@@ -213,7 +222,7 @@ export const pl = {
         subtitleAdded:
           "Twój pojazd {{make}} {{model}}, {{year}} został dodany.",
         subtitleNotAdded:
-          "Twój pojazd {{make}} {{model}}, {{year}} jest gotowy. Dodasz go później.",
+          "Twój pojazd {{make}} {{model}}, {{year}} jest gotowy.",
       },
     },
     notifications: {
@@ -245,6 +254,12 @@ export const pl = {
     emptyTitle: "Brak pojazdów",
     emptyBody: "Dodaj swój pierwszy samochód lub motocykl.",
     addVehicle: "Dodaj pojazd",
+    freePlanPickerTitle: "Wybierz pojazd na plan Free",
+    freePlanPickerBody: "Na planie Free możesz mieć jeden pojazd. Pozostałe będą ukryte do odnowienia Premium.",
+    freePlanPickerSave: "Zapisz",
+    lockedVehicleAlertTitle: "Wymagane Premium",
+    lockedVehicleAlertBody: "Ten pojazd jest ukryty na planie Free. Odnów Premium, aby uzyskać dostęp. Dane ukrytych pojazdów zostaną trwale usunięte za {{days}} dni.",
+    lockedVehicleAlertCTA: "Przejdź do Premium",
   },
   vehicleForm: {
     title: "Nowy pojazd",
@@ -530,6 +545,9 @@ export const pl = {
       "Masz już aktywny plan Premium. Zakup nie jest potrzebny.",
     confirmPurchase: "Potwierdź zakup",
     buy: "Kup",
+    openPaywall: "Otwórz paywall",
+    restorePurchases: "Przywróć zakupy",
+    manageSubscription: "Zarządzaj subskrypcją",
     products: {
       pack_3_reports: {
         name: "Paczka 3 raportów",
@@ -561,7 +579,7 @@ export const pl = {
     title: "Ustawienia",
     subtitle: "Zmiany są natychmiastowe i zapisywane per konto.",
     profileButton: "Profil",
-    shopButton: "Sklep i Premium",
+    shopButton: "Subskrypcja",
     shopSubtitle: "Odblokuj ekskluzywne funkcje",
     appearanceButton: "Wygląd",
     appearanceSubtitle: "Motyw, język, jednostki",
@@ -569,6 +587,7 @@ export const pl = {
     tabDisplay: "Wyświetlanie",
     supportTitle: "Wsparcie",
     supportSubtitle: "Skontaktuj się z nami",
+    restorePurchasesSubtitle: "Przywróć wcześniejszy zakup",
     signOutSubtitle: "Wyloguj się z konta",
     currency: "Waluta",
     distanceUnit: "Jednostka dystansu",

@@ -59,7 +59,10 @@ export function WheelsListScreen({ route, navigation }: Props) {
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
-        const data = await listVehicleWheels(vehicleId);
+        const data = await listVehicleWheels(
+          vehicleId,
+          isPremium ? undefined : { limit: wheelsPerVehicleLimit },
+        );
         setWheels(data);
       } catch (err: unknown) {
         const message =
@@ -71,7 +74,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t],
+    [vehicleId, t, isPremium, wheelsPerVehicleLimit],
   );
 
   useEffect(() => {
@@ -108,7 +111,13 @@ export function WheelsListScreen({ route, navigation }: Props) {
   return (
     <Screen
       padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
       footer={
         <Button onPress={onAddWheelPress}>{t("wheels.addWheelSingle")}</Button>
       }

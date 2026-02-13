@@ -42,6 +42,12 @@ export const en = {
     wheelLimitReachedTitle: "Wheel Limit Reached",
     wheelLimitReachedBody:
       "You have reached the limit of {{limit}} wheel set(s) per vehicle. Upgrade to Premium for unlimited wheels.",
+    fittedTireLimitReachedTitle: "Max sets on vehicle",
+    fittedTireLimitReachedBody:
+      "You can mark at most 2 tire sets as currently fitted on the same vehicle.",
+    fittedWheelLimitReachedTitle: "Max sets on vehicle",
+    fittedWheelLimitReachedBody:
+      "You can mark at most 2 wheel sets as currently fitted on the same vehicle.",
     workshopLimitReachedTitle: "Workshop Limit Reached",
     workshopLimitReachedBody:
       "You have reached the limit of {{limit}} workshop(s). Upgrade to Premium for unlimited workshops.",
@@ -53,13 +59,15 @@ export const en = {
       "You have reached the limit of {{limit}} photos per vehicle. Upgrade to Premium for up to 40 photos.",
     reportLimitReachedTitle: "Report Limit Reached",
     listingLimitReachedTitle: "Listing Limit Reached",
+    premiumRequiredTitle: "Premium Required",
+    premiumRequiredBody:
+      "This feature is available only with an active Premium plan.",
     upgradeToPremium: "Upgrade to Premium",
     reportsRemaining: "Reports remaining: {{count}}",
     listingsRemaining: "Listings remaining: {{count}}",
-    noReportsRemaining:
-      "No reports remaining. Purchase a pack or upgrade to Premium.",
+    noReportsRemaining: "No reports remaining. Upgrade to Premium to continue.",
     noListingsRemaining:
-      "No listings remaining. Purchase a pack or upgrade to Premium.",
+      "No listings remaining. Upgrade to Premium to continue.",
   },
   auth: {
     title: "Sign in",
@@ -210,8 +218,7 @@ export const en = {
       confirm: {
         title: "All set",
         subtitleAdded: "Your vehicle {{make}} {{model}}, {{year}} was added.",
-        subtitleNotAdded:
-          "Your vehicle {{make}} {{model}}, {{year}} is ready. You can add it later.",
+        subtitleNotAdded: "Your vehicle {{make}} {{model}}, {{year}} is ready.",
       },
     },
     notifications: {
@@ -243,6 +250,12 @@ export const en = {
     emptyTitle: "No vehicles yet",
     emptyBody: "Add your first car or motorcycle.",
     addVehicle: "Add vehicle",
+    freePlanPickerTitle: "Choose vehicle for Free plan",
+    freePlanPickerBody: "You can have one vehicle on the Free plan. The rest will be hidden until you renew Premium.",
+    freePlanPickerSave: "Save",
+    lockedVehicleAlertTitle: "Premium required",
+    lockedVehicleAlertBody: "This vehicle is hidden on the Free plan. Renew Premium to access it. Data for hidden vehicles will be permanently deleted in {{days}} days.",
+    lockedVehicleAlertCTA: "Go to Premium",
   },
   vehicleForm: {
     title: "New vehicle",
@@ -527,6 +540,9 @@ export const en = {
       "You already have an active Premium plan. No purchase needed.",
     confirmPurchase: "Confirm purchase",
     buy: "Buy",
+    openPaywall: "Open Paywall",
+    restorePurchases: "Restore Purchases",
+    manageSubscription: "Manage Subscription",
     products: {
       pack_3_reports: {
         name: "3 Reports Pack",
@@ -558,7 +574,7 @@ export const en = {
     title: "Settings",
     subtitle: "Applied immediately and saved per account.",
     profileButton: "Profile",
-    shopButton: "Shop & Premium",
+    shopButton: "Subscription",
     shopSubtitle: "Unlock exclusive features",
     appearanceButton: "Appearance",
     appearanceSubtitle: "Theme, language, units",
@@ -566,6 +582,7 @@ export const en = {
     tabDisplay: "Display",
     supportTitle: "Support",
     supportSubtitle: "Contact us",
+    restorePurchasesSubtitle: "Restore previous purchase",
     signOutSubtitle: "Sign out of your account",
     currency: "Currency",
     distanceUnit: "Distance unit",

@@ -198,7 +198,14 @@ export function TireFormScreen({ navigation, route }: Props) {
       }
       navigation.goBack();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      if (e?.message === "FITTED_TIRE_LIMIT_REACHED") {
+        Alert.alert(
+          t("limits.fittedTireLimitReachedTitle"),
+          t("limits.fittedTireLimitReachedBody"),
+        );
+      } else {
+        toastError(e?.message ?? t("common.error"));
+      }
     } finally {
       setSaving(false);
     }

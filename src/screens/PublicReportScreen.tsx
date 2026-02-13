@@ -17,13 +17,13 @@ export function PublicReportScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
-  const { canGenerateReport, isPremium } = useEntitlements();
+  const { isPremium } = useEntitlements();
 
   function onGeneratePress() {
-    if (!canGenerateReport && !isPremium) {
+    if (!isPremium) {
       Alert.alert(
-        t("limits.reportLimitReachedTitle"),
-        t("limits.noReportsRemaining"),
+        t("limits.premiumRequiredTitle"),
+        t("limits.premiumRequiredBody"),
         [
           { text: t("common.cancel"), style: "cancel" },
           {
@@ -38,7 +38,16 @@ export function PublicReportScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <Screen
+      padding={false}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
+    >
       <View style={styles.fixedHeader}>
         <Text style={styles.h1}>{t("publicReport.title")}</Text>
       </View>

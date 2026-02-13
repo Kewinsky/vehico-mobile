@@ -54,7 +54,10 @@ export function TiresListScreen({ route, navigation }: Props) {
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
-        const data = await listVehicleTires(vehicleId);
+        const data = await listVehicleTires(
+          vehicleId,
+          isPremium ? undefined : { limit: tiresPerVehicleLimit },
+        );
         setTires(data);
       } catch (err: unknown) {
         const message =
@@ -66,7 +69,7 @@ export function TiresListScreen({ route, navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t],
+    [vehicleId, t, isPremium, tiresPerVehicleLimit],
   );
 
   useEffect(() => {
@@ -103,7 +106,13 @@ export function TiresListScreen({ route, navigation }: Props) {
   return (
     <Screen
       padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
       footer={
         <Button onPress={onAddTirePress}>{t("wheels.addTireSingle")}</Button>
       }

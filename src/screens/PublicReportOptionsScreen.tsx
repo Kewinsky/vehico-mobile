@@ -18,6 +18,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportOptions">;
@@ -25,6 +26,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "PublicReportOptions">;
 export function PublicReportOptionsScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
+  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { url, vehicleId, reportTitle } = route.params;
   const { width } = useWindowDimensions();
@@ -71,7 +73,13 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={handleBack} />}>
+    <Screen padding={false} header={
+        <AppHeader
+          onBack={handleBack}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }>
       <ScrollView
         contentContainerStyle={styles.wrap}
         keyboardShouldPersistTaps="handled"

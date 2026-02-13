@@ -140,18 +140,6 @@ export function OnboardingFlowScreen({ navigation }: Props) {
     return t("common.next");
   }, [currentStep, t]);
 
-  function stripExamplePrefix(s: string) {
-    return s
-      .replace(/^e\.g\.\s*/i, "")
-      .replace(/^np\.\s*/i, "")
-      .trim();
-  }
-
-  function makePlaceholder(label: string, example: string) {
-    const ex = stripExamplePrefix(example);
-    return ex ? `${label}: ${ex}` : `${label}:`;
-  }
-
   function showPicker<T extends string>(opts: {
     title: string;
     value: T | null;
@@ -436,18 +424,23 @@ export function OnboardingFlowScreen({ navigation }: Props) {
               ]}
             >
               <View style={styles.row}>
-                <Ionicons
-                  name="person-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="person-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("onboarding.name.label")}
+                  </Text>
+                </View>
                 <TextInput
                   value={name}
                   onChangeText={setName}
-                  placeholder={makePlaceholder(
-                    t("onboarding.name.label"),
-                    t("onboarding.name.placeholder"),
-                  )}
+                  placeholder={t("onboarding.name.placeholder")}
                   placeholderTextColor={theme.colors.muted}
                   keyboardAppearance={mode === "dark" ? "dark" : "light"}
                   editable={!saving}
@@ -475,27 +468,19 @@ export function OnboardingFlowScreen({ navigation }: Props) {
             <Text style={[styles.title, { color: theme.colors.fg }]}>
               {t("onboarding.vehicle.type.title")}
             </Text>
-            <View
-              style={[
-                styles.card,
+
+            <SegmentTabs
+              value={vehicleType}
+              onChange={setVehicleType}
+              size="sm"
+              options={[
+                { value: "car", label: t("onboarding.vehicle.type.car") },
                 {
-                  backgroundColor: theme.colors.card,
+                  value: "motorcycle",
+                  label: t("onboarding.vehicle.type.motorcycle"),
                 },
               ]}
-            >
-              <SegmentTabs
-                value={vehicleType}
-                onChange={setVehicleType}
-                size="sm"
-                options={[
-                  { value: "car", label: t("onboarding.vehicle.type.car") },
-                  {
-                    value: "motorcycle",
-                    label: t("onboarding.vehicle.type.motorcycle"),
-                  },
-                ]}
-              />
-            </View>
+            />
           </View>
         );
       case 3:
@@ -514,18 +499,23 @@ export function OnboardingFlowScreen({ navigation }: Props) {
               ]}
             >
               <View style={styles.row}>
-                <Ionicons
-                  name="pricetag-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="pricetag-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.makeLabel")}
+                  </Text>
+                </View>
                 <TextInput
                   value={make}
                   onChangeText={setMake}
-                  placeholder={makePlaceholder(
-                    t("vehicleForm.makeLabel"),
-                    t("vehicleForm.placeholderMake"),
-                  )}
+                  placeholder={t("vehicleForm.placeholderMake")}
                   placeholderTextColor={theme.colors.muted}
                   keyboardAppearance={mode === "dark" ? "dark" : "light"}
                   editable={!saving}
@@ -540,18 +530,23 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                 ]}
               />
               <View style={styles.row}>
-                <Ionicons
-                  name="layers-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="layers-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.modelLabel")}
+                  </Text>
+                </View>
                 <TextInput
                   value={model}
                   onChangeText={setModel}
-                  placeholder={makePlaceholder(
-                    t("vehicleForm.modelLabel"),
-                    t("vehicleForm.placeholderModel"),
-                  )}
+                  placeholder={t("vehicleForm.placeholderModel")}
                   placeholderTextColor={theme.colors.muted}
                   keyboardAppearance={mode === "dark" ? "dark" : "light"}
                   editable={!saving}
@@ -586,18 +581,23 @@ export function OnboardingFlowScreen({ navigation }: Props) {
               ]}
             >
               <View style={styles.row}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.yearLabel")}
+                  </Text>
+                </View>
                 <TextInput
                   value={year}
                   onChangeText={setYear}
-                  placeholder={makePlaceholder(
-                    t("vehicleForm.yearLabel"),
-                    t("vehicleForm.placeholderYear"),
-                  )}
+                  placeholder={t("vehicleForm.placeholderYear")}
                   placeholderTextColor={theme.colors.muted}
                   keyboardAppearance={mode === "dark" ? "dark" : "light"}
                   keyboardType="number-pad"
@@ -633,18 +633,23 @@ export function OnboardingFlowScreen({ navigation }: Props) {
               ]}
             >
               <View style={styles.row}>
-                <Ionicons
-                  name="barcode-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="barcode-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.vinLabel")}
+                  </Text>
+                </View>
                 <TextInput
                   value={vin}
                   onChangeText={setVin}
-                  placeholder={makePlaceholder(
-                    t("vehicleForm.vinLabel"),
-                    t("vehicleForm.placeholderVin"),
-                  )}
+                  placeholder={t("vehicleForm.placeholderVin")}
                   placeholderTextColor={theme.colors.muted}
                   keyboardAppearance={mode === "dark" ? "dark" : "light"}
                   editable={!saving}
@@ -694,18 +699,23 @@ export function OnboardingFlowScreen({ navigation }: Props) {
               ]}
             >
               <View style={styles.row}>
-                <Ionicons
-                  name="speedometer-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="speedometer-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.mileageLabel")}
+                  </Text>
+                </View>
                 <TextInput
                   value={mileage}
                   onChangeText={setMileage}
-                  placeholder={makePlaceholder(
-                    t("vehicleForm.mileageLabel"),
-                    t("vehicleForm.placeholderMileage"),
-                  )}
+                  placeholder={t("vehicleForm.placeholderMileage")}
                   placeholderTextColor={theme.colors.muted}
                   keyboardAppearance={mode === "dark" ? "dark" : "light"}
                   keyboardType="number-pad"
@@ -759,18 +769,23 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                   ]}
                 >
                   <View style={styles.row}>
-                    <MaterialCommunityIcons
-                      name="engine"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
+                    <View style={styles.rowLeft}>
+                      <MaterialCommunityIcons
+                        name="engine"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <Text
+                        style={[styles.label, { color: theme.colors.muted }]}
+                        numberOfLines={1}
+                      >
+                        {t("vehicleForm.engineCapacityLabel")}
+                      </Text>
+                    </View>
                     <TextInput
                       value={engineCapacity}
                       onChangeText={setEngineCapacity}
-                      placeholder={makePlaceholder(
-                        t("vehicleForm.engineCapacityLabel"),
-                        t("vehicleForm.placeholderEngineCapacity"),
-                      )}
+                      placeholder={t("vehicleForm.placeholderEngineCapacity")}
                       placeholderTextColor={theme.colors.muted}
                       keyboardAppearance={mode === "dark" ? "dark" : "light"}
                       keyboardType="number-pad"
@@ -785,18 +800,23 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                     ]}
                   />
                   <View style={styles.row}>
-                    <Ionicons
-                      name="flash-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
+                    <View style={styles.rowLeft}>
+                      <Ionicons
+                        name="flash-outline"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <Text
+                        style={[styles.label, { color: theme.colors.muted }]}
+                        numberOfLines={1}
+                      >
+                        {t("vehicleForm.powerHpLabel")}
+                      </Text>
+                    </View>
                     <TextInput
                       value={powerHp}
                       onChangeText={setPowerHp}
-                      placeholder={makePlaceholder(
-                        t("vehicleForm.powerHpLabel"),
-                        t("vehicleForm.placeholderPowerHp"),
-                      )}
+                      placeholder={t("vehicleForm.placeholderPowerHp")}
                       placeholderTextColor={theme.colors.muted}
                       keyboardAppearance={mode === "dark" ? "dark" : "light"}
                       keyboardType="number-pad"
@@ -835,7 +855,7 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                               | "vehicleForm.fuelTypeLpg",
                           ),
                         onChange: setFuelType,
-                        placeholderLabel: "—",
+                        placeholderLabel: t("vehicleForm.fuelTypePlaceholder"),
                       })
                     }
                     style={({ pressed }) => [
@@ -843,13 +863,29 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                       pressed && { opacity: 0.75 },
                     ]}
                   >
-                    <Ionicons
-                      name="water-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
+                    <View style={styles.rowLeft}>
+                      <Ionicons
+                        name="water-outline"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <Text
+                        style={[styles.label, { color: theme.colors.muted }]}
+                        numberOfLines={1}
+                      >
+                        {t("vehicleForm.fuelTypeLabel")}
+                      </Text>
+                    </View>
                     <Text
-                      style={[styles.valueText, { color: theme.colors.fg }]}
+                      style={[
+                        styles.valueText,
+                        {
+                          color: fuelType
+                            ? theme.colors.fg
+                            : theme.colors.muted,
+                          textAlign: "right",
+                        },
+                      ]}
                     >
                       {fuelType
                         ? t(
@@ -863,7 +899,7 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                               | "vehicleForm.fuelTypeElectric"
                               | "vehicleForm.fuelTypeLpg",
                           )
-                        : t("vehicleForm.fuelTypeLabel")}
+                        : t("vehicleForm.fuelTypePlaceholder")}
                     </Text>
                   </Pressable>
                   <View
@@ -872,13 +908,23 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                       { backgroundColor: theme.colors.border },
                     ]}
                   />
-                  <View style={styles.row}>
-                    <Ionicons
-                      name="swap-horizontal-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <View style={styles.segmentWrap}>
+                  <View>
+                    <View style={styles.row}>
+                      <View style={styles.rowLeft}>
+                        <Ionicons
+                          name="swap-horizontal-outline"
+                          size={20}
+                          color={theme.colors.accent}
+                        />
+                        <Text
+                          style={[styles.label, { color: theme.colors.muted }]}
+                          numberOfLines={1}
+                        >
+                          {t("vehicleForm.transmissionLabel")}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.segmentTabsNewLine}>
                       <SegmentTabs<TransmissionTab>
                         value={transmissionTab}
                         size="sm"
@@ -907,13 +953,23 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                       { backgroundColor: theme.colors.border },
                     ]}
                   />
-                  <View style={styles.row}>
-                    <Ionicons
-                      name="git-branch-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <View style={styles.segmentWrap}>
+                  <View>
+                    <View style={styles.row}>
+                      <View style={styles.rowLeft}>
+                        <Ionicons
+                          name="git-branch-outline"
+                          size={20}
+                          color={theme.colors.accent}
+                        />
+                        <Text
+                          style={[styles.label, { color: theme.colors.muted }]}
+                          numberOfLines={1}
+                        >
+                          {t("vehicleForm.driveTypeLabel")}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.segmentTabsNewLine}>
                       <SegmentTabs<DriveTab>
                         value={driveTab}
                         size="sm"
@@ -1622,6 +1678,13 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingVertical: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
     },
+    rowLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      flex: 0,
+      flexShrink: 1,
+    },
     rowTopAligned: {
       alignItems: "flex-start",
     },
@@ -1634,6 +1697,11 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       minWidth: 0,
       fontSize: theme.typography.body,
       paddingVertical: 0,
+      textAlign: "right",
+    },
+    label: {
+      fontSize: theme.typography.body,
+      fontWeight: "600",
     },
     helper: {
       marginTop: theme.spacing.xs,
@@ -1647,6 +1715,10 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     segmentWrap: {
       flex: 1,
       minWidth: 0,
+    },
+    segmentTabsNewLine: {
+      paddingHorizontal: theme.spacing.md,
+      paddingBottom: theme.spacing.sm,
     },
     segmentStack: {
       flex: 1,

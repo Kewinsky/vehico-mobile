@@ -58,11 +58,11 @@ function InfoCard({
       ? customValue != null
         ? customValue
         : count != null
-        ? t("publicReport.includedWithCount", { count })
-        : t("publicReport.included")
+          ? t("publicReport.includedWithCount", { count })
+          : t("publicReport.included")
       : status === "noData"
-      ? t("publicReport.noData")
-      : t("publicReport.notIncluded");
+        ? t("publicReport.noData")
+        : t("publicReport.notIncluded");
   const valueColor =
     status === "included" ? theme.colors.accent : theme.colors.muted;
 
@@ -78,7 +78,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
-  const { canGenerateListing, isPremium, listingsRemaining } = useEntitlements();
+  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const {
     vehicleId,
@@ -134,7 +134,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
     }
 
     // Check entitlements
-    if (!canGenerateListing) {
+    if (!isPremium) {
       navigation.navigate("Shop");
       return;
     }
@@ -195,7 +195,16 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
 
   if (loading) {
     return (
-      <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+      <Screen
+        padding={false}
+        header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
+      >
         <View style={styles.loadingContainer}>
           <LoadingIndicator />
         </View>
@@ -212,11 +221,17 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   return (
     <Screen
       padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
       footer={
         <Button
           onPress={handleGeneratePost}
-          disabled={!confirmed || generating || !canGenerateListing}
+          disabled={!confirmed || generating || !isPremium}
         >
           {generating ? (
             <View
@@ -344,7 +359,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                       | "vehicleForm.fuelTypeDiesel"
                       | "vehicleForm.fuelTypeHybrid"
                       | "vehicleForm.fuelTypeElectric"
-                      | "vehicleForm.fuelTypeLpg"
+                      | "vehicleForm.fuelTypeLpg",
                   )}
                 </Text>
               </View>
@@ -501,9 +516,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                 color={theme.colors.muted}
               />
               <Text style={[styles.limitText, { color: theme.colors.muted }]}>
-                {canGenerateListing
-                  ? t("limits.listingsRemaining", { count: listingsRemaining })
-                  : t("limits.noListingsRemaining")}
+                {t("limits.premiumRequiredBody")}
               </Text>
             </View>
           </View>

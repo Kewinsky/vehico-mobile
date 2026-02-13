@@ -89,7 +89,10 @@ export function RemindersScreen({ route, navigation }: Props) {
           if (opts?.refreshing) setRefreshing(true);
           else setLoading(true);
         }
-        const data = await listReminders(route.params.vehicleId);
+        const data = await listReminders(
+          route.params.vehicleId,
+          isPremium ? undefined : { limit: remindersLimit },
+        );
         setItems(data);
       } catch (e: any) {
         toastError(e?.message ?? t("common.error"));
@@ -100,7 +103,7 @@ export function RemindersScreen({ route, navigation }: Props) {
         }
       }
     },
-    [route.params.vehicleId, t],
+    [route.params.vehicleId, t, isPremium, remindersLimit],
   );
 
   useEffect(() => {
@@ -313,7 +316,13 @@ export function RemindersScreen({ route, navigation }: Props) {
   }, [items, query, dateFrom, dateTo, statusFilter]);
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <Screen padding={false} header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }>
       <FlatList
         data={filteredItemsWithSeparators}
         keyExtractor={(item) => {

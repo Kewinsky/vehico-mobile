@@ -5,17 +5,27 @@ import * as ImageManipulator from "expo-image-manipulator";
 
 const DEFAULT_MAX_PHOTOS = 6;
 
+export type ListVehiclePhotosOptions = {
+  /** When set (e.g. free plan), return only first N by display_order. */
+  limit?: number;
+};
+
 /**
  * Lists all photos for a vehicle, ordered by display_order
  */
 export async function listVehiclePhotos(
-  vehicleId: string
+  vehicleId: string,
+  options?: ListVehiclePhotosOptions,
 ): Promise<VehiclePhoto[]> {
-  const { data, error } = await supabase
+  let query = supabase
     .from("photos")
     .select("*")
     .eq("vehicle_id", vehicleId)
     .order("display_order", { ascending: true });
+  if (options?.limit != null) {
+    query = query.limit(options.limit);
+  }
+  const { data, error } = await query;
   if (error) throw error;
   return (data ?? []) as VehiclePhoto[];
 }

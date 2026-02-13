@@ -8,6 +8,7 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { StatisticsCard } from "../ui/components/StatisticsCard";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 
@@ -19,6 +20,7 @@ type StatsTabKey = "metrics" | "charts" | "other";
 export function StatisticsScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { isPremium } = useEntitlements();
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme);
   const [period, setPeriod] = useState<PeriodKey>("3m");
@@ -43,7 +45,13 @@ export function StatisticsScreen({ route, navigation }: Props) {
   ];
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <Screen padding={false} header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }>
       <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.fg }]}>

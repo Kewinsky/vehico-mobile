@@ -6,6 +6,7 @@ import * as Clipboard from "expo-clipboard";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { resolveMarketplacePostContent } from "../services/marketplace/marketplaceRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { SegmentTabs } from "../ui/components/SegmentTabs";
@@ -23,6 +24,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
+  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { content, vehicleId, postTitle } = route.params;
   const [displayLang, setDisplayLang] = useState<"pl" | "en">(
@@ -53,7 +55,13 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={handleBack} />}>
+    <Screen padding={false} header={
+        <AppHeader
+          onBack={handleBack}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

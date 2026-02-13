@@ -31,6 +31,7 @@ import { Screen } from "../ui/components/Screen";
 import { TimelineItem } from "../ui/components/TimelineItem";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
@@ -66,6 +67,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
+  const { isPremium, remindersLimit } = useEntitlements();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const accentBg = useMemo(
@@ -115,7 +117,10 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         }
         const [data, rs, attachments] = await Promise.all([
           listServiceEntries(vehicleId),
-          listReminders(vehicleId),
+          listReminders(
+            vehicleId,
+            isPremium ? undefined : { limit: remindersLimit },
+          ),
           listVehicleAttachments(vehicleId),
         ]);
         setItems(data);
@@ -139,7 +144,7 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
         }
       }
     },
-    [vehicleId, t],
+    [vehicleId, t, isPremium, remindersLimit],
   );
 
   useEffect(() => {
@@ -498,7 +503,13 @@ export function VehicleDetailScreen({ navigation, route }: Props) {
   ]);
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <Screen padding={false} header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }>
       <FlatList
         data={timelineRows}
         keyExtractor={(e) => {
