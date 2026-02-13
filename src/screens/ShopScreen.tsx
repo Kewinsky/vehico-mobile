@@ -151,10 +151,7 @@ export function ShopScreen({ navigation }: Props) {
           { backgroundColor: theme.colors.accent + "18" },
         ]}
       >
-        <Crown
-          size={64}
-          color={theme.colors.accent}
-        />
+        <Crown size={64} color={theme.colors.accent} />
       </View>
     );
   }
@@ -392,24 +389,16 @@ export function ShopScreen({ navigation }: Props) {
           </View>
         </View>
 
-        <View style={styles.pricingSection}>
-          <View style={styles.pricingCol}>
-            <PriceCard
-              productId={subs.left}
-              label={t("shop.subCards.monthly")}
-            />
-            <PriceCard
-              productId={subs.middle}
-              label={t("shop.subCards.lifetime")}
-              badge={t("shop.saveDiscountBadge", {
-                percent: LIFETIME_DISCOUNT_PERCENT,
-              })}
-            />
-            <PriceCard
-              productId={subs.right}
-              label={t("shop.subCards.yearly")}
-            />
-          </View>
+        <View style={styles.pricingCol}>
+          <PriceCard productId={subs.left} label={t("shop.subCards.monthly")} />
+          <PriceCard
+            productId={subs.middle}
+            label={t("shop.subCards.lifetime")}
+            badge={t("shop.saveDiscountBadge", {
+              percent: LIFETIME_DISCOUNT_PERCENT,
+            })}
+          />
+          <PriceCard productId={subs.right} label={t("shop.subCards.yearly")} />
         </View>
       </ScrollView>
     </Screen>
@@ -484,10 +473,6 @@ function makeStyles(theme: AppTheme) {
       minWidth: 0,
       fontSize: typography.body,
       fontWeight: "600",
-    },
-    pricingSection: {
-      paddingTop: spacing.lg,
-      paddingHorizontal: spacing.md,
     },
     pricingCol: {
       flexDirection: "column",

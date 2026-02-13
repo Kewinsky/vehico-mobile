@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 import { TextInput } from "react-native";
 import type { ComponentProps } from "react";
 
+import { useTheme } from "../ThemeProvider";
+
 import { useFormScreenScrollRef } from "./FormScreen";
 
 type Props = ComponentProps<typeof TextInput> & {
@@ -35,6 +37,7 @@ export function Textarea({
   scrollEnabled,
   ...rest
 }: Props) {
+  const { theme } = useTheme();
   const formScrollRef = useFormScreenScrollRef();
   const [focused, setFocused] = useState(false);
   const selectionRef = useRef<{ start: number; end: number }>({
@@ -67,6 +70,7 @@ export function Textarea({
       scrollEnabled={computedScrollEnabled}
       style={[
         style,
+        { fontSize: theme.typography.body },
         fixedHeight != null && {
           height: fixedHeight,
           textAlignVertical: "top",

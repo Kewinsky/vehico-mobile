@@ -212,13 +212,15 @@ export function MarketplacePostScreen({ navigation, route }: Props) {
   }
 
   return (
-    <FormScreen header={
+    <FormScreen
+      header={
         <AppHeader
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
-      }>
+      }
+    >
       <View style={{ height: theme.spacing.md }} />
 
       <Text style={styles.h1}>{t("marketplace.title")}</Text>

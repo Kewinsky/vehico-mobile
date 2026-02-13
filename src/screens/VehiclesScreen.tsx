@@ -33,6 +33,7 @@ import { useAuth } from "../app/providers/AuthProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { normalizeDisplayName } from "../utils/displayName";
+import { hexToRgba } from "../ui/components/ChoiceChip";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 
@@ -125,7 +126,11 @@ function VehicleCardImage({
           }}
           pointerEvents="none"
         >
-          <Ionicons name="lock-closed" size={48} color="rgba(255,255,255,0.9)" />
+          <Ionicons
+            name="lock-closed"
+            size={48}
+            color={hexToRgba(theme.colors.accent, 0.7)}
+          />
         </View>
       )}
       <VehicleCarousel
@@ -225,8 +230,8 @@ export function VehiclesScreen({ navigation }: Props) {
 
   const visibleVehicleId: string | null = isPremium
     ? null
-    : freePlanVehicleId ??
-      (items.length === 1 ? items[0]?.id ?? null : null);
+    : (freePlanVehicleId ??
+      (items.length === 1 ? (items[0]?.id ?? null) : null));
   const showFreePlanPicker =
     !entitlementsLoading &&
     !isPremium &&
