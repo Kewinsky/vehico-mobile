@@ -218,7 +218,13 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
 
   return (
     <FormScreen
-      header={<AppHeader onBack={() => navigation.goBack()} />}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
     >
       <View style={styles.headerRow}>
         <Text style={styles.h1}>{t("dashboard.tiles.manageTitle")}</Text>

@@ -19,6 +19,7 @@ import {
   updateMarketplacePost,
 } from "../services/marketplace/marketplaceRepo";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
@@ -32,6 +33,7 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
+  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { postId } = route.params;
 
@@ -88,6 +90,8 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
       header={
         <AppHeader
           onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
           right={
             <Pressable
               onPress={() => {

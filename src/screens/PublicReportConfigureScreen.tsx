@@ -22,6 +22,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
@@ -41,6 +42,7 @@ type PhotoItem = {
 export function PublicReportConfigureScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
 
@@ -352,7 +354,13 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   return (
     <Screen
       padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
       footer={
         <Button onPress={handleNext}>{t("publicReport.nextButton")}</Button>
       }

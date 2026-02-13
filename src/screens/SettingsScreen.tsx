@@ -11,6 +11,7 @@ import * as Linking from "expo-linking";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
+import { Crown } from "lucide-react-native";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useAuth } from "../app/providers/AuthProvider";
@@ -44,7 +45,7 @@ function getInitials(user: {
 
 type RowItem = {
   id: string;
-  icon: React.ComponentProps<typeof Ionicons>["name"];
+  icon: React.ComponentProps<typeof Ionicons>["name"] | React.ReactNode;
   title: string;
   subtitle: string;
   onPress: () => void;
@@ -138,7 +139,7 @@ export function SettingsScreen({ navigation }: Props) {
   }
 
   const rows: RowItem[] = useMemo(
-    () => [
+    (): RowItem[] => [
       {
         id: "appearance",
         icon: "options-outline",
@@ -148,7 +149,7 @@ export function SettingsScreen({ navigation }: Props) {
       },
       {
         id: "shop",
-        icon: "star-outline",
+        icon: <Crown size={22} color={theme.colors.accent} />,
         title: t("settings.shopButton"),
         subtitle: t("settings.shopSubtitle"),
         onPress: () => navigation.navigate("Shop"),
@@ -177,7 +178,7 @@ export function SettingsScreen({ navigation }: Props) {
         onPress: onSignOut,
       },
     ],
-    [t, navigation, restoreLoading],
+    [t, navigation, restoreLoading, theme.colors.accent],
   );
 
   return (
@@ -250,12 +251,16 @@ export function SettingsScreen({ navigation }: Props) {
                 pressed && styles.rowPressed,
               ]}
             >
-              <Ionicons
-                name={row.icon}
-                size={22}
-                color={theme.colors.accent}
-                style={styles.rowIcon}
-              />
+              {typeof row.icon === "string" ? (
+                <Ionicons
+                  name={row.icon as React.ComponentProps<typeof Ionicons>["name"]}
+                  size={22}
+                  color={theme.colors.accent}
+                  style={styles.rowIcon}
+                />
+              ) : (
+                <View style={styles.rowIcon}>{row.icon}</View>
+              )}
               <View style={styles.rowText}>
                 <Text
                   style={[styles.rowTitle, { color: theme.colors.fg }]}

@@ -155,7 +155,13 @@ export function WorkshopsScreen({ navigation }: Props) {
     return (
       <Screen
         padding={false}
-        header={<AppHeader onBack={() => navigation.goBack()} />}
+        header={
+          <AppHeader
+            onBack={() => navigation.goBack()}
+            showShopIcon={!isPremium}
+            onShopPress={() => navigation.navigate("Shop")}
+          />
+        }
       >
         <View style={styles.loadingContainer}>
           <LoadingIndicator />
@@ -167,7 +173,13 @@ export function WorkshopsScreen({ navigation }: Props) {
   return (
     <Screen
       padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
+      header={
+          <AppHeader
+            onBack={() => navigation.goBack()}
+            showShopIcon={!isPremium}
+            onShopPress={() => navigation.navigate("Shop")}
+          />
+        }
     >
       <FlatList
         data={filtered}

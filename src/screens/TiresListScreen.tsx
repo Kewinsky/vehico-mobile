@@ -106,7 +106,13 @@ export function TiresListScreen({ route, navigation }: Props) {
   return (
     <Screen
       padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
       footer={
         <Button onPress={onAddTirePress}>{t("wheels.addTireSingle")}</Button>
       }

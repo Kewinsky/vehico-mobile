@@ -40,7 +40,13 @@ export function MarketplaceScreen({ navigation, route }: Props) {
   return (
     <Screen
       padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
     >
       <View style={styles.fixedHeader}>
         <Text style={styles.h1}>{t("marketplace.screenTitle")}</Text>

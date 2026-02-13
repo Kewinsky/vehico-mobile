@@ -111,7 +111,13 @@ export function WheelsListScreen({ route, navigation }: Props) {
   return (
     <Screen
       padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
       footer={
         <Button onPress={onAddWheelPress}>{t("wheels.addWheelSingle")}</Button>
       }

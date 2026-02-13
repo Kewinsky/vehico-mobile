@@ -8,6 +8,7 @@ import { useTheme } from "../ThemeProvider";
 import { useAuth } from "../../app/providers/AuthProvider";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { normalizeDisplayName } from "../../utils/displayName";
+import { Crown } from "lucide-react-native";
 
 function getInitials(user: {
   user_metadata?: { full_name?: string };
@@ -88,9 +89,7 @@ export function AppHeader({
         <View style={styles.titleSpacer} />
       )}
       <View style={styles.right}>
-        {right !== undefined ? (
-          right
-        ) : showShopIcon && onShopPress ? (
+        {showShopIcon && onShopPress ? (
           <View style={styles.rightIcons}>
             <Pressable
               onPress={onShopPress}
@@ -100,11 +99,7 @@ export function AppHeader({
                 pressed && styles.backButtonPressed,
               ]}
             >
-              <MaterialCommunityIcons
-                name="crown"
-                size={22}
-                color={theme.colors.accent}
-              />
+              <Crown size={22} color={theme.colors.accent} />
             </Pressable>
             {user && (
               <Pressable
@@ -124,7 +119,10 @@ export function AppHeader({
                 </Text>
               </Pressable>
             )}
+            {right}
           </View>
+        ) : right !== undefined ? (
+          right
         ) : showInitials ? (
           <Pressable
             onPress={() => navigation.navigate("Settings")}

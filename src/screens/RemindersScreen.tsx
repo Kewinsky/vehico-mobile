@@ -316,7 +316,13 @@ export function RemindersScreen({ route, navigation }: Props) {
   }, [items, query, dateFrom, dateTo, statusFilter]);
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <Screen padding={false} header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }>
       <FlatList
         data={filteredItemsWithSeparators}
         keyExtractor={(item) => {

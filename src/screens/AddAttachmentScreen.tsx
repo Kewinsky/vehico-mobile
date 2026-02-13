@@ -20,6 +20,7 @@ import { uploadAttachment } from "../services/attachments/attachmentsRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
@@ -29,6 +30,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "AddAttachment">;
 export function AddAttachmentScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
+  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
 
@@ -52,7 +54,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         else setLoading(false);
       }
     },
-    [vehicleId, t]
+    [vehicleId, t],
   );
 
   useEffect(() => {
@@ -61,7 +63,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
 
   async function uploadTo(
     serviceEntryId: string,
-    file: { uri: string; mimeType?: string | null; fileName?: string | null }
+    file: { uri: string; mimeType?: string | null; fileName?: string | null },
   ) {
     await uploadAttachment({
       serviceEntryId,
@@ -90,7 +92,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
           text: t("attachments.files"),
           onPress: () => void pickFromFiles(serviceEntryId),
         },
-      ]
+      ],
     );
   }
 
@@ -179,46 +181,53 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
   }, [items, query]);
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <Screen
+      padding={false}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
+    >
       <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
-        <View>
-          <Text style={styles.h1}>{t("documents.addAttachment")}</Text>
-          <View style={{ height: theme.spacing.sm }} />
-          <View
-            style={[
-              styles.searchBarWrap,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <Ionicons
-              name="search-outline"
-              size={20}
-              color={theme.colors.muted}
-              style={styles.searchBarIcon}
-            />
-            <TextInput
-              value={query}
-              onChangeText={setQuery}
-              placeholder={t("timeline.searchPlaceholder")}
-              placeholderTextColor={theme.colors.muted}
-              autoCapitalize="none"
-              autoCorrect={false}
-              clearButtonMode="while-editing"
-              blurOnSubmit={true}
-              keyboardAppearance={mode === "dark" ? "dark" : "light"}
-              style={[styles.searchBarInput, { color: theme.colors.fg }]}
-            />
-          </View>
-          <View style={{ height: theme.spacing.sm }} />
+        <Text style={styles.h1}>{t("documents.addAttachment")}</Text>
+        <View style={{ height: theme.spacing.sm }} />
+        <View
+          style={[
+            styles.searchBarWrap,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <Ionicons
+            name="search-outline"
+            size={20}
+            color={theme.colors.muted}
+            style={styles.searchBarIcon}
+          />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t("timeline.searchPlaceholder")}
+            placeholderTextColor={theme.colors.muted}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+            blurOnSubmit={true}
+            keyboardAppearance={mode === "dark" ? "dark" : "light"}
+            style={[styles.searchBarInput, { color: theme.colors.fg }]}
+          />
         </View>
+        <View style={{ height: theme.spacing.md }} />
       </View>
       <FlatList
         contentContainerStyle={{
           paddingHorizontal: theme.layout.contentPaddingHorizontal,
-          paddingTop: theme.spacing.sm,
+          paddingTop: theme.spacing.md,
           paddingBottom: theme.spacing.xl,
         }}
         data={filteredItems}

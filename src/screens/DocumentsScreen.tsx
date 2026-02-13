@@ -17,6 +17,7 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Attachment, VehicleDocument } from "../types/domain";
 import {
@@ -46,6 +47,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 export function DocumentsScreen({ route, navigation }: Props) {
   const { t, i18n } = useTranslation();
   const { theme, mode } = useTheme();
+  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [vehicleDocs, setVehicleDocs] = useState<VehicleDocument[]>([]);
   const [attachments, setAttachments] = useState<VehicleAttachment[]>([]);
@@ -287,7 +289,13 @@ export function DocumentsScreen({ route, navigation }: Props) {
   return (
     <Screen
       padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
       footer={
         <Button onPress={openAddPicker} disabled={uploading}>
           {t("documents.addVehicleDocument")}

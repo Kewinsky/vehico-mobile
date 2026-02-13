@@ -24,6 +24,7 @@ import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import type { RevenueCatProductId } from "../services/payments/revenuecat";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
+import { Crown } from "lucide-react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Shop">;
 const DEFAULT_SUBSCRIPTION: RevenueCatProductId = "lifetime";
@@ -150,8 +151,7 @@ export function ShopScreen({ navigation }: Props) {
           { backgroundColor: theme.colors.accent + "18" },
         ]}
       >
-        <MaterialCommunityIcons
-          name="crown"
+        <Crown
           size={64}
           color={theme.colors.accent}
         />

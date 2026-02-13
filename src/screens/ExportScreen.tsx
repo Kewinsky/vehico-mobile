@@ -112,7 +112,13 @@ export function ExportScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <Screen padding={false} header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }>
       <View style={styles.fixedHeader}>
         <View style={styles.header}>
           <Text style={styles.h1}>{t("export.title")}</Text>

@@ -197,7 +197,13 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
     return (
       <Screen
         padding={false}
-        header={<AppHeader onBack={() => navigation.goBack()} />}
+        header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
       >
         <View style={styles.loadingContainer}>
           <LoadingIndicator />
@@ -215,7 +221,13 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   return (
     <Screen
       padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
+      header={
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
       footer={
         <Button
           onPress={handleGeneratePost}
