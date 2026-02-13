@@ -20,15 +20,25 @@ export function formatTireDimensions(
   return `${width}/${aspectRatio} R${diameter}`;
 }
 
+export type ListVehicleTiresOptions = {
+  /** When set (e.g. free plan), return first N: is_currently_fitted desc, then created_at asc. */
+  limit?: number;
+};
+
 export async function listVehicleTires(
   vehicleId: string,
+  options?: ListVehicleTiresOptions,
 ): Promise<VehicleTire[]> {
-  const { data, error } = await supabase
+  let query = supabase
     .from("tires")
     .select("*")
     .eq("vehicle_id", vehicleId)
     .order("is_currently_fitted", { ascending: false })
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: true });
+  if (options?.limit != null) {
+    query = query.limit(options.limit);
+  }
+  const { data, error } = await query;
   if (error) throw error;
   return (data ?? []) as VehicleTire[];
 }
@@ -43,14 +53,30 @@ export async function getVehicleTire(id: string): Promise<VehicleTire> {
   return data as VehicleTire;
 }
 
+const MAX_FITTED_TIRES_PER_VEHICLE = 2;
+
+async function countFittedTires(vehicleId: string, excludeId?: string): Promise<number> {
+  let query = supabase
+    .from("tires")
+    .select("id", { count: "exact", head: true })
+    .eq("vehicle_id", vehicleId)
+    .eq("is_currently_fitted", true);
+  if (excludeId) {
+    query = query.neq("id", excludeId);
+  }
+  const { count, error } = await query;
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function createVehicleTire(
   input: NewVehicleTireInput,
 ): Promise<VehicleTire> {
   if (input.is_currently_fitted) {
-    await supabase
-      .from("tires")
-      .update({ is_currently_fitted: false })
-      .eq("vehicle_id", input.vehicle_id);
+    const fittedCount = await countFittedTires(input.vehicle_id);
+    if (fittedCount >= MAX_FITTED_TIRES_PER_VEHICLE) {
+      throw new Error("FITTED_TIRE_LIMIT_REACHED");
+    }
   }
   const { data, error } = await supabase
     .from("tires")
@@ -65,12 +91,16 @@ export async function updateVehicleTire(
   id: string,
   patch: Partial<NewVehicleTireInput>,
 ): Promise<VehicleTire> {
-  if (patch.is_currently_fitted && patch.vehicle_id) {
-    await supabase
-      .from("tires")
-      .update({ is_currently_fitted: false })
-      .eq("vehicle_id", patch.vehicle_id)
-      .neq("id", id);
+  if (patch.is_currently_fitted === true) {
+    let vehicleId = patch.vehicle_id;
+    if (!vehicleId) {
+      const existing = await getVehicleTire(id);
+      vehicleId = existing.vehicle_id;
+    }
+    const fittedCount = await countFittedTires(vehicleId, id);
+    if (fittedCount >= MAX_FITTED_TIRES_PER_VEHICLE) {
+      throw new Error("FITTED_TIRE_LIMIT_REACHED");
+    }
   }
   const { data, error } = await supabase
     .from("tires")

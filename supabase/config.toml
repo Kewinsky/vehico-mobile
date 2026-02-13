@@ -9,3 +9,6 @@ verify_jwt = false
 
 [functions.sync-entitlements-from-revenuecat]
 verify_jwt = false
+
+[functions.retention-cleanup]
+verify_jwt = false

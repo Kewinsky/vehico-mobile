@@ -141,7 +141,10 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       setInsuranceValidUntil(v.insurance_valid_until ?? "");
       setInspectionValidUntil(v.inspection_valid_until ?? "");
 
-      const photosList = await listVehiclePhotos(vehicleId);
+      const photosList = await listVehiclePhotos(
+        vehicleId,
+        isPremium ? undefined : { limit: photosPerVehicleLimit },
+      );
       setPhotos(photosList);
       setPhotoUrls(photosList.map((photo) => getVehiclePhotoUrl(photo)));
     } catch (e: any) {
@@ -149,7 +152,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [vehicleId, t]);
+  }, [vehicleId, t, isPremium, photosPerVehicleLimit]);
 
   useEffect(() => {
     if (isEditMode) void load();

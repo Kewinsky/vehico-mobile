@@ -30,6 +30,7 @@ import { DriveTypeIcon } from "../ui/components/DriveTypeIcon";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
@@ -123,6 +124,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
+  const { isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = makeStyles(theme);
   const { vehicleId } = route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
@@ -144,7 +146,10 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
         setVehicle(v);
 
         // Load all photos
-        const photos = await listVehiclePhotos(vehicleId);
+        const photos = await listVehiclePhotos(
+          vehicleId,
+          isPremium ? undefined : { limit: photosPerVehicleLimit },
+        );
         const urls = photos.map((photo) => getVehiclePhotoUrl(photo));
         setPhotoUrls(urls);
       } catch (e: any) {
@@ -153,7 +158,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t],
+    [vehicleId, t, isPremium, photosPerVehicleLimit],
   );
 
   useEffect(() => {

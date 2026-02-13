@@ -46,6 +46,10 @@ export type Entitlements = {
   reminders_limit: number;
   premium_until: string | null;
   product_id: string | null;
+  /** Vehicle visible on free plan; set only when user saves picker choice. */
+  free_plan_vehicle_id: string | null;
+  /** When user downgraded to free; used for 90-day retention and countdown. */
+  downgraded_at: string | null;
 };
 
 const PREMIUM_PHOTOS_PER_VEHICLE_LIMIT = 40;
@@ -72,6 +76,14 @@ type EntitlementsContextValue = {
   remindersLimit: number;
   /** Active plan product (monthly/yearly/lifetime) when premium; null when free. */
   currentPlanProductId: RevenueCatProductId | null;
+  /** Vehicle id visible on free plan; null when premium or not yet chosen. */
+  freePlanVehicleId: string | null;
+  /** When user downgraded to free (ISO string); null when premium. */
+  downgradedAt: string | null;
+  /** Days until hidden vehicles data is deleted (90-day retention). Null when premium or no downgraded_at. */
+  daysUntilHiddenDataDeletion: number | null;
+  /** Set free plan vehicle (call when user saves picker choice). */
+  setFreePlanVehicleId: (vehicleId: string) => Promise<void>;
 
   // RevenueCat
   isRevenueCatReady: boolean;
@@ -107,6 +119,8 @@ const DEFAULT_ENTITLEMENTS: Entitlements = {
   reminders_limit: 5,
   premium_until: null,
   product_id: null,
+  free_plan_vehicle_id: null,
+  downgraded_at: null,
 };
 
 async function fetchEntitlements(): Promise<Entitlements> {
@@ -135,6 +149,8 @@ async function fetchEntitlements(): Promise<Entitlements> {
     reminders_limit: data.reminders_limit ?? 5,
     premium_until: data.premium_until ?? null,
     product_id: data.product_id ?? null,
+    free_plan_vehicle_id: data.free_plan_vehicle_id ?? null,
+    downgraded_at: data.downgraded_at ?? null,
   };
 }
 
@@ -249,6 +265,22 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
   const refresh = useCallback(async () => {
     await Promise.all([refreshSupabaseEntitlements(), refreshRevenueCat()]);
   }, [refreshSupabaseEntitlements, refreshRevenueCat]);
+
+  const setFreePlanVehicleId = useCallback(
+    async (vehicleId: string) => {
+      if (!userId) return;
+      const { error } = await supabase
+        .from("entitlements")
+        .update({
+          free_plan_vehicle_id: vehicleId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", userId);
+      if (error) throw error;
+      await refreshSupabaseEntitlements();
+    },
+    [userId, refreshSupabaseEntitlements],
+  );
 
   const syncRevenueCatPurchases = useCallback(async () => {
     if (!IS_REVENUECAT_PLATFORM) {
@@ -504,6 +536,8 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
     userId,
   ]);
 
+  const RETENTION_DAYS = 90;
+
   const computed = useMemo(() => {
     if (!entitlements) {
       return {
@@ -521,6 +555,10 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
         workshopsLimit: 3,
         remindersLimit: 5,
         currentPlanProductId: null,
+        freePlanVehicleId: null,
+        downgradedAt: null,
+        daysUntilHiddenDataDeletion: null,
+        setFreePlanVehicleId,
       };
     }
 
@@ -544,6 +582,16 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
             premiumEntitlement?.productIdentifier,
           )) ?? null
       : null;
+
+    const downgradedAt = entitlements.downgraded_at ?? null;
+    let daysUntilHiddenDataDeletion: number | null = null;
+    if (downgradedAt && !isPremium) {
+      const deadline = new Date(downgradedAt);
+      deadline.setDate(deadline.getDate() + RETENTION_DAYS);
+      const now = new Date();
+      const diff = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      daysUntilHiddenDataDeletion = Math.max(0, diff);
+    }
 
     return {
       canGenerateReport,
@@ -572,8 +620,12 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
         ? PREMIUM_UNLIMITED
         : entitlements.reminders_limit,
       currentPlanProductId,
+      freePlanVehicleId: entitlements.free_plan_vehicle_id ?? null,
+      downgradedAt,
+      daysUntilHiddenDataDeletion,
+      setFreePlanVehicleId,
     };
-  }, [entitlements, revenueCatCustomerInfo]);
+  }, [entitlements, revenueCatCustomerInfo, setFreePlanVehicleId]);
 
   const value = useMemo<EntitlementsContextValue>(
     () => ({

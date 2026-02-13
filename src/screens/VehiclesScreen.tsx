@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -28,6 +28,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../app/providers/AuthProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -91,6 +92,8 @@ type VehicleCardImageProps = {
   styles: ReturnType<typeof makeStyles>;
   formatMileage: (m: number | null | undefined) => string;
   i18n: { language: string };
+  /** When true, show blurred/locked overlay. */
+  isLocked?: boolean;
 };
 
 function VehicleCardImage({
@@ -101,11 +104,30 @@ function VehicleCardImage({
   styles,
   formatMileage,
   i18n,
+  isLocked = false,
 }: VehicleCardImageProps) {
   const progress = useSharedValue(0);
 
   return (
     <>
+      {isLocked && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.65)",
+            zIndex: 5,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          pointerEvents="none"
+        >
+          <Ionicons name="lock-closed" size={48} color="rgba(255,255,255,0.9)" />
+        </View>
+      )}
       <VehicleCarousel
         photoUrls={photoUrls}
         width={carouselWidth}
@@ -190,8 +212,32 @@ export function VehiclesScreen({ navigation }: Props) {
 
   const windowWidth = Dimensions.get("window").width;
   const { settings } = useUserSettings();
-  const { isPremium, vehiclesLimit } = useEntitlements();
+  const {
+    isPremium,
+    vehiclesLimit,
+    photosPerVehicleLimit,
+    freePlanVehicleId,
+    setFreePlanVehicleId,
+    daysUntilHiddenDataDeletion,
+  } = useEntitlements();
   const distanceUnit = settings?.distanceUnit ?? "km";
+
+  const visibleVehicleId: string | null = isPremium
+    ? null
+    : freePlanVehicleId ??
+      (items.length === 1 ? items[0]?.id ?? null : null);
+  const showFreePlanPicker =
+    !isPremium && !freePlanVehicleId && items.length >= 2;
+  const hasShownPickerRef = useRef(false);
+
+  const sortedItems = useMemo(() => {
+    if (!visibleVehicleId) return items;
+    const idx = items.findIndex((v) => v.id === visibleVehicleId);
+    if (idx <= 0) return items;
+    const copy = [...items];
+    const [selected] = copy.splice(idx, 1);
+    return [selected, ...copy];
+  }, [items, visibleVehicleId]);
 
   const normalizedName = normalizeDisplayName(
     user?.user_metadata?.full_name as string | undefined,
@@ -233,7 +279,10 @@ export function VehiclesScreen({ navigation }: Props) {
         await Promise.all(
           data.map(async (vehicle) => {
             try {
-              const photos = await listVehiclePhotos(vehicle.id);
+              const photos = await listVehiclePhotos(
+                vehicle.id,
+                isPremium ? undefined : { limit: photosPerVehicleLimit },
+              );
               const urls = photos.map((photo) => getVehiclePhotoUrl(photo));
               if (urls.length > 0) {
                 urlsMap.set(vehicle.id, urls);
@@ -256,7 +305,7 @@ export function VehiclesScreen({ navigation }: Props) {
         }
       }
     },
-    [t],
+    [t, isPremium, photosPerVehicleLimit],
   );
 
   useEffect(() => {
@@ -268,6 +317,39 @@ export function VehiclesScreen({ navigation }: Props) {
     );
     return unsub;
   }, [navigation, load]);
+
+  useEffect(() => {
+    if (!showFreePlanPicker || items.length < 2) {
+      hasShownPickerRef.current = false;
+      return;
+    }
+    if (hasShownPickerRef.current) return;
+    hasShownPickerRef.current = true;
+    const vehicleButtons = items.map((item) => ({
+      text: `${item.make} ${item.model}${item.production_year ? ` (${item.production_year})` : ""}`,
+      onPress: () => setFreePlanVehicleId(item.id),
+    }));
+    Alert.alert(
+      t("vehicles.freePlanPickerTitle"),
+      t("vehicles.freePlanPickerBody"),
+      vehicleButtons,
+    );
+  }, [showFreePlanPicker, items, t, setFreePlanVehicleId]);
+
+  const handleLockedVehiclePress = () => {
+    const days = daysUntilHiddenDataDeletion ?? 0;
+    Alert.alert(
+      t("vehicles.lockedVehicleAlertTitle"),
+      t("vehicles.lockedVehicleAlertBody", { days }),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("vehicles.lockedVehicleAlertCTA"),
+          onPress: () => navigation.navigate("Shop"),
+        },
+      ],
+    );
+  };
 
   const handleAddVehicle = () => {
     if (isPremium) {
@@ -317,7 +399,7 @@ export function VehiclesScreen({ navigation }: Props) {
           </View>
         ) : (
           <FlatList
-            data={items}
+            data={sortedItems}
             keyExtractor={(v) => v.id}
             contentContainerStyle={styles.list}
             refreshing={refreshing}
@@ -325,82 +407,114 @@ export function VehiclesScreen({ navigation }: Props) {
             ItemSeparatorComponent={() => (
               <View style={{ height: theme.spacing.md }} />
             )}
-            renderItem={({ item }) => (
-              <Pressable
-                onPress={() =>
-                  navigation.navigate("VehicleDashboard", {
-                    vehicleId: item.id,
-                  })
-                }
-                style={({ pressed }) => [
-                  styles.vehicleCard,
-                  pressed && styles.vehicleCardPressed,
-                ]}
-              >
-                <View style={styles.vehicleImageContainer}>
-                  {(() => {
-                    const photoUrls = photoUrlsMap.get(item.id) || [];
-                    const carouselWidth =
-                      windowWidth -
-                      (theme.layout?.contentPaddingHorizontal ??
-                        theme.spacing.md) *
-                        2;
-
-                    if (photoUrls.length === 0) {
-                      return (
-                        <>
-                          <View style={styles.vehicleImagePlaceholder}>
-                            <Text style={styles.vehicleImagePlaceholderText}>
-                              {item.type === "car" ? "🚗" : "🏍️"}
-                            </Text>
-                          </View>
-                          <View style={styles.vehicleImageContent}>
-                            <Text
-                              style={[
-                                styles.vehicleTitle,
-                                styles.vehicleTitleOverlay,
-                              ]}
-                              numberOfLines={2}
-                            >
-                              {`${item.make} ${item.model}`}
-                            </Text>
-                            <Text
-                              style={[
-                                styles.vehicleMeta,
-                                styles.vehicleMetaOverlay,
-                              ]}
-                              numberOfLines={1}
-                            >
-                              {item.production_year}
-                              {item.power_hp
-                                ? ` · ${item.power_hp}${
-                                    i18n.language === "pl" ? "KM" : "HP"
-                                  }`
-                                : ""}
-                              {item.mileage
-                                ? ` · ${formatMileage(item.mileage)}`
-                                : ""}
-                            </Text>
-                          </View>
-                        </>
-                      );
+            renderItem={({ item }) => {
+              const isLocked =
+                !isPremium &&
+                (visibleVehicleId == null || item.id !== visibleVehicleId);
+              return (
+                <Pressable
+                  onPress={() => {
+                    if (isLocked) {
+                      handleLockedVehiclePress();
+                      return;
                     }
+                    navigation.navigate("VehicleDashboard", {
+                      vehicleId: item.id,
+                    });
+                  }}
+                  style={({ pressed }) => [
+                    styles.vehicleCard,
+                    pressed && styles.vehicleCardPressed,
+                  ]}
+                >
+                  <View style={styles.vehicleImageContainer}>
+                    {(() => {
+                      const photoUrls = photoUrlsMap.get(item.id) || [];
+                      const carouselWidth =
+                        windowWidth -
+                        (theme.layout?.contentPaddingHorizontal ??
+                          theme.spacing.md) *
+                          2;
 
-                    return (
-                      <VehicleCardImage
-                        item={item}
-                        photoUrls={photoUrls}
-                        carouselWidth={carouselWidth}
-                        theme={theme}
-                        styles={styles}
-                        formatMileage={formatMileage}
-                        i18n={i18n}
-                      />
-                    );
-                  })()}
-                </View>
-              </Pressable>
-            )}
+                      if (photoUrls.length === 0) {
+                        return (
+                          <>
+                            {isLocked && (
+                              <View
+                                style={{
+                                  position: "absolute",
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  backgroundColor: "rgba(0,0,0,0.65)",
+                                  zIndex: 5,
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                                pointerEvents="none"
+                              >
+                                <Ionicons
+                                  name="lock-closed"
+                                  size={48}
+                                  color="rgba(255,255,255,0.9)"
+                                />
+                              </View>
+                            )}
+                            <View style={styles.vehicleImagePlaceholder}>
+                              <Text style={styles.vehicleImagePlaceholderText}>
+                                {item.type === "car" ? "🚗" : "🏍️"}
+                              </Text>
+                            </View>
+                            <View style={styles.vehicleImageContent}>
+                              <Text
+                                style={[
+                                  styles.vehicleTitle,
+                                  styles.vehicleTitleOverlay,
+                                ]}
+                                numberOfLines={2}
+                              >
+                                {`${item.make} ${item.model}`}
+                              </Text>
+                              <Text
+                                style={[
+                                  styles.vehicleMeta,
+                                  styles.vehicleMetaOverlay,
+                                ]}
+                                numberOfLines={1}
+                              >
+                                {item.production_year}
+                                {item.power_hp
+                                  ? ` · ${item.power_hp}${
+                                      i18n.language === "pl" ? "KM" : "HP"
+                                    }`
+                                  : ""}
+                                {item.mileage
+                                  ? ` · ${formatMileage(item.mileage)}`
+                                  : ""}
+                              </Text>
+                            </View>
+                          </>
+                        );
+                      }
+
+                      return (
+                        <VehicleCardImage
+                          item={item}
+                          photoUrls={photoUrls}
+                          carouselWidth={carouselWidth}
+                          theme={theme}
+                          styles={styles}
+                          formatMileage={formatMileage}
+                          i18n={i18n}
+                          isLocked={isLocked}
+                        />
+                      );
+                    })()}
+                  </View>
+                </Pressable>
+              );
+            }}
           />
         )}
       </View>

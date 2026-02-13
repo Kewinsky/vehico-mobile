@@ -13,6 +13,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Export">;
@@ -33,6 +34,7 @@ function csvEscape(value: unknown): string {
 export function ExportScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { isPremium, remindersLimit } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
 
@@ -46,7 +48,10 @@ export function ExportScreen({ navigation, route }: Props) {
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
           listFuelingEntries(vehicleId),
-          listReminders(vehicleId),
+          listReminders(
+            vehicleId,
+            isPremium ? undefined : { limit: remindersLimit },
+          ),
         ]);
 
       const payload = {

@@ -159,7 +159,14 @@ export function WheelFormScreen({ navigation, route }: Props) {
       }
       navigation.goBack();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      if (e?.message === "FITTED_WHEEL_LIMIT_REACHED") {
+        Alert.alert(
+          t("limits.fittedWheelLimitReachedTitle"),
+          t("limits.fittedWheelLimitReachedBody"),
+        );
+      } else {
+        toastError(e?.message ?? t("common.error"));
+      }
     } finally {
       setSaving(false);
     }

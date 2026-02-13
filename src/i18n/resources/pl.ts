@@ -42,6 +42,12 @@ export const pl = {
     wheelLimitReachedTitle: "Osiągnięto limit felg",
     wheelLimitReachedBody:
       "Osiągnięto limit {{limit}} kompletu(ów) felg na pojazd. Przejdź na Premium, aby mieć nielimitowane felgi.",
+    fittedTireLimitReachedTitle: "Maks. zestawów na pojazd",
+    fittedTireLimitReachedBody:
+      "Możesz oznaczyć co najwyżej 2 zestawy opon jako aktualnie założone na tym samym pojeździe.",
+    fittedWheelLimitReachedTitle: "Maks. zestawów na pojazd",
+    fittedWheelLimitReachedBody:
+      "Możesz oznaczyć co najwyżej 2 zestawy felg jako aktualnie założone na tym samym pojeździe.",
     workshopLimitReachedTitle: "Osiągnięto limit warsztatów",
     workshopLimitReachedBody:
       "Osiągnięto limit {{limit}} warsztatu(ów). Przejdź na Premium, aby mieć nielimitowane warsztaty.",
@@ -248,6 +254,12 @@ export const pl = {
     emptyTitle: "Brak pojazdów",
     emptyBody: "Dodaj swój pierwszy samochód lub motocykl.",
     addVehicle: "Dodaj pojazd",
+    freePlanPickerTitle: "Wybierz pojazd na plan Free",
+    freePlanPickerBody: "Na planie Free możesz mieć jeden pojazd. Pozostałe będą ukryte do odnowienia Premium.",
+    freePlanPickerSave: "Zapisz",
+    lockedVehicleAlertTitle: "Wymagane Premium",
+    lockedVehicleAlertBody: "Ten pojazd jest ukryty na planie Free. Odnów Premium, aby uzyskać dostęp. Dane ukrytych pojazdów zostaną trwale usunięte za {{days}} dni.",
+    lockedVehicleAlertCTA: "Przejdź do Premium",
   },
   vehicleForm: {
     title: "Nowy pojazd",

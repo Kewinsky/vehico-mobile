@@ -42,6 +42,12 @@ export const en = {
     wheelLimitReachedTitle: "Wheel Limit Reached",
     wheelLimitReachedBody:
       "You have reached the limit of {{limit}} wheel set(s) per vehicle. Upgrade to Premium for unlimited wheels.",
+    fittedTireLimitReachedTitle: "Max sets on vehicle",
+    fittedTireLimitReachedBody:
+      "You can mark at most 2 tire sets as currently fitted on the same vehicle.",
+    fittedWheelLimitReachedTitle: "Max sets on vehicle",
+    fittedWheelLimitReachedBody:
+      "You can mark at most 2 wheel sets as currently fitted on the same vehicle.",
     workshopLimitReachedTitle: "Workshop Limit Reached",
     workshopLimitReachedBody:
       "You have reached the limit of {{limit}} workshop(s). Upgrade to Premium for unlimited workshops.",
@@ -244,6 +250,12 @@ export const en = {
     emptyTitle: "No vehicles yet",
     emptyBody: "Add your first car or motorcycle.",
     addVehicle: "Add vehicle",
+    freePlanPickerTitle: "Choose vehicle for Free plan",
+    freePlanPickerBody: "You can have one vehicle on the Free plan. The rest will be hidden until you renew Premium.",
+    freePlanPickerSave: "Save",
+    lockedVehicleAlertTitle: "Premium required",
+    lockedVehicleAlertBody: "This vehicle is hidden on the Free plan. Renew Premium to access it. Data for hidden vehicles will be permanently deleted in {{days}} days.",
+    lockedVehicleAlertCTA: "Go to Premium",
   },
   vehicleForm: {
     title: "New vehicle",

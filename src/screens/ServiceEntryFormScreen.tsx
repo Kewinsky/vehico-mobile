@@ -37,6 +37,7 @@ import {
 import { listWorkshops } from "../services/workshops/workshopsRepo";
 import type { Workshop } from "../types/domain";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
@@ -81,6 +82,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { settings } = useUserSettings();
+  const { isPremium, workshopsLimit } = useEntitlements();
   const { vehicleId, entryId } = route.params as any;
   const distanceUnit = settings?.distanceUnit ?? "km";
   const accentBg = useMemo(
@@ -142,8 +144,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }, []);
 
   useEffect(() => {
-    void listWorkshops().then(setWorkshops);
-  }, []);
+    listWorkshops(isPremium ? undefined : { limit: workshopsLimit }).then(setWorkshops);
+  }, [isPremium, workshopsLimit]);
 
   useEffect(() => {
     if (!entryId) return;

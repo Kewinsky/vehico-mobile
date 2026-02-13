@@ -160,7 +160,10 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       }
       // Check reminder limit (only for new reminders)
       if (!reminderId && !isPremium) {
-        const existingReminders = await listReminders(vehicleId);
+        const existingReminders = await listReminders(
+          vehicleId,
+          isPremium ? undefined : { limit: remindersLimit },
+        );
         if (existingReminders.length >= remindersLimit) {
           Alert.alert(
             t("limits.reminderLimitReachedTitle"),

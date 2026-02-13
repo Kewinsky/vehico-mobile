@@ -306,20 +306,28 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const supabase = createClient(supabaseUrl, serviceRoleKey);
   const now = new Date().toISOString();
 
+  const dbUpdate: Record<string, unknown> = {
+    plan: update.plan,
+    premium_until: update.premium_until,
+    product_id: update.product_id,
+    vehicles_limit: update.vehicles_limit,
+    photos_per_vehicle_limit: update.photos_per_vehicle_limit,
+    tires_per_vehicle_limit: update.tires_per_vehicle_limit,
+    wheels_per_vehicle_limit: update.wheels_per_vehicle_limit,
+    workshops_limit: update.workshops_limit,
+    reminders_limit: update.reminders_limit,
+    updated_at: now,
+  };
+  if (update.plan === "free") {
+    dbUpdate.downgraded_at = now;
+  } else {
+    dbUpdate.free_plan_vehicle_id = null;
+    dbUpdate.downgraded_at = null;
+  }
+
   const { error } = await supabase
     .from("entitlements")
-    .update({
-      plan: update.plan,
-      premium_until: update.premium_until,
-      product_id: update.product_id,
-      vehicles_limit: update.vehicles_limit,
-      photos_per_vehicle_limit: update.photos_per_vehicle_limit,
-      tires_per_vehicle_limit: update.tires_per_vehicle_limit,
-      wheels_per_vehicle_limit: update.wheels_per_vehicle_limit,
-      workshops_limit: update.workshops_limit,
-      reminders_limit: update.reminders_limit,
-      updated_at: now,
-    })
+    .update(dbUpdate)
     .eq("user_id", userId);
 
   if (error) {

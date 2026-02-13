@@ -146,19 +146,6 @@ create table if not exists public.reminders (
 drop index if exists public.reminders_vehicle_id_idx;
 create index if not exists reminders_vehicle_id_idx on public.reminders(vehicle_id);
 
--- User settings (persist per user)
-drop table if exists public.user_settings cascade;
-create table if not exists public.user_settings (
-  user_id uuid primary key default auth.uid(),
-  currency text not null default 'PLN' check (currency in ('PLN', 'EUR')),
-  distance_unit text not null default 'km' check (distance_unit in ('km', 'miles')),
-  fuel_unit text not null default 'liters' check (fuel_unit in ('liters', 'gallons')),
-  theme text not null default 'system' check (theme in ('system', 'light', 'dark')),
-  language text not null default 'en' check (language in ('en', 'pl')),
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
 -- Photos (up to 6 photos per vehicle)
 drop table if exists public.photos cascade;
 create table if not exists public.photos (
@@ -250,7 +237,6 @@ alter table public.service_entries enable row level security;
 alter table public.reports enable row level security;
 alter table public.fueling_entries enable row level security;
 alter table public.reminders enable row level security;
-alter table public.user_settings enable row level security;
 alter table public.photos enable row level security;
 alter table public.posts enable row level security;
 alter table public.tires enable row level security;
@@ -517,26 +503,6 @@ using (
   )
 );
 
--- User settings: owner can read/upsert own row
-drop policy if exists user_settings_select_own on public.user_settings;
-create policy user_settings_select_own
-on public.user_settings for select
-to authenticated
-using (user_id = auth.uid());
-
-drop policy if exists user_settings_insert_own on public.user_settings;
-create policy user_settings_insert_own
-on public.user_settings for insert
-to authenticated
-with check (user_id = auth.uid());
-
-drop policy if exists user_settings_update_own on public.user_settings;
-create policy user_settings_update_own
-on public.user_settings for update
-to authenticated
-using (user_id = auth.uid())
-with check (user_id = auth.uid());
-
 -- Vehicle photos: allowed if vehicle belongs to user (authenticated only, no public access)
 drop policy if exists photos_select_own_vehicle on public.photos;
 create policy photos_select_own_vehicle
@@ -653,7 +619,7 @@ with check (user_id = auth.uid());
 -- Functions for public reports
 -- ================
 
--- RPC: anon can fetch a single report by public_id only (no listing)
+-- RPC: anon can fetch a single report by public_id only when report owner has active premium
 drop function if exists public.get_public_report_by_id(text);
 create or replace function public.get_public_report_by_id(p_public_id text)
 returns setof public.reports
@@ -661,7 +627,16 @@ language sql
 security definer
 set search_path = public
 as $$
-  select * from public.reports where public_id = p_public_id limit 1;
+  select r.*
+  from public.reports r
+  join public.vehicles v on v.id = r.vehicle_id
+  join public.entitlements e on e.user_id = v.owner_id
+  where r.public_id = p_public_id
+    and (
+      e.plan in ('premium', 'lifetime')
+      or (e.premium_until is not null and e.premium_until > now())
+    )
+  limit 1;
 $$;
 grant execute on function public.get_public_report_by_id(text) to anon;
 grant execute on function public.get_public_report_by_id(text) to authenticated;
@@ -1325,12 +1300,16 @@ create table if not exists public.entitlements (
   reminders_limit integer not null default 5 check (reminders_limit > 0), -- 5 przypomnień dla free, unlimited dla premium
   premium_until timestamptz, -- null for free/lifetime, set for premium subscription
   product_id text, -- monthly, yearly, or lifetime when premium; null when free
+  free_plan_vehicle_id uuid references public.vehicles(id) on delete set null, -- vehicle visible on free; set only on picker Save; cleared when premium
+  downgraded_at timestamptz, -- when user downgraded to free; used for 90-day retention cleanup
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 drop index if exists public.entitlements_user_id_idx;
 create index if not exists entitlements_user_id_idx on public.entitlements(user_id);
+drop index if exists public.entitlements_free_plan_vehicle_id_idx;
+create index if not exists entitlements_free_plan_vehicle_id_idx on public.entitlements(free_plan_vehicle_id) where free_plan_vehicle_id is not null;
 
 -- RLS for entitlements
 alter table public.entitlements enable row level security;

@@ -47,7 +47,9 @@ export function WorkshopsScreen({ navigation }: Props) {
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
-        const data = await listWorkshops();
+        const data = await listWorkshops(
+          isPremium ? undefined : { limit: workshopsLimit },
+        );
         setItems(data);
       } catch (e: any) {
         toastError(e?.message ?? t("common.error"));
@@ -55,7 +57,7 @@ export function WorkshopsScreen({ navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [t],
+    [t, isPremium, workshopsLimit],
   );
 
   useEffect(() => {
