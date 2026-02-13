@@ -18,12 +18,14 @@ import {
   formatWheelDimensions,
 } from "../services/wheels/wheelsRepo";
 import { AppHeader } from "../ui/components/AppHeader";
-import { Screen } from "../ui/components/Screen";
 import { Button } from "../ui/components/Button";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
+import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WheelsList">;
 
@@ -47,7 +49,8 @@ function wheelSubtitle(
 export function WheelsListScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const { vehicleId } = route.params;
   const { isPremium, wheelsPerVehicleLimit } = useEntitlements();
 
@@ -122,114 +125,102 @@ export function WheelsListScreen({ route, navigation }: Props) {
         <Button onPress={onAddWheelPress}>{t("wheels.addWheelSingle")}</Button>
       }
     >
-      <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
-        <Text style={[styles.title, { color: theme.colors.fg }]}>
-          {t("wheels.rimsSection")}
-        </Text>
-      </View>
-      <FlatList
-        data={wheels}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{
-          paddingHorizontal: theme.layout.contentPaddingHorizontal,
-          paddingBottom: theme.spacing.xl,
-        }}
-        ItemSeparatorComponent={() => (
-          <View style={{ height: theme.spacing.sm }} />
-        )}
-        renderItem={({ item }) => (
-          <Pressable
-            style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
-            onPress={() =>
-              navigation.navigate("WheelForm", {
-                vehicleId,
-                wheelId: item.id,
-              })
-            }
-          >
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
+      <ScreenLayout title={t("wheels.rimsSection")} scrollable={false}>
+        <FlatList
+          data={wheels}
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
+          ItemSeparatorComponent={() => (
+            <View style={{ height: theme.spacing.sm }} />
+          )}
+          renderItem={({ item }) => (
+            <Pressable
+              style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+              onPress={() =>
+                navigation.navigate("WheelForm", {
+                  vehicleId,
+                  wheelId: item.id,
+                })
+              }
             >
-              <View style={styles.cardRow}>
-                <View style={{ flex: 1 }}>
-                  <View style={styles.titleRow}>
+              <View
+                style={[
+                  styles.card,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                ]}
+              >
+                <View style={styles.cardRow}>
+                  <View style={{ flex: 1 }}>
+                    <View style={styles.titleRow}>
+                      <Text
+                        style={[styles.itemTitle, { color: theme.colors.fg }]}
+                        numberOfLines={1}
+                      >
+                        {item.name}
+                      </Text>
+                      {item.is_currently_fitted && (
+                        <View
+                          style={[
+                            styles.badge,
+                            {
+                              borderColor: theme.colors.accent,
+                              backgroundColor: theme.colors.accent,
+                            },
+                          ]}
+                        >
+                          <Text style={styles.badgeText}>
+                            {t("wheels.currentlyFitted")}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                     <Text
-                      style={[styles.itemTitle, { color: theme.colors.fg }]}
+                      style={[
+                        styles.itemSubtitle,
+                        {
+                          color: theme.colors.muted,
+                          marginTop: theme.spacing.xs / 2,
+                        },
+                      ]}
                       numberOfLines={1}
                     >
-                      {item.name}
+                      {wheelSubtitle(item, t)}
                     </Text>
-                    {item.is_currently_fitted && (
-                      <View
-                        style={[
-                          styles.badge,
-                          {
-                            borderColor: theme.colors.accent,
-                            backgroundColor: theme.colors.accent,
-                          },
-                        ]}
-                      >
-                        <Text style={styles.badgeText}>
-                          {t("wheels.currentlyFitted")}
-                        </Text>
-                      </View>
-                    )}
                   </View>
-                  <Text
-                    style={[
-                      styles.itemSubtitle,
-                      {
-                        color: theme.colors.muted,
-                        marginTop: theme.spacing.xs / 2,
-                      },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {wheelSubtitle(item, t)}
-                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={22}
+                    color={theme.colors.accent}
+                  />
                 </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={22}
-                  color={theme.colors.accent}
-                />
               </View>
-            </View>
-          </Pressable>
-        )}
-        ListEmptyComponent={
-          loading ? (
-            <View style={styles.loadingContainer}>
-              <LoadingIndicator />
-            </View>
-          ) : (
-            <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
-              {t("wheels.noWheels")}
-            </Text>
-          )
-        }
-      />
+            </Pressable>
+          )}
+          ListEmptyComponent={
+            loading ? (
+              <View style={styles.loadingContainer}>
+                <LoadingIndicator />
+              </View>
+            ) : (
+              <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
+                {t("wheels.noWheels")}
+              </Text>
+            )
+          }
+        />
+      </ScreenLayout>
     </Screen>
   );
 }
 
-const makeStyles = (theme: any) =>
+const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
-    fixedHeader: {
-      marginHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-
-    title: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
-      marginVertical: theme.spacing.md,
-    },
+    list: { flex: 1 },
+    listContent: { paddingBottom: insets.bottom + theme.spacing.xl },
     card: {
       borderWidth: 1,
       borderRadius: theme.radius.md,

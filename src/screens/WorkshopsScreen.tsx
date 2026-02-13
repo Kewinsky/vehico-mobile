@@ -17,19 +17,22 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Workshop, WorkshopType } from "../types/domain";
 import { listWorkshops } from "../services/workshops/workshopsRepo";
 import { AppHeader } from "../ui/components/AppHeader";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Workshops">;
 
 export function WorkshopsScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -151,6 +154,214 @@ export function WorkshopsScreen({ navigation }: Props) {
     navigation.navigate("WorkshopForm", {});
   }
 
+  const filterPanelContent = (
+    <>
+      <View style={styles.searchRow}>
+        <View
+          style={[
+            styles.searchBarWrap,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <Ionicons
+            name="search-outline"
+            size={20}
+            color={theme.colors.muted}
+            style={styles.searchBarIcon}
+          />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t("workshops.searchPlaceholder")}
+            placeholderTextColor={theme.colors.muted}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+            keyboardAppearance={mode === "dark" ? "dark" : "light"}
+            style={[styles.searchBarInput, { color: theme.colors.fg }]}
+          />
+        </View>
+        <View style={styles.panelButtonsRow}>
+          <View
+            style={[
+              styles.addButton,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <Pressable
+              onPress={onAddWorkshopPress}
+              style={({ pressed }) => [
+                styles.addButtonInner,
+                pressed && { opacity: 0.9 },
+              ]}
+            >
+              <Ionicons name="add" size={24} color={theme.colors.fg} />
+            </Pressable>
+          </View>
+          <View
+            style={[
+              styles.addButton,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+              hasActiveFilters && { borderColor: theme.colors.accent },
+            ]}
+          >
+            <Pressable
+              onPress={() => setFiltersOpen((v) => !v)}
+              style={({ pressed }) => [
+                styles.addButtonInner,
+                pressed && { opacity: 0.9 },
+              ]}
+            >
+              <Ionicons
+                name="filter-outline"
+                size={24}
+                color={hasActiveFilters ? theme.colors.accent : theme.colors.fg}
+              />
+            </Pressable>
+          </View>
+          {hasActiveFilters ? (
+            <View
+              style={[
+                styles.addButton,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <Pressable
+                onPress={resetFilters}
+                style={({ pressed }) => [
+                  styles.addButtonInner,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <Ionicons
+                  name="refresh-outline"
+                  size={24}
+                  color={theme.colors.fg}
+                />
+              </Pressable>
+            </View>
+          ) : null}
+        </View>
+      </View>
+
+      {filtersOpen ? (
+        <>
+          <View style={{ height: theme.spacing.sm }} />
+          <View
+            style={[
+              styles.filtersCard,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <Pressable
+              onPress={showTypePicker}
+              style={({ pressed }) => [
+                styles.row,
+                pressed && { opacity: 0.75 },
+              ]}
+            >
+              <Ionicons
+                name="pricetag-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color:
+                      typeFilter === "all"
+                        ? theme.colors.muted
+                        : theme.colors.fg,
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {typeFilter === "all"
+                  ? t("workshops.filterByType")
+                  : getWorkshopTypeLabel(typeFilter)}
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={theme.colors.accent}
+              />
+            </Pressable>
+
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+            <View style={styles.row}>
+              <Ionicons
+                name="swap-vertical-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <View
+                style={[
+                  styles.segmentWrap,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.bg,
+                  },
+                ]}
+              >
+                {(["az", "za"] as const).map((opt) => {
+                  const selected = sortOrder === opt;
+                  return (
+                    <Pressable
+                      key={opt}
+                      onPress={() => setSortOrder(opt)}
+                      style={({ pressed }) => [
+                        styles.segment,
+                        selected && styles.segmentSelected,
+                        {
+                          borderColor: theme.colors.accent,
+                          backgroundColor: selected ? accentBg : "transparent",
+                          opacity: pressed ? 0.85 : 1,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.segmentTextSmall,
+                          {
+                            color: selected
+                              ? theme.colors.accent
+                              : theme.colors.muted,
+                          },
+                        ]}
+                      >
+                        {opt === "az"
+                          ? t("workshops.sortAz")
+                          : t("workshops.sortZa")}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          </View>
+        </>
+      ) : null}
+    </>
+  );
+
   if (loading) {
     return (
       <Screen
@@ -163,9 +374,11 @@ export function WorkshopsScreen({ navigation }: Props) {
           />
         }
       >
-        <View style={styles.loadingContainer}>
-          <LoadingIndicator />
-        </View>
+        <ScreenLayout title={t("workshops.title")} scrollable={false}>
+          <View style={styles.loadingContainer}>
+            <LoadingIndicator />
+          </View>
+        </ScreenLayout>
       </Screen>
     );
   }
@@ -174,328 +387,94 @@ export function WorkshopsScreen({ navigation }: Props) {
     <Screen
       padding={false}
       header={
-          <AppHeader
-            onBack={() => navigation.goBack()}
-            showShopIcon={!isPremium}
-            onShopPress={() => navigation.navigate("Shop")}
-          />
-        }
+        <AppHeader
+          onBack={() => navigation.goBack()}
+          showShopIcon={!isPremium}
+          onShopPress={() => navigation.navigate("Shop")}
+        />
+      }
     >
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{
-          paddingHorizontal: theme.layout.contentPaddingHorizontal,
-          paddingBottom: theme.spacing.xl,
-        }}
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
-        onTouchStart={Keyboard.dismiss}
-        ListHeaderComponent={
-          <View style={styles.fixedHeader}>
-            <View style={styles.header}>
-              <Text style={[styles.title, { color: theme.colors.fg }]}>
-                {t("workshops.title")}
-              </Text>
-            </View>
-            <View style={styles.searchRow}>
+      <ScreenLayout
+        title={t("workshops.title")}
+        scrollable={false}
+        filterPanel={filterPanelContent}
+      >
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+          onTouchStart={Keyboard.dismiss}
+          ListEmptyComponent={
+            <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
+              {t("workshops.noWorkshops")}
+            </Text>
+          }
+          renderItem={({ item }) => (
+            <Pressable
+              onPress={() =>
+                navigation.navigate("WorkshopForm", { workshopId: item.id })
+              }
+              style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+            >
               <View
                 style={[
-                  styles.searchBarWrap,
+                  styles.card,
                   {
                     borderColor: theme.colors.border,
                     backgroundColor: theme.colors.card,
                   },
                 ]}
               >
-                <Ionicons
-                  name="search-outline"
-                  size={20}
-                  color={theme.colors.muted}
-                  style={styles.searchBarIcon}
-                />
-                <TextInput
-                  value={query}
-                  onChangeText={setQuery}
-                  placeholder={t("workshops.searchPlaceholder")}
-                  placeholderTextColor={theme.colors.muted}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  clearButtonMode="while-editing"
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  style={[styles.searchBarInput, { color: theme.colors.fg }]}
-                />
-              </View>
-              <View
-                style={{
-                  marginLeft: theme.spacing.sm,
-                  flexDirection: "row",
-                  gap: theme.spacing.sm,
-                }}
-              >
-                <View
-                  style={[
-                    styles.addButton,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
-                  <Pressable
-                    onPress={onAddWorkshopPress}
-                    style={({ pressed }) => [
-                      styles.addButtonInner,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                  >
-                    <Ionicons name="add" size={24} color={theme.colors.fg} />
-                  </Pressable>
-                </View>
-                <View
-                  style={[
-                    styles.addButton,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                    hasActiveFilters && { borderColor: theme.colors.accent },
-                  ]}
-                >
-                  <Pressable
-                    onPress={() => setFiltersOpen((v) => !v)}
-                    style={({ pressed }) => [
-                      styles.addButtonInner,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="filter-outline"
-                      size={24}
-                      color={
-                        hasActiveFilters ? theme.colors.accent : theme.colors.fg
-                      }
-                    />
-                  </Pressable>
-                </View>
-                {hasActiveFilters ? (
-                  <View
-                    style={[
-                      styles.addButton,
-                      {
-                        borderColor: theme.colors.border,
-                        backgroundColor: theme.colors.card,
-                      },
-                    ]}
-                  >
-                    <Pressable
-                      onPress={resetFilters}
-                      style={({ pressed }) => [
-                        styles.addButtonInner,
-                        pressed && { opacity: 0.9 },
-                      ]}
+                <View style={styles.cardRow}>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text
+                      style={[styles.cardTitle, { color: theme.colors.fg }]}
+                      numberOfLines={1}
                     >
-                      <Ionicons
-                        name="refresh-outline"
-                        size={24}
-                        color={theme.colors.fg}
-                      />
-                    </Pressable>
-                  </View>
-                ) : null}
-              </View>
-            </View>
-
-            {filtersOpen ? (
-              <>
-                <View style={{ height: theme.spacing.sm }} />
-                <View
-                  style={[
-                    styles.filtersCard,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
-                  <Pressable
-                    onPress={showTypePicker}
-                    style={({ pressed }) => [
-                      styles.row,
-                      pressed && { opacity: 0.75 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="pricetag-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
+                      {item.name}
+                    </Text>
                     <Text
                       style={[
-                        styles.valueText,
-                        {
-                          color:
-                            typeFilter === "all"
-                              ? theme.colors.muted
-                              : theme.colors.fg,
-                        },
+                        styles.cardSubtitle,
+                        { color: theme.colors.muted },
                       ]}
                       numberOfLines={1}
                     >
-                      {typeFilter === "all"
-                        ? t("workshops.filterByType")
-                        : getWorkshopTypeLabel(typeFilter)}
+                      {item.address}
                     </Text>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                  </Pressable>
-
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                  <View style={styles.row}>
-                    <Ionicons
-                      name="swap-vertical-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <View
-                      style={[
-                        styles.segmentWrap,
-                        {
-                          borderColor: theme.colors.border,
-                          backgroundColor: theme.colors.bg,
-                        },
-                      ]}
-                    >
-                      {(["az", "za"] as const).map((opt) => {
-                        const selected = sortOrder === opt;
-                        return (
-                          <Pressable
-                            key={opt}
-                            onPress={() => setSortOrder(opt)}
-                            style={({ pressed }) => [
-                              styles.segment,
-                              selected && styles.segmentSelected,
-                              {
-                                borderColor: theme.colors.accent,
-                                backgroundColor: selected
-                                  ? accentBg
-                                  : "transparent",
-                                opacity: pressed ? 0.85 : 1,
-                              },
-                            ]}
-                          >
-                            <Text
-                              style={[
-                                styles.segmentTextSmall,
-                                {
-                                  color: selected
-                                    ? theme.colors.accent
-                                    : theme.colors.muted,
-                                },
-                              ]}
-                            >
-                              {opt === "az"
-                                ? t("workshops.sortAz")
-                                : t("workshops.sortZa")}
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
                   </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={22}
+                    color={theme.colors.accent}
+                  />
                 </View>
-              </>
-            ) : null}
-          </View>
-        }
-        ListEmptyComponent={
-          <Text
-            style={{
-              color: theme.colors.muted,
-              marginTop: theme.spacing.xs,
-              fontSize: theme.typography.small,
-            }}
-          >
-            {t("workshops.noWorkshops")}
-          </Text>
-        }
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() =>
-              navigation.navigate("WorkshopForm", { workshopId: item.id })
-            }
-            style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
-          >
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.cardRow}>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text
-                    style={[styles.cardTitle, { color: theme.colors.fg }]}
-                    numberOfLines={1}
-                  >
-                    {item.name}
-                  </Text>
-                  <Text
-                    style={[styles.cardSubtitle, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {item.address}
-                  </Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={22}
-                  color={theme.colors.accent}
-                />
               </View>
-            </View>
-          </Pressable>
-        )}
-      />
+            </Pressable>
+          )}
+        />
+      </ScreenLayout>
     </Screen>
   );
 }
 
-function makeStyles(theme: any) {
+function makeStyles(theme: any, insets: { bottom: number }) {
   return StyleSheet.create({
-    fixedHeader: {
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
-      backgroundColor: theme.colors.bg,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-      marginBottom: theme.spacing.md,
-    },
-    header: {
-      gap: theme.spacing.xs / 2,
-    },
-    title: {
-      fontSize: theme.typography.largeTitle,
-      marginBottom: theme.spacing.md,
-      fontWeight: "700",
-    },
     searchRow: {
       flexDirection: "row",
       alignItems: "center",
     },
+    panelButtonsRow: {
+      marginLeft: theme.spacing.sm,
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+    },
     searchBarWrap: {
       flex: 1,
+      minWidth: 0,
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
@@ -559,8 +538,15 @@ function makeStyles(theme: any) {
     valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
     loadingContainer: {
       flex: 1,
+      minHeight: 200,
       alignItems: "center",
       justifyContent: "center",
+    },
+    list: { flex: 1, paddingTop: theme.spacing.md },
+    listContent: { paddingBottom: insets.bottom + theme.spacing.xl },
+    emptyText: {
+      marginTop: theme.spacing.xs,
+      fontSize: theme.typography.small,
     },
     card: {
       borderRadius: theme.radius.md,

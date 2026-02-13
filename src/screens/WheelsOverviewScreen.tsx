@@ -14,6 +14,7 @@ import {
   formatWheelDimensions,
 } from "../services/wheels/wheelsRepo";
 import { AppHeader } from "../ui/components/AppHeader";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -67,29 +68,111 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
   const currentTire = tires.find((x) => x.is_currently_fitted) ?? null;
   const currentWheel = wheels.find((x) => x.is_currently_fitted) ?? null;
 
-  if (loading) {
-    return (
-      <Screen
-        padding={false}
-        header={
-          <AppHeader
-            onBack={() => navigation.goBack()}
-            showShopIcon={!isPremium}
-            onShopPress={() => navigation.navigate("Shop")}
-          />
-        }
+  const content = loading ? (
+    <View style={styles.loadingContainer}>
+      <LoadingIndicator />
+    </View>
+  ) : (
+    <>
+      <View style={styles.buttonsRow}>
+        <Pressable
+          onPress={() => navigation.navigate("TiresList", { vehicleId })}
+          style={({ pressed }) => [
+            styles.tile,
+            pressed && styles.tilePressed,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <TireIcon size={32} color={theme.colors.accent} />
+          <Text style={styles.tileTitle}>{t("wheels.tiresSection")}</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => navigation.navigate("WheelsList", { vehicleId })}
+          style={({ pressed }) => [
+            styles.tile,
+            pressed && styles.tilePressed,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <RimIcon size={32} color={theme.colors.accent} />
+          <Text style={styles.tileTitle}>{t("wheels.rimsSection")}</Text>
+        </Pressable>
+      </View>
+
+      <View style={{ height: theme.spacing.md }} />
+
+      <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+        {t("wheels.currentlyFitted")}
+      </Text>
+      <View
+        style={[
+          styles.card,
+          {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.card,
+          },
+        ]}
       >
-        <View style={styles.fixedHeader}>
-          <View style={styles.header}>
-            <Text style={styles.h1}>{t("wheels.title")}</Text>
+        <View style={styles.currentRow}>
+          <TireIcon size={20} color={theme.colors.muted} />
+          <View style={styles.currentRowText}>
+            <Text style={[styles.cardLabel, { color: theme.colors.muted }]}>
+              {t("wheels.tiresSection")}
+            </Text>
+            <Text
+              style={[
+                styles.cardValue,
+                { color: currentTire ? theme.colors.fg : theme.colors.muted },
+              ]}
+              numberOfLines={1}
+            >
+              {currentTire
+                ? `${currentTire.name} · ${formatTireDimensions(
+                    currentTire.width_mm,
+                    currentTire.aspect_ratio,
+                    currentTire.diameter_inch,
+                  )}`
+                : t("wheels.noTires")}
+            </Text>
           </View>
         </View>
-        <View style={styles.loadingContainer}>
-          <LoadingIndicator />
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
+        <View style={styles.currentRow}>
+          <RimIcon size={20} color={theme.colors.muted} />
+          <View style={styles.currentRowText}>
+            <Text style={[styles.cardLabel, { color: theme.colors.muted }]}>
+              {t("wheels.rimsSection")}
+            </Text>
+            <Text
+              style={[
+                styles.cardValue,
+                {
+                  color: currentWheel ? theme.colors.fg : theme.colors.muted,
+                },
+              ]}
+              numberOfLines={1}
+            >
+              {currentWheel
+                ? `${currentWheel.name} · ${formatWheelDimensions(
+                    currentWheel.width_inch,
+                    currentWheel.diameter_inch,
+                  )}`
+                : t("wheels.noWheels")}
+            </Text>
+          </View>
         </View>
-      </Screen>
-    );
-  }
+      </View>
+    </>
+  );
 
   return (
     <Screen
@@ -102,112 +185,9 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
         />
       }
     >
-      <View style={styles.fixedHeader}>
-        <View style={styles.header}>
-          <Text style={styles.h1}>{t("wheels.title")}</Text>
-        </View>
-      </View>
-      <View
-        style={{ paddingHorizontal: theme.layout.contentPaddingHorizontal }}
-      >
-        <View style={styles.buttonsRow}>
-          <Pressable
-            onPress={() => navigation.navigate("TiresList", { vehicleId })}
-            style={({ pressed }) => [
-              styles.tile,
-              pressed && styles.tilePressed,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <TireIcon size={32} color={theme.colors.accent} />
-            <Text style={styles.tileTitle}>{t("wheels.tiresSection")}</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => navigation.navigate("WheelsList", { vehicleId })}
-            style={({ pressed }) => [
-              styles.tile,
-              pressed && styles.tilePressed,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <RimIcon size={32} color={theme.colors.accent} />
-            <Text style={styles.tileTitle}>{t("wheels.rimsSection")}</Text>
-          </Pressable>
-        </View>
-
-        <View style={{ height: theme.spacing.md }} />
-
-        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-          {t("wheels.currentlyFitted")}
-        </Text>
-        <View
-          style={[
-            styles.card,
-            {
-              borderColor: theme.colors.border,
-              backgroundColor: theme.colors.card,
-            },
-          ]}
-        >
-          <View style={styles.currentRow}>
-            <TireIcon size={20} color={theme.colors.muted} />
-            <View style={styles.currentRowText}>
-              <Text style={[styles.cardLabel, { color: theme.colors.muted }]}>
-                {t("wheels.tiresSection")}
-              </Text>
-              <Text
-                style={[
-                  styles.cardValue,
-                  { color: currentTire ? theme.colors.fg : theme.colors.muted },
-                ]}
-                numberOfLines={1}
-              >
-                {currentTire
-                  ? `${currentTire.name} · ${formatTireDimensions(
-                      currentTire.width_mm,
-                      currentTire.aspect_ratio,
-                      currentTire.diameter_inch,
-                    )}`
-                  : t("wheels.noTires")}
-              </Text>
-            </View>
-          </View>
-          <View
-            style={[styles.divider, { backgroundColor: theme.colors.border }]}
-          />
-          <View style={styles.currentRow}>
-            <RimIcon size={20} color={theme.colors.muted} />
-            <View style={styles.currentRowText}>
-              <Text style={[styles.cardLabel, { color: theme.colors.muted }]}>
-                {t("wheels.rimsSection")}
-              </Text>
-              <Text
-                style={[
-                  styles.cardValue,
-                  {
-                    color: currentWheel ? theme.colors.fg : theme.colors.muted,
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {currentWheel
-                  ? `${currentWheel.name} · ${formatWheelDimensions(
-                      currentWheel.width_inch,
-                      currentWheel.diameter_inch,
-                    )}`
-                  : t("wheels.noWheels")}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
+      <ScreenLayout title={t("wheels.title")} scrollable={false}>
+        {content}
+      </ScreenLayout>
     </Screen>
   );
 }
@@ -216,20 +196,9 @@ function makeStyles(theme: any) {
   return StyleSheet.create({
     loadingContainer: {
       flex: 1,
+      minHeight: 200,
       alignItems: "center",
       justifyContent: "center",
-    },
-    fixedHeader: {
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    header: {
-      gap: theme.spacing.xs / 2,
-    },
-    h1: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
-      color: theme.colors.fg,
     },
     sectionTitle: {
       fontSize: theme.typography.body,

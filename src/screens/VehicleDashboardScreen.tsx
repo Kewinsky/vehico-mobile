@@ -22,6 +22,7 @@ import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Screen } from "../ui/components/Screen";
+import { Tile as TileCard } from "../ui/components/Tile";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
@@ -29,7 +30,7 @@ import { WheelsIcon } from "../ui/components/WheelsIcon";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
-type Tile = {
+type DashboardTile = {
   key: string;
   title: string;
   icon: keyof typeof Ionicons.glyphMap;
@@ -102,7 +103,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     );
   }
 
-  const tiles: Tile[] = [
+  const tiles: DashboardTile[] = [
     {
       key: "stats",
       title: t("dashboard.tiles.statsTitle"),
@@ -113,7 +114,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       key: "service",
       title: t("dashboard.tiles.serviceTitle"),
       icon: "construct",
-      onPress: () => navigation.navigate("VehicleDetail", { vehicleId }),
+      onPress: () => navigation.navigate("ServiceHistory", { vehicleId }),
     },
     {
       key: "manage",
@@ -283,28 +284,26 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             </View>
           }
           renderItem={({ item }) => (
-            <Pressable
+            <TileCard
               onPress={item.onPress}
-              style={({ pressed }) => [
-                styles.tile,
-                pressed && styles.tilePressed,
-              ]}
-            >
-              {item.key === "fuel" ? (
-                <Fuel size={32} color={theme.colors.accent} />
-              ) : item.key === "data" ? (
-                <Database size={32} color={theme.colors.accent} />
-              ) : item.key === "wheels" ? (
-                <WheelsIcon size={48} color={theme.colors.accent} />
-              ) : (
-                <Ionicons
-                  name={item.icon}
-                  size={32}
-                  color={theme.colors.accent}
-                />
-              )}
-              <Text style={styles.tileTitle}>{item.title}</Text>
-            </Pressable>
+              minHeight={110}
+              title={item.title}
+              icon={
+                item.key === "fuel" ? (
+                  <Fuel size={32} color={theme.colors.accent} />
+                ) : item.key === "data" ? (
+                  <Database size={32} color={theme.colors.accent} />
+                ) : item.key === "wheels" ? (
+                  <WheelsIcon size={48} color={theme.colors.accent} />
+                ) : (
+                  <Ionicons
+                    name={item.icon}
+                    size={32}
+                    color={theme.colors.accent}
+                  />
+                )
+              }
+            />
           )}
         />
       )}
@@ -439,7 +438,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     list: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingBottom: insets.bottom + theme.spacing.xl,
       gap: theme.spacing.xs,
     },
     listHeader: {
@@ -447,27 +445,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     row: {
       gap: theme.spacing.xs,
-    },
-    tile: {
-      flex: 1,
-      minHeight: 110,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
-      alignItems: "center",
-      justifyContent: "center",
-      gap: theme.spacing.sm,
-    },
-    tilePressed: {
-      opacity: 0.9,
-    },
-    tileTitle: {
-      color: theme.colors.fg,
-      fontSize: theme.typography.body,
-      fontWeight: "800",
-      textAlign: "center",
     },
     menuOverlay: {
       position: "absolute",

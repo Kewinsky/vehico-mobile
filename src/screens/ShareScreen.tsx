@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -34,64 +35,50 @@ export function ShareScreen({ navigation, route }: Props) {
         onPress: () => navigation.navigate("Marketplace", { vehicleId }),
       },
     ],
-    [t, navigation, vehicleId]
+    [t, navigation, vehicleId],
   );
 
   return (
-    <Screen padding={false} header={
+    <Screen
+      padding={false}
+      header={
         <AppHeader
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
-      }>
-      <View style={styles.fixedHeader}>
-        <View style={styles.header}>
-          <Text style={styles.h1}>{t("dashboard.tiles.shareTitle")}</Text>
+      }
+    >
+      <ScreenLayout title={t("dashboard.tiles.shareTitle")} scrollable={false}>
+        <View style={styles.list}>
+          <View style={styles.row}>
+            {tiles.map((item) => (
+              <Pressable
+                key={item.key}
+                onPress={item.onPress}
+                style={({ pressed }) => [
+                  styles.tile,
+                  pressed && styles.tilePressed,
+                ]}
+              >
+                <Ionicons
+                  name={item.icon}
+                  size={32}
+                  color={theme.colors.accent}
+                />
+                <Text style={styles.tileTitle}>{item.title}</Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
-      </View>
-      <View style={styles.list}>
-        <View style={styles.row}>
-          {tiles.map((item) => (
-            <Pressable
-              key={item.key}
-              onPress={item.onPress}
-              style={({ pressed }) => [
-                styles.tile,
-                pressed && styles.tilePressed,
-              ]}
-            >
-              <Ionicons
-                name={item.icon}
-                size={32}
-                color={theme.colors.accent}
-              />
-              <Text style={styles.tileTitle}>{item.title}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
+      </ScreenLayout>
     </Screen>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    fixedHeader: {
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    header: {
-      gap: theme.spacing.xs / 2,
-    },
-    h1: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
-      color: theme.colors.fg,
-    },
     list: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       gap: theme.spacing.xs,
     },
     row: {

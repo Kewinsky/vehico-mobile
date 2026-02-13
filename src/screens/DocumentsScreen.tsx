@@ -15,6 +15,7 @@ import * as DocumentPicker from "expo-document-picker";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -286,6 +287,37 @@ export function DocumentsScreen({ route, navigation }: Props) {
     );
   }
 
+  const filterPanelContent = (
+    <View
+      style={[
+        styles.searchBarWrap,
+        {
+          borderColor: theme.colors.border,
+          backgroundColor: theme.colors.card,
+        },
+      ]}
+    >
+      <Ionicons
+        name="search-outline"
+        size={20}
+        color={theme.colors.muted}
+        style={styles.searchBarIcon}
+      />
+      <TextInput
+        value={query}
+        onChangeText={setQuery}
+        placeholder={t("documents.searchPlaceholder")}
+        placeholderTextColor={theme.colors.muted}
+        autoCapitalize="none"
+        autoCorrect={false}
+        clearButtonMode="while-editing"
+        blurOnSubmit={true}
+        keyboardAppearance={mode === "dark" ? "dark" : "light"}
+        style={[styles.searchBarInput, { color: theme.colors.fg }]}
+      />
+    </View>
+  );
+
   return (
     <Screen
       padding={false}
@@ -302,54 +334,19 @@ export function DocumentsScreen({ route, navigation }: Props) {
         </Button>
       }
     >
-      <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.fg }]}>
-            {t("dashboard.tiles.docsTitle")}
-          </Text>
-        </View>
-        <View
-          style={[
-            styles.searchBarWrap,
-            {
-              borderColor: theme.colors.border,
-              backgroundColor: theme.colors.card,
-            },
-          ]}
-        >
-          <Ionicons
-            name="search-outline"
-            size={20}
-            color={theme.colors.muted}
-            style={styles.searchBarIcon}
-          />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder={t("documents.searchPlaceholder")}
-            placeholderTextColor={theme.colors.muted}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-            blurOnSubmit={true}
-            keyboardAppearance={mode === "dark" ? "dark" : "light"}
-            style={[styles.searchBarInput, { color: theme.colors.fg }]}
-          />
-        </View>
-      </View>
-      <ScrollView
-        contentContainerStyle={{
-          paddingHorizontal: theme.layout.contentPaddingHorizontal,
-          paddingTop: theme.spacing.sm,
-          paddingBottom: theme.spacing.xl * 2,
-        }}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
+      <ScreenLayout
+        title={t("dashboard.tiles.docsTitle")}
+        scrollable={true}
+        filterPanel={filterPanelContent}
       >
         <Text
           style={[
             styles.section,
-            { color: theme.colors.fg, marginBottom: theme.spacing.xs },
+            {
+              color: theme.colors.fg,
+              marginBottom: theme.spacing.xs,
+              marginTop: theme.spacing.md,
+            },
           ]}
         >
           {t("documents.vehicleDocumentsWithCount", {
@@ -364,7 +361,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
             return description.toLowerCase().includes(q);
           })
           .map((item) => (
-            <View key={item.id} style={{ marginBottom: 10 }}>
+            <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
               <View
                 style={[
                   styles.card,
@@ -382,7 +379,12 @@ export function DocumentsScreen({ route, navigation }: Props) {
                     <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
                       {item.description || t("documents.documentLabel")}
                     </Text>
-                    <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
+                    <Text
+                      style={{
+                        color: theme.colors.muted,
+                        marginTop: theme.spacing.xs,
+                      }}
+                    >
                       {(() => {
                         const fileName = getFileNameFromItem(item);
                         const ext =
@@ -459,7 +461,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
             return title.toLowerCase().includes(q);
           })
           .map((item) => (
-            <View key={item.id} style={{ marginBottom: 10 }}>
+            <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
               <View
                 style={[
                   styles.card,
@@ -479,7 +481,12 @@ export function DocumentsScreen({ route, navigation }: Props) {
                         ? item.serviceEntryTitle
                         : t("documents.attachmentLabel")}
                     </Text>
-                    <Text style={{ color: theme.colors.muted, marginTop: 4 }}>
+                    <Text
+                      style={{
+                        color: theme.colors.muted,
+                        marginTop: theme.spacing.xs,
+                      }}
+                    >
                       {(() => {
                         const fileName = getFileNameFromItem(item);
                         const ext =
@@ -519,36 +526,17 @@ export function DocumentsScreen({ route, navigation }: Props) {
             {t("documents.noAttachments")}
           </Text>
         ) : null}
-      </ScrollView>
+      </ScreenLayout>
     </Screen>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    fixedHeader: {
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
-      marginHorizontal: theme.layout.contentPaddingHorizontal,
-      backgroundColor: theme.colors.bg,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-    },
-    header: {
-      gap: theme.spacing.xs / 2,
-      marginBottom: theme.titleMarginBottom,
-    },
-    title: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
-      color: theme.colors.fg,
-    },
     body: {
-      marginTop: theme.spacing.xs,
       lineHeight: theme.typography.body + 6,
     },
     section: {
-      marginTop: theme.spacing.sm - 2,
       fontSize: theme.typography.body,
       fontWeight: "800",
     },
@@ -559,6 +547,7 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       height: theme.spacing.lg * 2,
       paddingLeft: theme.spacing.sm,
+      minWidth: 0,
     },
     searchBarIcon: {
       marginRight: theme.spacing.xs,
@@ -580,6 +569,8 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     loadingContainer: {
+      flex: 1,
+      minHeight: 120,
       paddingTop: theme.spacing.xl + theme.spacing.xs,
       paddingBottom: theme.spacing.xl + theme.spacing.xs,
       alignItems: "center",

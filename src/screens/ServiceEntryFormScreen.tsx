@@ -46,7 +46,7 @@ import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../ui/components/ChoiceChip";
-import { FollowCursorTextInput } from "../ui/components/FollowCursorTextInput";
+import { Textarea } from "../ui/components/Textarea";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "maintenance",
@@ -144,7 +144,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }, []);
 
   useEffect(() => {
-    listWorkshops(isPremium ? undefined : { limit: workshopsLimit }).then(setWorkshops);
+    listWorkshops(isPremium ? undefined : { limit: workshopsLimit }).then(
+      setWorkshops,
+    );
   }, [isPremium, workshopsLimit]);
 
   useEffect(() => {
@@ -1052,17 +1054,14 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 </Text>
               </View>
               <View style={{ marginTop: theme.spacing.xs }}>
-                <FollowCursorTextInput
+                <Textarea
                   value={description}
                   onChangeText={setDescription}
                   editable={!saving && !uploading}
                   multiline
                   placeholder={t("entryForm.placeholderDescription")}
                   placeholderTextColor={theme.colors.muted}
-                  style={[
-                    styles.inputMultiline,
-                    { color: theme.colors.fg },
-                  ]}
+                  style={[styles.inputMultiline, { color: theme.colors.fg }]}
                 />
               </View>
             </View>

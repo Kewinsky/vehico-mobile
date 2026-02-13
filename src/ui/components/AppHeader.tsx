@@ -53,7 +53,9 @@ export function AppHeader({
   const hideProfileAvatar =
     route.name === "Settings" ||
     route.name === "Appearance" ||
-    route.name === "Shop";
+    route.name === "Shop" ||
+    route.name === "TermsOfUse" ||
+    route.name === "PrivacyPolicy";
   const showInitials =
     !!user && right === undefined && !hideProfileAvatar && !showShopIcon;
   const initials = user ? getInitials(user) : "";

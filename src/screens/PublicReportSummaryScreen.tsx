@@ -30,6 +30,7 @@ import {
 import { uploadReportPhotos } from "../services/publicPages/uploadReportPhoto";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
@@ -203,16 +204,18 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
       <Screen
         padding={false}
         header={
-        <AppHeader
-          onBack={() => navigation.goBack()}
-          showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
-        />
-      }
+          <AppHeader
+            onBack={() => navigation.goBack()}
+            showShopIcon={!isPremium}
+            onShopPress={() => navigation.navigate("Shop")}
+          />
+        }
       >
-        <View style={styles.loadingContainer}>
-          <LoadingIndicator />
-        </View>
+        <ScreenLayout title={t("publicReport.summaryTitle")} scrollable={false}>
+          <View style={styles.loadingContainer}>
+            <LoadingIndicator />
+          </View>
+        </ScreenLayout>
       </Screen>
     );
   }
@@ -257,289 +260,288 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
         </Button>
       }
     >
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={styles.header}>
-          <Text style={styles.h1}>{t("publicReport.summaryTitle")}</Text>
-        </View>
-
-        {/* Summary of technical data */}
-        {reportOptions.include_technical_data && vehicle && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {t("publicReport.technicalData")}
-            </Text>
-            <View style={styles.dataRow}>
-              <Text style={styles.dataLabel}>{t("vehicleForm.type")}</Text>
-              <Text style={styles.dataValue}>
-                {vehicle.type === "car"
-                  ? t("vehicleForm.car")
-                  : t("vehicleForm.motorcycle")}
+      <ScreenLayout title={t("publicReport.summaryTitle")} scrollable={false}>
+        <ScrollView style={styles.scrollView}>
+          {/* Summary of technical data */}
+          {reportOptions.include_technical_data && vehicle && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {t("publicReport.technicalData")}
               </Text>
-            </View>
-            <View style={styles.dataRow}>
-              <Text style={styles.dataLabel}>{t("vehicleForm.makeLabel")}</Text>
-              <Text style={styles.dataValue}>{vehicle.make}</Text>
-            </View>
-            <View style={styles.dataRow}>
-              <Text style={styles.dataLabel}>
-                {t("vehicleForm.modelLabel")}
-              </Text>
-              <Text style={styles.dataValue}>{vehicle.model}</Text>
-            </View>
-            <View style={styles.dataRow}>
-              <Text style={styles.dataLabel}>{t("vehicleForm.yearLabel")}</Text>
-              <Text style={styles.dataValue}>{vehicle.production_year}</Text>
-            </View>
-            {vehicle.vin && (
               <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("vehicleForm.vinLabel")}
-                </Text>
-                <Text style={styles.dataValue}>{vehicle.vin}</Text>
-              </View>
-            )}
-            {vehicle.mileage != null && (
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("vehicleForm.mileageLabel")}
-                </Text>
+                <Text style={styles.dataLabel}>{t("vehicleForm.type")}</Text>
                 <Text style={styles.dataValue}>
-                  {vehicle.mileage.toLocaleString()} {distanceUnit}
+                  {vehicle.type === "car"
+                    ? t("vehicleForm.car")
+                    : t("vehicleForm.motorcycle")}
                 </Text>
               </View>
-            )}
-            {vehicle.engine_capacity != null && (
               <View style={styles.dataRow}>
                 <Text style={styles.dataLabel}>
-                  {t("vehicleForm.engineCapacityLabel")}
+                  {t("vehicleForm.makeLabel")}
                 </Text>
-                <Text style={styles.dataValue}>
-                  {vehicle.engine_capacity} cm³
-                </Text>
+                <Text style={styles.dataValue}>{vehicle.make}</Text>
               </View>
-            )}
-            {vehicle.power_hp != null && (
               <View style={styles.dataRow}>
                 <Text style={styles.dataLabel}>
-                  {t("vehicleForm.powerHpLabel")}
+                  {t("vehicleForm.modelLabel")}
                 </Text>
-                <Text style={styles.dataValue}>{vehicle.power_hp} HP</Text>
+                <Text style={styles.dataValue}>{vehicle.model}</Text>
               </View>
-            )}
-            {vehicle.transmission != null && (
               <View style={styles.dataRow}>
                 <Text style={styles.dataLabel}>
-                  {t("vehicleForm.transmissionLabel")}
+                  {t("vehicleForm.yearLabel")}
                 </Text>
-                <Text style={styles.dataValue}>
-                  {vehicle.transmission === "manual"
-                    ? t("vehicleForm.transmissionManual")
-                    : t("vehicleForm.transmissionAutomatic")}
-                </Text>
+                <Text style={styles.dataValue}>{vehicle.production_year}</Text>
               </View>
-            )}
-            {vehicle.drive_type != null && (
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("vehicleForm.driveTypeLabel")}
-                </Text>
-                <Text style={styles.dataValue}>{vehicle.drive_type}</Text>
-              </View>
-            )}
-            {vehicle.fuel_type != null && (
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("vehicleForm.fuelTypeLabel")}
-                </Text>
-                <Text style={styles.dataValue}>
-                  {t(
-                    `vehicleForm.fuelType${
-                      vehicle.fuel_type.charAt(0).toUpperCase() +
-                      vehicle.fuel_type.slice(1)
-                    }` as
-                      | "vehicleForm.fuelTypePetrol"
-                      | "vehicleForm.fuelTypeDiesel"
-                      | "vehicleForm.fuelTypeHybrid"
-                      | "vehicleForm.fuelTypeElectric"
-                      | "vehicleForm.fuelTypeLpg",
-                  )}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* InfoCards */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            {t("publicReport.includedData")}
-          </Text>
-          <InfoCard
-            title={t("publicReport.insurance")}
-            status={
-              reportOptions.include_insurance
-                ? hasInsurance
-                  ? "included"
-                  : "noData"
-                : "notIncluded"
-            }
-            theme={theme}
-            styles={styles}
-          />
-          <InfoCard
-            title={t("publicReport.inspection")}
-            status={
-              reportOptions.include_inspection
-                ? hasInspection
-                  ? "included"
-                  : "noData"
-                : "notIncluded"
-            }
-            theme={theme}
-            styles={styles}
-          />
-          <InfoCard
-            title={t("publicReport.notes")}
-            status={
-              reportOptions.include_notes
-                ? hasNotes
-                  ? "included"
-                  : "noData"
-                : "notIncluded"
-            }
-            theme={theme}
-            styles={styles}
-          />
-          <InfoCard
-            title={t("publicReport.wheels")}
-            status={
-              reportOptions.include_wheels
-                ? wheelsCount > 0
-                  ? "included"
-                  : "noData"
-                : "notIncluded"
-            }
-            theme={theme}
-            styles={styles}
-          />
-          <InfoCard
-            title={t("publicReport.tires")}
-            status={
-              reportOptions.include_tires
-                ? tiresCount > 0
-                  ? "included"
-                  : "noData"
-                : "notIncluded"
-            }
-            theme={theme}
-            styles={styles}
-          />
-          <InfoCard
-            title={t("publicReport.serviceHistory")}
-            status={
-              reportOptions.include_service_history
-                ? serviceEntriesCount > 0
-                  ? "included"
-                  : "noData"
-                : "notIncluded"
-            }
-            count={
-              reportOptions.include_service_history && serviceEntriesCount > 0
-                ? serviceEntriesCount
-                : undefined
-            }
-            theme={theme}
-            styles={styles}
-          />
-          <InfoCard
-            title={t("publicReport.serviceStats")}
-            status={
-              reportOptions.include_service_stats
-                ? serviceEntriesCount > 0
-                  ? "included"
-                  : "noData"
-                : "notIncluded"
-            }
-            theme={theme}
-            styles={styles}
-          />
-          <InfoCard
-            title={t("publicReport.fuelingStats")}
-            status={
-              reportOptions.include_fueling_stats
-                ? fuelingEntriesCount > 0
-                  ? "included"
-                  : "noData"
-                : "notIncluded"
-            }
-            theme={theme}
-            styles={styles}
-          />
-          <InfoCard
-            title={t("publicReport.photos")}
-            status={
-              reportOptions.include_photos
-                ? photoCount > 0
-                  ? "included"
-                  : "noData"
-                : "notIncluded"
-            }
-            count={
-              reportOptions.include_photos && photoCount > 0
-                ? photoCount
-                : undefined
-            }
-            theme={theme}
-            styles={styles}
-          />
-        </View>
-
-        {/* Entitlements info */}
-        {!isPremium && (
-          <View style={styles.section}>
-            <View
-              style={[
-                styles.limitInfo,
-                {
-                  backgroundColor: theme.colors.card,
-                  borderColor: theme.colors.border,
-                },
-              ]}
-            >
-              <Ionicons
-                name="information-circle"
-                size={20}
-                color={theme.colors.muted}
-              />
-              <Text style={[styles.limitText, { color: theme.colors.muted }]}>
-                {t("limits.premiumRequiredBody")}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* Confirmation Checkbox */}
-        <View style={styles.section}>
-          <Pressable
-            onPress={() => setConfirmed(!confirmed)}
-            style={styles.checkboxRow}
-          >
-            <View
-              style={[styles.checkbox, confirmed && styles.checkboxChecked]}
-            >
-              {confirmed && (
-                <Ionicons name="checkmark" size={16} color="#000000" />
+              {vehicle.vin && (
+                <View style={styles.dataRow}>
+                  <Text style={styles.dataLabel}>
+                    {t("vehicleForm.vinLabel")}
+                  </Text>
+                  <Text style={styles.dataValue}>{vehicle.vin}</Text>
+                </View>
+              )}
+              {vehicle.mileage != null && (
+                <View style={styles.dataRow}>
+                  <Text style={styles.dataLabel}>
+                    {t("vehicleForm.mileageLabel")}
+                  </Text>
+                  <Text style={styles.dataValue}>
+                    {vehicle.mileage.toLocaleString()} {distanceUnit}
+                  </Text>
+                </View>
+              )}
+              {vehicle.engine_capacity != null && (
+                <View style={styles.dataRow}>
+                  <Text style={styles.dataLabel}>
+                    {t("vehicleForm.engineCapacityLabel")}
+                  </Text>
+                  <Text style={styles.dataValue}>
+                    {vehicle.engine_capacity} cm³
+                  </Text>
+                </View>
+              )}
+              {vehicle.power_hp != null && (
+                <View style={styles.dataRow}>
+                  <Text style={styles.dataLabel}>
+                    {t("vehicleForm.powerHpLabel")}
+                  </Text>
+                  <Text style={styles.dataValue}>{vehicle.power_hp} HP</Text>
+                </View>
+              )}
+              {vehicle.transmission != null && (
+                <View style={styles.dataRow}>
+                  <Text style={styles.dataLabel}>
+                    {t("vehicleForm.transmissionLabel")}
+                  </Text>
+                  <Text style={styles.dataValue}>
+                    {vehicle.transmission === "manual"
+                      ? t("vehicleForm.transmissionManual")
+                      : t("vehicleForm.transmissionAutomatic")}
+                  </Text>
+                </View>
+              )}
+              {vehicle.drive_type != null && (
+                <View style={styles.dataRow}>
+                  <Text style={styles.dataLabel}>
+                    {t("vehicleForm.driveTypeLabel")}
+                  </Text>
+                  <Text style={styles.dataValue}>{vehicle.drive_type}</Text>
+                </View>
+              )}
+              {vehicle.fuel_type != null && (
+                <View style={styles.dataRow}>
+                  <Text style={styles.dataLabel}>
+                    {t("vehicleForm.fuelTypeLabel")}
+                  </Text>
+                  <Text style={styles.dataValue}>
+                    {t(
+                      `vehicleForm.fuelType${
+                        vehicle.fuel_type.charAt(0).toUpperCase() +
+                        vehicle.fuel_type.slice(1)
+                      }` as
+                        | "vehicleForm.fuelTypePetrol"
+                        | "vehicleForm.fuelTypeDiesel"
+                        | "vehicleForm.fuelTypeHybrid"
+                        | "vehicleForm.fuelTypeElectric"
+                        | "vehicleForm.fuelTypeLpg",
+                    )}
+                  </Text>
+                </View>
               )}
             </View>
-            <Text style={styles.checkboxLabel}>
-              {t("publicReport.confirmationCheckbox")}
+          )}
+
+          {/* InfoCards */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t("publicReport.includedData")}
             </Text>
-          </Pressable>
-        </View>
-      </ScrollView>
+            <InfoCard
+              title={t("publicReport.insurance")}
+              status={
+                reportOptions.include_insurance
+                  ? hasInsurance
+                    ? "included"
+                    : "noData"
+                  : "notIncluded"
+              }
+              theme={theme}
+              styles={styles}
+            />
+            <InfoCard
+              title={t("publicReport.inspection")}
+              status={
+                reportOptions.include_inspection
+                  ? hasInspection
+                    ? "included"
+                    : "noData"
+                  : "notIncluded"
+              }
+              theme={theme}
+              styles={styles}
+            />
+            <InfoCard
+              title={t("publicReport.notes")}
+              status={
+                reportOptions.include_notes
+                  ? hasNotes
+                    ? "included"
+                    : "noData"
+                  : "notIncluded"
+              }
+              theme={theme}
+              styles={styles}
+            />
+            <InfoCard
+              title={t("publicReport.wheels")}
+              status={
+                reportOptions.include_wheels
+                  ? wheelsCount > 0
+                    ? "included"
+                    : "noData"
+                  : "notIncluded"
+              }
+              theme={theme}
+              styles={styles}
+            />
+            <InfoCard
+              title={t("publicReport.tires")}
+              status={
+                reportOptions.include_tires
+                  ? tiresCount > 0
+                    ? "included"
+                    : "noData"
+                  : "notIncluded"
+              }
+              theme={theme}
+              styles={styles}
+            />
+            <InfoCard
+              title={t("publicReport.serviceHistory")}
+              status={
+                reportOptions.include_service_history
+                  ? serviceEntriesCount > 0
+                    ? "included"
+                    : "noData"
+                  : "notIncluded"
+              }
+              count={
+                reportOptions.include_service_history && serviceEntriesCount > 0
+                  ? serviceEntriesCount
+                  : undefined
+              }
+              theme={theme}
+              styles={styles}
+            />
+            <InfoCard
+              title={t("publicReport.serviceStats")}
+              status={
+                reportOptions.include_service_stats
+                  ? serviceEntriesCount > 0
+                    ? "included"
+                    : "noData"
+                  : "notIncluded"
+              }
+              theme={theme}
+              styles={styles}
+            />
+            <InfoCard
+              title={t("publicReport.fuelingStats")}
+              status={
+                reportOptions.include_fueling_stats
+                  ? fuelingEntriesCount > 0
+                    ? "included"
+                    : "noData"
+                  : "notIncluded"
+              }
+              theme={theme}
+              styles={styles}
+            />
+            <InfoCard
+              title={t("publicReport.photos")}
+              status={
+                reportOptions.include_photos
+                  ? photoCount > 0
+                    ? "included"
+                    : "noData"
+                  : "notIncluded"
+              }
+              count={
+                reportOptions.include_photos && photoCount > 0
+                  ? photoCount
+                  : undefined
+              }
+              theme={theme}
+              styles={styles}
+            />
+          </View>
+
+          {/* Entitlements info */}
+          {!isPremium && (
+            <View style={styles.section}>
+              <View
+                style={[
+                  styles.limitInfo,
+                  {
+                    backgroundColor: theme.colors.card,
+                    borderColor: theme.colors.border,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="information-circle"
+                  size={20}
+                  color={theme.colors.muted}
+                />
+                <Text style={[styles.limitText, { color: theme.colors.muted }]}>
+                  {t("limits.premiumRequiredBody")}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Confirmation Checkbox */}
+          <View style={styles.section}>
+            <Pressable
+              onPress={() => setConfirmed(!confirmed)}
+              style={styles.checkboxRow}
+            >
+              <View
+                style={[styles.checkbox, confirmed && styles.checkboxChecked]}
+              >
+                {confirmed && (
+                  <Ionicons name="checkmark" size={16} color="#000000" />
+                )}
+              </View>
+              <Text style={styles.checkboxLabel}>
+                {t("publicReport.confirmationCheckbox")}
+              </Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </ScreenLayout>
     </Screen>
   );
 }
@@ -547,11 +549,6 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     scrollView: { flex: 1 },
-    scrollContent: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.xl * 2,
-    },
     header: {
       gap: theme.spacing.xs / 2,
       marginBottom: theme.spacing.md,

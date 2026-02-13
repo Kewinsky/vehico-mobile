@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
@@ -68,7 +69,7 @@ export function FuelScreen({ route, navigation }: Props) {
   const { settings } = useUserSettings();
   const { isPremium } = useEntitlements();
   const insets = useSafeAreaInsets();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -327,445 +328,430 @@ export function FuelScreen({ route, navigation }: Props) {
     return grouped;
   }, [fueling, query, dateFrom, dateTo, stationFilter, minCost, maxCost, t]);
 
+  const filterPanelContent = (
+    <>
+      <View style={styles.searchRow}>
+        <View
+          style={[
+            styles.searchBarWrap,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <Ionicons
+            name="search-outline"
+            size={20}
+            color={theme.colors.muted}
+            style={styles.searchBarIcon}
+          />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t("fuelCosts.searchPlaceholder")}
+            placeholderTextColor={theme.colors.muted}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+            keyboardAppearance={mode === "dark" ? "dark" : "light"}
+            style={[styles.searchBarInput, { color: theme.colors.fg }]}
+          />
+        </View>
+        <View style={styles.panelButtonsRow}>
+          <View
+            style={[
+              styles.filterButton,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <Pressable
+              onPress={() =>
+                navigation.navigate("FuelingEntryForm", {
+                  vehicleId: route.params.vehicleId,
+                })
+              }
+              style={({ pressed }) => [
+                styles.filterButtonInner,
+                pressed && { opacity: 0.9 },
+              ]}
+            >
+              <Ionicons name="add" size={24} color={theme.colors.fg} />
+            </Pressable>
+          </View>
+
+          <View
+            style={[
+              styles.filterButton,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+              hasActiveFilters && {
+                borderColor: theme.colors.accent,
+              },
+            ]}
+          >
+            <Pressable
+              onPress={() => setFiltersOpen((v) => !v)}
+              style={({ pressed }) => [
+                styles.filterButtonInner,
+                pressed && { opacity: 0.9 },
+              ]}
+            >
+              <Ionicons
+                name="filter-outline"
+                size={24}
+                color={hasActiveFilters ? theme.colors.accent : theme.colors.fg}
+              />
+            </Pressable>
+          </View>
+          {hasActiveFilters ? (
+            <View
+              style={[
+                styles.filterButton,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <Pressable
+                onPress={resetFilters}
+                style={({ pressed }) => [
+                  styles.filterButtonInner,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <Ionicons
+                  name="refresh-outline"
+                  size={24}
+                  color={theme.colors.fg}
+                />
+              </Pressable>
+            </View>
+          ) : null}
+        </View>
+      </View>
+
+      {filtersOpen ? (
+        <>
+          <View style={{ height: theme.spacing.sm }} />
+          <View
+            style={[
+              styles.filtersCard,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <Pressable
+              onPress={showStationPicker}
+              style={({ pressed }) => [
+                styles.row,
+                pressed && { opacity: 0.75 },
+              ]}
+            >
+              <Ionicons
+                name="location-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color:
+                      stationFilter != null
+                        ? theme.colors.fg
+                        : theme.colors.muted,
+                  },
+                ]}
+              >
+                {stationFilter != null
+                  ? t(`fuelingForm.stations.${stationFilter}`)
+                  : t("timeline.filterStation")}
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={theme.colors.accent}
+              />
+            </Pressable>
+
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+            <Pressable
+              onPress={() => openPicker("from")}
+              style={({ pressed }) => [
+                styles.row,
+                pressed && { opacity: 0.75 },
+              ]}
+            >
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color: dateFrom ? theme.colors.fg : theme.colors.muted,
+                  },
+                ]}
+              >
+                {dateFrom || t("timeline.filterFrom")}
+              </Text>
+            </Pressable>
+            {openDatePicker === "from" ? (
+              <>
+                {renderInlineDatePicker()}
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+              </>
+            ) : (
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+            )}
+
+            <Pressable
+              onPress={() => openPicker("to")}
+              style={({ pressed }) => [
+                styles.row,
+                pressed && { opacity: 0.75 },
+              ]}
+            >
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color: dateTo ? theme.colors.fg : theme.colors.muted,
+                  },
+                ]}
+              >
+                {dateTo || t("timeline.filterTo")}
+              </Text>
+            </Pressable>
+            {openDatePicker === "to" ? (
+              <>
+                {renderInlineDatePicker()}
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+              </>
+            ) : (
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+            )}
+
+            <View style={styles.row}>
+              <Ionicons
+                name="cash-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <TextInput
+                value={minCost}
+                onChangeText={setMinCost}
+                keyboardType="decimal-pad"
+                placeholder={`${t("timeline.filterMinCost")} (${currency})`}
+                placeholderTextColor={theme.colors.muted}
+                style={[styles.input, { color: theme.colors.fg }]}
+              />
+            </View>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+            <View style={styles.row}>
+              <Ionicons
+                name="cash-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <TextInput
+                value={maxCost}
+                onChangeText={setMaxCost}
+                keyboardType="decimal-pad"
+                placeholder={`${t("timeline.filterMaxCost")} (${currency})`}
+                placeholderTextColor={theme.colors.muted}
+                style={[styles.input, { color: theme.colors.fg }]}
+              />
+            </View>
+          </View>
+        </>
+      ) : null}
+    </>
+  );
+
   return (
-    <Screen padding={false} header={
+    <Screen
+      padding={false}
+      header={
         <AppHeader
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
-      }>
-      <FlatList
-        data={filteredFuelingWithSeparators}
-        keyExtractor={(item) => {
-          if (item.type === "separator") {
-            return `separator-${item.monthYearKey}`;
-          }
-          return item.item.id;
-        }}
-        contentContainerStyle={{
-          paddingHorizontal: theme.layout.contentPaddingHorizontal,
-          paddingBottom: insets.bottom + theme.spacing.xl,
-        }}
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
-        onTouchStart={Keyboard.dismiss}
-        ListHeaderComponent={
-          <View style={styles.fixedHeader}>
-            <View style={styles.header}>
-              <Text style={styles.title}>{t("dashboard.tiles.fuelTitle")}</Text>
-            </View>
-            <View style={styles.searchRow}>
-              <View
-                style={[
-                  styles.searchBarWrap,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name="search-outline"
-                  size={20}
-                  color={theme.colors.muted}
-                  style={styles.searchBarIcon}
-                />
-                <TextInput
-                  value={query}
-                  onChangeText={setQuery}
-                  placeholder={t("fuelCosts.searchPlaceholder")}
-                  placeholderTextColor={theme.colors.muted}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  clearButtonMode="while-editing"
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  style={[styles.searchBarInput, { color: theme.colors.fg }]}
-                />
-              </View>
-              <View
-                style={{
-                  marginLeft: theme.spacing.sm,
-                  flexDirection: "row",
-                  gap: theme.spacing.sm,
-                }}
-              >
-                <View
-                  style={[
-                    styles.filterButton,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
-                  <Pressable
-                    onPress={() =>
-                      navigation.navigate("FuelingEntryForm", {
-                        vehicleId: route.params.vehicleId,
-                      })
-                    }
-                    style={({ pressed }) => [
-                      styles.filterButtonInner,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                  >
-                    <Ionicons name="add" size={24} color={theme.colors.fg} />
-                  </Pressable>
-                </View>
-
-                <View
-                  style={[
-                    styles.filterButton,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                    hasActiveFilters && {
-                      borderColor: theme.colors.accent,
-                    },
-                  ]}
-                >
-                  <Pressable
-                    onPress={() => setFiltersOpen((v) => !v)}
-                    style={({ pressed }) => [
-                      styles.filterButtonInner,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="filter-outline"
-                      size={24}
-                      color={
-                        hasActiveFilters ? theme.colors.accent : theme.colors.fg
-                      }
-                    />
-                  </Pressable>
-                </View>
-                {hasActiveFilters ? (
-                  <View
+      }
+    >
+      <ScreenLayout
+        title={t("dashboard.tiles.fuelTitle")}
+        scrollable={false}
+        filterPanel={filterPanelContent}
+      >
+        <FlatList
+          data={filteredFuelingWithSeparators}
+          keyExtractor={(item) => {
+            if (item.type === "separator") {
+              return `separator-${item.monthYearKey}`;
+            }
+            return item.item.id;
+          }}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+          onTouchStart={Keyboard.dismiss}
+          ItemSeparatorComponent={({ leadingItem }) => {
+            if (leadingItem && leadingItem.type === "separator") {
+              return null;
+            }
+            return <View style={{ height: theme.spacing.sm }} />;
+          }}
+          renderItem={({ item }) => {
+            if (item.type === "separator") {
+              const monthYearText =
+                i18n.language === "pl"
+                  ? formatMonthYearPL(item.monthYear + "-01")
+                  : formatMonthYear(item.monthYear + "-01");
+              return (
+                <View style={styles.separator}>
+                  <Text
                     style={[
-                      styles.filterButton,
-                      {
-                        borderColor: theme.colors.border,
-                        backgroundColor: theme.colors.card,
-                      },
+                      styles.separatorText,
+                      { color: theme.colors.muted },
                     ]}
                   >
-                    <Pressable
-                      onPress={resetFilters}
-                      style={({ pressed }) => [
-                        styles.filterButtonInner,
-                        pressed && { opacity: 0.9 },
-                      ]}
-                    >
-                      <Ionicons
-                        name="refresh-outline"
-                        size={24}
-                        color={theme.colors.fg}
-                      />
-                    </Pressable>
-                  </View>
-                ) : null}
-              </View>
-            </View>
+                    {monthYearText}
+                  </Text>
+                </View>
+              );
+            }
 
-            {filtersOpen ? (
-              <>
-                <View style={{ height: theme.spacing.sm }} />
+            const entry = item.item;
+            return (
+              <Pressable
+                style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+                onPress={() =>
+                  navigation.navigate("FuelingEntryForm", {
+                    vehicleId: route.params.vehicleId,
+                    entryId: entry.id,
+                  })
+                }
+              >
                 <View
                   style={[
-                    styles.filtersCard,
+                    styles.card,
                     {
                       borderColor: theme.colors.border,
                       backgroundColor: theme.colors.card,
                     },
                   ]}
                 >
-                  <Pressable
-                    onPress={showStationPicker}
-                    style={({ pressed }) => [
-                      styles.row,
-                      pressed && { opacity: 0.75 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="location-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[
-                        styles.valueText,
-                        {
-                          color:
-                            stationFilter != null
-                              ? theme.colors.fg
-                              : theme.colors.muted,
-                        },
-                      ]}
-                    >
-                      {stationFilter != null
-                        ? t(`fuelingForm.stations.${stationFilter}`)
-                        : t("timeline.filterStation")}
-                    </Text>
+                  <View style={styles.cardRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[styles.cardTitle, { color: theme.colors.fg }]}
+                      >
+                        {entry.date}
+                        {entry.fuel_type
+                          ? ` · ${t(`fuelingForm.fuelTypes.${entry.fuel_type}`)}`
+                          : ""}
+                        {entry.gas_station
+                          ? ` · ${t(`fuelingForm.stations.${entry.gas_station}`)}`
+                          : ""}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.cardMeta,
+                          {
+                            color: theme.colors.muted,
+                            marginTop: theme.spacing.xs / 2,
+                          },
+                        ]}
+                      >
+                        {Number(entry.distance).toFixed(1)} {distanceUnit} ·{" "}
+                        {Number(entry.fuel_amount).toFixed(1)} {fuelUnitLabel} ·{" "}
+                        {Number(entry.fuel_cost).toFixed(2)} {currency}
+                      </Text>
+                    </View>
                     <Ionicons
                       name="chevron-forward"
-                      size={20}
+                      size={22}
                       color={theme.colors.accent}
-                    />
-                  </Pressable>
-
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                  <Pressable
-                    onPress={() => openPicker("from")}
-                    style={({ pressed }) => [
-                      styles.row,
-                      pressed && { opacity: 0.75 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="calendar-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[
-                        styles.valueText,
-                        {
-                          color: dateFrom
-                            ? theme.colors.fg
-                            : theme.colors.muted,
-                        },
-                      ]}
-                    >
-                      {dateFrom || t("timeline.filterFrom")}
-                    </Text>
-                  </Pressable>
-                  {openDatePicker === "from" ? (
-                    <>
-                      {renderInlineDatePicker()}
-                      <View
-                        style={[
-                          styles.divider,
-                          { backgroundColor: theme.colors.border },
-                        ]}
-                      />
-                    </>
-                  ) : (
-                    <View
-                      style={[
-                        styles.divider,
-                        { backgroundColor: theme.colors.border },
-                      ]}
-                    />
-                  )}
-
-                  <Pressable
-                    onPress={() => openPicker("to")}
-                    style={({ pressed }) => [
-                      styles.row,
-                      pressed && { opacity: 0.75 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="calendar-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[
-                        styles.valueText,
-                        {
-                          color: dateTo ? theme.colors.fg : theme.colors.muted,
-                        },
-                      ]}
-                    >
-                      {dateTo || t("timeline.filterTo")}
-                    </Text>
-                  </Pressable>
-                  {openDatePicker === "to" ? (
-                    <>
-                      {renderInlineDatePicker()}
-                      <View
-                        style={[
-                          styles.divider,
-                          { backgroundColor: theme.colors.border },
-                        ]}
-                      />
-                    </>
-                  ) : (
-                    <View
-                      style={[
-                        styles.divider,
-                        { backgroundColor: theme.colors.border },
-                      ]}
-                    />
-                  )}
-
-                  <View style={styles.row}>
-                    <Ionicons
-                      name="cash-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <TextInput
-                      value={minCost}
-                      onChangeText={setMinCost}
-                      keyboardType="decimal-pad"
-                      placeholder={`${t(
-                        "timeline.filterMinCost",
-                      )} (${currency})`}
-                      placeholderTextColor={theme.colors.muted}
-                      style={[styles.input, { color: theme.colors.fg }]}
-                    />
-                  </View>
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                  <View style={styles.row}>
-                    <Ionicons
-                      name="cash-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <TextInput
-                      value={maxCost}
-                      onChangeText={setMaxCost}
-                      keyboardType="decimal-pad"
-                      placeholder={`${t(
-                        "timeline.filterMaxCost",
-                      )} (${currency})`}
-                      placeholderTextColor={theme.colors.muted}
-                      style={[styles.input, { color: theme.colors.fg }]}
                     />
                   </View>
                 </View>
-              </>
-            ) : null}
-          </View>
-        }
-        ItemSeparatorComponent={({ leadingItem }) => {
-          if (leadingItem && leadingItem.type === "separator") {
-            return null;
-          }
-          return <View style={{ height: theme.spacing.sm }} />;
-        }}
-        renderItem={({ item }) => {
-          if (item.type === "separator") {
-            const monthYearText =
-              i18n.language === "pl"
-                ? formatMonthYearPL(item.monthYear + "-01")
-                : formatMonthYear(item.monthYear + "-01");
-            return (
-              <View style={styles.separator}>
-                <Text
-                  style={[styles.separatorText, { color: theme.colors.muted }]}
-                >
-                  {monthYearText}
-                </Text>
-              </View>
+              </Pressable>
             );
-          }
-
-          const entry = item.item;
-          return (
-            <Pressable
-              style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
-              onPress={() =>
-                navigation.navigate("FuelingEntryForm", {
-                  vehicleId: route.params.vehicleId,
-                  entryId: entry.id,
-                })
-              }
-            >
-              <View
-                style={[
-                  styles.card,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <View style={styles.cardRow}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.cardTitle, { color: theme.colors.fg }]}>
-                      {entry.date}
-                      {entry.fuel_type
-                        ? ` · ${t(`fuelingForm.fuelTypes.${entry.fuel_type}`)}`
-                        : ""}
-                      {entry.gas_station
-                        ? ` · ${t(`fuelingForm.stations.${entry.gas_station}`)}`
-                        : ""}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.cardMeta,
-                        {
-                          color: theme.colors.muted,
-                          marginTop: theme.spacing.xs / 2,
-                        },
-                      ]}
-                    >
-                      {Number(entry.distance).toFixed(1)} {distanceUnit} ·{" "}
-                      {Number(entry.fuel_amount).toFixed(1)} {fuelUnitLabel} ·{" "}
-                      {Number(entry.fuel_cost).toFixed(2)} {currency}
-                    </Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
-                    color={theme.colors.accent}
-                  />
-                </View>
+          }}
+          ListEmptyComponent={
+            loading ? (
+              <View style={styles.loadingContainer}>
+                <LoadingIndicator />
               </View>
-            </Pressable>
-          );
-        }}
-        ListEmptyComponent={
-          loading ? (
-            <View style={styles.loadingContainer}>
-              <LoadingIndicator />
-            </View>
-          ) : (
-            <Text
-              style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}
-            >
-              {t("fuelCosts.noFueling")}
-            </Text>
-          )
-        }
-      />
+            ) : (
+              <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
+                {t("fuelCosts.noFueling")}
+              </Text>
+            )
+          }
+        />
+      </ScreenLayout>
     </Screen>
   );
 }
 
-const makeStyles = (theme: any) =>
+const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
-    fixedHeader: {
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
-      backgroundColor: theme.colors.bg,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
+    panelButtonsRow: {
+      marginLeft: theme.spacing.sm,
+      flexDirection: "row",
+      gap: theme.spacing.sm,
     },
-    header: {
-      gap: theme.spacing.xs / 2,
+    list: { flex: 1 },
+    listContent: {
+      paddingBottom: insets.bottom + theme.spacing.xl,
     },
-    title: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
-      color: theme.colors.fg,
-      marginBottom: theme.spacing.md,
+    emptyText: {
+      marginTop: theme.spacing.xs,
+      fontSize: theme.typography.small,
     },
     body: {
       marginTop: theme.spacing.xs,
@@ -796,6 +782,7 @@ const makeStyles = (theme: any) =>
     searchRow: { flexDirection: "row", alignItems: "center" },
     searchBarWrap: {
       flex: 1,
+      minWidth: 0,
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
@@ -881,7 +868,7 @@ const makeStyles = (theme: any) =>
       fontWeight: "700",
     },
     separator: {
-      marginTop: theme.spacing.lg,
+      marginTop: theme.spacing.md,
       marginBottom: theme.spacing.sm,
     },
     separatorText: {
@@ -891,6 +878,8 @@ const makeStyles = (theme: any) =>
       letterSpacing: 0.5,
     },
     loadingContainer: {
+      flex: 1,
+      minHeight: 200,
       paddingTop: theme.spacing.lg * 2.5,
       paddingBottom: theme.spacing.lg * 2.5,
       alignItems: "center",

@@ -13,16 +13,26 @@ type Props = ComponentProps<typeof TextInput> & {
    * avoid jumpy UX.
    */
   followCursor?: boolean;
+  /**
+   * Forces a fixed height for the input. Useful to prevent the multiline input
+   * from growing and instead allow scrolling inside the TextInput.
+   *
+   * When provided, `scrollEnabled` defaults to `true` (unless explicitly set).
+   */
+  fixedHeight?: number;
 };
 
-export function FollowCursorTextInput({
+export function Textarea({
   followCursor = true,
+  fixedHeight,
   onFocus,
   onBlur,
   onSelectionChange,
   onChangeText,
   onContentSizeChange,
   value,
+  style,
+  scrollEnabled,
   ...rest
 }: Props) {
   const formScrollRef = useFormScreenScrollRef();
@@ -33,6 +43,8 @@ export function FollowCursorTextInput({
   });
 
   const valueText = typeof value === "string" ? value : null;
+  const computedScrollEnabled =
+    fixedHeight != null ? (scrollEnabled ?? true) : scrollEnabled;
 
   function maybeScrollToCaret() {
     if (!followCursor) return;
@@ -52,6 +64,14 @@ export function FollowCursorTextInput({
     <TextInput
       {...rest}
       value={value}
+      scrollEnabled={computedScrollEnabled}
+      style={[
+        style,
+        fixedHeight != null && {
+          height: fixedHeight,
+          textAlignVertical: "top",
+        },
+      ]}
       onFocus={(e) => {
         setFocused(true);
         onFocus?.(e);
@@ -76,4 +96,3 @@ export function FollowCursorTextInput({
     />
   );
 }
-

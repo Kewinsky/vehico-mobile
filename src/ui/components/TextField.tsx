@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 
 import { useTheme } from "../ThemeProvider";
-import { FollowCursorTextInput } from "./FollowCursorTextInput";
+import { Textarea } from "./Textarea";
 
 type Props = ComponentProps<typeof TextInput> & {
   label?: string;
@@ -24,7 +24,7 @@ export function TextField(props: Props) {
     ...inputProps
   } = props;
   const isMultiline = multiline === true;
-  const Input = isMultiline && followCursor ? FollowCursorTextInput : TextInput;
+  const Input = isMultiline && followCursor ? Textarea : TextInput;
   return (
     <View style={[styles.field, noMarginTop && styles.fieldNoTop]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}

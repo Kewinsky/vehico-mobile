@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView, TextInput } from "react-native";
+import { StyleSheet, View, TextInput } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { resolveMarketplacePostContent } from "../services/marketplace/marketplaceRepo";
 import { AppHeader } from "../ui/components/AppHeader";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { SegmentTabs } from "../ui/components/SegmentTabs";
 import { Button } from "../ui/components/Button";
 import { Screen } from "../ui/components/Screen";
@@ -28,12 +29,12 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { content, vehicleId, postTitle } = route.params;
   const [displayLang, setDisplayLang] = useState<"pl" | "en">(
-    (settings?.language as "pl" | "en") ?? "pl"
+    (settings?.language as "pl" | "en") ?? "pl",
   );
 
   const displayContent = useMemo(
     () => resolveMarketplacePostContent(content, displayLang),
-    [content, displayLang]
+    [content, displayLang],
   );
 
   const handleBack = () => {
@@ -54,26 +55,26 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
     }
   }
 
+  const layoutTitle = postTitle
+    ? t("marketplace.postWithTitle", { title: postTitle })
+    : t("marketplace.postGenerated");
+
   return (
-    <Screen padding={false} header={
+    <Screen
+      padding={false}
+      header={
         <AppHeader
           onBack={handleBack}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
-      }>
-      <ScrollView
-        style={styles.scrollView}
+      }
+    >
+      <ScreenLayout
+        title={layoutTitle}
+        scrollable={true}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.header}>
-          <Text style={styles.h1}>
-            {postTitle
-              ? t("marketplace.postWithTitle", { title: postTitle })
-              : t("marketplace.postGenerated")}
-          </Text>
-        </View>
-
         <SegmentTabs<"pl" | "en">
           value={displayLang}
           options={[
@@ -103,27 +104,15 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
         <Button onPress={handleCopyContent}>
           {t("marketplace.copyToClipboard")}
         </Button>
-      </ScrollView>
+      </ScreenLayout>
     </Screen>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    scrollView: {
-      flex: 1,
-    },
     scrollContent: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    header: {
-      gap: theme.spacing.xs / 2,
-    },
-    h1: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
-      color: theme.colors.fg,
-      marginVertical: theme.spacing.md,
+      paddingBottom: theme.spacing.xl,
     },
     contentContainer: {
       borderWidth: 1,

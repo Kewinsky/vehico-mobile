@@ -1,17 +1,20 @@
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { createServiceEntry } from "../services/serviceEntries/serviceEntriesRepo";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
-import { FormScreen } from "../ui/components/FormScreen";
-import { TextField } from "../ui/components/TextField";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
+import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
+import { Textarea } from "../ui/components/Textarea";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Import">;
 
@@ -47,12 +50,21 @@ function parseCsvLine(line: string): string[] {
 export function ImportScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const { isPremium } = useEntitlements();
   const { vehicleId } = route.params;
 
   const [csv, setCsv] = useState("");
   const [importing, setImporting] = useState(false);
+
+  async function copyColumns() {
+    try {
+      await Clipboard.setStringAsync(t("import.columnsToCopy"));
+      toastSuccess(t("import.columnsCopied"));
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    }
+  }
 
   async function handleImportCsv() {
     try {
@@ -89,7 +101,7 @@ export function ImportScreen({ navigation, route }: Props) {
               ? (r[iCategory] ?? "").trim().toLowerCase()
               : "other",
           title: r[iTitle] ?? "",
-          description: iDesc >= 0 ? r[iDesc] ?? "" : "",
+          description: iDesc >= 0 ? (r[iDesc] ?? "") : "",
           mileage:
             iMileage >= 0 && (r[iMileage] ?? "").length
               ? Number(r[iMileage])
@@ -97,7 +109,7 @@ export function ImportScreen({ navigation, route }: Props) {
           cost: iCost >= 0 && (r[iCost] ?? "").length ? Number(r[iCost]) : null,
         }))
         .filter(
-          (r) => r.service_date.trim().length === 10 && r.title.trim().length
+          (r) => r.service_date.trim().length === 10 && r.title.trim().length,
         );
 
       if (toCreate.length === 0) {
@@ -128,6 +140,7 @@ export function ImportScreen({ navigation, route }: Props) {
                         "repair",
                         "inspection",
                         "upgrade",
+                        "oil_engine",
                         "other",
                       ] as const
                     ).includes(e.category as any)
@@ -149,7 +162,7 @@ export function ImportScreen({ navigation, route }: Props) {
               }
             },
           },
-        ]
+        ],
       );
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
@@ -157,7 +170,8 @@ export function ImportScreen({ navigation, route }: Props) {
   }
 
   return (
-    <FormScreen
+    <Screen
+      padding={false}
       header={
         <AppHeader
           onBack={() => navigation.goBack()}
@@ -165,47 +179,132 @@ export function ImportScreen({ navigation, route }: Props) {
           onShopPress={() => navigation.navigate("Shop")}
         />
       }
+      footer={
+        <>
+          <Button
+            onPress={handleImportCsv}
+            disabled={importing || !csv.trim().length}
+          >
+            {importing ? t("common.loading") : t("import.importButton")}
+          </Button>
+          <Button
+            onPress={() => setCsv("")}
+            variant="ghost"
+            disabled={importing || csv.trim().length === 0}
+          >
+            {t("import.clearButton")}
+          </Button>
+        </>
+      }
     >
-      <View style={{ height: theme.spacing.md }} />
-      <View style={styles.headerSection}>
-        <Text style={styles.h1}>{t("import.title")}</Text>
-      </View>
-      <View style={{ height: theme.spacing.md }} />
-      <TextField
-        noMarginTop
-        label={t("import.csvLabel")}
-        helperText={t("import.csvHint")}
-        value={csv}
-        onChangeText={setCsv}
-        placeholder={t("import.placeholder")}
-        multiline
-        followCursor
-        editable={!importing}
-      />
-      <View style={{ height: theme.spacing.sm }} />
-      <Button onPress={handleImportCsv} disabled={importing || !csv.trim()}>
-        {importing ? t("common.loading") : t("import.importButton")}
-      </Button>
-      <View style={{ height: theme.spacing.sm }} />
-      <Button
-        onPress={() => setCsv("")}
-        variant="ghost"
-        disabled={importing || csv.trim().length === 0}
-      >
-        {t("import.clearButton")}
-      </Button>
-    </FormScreen>
+      <ScreenLayout title={t("import.title")} scrollable={false}>
+        <View
+          style={[
+            styles.card,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <View style={styles.cardInner}>
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="document-text-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("import.csvLabel")}
+              </Text>
+            </View>
+            <Text style={[styles.hint, { color: theme.colors.muted }]}>
+              {t("import.csvHint")}
+            </Text>
+            <View style={{ marginTop: theme.spacing.xs }}>
+              <Textarea
+                value={csv}
+                onChangeText={setCsv}
+                editable={!importing}
+                multiline
+                placeholder={t("import.placeholder")}
+                placeholderTextColor={theme.colors.muted}
+                style={[styles.textArea, { color: theme.colors.fg }]}
+                fixedHeight={250}
+              />
+            </View>
+          </View>
+        </View>
+        <View style={styles.actionsRow}>
+          <Pressable
+            onPress={() => void copyColumns()}
+            disabled={importing}
+            style={({ pressed }) => [
+              styles.actionPill,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+                opacity: pressed && !importing ? 0.8 : importing ? 0.5 : 1,
+              },
+            ]}
+          >
+            <Ionicons name="copy-outline" size={18} color={theme.colors.fg} />
+            <Text style={[styles.actionPillText, { color: theme.colors.fg }]}>
+              {t("import.copyColumnsButton")}
+            </Text>
+          </Pressable>
+        </View>
+      </ScreenLayout>
+    </Screen>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    headerSection: {
-      gap: theme.spacing.xs / 2,
+    actionsRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: theme.spacing.sm,
+      marginTop: theme.spacing.sm,
     },
-    h1: {
-      fontSize: theme.typography.largeTitle,
+    actionPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.md,
+      borderRadius: 9999,
+      borderWidth: 1,
+    },
+    actionPillText: {
+      fontSize: theme.typography.body,
       fontWeight: "700",
-      color: theme.colors.fg,
+    },
+    card: {
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+    },
+    cardInner: {
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    rowLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+    },
+    label: {
+      fontSize: theme.typography.body,
+      fontWeight: "600",
+    },
+    hint: {
+      marginTop: theme.spacing.xs,
+      lineHeight: theme.typography.body + 4,
+    },
+    textArea: {
+      minHeight: 160,
+      fontSize: theme.typography.body,
+      paddingTop: 2,
     },
   });

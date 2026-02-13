@@ -21,6 +21,7 @@ import {
   updatePublicReportTitle,
 } from "../services/publicPages/publicPagesRepo";
 import { AppHeader } from "../ui/components/AppHeader";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -98,7 +99,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
             try {
               await updatePublicReportTitle(
                 report.id,
-                newTitle?.trim() || null
+                newTitle?.trim() || null,
               );
               toastSuccess(t("publicReport.titleUpdated"));
               await loadReports();
@@ -109,7 +110,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
         },
       ],
       "plain-text",
-      report.title || ""
+      report.title || "",
     );
   }
 
@@ -128,16 +129,21 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false} header={
+    <Screen
+      padding={false}
+      header={
         <AppHeader
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
-      }>
-      <View style={styles.wrap}>
-        <Text style={styles.h1}>{t("share.historyTitle")}</Text>
-
+      }
+    >
+      <ScreenLayout
+        title={t("share.historyTitle")}
+        scrollable={false}
+        contentContainerStyle={styles.wrap}
+      >
         {loading ? (
           <View style={styles.loadingContainer}>
             <LoadingIndicator />
@@ -204,7 +210,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
             )}
           />
         )}
-      </View>
+      </ScreenLayout>
     </Screen>
   );
 }
@@ -213,13 +219,6 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     wrap: {
       flex: 1,
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    h1: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
-      color: theme.colors.fg,
-      marginVertical: theme.spacing.md,
     },
     loadingContainer: {
       flex: 1,

@@ -10,7 +10,7 @@ import { PrivacyPolicyScreen } from "../../screens/PrivacyPolicyScreen";
 import { VehiclesScreen } from "../../screens/VehiclesScreen";
 import { VehicleFormScreen } from "../../screens/VehicleFormScreen";
 import { VehicleDashboardScreen } from "../../screens/VehicleDashboardScreen";
-import { VehicleDetailScreen } from "../../screens/VehicleDetailScreen";
+import { ServiceHistoryScreen } from "../../screens/ServiceHistoryScreen";
 import { ManageVehicleScreen } from "../../screens/ManageVehicleScreen";
 import { DocumentsScreen } from "../../screens/DocumentsScreen";
 import { FuelScreen } from "../../screens/FuelScreen";
@@ -20,7 +20,6 @@ import { ReminderFormScreen } from "../../screens/ReminderFormScreen";
 import { ServiceEntryFormScreen } from "../../screens/ServiceEntryFormScreen";
 import { SettingsScreen } from "../../screens/SettingsScreen";
 import { DataPortabilityScreen } from "../../screens/DataPortabilityScreen";
-import { ExportScreen } from "../../screens/ExportScreen";
 import { ImportScreen } from "../../screens/ImportScreen";
 import { AddAttachmentScreen } from "../../screens/AddAttachmentScreen";
 import { ShareScreen } from "../../screens/ShareScreen";
@@ -60,7 +59,7 @@ export type AppStackParamList = {
   Settings: undefined;
   Appearance: undefined;
   VehicleDashboard: { vehicleId: string };
-  VehicleDetail: { vehicleId: string };
+  ServiceHistory: { vehicleId: string };
   Documents: { vehicleId: string };
   Fuel: { vehicleId: string };
   Statistics: { vehicleId: string };
@@ -129,7 +128,6 @@ export type AppStackParamList = {
   PublicReportHistory: { vehicleId: string };
   ManageVehicle: { vehicleId: string };
   DataPortability: { vehicleId: string };
-  Export: { vehicleId: string };
   Import: { vehicleId: string };
   AddAttachment: { vehicleId: string };
   ServiceEntryForm: { vehicleId: string; entryId?: string };
@@ -190,7 +188,10 @@ export function RootNavigator() {
             name="VehicleDashboard"
             component={VehicleDashboardScreen}
           />
-          <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
+          <Stack.Screen
+            name="ServiceHistory"
+            component={ServiceHistoryScreen}
+          />
           <Stack.Screen name="Documents" component={DocumentsScreen} />
           <Stack.Screen name="Fuel" component={FuelScreen} />
           <Stack.Screen name="Statistics" component={StatisticsScreen} />
@@ -248,7 +249,6 @@ export function RootNavigator() {
             name="DataPortability"
             component={DataPortabilityScreen}
           />
-          <Stack.Screen name="Export" component={ExportScreen} />
           <Stack.Screen name="Import" component={ImportScreen} />
           <Stack.Screen name="AddAttachment" component={AddAttachmentScreen} />
           <Stack.Screen

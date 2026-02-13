@@ -251,10 +251,12 @@ export const en = {
     emptyBody: "Add your first car or motorcycle.",
     addVehicle: "Add vehicle",
     freePlanPickerTitle: "Choose vehicle for Free plan",
-    freePlanPickerBody: "You can have one vehicle on the Free plan. The rest will be hidden until you renew Premium.",
+    freePlanPickerBody:
+      "You can have one vehicle on the Free plan. The rest will be hidden until you renew Premium.",
     freePlanPickerSave: "Save",
     lockedVehicleAlertTitle: "Premium required",
-    lockedVehicleAlertBody: "This vehicle is hidden on the Free plan. Renew Premium to access it. Data for hidden vehicles will be permanently deleted in {{days}} days.",
+    lockedVehicleAlertBody:
+      "This vehicle is hidden on the Free plan. Renew Premium to access it. Data for hidden vehicles will be permanently deleted in {{days}} days.",
     lockedVehicleAlertCTA: "Go to Premium",
   },
   vehicleForm: {
@@ -441,7 +443,7 @@ export const en = {
       inspectionValidUntil: "Inspection valid until",
       fittedWheelsAndTires: "Fitted wheels and tires",
       currentTire: "Tire",
-      currentWheel: "Wheel",
+      currentWheel: "Rim",
     },
     tiles: {
       serviceTitle: "Service History",
@@ -890,6 +892,16 @@ export const en = {
     subtitle: "Backup and restore your vehicle data.",
     exportButton: "Export Data",
     importButton: "Import Data",
+    exportFormatTitle: "Export format",
+    exportFormatJson: "JSON",
+    exportFormatCsv: "CSV",
+    exportCsvDataTypeTitle: "Which data to export as CSV?",
+    exportCsvServiceEntries: "Service entries",
+    exportCsvFueling: "Fueling entries",
+    exportCsvReminders: "Reminders",
+    exportCsvWheels: "Wheels",
+    exportCsvTires: "Tires",
+    exportCsvWorkshops: "Workshops",
   },
   export: {
     title: "Export Data",
@@ -906,9 +918,16 @@ export const en = {
     subtitle: "Import service entries from CSV.",
     csvLabel: "Paste CSV",
     csvHint:
-      "Required columns: service_date,title (optional: description,mileage,cost)",
+      "Required columns: service_date,title (optional: category,description,mileage,cost)",
     placeholder:
-      "service_date;title;description;mileage;cost\n2026-01-14;Oil change;Engine oil and filter;120000;250",
+      "service_date;category;title;description;mileage;cost\n2026-01-14;maintenance;Oil change;Engine oil and filter;120000;250",
+    copyHeadersButton: "Copy headers",
+    copyColumnsButton: "Copy columns",
+    headersCopied: "Headers copied to clipboard",
+    columnsCopied: "Columns copied to clipboard",
+    headersToCopy: "service_date;category;title;description;mileage;cost",
+    columnsToCopy:
+      "service_date (YYYY-MM-DD)\ncategory (maintenance|repair|inspection|upgrade|oil_engine|other)\ntitle\ndescription\nmileage\ncost",
     importButton: "Import service entries",
     clearButton: "Clear",
     confirmTitle: "Import entries?",

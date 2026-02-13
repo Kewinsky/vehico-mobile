@@ -1,9 +1,7 @@
 import {
   StyleSheet,
-  Text,
   View,
   Linking,
-  ScrollView,
   Share,
   useWindowDimensions,
   Platform,
@@ -16,6 +14,7 @@ import QRCode from "react-native-qrcode-svg";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -72,27 +71,27 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
     }
   }
 
+  const layoutTitle =
+    reportTitle != null && reportTitle !== ""
+      ? t("publicReport.reportWithTitle", { title: reportTitle })
+      : t("share.onlineReport");
+
   return (
-    <Screen padding={false} header={
+    <Screen
+      padding={false}
+      header={
         <AppHeader
           onBack={handleBack}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
-      }>
-      <ScrollView
+      }
+    >
+      <ScreenLayout
+        title={layoutTitle}
+        scrollable={true}
         contentContainerStyle={styles.wrap}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Text style={styles.h1}>
-            {reportTitle
-              ? t("publicReport.reportWithTitle", { title: reportTitle })
-              : t("share.onlineReport")}
-          </Text>
-        </View>
-
         <View style={styles.qrContainer}>
           <View
             style={[
@@ -120,7 +119,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
             {t("share.title")}
           </Button>
         </View>
-      </ScrollView>
+      </ScreenLayout>
     </Screen>
   );
 }
@@ -128,18 +127,9 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     wrap: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.xl,
       gap: theme.spacing.md,
-    },
-    header: {
-      gap: theme.spacing.xs / 2,
-    },
-    h1: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
-      color: theme.colors.fg,
     },
     subtitle: {
       fontSize: theme.typography.small,

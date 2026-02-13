@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -60,7 +61,7 @@ export function RemindersScreen({ route, navigation }: Props) {
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
   const insets = useSafeAreaInsets();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -315,462 +316,448 @@ export function RemindersScreen({ route, navigation }: Props) {
     return grouped;
   }, [items, query, dateFrom, dateTo, statusFilter]);
 
+  function onAddReminderPress() {
+    if (isPremium) {
+      navigation.navigate("ReminderForm", {
+        vehicleId: route.params.vehicleId,
+      });
+      return;
+    }
+    if (items.length >= remindersLimit) {
+      Alert.alert(
+        t("limits.reminderLimitReachedTitle"),
+        t("limits.reminderLimitReachedBody", { limit: remindersLimit }),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("limits.upgradeToPremium"),
+            onPress: () => navigation.navigate("Shop"),
+          },
+        ],
+      );
+      return;
+    }
+    navigation.navigate("ReminderForm", {
+      vehicleId: route.params.vehicleId,
+    });
+  }
+
+  const filterPanelContent = (
+    <>
+      <View style={styles.searchRow}>
+        <View
+          style={[
+            styles.searchBarWrap,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <Ionicons
+            name="search-outline"
+            size={20}
+            color={theme.colors.muted}
+            style={styles.searchBarIcon}
+          />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t("reminders.searchPlaceholder")}
+            placeholderTextColor={theme.colors.muted}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+            keyboardAppearance={mode === "dark" ? "dark" : "light"}
+            style={[styles.searchBarInput, { color: theme.colors.fg }]}
+          />
+        </View>
+        <View style={styles.panelButtonsRow}>
+          <View
+            style={[
+              styles.addButton,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <Pressable
+              onPress={onAddReminderPress}
+              style={({ pressed }) => [
+                styles.addButtonInner,
+                pressed && { opacity: 0.9 },
+              ]}
+            >
+              <Ionicons name="add" size={24} color={theme.colors.fg} />
+            </Pressable>
+          </View>
+          <View
+            style={[
+              styles.addButton,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+              hasActiveFilters && {
+                borderColor: theme.colors.accent,
+              },
+            ]}
+          >
+            <Pressable
+              onPress={() => setFiltersOpen((v) => !v)}
+              style={({ pressed }) => [
+                styles.addButtonInner,
+                pressed && { opacity: 0.9 },
+              ]}
+            >
+              <Ionicons
+                name="filter-outline"
+                size={24}
+                color={hasActiveFilters ? theme.colors.accent : theme.colors.fg}
+              />
+            </Pressable>
+          </View>
+          {hasActiveFilters ? (
+            <View
+              style={[
+                styles.addButton,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <Pressable
+                onPress={resetFilters}
+                style={({ pressed }) => [
+                  styles.addButtonInner,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <Ionicons
+                  name="refresh-outline"
+                  size={24}
+                  color={theme.colors.fg}
+                />
+              </Pressable>
+            </View>
+          ) : null}
+        </View>
+      </View>
+
+      {filtersOpen ? (
+        <>
+          <View style={{ height: theme.spacing.sm }} />
+          <View
+            style={[
+              styles.filtersCard,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <View style={styles.row}>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <View
+                style={[
+                  styles.segmentWrap,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.bg,
+                  },
+                ]}
+              >
+                {(["all", "active", "done"] as const).map((status) => {
+                  const selected = statusFilter === status;
+                  const label =
+                    status === "all"
+                      ? t("reminders.filterAll")
+                      : status === "active"
+                        ? t("reminderDetail.status.active")
+                        : t("reminderDetail.status.done");
+                  return (
+                    <Pressable
+                      key={status}
+                      onPress={() => setStatusFilter(status)}
+                      style={({ pressed }) => [
+                        styles.segment,
+                        selected && styles.segmentSelected,
+                        {
+                          borderColor: theme.colors.accent,
+                          backgroundColor: selected ? accentBg : "transparent",
+                          opacity: pressed ? 0.85 : 1,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.segmentTextSmall,
+                          {
+                            color: selected
+                              ? theme.colors.accent
+                              : theme.colors.muted,
+                          },
+                        ]}
+                      >
+                        {label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+            <Pressable
+              onPress={() => openPicker("from")}
+              style={({ pressed }) => [
+                styles.row,
+                pressed && { opacity: 0.75 },
+              ]}
+            >
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color: dateFrom ? theme.colors.fg : theme.colors.muted,
+                  },
+                ]}
+              >
+                {dateFrom || t("timeline.filterFrom")}
+              </Text>
+            </Pressable>
+            {openDatePicker === "from" ? (
+              <>
+                {renderInlineDatePicker()}
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+              </>
+            ) : (
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+            )}
+
+            <Pressable
+              onPress={() => openPicker("to")}
+              style={({ pressed }) => [
+                styles.row,
+                pressed && { opacity: 0.75 },
+              ]}
+            >
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color: dateTo ? theme.colors.fg : theme.colors.muted,
+                  },
+                ]}
+              >
+                {dateTo || t("timeline.filterTo")}
+              </Text>
+            </Pressable>
+            {openDatePicker === "to" ? (
+              <>
+                {renderInlineDatePicker()}
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+              </>
+            ) : null}
+          </View>
+        </>
+      ) : null}
+    </>
+  );
+
   return (
-    <Screen padding={false} header={
+    <Screen
+      padding={false}
+      header={
         <AppHeader
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
-      }>
-      <FlatList
-        data={filteredItemsWithSeparators}
-        keyExtractor={(item) => {
-          if (item.type === "separator") {
-            return `separator-${item.monthYearKey}`;
-          }
-          return item.item.id;
-        }}
-        contentContainerStyle={{
-          paddingHorizontal: theme.layout.contentPaddingHorizontal,
-          paddingBottom: insets.bottom + theme.spacing.xl,
-        }}
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
-        onTouchStart={Keyboard.dismiss}
-        ListHeaderComponent={
-          <View style={styles.fixedHeader}>
-            <View style={styles.header}>
-              <Text style={[styles.title, { color: theme.colors.fg }]}>
-                {t("dashboard.tiles.remindersTitle")}
-              </Text>
-            </View>
-            <View style={styles.searchRow}>
+      }
+    >
+      <ScreenLayout
+        title={t("dashboard.tiles.remindersTitle")}
+        scrollable={false}
+        filterPanel={filterPanelContent}
+      >
+        <FlatList
+          data={filteredItemsWithSeparators}
+          keyExtractor={(item) => {
+            if (item.type === "separator") {
+              return `separator-${item.monthYearKey}`;
+            }
+            return item.item.id;
+          }}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+          onTouchStart={Keyboard.dismiss}
+          refreshing={refreshing}
+          onRefresh={() => void load({ refreshing: true })}
+          ItemSeparatorComponent={({ leadingItem }) => {
+            if (leadingItem && leadingItem.type === "separator") {
+              return null;
+            }
+            return <View style={{ height: theme.spacing.sm }} />;
+          }}
+          renderItem={({ item }) => {
+            if (item.type === "separator") {
+              const monthYearText =
+                i18n.language === "pl"
+                  ? formatMonthYearPL(item.monthYear + "-01")
+                  : formatMonthYear(item.monthYear + "-01");
+              return (
+                <View style={styles.separator}>
+                  <Text
+                    style={[
+                      styles.separatorText,
+                      { color: theme.colors.muted },
+                    ]}
+                  >
+                    {monthYearText}
+                  </Text>
+                </View>
+              );
+            }
+
+            const reminder = item.item;
+            const isDone = reminder.status === "done";
+            return (
               <View
                 style={[
-                  styles.searchBarWrap,
+                  styles.card,
                   {
                     borderColor: theme.colors.border,
                     backgroundColor: theme.colors.card,
                   },
+                  isDone && styles.cardDone,
                 ]}
               >
-                <Ionicons
-                  name="search-outline"
-                  size={20}
-                  color={theme.colors.muted}
-                  style={styles.searchBarIcon}
-                />
-                <TextInput
-                  value={query}
-                  onChangeText={setQuery}
-                  placeholder={t("reminders.searchPlaceholder")}
-                  placeholderTextColor={theme.colors.muted}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  clearButtonMode="while-editing"
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  style={[styles.searchBarInput, { color: theme.colors.fg }]}
-                />
-              </View>
-              <View
-                style={{
-                  marginLeft: theme.spacing.sm,
-                  flexDirection: "row",
-                  gap: theme.spacing.sm,
-                }}
-              >
-                <View
-                  style={[
-                    styles.addButton,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
+                <View style={styles.cardRow}>
                   <Pressable
-                    onPress={() => {
-                      if (isPremium) {
-                        navigation.navigate("ReminderForm", {
-                          vehicleId: route.params.vehicleId,
-                        });
-                        return;
-                      }
-                      if (items.length >= remindersLimit) {
-                        Alert.alert(
-                          t("limits.reminderLimitReachedTitle"),
-                          t("limits.reminderLimitReachedBody", {
-                            limit: remindersLimit,
-                          }),
-                          [
-                            { text: t("common.cancel"), style: "cancel" },
-                            {
-                              text: t("limits.upgradeToPremium"),
-                              onPress: () => navigation.navigate("Shop"),
-                            },
-                          ],
-                        );
-                        return;
-                      }
+                    style={{ flex: 1 }}
+                    onPress={() =>
                       navigation.navigate("ReminderForm", {
                         vehicleId: route.params.vehicleId,
-                      });
-                    }}
-                    style={({ pressed }) => [
-                      styles.addButtonInner,
-                      pressed && { opacity: 0.9 },
-                    ]}
+                        reminderId: reminder.id,
+                      })
+                    }
                   >
-                    <Ionicons name="add" size={24} color={theme.colors.fg} />
+                    <Text
+                      style={[
+                        { color: theme.colors.fg, fontWeight: "800" },
+                        isDone && { color: theme.colors.muted },
+                      ]}
+                    >
+                      {reminder.title ?? ""}
+                    </Text>
+                    <Text
+                      style={[
+                        {
+                          color: theme.colors.muted,
+                          marginTop: theme.spacing.xs / 2,
+                        },
+                        isDone && { opacity: 0.6 },
+                      ]}
+                    >
+                      {reminder.type === "time"
+                        ? t("reminders.dueTime", {
+                            date: reminder.due_date ?? "",
+                          })
+                        : t("reminders.dueMileage", {
+                            mileage: reminder.due_mileage ?? "",
+                            unit: distanceUnit,
+                          })}
+                    </Text>
                   </Pressable>
-                </View>
-                <View
-                  style={[
-                    styles.addButton,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                    hasActiveFilters && {
-                      borderColor: theme.colors.accent,
-                    },
-                  ]}
-                >
-                  <Pressable
-                    onPress={() => setFiltersOpen((v) => !v)}
-                    style={({ pressed }) => [
-                      styles.addButtonInner,
-                      pressed && { opacity: 0.9 },
-                    ]}
+                  <IconButton
+                    onPress={() => toggleStatus(reminder.id, reminder.status)}
+                    variant="ghost"
                   >
                     <Ionicons
-                      name="filter-outline"
-                      size={24}
+                      name={
+                        reminder.status === "active"
+                          ? "checkmark-circle"
+                          : "checkmark-circle-outline"
+                      }
+                      size={30}
                       color={
-                        hasActiveFilters ? theme.colors.accent : theme.colors.fg
+                        reminder.status === "active"
+                          ? theme.colors.accent
+                          : theme.colors.muted
                       }
                     />
-                  </Pressable>
+                  </IconButton>
                 </View>
-                {hasActiveFilters ? (
-                  <View
-                    style={[
-                      styles.addButton,
-                      {
-                        borderColor: theme.colors.border,
-                        backgroundColor: theme.colors.card,
-                      },
-                    ]}
-                  >
-                    <Pressable
-                      onPress={resetFilters}
-                      style={({ pressed }) => [
-                        styles.addButtonInner,
-                        pressed && { opacity: 0.9 },
-                      ]}
-                    >
-                      <Ionicons
-                        name="refresh-outline"
-                        size={24}
-                        color={theme.colors.fg}
-                      />
-                    </Pressable>
-                  </View>
-                ) : null}
-              </View>
-            </View>
-
-            {filtersOpen ? (
-              <>
-                <View style={{ height: theme.spacing.sm }} />
-                <View
-                  style={[
-                    styles.filtersCard,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
-                  <View style={styles.row}>
-                    <Ionicons
-                      name="checkmark-circle-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <View
-                      style={[
-                        styles.segmentWrap,
-                        {
-                          borderColor: theme.colors.border,
-                          backgroundColor: theme.colors.bg,
-                        },
-                      ]}
-                    >
-                      {(["all", "active", "done"] as const).map((status) => {
-                        const selected = statusFilter === status;
-                        const label =
-                          status === "all"
-                            ? t("reminders.filterAll")
-                            : status === "active"
-                              ? t("reminderDetail.status.active")
-                              : t("reminderDetail.status.done");
-                        return (
-                          <Pressable
-                            key={status}
-                            onPress={() => setStatusFilter(status)}
-                            style={({ pressed }) => [
-                              styles.segment,
-                              selected && styles.segmentSelected,
-                              {
-                                borderColor: theme.colors.accent,
-                                backgroundColor: selected
-                                  ? accentBg
-                                  : "transparent",
-                                opacity: pressed ? 0.85 : 1,
-                              },
-                            ]}
-                          >
-                            <Text
-                              style={[
-                                styles.segmentTextSmall,
-                                {
-                                  color: selected
-                                    ? theme.colors.accent
-                                    : theme.colors.muted,
-                                },
-                              ]}
-                            >
-                              {label}
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
-                  </View>
-
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                  <Pressable
-                    onPress={() => openPicker("from")}
-                    style={({ pressed }) => [
-                      styles.row,
-                      pressed && { opacity: 0.75 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="calendar-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[
-                        styles.valueText,
-                        {
-                          color: dateFrom
-                            ? theme.colors.fg
-                            : theme.colors.muted,
-                        },
-                      ]}
-                    >
-                      {dateFrom || t("timeline.filterFrom")}
-                    </Text>
-                  </Pressable>
-                  {openDatePicker === "from" ? (
-                    <>
-                      {renderInlineDatePicker()}
-                      <View
-                        style={[
-                          styles.divider,
-                          { backgroundColor: theme.colors.border },
-                        ]}
-                      />
-                    </>
-                  ) : (
-                    <View
-                      style={[
-                        styles.divider,
-                        { backgroundColor: theme.colors.border },
-                      ]}
-                    />
-                  )}
-
-                  <Pressable
-                    onPress={() => openPicker("to")}
-                    style={({ pressed }) => [
-                      styles.row,
-                      pressed && { opacity: 0.75 },
-                    ]}
-                  >
-                    <Ionicons
-                      name="calendar-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[
-                        styles.valueText,
-                        {
-                          color: dateTo ? theme.colors.fg : theme.colors.muted,
-                        },
-                      ]}
-                    >
-                      {dateTo || t("timeline.filterTo")}
-                    </Text>
-                  </Pressable>
-                  {openDatePicker === "to" ? (
-                    <>
-                      {renderInlineDatePicker()}
-                      <View
-                        style={[
-                          styles.divider,
-                          { backgroundColor: theme.colors.border },
-                        ]}
-                      />
-                    </>
-                  ) : null}
-                </View>
-              </>
-            ) : null}
-          </View>
-        }
-        refreshing={refreshing}
-        onRefresh={() => void load({ refreshing: true })}
-        ItemSeparatorComponent={({ leadingItem }) => {
-          if (leadingItem && leadingItem.type === "separator") {
-            return null;
-          }
-          return <View style={{ height: theme.spacing.sm }} />;
-        }}
-        renderItem={({ item }) => {
-          if (item.type === "separator") {
-            const monthYearText =
-              i18n.language === "pl"
-                ? formatMonthYearPL(item.monthYear + "-01")
-                : formatMonthYear(item.monthYear + "-01");
-            return (
-              <View style={styles.separator}>
-                <Text
-                  style={[styles.separatorText, { color: theme.colors.muted }]}
-                >
-                  {monthYearText}
-                </Text>
               </View>
             );
-          }
-
-          const reminder = item.item;
-          const isDone = reminder.status === "done";
-          return (
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-                isDone && styles.cardDone,
-              ]}
-            >
-              <View style={styles.cardRow}>
-                <Pressable
-                  style={{ flex: 1 }}
-                  onPress={() =>
-                    navigation.navigate("ReminderForm", {
-                      vehicleId: route.params.vehicleId,
-                      reminderId: reminder.id,
-                    })
-                  }
-                >
-                  <Text
-                    style={[
-                      { color: theme.colors.fg, fontWeight: "800" },
-                      isDone && { color: theme.colors.muted },
-                    ]}
-                  >
-                    {reminder.title ?? ""}
-                  </Text>
-                  <Text
-                    style={[
-                      {
-                        color: theme.colors.muted,
-                        marginTop: theme.spacing.xs / 2,
-                      },
-                      isDone && { opacity: 0.6 },
-                    ]}
-                  >
-                    {reminder.type === "time"
-                      ? t("reminders.dueTime", {
-                          date: reminder.due_date ?? "",
-                        })
-                      : t("reminders.dueMileage", {
-                          mileage: reminder.due_mileage ?? "",
-                          unit: distanceUnit,
-                        })}
-                  </Text>
-                </Pressable>
-                <IconButton
-                  onPress={() => toggleStatus(reminder.id, reminder.status)}
-                  variant="ghost"
-                >
-                  <Ionicons
-                    name={
-                      reminder.status === "active"
-                        ? "checkmark-circle"
-                        : "checkmark-circle-outline"
-                    }
-                    size={30}
-                    color={
-                      reminder.status === "active"
-                        ? theme.colors.accent
-                        : theme.colors.muted
-                    }
-                  />
-                </IconButton>
+          }}
+          ListEmptyComponent={
+            loading ? (
+              <View style={styles.loadingContainer}>
+                <LoadingIndicator />
               </View>
-            </View>
-          );
-        }}
-        ListEmptyComponent={
-          loading ? (
-            <View style={styles.loadingContainer}>
-              <LoadingIndicator />
-            </View>
-          ) : (
-            <Text
-              style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}
-            >
-              {t("reminders.noItems")}
-            </Text>
-          )
-        }
-      />
+            ) : (
+              <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
+                {t("reminders.noItems")}
+              </Text>
+            )
+          }
+        />
+      </ScreenLayout>
     </Screen>
   );
 }
 
-const makeStyles = (theme: any) =>
+const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
-    fixedHeader: {
-      paddingTop: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
-      backgroundColor: theme.colors.bg,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
+    panelButtonsRow: {
+      marginLeft: theme.spacing.sm,
+      flexDirection: "row",
+      gap: theme.spacing.sm,
     },
-    header: {
-      gap: theme.spacing.xs / 2,
+    list: { flex: 1 },
+    listContent: {
+      paddingBottom: insets.bottom + theme.spacing.xl,
     },
-    title: {
-      fontSize: theme.typography.largeTitle,
-      marginBottom: theme.spacing.md,
-      fontWeight: "700",
-      color: theme.colors.fg,
+    emptyText: {
+      marginTop: theme.spacing.xs,
+      fontSize: theme.typography.small,
     },
     body: {
       marginTop: theme.spacing.xs,
@@ -791,6 +778,7 @@ const makeStyles = (theme: any) =>
     searchRow: { flexDirection: "row", alignItems: "center" },
     searchBarWrap: {
       flex: 1,
+      minWidth: 0,
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
@@ -887,7 +875,7 @@ const makeStyles = (theme: any) =>
       fontWeight: "700",
     },
     separator: {
-      marginTop: theme.spacing.lg,
+      marginTop: theme.spacing.md,
       marginBottom: theme.spacing.sm,
     },
     separatorText: {
@@ -897,6 +885,8 @@ const makeStyles = (theme: any) =>
       letterSpacing: 0.5,
     },
     loadingContainer: {
+      flex: 1,
+      minHeight: 200,
       paddingTop: theme.spacing.lg * 2.5,
       paddingBottom: theme.spacing.lg * 2.5,
       alignItems: "center",

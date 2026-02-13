@@ -219,6 +219,7 @@ export function VehiclesScreen({ navigation }: Props) {
     freePlanVehicleId,
     setFreePlanVehicleId,
     daysUntilHiddenDataDeletion,
+    isLoading: entitlementsLoading,
   } = useEntitlements();
   const distanceUnit = settings?.distanceUnit ?? "km";
 
@@ -227,7 +228,10 @@ export function VehiclesScreen({ navigation }: Props) {
     : freePlanVehicleId ??
       (items.length === 1 ? items[0]?.id ?? null : null);
   const showFreePlanPicker =
-    !isPremium && !freePlanVehicleId && items.length >= 2;
+    !entitlementsLoading &&
+    !isPremium &&
+    !freePlanVehicleId &&
+    items.length >= 2;
   const hasShownPickerRef = useRef(false);
 
   const sortedItems = useMemo(() => {

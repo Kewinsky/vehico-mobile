@@ -22,6 +22,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { ChoiceChip } from "../ui/components/ChoiceChip";
 import { AppHeader } from "../ui/components/AppHeader";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
@@ -42,7 +43,7 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
     en: "",
   });
   const [displayLang, setDisplayLang] = useState<"pl" | "en">(
-    (settings?.language as "pl" | "en") ?? "pl"
+    (settings?.language as "pl" | "en") ?? "pl",
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -121,67 +122,68 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
         />
       }
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
+      <ScreenLayout title={t("marketplace.editPost")} scrollable={false}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <LoadingIndicator />
-            </View>
-          ) : (
-            <>
-              <Text style={styles.h1}>{t("marketplace.editPost")}</Text>
-              <View style={styles.langRow}>
-                <View style={styles.langCol}>
-                  <ChoiceChip
-                    label={t("marketplace.languagePl")}
-                    selected={displayLang === "pl"}
-                    onPress={() => setDisplayLang("pl")}
-                  />
-                </View>
-                <View style={styles.langCol}>
-                  <ChoiceChip
-                    label={t("marketplace.languageEn")}
-                    selected={displayLang === "en"}
-                    onPress={() => setDisplayLang("en")}
-                  />
-                </View>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <LoadingIndicator />
               </View>
-              <View style={{ height: theme.spacing.md }} />
+            ) : (
+              <>
+                <View style={styles.langRow}>
+                  <View style={styles.langCol}>
+                    <ChoiceChip
+                      label={t("marketplace.languagePl")}
+                      selected={displayLang === "pl"}
+                      onPress={() => setDisplayLang("pl")}
+                    />
+                  </View>
+                  <View style={styles.langCol}>
+                    <ChoiceChip
+                      label={t("marketplace.languageEn")}
+                      selected={displayLang === "en"}
+                      onPress={() => setDisplayLang("en")}
+                    />
+                  </View>
+                </View>
+                <View style={{ height: theme.spacing.md }} />
 
-              <View
-                style={[
-                  styles.textAreaContainer,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <TextInput
-                  key={displayLang}
-                  style={[styles.textArea, { color: theme.colors.fg }]}
-                  value={content[displayLang]}
-                  onChangeText={(text) =>
-                    setContent((prev) => ({ ...prev, [displayLang]: text }))
-                  }
-                  multiline
-                  textAlignVertical="top"
-                  placeholder={t("marketplace.contentPlaceholder")}
-                  placeholderTextColor={theme.colors.muted}
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                />
-              </View>
-            </>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+                <View
+                  style={[
+                    styles.textAreaContainer,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                  ]}
+                >
+                  <TextInput
+                    key={displayLang}
+                    style={[styles.textArea, { color: theme.colors.fg }]}
+                    value={content[displayLang]}
+                    onChangeText={(text) =>
+                      setContent((prev) => ({ ...prev, [displayLang]: text }))
+                    }
+                    multiline
+                    textAlignVertical="top"
+                    placeholder={t("marketplace.contentPlaceholder")}
+                    placeholderTextColor={theme.colors.muted}
+                    keyboardAppearance={mode === "dark" ? "dark" : "light"}
+                  />
+                </View>
+              </>
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </ScreenLayout>
     </Screen>
   );
 }
@@ -189,14 +191,8 @@ export function MarketplacePostEditScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     scrollContent: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.sm,
       paddingBottom: theme.spacing.xl,
-    },
-    h1: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
-      color: theme.colors.fg,
     },
     langRow: {
       flexDirection: "row",

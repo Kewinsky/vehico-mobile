@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Alert } from "react-native";
+import { StyleSheet, View, Alert } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Button } from "../ui/components/Button";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -48,10 +49,7 @@ export function PublicReportScreen({ navigation, route }: Props) {
         />
       }
     >
-      <View style={styles.fixedHeader}>
-        <Text style={styles.h1}>{t("publicReport.title")}</Text>
-      </View>
-      <View style={styles.content}>
+      <ScreenLayout title={t("publicReport.title")} scrollable={false}>
         <Button onPress={onGeneratePress}>
           {t("publicReport.generateButton")}
         </Button>
@@ -66,23 +64,9 @@ export function PublicReportScreen({ navigation, route }: Props) {
         >
           {t("publicReport.historyButton")}
         </Button>
-      </View>
+      </ScreenLayout>
     </Screen>
   );
 }
 
-const makeStyles = (theme: any) =>
-  StyleSheet.create({
-    fixedHeader: {
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    h1: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
-      color: theme.colors.fg,
-    },
-    content: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-  });
+const makeStyles = (_theme: any) => StyleSheet.create({});

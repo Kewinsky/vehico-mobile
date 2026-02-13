@@ -52,7 +52,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
-import { FollowCursorTextInput } from "../ui/components/FollowCursorTextInput";
+import { Textarea } from "../ui/components/Textarea";
 import { DriveTypeIcon } from "../ui/components/DriveTypeIcon";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
@@ -1430,7 +1430,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                 </Text>
               </View>
               <View style={{ marginTop: theme.spacing.xs }}>
-                <FollowCursorTextInput
+                <Textarea
                   value={notes}
                   onChangeText={setNotes}
                   editable={!saving}

@@ -38,7 +38,7 @@ import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../ui/components/ChoiceChip";
-import { FollowCursorTextInput } from "../ui/components/FollowCursorTextInput";
+import { Textarea } from "../ui/components/Textarea";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
 
@@ -597,7 +597,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             </Text>
           </View>
           <View style={{ marginTop: theme.spacing.xs }}>
-            <FollowCursorTextInput
+            <Textarea
               value={notes}
               onChangeText={setNotes}
               placeholder={t("reminderForm.placeholderNotes")}

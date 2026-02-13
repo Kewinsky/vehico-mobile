@@ -255,10 +255,12 @@ export const pl = {
     emptyBody: "Dodaj swój pierwszy samochód lub motocykl.",
     addVehicle: "Dodaj pojazd",
     freePlanPickerTitle: "Wybierz pojazd na plan Free",
-    freePlanPickerBody: "Na planie Free możesz mieć jeden pojazd. Pozostałe będą ukryte do odnowienia Premium.",
+    freePlanPickerBody:
+      "Na planie Free możesz mieć jeden pojazd. Pozostałe będą ukryte do odnowienia Premium.",
     freePlanPickerSave: "Zapisz",
     lockedVehicleAlertTitle: "Wymagane Premium",
-    lockedVehicleAlertBody: "Ten pojazd jest ukryty na planie Free. Odnów Premium, aby uzyskać dostęp. Dane ukrytych pojazdów zostaną trwale usunięte za {{days}} dni.",
+    lockedVehicleAlertBody:
+      "Ten pojazd jest ukryty na planie Free. Odnów Premium, aby uzyskać dostęp. Dane ukrytych pojazdów zostaną trwale usunięte za {{days}} dni.",
     lockedVehicleAlertCTA: "Przejdź do Premium",
   },
   vehicleForm: {
@@ -895,6 +897,16 @@ export const pl = {
     subtitle: "Kopia zapasowa i przywracanie danych pojazdu.",
     exportButton: "Eksportuj dane",
     importButton: "Importuj dane",
+    exportFormatTitle: "Format eksportu",
+    exportFormatJson: "JSON",
+    exportFormatCsv: "CSV",
+    exportCsvDataTypeTitle: "Które dane wyeksportować do CSV?",
+    exportCsvServiceEntries: "Wpisy serwisowe",
+    exportCsvFueling: "Tankowania",
+    exportCsvReminders: "Przypomnienia",
+    exportCsvWheels: "Felgi",
+    exportCsvTires: "Opony",
+    exportCsvWorkshops: "Warsztaty",
   },
   export: {
     title: "Eksport danych",
@@ -911,9 +923,16 @@ export const pl = {
     subtitle: "Importuj wpisy serwisowe z CSV.",
     csvLabel: "Wklej CSV",
     csvHint:
-      "Wymagane kolumny: service_date,title (opcjonalnie: description,mileage,cost)",
+      "Wymagane kolumny: service_date,title (opcjonalnie: category,description,mileage,cost)",
     placeholder:
-      "service_date;title;description;mileage;cost\n2026-01-14;Wymiana oleju;Olej i filtr;120000;250",
+      "service_date;category;title;description;mileage;cost\n2026-01-14;maintenance;Wymiana oleju;Olej i filtr;120000;250",
+    copyHeadersButton: "Kopiuj nagłówki",
+    copyColumnsButton: "Kopiuj kolumny",
+    headersCopied: "Nagłówki skopiowane do schowka",
+    columnsCopied: "Kolumny skopiowane do schowka",
+    headersToCopy: "service_date;category;title;description;mileage;cost",
+    columnsToCopy:
+      "service_date (YYYY-MM-DD)\ncategory (maintenance|repair|inspection|upgrade|oil_engine|other)\ntitle\ndescription\nmileage\ncost",
     importButton: "Importuj wpisy serwisowe",
     clearButton: "Wyczyść",
     confirmTitle: "Zaimportować wpisy?",

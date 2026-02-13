@@ -20,6 +20,7 @@ import {
   updateMarketplacePostTitle,
 } from "../services/marketplace/marketplaceRepo";
 import { AppHeader } from "../ui/components/AppHeader";
+import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -101,7 +102,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
             try {
               await updateMarketplacePostTitle(
                 post.id,
-                newTitle?.trim() || null
+                newTitle?.trim() || null,
               );
               toastSuccess(t("marketplace.titleUpdated"));
               await loadPosts();
@@ -112,7 +113,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
         },
       ],
       "plain-text",
-      post.title || ""
+      post.title || "",
     );
   }
 
@@ -126,16 +127,21 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padding={false} header={
+    <Screen
+      padding={false}
+      header={
         <AppHeader
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
-      }>
-      <View style={styles.wrap}>
-        <Text style={styles.h1}>{t("marketplace.historyTitle")}</Text>
-
+      }
+    >
+      <ScreenLayout
+        title={t("marketplace.historyTitle")}
+        scrollable={false}
+        contentContainerStyle={styles.wrap}
+      >
         {loading ? (
           <View style={styles.loadingContainer}>
             <LoadingIndicator />
@@ -202,7 +208,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
             )}
           />
         )}
-      </View>
+      </ScreenLayout>
     </Screen>
   );
 }
@@ -211,13 +217,6 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     wrap: {
       flex: 1,
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    h1: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
-      color: theme.colors.fg,
-      marginVertical: theme.spacing.md,
     },
     loadingContainer: {
       flex: 1,
