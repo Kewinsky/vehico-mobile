@@ -437,8 +437,14 @@ export function StatisticsScreen({ route, navigation }: Props) {
     { key: "other", label: t("dashboard.stats.tabs.other") },
   ];
 
-  const currentTire = tires.find((x) => x.is_currently_fitted) ?? null;
-  const currentWheel = wheels.find((x) => x.is_currently_fitted) ?? null;
+  const fittedTires = useMemo(
+    () => tires.filter((x) => x.is_currently_fitted).slice(0, 2),
+    [tires],
+  );
+  const fittedWheels = useMemo(
+    () => wheels.filter((x) => x.is_currently_fitted).slice(0, 2),
+    [wheels],
+  );
 
   const filtered = useMemo(() => {
     const today = new Date();
@@ -704,21 +710,11 @@ export function StatisticsScreen({ route, navigation }: Props) {
     : "—";
   const insuranceValidUntilLabel = vehicle?.insurance_valid_until ?? "—";
   const inspectionValidUntilLabel = vehicle?.inspection_valid_until ?? "—";
-  const currentTireLabel =
-    currentTire != null
-      ? `${currentTire.name} · ${formatTireDimensions(
-          currentTire.width_mm,
-          currentTire.aspect_ratio,
-          currentTire.diameter_inch,
-        )}`
-      : "—";
-  const currentWheelLabel =
-    currentWheel != null
-      ? `${currentWheel.name} · ${formatWheelDimensions(
-          currentWheel.width_inch,
-          currentWheel.diameter_inch,
-        )}`
-      : "—";
+  function firstWord(input: string) {
+    const t = (input ?? "").trim();
+    if (!t) return "—";
+    return t.split(/\s+/)[0] || t;
+  }
 
   const contentPadding =
     theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
@@ -1313,40 +1309,121 @@ export function StatisticsScreen({ route, navigation }: Props) {
                 },
               ]}
             >
-              <View style={styles.infoRow}>
-                <TireIcon size={18} color={theme.colors.muted} />
-                <Text
-                  style={[styles.infoRowLabel, { color: theme.colors.muted }]}
-                >
-                  {t("dashboard.stats.currentTire")}
-                </Text>
-                <View style={styles.infoRowValueWrap}>
-                  <Text
-                    style={[styles.infoRowValue, { color: theme.colors.fg }]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {currentTireLabel}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.infoRow}>
-                <RimIcon size={18} color={theme.colors.muted} />
-                <Text
-                  style={[styles.infoRowLabel, { color: theme.colors.muted }]}
-                >
-                  {t("dashboard.stats.currentWheel")}
-                </Text>
-                <View style={styles.infoRowValueWrap}>
-                  <Text
-                    style={[styles.infoRowValue, { color: theme.colors.fg }]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {currentWheelLabel}
-                  </Text>
-                </View>
-              </View>
+              {(() => {
+                const tireLine1 =
+                  fittedTires[0] != null
+                    ? `${firstWord(fittedTires[0].name)} · ${formatTireDimensions(
+                        fittedTires[0].width_mm,
+                        fittedTires[0].aspect_ratio,
+                        fittedTires[0].diameter_inch,
+                      )}`
+                    : "—";
+                const tireLine2 =
+                  fittedTires[1] != null
+                    ? `${firstWord(fittedTires[1].name)} · ${formatTireDimensions(
+                        fittedTires[1].width_mm,
+                        fittedTires[1].aspect_ratio,
+                        fittedTires[1].diameter_inch,
+                      )}`
+                    : "—";
+                const wheelLine1 =
+                  fittedWheels[0] != null
+                    ? `${firstWord(fittedWheels[0].name)} · ${formatWheelDimensions(
+                        fittedWheels[0].width_inch,
+                        fittedWheels[0].diameter_inch,
+                      )}`
+                    : "—";
+                const wheelLine2 =
+                  fittedWheels[1] != null
+                    ? `${firstWord(fittedWheels[1].name)} · ${formatWheelDimensions(
+                        fittedWheels[1].width_inch,
+                        fittedWheels[1].diameter_inch,
+                      )}`
+                    : "—";
+
+                return (
+                  <>
+                    <View style={styles.infoRow}>
+                      <TireIcon size={18} color={theme.colors.muted} />
+                      <Text
+                        style={[
+                          styles.infoRowLabel,
+                          { color: theme.colors.muted },
+                        ]}
+                      >
+                        {t("dashboard.stats.currentTire")}
+                      </Text>
+                    </View>
+                    <View style={styles.fittedSetRow}>
+                      <Text
+                        style={[
+                          styles.fittedSetText,
+                          { color: theme.colors.fg },
+                        ]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {tireLine1}
+                      </Text>
+                    </View>
+                    <View style={styles.fittedSetRow}>
+                      <Text
+                        style={[
+                          styles.fittedSetText,
+                          { color: theme.colors.fg },
+                        ]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {tireLine2}
+                      </Text>
+                    </View>
+
+                    <View
+                      style={[
+                        styles.divider,
+                        { backgroundColor: theme.colors.border },
+                      ]}
+                    />
+
+                    <View style={styles.infoRow}>
+                      <RimIcon size={18} color={theme.colors.muted} />
+                      <Text
+                        style={[
+                          styles.infoRowLabel,
+                          { color: theme.colors.muted },
+                        ]}
+                      >
+                        {t("dashboard.stats.currentWheel")}
+                      </Text>
+                    </View>
+                    <View style={styles.fittedSetRow}>
+                      <Text
+                        style={[
+                          styles.fittedSetText,
+                          { color: theme.colors.fg },
+                        ]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {wheelLine1}
+                      </Text>
+                    </View>
+                    <View style={styles.fittedSetRow}>
+                      <Text
+                        style={[
+                          styles.fittedSetText,
+                          { color: theme.colors.fg },
+                        ]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {wheelLine2}
+                      </Text>
+                    </View>
+                  </>
+                );
+              })()}
             </View>
           </View>
         </>
@@ -1367,7 +1444,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
     >
       <ScreenLayout
         title={t("dashboard.stats.title")}
-        scrollable={tab === "charts"}
+        scrollable
         filterPanel={filterPanelContent}
       >
         {cardContent}
@@ -1491,5 +1568,16 @@ const makeStyles = (theme: any) =>
       fontWeight: "700",
       fontSize: theme.typography.body,
       textAlign: "right",
+    },
+    divider: { height: 1, width: "100%" },
+    fittedSetRow: {
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+    },
+    fittedSetText: {
+      flex: 1,
+      minWidth: 0,
+      fontWeight: "700",
+      fontSize: theme.typography.body,
     },
   });

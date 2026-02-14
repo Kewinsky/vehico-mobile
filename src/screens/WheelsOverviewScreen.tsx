@@ -65,8 +65,14 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
     return unsub;
   }, [navigation, load]);
 
-  const currentTire = tires.find((x) => x.is_currently_fitted) ?? null;
-  const currentWheel = wheels.find((x) => x.is_currently_fitted) ?? null;
+  const fittedTires = useMemo(
+    () => tires.filter((x) => x.is_currently_fitted).slice(0, 2),
+    [tires],
+  );
+  const fittedWheels = useMemo(
+    () => wheels.filter((x) => x.is_currently_fitted).slice(0, 2),
+    [wheels],
+  );
 
   const content = loading ? (
     <View style={styles.loadingContainer}>
@@ -121,53 +127,57 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
         ]}
       >
         <View style={styles.currentRow}>
-          <TireIcon size={20} color={theme.colors.muted} />
+          <TireIcon size={24} color={theme.colors.muted} />
           <View style={styles.currentRowText}>
-            <Text style={[styles.cardLabel, { color: theme.colors.muted }]}>
-              {t("wheels.tiresSection")}
-            </Text>
-            <Text
-              style={[
-                styles.cardValue,
-                { color: currentTire ? theme.colors.fg : theme.colors.muted },
-              ]}
-              numberOfLines={1}
-            >
-              {currentTire
-                ? `${currentTire.name} · ${formatTireDimensions(
-                    currentTire.width_mm,
-                    currentTire.aspect_ratio,
-                    currentTire.diameter_inch,
-                  )}`
-                : t("wheels.noTires")}
-            </Text>
+            {fittedTires.length === 0 ? (
+              <Text style={[styles.cardValue, { color: theme.colors.muted }]}>
+                {t("wheels.noTires")}
+              </Text>
+            ) : (
+              <View style={{ gap: theme.spacing.xs }}>
+                {fittedTires.map((x) => (
+                  <Text
+                    key={x.id}
+                    style={[styles.cardValue, { color: theme.colors.fg }]}
+                    numberOfLines={1}
+                  >
+                    {`${x.name} · ${formatTireDimensions(
+                      x.width_mm,
+                      x.aspect_ratio,
+                      x.diameter_inch,
+                    )}`}
+                  </Text>
+                ))}
+              </View>
+            )}
           </View>
         </View>
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.currentRow}>
-          <RimIcon size={20} color={theme.colors.muted} />
+          <RimIcon size={24} color={theme.colors.muted} />
           <View style={styles.currentRowText}>
-            <Text style={[styles.cardLabel, { color: theme.colors.muted }]}>
-              {t("wheels.rimsSection")}
-            </Text>
-            <Text
-              style={[
-                styles.cardValue,
-                {
-                  color: currentWheel ? theme.colors.fg : theme.colors.muted,
-                },
-              ]}
-              numberOfLines={1}
-            >
-              {currentWheel
-                ? `${currentWheel.name} · ${formatWheelDimensions(
-                    currentWheel.width_inch,
-                    currentWheel.diameter_inch,
-                  )}`
-                : t("wheels.noWheels")}
-            </Text>
+            {fittedWheels.length === 0 ? (
+              <Text style={[styles.cardValue, { color: theme.colors.muted }]}>
+                {t("wheels.noWheels")}
+              </Text>
+            ) : (
+              <View style={{ gap: theme.spacing.xs }}>
+                {fittedWheels.map((x) => (
+                  <Text
+                    key={x.id}
+                    style={[styles.cardValue, { color: theme.colors.fg }]}
+                    numberOfLines={1}
+                  >
+                    {`${x.name} · ${formatWheelDimensions(
+                      x.width_inch,
+                      x.diameter_inch,
+                    )}`}
+                  </Text>
+                ))}
+              </View>
+            )}
           </View>
         </View>
       </View>
@@ -214,7 +224,6 @@ function makeStyles(theme: any) {
       fontSize: theme.typography.small,
     },
     cardValue: {
-      marginTop: 2,
       fontSize: theme.typography.body,
       fontWeight: "700",
     },

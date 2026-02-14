@@ -71,6 +71,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   const { isPremium, remindersLimit } = useEntitlements();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
+  const contentPad = theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -1038,8 +1039,12 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
             }
             return `${e.item.kind}:${e.item.id}`;
           }}
-          style={styles.list}
-          contentContainerStyle={styles.listContent}
+          style={[styles.list, { marginHorizontal: -contentPad }]}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingHorizontal: contentPad },
+          ]}
+          scrollIndicatorInsets={{ right: 0 }}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
           onTouchStart={Keyboard.dismiss}
