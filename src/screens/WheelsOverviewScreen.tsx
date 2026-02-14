@@ -141,11 +141,11 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
                     style={[styles.cardValue, { color: theme.colors.fg }]}
                     numberOfLines={1}
                   >
-                    {`${x.name} · ${formatTireDimensions(
+                    {`${formatTireDimensions(
                       x.width_mm,
                       x.aspect_ratio,
                       x.diameter_inch,
-                    )}`}
+                    )} · ${x.name}`}
                   </Text>
                 ))}
               </View>
@@ -170,10 +170,10 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
                     style={[styles.cardValue, { color: theme.colors.fg }]}
                     numberOfLines={1}
                   >
-                    {`${x.name} · ${formatWheelDimensions(
+                    {`${formatWheelDimensions(
                       x.width_inch,
                       x.diameter_inch,
-                    )}`}
+                    )} · ${x.name}`}
                   </Text>
                 ))}
               </View>

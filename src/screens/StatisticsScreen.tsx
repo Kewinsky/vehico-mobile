@@ -710,11 +710,6 @@ export function StatisticsScreen({ route, navigation }: Props) {
     : "—";
   const insuranceValidUntilLabel = vehicle?.insurance_valid_until ?? "—";
   const inspectionValidUntilLabel = vehicle?.inspection_valid_until ?? "—";
-  function firstWord(input: string) {
-    const t = (input ?? "").trim();
-    if (!t) return "—";
-    return t.split(/\s+/)[0] || t;
-  }
 
   const contentPadding =
     theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
@@ -1312,33 +1307,33 @@ export function StatisticsScreen({ route, navigation }: Props) {
               {(() => {
                 const tireLine1 =
                   fittedTires[0] != null
-                    ? `${firstWord(fittedTires[0].name)} · ${formatTireDimensions(
+                    ? `${formatTireDimensions(
                         fittedTires[0].width_mm,
                         fittedTires[0].aspect_ratio,
                         fittedTires[0].diameter_inch,
-                      )}`
+                      )} · ${(fittedTires[0].name ?? "").trim() || "—"}`
                     : "—";
                 const tireLine2 =
                   fittedTires[1] != null
-                    ? `${firstWord(fittedTires[1].name)} · ${formatTireDimensions(
+                    ? `${formatTireDimensions(
                         fittedTires[1].width_mm,
                         fittedTires[1].aspect_ratio,
                         fittedTires[1].diameter_inch,
-                      )}`
+                      )} · ${(fittedTires[1].name ?? "").trim() || "—"}`
                     : "—";
                 const wheelLine1 =
                   fittedWheels[0] != null
-                    ? `${firstWord(fittedWheels[0].name)} · ${formatWheelDimensions(
+                    ? `${formatWheelDimensions(
                         fittedWheels[0].width_inch,
                         fittedWheels[0].diameter_inch,
-                      )}`
+                      )} · ${(fittedWheels[0].name ?? "").trim() || "—"}`
                     : "—";
                 const wheelLine2 =
                   fittedWheels[1] != null
-                    ? `${firstWord(fittedWheels[1].name)} · ${formatWheelDimensions(
+                    ? `${formatWheelDimensions(
                         fittedWheels[1].width_inch,
                         fittedWheels[1].diameter_inch,
-                      )}`
+                      )} · ${(fittedWheels[1].name ?? "").trim() || "—"}`
                     : "—";
 
                 return (
