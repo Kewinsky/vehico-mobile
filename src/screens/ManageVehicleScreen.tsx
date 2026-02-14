@@ -266,9 +266,11 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                 />
               ) : (
                 <View style={styles.vehicleImagePlaceholder}>
-                  <Text style={styles.vehicleImagePlaceholderText}>
-                    {vehicle.type === "car" ? "🚗" : "🏍️"}
-                  </Text>
+                  <MaterialCommunityIcons
+                    name={vehicle.type === "car" ? "car-outline" : "motorbike"}
+                    size={theme.spacing.xl * 2}
+                    color={theme.colors.muted}
+                  />
                 </View>
               )}
             </View>

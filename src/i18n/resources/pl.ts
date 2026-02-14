@@ -169,7 +169,7 @@ export const pl = {
       useDifferentAccount: "Użyj innego konta",
     },
     name: {
-      title: "Jak masz na imię?",
+      title: "Jak mamy się do Ciebie zwracać?",
       label: "Imię",
       placeholder: "np. Alex",
       required: "Wpisz swoje imię.",
@@ -177,12 +177,12 @@ export const pl = {
     },
     vehicle: {
       type: {
-        title: "Typ pojazdu",
+        title: "Jaki pojazd chcesz dodać?",
         car: "Samochód",
         motorcycle: "Motocykl",
       },
       makeModel: {
-        title: "Marka i model",
+        title: "Wypełnij kilka podstawowych informacji",
         makeRequired: "Marka jest wymagana.",
         modelRequired: "Model jest wymagany.",
         makeMinLength: "Marka musi mieć co najmniej 2 znaki.",
@@ -211,8 +211,7 @@ export const pl = {
         powerMin: "Moc musi być większa niż 1.",
       },
       photo: {
-        title: "Zdjęcie pojazdu",
-        subtitle: "Zdjęcie pomoże szybciej rozpoznać pojazd.",
+        title: "Dodaj zdjęcie swojej perełki",
         addPhoto: "Dodaj zdjęcie",
         changePhoto: "Zmień zdjęcie",
         skip: "Pomiń zdjęcie",
@@ -241,8 +240,12 @@ export const pl = {
         reminders: "Ustawiaj przypomnienia",
         documents: "Trzymaj dokumenty i zdjęcia",
       },
-      cta: "Przejdź do moich pojazdów",
+      cta: "Zaczynamy!",
       doneToast: "Onboarding ukończony",
+    },
+    summary: {
+      title: "Gotowe{{nameSuffix}}",
+      subtitle: "Twoje dane są już przygotowane. Możesz przejść do aplikacji.",
     },
   },
   vehicles: {

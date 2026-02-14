@@ -1,12 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
+  Easing,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   View,
@@ -23,13 +23,8 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 import { Button } from "../ui/components/Button";
-import { SegmentTabs } from "../ui/components/SegmentTabs";
-import type {
-  DriveType,
-  FuelType,
-  TransmissionType,
-  VehicleType,
-} from "../types/domain";
+import { hexToRgba } from "../ui/components/ChoiceChip";
+import type { VehicleType } from "../types/domain";
 import { normalizeDisplayName } from "../utils/displayName";
 import {
   isNonNegativeNumber,
@@ -42,7 +37,6 @@ import { supabase } from "../services/supabase/client";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { useAuth } from "../app/providers/AuthProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
-import { DriveTypeIcon } from "../ui/components/DriveTypeIcon";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Onboarding">;
 
@@ -52,8 +46,9 @@ type PhotoFile = {
   fileName?: string | null;
 };
 
-const TOTAL_STEPS = 12;
+const TOTAL_STEPS = 6;
 const LAST_STEP_INDEX = TOTAL_STEPS - 1;
+const PROGRESS_STEPS = TOTAL_STEPS - 1; // don't count welcome step
 
 export function OnboardingFlowScreen({ navigation }: Props) {
   const { t } = useTranslation();
@@ -66,24 +61,16 @@ export function OnboardingFlowScreen({ navigation }: Props) {
   const distanceUnit = settings?.distanceUnit ?? "km";
 
   const [currentStep, setCurrentStep] = useState(0);
+  const [showValidation, setShowValidation] = useState(false);
 
   const [name, setName] = useState("");
-  const [vehicleType, setVehicleType] = useState<VehicleType>("car");
+  const [vehicleType, setVehicleType] = useState<VehicleType | null>(null);
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
-  const [vin, setVin] = useState("");
   const [mileage, setMileage] = useState("");
-  const [engineCapacity, setEngineCapacity] = useState("");
-  const [powerHp, setPowerHp] = useState("");
-  const [fuelType, setFuelType] = useState<FuelType | null>(null);
-  const [transmission, setTransmission] = useState<TransmissionType | null>(
-    null,
-  );
-  const [driveType, setDriveType] = useState<DriveType | null>(null);
 
   const [photo, setPhoto] = useState<PhotoFile | null>(null);
-  const [pushEnabled, setPushEnabled] = useState(true);
 
   const [saving, setSaving] = useState(false);
   const [createdVehicleId, setCreatedVehicleId] = useState<string | null>(null);
@@ -95,9 +82,19 @@ export function OnboardingFlowScreen({ navigation }: Props) {
   }, [make, model, year]);
 
   const showProgress = currentStep > 0;
-  const progressPct = useMemo(() => {
-    const n = Math.max(1, Math.min(TOTAL_STEPS, currentStep + 1));
-    return n / TOTAL_STEPS;
+  const progressAnim = useRef(new Animated.Value(currentStep)).current;
+
+  useEffect(() => {
+    Animated.timing(progressAnim, {
+      toValue: currentStep,
+      duration: 420,
+      easing: Easing.inOut(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [currentStep, progressAnim]);
+
+  useEffect(() => {
+    setShowValidation(false);
   }, [currentStep]);
 
   const canGoBack = currentStep > 0 && !saving;
@@ -105,71 +102,21 @@ export function OnboardingFlowScreen({ navigation }: Props) {
   const canGoNext = useMemo(() => {
     if (saving) return false;
     if (currentStep === 1) return name.trim().length >= 2;
-    if (currentStep === 3)
-      return make.trim().length >= 2 && model.trim().length >= 2;
-    if (currentStep === 4) return isValidProductionYear(year);
-    if (currentStep === 5) {
-      const v = vin.trim();
-      return v.length === 0 || v.length === 17;
-    }
-    if (currentStep === 7) {
-      if (engineCapacity.trim().length > 0) {
-        const n = Number(engineCapacity.trim());
-        if (!Number.isFinite(n) || n <= 1) return false;
-      }
-      if (powerHp.trim().length > 0) {
-        const n = Number(powerHp.trim());
-        if (!Number.isFinite(n) || n <= 1) return false;
-      }
+    if (currentStep === 2) return vehicleType != null;
+    if (currentStep === 3) {
+      if (make.trim().length < 2 || model.trim().length < 2) return false;
+      if (!isValidProductionYear(year)) return false;
+      if (!mileage.trim().length) return false;
+      if (!isNonNegativeNumber(mileage)) return false;
+      return true;
     }
     return true;
-  }, [
-    currentStep,
-    make,
-    model,
-    name,
-    saving,
-    year,
-    vin,
-    engineCapacity,
-    powerHp,
-  ]);
+  }, [currentStep, make, model, name, saving, vehicleType, year, mileage]);
 
   const nextLabel = useMemo(() => {
     if (currentStep === 0) return t("onboarding.welcome.getStarted");
     return t("common.next");
   }, [currentStep, t]);
-
-  function showPicker<T extends string>(opts: {
-    title: string;
-    value: T | null;
-    options: readonly T[];
-    getLabel: (v: T) => string;
-    onChange: (v: T | null) => void;
-    placeholderLabel?: string;
-  }) {
-    const buttons: Array<{
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default" | "destructive";
-    }> = [{ text: t("common.cancel"), style: "cancel" }];
-
-    if (opts.placeholderLabel) {
-      buttons.push({
-        text: opts.placeholderLabel,
-        onPress: () => opts.onChange(null),
-      });
-    }
-
-    opts.options.forEach((opt) => {
-      buttons.push({
-        text: opts.getLabel(opt),
-        onPress: () => opts.onChange(opt),
-      });
-    });
-
-    Alert.alert(opts.title, "", buttons, { cancelable: true });
-  }
 
   function onBack() {
     if (!canGoBack) return;
@@ -203,6 +150,11 @@ export function OnboardingFlowScreen({ navigation }: Props) {
   async function ensureVehicleCreated(): Promise<string | null> {
     if (createdVehicleId) return createdVehicleId;
 
+    if (!vehicleType) {
+      toastError(t("onboarding.vehicle.type.title"));
+      return null;
+    }
+
     if (make.trim().length < 2) {
       toastError(t("onboarding.vehicle.makeModel.makeMinLength"));
       return null;
@@ -216,29 +168,9 @@ export function OnboardingFlowScreen({ navigation }: Props) {
       return null;
     }
 
-    const vinTrimmed = vin.trim();
-    if (vinTrimmed.length > 0 && vinTrimmed.length !== 17) {
-      toastError(t("onboarding.vehicle.vin.exactLength"));
-      return null;
-    }
-
     if (mileage.trim() && !isNonNegativeNumber(mileage)) {
       toastError(t("validation.nonNegativeRequired"));
       return null;
-    }
-    if (engineCapacity.trim()) {
-      const n = Number(engineCapacity.trim());
-      if (!Number.isFinite(n) || n <= 1) {
-        toastError(t("onboarding.vehicle.specs.engineMin"));
-        return null;
-      }
-    }
-    if (powerHp.trim()) {
-      const n = Number(powerHp.trim());
-      if (!Number.isFinite(n) || n <= 1) {
-        toastError(t("onboarding.vehicle.specs.powerMin"));
-        return null;
-      }
     }
 
     // Check vehicle limit (same as VehicleForm)
@@ -263,18 +195,11 @@ export function OnboardingFlowScreen({ navigation }: Props) {
     const production_year = Number(year.trim());
     const created = await createVehicle({
       type: vehicleType,
-      vin: vin.trim().length ? vin.trim() : null,
+      vin: null,
       make: make.trim(),
       model: model.trim(),
       production_year,
       mileage: mileage.trim().length ? Number(mileage.trim()) : null,
-      engine_capacity: engineCapacity.trim().length
-        ? Number(engineCapacity.trim())
-        : null,
-      power_hp: powerHp.trim().length ? Number(powerHp.trim()) : null,
-      fuel_type: fuelType,
-      transmission,
-      drive_type: driveType,
     });
 
     setCreatedVehicleId(created.id);
@@ -299,7 +224,10 @@ export function OnboardingFlowScreen({ navigation }: Props) {
   }
 
   async function onNext() {
-    if (!canGoNext) return;
+    if (!canGoNext) {
+      setShowValidation(true);
+      return;
+    }
 
     // Guard: should never happen (e.g. session expired).
     if (!user) {
@@ -309,32 +237,42 @@ export function OnboardingFlowScreen({ navigation }: Props) {
     }
 
     try {
-      if (currentStep === 8) {
-        setCurrentStep(9);
-        return;
-      }
-
-      // Request push permissions on notifications step.
-      if (currentStep === 10) {
-        setSaving(true);
-        if (pushEnabled) {
-          try {
-            await Notifications.requestPermissionsAsync();
-          } catch (e) {
-            // Don't block onboarding on notification errors.
-            console.warn("Notifications permission request failed:", e);
-          }
-        }
-        setCurrentStep(11);
-        return;
-      }
-
       setCurrentStep((s) => Math.min(LAST_STEP_INDEX, s + 1));
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
       setSaving(false);
     }
+  }
+
+  function onFinish() {
+    if (saving) return;
+
+    Alert.alert(
+      t("onboarding.notifications.title"),
+      t("onboarding.notifications.subtitle"),
+      [
+        {
+          text: t("common.cancel"),
+          style: "cancel",
+          onPress: () => void onComplete(),
+        },
+        {
+          text: t("onboarding.notifications.enablePush"),
+          onPress: async () => {
+            try {
+              await Notifications.requestPermissionsAsync();
+            } catch (e) {
+              // Don't block onboarding on notification errors.
+              console.warn("Notifications permission request failed:", e);
+            } finally {
+              void onComplete();
+            }
+          },
+        },
+      ],
+      { cancelable: true },
+    );
   }
 
   async function onComplete() {
@@ -390,7 +328,7 @@ export function OnboardingFlowScreen({ navigation }: Props) {
 
   function renderStep() {
     const yearHelper =
-      currentStep === 4 &&
+      currentStep === 3 &&
       year.trim().length > 0 &&
       !isValidProductionYear(year)
         ? t("onboarding.vehicle.year.invalid")
@@ -451,15 +389,19 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                 />
               </View>
             </View>
-            {name.trim().length === 0 ? (
-              <Text style={[styles.helper, { color: theme.colors.muted }]}>
-                {t("onboarding.name.required")}
-              </Text>
-            ) : name.trim().length < 2 ? (
-              <Text style={[styles.helper, { color: theme.colors.muted }]}>
-                {t("onboarding.name.minLength")}
-              </Text>
-            ) : null}
+            {(() => {
+              const n = name.trim();
+              const showRequired = showValidation && n.length === 0;
+              const showMinLength = n.length > 0 && n.length < 2;
+              if (!showRequired && !showMinLength) return null;
+              return (
+                <Text style={[styles.helper, { color: theme.colors.muted }]}>
+                  {showRequired
+                    ? t("onboarding.name.required")
+                    : t("onboarding.name.minLength")}
+                </Text>
+              );
+            })()}
           </View>
         );
       case 2:
@@ -468,19 +410,93 @@ export function OnboardingFlowScreen({ navigation }: Props) {
             <Text style={[styles.title, { color: theme.colors.fg }]}>
               {t("onboarding.vehicle.type.title")}
             </Text>
+            <View style={styles.vehicleTypeRow}>
+              <Pressable
+                onPress={() => setVehicleType("car")}
+                disabled={saving}
+                hitSlop={10}
+                style={({ pressed }) => [
+                  styles.vehicleTypeCard,
+                  {
+                    borderColor:
+                      vehicleType === "car"
+                        ? theme.colors.accent
+                        : theme.colors.border,
+                    backgroundColor:
+                      vehicleType === "car"
+                        ? hexToRgba(theme.colors.accent, 0.12)
+                        : theme.colors.card,
+                  },
+                  pressed && { opacity: 0.92, transform: [{ scale: 0.985 }] },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="car-outline"
+                  size={35}
+                  color={
+                    vehicleType === "car" ? theme.colors.accent : theme.colors.muted
+                  }
+                />
+                <Text
+                  style={[
+                    styles.vehicleTypeLabel,
+                    {
+                      color:
+                        vehicleType === "car"
+                          ? theme.colors.fg
+                          : theme.colors.muted,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t("onboarding.vehicle.type.car")}
+                </Text>
+              </Pressable>
 
-            <SegmentTabs
-              value={vehicleType}
-              onChange={setVehicleType}
-              size="sm"
-              options={[
-                { value: "car", label: t("onboarding.vehicle.type.car") },
-                {
-                  value: "motorcycle",
-                  label: t("onboarding.vehicle.type.motorcycle"),
-                },
-              ]}
-            />
+              <Pressable
+                onPress={() => setVehicleType("motorcycle")}
+                disabled={saving}
+                hitSlop={10}
+                style={({ pressed }) => [
+                  styles.vehicleTypeCard,
+                  {
+                    borderColor:
+                      vehicleType === "motorcycle"
+                        ? theme.colors.accent
+                        : theme.colors.border,
+                    backgroundColor:
+                      vehicleType === "motorcycle"
+                        ? hexToRgba(theme.colors.accent, 0.12)
+                        : theme.colors.card,
+                  },
+                  pressed && { opacity: 0.92, transform: [{ scale: 0.985 }] },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="motorbike"
+                  size={35}
+                  color={
+                    vehicleType === "motorcycle"
+                      ? theme.colors.accent
+                      : theme.colors.muted
+                  }
+                />
+                <Text
+                  style={[
+                    styles.vehicleTypeLabel,
+                    {
+                      color:
+                        vehicleType === "motorcycle"
+                          ? theme.colors.fg
+                          : theme.colors.muted,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t("onboarding.vehicle.type.motorcycle")}
+                </Text>
+              </Pressable>
+            </View>
           </View>
         );
       case 3:
@@ -554,32 +570,12 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                   style={[styles.input, { color: theme.colors.fg }]}
                 />
               </View>
-            </View>
-            {(make.trim().length > 0 && make.trim().length < 2) ||
-            (model.trim().length > 0 && model.trim().length < 2) ? (
-              <Text style={[styles.helper, { color: theme.colors.muted }]}>
-                {make.trim().length > 0 && make.trim().length < 2
-                  ? t("onboarding.vehicle.makeModel.makeMinLength")
-                  : t("onboarding.vehicle.makeModel.modelMinLength")}
-              </Text>
-            ) : null}
-          </View>
-        );
-      case 4:
-        return (
-          <View style={styles.step}>
-            <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("onboarding.vehicle.year.title")}
-            </Text>
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
               <View style={styles.row}>
                 <View style={styles.rowLeft}>
                   <Ionicons
@@ -600,104 +596,18 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                   placeholder={t("vehicleForm.placeholderYear")}
                   placeholderTextColor={theme.colors.muted}
                   keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  keyboardType="number-pad"
                   editable={!saving}
+                  keyboardType="number-pad"
                   maxLength={4}
                   style={[styles.input, { color: theme.colors.fg }]}
                 />
               </View>
-            </View>
-            {yearHelper ? (
-              <Text style={[styles.helper, { color: theme.colors.muted }]}>
-                {yearHelper}
-              </Text>
-            ) : null}
-          </View>
-        );
-      case 5:
-        return (
-          <View style={styles.step}>
-            <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("onboarding.vehicle.vin.title")}
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-              {t("onboarding.vehicle.vin.subtitle")}
-            </Text>
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.row}>
-                <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="barcode-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("vehicleForm.vinLabel")}
-                  </Text>
-                </View>
-                <TextInput
-                  value={vin}
-                  onChangeText={setVin}
-                  placeholder={t("vehicleForm.placeholderVin")}
-                  placeholderTextColor={theme.colors.muted}
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  editable={!saving}
-                  autoCapitalize="characters"
-                  style={[styles.input, { color: theme.colors.fg }]}
-                />
-              </View>
-            </View>
-            {vin.trim().length > 0 && vin.trim().length !== 17 ? (
-              <Text style={[styles.helper, { color: theme.colors.muted }]}>
-                {t("onboarding.vehicle.vin.exactLength")}
-              </Text>
-            ) : null}
-            <Pressable
-              onPress={() => {
-                setVin("");
-                void onNext();
-              }}
-              hitSlop={10}
-              style={({ pressed }) => [
-                styles.skipLink,
-                pressed && { opacity: 0.75 },
-              ]}
-            >
-              <Text style={[styles.skipText, { color: theme.colors.accent }]}>
-                {t("onboarding.vehicle.vin.skip")}
-              </Text>
-            </Pressable>
-          </View>
-        );
-      case 6:
-        return (
-          <View style={styles.step}>
-            <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("onboarding.vehicle.mileage.title")}
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-              {t("onboarding.vehicle.mileage.subtitle")}
-            </Text>
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
               <View style={styles.row}>
                 <View style={styles.rowLeft}>
                   <Ionicons
@@ -724,330 +634,43 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                 />
               </View>
             </View>
-            <Pressable
-              onPress={() => {
-                setMileage("");
-                void onNext();
-              }}
-              hitSlop={10}
-              style={({ pressed }) => [
-                styles.skipLink,
-                pressed && { opacity: 0.75 },
-              ]}
-            >
-              <Text style={[styles.skipText, { color: theme.colors.accent }]}>
-                {t("onboarding.vehicle.mileage.skip")}
-              </Text>
-            </Pressable>
-          </View>
-        );
-      case 7:
-        return (
-          <View style={styles.step}>
-            <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("onboarding.vehicle.specs.title")}
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-              {t("onboarding.vehicle.specs.subtitle")}
-            </Text>
-
             {(() => {
-              type TransmissionTab = TransmissionType | "none";
-              type DriveTab = DriveType | "none";
-
-              const transmissionTab: TransmissionTab = transmission ?? "none";
-              const driveTab: DriveTab = driveType ?? "none";
-
+              const makeInvalid =
+                make.trim().length > 0 && make.trim().length < 2;
+              const modelInvalid =
+                model.trim().length > 0 && model.trim().length < 2;
+              const mileageMissing = mileage.trim().length === 0;
+              const mileageInvalid =
+                mileage.trim().length > 0 && !isNonNegativeNumber(mileage);
+              const showMileageMissing = showValidation && mileageMissing;
+              if (
+                !makeInvalid &&
+                !modelInvalid &&
+                !yearHelper &&
+                !showMileageMissing &&
+                !mileageInvalid
+              )
+                return null;
               return (
-                <View
-                  style={[
-                    styles.card,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
-                  <View style={styles.row}>
-                    <View style={styles.rowLeft}>
-                      <MaterialCommunityIcons
-                        name="engine"
-                        size={20}
-                        color={theme.colors.accent}
-                      />
-                      <Text
-                        style={[styles.label, { color: theme.colors.muted }]}
-                        numberOfLines={1}
-                      >
-                        {t("vehicleForm.engineCapacityLabel")}
-                      </Text>
-                    </View>
-                    <TextInput
-                      value={engineCapacity}
-                      onChangeText={setEngineCapacity}
-                      placeholder={t("vehicleForm.placeholderEngineCapacity")}
-                      placeholderTextColor={theme.colors.muted}
-                      keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                      keyboardType="number-pad"
-                      editable={!saving}
-                      style={[styles.input, { color: theme.colors.fg }]}
-                    />
-                  </View>
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                  <View style={styles.row}>
-                    <View style={styles.rowLeft}>
-                      <Ionicons
-                        name="flash-outline"
-                        size={20}
-                        color={theme.colors.accent}
-                      />
-                      <Text
-                        style={[styles.label, { color: theme.colors.muted }]}
-                        numberOfLines={1}
-                      >
-                        {t("vehicleForm.powerHpLabel")}
-                      </Text>
-                    </View>
-                    <TextInput
-                      value={powerHp}
-                      onChangeText={setPowerHp}
-                      placeholder={t("vehicleForm.placeholderPowerHp")}
-                      placeholderTextColor={theme.colors.muted}
-                      keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                      keyboardType="number-pad"
-                      editable={!saving}
-                      style={[styles.input, { color: theme.colors.fg }]}
-                    />
-                  </View>
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-
-                  <Pressable
-                    onPress={() =>
-                      showPicker<FuelType>({
-                        title: t("vehicleForm.fuelTypeLabel"),
-                        value: fuelType,
-                        options: [
-                          "petrol",
-                          "diesel",
-                          "hybrid",
-                          "electric",
-                          "lpg",
-                        ] as const,
-                        getLabel: (value) =>
-                          t(
-                            `vehicleForm.fuelType${
-                              value.charAt(0).toUpperCase() + value.slice(1)
-                            }` as
-                              | "vehicleForm.fuelTypePetrol"
-                              | "vehicleForm.fuelTypeDiesel"
-                              | "vehicleForm.fuelTypeHybrid"
-                              | "vehicleForm.fuelTypeElectric"
-                              | "vehicleForm.fuelTypeLpg",
-                          ),
-                        onChange: setFuelType,
-                        placeholderLabel: t("vehicleForm.fuelTypePlaceholder"),
-                      })
-                    }
-                    style={({ pressed }) => [
-                      styles.row,
-                      pressed && { opacity: 0.75 },
-                    ]}
-                  >
-                    <View style={styles.rowLeft}>
-                      <Ionicons
-                        name="water-outline"
-                        size={20}
-                        color={theme.colors.accent}
-                      />
-                      <Text
-                        style={[styles.label, { color: theme.colors.muted }]}
-                        numberOfLines={1}
-                      >
-                        {t("vehicleForm.fuelTypeLabel")}
-                      </Text>
-                    </View>
-                    <Text
-                      style={[
-                        styles.valueText,
-                        {
-                          color: fuelType
-                            ? theme.colors.fg
-                            : theme.colors.muted,
-                          textAlign: "right",
-                        },
-                      ]}
-                    >
-                      {fuelType
-                        ? t(
-                            `vehicleForm.fuelType${
-                              fuelType.charAt(0).toUpperCase() +
-                              fuelType.slice(1)
-                            }` as
-                              | "vehicleForm.fuelTypePetrol"
-                              | "vehicleForm.fuelTypeDiesel"
-                              | "vehicleForm.fuelTypeHybrid"
-                              | "vehicleForm.fuelTypeElectric"
-                              | "vehicleForm.fuelTypeLpg",
-                          )
-                        : t("vehicleForm.fuelTypePlaceholder")}
-                    </Text>
-                  </Pressable>
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                  <View>
-                    <View style={styles.row}>
-                      <View style={styles.rowLeft}>
-                        <Ionicons
-                          name="swap-horizontal-outline"
-                          size={20}
-                          color={theme.colors.accent}
-                        />
-                        <Text
-                          style={[styles.label, { color: theme.colors.muted }]}
-                          numberOfLines={1}
-                        >
-                          {t("vehicleForm.transmissionLabel")}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.segmentTabsNewLine}>
-                      <SegmentTabs<TransmissionTab>
-                        value={transmissionTab}
-                        size="sm"
-                        onChange={(v) =>
-                          setTransmission(
-                            v === "none" ? null : (v as TransmissionType),
-                          )
-                        }
-                        options={[
-                          {
-                            value: "manual",
-                            label: t("vehicleForm.transmissionManual"),
-                          },
-                          {
-                            value: "automatic",
-                            label: t("vehicleForm.transmissionAutomatic"),
-                          },
-                          { value: "none", label: "—" },
-                        ]}
-                      />
-                    </View>
-                  </View>
-                  <View
-                    style={[
-                      styles.divider,
-                      { backgroundColor: theme.colors.border },
-                    ]}
-                  />
-                  <View>
-                    <View style={styles.row}>
-                      <View style={styles.rowLeft}>
-                        <Ionicons
-                          name="git-branch-outline"
-                          size={20}
-                          color={theme.colors.accent}
-                        />
-                        <Text
-                          style={[styles.label, { color: theme.colors.muted }]}
-                          numberOfLines={1}
-                        >
-                          {t("vehicleForm.driveTypeLabel")}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.segmentTabsNewLine}>
-                      <SegmentTabs<DriveTab>
-                        value={driveTab}
-                        size="sm"
-                        onChange={(v) =>
-                          setDriveType(v === "none" ? null : (v as DriveType))
-                        }
-                        options={[
-                          { value: "FWD", label: "FWD" },
-                          { value: "RWD", label: "RWD" },
-                          { value: "AWD", label: "AWD" },
-                          { value: "none", label: "—" },
-                        ]}
-                      />
-                    </View>
-                  </View>
-                </View>
-              );
-            })()}
-
-            {(() => {
-              const engineInvalid =
-                engineCapacity.trim().length > 0 &&
-                (() => {
-                  const n = Number(engineCapacity.trim());
-                  return !Number.isFinite(n) || n <= 1;
-                })();
-              const powerInvalid =
-                powerHp.trim().length > 0 &&
-                (() => {
-                  const n = Number(powerHp.trim());
-                  return !Number.isFinite(n) || n <= 1;
-                })();
-              if (!engineInvalid && !powerInvalid) return null;
-              return (
-                <Text
-                  style={[
-                    styles.helper,
-                    { color: theme.colors.muted, marginTop: theme.spacing.xs },
-                  ]}
-                >
-                  {engineInvalid
-                    ? t("onboarding.vehicle.specs.engineMin")
-                    : t("onboarding.vehicle.specs.powerMin")}
+                <Text style={[styles.helper, { color: theme.colors.muted }]}>
+                  {makeInvalid
+                    ? t("onboarding.vehicle.makeModel.makeMinLength")
+                    : modelInvalid
+                      ? t("onboarding.vehicle.makeModel.modelMinLength")
+                      : yearHelper
+                        ? yearHelper
+                        : t("validation.nonNegativeRequired")}
                 </Text>
               );
             })()}
-
-            <Pressable
-              onPress={() => {
-                setEngineCapacity("");
-                setPowerHp("");
-                setFuelType(null);
-                setTransmission(null);
-                setDriveType(null);
-                void onNext();
-              }}
-              hitSlop={10}
-              style={({ pressed }) => [
-                styles.skipLink,
-                pressed && { opacity: 0.75 },
-              ]}
-            >
-              <Text style={[styles.skipText, { color: theme.colors.accent }]}>
-                {t("onboarding.vehicle.specs.skipAll")}
-              </Text>
-            </Pressable>
           </View>
         );
-      case 8:
+      case 4:
         return (
           <View style={styles.step}>
             <Text style={[styles.title, { color: theme.colors.fg }]}>
               {t("onboarding.vehicle.photo.title")}
             </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-              {t("onboarding.vehicle.photo.subtitle")}
-            </Text>
-
             {photo?.uri ? (
               <View
                 style={[
@@ -1094,25 +717,20 @@ export function OnboardingFlowScreen({ navigation }: Props) {
             </Pressable>
           </View>
         );
-      case 9:
+      case 5:
         return (
           <View style={styles.step}>
             <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("onboarding.vehicle.confirm.title")}
+              {t("onboarding.summary.title", {
+                nameSuffix: normalizeDisplayName(name).trim()
+                  ? `, ${normalizeDisplayName(name).trim()}!`
+                  : "!",
+              })}
             </Text>
             <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-              {createdVehicleId
-                ? t("onboarding.vehicle.confirm.subtitleAdded", {
-                    make: make.trim(),
-                    model: model.trim(),
-                    year: year.trim(),
-                  })
-                : t("onboarding.vehicle.confirm.subtitleNotAdded", {
-                    make: make.trim(),
-                    model: model.trim(),
-                    year: year.trim(),
-                  })}
+              {t("onboarding.summary.subtitle")}
             </Text>
+
             <View
               style={[
                 styles.detailsCard,
@@ -1137,25 +755,18 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                       { backgroundColor: theme.colors.border },
                     ]}
                   >
-                    <Text style={styles.vehicleImagePlaceholderText}>
-                      {vehicleType === "car" ? "🚗" : "🏍️"}
-                    </Text>
+                    <MaterialCommunityIcons
+                      name={vehicleType === "motorcycle" ? "motorbike" : "car-outline"}
+                      size={theme.spacing.xl * 2}
+                      color={theme.colors.muted}
+                    />
                   </View>
                 )}
               </View>
               <View style={styles.detailsContent}>
                 <Text style={[styles.detailsTitle, { color: theme.colors.fg }]}>
-                  {vehicleTitle || "—"}
+                  {[make.trim(), model.trim()].filter(Boolean).join(" ") || "—"}
                 </Text>
-                {vin.trim().length ? (
-                  <View style={styles.vinRow}>
-                    <Text
-                      style={[styles.vinText, { color: theme.colors.muted }]}
-                    >
-                      {vin.trim()}
-                    </Text>
-                  </View>
-                ) : null}
                 <View
                   style={[
                     styles.detailsDivider,
@@ -1231,271 +842,8 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                       </View>
                     </View>
                   </View>
-
-                  <View style={styles.detailsRow}>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <MaterialCommunityIcons
-                          name="engine"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text
-                          style={[
-                            styles.detailLabel,
-                            { color: theme.colors.muted },
-                          ]}
-                        >
-                          {t("vehicleForm.engineCapacityLabel")}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.detailValue,
-                            { color: theme.colors.fg },
-                          ]}
-                        >
-                          {engineCapacity.trim().length
-                            ? `${engineCapacity.trim()} cm³`
-                            : "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="flash-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text
-                          style={[
-                            styles.detailLabel,
-                            { color: theme.colors.muted },
-                          ]}
-                        >
-                          {t("vehicleForm.powerHpLabel")}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.detailValue,
-                            { color: theme.colors.fg },
-                          ]}
-                        >
-                          {powerHp.trim().length
-                            ? `${powerHp.trim()} HP`
-                            : "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View style={styles.detailsRow}>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="water-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text
-                          style={[
-                            styles.detailLabel,
-                            { color: theme.colors.muted },
-                          ]}
-                        >
-                          {t("vehicleForm.fuelTypeLabel")}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.detailValue,
-                            { color: theme.colors.fg },
-                          ]}
-                        >
-                          {fuelType
-                            ? t(
-                                fuelType === "petrol"
-                                  ? "vehicleForm.fuelTypePetrol"
-                                  : fuelType === "diesel"
-                                    ? "vehicleForm.fuelTypeDiesel"
-                                    : fuelType === "hybrid"
-                                      ? "vehicleForm.fuelTypeHybrid"
-                                      : fuelType === "electric"
-                                        ? "vehicleForm.fuelTypeElectric"
-                                        : "vehicleForm.fuelTypeLpg",
-                              )
-                            : "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <MaterialCommunityIcons
-                          name="car-shift-pattern"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text
-                          style={[
-                            styles.detailLabel,
-                            { color: theme.colors.muted },
-                          ]}
-                        >
-                          {t("vehicleForm.transmissionLabel")}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.detailValue,
-                            { color: theme.colors.fg },
-                          ]}
-                        >
-                          {transmission
-                            ? t(
-                                transmission === "manual"
-                                  ? "vehicleForm.transmissionManual"
-                                  : "vehicleForm.transmissionAutomatic",
-                              )
-                            : "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View style={styles.detailsRow}>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <DriveTypeIcon size={18} color={theme.colors.accent} />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text
-                          style={[
-                            styles.detailLabel,
-                            { color: theme.colors.muted },
-                          ]}
-                        >
-                          {t("vehicleForm.driveTypeLabel")}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.detailValue,
-                            { color: theme.colors.fg },
-                          ]}
-                        >
-                          {driveType ?? "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.detailItem} />
-                  </View>
                 </View>
               </View>
-            </View>
-          </View>
-        );
-      case 10:
-        return (
-          <View style={styles.step}>
-            <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("onboarding.notifications.title")}
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-              {t("onboarding.notifications.subtitle")}
-            </Text>
-
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.row}>
-                <Ionicons
-                  name="notifications-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text style={[styles.valueText, { color: theme.colors.fg }]}>
-                  {t("onboarding.notifications.enablePush")}
-                </Text>
-                <Switch
-                  value={pushEnabled}
-                  onValueChange={setPushEnabled}
-                  trackColor={{
-                    false: theme.colors.border,
-                    true: theme.colors.accent,
-                  }}
-                  thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
-                />
-              </View>
-            </View>
-          </View>
-        );
-      case 11:
-        return (
-          <View style={styles.step}>
-            <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("onboarding.complete.title")}
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-              {t("onboarding.complete.subtitle")}
-            </Text>
-
-            <View style={{ gap: theme.spacing.xs }}>
-              {(
-                [
-                  t("onboarding.complete.features.service"),
-                  t("onboarding.complete.features.fueling"),
-                  t("onboarding.complete.features.wheels"),
-                  t("onboarding.complete.features.reminders"),
-                  t("onboarding.complete.features.documents"),
-                ] as const
-              ).map((line) => (
-                <View key={line} style={styles.bulletRow}>
-                  <Ionicons
-                    name="checkmark"
-                    size={18}
-                    color={theme.colors.accent}
-                  />
-                  <Text style={[styles.bulletText, { color: theme.colors.fg }]}>
-                    {line}
-                  </Text>
-                </View>
-              ))}
             </View>
           </View>
         );
@@ -1510,32 +858,37 @@ export function OnboardingFlowScreen({ navigation }: Props) {
         style={[
           styles.topBar,
           {
-            borderBottomColor: theme.colors.border,
             backgroundColor: theme.colors.bg,
           },
         ]}
       >
         {showProgress ? (
           <View style={styles.progressWrap}>
-            <View
-              style={[
-                styles.progressTrack,
-                { backgroundColor: theme.colors.border },
-              ]}
-            >
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    backgroundColor: theme.colors.accent,
-                    width: `${Math.round(progressPct * 100)}%`,
-                  },
-                ]}
-              />
+            <View style={styles.progressSegmentsRow}>
+              {Array.from({ length: PROGRESS_STEPS }).map((_, i) => {
+                const w = progressAnim.interpolate({
+                  inputRange: [i, i + 1],
+                  outputRange: ["0%", "100%"],
+                  extrapolate: "clamp",
+                });
+                return (
+                  <View
+                    key={i}
+                    style={[
+                      styles.progressSegment,
+                      { backgroundColor: theme.colors.border },
+                    ]}
+                  >
+                    <Animated.View
+                      style={[
+                        styles.progressSegmentFill,
+                        { backgroundColor: theme.colors.accent, width: w },
+                      ]}
+                    />
+                  </View>
+                );
+              })}
             </View>
-            <Text style={[styles.progressText, { color: theme.colors.muted }]}>
-              {currentStep + 1}/{TOTAL_STEPS}
-            </Text>
           </View>
         ) : (
           <View style={styles.progressWrap} />
@@ -1555,30 +908,43 @@ export function OnboardingFlowScreen({ navigation }: Props) {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <ScrollView
-          contentContainerStyle={[
+        <View
+          style={[
             styles.content,
             { paddingHorizontal: theme.layout.contentPaddingHorizontal },
           ]}
-          keyboardShouldPersistTaps="handled"
         >
           {renderStep()}
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
 
       <View
         style={[
           styles.footer,
           {
-            borderTopColor: theme.colors.border,
             backgroundColor: theme.colors.bg,
           },
         ]}
       >
         {currentStep === LAST_STEP_INDEX ? (
-          <Button onPress={() => void onComplete()} disabled={saving}>
-            {saving ? t("common.saving") : t("onboarding.complete.cta")}
-          </Button>
+          <View style={styles.footerRow}>
+            <Button
+              variant="outlined"
+              onPress={onBack}
+              disabled={!canGoBack}
+              style={{ flex: 1, width: "auto" }}
+            >
+              {t("common.back")}
+            </Button>
+            <Button
+              variant="primary"
+              onPress={onFinish}
+              disabled={saving}
+              style={{ flex: 1, width: "auto" }}
+            >
+              {saving ? t("common.saving") : t("onboarding.complete.cta")}
+            </Button>
+          </View>
         ) : currentStep === 0 ? (
           <Button
             variant="primary"
@@ -1620,7 +986,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      borderBottomWidth: 1,
     },
     backBtn: {
       width: theme.spacing.xl + theme.spacing.xs,
@@ -1634,13 +999,18 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       justifyContent: "center",
       gap: 6,
     },
-    progressTrack: {
+    progressSegmentsRow: {
       alignSelf: "stretch",
+      flexDirection: "row",
+      gap: 6,
+    },
+    progressSegment: {
+      flex: 1,
       height: 6,
       borderRadius: 999,
       overflow: "hidden",
     },
-    progressFill: {
+    progressSegmentFill: {
       height: "100%",
       borderRadius: 999,
     },
@@ -1769,6 +1139,56 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontSize: theme.typography.small,
       fontWeight: "700",
     },
+    summaryImageContainer: {
+      width: "100%",
+      height: 180,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+      marginBottom: theme.spacing.md,
+    },
+    summaryImage: {
+      width: "100%",
+      height: "100%",
+    },
+    summaryImagePlaceholder: {
+      width: "100%",
+      height: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    summaryContent: {
+      gap: theme.spacing.sm,
+    },
+    summaryRows: {
+      gap: theme.spacing.sm,
+    },
+    summaryRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: theme.spacing.sm,
+    },
+    summaryIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: theme.radius.sm,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    summaryRowContent: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2,
+    },
+    summaryRowLabel: {
+      fontSize: theme.typography.xs,
+      fontWeight: "700",
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    summaryRowValue: {
+      fontSize: theme.typography.body,
+      fontWeight: "700",
+    },
     detailsCard: {
       borderRadius: theme.radius.md,
       overflow: "hidden",
@@ -1874,11 +1294,38 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flex: 1,
     },
     footer: {
-      borderTopWidth: 1,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.sm,
       paddingBottom: insets.bottom + theme.spacing.md,
       gap: theme.spacing.xs,
+    },
+    vehicleTypeRow: {
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+    },
+    vehicleTypeCard: {
+      borderWidth: 1,
+      borderRadius: 16,
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md,
+      flex: 1,
+      minHeight: 120,
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: theme.spacing.xs,
+    },
+    vehicleTypeIconWrap: {
+      width: 54,
+      height: 54,
+      borderRadius: 16,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    vehicleTypeLabel: {
+      fontSize: theme.typography.body,
+      fontWeight: "800",
+      textAlign: "center",
     },
     footerRow: {
       flexDirection: "row",

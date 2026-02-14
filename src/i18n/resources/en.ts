@@ -167,7 +167,7 @@ export const en = {
       useDifferentAccount: "Use a different account",
     },
     name: {
-      title: "What's your name?",
+      title: "How should we address you?",
       label: "Name",
       placeholder: "e.g. Alex",
       required: "Please enter your name.",
@@ -175,12 +175,12 @@ export const en = {
     },
     vehicle: {
       type: {
-        title: "Vehicle type",
+        title: "What vehicle do you want to add?",
         car: "Car",
         motorcycle: "Motorcycle",
       },
       makeModel: {
-        title: "Make and model",
+        title: "Fill in a few basic details",
         makeRequired: "Make is required.",
         modelRequired: "Model is required.",
         makeMinLength: "Make must be at least 2 characters.",
@@ -209,8 +209,7 @@ export const en = {
         powerMin: "Power must be greater than 1.",
       },
       photo: {
-        title: "Vehicle photo",
-        subtitle: "A photo helps you quickly recognize your vehicle.",
+        title: "Add a photo of your pride and joy",
         addPhoto: "Add photo",
         changePhoto: "Change photo",
         skip: "Skip photo",
@@ -237,8 +236,12 @@ export const en = {
         reminders: "Set reminders",
         documents: "Store documents and photos",
       },
-      cta: "Go to my vehicles",
+      cta: "Let’s go!",
       doneToast: "Onboarding completed",
+    },
+    summary: {
+      title: "All set{{nameSuffix}}",
+      subtitle: "Your details are ready. You can continue to the app.",
     },
   },
   vehicles: {
