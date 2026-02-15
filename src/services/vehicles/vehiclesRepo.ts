@@ -41,11 +41,22 @@ export async function getVehicle(vehicleId: string): Promise<Vehicle> {
 }
 
 export async function createVehicle(input: NewVehicleInput): Promise<Vehicle> {
-  const { data, error } = await supabase
-    .from("vehicles")
-    .insert(input)
-    .select("*")
-    .single();
+  const { data, error } = await supabase.rpc("create_vehicle", {
+    p_type: input.type,
+    p_vin: input.vin,
+    p_make: input.make,
+    p_model: input.model,
+    p_production_year: input.production_year,
+    p_mileage: input.mileage ?? null,
+    p_engine_capacity: input.engine_capacity ?? null,
+    p_power_hp: input.power_hp ?? null,
+    p_fuel_type: input.fuel_type ?? null,
+    p_transmission: input.transmission ?? null,
+    p_drive_type: input.drive_type ?? null,
+    p_notes: input.notes ?? null,
+    p_insurance_valid_until: input.insurance_valid_until ?? null,
+    p_inspection_valid_until: input.inspection_valid_until ?? null,
+  });
   if (error) throw error;
   return data as Vehicle;
 }

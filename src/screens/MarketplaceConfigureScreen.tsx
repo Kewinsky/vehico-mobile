@@ -206,7 +206,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
         <Button onPress={handleNext}>{t("marketplace.nextButton")}</Button>
       }
     >
-      <ScreenLayout title={t("marketplace.configureTitle")} scrollable={false}>
+      <ScreenLayout title={t("marketplace.configureTitle")} scrollable={true}>
         <View style={styles.scrollView}>
           {loading ? (
             <View style={styles.loadingContainer}>

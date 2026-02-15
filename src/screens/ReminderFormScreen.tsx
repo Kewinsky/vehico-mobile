@@ -36,6 +36,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
+import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlementAlerts";
 import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { Textarea } from "../ui/components/Textarea";
@@ -206,6 +207,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       }
       navigation.goBack();
     } catch (e: any) {
+      if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) return;
       toastError(e?.message ?? t("common.error"));
     } finally {
       setSaving(false);

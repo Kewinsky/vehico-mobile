@@ -8,6 +8,7 @@ import * as Notifications from "expo-notifications";
 import "../i18n/i18n";
 import { RootNavigator } from "./navigation/RootNavigator";
 import { navigationRef } from "./navigationRef";
+import { PremiumDowngradeHandler } from "./PremiumDowngradeHandler";
 import { AuthProvider } from "./providers/AuthProvider";
 import { UserSettingsProvider } from "./providers/UserSettingsProvider";
 import { EntitlementsProvider } from "./providers/EntitlementsProvider";
@@ -119,6 +120,7 @@ function AppContent() {
     <>
       <NavigationContainer ref={navigationRef} linking={linking}>
         <RootNavigator />
+        <PremiumDowngradeHandler />
       </NavigationContainer>
       <AppToasts />
     </>

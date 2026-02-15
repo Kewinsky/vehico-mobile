@@ -25,6 +25,7 @@ import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
+import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlementAlerts";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WorkshopForm">;
@@ -169,6 +170,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       }
       navigation.goBack();
     } catch (e: any) {
+      if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) return;
       toastError(e?.message ?? t("common.error"));
     } finally {
       setSaving(false);

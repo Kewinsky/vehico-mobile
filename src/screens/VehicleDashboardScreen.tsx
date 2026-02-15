@@ -178,6 +178,20 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
   const handleAddReminder = () => {
     setShowMenu(false);
+    if (!isPremium) {
+      Alert.alert(
+        t("limits.premiumRequiredTitle"),
+        t("limits.premiumRequiredBody"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("limits.upgradeToPremium"),
+            onPress: () => navigation.navigate("Shop"),
+          },
+        ],
+      );
+      return;
+    }
     navigation.navigate("ReminderForm", { vehicleId });
   };
 

@@ -411,6 +411,7 @@ export function VehiclesScreen({ navigation }: Props) {
             data={sortedItems}
             keyExtractor={(v) => v.id}
             contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
             refreshing={refreshing}
             onRefresh={() => void load({ refreshing: true })}
             ItemSeparatorComponent={() => (

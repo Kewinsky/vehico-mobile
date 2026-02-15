@@ -318,10 +318,18 @@ export function RemindersScreen({ route, navigation }: Props) {
   }, [items, query, dateFrom, dateTo, statusFilter]);
 
   function onAddReminderPress() {
-    if (isPremium) {
-      navigation.navigate("ReminderForm", {
-        vehicleId: route.params.vehicleId,
-      });
+    if (!isPremium) {
+      Alert.alert(
+        t("limits.premiumRequiredTitle"),
+        t("limits.premiumRequiredBody"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("limits.upgradeToPremium"),
+            onPress: () => navigation.navigate("Shop"),
+          },
+        ],
+      );
       return;
     }
     if (items.length >= remindersLimit) {

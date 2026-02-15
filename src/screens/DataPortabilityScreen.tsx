@@ -47,7 +47,8 @@ type CsvDataType =
 export function DataPortabilityScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium, remindersLimit } = useEntitlements();
+  const { isPremium, remindersLimit, workshopsLimit, wheelsPerVehicleLimit, tiresPerVehicleLimit } =
+    useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
   const [exporting, setExporting] = useState(false);
@@ -115,9 +116,17 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           vehicleId,
           isPremium ? undefined : { limit: remindersLimit },
         ),
-        listVehicleWheels(vehicleId),
-        listVehicleTires(vehicleId),
-        listWorkshops(),
+        listVehicleWheels(
+          vehicleId,
+          isPremium ? undefined : { limit: wheelsPerVehicleLimit },
+        ),
+        listVehicleTires(
+          vehicleId,
+          isPremium ? undefined : { limit: tiresPerVehicleLimit },
+        ),
+        listWorkshops(
+          isPremium ? undefined : { limit: workshopsLimit },
+        ),
       ]);
 
       const payload = {
@@ -234,7 +243,10 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           message: csvText,
         });
       } else if (dataType === "wheels") {
-        const rows = await listVehicleWheels(vehicleId);
+        const rows = await listVehicleWheels(
+          vehicleId,
+          isPremium ? undefined : { limit: wheelsPerVehicleLimit },
+        );
         const header = [
           "name",
           "width_inch",
@@ -266,7 +278,10 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           message: csvText,
         });
       } else if (dataType === "tires") {
-        const rows = await listVehicleTires(vehicleId);
+        const rows = await listVehicleTires(
+          vehicleId,
+          isPremium ? undefined : { limit: tiresPerVehicleLimit },
+        );
         const header = [
           "name",
           "width_mm",
@@ -294,7 +309,9 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           message: csvText,
         });
       } else {
-        const rows = await listWorkshops();
+        const rows = await listWorkshops(
+          isPremium ? undefined : { limit: workshopsLimit },
+        );
         const header = ["name", "workshop_type", "phone_number", "address"];
         const lines = rows.map((e) => [
           csvEscape(e.name ?? ""),

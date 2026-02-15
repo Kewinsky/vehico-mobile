@@ -46,11 +46,12 @@ export async function getWorkshop(id: string): Promise<Workshop> {
 export async function createWorkshop(
   input: NewWorkshopInput,
 ): Promise<Workshop> {
-  const { data, error } = await supabase
-    .from("workshops")
-    .insert(input)
-    .select("*")
-    .single();
+  const { data, error } = await supabase.rpc("create_workshop", {
+    p_name: input.name,
+    p_workshop_type: input.workshop_type,
+    p_phone_number: input.phone_number ?? null,
+    p_address: input.address ?? null,
+  });
   if (error) throw error;
   return data as Workshop;
 }

@@ -70,18 +70,24 @@ async function countFittedWheels(vehicleId: string, excludeId?: string): Promise
 export async function createVehicleWheel(
   input: NewVehicleWheelInput,
 ): Promise<VehicleWheel> {
-  if (input.is_currently_fitted) {
-    const fittedCount = await countFittedWheels(input.vehicle_id);
-    if (fittedCount >= MAX_FITTED_WHEELS_PER_VEHICLE) {
+  const { data, error } = await supabase.rpc("create_wheel", {
+    p_vehicle_id: input.vehicle_id,
+    p_name: input.name,
+    p_width_inch: input.width_inch,
+    p_diameter_inch: input.diameter_inch,
+    p_et_offset: input.et_offset ?? null,
+    p_bolt_pattern: input.bolt_pattern ?? null,
+    p_center_bore_mm: input.center_bore_mm ?? null,
+    p_bolt_type: input.bolt_type ?? null,
+    p_weight_kg: input.weight_kg ?? null,
+    p_is_currently_fitted: input.is_currently_fitted ?? false,
+  });
+  if (error) {
+    if ((error.message ?? "").includes("FITTED_WHEEL_LIMIT_REACHED")) {
       throw new Error("FITTED_WHEEL_LIMIT_REACHED");
     }
+    throw error;
   }
-  const { data, error } = await supabase
-    .from("wheels")
-    .insert(input)
-    .select("*")
-    .single();
-  if (error) throw error;
   return data as VehicleWheel;
 }
 

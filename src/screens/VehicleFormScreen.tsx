@@ -51,6 +51,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
+import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlementAlerts";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { Textarea } from "../ui/components/Textarea";
 import { DriveTypeIcon } from "../ui/components/DriveTypeIcon";
@@ -689,6 +690,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
       navigation.replace("Vehicles");
     } catch (e: any) {
+      if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) return;
       toastError(e?.message ?? t("common.error"));
     } finally {
       setSaving(false);
