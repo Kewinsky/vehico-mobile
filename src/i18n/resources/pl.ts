@@ -527,7 +527,10 @@ export const pl = {
     saveDiscountBadge: "Oszczędź -{{percent}}%",
     premiumFeatures: {
       unlimitedVehicles: "Nielimitowane pojazdy",
-      unlimitedReportsPosts: "Generuj raporty i ogłoszenia bez ograniczeń",
+      onlineReports: "Raporty online – jeden link, udostępnij każdemu",
+      onlineReportsLink: "Zobacz przykładowy raport",
+      marketplaceListings: "Ogłoszenia – gotowe do wklejenia na dowolny serwis",
+      marketplaceListingsLink: "Zobacz przykładowe ogłoszenie",
       remindersWorkshops: "Przypomnienia, warsztaty i wiele więcej bez limitów",
     },
     packsFeatures: {
@@ -556,6 +559,44 @@ export const pl = {
     openPaywall: "Otwórz paywall",
     restorePurchases: "Przywróć zakupy",
     manageSubscription: "Zarządzaj subskrypcją",
+    exampleListingPage: {
+      title: "Przykładowe ogłoszenie",
+      subtitle:
+        "Tak wygląda wygenerowane ogłoszenie. W aplikacji dostajesz gotowy tekst do wklejenia na OLX, Facebook Marketplace czy dowolny serwis z ogłoszeniami.",
+      body: `=== SPRZEDAM ===
+BMW 330i z 2020 roku o mocy 190KM
+VIN: WBA3A5C50ED123456
+Cena: 125 000 PLN
+
+=== SPECYFIKACJA TECHNICZNA ===
+Rok produkcji: 2020
+Pojemność silnika: 1998 cm³
+Moc: 190 KM
+Rodzaj paliwa: Diesel
+Skrzynia biegów: Automatyczna
+Przebieg: 52 000 km
+Ubezpieczenie ważne do: 2026-03-15
+Przegląd techniczny ważny do: 2025-09-20
+
+=== HISTORIA SERWISOWA ===
+2025-06-28 | 52 000 km | Olej
+  Wymiana oleju i filtrów – 680,00 PLN
+
+2025-05-20 | 51 000 km | Przegląd
+  Przegląd okresowy – 550,00 PLN
+
+(... więcej wpisów w aplikacji)
+
+=== STATYSTYKI SERWISOWE ===
+Suma kosztów serwisu: 9 210,00 PLN
+Liczba wpisów: 14
+
+=== NOTATKI ===
+Pojazd w bardzo dobrym stanie. Kompletna historia serwisowa. Sprzedaż z powodu zmiany na auto elektryczne.
+
+=== RAPORT ONLINE ===
+Szczegółowy raport: https://report.vehico.app/report/example`,
+    },
     products: {
       pack_3_reports: {
         name: "Paczka 3 raportów",

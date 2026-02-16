@@ -522,7 +522,10 @@ export const en = {
     saveDiscountBadge: "Save -{{percent}}%",
     premiumFeatures: {
       unlimitedVehicles: "Unlimited vehicles",
-      unlimitedReportsPosts: "Generate reports and posts without limits",
+      onlineReports: "Online reports – share with anyone, one link",
+      onlineReportsLink: "See example report",
+      marketplaceListings: "Marketplace listings – ready to paste on any site",
+      marketplaceListingsLink: "See example listing",
       remindersWorkshops: "Reminders, workshops, and more without limits",
     },
     packsFeatures: {
@@ -551,6 +554,44 @@ export const en = {
     openPaywall: "Open Paywall",
     restorePurchases: "Restore Purchases",
     manageSubscription: "Manage Subscription",
+    exampleListingPage: {
+      title: "Example marketplace listing",
+      subtitle:
+        "This is what a generated listing looks like. In the app you get plain text ready to paste on OLX, Facebook Marketplace, or any classifieds site.",
+      body: `=== FOR SALE ===
+BMW 330i from 2020 year with 190HP
+VIN: WBA3A5C50ED123456
+Price: 125 000 PLN
+
+=== TECHNICAL SPECIFICATION ===
+Production year: 2020
+Engine capacity: 1998 cm³
+Power: 190 HP
+Fuel type: Diesel
+Transmission: Automatic
+Mileage: 52000 km
+Insurance valid until: 2026-03-15
+Technical inspection valid until: 2025-09-20
+
+=== SERVICE HISTORY ===
+2025-06-28 | 52 000 km | Oil
+  Oil and filter change – 680.00 PLN
+
+2025-05-20 | 51 000 km | Inspection
+  Periodic inspection – 550.00 PLN
+
+(... more entries in the app)
+
+=== SERVICE STATISTICS ===
+Total service cost: 9 210.00 PLN
+Number of service entries: 14
+
+=== NOTES ===
+Vehicle in very good condition. Full service history. Selling due to switch to electric.
+
+=== ONLINE REPORT ===
+Detailed report available at: https://report.vehico.app/report/example`,
+    },
     products: {
       pack_3_reports: {
         name: "3 Reports Pack",

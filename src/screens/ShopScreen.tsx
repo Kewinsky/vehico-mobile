@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import {
   Alert,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -23,6 +24,7 @@ import type { AppTheme } from "../ui/theme";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import type { RevenueCatProductId } from "../services/payments/revenuecat";
+import { ENV } from "../config/env";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { Crown } from "lucide-react-native";
@@ -157,7 +159,34 @@ export function ShopScreen({ navigation }: Props) {
     );
   }
 
-  function FeatureRow({ text }: { text: string }) {
+  const exampleReportUrl = `${ENV.REPORTS_APP_URL}/report/example`;
+
+  function FeatureRow({
+    text,
+    link,
+  }: {
+    text: string;
+    link?: {
+      label: string;
+      url?: string;
+      onPress?: () => void;
+    };
+  }) {
+    async function handleLinkPress() {
+      if (!link) return;
+      if (link.onPress) {
+        link.onPress();
+        return;
+      }
+      if (link.url) {
+        try {
+          const canOpen = await Linking.canOpenURL(link.url);
+          if (canOpen) await Linking.openURL(link.url);
+        } catch {
+          toastError(t("common.error"));
+        }
+      }
+    }
     return (
       <View style={styles.featureRow}>
         <View
@@ -168,9 +197,27 @@ export function ShopScreen({ navigation }: Props) {
         >
           <Ionicons name="checkmark" size={16} color={theme.colors.accent} />
         </View>
-        <Text style={[styles.featureText, { color: theme.colors.fg }]}>
-          {text}
-        </Text>
+        <View style={styles.featureTextWrap}>
+          <Text style={[styles.featureText, { color: theme.colors.fg }]}>
+            {text}
+          </Text>
+          {link ? (
+            <Pressable
+              onPress={() => void handleLinkPress()}
+              hitSlop={8}
+              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Text
+                style={[
+                  styles.featureLink,
+                  { color: theme.colors.accent },
+                ]}
+              >
+                {link.label}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
     );
   }
@@ -365,7 +412,18 @@ export function ShopScreen({ navigation }: Props) {
           <View style={styles.features}>
             <FeatureRow text={t("shop.premiumFeatures.unlimitedVehicles")} />
             <FeatureRow
-              text={t("shop.premiumFeatures.unlimitedReportsPosts")}
+              text={t("shop.premiumFeatures.onlineReports")}
+              link={{
+                label: t("shop.premiumFeatures.onlineReportsLink"),
+                url: exampleReportUrl,
+              }}
+            />
+            <FeatureRow
+              text={t("shop.premiumFeatures.marketplaceListings")}
+              link={{
+                label: t("shop.premiumFeatures.marketplaceListingsLink"),
+                onPress: () => navigation.navigate("ExampleListing"),
+              }}
             />
             <FeatureRow text={t("shop.premiumFeatures.remindersWorkshops")} />
           </View>
@@ -440,7 +498,7 @@ function makeStyles(theme: AppTheme) {
     },
     featureRow: {
       flexDirection: "row",
-      alignItems: "center",
+      alignItems: "flex-start",
       gap: spacing.sm,
     },
     featureIcon: {
@@ -449,11 +507,19 @@ function makeStyles(theme: AppTheme) {
       borderRadius: 13,
       alignItems: "center",
       justifyContent: "center",
+      marginTop: 2,
     },
-    featureText: {
+    featureTextWrap: {
       flex: 1,
       minWidth: 0,
+      gap: spacing.xs / 2,
+    },
+    featureText: {
       fontSize: typography.body,
+      fontWeight: "600",
+    },
+    featureLink: {
+      fontSize: typography.small,
       fontWeight: "600",
     },
     pricingCol: {
