@@ -1311,21 +1311,18 @@ export function StatisticsScreen({ route, navigation }: Props) {
             </Text>
             <View
               style={[
-                styles.infoCard,
+                styles.wheelCard,
                 {
                   borderColor: theme.colors.border,
                   backgroundColor: theme.colors.card,
                 },
               ]}
             >
-              <>
+              <View style={styles.wheelSection}>
                 <View style={styles.infoRow}>
                   <TireIcon size={18} color={theme.colors.muted} />
                   <Text
-                    style={[
-                      styles.infoRowLabel,
-                      { color: theme.colors.muted },
-                    ]}
+                    style={[styles.infoRowLabel, { color: theme.colors.muted }]}
                   >
                     {t("dashboard.stats.currentTire")}
                   </Text>
@@ -1362,21 +1359,19 @@ export function StatisticsScreen({ route, navigation }: Props) {
                     </View>
                   ))
                 )}
+              </View>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
 
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-
+              <View style={styles.wheelSection}>
                 <View style={styles.infoRow}>
                   <RimIcon size={18} color={theme.colors.muted} />
                   <Text
-                    style={[
-                      styles.infoRowLabel,
-                      { color: theme.colors.muted },
-                    ]}
+                    style={[styles.infoRowLabel, { color: theme.colors.muted }]}
                   >
                     {t("dashboard.stats.currentWheel")}
                   </Text>
@@ -1412,7 +1407,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
                     </View>
                   ))
                 )}
-              </>
+              </View>
             </View>
           </View>
         </>
@@ -1557,6 +1552,14 @@ const makeStyles = (theme: any) =>
       fontWeight: "700",
       fontSize: theme.typography.body,
       textAlign: "right",
+    },
+    wheelCard: {
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+    },
+    wheelSection: {
+      padding: theme.spacing.md,
+      gap: theme.spacing.sm,
     },
     divider: { height: 1, width: "100%" },
     fittedSetRow: {
