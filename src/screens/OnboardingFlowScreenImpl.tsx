@@ -35,6 +35,7 @@ import { uploadVehiclePhoto } from "../services/vehicles/uploadPhoto";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { supabase } from "../services/supabase/client";
 import { toastError, toastSuccess } from "../ui/toast/toast";
+import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlementAlerts";
 import { useAuth } from "../app/providers/AuthProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 
@@ -193,14 +194,21 @@ export function OnboardingFlowScreen({ navigation }: Props) {
     }
 
     const production_year = Number(year.trim());
-    const created = await createVehicle({
-      type: vehicleType,
-      vin: null,
-      make: make.trim(),
-      model: model.trim(),
-      production_year,
-      mileage: mileage.trim().length ? Number(mileage.trim()) : null,
-    });
+    let created: Awaited<ReturnType<typeof createVehicle>>;
+    try {
+      created = await createVehicle({
+        type: vehicleType,
+        vin: null,
+        make: make.trim(),
+        model: model.trim(),
+        production_year,
+        mileage: mileage.trim().length ? Number(mileage.trim()) : null,
+      });
+    } catch (e: any) {
+      if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) return null;
+      toastError(e?.message ?? t("common.error"));
+      return null;
+    }
 
     setCreatedVehicleId(created.id);
 

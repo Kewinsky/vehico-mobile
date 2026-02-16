@@ -72,18 +72,23 @@ async function countFittedTires(vehicleId: string, excludeId?: string): Promise<
 export async function createVehicleTire(
   input: NewVehicleTireInput,
 ): Promise<VehicleTire> {
-  if (input.is_currently_fitted) {
-    const fittedCount = await countFittedTires(input.vehicle_id);
-    if (fittedCount >= MAX_FITTED_TIRES_PER_VEHICLE) {
+  const { data, error } = await supabase.rpc("create_tire", {
+    p_vehicle_id: input.vehicle_id,
+    p_name: input.name,
+    p_width_mm: input.width_mm,
+    p_aspect_ratio: input.aspect_ratio,
+    p_diameter_inch: input.diameter_inch,
+    p_tire_type: input.tire_type,
+    p_dot: input.dot ?? null,
+    p_is_currently_fitted: input.is_currently_fitted ?? false,
+  });
+  if (error) {
+    // Normalize fitted limit to app-friendly error code.
+    if ((error.message ?? "").includes("FITTED_TIRE_LIMIT_REACHED")) {
       throw new Error("FITTED_TIRE_LIMIT_REACHED");
     }
+    throw error;
   }
-  const { data, error } = await supabase
-    .from("tires")
-    .insert(input)
-    .select("*")
-    .single();
-  if (error) throw error;
   return data as VehicleTire;
 }
 

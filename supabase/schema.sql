@@ -250,10 +250,7 @@ to authenticated
 using (owner_id = auth.uid());
 
 drop policy if exists vehicles_insert_own on public.vehicles;
-create policy vehicles_insert_own
-on public.vehicles for insert
-to authenticated
-with check (owner_id = auth.uid());
+-- NOTE: direct INSERT is disabled; use security definer RPC `public.create_vehicle(...)`.
 
 drop policy if exists vehicles_update_own on public.vehicles;
 create policy vehicles_update_own
@@ -273,7 +270,7 @@ drop policy if exists workshops_select_own on public.workshops;
 create policy workshops_select_own on public.workshops for select to authenticated using (owner_id = auth.uid());
 
 drop policy if exists workshops_insert_own on public.workshops;
-create policy workshops_insert_own on public.workshops for insert to authenticated with check (owner_id = auth.uid());
+-- NOTE: direct INSERT is disabled; use security definer RPC `public.create_workshop(...)`.
 
 drop policy if exists workshops_update_own on public.workshops;
 create policy workshops_update_own on public.workshops for update to authenticated
@@ -461,16 +458,7 @@ using (
 );
 
 drop policy if exists reminders_insert_own_vehicle on public.reminders;
-create policy reminders_insert_own_vehicle
-on public.reminders for insert
-to authenticated
-with check (
-  exists (
-    select 1 from public.vehicles v
-    where v.id = reminders.vehicle_id
-      and v.owner_id = auth.uid()
-  )
-);
+-- NOTE: direct INSERT is disabled; use security definer RPC `public.create_reminder(...)`.
 
 drop policy if exists reminders_update_own_vehicle on public.reminders;
 create policy reminders_update_own_vehicle
@@ -565,8 +553,7 @@ create policy tires_select_own_vehicle on public.tires for select to authenticat
 using (exists (select 1 from public.vehicles v where v.id = tires.vehicle_id and v.owner_id = auth.uid()));
 
 drop policy if exists tires_insert_own_vehicle on public.tires;
-create policy tires_insert_own_vehicle on public.tires for insert to authenticated
-with check (exists (select 1 from public.vehicles v where v.id = tires.vehicle_id and v.owner_id = auth.uid()));
+-- NOTE: direct INSERT is disabled; use security definer RPC `public.create_tire(...)`.
 
 drop policy if exists tires_update_own_vehicle on public.tires;
 create policy tires_update_own_vehicle on public.tires for update to authenticated
@@ -583,8 +570,7 @@ create policy wheels_select_own_vehicle on public.wheels for select to authentic
 using (exists (select 1 from public.vehicles v where v.id = wheels.vehicle_id and v.owner_id = auth.uid()));
 
 drop policy if exists wheels_insert_own_vehicle on public.wheels;
-create policy wheels_insert_own_vehicle on public.wheels for insert to authenticated
-with check (exists (select 1 from public.vehicles v where v.id = wheels.vehicle_id and v.owner_id = auth.uid()));
+-- NOTE: direct INSERT is disabled; use security definer RPC `public.create_wheel(...)`.
 
 drop policy if exists wheels_update_own_vehicle on public.wheels;
 create policy wheels_update_own_vehicle on public.wheels for update to authenticated
@@ -1980,7 +1966,7 @@ begin
 end;
 $$;
 
-grant execute on function public.create_vehicle(text, text, text, integer, integer, integer, text, text, text, text, date, date) to authenticated;
+grant execute on function public.create_vehicle(text, text, text, text, integer, integer, integer, integer, text, text, text, text, date, date) to authenticated;
 
 -- Create tire with entitlement check
 drop function if exists public.create_tire(uuid, text, integer, integer, integer, text, text, boolean);
@@ -2002,6 +1988,7 @@ as $$
 declare
   v_tire public.tires;
   v_can_add jsonb;
+  v_fitted_count integer;
 begin
   -- Verify ownership
   if not exists (
@@ -2017,11 +2004,14 @@ begin
     raise exception '%', coalesce(v_can_add->>'reason', 'Cannot add tire');
   end if;
 
-  -- If setting as currently fitted, unset others
+  -- App rule: allow up to 2 fitted sets at once
   if p_is_currently_fitted then
-    update public.tires
-    set is_currently_fitted = false
-    where vehicle_id = p_vehicle_id;
+    select count(*) into v_fitted_count
+    from public.tires
+    where vehicle_id = p_vehicle_id and is_currently_fitted = true;
+    if coalesce(v_fitted_count, 0) >= 2 then
+      raise exception 'FITTED_TIRE_LIMIT_REACHED';
+    end if;
   end if;
 
   -- Create tire
@@ -2074,6 +2064,7 @@ as $$
 declare
   v_wheel public.wheels;
   v_can_add jsonb;
+  v_fitted_count integer;
 begin
   -- Verify ownership
   if not exists (
@@ -2089,11 +2080,14 @@ begin
     raise exception '%', coalesce(v_can_add->>'reason', 'Cannot add wheel');
   end if;
 
-  -- If setting as currently fitted, unset others
+  -- App rule: allow up to 2 fitted sets at once
   if p_is_currently_fitted then
-    update public.wheels
-    set is_currently_fitted = false
-    where vehicle_id = p_vehicle_id;
+    select count(*) into v_fitted_count
+    from public.wheels
+    where vehicle_id = p_vehicle_id and is_currently_fitted = true;
+    if coalesce(v_fitted_count, 0) >= 2 then
+      raise exception 'FITTED_WHEEL_LIMIT_REACHED';
+    end if;
   end if;
 
   -- Create wheel
@@ -2173,14 +2167,21 @@ $$;
 
 grant execute on function public.create_workshop(text, text, text, text) to authenticated;
 
--- Create reminder with entitlement check
+-- Create reminder with entitlement check (full reminder fields used by the app)
 drop function if exists public.create_reminder(uuid, text, date, integer, text);
+drop function if exists public.create_reminder(uuid, text, date, integer, integer, text, text, text, boolean, boolean, boolean);
 create or replace function public.create_reminder(
   p_vehicle_id uuid,
-  p_title text,
+  p_type text,
   p_due_date date,
   p_due_mileage integer,
-  p_type text
+  p_days_before integer,
+  p_title text,
+  p_notes text,
+  p_status text,
+  p_channel_email boolean,
+  p_channel_push boolean,
+  p_enabled boolean
 )
 returns public.reminders
 language plpgsql
@@ -2205,19 +2206,30 @@ begin
     raise exception '%', coalesce(v_can_create->>'reason', 'Cannot create reminder');
   end if;
 
-  -- Create reminder
   insert into public.reminders (
     vehicle_id,
-    title,
+    type,
     due_date,
     due_mileage,
-    type
+    days_before,
+    title,
+    notes,
+    status,
+    channel_email,
+    channel_push,
+    enabled
   ) values (
     p_vehicle_id,
-    p_title,
+    p_type,
     p_due_date,
     p_due_mileage,
-    p_type
+    p_days_before,
+    p_title,
+    p_notes,
+    coalesce(p_status, 'active'),
+    coalesce(p_channel_email, true),
+    coalesce(p_channel_push, true),
+    coalesce(p_enabled, true)
   )
   returning * into v_reminder;
 
@@ -2225,4 +2237,6 @@ begin
 end;
 $$;
 
-grant execute on function public.create_reminder(uuid, text, date, integer, text) to authenticated;
+grant execute on function public.create_reminder(
+  uuid, text, date, integer, integer, text, text, text, boolean, boolean, boolean
+) to authenticated;

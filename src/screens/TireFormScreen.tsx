@@ -27,6 +27,7 @@ import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
+import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlementAlerts";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { SunSnowIcon } from "lucide-react-native";
 
@@ -164,7 +165,9 @@ export function TireFormScreen({ navigation, route }: Props) {
       }
       // Check tire limit (only for new tires)
       if (!tireId && !isPremium) {
-        const tires = await listVehicleTires(vehicleId);
+        const tires = await listVehicleTires(vehicleId, {
+          limit: tiresPerVehicleLimit,
+        });
         if (tires.length >= tiresPerVehicleLimit) {
           Alert.alert(
             t("limits.tireLimitReachedTitle"),
@@ -203,6 +206,8 @@ export function TireFormScreen({ navigation, route }: Props) {
           t("limits.fittedTireLimitReachedTitle"),
           t("limits.fittedTireLimitReachedBody"),
         );
+      } else if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) {
+        return;
       } else {
         toastError(e?.message ?? t("common.error"));
       }

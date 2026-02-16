@@ -26,6 +26,7 @@ import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
+import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlementAlerts";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { BoltPatternIcon } from "../ui/components/BoltPatternIcon";
 import { BoltTypeIcon } from "../ui/components/BoltTypeIcon";
@@ -123,7 +124,9 @@ export function WheelFormScreen({ navigation, route }: Props) {
       }
       // Check wheel limit (only for new wheels)
       if (!wheelId && !isPremium) {
-        const wheels = await listVehicleWheels(vehicleId);
+        const wheels = await listVehicleWheels(vehicleId, {
+          limit: wheelsPerVehicleLimit,
+        });
         if (wheels.length >= wheelsPerVehicleLimit) {
           Alert.alert(
             t("limits.wheelLimitReachedTitle"),
@@ -164,6 +167,8 @@ export function WheelFormScreen({ navigation, route }: Props) {
           t("limits.fittedWheelLimitReachedTitle"),
           t("limits.fittedWheelLimitReachedBody"),
         );
+      } else if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) {
+        return;
       } else {
         toastError(e?.message ?? t("common.error"));
       }

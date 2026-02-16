@@ -360,7 +360,8 @@ function SimplePieChart({
 export function StatisticsScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium } = useEntitlements();
+  const { isPremium, tiresPerVehicleLimit, wheelsPerVehicleLimit } =
+    useEntitlements();
   const { settings } = useUserSettings();
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
@@ -404,8 +405,14 @@ export function StatisticsScreen({ route, navigation }: Props) {
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
           listFuelingEntries(vehicleId),
-          listVehicleTires(vehicleId),
-          listVehicleWheels(vehicleId),
+          listVehicleTires(
+            vehicleId,
+            isPremium ? undefined : { limit: tiresPerVehicleLimit },
+          ),
+          listVehicleWheels(
+            vehicleId,
+            isPremium ? undefined : { limit: wheelsPerVehicleLimit },
+          ),
         ]);
         if (!alive) return;
         setVehicle(v);
@@ -422,7 +429,14 @@ export function StatisticsScreen({ route, navigation }: Props) {
     return () => {
       alive = false;
     };
-  }, [isFocused, vehicleId, t]);
+  }, [
+    isFocused,
+    vehicleId,
+    t,
+    isPremium,
+    tiresPerVehicleLimit,
+    wheelsPerVehicleLimit,
+  ]);
 
   const periodOptions: { key: PeriodKey; label: string }[] = [
     { key: "1m", label: t("dashboard.stats.periods.1m") },
@@ -437,14 +451,14 @@ export function StatisticsScreen({ route, navigation }: Props) {
     { key: "other", label: t("dashboard.stats.tabs.other") },
   ];
 
-  const fittedTires = useMemo(
-    () => tires.filter((x) => x.is_currently_fitted).slice(0, 2),
-    [tires],
-  );
-  const fittedWheels = useMemo(
-    () => wheels.filter((x) => x.is_currently_fitted).slice(0, 2),
-    [wheels],
-  );
+  const fittedTires = useMemo(() => {
+    const filtered = tires.filter((x) => x.is_currently_fitted);
+    return isPremium ? filtered.slice(0, 2) : filtered.slice(0, 1);
+  }, [tires, isPremium]);
+  const fittedWheels = useMemo(() => {
+    const filtered = wheels.filter((x) => x.is_currently_fitted);
+    return isPremium ? filtered.slice(0, 2) : filtered.slice(0, 1);
+  }, [wheels, isPremium]);
 
   const filtered = useMemo(() => {
     const today = new Date();
@@ -1304,95 +1318,84 @@ export function StatisticsScreen({ route, navigation }: Props) {
                 },
               ]}
             >
-              {(() => {
-                const tireLine1 =
-                  fittedTires[0] != null
-                    ? `${formatTireDimensions(
-                        fittedTires[0].width_mm,
-                        fittedTires[0].aspect_ratio,
-                        fittedTires[0].diameter_inch,
-                      )} · ${(fittedTires[0].name ?? "").trim() || "—"}`
-                    : "—";
-                const tireLine2 =
-                  fittedTires[1] != null
-                    ? `${formatTireDimensions(
-                        fittedTires[1].width_mm,
-                        fittedTires[1].aspect_ratio,
-                        fittedTires[1].diameter_inch,
-                      )} · ${(fittedTires[1].name ?? "").trim() || "—"}`
-                    : "—";
-                const wheelLine1 =
-                  fittedWheels[0] != null
-                    ? `${formatWheelDimensions(
-                        fittedWheels[0].width_inch,
-                        fittedWheels[0].diameter_inch,
-                      )} · ${(fittedWheels[0].name ?? "").trim() || "—"}`
-                    : "—";
-                const wheelLine2 =
-                  fittedWheels[1] != null
-                    ? `${formatWheelDimensions(
-                        fittedWheels[1].width_inch,
-                        fittedWheels[1].diameter_inch,
-                      )} · ${(fittedWheels[1].name ?? "").trim() || "—"}`
-                    : "—";
-
-                return (
-                  <>
-                    <View style={styles.infoRow}>
-                      <TireIcon size={18} color={theme.colors.muted} />
-                      <Text
-                        style={[
-                          styles.infoRowLabel,
-                          { color: theme.colors.muted },
-                        ]}
-                      >
-                        {t("dashboard.stats.currentTire")}
-                      </Text>
-                    </View>
-                    <View style={styles.fittedSetRow}>
-                      <Text
-                        style={[
-                          styles.fittedSetText,
-                          { color: theme.colors.fg },
-                        ]}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {tireLine1}
-                      </Text>
-                    </View>
-                    <View style={styles.fittedSetRow}>
-                      <Text
-                        style={[
-                          styles.fittedSetText,
-                          { color: theme.colors.fg },
-                        ]}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {tireLine2}
-                      </Text>
-                    </View>
-
-                    <View
+              <>
+                <View style={styles.infoRow}>
+                  <TireIcon size={18} color={theme.colors.muted} />
+                  <Text
+                    style={[
+                      styles.infoRowLabel,
+                      { color: theme.colors.muted },
+                    ]}
+                  >
+                    {t("dashboard.stats.currentTire")}
+                  </Text>
+                </View>
+                {fittedTires.length === 0 ? (
+                  <View style={styles.fittedSetRow}>
+                    <Text
                       style={[
-                        styles.divider,
-                        { backgroundColor: theme.colors.border },
+                        styles.fittedSetText,
+                        { color: theme.colors.muted },
                       ]}
-                    />
+                      numberOfLines={1}
+                    >
+                      —
+                    </Text>
+                  </View>
+                ) : (
+                  fittedTires.map((tire) => (
+                    <View key={tire.id} style={styles.fittedSetRow}>
+                      <Text
+                        style={[
+                          styles.fittedSetText,
+                          { color: theme.colors.fg },
+                        ]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {`${formatTireDimensions(
+                          tire.width_mm,
+                          tire.aspect_ratio,
+                          tire.diameter_inch,
+                        )} · ${(tire.name ?? "").trim() || "—"}`}
+                      </Text>
+                    </View>
+                  ))
+                )}
 
-                    <View style={styles.infoRow}>
-                      <RimIcon size={18} color={theme.colors.muted} />
-                      <Text
-                        style={[
-                          styles.infoRowLabel,
-                          { color: theme.colors.muted },
-                        ]}
-                      >
-                        {t("dashboard.stats.currentWheel")}
-                      </Text>
-                    </View>
-                    <View style={styles.fittedSetRow}>
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+
+                <View style={styles.infoRow}>
+                  <RimIcon size={18} color={theme.colors.muted} />
+                  <Text
+                    style={[
+                      styles.infoRowLabel,
+                      { color: theme.colors.muted },
+                    ]}
+                  >
+                    {t("dashboard.stats.currentWheel")}
+                  </Text>
+                </View>
+                {fittedWheels.length === 0 ? (
+                  <View style={styles.fittedSetRow}>
+                    <Text
+                      style={[
+                        styles.fittedSetText,
+                        { color: theme.colors.muted },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      —
+                    </Text>
+                  </View>
+                ) : (
+                  fittedWheels.map((wheel) => (
+                    <View key={wheel.id} style={styles.fittedSetRow}>
                       <Text
                         style={[
                           styles.fittedSetText,
@@ -1401,24 +1404,15 @@ export function StatisticsScreen({ route, navigation }: Props) {
                         numberOfLines={1}
                         ellipsizeMode="tail"
                       >
-                        {wheelLine1}
+                        {`${formatWheelDimensions(
+                          wheel.width_inch,
+                          wheel.diameter_inch,
+                        )} · ${(wheel.name ?? "").trim() || "—"}`}
                       </Text>
                     </View>
-                    <View style={styles.fittedSetRow}>
-                      <Text
-                        style={[
-                          styles.fittedSetText,
-                          { color: theme.colors.fg },
-                        ]}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {wheelLine2}
-                      </Text>
-                    </View>
-                  </>
-                );
-              })()}
+                  ))
+                )}
+              </>
             </View>
           </View>
         </>

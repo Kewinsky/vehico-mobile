@@ -28,7 +28,8 @@ type Props = NativeStackScreenProps<AppStackParamList, "Wheels">;
 export function WheelsOverviewScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium } = useEntitlements();
+  const { isPremium, tiresPerVehicleLimit, wheelsPerVehicleLimit } =
+    useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
 
@@ -42,8 +43,14 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
       try {
         if (showLoading) setLoading(true);
         const [tiresData, wheelsData] = await Promise.all([
-          listVehicleTires(vehicleId),
-          listVehicleWheels(vehicleId),
+          listVehicleTires(
+            vehicleId,
+            isPremium ? undefined : { limit: tiresPerVehicleLimit },
+          ),
+          listVehicleWheels(
+            vehicleId,
+            isPremium ? undefined : { limit: wheelsPerVehicleLimit },
+          ),
         ]);
         setTires(tiresData);
         setWheels(wheelsData);
@@ -53,7 +60,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t],
+    [vehicleId, t, isPremium, tiresPerVehicleLimit, wheelsPerVehicleLimit],
   );
 
   useEffect(() => {

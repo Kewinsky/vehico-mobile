@@ -55,8 +55,34 @@ export type Entitlements = {
 const PREMIUM_PHOTOS_PER_VEHICLE_LIMIT = 40;
 /** Effective "unlimited" for backend and UI (DB stores 999 for premium). */
 const PREMIUM_UNLIMITED = 999;
+/** Max limits for free plan; clamp DB values so free users never see more even if DB is stale. */
+const FREE_WORKSHOPS_LIMIT = 3;
+const FREE_REMINDERS_LIMIT = 5;
 const IS_REVENUECAT_PLATFORM =
   Platform.OS === "ios" || Platform.OS === "android";
+
+/**
+ * Returns the next 3:00 AM in the device's local timezone at or after the given
+ * instant. Used so premium expiry happens at 3:00 local to minimize interrupting use.
+ */
+function nextLocal3amMs(iso: string): number | null {
+  const baseMs = Date.parse(iso);
+  if (!Number.isFinite(baseMs)) return null;
+  const d = new Date(baseMs);
+  const candidate = new Date(
+    d.getFullYear(),
+    d.getMonth(),
+    d.getDate(),
+    3,
+    0,
+    0,
+    0,
+  );
+  if (candidate.getTime() <= baseMs) {
+    candidate.setDate(candidate.getDate() + 1);
+  }
+  return candidate.getTime();
+}
 
 type EntitlementsContextValue = {
   entitlements: Entitlements | null;
@@ -171,6 +197,13 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
     useState<PurchasesOfferings | null>(null);
   const [revenueCatProducts, setRevenueCatProducts] =
     useState<RevenueCatProductsMap>(createEmptyRevenueCatProducts);
+  /**
+   * Single-shot clock tick used to recompute time-based entitlements (premium_until)
+   * without polling. Updated by a setTimeout scheduled for premium_until.
+   */
+  const [entitlementsClockMs, setEntitlementsClockMs] = useState(() =>
+    Date.now(),
+  );
 
   const refreshSupabaseEntitlements = useCallback(async () => {
     if (!userId) {
@@ -266,6 +299,15 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
     await Promise.all([refreshSupabaseEntitlements(), refreshRevenueCat()]);
   }, [refreshSupabaseEntitlements, refreshRevenueCat]);
 
+  /** Sync RevenueCat state to Supabase (updates plan, limits, clears free_plan_vehicle_id on premium). */
+  const syncEntitlementsToSupabase = useCallback(async () => {
+    const { error } = await supabase.functions.invoke(
+      "sync-entitlements-from-revenuecat",
+      { method: "POST" },
+    );
+    if (error) throw error;
+  }, []);
+
   const setFreePlanVehicleId = useCallback(
     async (vehicleId: string) => {
       if (!userId) return;
@@ -307,18 +349,11 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
     const nextCustomerInfo = await Purchases.restorePurchases();
     setRevenueCatCustomerInfo(nextCustomerInfo);
 
-    // Sync RC state to Supabase so DB reflects premium after restore (RC does not send webhook on restore)
-    const { error: syncError } = await supabase.functions.invoke(
-      "sync-entitlements-from-revenuecat",
-      { method: "POST" },
-    );
-    if (syncError) {
-      throw new Error("Failed to sync subscription status. Please try again.");
-    }
-
+    // Sync RC state to Supabase so DB reflects premium and clears free_plan_vehicle_id (RC does not send webhook on restore)
+    await syncEntitlementsToSupabase();
     await refresh();
     return nextCustomerInfo;
-  }, [isRevenueCatReady, refresh]);
+  }, [isRevenueCatReady, refresh, syncEntitlementsToSupabase]);
 
   const purchaseRevenueCatProduct = useCallback(
     async (productId: RevenueCatProductId) => {
@@ -369,10 +404,18 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
         setRevenueCatCustomerInfo(nextCustomerInfo);
       }
 
+      // Sync to Supabase so DB updates plan and clears free_plan_vehicle_id (webhook may be delayed)
+      await syncEntitlementsToSupabase();
       await refresh();
       return nextCustomerInfo;
     },
-    [isRevenueCatReady, refresh, revenueCatOfferings, revenueCatProducts],
+    [
+      isRevenueCatReady,
+      refresh,
+      syncEntitlementsToSupabase,
+      revenueCatOfferings,
+      revenueCatProducts,
+    ],
   );
 
   const presentRevenueCatPaywall = useCallback(async () => {
@@ -391,11 +434,17 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       result === PAYWALL_RESULT.PURCHASED ||
       result === PAYWALL_RESULT.RESTORED
     ) {
+      await syncEntitlementsToSupabase();
       await refresh();
     }
 
     return result;
-  }, [isRevenueCatReady, refresh, revenueCatOfferings]);
+  }, [
+    isRevenueCatReady,
+    refresh,
+    syncEntitlementsToSupabase,
+    revenueCatOfferings,
+  ]);
 
   const presentRevenueCatPaywallIfNeeded = useCallback(async () => {
     if (!IS_REVENUECAT_PLATFORM) {
@@ -414,11 +463,17 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       result === PAYWALL_RESULT.PURCHASED ||
       result === PAYWALL_RESULT.RESTORED
     ) {
+      await syncEntitlementsToSupabase();
       await refresh();
     }
 
     return result;
-  }, [isRevenueCatReady, refresh, revenueCatOfferings]);
+  }, [
+    isRevenueCatReady,
+    refresh,
+    syncEntitlementsToSupabase,
+    revenueCatOfferings,
+  ]);
 
   const presentRevenueCatCustomerCenter = useCallback(async () => {
     if (!IS_REVENUECAT_PLATFORM || !isRevenueCatReady) return;
@@ -536,6 +591,29 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
     userId,
   ]);
 
+  // Single-shot timer: when effective premium expiry (next 3:00 local) is reached,
+  // tick state to force recompute of computed.isPremium.
+  useEffect(() => {
+    const premiumUntil = entitlements?.premium_until ?? null;
+    const plan = entitlements?.plan ?? null;
+    if (!premiumUntil || plan !== "premium") return;
+
+    const untilMs = nextLocal3amMs(premiumUntil);
+    if (untilMs == null || !Number.isFinite(untilMs)) return;
+
+    const nowMs = Date.now();
+    const msLeft = untilMs - nowMs;
+    if (msLeft <= 0) {
+      setEntitlementsClockMs(nowMs);
+      return;
+    }
+
+    const id = setTimeout(() => {
+      setEntitlementsClockMs(Date.now());
+    }, msLeft + 500);
+    return () => clearTimeout(id);
+  }, [entitlements?.premium_until, entitlements?.plan]);
+
   const RETENTION_DAYS = 90;
 
   const computed = useMemo(() => {
@@ -562,12 +640,35 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       };
     }
 
-    const isPremium =
-      entitlements.plan === "premium" ||
+    // Use next 3:00 AM local as effective expiry so transition to free happens at night.
+    const premiumUntilMs =
+      entitlements.plan === "premium" && entitlements.premium_until != null
+        ? nextLocal3amMs(entitlements.premium_until)
+        : entitlements.premium_until != null
+          ? Date.parse(entitlements.premium_until)
+          : null;
+    const hasActivePremiumUntil =
+      premiumUntilMs != null &&
+      Number.isFinite(premiumUntilMs) &&
+      premiumUntilMs > entitlementsClockMs;
+
+    // DB-derived premium should respect premium_until when present, so local expiry works
+    // even if entitlements haven't been refreshed yet.
+    const isPremiumFromDb =
       entitlements.plan === "lifetime" ||
-      (entitlements.premium_until !== null &&
-        new Date(entitlements.premium_until) > new Date()) ||
-      isPremiumEntitlementActive(revenueCatCustomerInfo);
+      hasActivePremiumUntil ||
+      (entitlements.plan === "premium" && premiumUntilMs == null);
+
+    // When premium_until is in the past (timer fired), force free locally so we don't
+    // rely on stale RevenueCat cache still saying "active".
+    const premiumUntilExpired =
+      premiumUntilMs != null &&
+      Number.isFinite(premiumUntilMs) &&
+      premiumUntilMs <= entitlementsClockMs;
+
+    const isPremium = premiumUntilExpired
+      ? false
+      : isPremiumFromDb || isPremiumEntitlementActive(revenueCatCustomerInfo);
 
     const premiumEntitlement = getPremiumEntitlement(revenueCatCustomerInfo);
 
@@ -615,17 +716,22 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
         : entitlements.wheels_per_vehicle_limit,
       workshopsLimit: isPremium
         ? PREMIUM_UNLIMITED
-        : entitlements.workshops_limit,
+        : Math.min(entitlements.workshops_limit, FREE_WORKSHOPS_LIMIT),
       remindersLimit: isPremium
         ? PREMIUM_UNLIMITED
-        : entitlements.reminders_limit,
+        : Math.min(entitlements.reminders_limit, FREE_REMINDERS_LIMIT),
       currentPlanProductId,
       freePlanVehicleId: entitlements.free_plan_vehicle_id ?? null,
       downgradedAt,
       daysUntilHiddenDataDeletion,
       setFreePlanVehicleId,
     };
-  }, [entitlements, revenueCatCustomerInfo, setFreePlanVehicleId]);
+  }, [
+    entitlements,
+    revenueCatCustomerInfo,
+    setFreePlanVehicleId,
+    entitlementsClockMs,
+  ]);
 
   const value = useMemo<EntitlementsContextValue>(
     () => ({

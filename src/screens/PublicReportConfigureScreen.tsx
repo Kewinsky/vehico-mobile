@@ -366,7 +366,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         <Button onPress={handleNext}>{t("publicReport.nextButton")}</Button>
       }
     >
-      <ScreenLayout title={t("publicReport.configureTitle")} scrollable={false}>
+      <ScreenLayout title={t("publicReport.configureTitle")} scrollable={true}>
         <View style={styles.scrollView}>
           {loading ? (
             <View style={styles.loadingContainer}>

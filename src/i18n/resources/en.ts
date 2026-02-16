@@ -33,6 +33,10 @@ export const en = {
     etInvalid: "ET must be 1–2 digits.",
   },
   limits: {
+    premiumExpiredTitle: "Premium ended",
+    premiumExpiredBody:
+      "Your Premium has expired. Choose the vehicle that will remain available on the Free plan.",
+    chooseVehicle: "Choose vehicle",
     vehicleLimitReachedTitle: "Vehicle Limit Reached",
     vehicleLimitReachedBody:
       "You have reached the limit of {{limit}} vehicle(s). Upgrade to Premium for unlimited vehicles.",

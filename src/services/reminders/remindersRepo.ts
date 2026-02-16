@@ -48,11 +48,19 @@ export async function getReminder(id: string): Promise<Reminder> {
 }
 
 export async function createReminder(input: NewReminder): Promise<Reminder> {
-  const { data, error } = await supabase
-    .from("reminders")
-    .insert(input)
-    .select("*")
-    .single();
+  const { data, error } = await supabase.rpc("create_reminder", {
+    p_vehicle_id: input.vehicle_id,
+    p_type: input.type,
+    p_due_date: input.due_date,
+    p_due_mileage: input.due_mileage,
+    p_days_before: input.days_before,
+    p_title: input.title,
+    p_notes: input.notes,
+    p_status: input.status ?? "active",
+    p_channel_email: input.channel_email,
+    p_channel_push: input.channel_push,
+    p_enabled: input.enabled,
+  });
   if (error) throw error;
   return data as Reminder;
 }
