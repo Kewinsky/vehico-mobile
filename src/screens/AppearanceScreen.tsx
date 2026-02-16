@@ -119,7 +119,10 @@ export function AppearanceScreen({ navigation }: Props) {
 
   if (!settings) {
     return (
-      <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+      <Screen
+        padding={false}
+        header={<AppHeader onBack={() => navigation.goBack()} />}
+      >
         <View
           style={[
             styles.loadingWrap,
@@ -136,7 +139,10 @@ export function AppearanceScreen({ navigation }: Props) {
     mode === "dark" ? "moon-outline" : "sunny-outline";
 
   return (
-    <Screen padding={false} header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <Screen
+      padding={false}
+      header={<AppHeader onBack={() => navigation.goBack()} />}
+    >
       <ScrollView
         contentContainerStyle={[
           styles.container,
@@ -259,7 +265,7 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.md,
     },
     cardTitle: {
-      fontSize: theme.typography.body,
+      fontSize: theme.typography.title,
       fontWeight: "700",
       marginBottom: theme.spacing.sm,
     },
@@ -273,7 +279,7 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.sm,
     },
     sectionLabel: {
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
       fontWeight: "600",
     },
     tabsWrap: {
@@ -293,7 +299,7 @@ const makeStyles = (theme: any) =>
       borderWidth: 1,
     },
     tabText: {
-      fontSize: theme.typography.body,
+      fontSize: theme.typography.small,
       fontWeight: "700",
     },
     bottomSpacer: {
