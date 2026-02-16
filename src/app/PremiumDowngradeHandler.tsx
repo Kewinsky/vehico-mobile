@@ -5,52 +5,13 @@ import { useTranslation } from "react-i18next";
 import { useEntitlements } from "./providers/EntitlementsProvider";
 import { navigationRef } from "./navigationRef";
 
-const PREMIUM_ONLY_ROUTES = new Set<string>([
-  // Entry point
-  "Share",
-  // Public report flow
-  "PublicReport",
-  "PublicReportConfigure",
-  "PublicReportSummary",
-  "PublicReportOptions",
-  "PublicReportHistory",
-  // Marketplace flow
-  "Marketplace",
-  "MarketplaceConfigure",
-  "MarketplaceSummary",
-  "MarketplacePostOptions",
-  "MarketplacePost",
-  "MarketplacePostHistory",
-  "MarketplacePostEdit",
-]);
-
 function currentRouteName(): string | null {
   if (!navigationRef.isReady()) return null;
   return navigationRef.getCurrentRoute()?.name ?? null;
 }
 
-function currentVehicleIdParam(): string | null {
-  if (!navigationRef.isReady()) return null;
-  const params = navigationRef.getCurrentRoute()?.params as
-    | { vehicleId?: string }
-    | undefined;
-  return typeof params?.vehicleId === "string" ? params.vehicleId : null;
-}
-
-function redirectOutOfPremiumFlow() {
+function redirectToVehicles() {
   if (!navigationRef.isReady()) return;
-  const vehicleId = currentVehicleIdParam();
-  if (vehicleId) {
-    // Keep Vehicles in stack so back from VehicleDashboard returns to list
-    navigationRef.reset({
-      index: 1,
-      routes: [
-        { name: "Vehicles" },
-        { name: "VehicleDashboard", params: { vehicleId } },
-      ],
-    });
-    return;
-  }
   navigationRef.reset({
     index: 0,
     routes: [{ name: "Vehicles" }],
@@ -80,22 +41,23 @@ export function PremiumDowngradeHandler() {
     alertShownForDowngrade.current = true;
 
     const route = currentRouteName();
-    if (route && PREMIUM_ONLY_ROUTES.has(route)) {
-      redirectOutOfPremiumFlow();
+    if (route === "Vehicles") {
+      // User is already on VehiclesScreen → picker will show there automatically
+      return;
     }
 
-    Alert.alert(t("limits.premiumRequiredTitle"), t("limits.premiumRequiredBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("limits.upgradeToPremium"),
-        onPress: () => {
-          if (!navigationRef.isReady()) return;
-          navigationRef.navigate("Shop");
+    Alert.alert(
+      t("limits.premiumExpiredTitle"),
+      t("limits.premiumExpiredBody"),
+      [
+        {
+          text: t("limits.chooseVehicle"),
+          onPress: redirectToVehicles,
         },
-      },
-    ]);
+      ],
+      { cancelable: false },
+    );
   }, [isPremium, isLoading, t]);
 
   return null;
 }
-

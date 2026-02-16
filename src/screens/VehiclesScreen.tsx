@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useIsFocused } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
@@ -232,6 +233,7 @@ export function VehiclesScreen({ navigation }: Props) {
     ? null
     : (freePlanVehicleId ??
       (items.length === 1 ? (items[0]?.id ?? null) : null));
+  const isFocused = useIsFocused();
   const showFreePlanPicker =
     !entitlementsLoading &&
     !isPremium &&
@@ -332,6 +334,9 @@ export function VehiclesScreen({ navigation }: Props) {
       hasShownPickerRef.current = false;
       return;
     }
+    // Only show picker when this screen is visible (user is on VehiclesScreen).
+    // Otherwise we'd show it while user is on another screen (e.g. after "premium ended" alert).
+    if (!isFocused) return;
     if (hasShownPickerRef.current) return;
     hasShownPickerRef.current = true;
     const vehicleButtons = items.map((item) => ({
@@ -343,7 +348,7 @@ export function VehiclesScreen({ navigation }: Props) {
       t("vehicles.freePlanPickerBody"),
       vehicleButtons,
     );
-  }, [showFreePlanPicker, items, t, setFreePlanVehicleId]);
+  }, [showFreePlanPicker, items, t, setFreePlanVehicleId, isFocused]);
 
   const handleLockedVehiclePress = () => {
     const days = daysUntilHiddenDataDeletion ?? 0;

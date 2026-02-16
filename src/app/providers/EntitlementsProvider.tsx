@@ -61,6 +61,29 @@ const FREE_REMINDERS_LIMIT = 5;
 const IS_REVENUECAT_PLATFORM =
   Platform.OS === "ios" || Platform.OS === "android";
 
+/**
+ * Returns the next 3:00 AM in the device's local timezone at or after the given
+ * instant. Used so premium expiry happens at 3:00 local to minimize interrupting use.
+ */
+function nextLocal3amMs(iso: string): number | null {
+  const baseMs = Date.parse(iso);
+  if (!Number.isFinite(baseMs)) return null;
+  const d = new Date(baseMs);
+  const candidate = new Date(
+    d.getFullYear(),
+    d.getMonth(),
+    d.getDate(),
+    3,
+    0,
+    0,
+    0,
+  );
+  if (candidate.getTime() <= baseMs) {
+    candidate.setDate(candidate.getDate() + 1);
+  }
+  return candidate.getTime();
+}
+
 type EntitlementsContextValue = {
   entitlements: Entitlements | null;
   isLoading: boolean;
@@ -568,30 +591,26 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
     userId,
   ]);
 
-  // Single-shot timer: when premium_until is reached, tick state to force
-  // recompute of computed.isPremium without any network requests.
+  // Single-shot timer: when effective premium expiry (next 3:00 local) is reached,
+  // tick state to force recompute of computed.isPremium.
   useEffect(() => {
     const premiumUntil = entitlements?.premium_until ?? null;
     const plan = entitlements?.plan ?? null;
-    if (!premiumUntil) return;
-    // Lifetime should never expire locally.
-    if (plan === "lifetime") return;
+    if (!premiumUntil || plan !== "premium") return;
 
-    const untilMs = Date.parse(premiumUntil);
-    if (!Number.isFinite(untilMs)) return;
+    const untilMs = nextLocal3amMs(premiumUntil);
+    if (untilMs == null || !Number.isFinite(untilMs)) return;
 
     const nowMs = Date.now();
     const msLeft = untilMs - nowMs;
-    // If already in the past, just tick once (no timeout).
     if (msLeft <= 0) {
       setEntitlementsClockMs(nowMs);
       return;
     }
 
-    // Small buffer to avoid edge timing issues (clock skew / webhook delay).
     const id = setTimeout(() => {
       setEntitlementsClockMs(Date.now());
-    }, msLeft + 1500);
+    }, msLeft + 500);
     return () => clearTimeout(id);
   }, [entitlements?.premium_until, entitlements?.plan]);
 
@@ -621,8 +640,13 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       };
     }
 
+    // Use next 3:00 AM local as effective expiry so transition to free happens at night.
     const premiumUntilMs =
-      entitlements.premium_until != null ? Date.parse(entitlements.premium_until) : null;
+      entitlements.plan === "premium" && entitlements.premium_until != null
+        ? nextLocal3amMs(entitlements.premium_until)
+        : entitlements.premium_until != null
+          ? Date.parse(entitlements.premium_until)
+          : null;
     const hasActivePremiumUntil =
       premiumUntilMs != null &&
       Number.isFinite(premiumUntilMs) &&
