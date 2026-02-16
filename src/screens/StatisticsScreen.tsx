@@ -17,8 +17,6 @@ import Svg, {
   Polyline,
   Text as SvgText,
 } from "react-native-svg";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
@@ -363,7 +361,6 @@ export function StatisticsScreen({ route, navigation }: Props) {
   const { isPremium, tiresPerVehicleLimit, wheelsPerVehicleLimit } =
     useEntitlements();
   const { settings } = useUserSettings();
-  const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const { width: windowWidth } = useWindowDimensions();
   const vehicleId = route.params.vehicleId;
@@ -1547,7 +1544,6 @@ const makeStyles = (theme: any) =>
       flex: 1,
       minWidth: 0,
     },
-    infoRowValueWrap: { flexShrink: 1, minWidth: 0 },
     infoRowValue: {
       fontWeight: "700",
       fontSize: theme.typography.body,

@@ -16,6 +16,7 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppHeader } from "../ui/components/AppHeader";
 import { Card } from "../ui/components/Card";
 import { Button } from "../ui/components/Button";
+import { LegalLinksRow } from "../ui/components/LegalLinksRow";
 import { Screen } from "../ui/components/Screen";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import type { AppTheme } from "../ui/theme";
@@ -329,28 +330,10 @@ export function ShopScreen({ navigation }: Props) {
               </Button>
             )}
           </View>
-          <View style={styles.footerRow}>
-            <Pressable
-              onPress={() => navigation.navigate("TermsOfUse")}
-              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-            >
-              <Text style={[styles.footerLink, { color: theme.colors.accent }]}>
-                {t("terms.title")}
-              </Text>
-            </Pressable>
-            <Text style={[styles.footerText, { color: theme.colors.muted }]}>
-              {" "}
-              {t("common.and")}{" "}
-            </Text>
-            <Pressable
-              onPress={() => navigation.navigate("PrivacyPolicy")}
-              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-            >
-              <Text style={[styles.footerLink, { color: theme.colors.accent }]}>
-                {t("privacy.title")}
-              </Text>
-            </Pressable>
-          </View>
+          <LegalLinksRow
+            onPressTerms={() => navigation.navigate("TermsOfUse")}
+            onPressPrivacy={() => navigation.navigate("PrivacyPolicy")}
+          />
         </>
       }
     >
@@ -381,7 +364,6 @@ export function ShopScreen({ navigation }: Props) {
           </Text>
           <View style={styles.features}>
             <FeatureRow text={t("shop.premiumFeatures.unlimitedVehicles")} />
-            <FeatureRow text={t("shop.premiumFeatures.photos6x")} />
             <FeatureRow
               text={t("shop.premiumFeatures.unlimitedReportsPosts")}
             />
@@ -546,22 +528,6 @@ function makeStyles(theme: AppTheme) {
     },
     footerButtons: {
       gap: spacing.sm,
-    },
-    footerRow: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      justifyContent: "center",
-      alignItems: "center",
-      paddingTop: spacing.sm,
-      gap: 2,
-    },
-    footerText: {
-      fontSize: typography.small,
-    },
-    footerLink: {
-      fontSize: typography.small,
-      fontWeight: "600",
-      textDecorationLine: "underline",
     },
   });
 }

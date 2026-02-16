@@ -1,16 +1,11 @@
 import { useMemo } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  Pressable,
-} from "react-native";
+import { StyleSheet, Text, View, ScrollView } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { Button } from "../ui/components/Button";
+import { LegalLinksRow } from "../ui/components/LegalLinksRow";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
 
@@ -29,35 +24,10 @@ export function LandingScreen({ navigation }: Props) {
           <Button onPress={() => navigation.navigate("Auth")}>
             {t("landing.getStarted")}
           </Button>
-          <View style={styles.legalRow}>
-            <Pressable
-              onPress={() => navigation.navigate("TermsOfUse")}
-              hitSlop={8}
-              style={({ pressed }) => [
-                styles.legalLink,
-                pressed && { opacity: 0.7 },
-              ]}
-            >
-              <Text style={[styles.legalText, { color: theme.colors.muted }]}>
-                {t("landing.terms")}
-              </Text>
-            </Pressable>
-            <Text style={[styles.legalText, { color: theme.colors.muted }]}>
-              ·
-            </Text>
-            <Pressable
-              onPress={() => navigation.navigate("PrivacyPolicy")}
-              hitSlop={8}
-              style={({ pressed }) => [
-                styles.legalLink,
-                pressed && { opacity: 0.7 },
-              ]}
-            >
-              <Text style={[styles.legalText, { color: theme.colors.muted }]}>
-                {t("landing.privacy")}
-              </Text>
-            </Pressable>
-          </View>
+          <LegalLinksRow
+            onPressTerms={() => navigation.navigate("TermsOfUse")}
+            onPressPrivacy={() => navigation.navigate("PrivacyPolicy")}
+          />
         </>
       }
     >
@@ -188,20 +158,6 @@ const makeStyles = (theme: any) =>
     featuresList: {
       gap: theme.spacing.sm,
       marginTop: theme.spacing.xs,
-    },
-    legalRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: theme.spacing.xs,
-    },
-    legalText: {
-      fontSize: theme.typography.small,
-      fontWeight: "700",
-    },
-    legalLink: {
-      paddingVertical: theme.spacing.xs / 2,
-      paddingHorizontal: theme.spacing.xs / 2,
     },
   });
 

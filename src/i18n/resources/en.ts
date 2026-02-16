@@ -522,7 +522,6 @@ export const en = {
     saveDiscountBadge: "Save -{{percent}}%",
     premiumFeatures: {
       unlimitedVehicles: "Unlimited vehicles",
-      photos6x: "You can upload 6× more photos than on Free",
       unlimitedReportsPosts: "Generate reports and posts without limits",
       remindersWorkshops: "Reminders, workshops, and more without limits",
     },
