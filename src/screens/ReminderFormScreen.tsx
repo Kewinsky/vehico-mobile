@@ -157,6 +157,23 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     );
   }
 
+  function clearForm() {
+    setTitle("");
+    setNotes("");
+    setDateEnabled(false);
+    setDueDate(new Date().toISOString().slice(0, 10));
+    setDatePickerOpen(false);
+    setDatePickerDraft(new Date());
+    setDaysBefore("7");
+    setDateRepeats(false);
+    setRecurrenceValue("6");
+    setRecurrenceUnit("months");
+    setMileageEnabled(false);
+    setDueMileage("");
+    setMileageRepeats(false);
+    setRecurrenceKm("");
+  }
+
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -977,6 +994,15 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           </View>
         </View>
       </View>
+
+      {!reminderId ? (
+        <>
+          <View style={{ height: theme.spacing.sm }} />
+          <Button variant="outlined" onPress={clearForm} disabled={saving}>
+            {t("common.clearButton")}
+          </Button>
+        </>
+      ) : null}
     </FormScreen>
   );
 }

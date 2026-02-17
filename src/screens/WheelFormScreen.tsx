@@ -105,6 +105,18 @@ export function WheelFormScreen({ navigation, route }: Props) {
     ]);
   }
 
+  function clearForm() {
+    setName("");
+    setWidth("");
+    setDiameter("");
+    setEtOffset("");
+    setBoltPattern("");
+    setCenterBore("");
+    setBoltType("");
+    setWeight("");
+    setIsCurrentlyFitted(false);
+  }
+
   async function onSave() {
     try {
       setSaving(true);
@@ -502,6 +514,14 @@ export function WheelFormScreen({ navigation, route }: Props) {
           </View>
         </View>
       </View>
+      {!wheelId ? (
+        <>
+          <View style={{ height: theme.spacing.sm }} />
+          <Button variant="outlined" onPress={clearForm} disabled={saving}>
+            {t("common.clearButton")}
+          </Button>
+        </>
+      ) : null}
     </FormScreen>
   );
 }

@@ -288,6 +288,19 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     ]);
   }
 
+  function clearForm() {
+    setMode("single");
+    const today = new Date().toISOString().slice(0, 10);
+    setServiceDate(today);
+    setDatePickerDraft(parseYmd(today));
+    setMileage("");
+    setCategory(null);
+    setEntries([{ title: "", cost: "" }]);
+    setDescription("");
+    setWorkshopId(null);
+    setPendingFiles([]);
+  }
+
   function pickAttachment() {
     Alert.alert(
       t("attachments.addPickerTitle"),
@@ -1214,7 +1227,18 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             {t("common.delete")}
           </Button>
         </>
-      ) : null}
+      ) : (
+        <>
+          <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
+          <Button
+            variant="outlined"
+            onPress={clearForm}
+            disabled={saving}
+          >
+            {t("common.clearButton")}
+          </Button>
+        </>
+      )}
     </FormScreen>
   );
 }

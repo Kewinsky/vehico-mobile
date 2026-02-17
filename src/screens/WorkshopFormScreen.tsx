@@ -47,12 +47,12 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   const { workshopId } = route.params ?? {};
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent]
+    [theme.colors.accent],
   );
 
   const [name, setName] = useState("");
   const [workshopType, setWorkshopType] = useState<WorkshopType | null>(
-    "mechanic"
+    "mechanic",
   );
   const [phoneNumber, setPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
@@ -133,6 +133,13 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
     ]);
   }
 
+  function clearForm() {
+    setName("");
+    setWorkshopType("mechanic");
+    setPhoneNumber("");
+    setAddress("");
+  }
+
   async function onSave() {
     try {
       setSaving(true);
@@ -151,7 +158,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
                 text: t("limits.upgradeToPremium"),
                 onPress: () => navigation.navigate("Shop"),
               },
-            ]
+            ],
           );
           return;
         }
@@ -310,9 +317,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
             ]}
             numberOfLines={1}
           >
-            {workshopType
-              ? t(`workshopForm.types.${workshopType}`)
-              : "—"}
+            {workshopType ? t(`workshopForm.types.${workshopType}`) : "—"}
           </Text>
         </Pressable>
         <View
@@ -320,7 +325,11 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
         />
         <View style={styles.row}>
           <View style={styles.rowLeft}>
-            <Ionicons name="call-outline" size={20} color={theme.colors.accent} />
+            <Ionicons
+              name="call-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
             <Text
               style={[styles.label, { color: theme.colors.muted }]}
               numberOfLines={1}
@@ -371,6 +380,14 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
           />
         </View>
       </View>
+      {!workshopId ? (
+        <>
+          <View style={{ height: theme.spacing.sm }} />
+          <Button variant="outlined" onPress={clearForm} disabled={saving}>
+            {t("common.clearButton")}
+          </Button>
+        </>
+      ) : null}
     </FormScreen>
   );
 }

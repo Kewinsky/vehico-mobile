@@ -141,6 +141,16 @@ export function TireFormScreen({ navigation, route }: Props) {
     ]);
   }
 
+  function clearForm() {
+    setName("");
+    setWidth("");
+    setProfile("");
+    setDiameter("");
+    setTireType(null);
+    setDot("");
+    setIsCurrentlyFitted(false);
+  }
+
   async function onSave() {
     try {
       setSaving(true);
@@ -439,7 +449,9 @@ export function TireFormScreen({ navigation, route }: Props) {
             ]}
             numberOfLines={1}
           >
-            {tireType ? t(`tireForm.types.${tireType}`) : t("tireForm.placeholderTireType")}
+            {tireType
+              ? t(`tireForm.types.${tireType}`)
+              : t("tireForm.placeholderTireType")}
           </Text>
         </Pressable>
         <View
@@ -502,6 +514,14 @@ export function TireFormScreen({ navigation, route }: Props) {
           </View>
         </View>
       </View>
+      {!tireId ? (
+        <>
+          <View style={{ height: theme.spacing.sm }} />
+          <Button variant="outlined" onPress={clearForm} disabled={saving}>
+            {t("common.clearButton")}
+          </Button>
+        </>
+      ) : null}
     </FormScreen>
   );
 }

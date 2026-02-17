@@ -23,6 +23,7 @@ export const en = {
     no: "No",
     copied: "Copied",
     and: "and",
+    clearButton: "Clear",
   },
   validation: {
     invalidDate: "Please enter a valid date (YYYY-MM-DD).",

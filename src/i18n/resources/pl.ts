@@ -23,6 +23,7 @@ export const pl = {
     no: "Nie",
     copied: "Skopiowano",
     and: "i",
+    clearButton: "Wyczyść",
   },
   validation: {
     invalidDate: "Wprowadź poprawną datę (RRRR-MM-DD).",

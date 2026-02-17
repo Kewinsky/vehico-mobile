@@ -150,6 +150,15 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     );
   }
 
+  function clearForm() {
+    setDate(new Date().toISOString().slice(0, 10));
+    setDistance("");
+    setFuelAmount("");
+    setFuelCost("");
+    setFuelType(null);
+    setGasStation(null);
+  }
+
   function showPicker<T extends string>(opts: {
     title: string;
     value: T | null;
@@ -580,6 +589,14 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
           />
         </View>
       </View>
+      {!entryId ? (
+        <>
+          <View style={{ height: theme.spacing.sm }} />
+          <Button variant="outlined" onPress={clearForm} disabled={saving}>
+            {t("common.clearButton")}
+          </Button>
+        </>
+      ) : null}
     </FormScreen>
   );
 }
