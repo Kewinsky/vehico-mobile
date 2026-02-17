@@ -63,6 +63,6 @@ const makeStyles = (theme: any) =>
     },
     label: {
       fontSize: theme.typography.small,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
     },
   });

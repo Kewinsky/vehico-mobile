@@ -202,12 +202,12 @@ const makeStyles = (theme: any) =>
     },
     avatarText: {
       fontSize: theme.typography.small,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     title: {
       flex: 1,
       color: theme.colors.fg,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.title,
       textAlign: "left",
     },

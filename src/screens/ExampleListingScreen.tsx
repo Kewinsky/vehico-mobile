@@ -1,10 +1,5 @@
 import { useMemo } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -67,7 +62,7 @@ const makeStyles = (theme: any) =>
     },
     largeTitle: {
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       marginVertical: theme.spacing.md,
     },
     subtitle: {

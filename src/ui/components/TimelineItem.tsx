@@ -95,7 +95,7 @@ const makeStyles = (theme: any) =>
     },
     badgeText: {
       fontSize: theme.typography.xs,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: "#000000",
       letterSpacing: 0.3,
     },
@@ -104,7 +104,7 @@ const makeStyles = (theme: any) =>
     },
     title: {
       fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     subtitle: {

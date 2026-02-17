@@ -47,7 +47,7 @@ export function AppLayout({
             {
               paddingHorizontal: theme.layout.contentPaddingHorizontal,
               paddingTop: theme.spacing.md,
-              paddingBottom: insets.bottom + theme.spacing.md,
+              paddingBottom: insets.bottom,
               borderTopColor: theme.colors.border,
               backgroundColor: theme.colors.bg,
               gap: theme.spacing.sm,

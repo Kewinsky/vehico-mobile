@@ -107,7 +107,7 @@ const makeStyles = (theme: any) =>
     },
     title: {
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
 
     lastUpdated: {
@@ -118,7 +118,7 @@ const makeStyles = (theme: any) =>
     },
     sectionTitle: {
       fontSize: theme.typography.title,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       marginTop: theme.spacing.md,
     },
     text: {

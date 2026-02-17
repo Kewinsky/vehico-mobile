@@ -545,11 +545,11 @@ function makeStyles(theme: any) {
     },
     pillText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     h1: {
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     card: { borderWidth: 1, borderRadius: theme.radius.md, overflow: "hidden" },
@@ -583,7 +583,7 @@ function makeStyles(theme: any) {
     },
     label: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     valueText: {
       flex: 1,

@@ -198,10 +198,7 @@ export function ShopScreen({ navigation }: Props) {
               style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
             >
               <Text
-                style={[
-                  styles.featureLink,
-                  { color: theme.colors.accent },
-                ]}
+                style={[styles.featureLink, { color: theme.colors.accent }]}
               >
                 {link.label}
               </Text>
@@ -454,13 +451,13 @@ function makeStyles(theme: AppTheme) {
     },
     premiumText: {
       fontSize: typography.body,
-      fontWeight: "600",
+      fontWeight: typography.fontWeight.bold,
       color: colors.accent,
     },
     premiumSubtext: {
       marginTop: 2,
       fontSize: typography.body,
-      fontWeight: "600",
+      fontWeight: typography.fontWeight.bold,
     },
     hero: {
       alignItems: "center",
@@ -477,7 +474,7 @@ function makeStyles(theme: AppTheme) {
     },
     heroTitle: {
       fontSize: typography.title,
-      fontWeight: "700",
+      fontWeight: typography.fontWeight.bold,
       textAlign: "center",
     },
     features: {
@@ -506,11 +503,11 @@ function makeStyles(theme: AppTheme) {
     },
     featureText: {
       fontSize: typography.body,
-      fontWeight: "600",
+      fontWeight: typography.fontWeight.bold,
     },
     featureLink: {
       fontSize: typography.small,
-      fontWeight: "600",
+      fontWeight: typography.fontWeight.bold,
     },
     pricingCol: {
       flexDirection: "column",
@@ -553,7 +550,7 @@ function makeStyles(theme: AppTheme) {
     },
     optionTitle: {
       fontSize: typography.body,
-      fontWeight: "700",
+      fontWeight: typography.fontWeight.bold,
       flexShrink: 1,
       minWidth: 0,
     },
@@ -574,13 +571,13 @@ function makeStyles(theme: AppTheme) {
     },
     optionPrice: {
       fontSize: typography.body,
-      fontWeight: "700",
+      fontWeight: typography.fontWeight.bold,
     },
     blockedHint: {
       marginTop: spacing.md,
       fontSize: typography.body,
       textAlign: "center",
-      fontWeight: "600",
+      fontWeight: typography.fontWeight.bold,
     },
     footerButtons: {
       gap: spacing.sm,

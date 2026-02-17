@@ -527,12 +527,12 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     h1: {
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     label: {
       fontSize: theme.typography.small,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.muted,
     },
     langRow: {
@@ -548,7 +548,7 @@ const makeStyles = (theme: any) =>
     },
     sectionTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
       marginBottom: theme.spacing.sm,
     },
@@ -604,7 +604,7 @@ const makeStyles = (theme: any) =>
     },
     buttonText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     loadingContainer: {
       padding: theme.spacing.md,

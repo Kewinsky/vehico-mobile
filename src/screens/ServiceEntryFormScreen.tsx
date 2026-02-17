@@ -1230,11 +1230,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       ) : (
         <>
           <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
-          <Button
-            variant="outlined"
-            onPress={clearForm}
-            disabled={saving}
-          >
+          <Button variant="outlined" onPress={clearForm} disabled={saving}>
             {t("common.clearButton")}
           </Button>
         </>
@@ -1262,16 +1258,16 @@ const makeStyles = (theme: any) =>
     },
     pillText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     h1: {
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     h2: {
       fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     sectionHeader: { gap: theme.spacing.sm / 2 },
@@ -1322,7 +1318,7 @@ const makeStyles = (theme: any) =>
     },
     label: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     valueText: {
       flex: 1,
@@ -1349,7 +1345,7 @@ const makeStyles = (theme: any) =>
     },
     pickerActionText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     segmentWrap: {
       flexDirection: "row",
@@ -1369,7 +1365,7 @@ const makeStyles = (theme: any) =>
     },
     segmentText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     inlineTrash: { paddingLeft: theme.spacing.sm / 2, paddingVertical: 2 },
     cardRow: {
@@ -1377,7 +1373,10 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       gap: theme.spacing.sm,
     },
-    cardTitle: { fontWeight: "800", color: theme.colors.fg },
+    cardTitle: {
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.fg,
+    },
     cardMeta: {
       marginTop: theme.spacing.xs / 2,
       fontSize: theme.typography.small,

@@ -1469,12 +1469,12 @@ const makeStyles = (theme: any) =>
     },
     pillText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     h1: {
       fontSize: theme.typography.largeTitle,
       marginVertical: theme.spacing.md,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     segmentWrap: {
@@ -1491,7 +1491,10 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
     },
     segmentSelected: { borderWidth: 1 },
-    segmentText: { fontSize: theme.typography.body, fontWeight: "700" },
+    segmentText: {
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
     card: { borderWidth: 1, borderRadius: theme.radius.md, overflow: "hidden" },
     row: {
       flexDirection: "row",
@@ -1525,7 +1528,7 @@ const makeStyles = (theme: any) =>
     inputMultiline: { minHeight: 96, paddingTop: 2 },
     label: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
     pickerWrap: {
@@ -1548,7 +1551,7 @@ const makeStyles = (theme: any) =>
     },
     pickerActionText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     photosGrid: {
       flexDirection: "row",
@@ -1609,7 +1612,7 @@ const makeStyles = (theme: any) =>
     photoMainText: {
       color: "#000000",
       fontSize: theme.typography.xs,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     loadingContainer: {
       paddingTop: theme.spacing.xl + theme.spacing.xs,

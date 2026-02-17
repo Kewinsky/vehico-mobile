@@ -255,7 +255,7 @@ const makeStyles = (theme: any) =>
     },
     largeTitle: {
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       marginVertical: theme.spacing.md,
     },
     card: {
@@ -266,7 +266,7 @@ const makeStyles = (theme: any) =>
     },
     cardTitle: {
       fontSize: theme.typography.title,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       marginBottom: theme.spacing.sm,
     },
     row: {
@@ -280,7 +280,7 @@ const makeStyles = (theme: any) =>
     },
     sectionLabel: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     tabsWrap: {
       flexDirection: "row",
@@ -300,7 +300,7 @@ const makeStyles = (theme: any) =>
     },
     tabText: {
       fontSize: theme.typography.small,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     bottomSpacer: {
       height: theme.spacing.lg,

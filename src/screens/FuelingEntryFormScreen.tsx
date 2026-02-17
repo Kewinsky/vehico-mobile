@@ -620,12 +620,12 @@ const makeStyles = (theme: any) =>
     },
     pillText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     h1: {
       fontSize: theme.typography.largeTitle,
       marginVertical: theme.spacing.md,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     card: {
@@ -663,7 +663,7 @@ const makeStyles = (theme: any) =>
     },
     label: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     valueText: {
       flex: 1,
@@ -690,6 +690,6 @@ const makeStyles = (theme: any) =>
     },
     pickerActionText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
   });

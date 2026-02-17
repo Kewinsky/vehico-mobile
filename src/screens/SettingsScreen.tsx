@@ -253,7 +253,9 @@ export function SettingsScreen({ navigation }: Props) {
             >
               {typeof row.icon === "string" ? (
                 <Ionicons
-                  name={row.icon as React.ComponentProps<typeof Ionicons>["name"]}
+                  name={
+                    row.icon as React.ComponentProps<typeof Ionicons>["name"]
+                  }
                   size={22}
                   color={theme.colors.accent}
                   style={styles.rowIcon}
@@ -298,7 +300,7 @@ const makeStyles = (theme: any) =>
     },
     largeTitle: {
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       marginVertical: theme.spacing.md,
     },
     avatarBlock: {
@@ -314,7 +316,7 @@ const makeStyles = (theme: any) =>
     },
     avatarText: {
       fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     nameRow: {
       flexDirection: "row",
@@ -324,7 +326,7 @@ const makeStyles = (theme: any) =>
     },
     displayName: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     pencilIcon: {
       marginLeft: 2,
@@ -355,7 +357,7 @@ const makeStyles = (theme: any) =>
     },
     rowTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     rowSubtitle: {
       fontSize: theme.typography.small,

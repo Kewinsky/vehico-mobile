@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useIsFocused } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
@@ -233,7 +232,6 @@ export function VehiclesScreen({ navigation }: Props) {
     ? null
     : (freePlanVehicleId ??
       (items.length === 1 ? (items[0]?.id ?? null) : null));
-  const isFocused = useIsFocused();
   const showFreePlanPicker =
     !entitlementsLoading &&
     !isPremium &&
@@ -334,9 +332,6 @@ export function VehiclesScreen({ navigation }: Props) {
       hasShownPickerRef.current = false;
       return;
     }
-    // Only show picker when this screen is visible (user is on VehiclesScreen).
-    // Otherwise we'd show it while user is on another screen (e.g. after "premium ended" alert).
-    if (!isFocused) return;
     if (hasShownPickerRef.current) return;
     hasShownPickerRef.current = true;
     const vehicleButtons = items.map((item) => ({
@@ -348,7 +343,7 @@ export function VehiclesScreen({ navigation }: Props) {
       t("vehicles.freePlanPickerBody"),
       vehicleButtons,
     );
-  }, [showFreePlanPicker, items, t, setFreePlanVehicleId, isFocused]);
+  }, [showFreePlanPicker, items, t, setFreePlanVehicleId]);
 
   const handleLockedVehiclePress = () => {
     const days = daysUntilHiddenDataDeletion ?? 0;
@@ -419,9 +414,6 @@ export function VehiclesScreen({ navigation }: Props) {
             showsVerticalScrollIndicator={false}
             refreshing={refreshing}
             onRefresh={() => void load({ refreshing: true })}
-            ItemSeparatorComponent={() => (
-              <View style={{ height: theme.spacing.md }} />
-            )}
             renderItem={({ item }) => {
               const isLocked =
                 !isPremium &&
@@ -541,7 +533,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     body: {
       flex: 1,
-      paddingTop: theme.spacing.md,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     emptyContainer: {
@@ -549,7 +540,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     emptyTitle: {
       fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     emptyBody: {
@@ -561,10 +552,10 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       alignItems: "center",
     },
     list: {
-      paddingBottom:
-        insets.bottom + theme.spacing.md * 2 + 52 /* footer button + padding */,
+      paddingBottom: insets.bottom,
     },
     vehicleCard: {
+      marginTop: theme.spacing.md,
       borderRadius: theme.radius.md,
       overflow: "hidden",
       backgroundColor: theme.colors.card,
@@ -606,7 +597,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     vehicleTitle: {
       fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
       marginBottom: theme.spacing.xs / 2,
     },

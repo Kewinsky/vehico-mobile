@@ -522,7 +522,10 @@ function makeStyles(theme: any, insets: { bottom: number }) {
       justifyContent: "center",
     },
     segmentSelected: { borderWidth: 1 },
-    segmentTextSmall: { fontSize: theme.typography.small, fontWeight: "700" },
+    segmentTextSmall: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
     row: {
       flexDirection: "row",
       alignItems: "center",
@@ -539,7 +542,7 @@ function makeStyles(theme: any, insets: { bottom: number }) {
       justifyContent: "center",
     },
     list: { flex: 1, paddingTop: theme.spacing.md },
-    listContent: { paddingBottom: insets.bottom + theme.spacing.xl },
+    listContent: { paddingBottom: insets.bottom },
     emptyText: {
       marginTop: theme.spacing.xs,
       fontSize: theme.typography.small,
@@ -557,7 +560,7 @@ function makeStyles(theme: any, insets: { bottom: number }) {
     },
     cardTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     cardSubtitle: {
       fontSize: theme.typography.small,

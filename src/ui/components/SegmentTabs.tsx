@@ -91,10 +91,10 @@ const makeStyles = (theme: any) =>
     },
     textMd: {
       fontSize: theme.typography.small,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     textSm: {
       fontSize: theme.typography.small,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
   });

@@ -23,6 +23,12 @@ export type AppTheme = {
     body: number;
     small: number;
     xs: number; // badge, caption
+    fontWeight: {
+      regular: "400";
+      medium: "500";
+      semibold: "600";
+      bold: "700";
+    };
   };
   radius: {
     xs: number; // checkbox, small corners
@@ -69,6 +75,12 @@ export const lightTheme: AppTheme = {
     body: 16,
     small: 13,
     xs: 11,
+    fontWeight: {
+      regular: "400",
+      medium: "500",
+      semibold: "600",
+      bold: "700",
+    },
   },
 };
 

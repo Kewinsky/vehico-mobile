@@ -707,7 +707,10 @@ export function RemindersScreen({ route, navigation }: Props) {
                   >
                     <Text
                       style={[
-                        { color: theme.colors.fg, fontWeight: "800" },
+                        {
+                          color: theme.colors.fg,
+                          fontWeight: theme.typography.fontWeight.bold,
+                        },
                         isDone && { color: theme.colors.muted },
                       ]}
                     >
@@ -787,7 +790,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     list: { flex: 1, paddingTop: theme.spacing.md },
     listContent: {
-      paddingBottom: insets.bottom + theme.spacing.xl,
+      paddingBottom: insets.bottom,
     },
     emptyText: {
       marginTop: theme.spacing.xs,
@@ -876,7 +879,10 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       justifyContent: "center",
     },
     segmentSelected: { borderWidth: 1 },
-    segmentTextSmall: { fontSize: theme.typography.small, fontWeight: "700" },
+    segmentTextSmall: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
     row: {
       flexDirection: "row",
       alignItems: "center",
@@ -906,7 +912,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     pickerActionText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     separator: {
       marginTop: theme.spacing.md,
@@ -914,7 +920,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     separatorText: {
       fontSize: theme.typography.small,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       textTransform: "uppercase",
       letterSpacing: 0.5,
     },

@@ -381,7 +381,7 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     authTitle: {
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       marginVertical: theme.spacing.md,
     },
     socialSection: {
@@ -404,7 +404,7 @@ const makeStyles = (theme: any) =>
     },
     socialButtonText: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     divider: {
       flexDirection: "row",
@@ -418,7 +418,7 @@ const makeStyles = (theme: any) =>
     },
     dividerText: {
       fontSize: theme.typography.small,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     magicLinkSection: {
       gap: theme.spacing.sm,
@@ -437,7 +437,7 @@ const makeStyles = (theme: any) =>
       lineHeight: theme.typography.body + 2,
     },
     footerLink: {
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
       textDecorationLine: "underline",
     },
     magicLinkContainer: {
@@ -462,7 +462,7 @@ const makeStyles = (theme: any) =>
     },
     title: {
       fontSize: theme.typography.title,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       textAlign: "center",
     },
     body: {

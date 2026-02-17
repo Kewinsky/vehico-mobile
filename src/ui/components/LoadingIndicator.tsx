@@ -30,7 +30,7 @@ const makeStyles = (theme: any) =>
     },
     text: {
       fontSize: theme.typography.small,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.muted,
     },
   });

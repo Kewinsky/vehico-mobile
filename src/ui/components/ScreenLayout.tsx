@@ -212,7 +212,7 @@ const makeStyles = (theme: any) =>
     },
     title: {
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     panelWrap: {
       marginTop: theme.spacing.md,
@@ -254,7 +254,7 @@ const makeStyles = (theme: any) =>
     },
     panelButtonLabel: {
       fontSize: theme.typography.small,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     bodyScroll: {
       flex: 1,

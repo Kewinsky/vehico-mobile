@@ -643,7 +643,7 @@ const makeStyles = (theme: any) =>
       flex: 1,
       minWidth: 0,
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     headerSubtitle: {
@@ -653,7 +653,7 @@ const makeStyles = (theme: any) =>
     },
     h2: {
       fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     headerRow: {
@@ -685,7 +685,7 @@ const makeStyles = (theme: any) =>
     },
     cardTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     cardMeta: { fontSize: theme.typography.small, color: theme.colors.muted },
@@ -724,7 +724,7 @@ const makeStyles = (theme: any) =>
     },
     detailsTitle: {
       fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
       marginBottom: theme.spacing.xs,
     },
@@ -736,7 +736,7 @@ const makeStyles = (theme: any) =>
     vinText: {
       fontSize: theme.typography.small,
       color: theme.colors.muted,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     divider: {
       height: 1,
@@ -774,14 +774,14 @@ const makeStyles = (theme: any) =>
     },
     detailLabel: {
       fontSize: theme.typography.xs,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.muted,
       textTransform: "uppercase",
       letterSpacing: 0.5,
     },
     detailValue: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     loadingContainer: {

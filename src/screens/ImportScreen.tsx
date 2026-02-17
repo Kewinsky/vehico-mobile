@@ -278,7 +278,7 @@ const makeStyles = (theme: any) =>
     },
     actionPillText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     card: {
       borderWidth: 1,
@@ -296,7 +296,7 @@ const makeStyles = (theme: any) =>
     },
     label: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     hint: {
       marginTop: theme.spacing.xs,

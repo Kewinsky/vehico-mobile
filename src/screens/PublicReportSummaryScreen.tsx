@@ -250,7 +250,12 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
               }}
             >
               <ActivityIndicator size="small" color="#000000" />
-              <Text style={{ color: "#000000", fontWeight: "700" }}>
+              <Text
+                style={{
+                  color: "#000000",
+                  fontWeight: theme.typography.fontWeight.bold,
+                }}
+              >
                 {t("publicReport.generating")}
               </Text>
             </View>
@@ -555,7 +560,7 @@ const makeStyles = (theme: any) =>
     },
     h1: {
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     loadingContainer: {
@@ -573,7 +578,7 @@ const makeStyles = (theme: any) =>
     },
     sectionTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     dataRow: {
@@ -590,7 +595,7 @@ const makeStyles = (theme: any) =>
     },
     dataValue: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     infoCard: {
@@ -608,7 +613,7 @@ const makeStyles = (theme: any) =>
     },
     infoCardValue: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     checkboxRow: {
       flexDirection: "row",

@@ -134,7 +134,7 @@ const makeStyles = (theme: any) =>
     subtitle: {
       fontSize: theme.typography.small,
       color: theme.colors.muted,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     lead: {
       marginTop: theme.spacing.xs / 2,
@@ -148,7 +148,7 @@ const makeStyles = (theme: any) =>
     },
     cardTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     qrContainer: {
@@ -177,7 +177,7 @@ const makeStyles = (theme: any) =>
       flex: 1,
       fontSize: theme.typography.small,
       color: theme.colors.fg,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     pressed: {
       opacity: 0.9,

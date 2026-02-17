@@ -376,7 +376,12 @@ export function DocumentsScreen({ route, navigation }: Props) {
                     style={{ flex: 1 }}
                     onPress={() => void openVehicleDocument(item)}
                   >
-                    <Text style={{ color: theme.colors.fg, fontWeight: "800" }}>
+                    <Text
+                      style={{
+                        color: theme.colors.fg,
+                        fontWeight: theme.typography.fontWeight.bold,
+                      }}
+                    >
                       {item.description || t("documents.documentLabel")}
                     </Text>
                     <Text
@@ -476,7 +481,12 @@ export function DocumentsScreen({ route, navigation }: Props) {
                     style={{ flex: 1 }}
                     onPress={() => void openAttachment(item)}
                   >
-                    <Text style={{ color: theme.colors.fg, fontWeight: "700" }}>
+                    <Text
+                      style={{
+                        color: theme.colors.fg,
+                        fontWeight: theme.typography.fontWeight.bold,
+                      }}
+                    >
                       {item.serviceEntryTitle
                         ? item.serviceEntryTitle
                         : t("documents.attachmentLabel")}
@@ -538,7 +548,7 @@ const makeStyles = (theme: any) =>
     },
     section: {
       fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     searchBarWrap: {
       flexDirection: "row",

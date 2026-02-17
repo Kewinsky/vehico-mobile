@@ -205,7 +205,8 @@ export function OnboardingFlowScreen({ navigation }: Props) {
         mileage: mileage.trim().length ? Number(mileage.trim()) : null,
       });
     } catch (e: any) {
-      if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) return null;
+      if (maybeHandleBackendEntitlementLimitError(e, t, navigation))
+        return null;
       toastError(e?.message ?? t("common.error"));
       return null;
     }
@@ -442,7 +443,9 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                   name="car-outline"
                   size={35}
                   color={
-                    vehicleType === "car" ? theme.colors.accent : theme.colors.muted
+                    vehicleType === "car"
+                      ? theme.colors.accent
+                      : theme.colors.muted
                   }
                 />
                 <Text
@@ -764,7 +767,11 @@ export function OnboardingFlowScreen({ navigation }: Props) {
                     ]}
                   >
                     <MaterialCommunityIcons
-                      name={vehicleType === "motorcycle" ? "motorbike" : "car-outline"}
+                      name={
+                        vehicleType === "motorcycle"
+                          ? "motorbike"
+                          : "car-outline"
+                      }
                       size={theme.spacing.xl * 2}
                       color={theme.colors.muted}
                     />
@@ -904,7 +911,12 @@ export function OnboardingFlowScreen({ navigation }: Props) {
 
         {currentStep === 0 ? (
           <Pressable onPress={() => void signOut()} hitSlop={10}>
-            <Text style={{ color: theme.colors.danger, fontWeight: "700" }}>
+            <Text
+              style={{
+                color: theme.colors.danger,
+                fontWeight: theme.typography.fontWeight.bold,
+              }}
+            >
               {t("common.signOut")}
             </Text>
           </Pressable>
@@ -1024,7 +1036,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     progressText: {
       fontSize: theme.typography.small,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       letterSpacing: 0.2,
     },
     content: {
@@ -1036,7 +1048,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     title: {
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       marginVertical: theme.spacing.md,
     },
     subtitle: {
@@ -1079,7 +1091,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     label: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     helper: {
       marginTop: theme.spacing.xs,
@@ -1107,7 +1119,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       marginTop: theme.spacing.md,
       marginBottom: theme.spacing.xs / 2,
       fontSize: theme.typography.small,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     chipsRow: {
       flexDirection: "row",
@@ -1120,7 +1132,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     skipText: {
       fontSize: theme.typography.small,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     photoCard: {
       borderWidth: 1,
@@ -1140,12 +1152,12 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     summaryTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "900",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     summaryMeta: {
       marginTop: theme.spacing.xs / 2,
       fontSize: theme.typography.small,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     summaryImageContainer: {
       width: "100%",
@@ -1189,13 +1201,13 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     summaryRowLabel: {
       fontSize: theme.typography.xs,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       textTransform: "uppercase",
       letterSpacing: 0.5,
     },
     summaryRowValue: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     detailsCard: {
       borderRadius: theme.radius.md,
@@ -1226,7 +1238,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     detailsTitle: {
       fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       marginBottom: theme.spacing.xs,
     },
     vinRow: {
@@ -1234,7 +1246,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     vinText: {
       fontSize: theme.typography.small,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     detailsDivider: {
       height: 1,
@@ -1268,13 +1280,13 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     detailLabel: {
       fontSize: theme.typography.xs,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       textTransform: "uppercase",
       letterSpacing: 0.5,
     },
     detailValue: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     pushRow: {
       marginTop: theme.spacing.md,
@@ -1287,7 +1299,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     pushLabel: {
       fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       flex: 1,
       paddingRight: theme.spacing.md,
     },
@@ -1298,13 +1310,13 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     bulletText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       flex: 1,
     },
     footer: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.sm,
-      paddingBottom: insets.bottom + theme.spacing.md,
+      paddingBottom: insets.bottom,
       gap: theme.spacing.xs,
     },
     vehicleTypeRow: {
@@ -1332,7 +1344,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     vehicleTypeLabel: {
       fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       textAlign: "center",
     },
     footerRow: {

@@ -239,11 +239,10 @@ const makeStyles = (theme: any) =>
     },
     postTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       marginBottom: theme.spacing.xs,
     },
     postDate: {
-      fontSize: theme.typography.xs,
-      fontWeight: "600",
+      fontSize: theme.typography.small,
     },
   });

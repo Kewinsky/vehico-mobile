@@ -1007,17 +1007,10 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   );
 }
 
-const makeStyles = (theme: {
-  layout?: { contentPaddingHorizontal?: number };
-  spacing: Record<string, number>;
-  typography: Record<string, number>;
-  radius: Record<string, number>;
-  colors: Record<string, string>;
-}) =>
+const makeStyles = (theme: any) =>
   StyleSheet.create({
     topBar: {
-      paddingHorizontal:
-        theme.layout?.contentPaddingHorizontal ?? theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingBottom: theme.spacing.sm,
       paddingTop: theme.spacing.sm,
       flexDirection: "row",
@@ -1033,28 +1026,25 @@ const makeStyles = (theme: {
     },
     pillText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     h1: {
       fontSize: theme.typography.largeTitle,
       marginVertical: theme.spacing.md,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     presetsSectionLabel: {
       fontSize: theme.typography.small,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.semibold,
       marginBottom: theme.spacing.sm,
     },
     presetsScroll: {
-      marginHorizontal: -(
-        theme.layout?.contentPaddingHorizontal ?? theme.spacing.md
-      ),
+      marginHorizontal: -theme.layout.contentPaddingHorizontal,
       maxHeight: 90,
     },
     presetsScrollContent: {
-      paddingHorizontal:
-        theme.layout?.contentPaddingHorizontal ?? theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       gap: theme.spacing.sm,
     },
     presetChip: {
@@ -1065,7 +1055,7 @@ const makeStyles = (theme: {
     },
     presetChipTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     presetChipSummaryWrap: {
       marginTop: theme.spacing.xs,
@@ -1113,7 +1103,7 @@ const makeStyles = (theme: {
     },
     label: {
       fontSize: theme.typography.body,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.semibold,
     },
     valueText: {
       flex: 1,
@@ -1144,6 +1134,6 @@ const makeStyles = (theme: {
     },
     pickerActionText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
   });

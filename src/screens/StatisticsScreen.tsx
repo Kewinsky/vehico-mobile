@@ -1453,8 +1453,14 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
     },
     segmentSelected: { borderWidth: 1 },
-    segmentText: { fontSize: theme.typography.small, fontWeight: "700" },
-    segmentTextSmall: { fontSize: theme.typography.small, fontWeight: "700" },
+    segmentText: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    segmentTextSmall: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
     container: {
       marginTop: theme.spacing.md,
       gap: theme.spacing.md,
@@ -1470,9 +1476,18 @@ const makeStyles = (theme: any) =>
       padding: theme.spacing.lg,
       gap: theme.spacing.xs,
     },
-    heroLabel: { fontWeight: "700", fontSize: theme.typography.small },
-    heroValue: { fontWeight: "700", fontSize: theme.typography.largeTitle },
-    heroMeta: { fontWeight: "700", fontSize: theme.typography.small },
+    heroLabel: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.small,
+    },
+    heroValue: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.largeTitle,
+    },
+    heroMeta: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.small,
+    },
     tilesRow: { flexDirection: "row", gap: theme.spacing.sm },
     tile: {
       flex: 1,
@@ -1481,10 +1496,19 @@ const makeStyles = (theme: any) =>
       padding: theme.spacing.md,
       gap: theme.spacing.xs,
     },
-    tileLabel: { fontWeight: "800", fontSize: theme.typography.small },
-    tileValue: { fontWeight: "800", fontSize: theme.typography.body },
+    tileLabel: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.small,
+    },
+    tileValue: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.body,
+    },
     section: { gap: theme.spacing.sm },
-    sectionTitle: { fontWeight: "800", fontSize: theme.typography.title },
+    sectionTitle: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.title,
+    },
     empty: { fontSize: theme.typography.small },
     chartWrap: {
       borderWidth: 1,
@@ -1519,14 +1543,23 @@ const makeStyles = (theme: any) =>
       height: theme.spacing.sm - 2,
       borderRadius: 999,
     },
-    legendLabel: { fontWeight: "800", fontSize: theme.typography.small },
+    legendLabel: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.small,
+    },
     legendValueWrap: {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.xs,
     },
-    legendMoney: { fontWeight: "800", fontSize: theme.typography.small },
-    legendPct: { fontWeight: "800", fontSize: theme.typography.small },
+    legendMoney: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.small,
+    },
+    legendPct: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.small,
+    },
     infoCard: {
       borderWidth: 1,
       borderRadius: theme.radius.md,
@@ -1539,13 +1572,13 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     infoRowLabel: {
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.body,
       flex: 1,
       minWidth: 0,
     },
     infoRowValue: {
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.body,
       textAlign: "right",
     },
@@ -1565,7 +1598,7 @@ const makeStyles = (theme: any) =>
     fittedSetText: {
       flex: 1,
       minWidth: 0,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.body,
     },
   });

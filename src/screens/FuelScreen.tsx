@@ -752,7 +752,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     list: { flex: 1 },
     listContent: {
-      paddingBottom: insets.bottom + theme.spacing.xl,
+      paddingBottom: insets.bottom,
     },
     emptyText: {
       marginTop: theme.spacing.xs,
@@ -765,7 +765,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     section: {
       marginTop: theme.spacing.sm,
       fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     card: {
       borderWidth: 1,
@@ -779,7 +779,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     cardTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     cardMeta: {
       fontSize: theme.typography.small,
@@ -870,7 +870,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     pickerActionText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     separator: {
       marginTop: theme.spacing.md,
@@ -878,7 +878,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     separatorText: {
       fontSize: theme.typography.small,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       textTransform: "uppercase",
       letterSpacing: 0.5,
     },

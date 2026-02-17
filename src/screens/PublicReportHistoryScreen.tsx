@@ -241,11 +241,10 @@ const makeStyles = (theme: any) =>
     },
     reportTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       marginBottom: theme.spacing.xs,
     },
     reportDate: {
-      fontSize: theme.typography.xs,
-      fontWeight: "600",
+      fontSize: theme.typography.small,
     },
   });

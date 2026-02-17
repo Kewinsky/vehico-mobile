@@ -438,7 +438,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     title: {
       color: theme.colors.fg,
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     vinRow: {
       flexDirection: "row",
@@ -448,7 +448,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     vinText: {
       fontSize: theme.typography.small,
       color: theme.colors.muted,
-      fontWeight: "600",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     list: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
@@ -513,6 +513,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     menuItemText: {
       fontSize: theme.typography.body,
-      fontWeight: "500",
+      fontWeight: theme.typography.fontWeight.bold,
     },
   });

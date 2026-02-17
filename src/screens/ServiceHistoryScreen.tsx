@@ -1179,9 +1179,12 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flex: 1,
     },
     listContent: {
-      paddingBottom: insets.bottom + theme.spacing.xl,
+      paddingBottom: insets.bottom,
     },
-    editLink: { color: theme.colors.accent, fontWeight: "800" },
+    editLink: {
+      color: theme.colors.accent,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
     searchRow: { flexDirection: "row", alignItems: "center" },
     searchBarWrap: {
       flex: 1,
@@ -1260,7 +1263,10 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       justifyContent: "center",
     },
     segmentSelected: { borderWidth: 1 },
-    segmentTextSmall: { fontSize: theme.typography.small, fontWeight: "700" },
+    segmentTextSmall: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
     pickerWrap: {
       borderTopWidth: 1,
       paddingTop: theme.spacing.xs,
@@ -1281,7 +1287,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     pickerActionText: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     loadingContainer: {
       flex: 1,
@@ -1296,7 +1302,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     emptyTitle: {
       fontSize: theme.typography.title,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     emptyBody: {
@@ -1310,7 +1316,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     separatorText: {
       fontSize: theme.typography.small,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       textTransform: "uppercase",
       letterSpacing: 0.5,
     },

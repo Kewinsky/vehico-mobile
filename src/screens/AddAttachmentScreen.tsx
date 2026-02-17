@@ -294,7 +294,7 @@ const makeStyles = (theme: any) =>
     },
     h1: {
       fontSize: theme.typography.largeTitle,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
     searchBarWrap: {
@@ -319,7 +319,10 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       padding: theme.spacing.sm,
     },
-    cardTitle: { color: theme.colors.fg, fontWeight: "800" },
+    cardTitle: {
+      color: theme.colors.fg,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
     cardMeta: { marginTop: theme.spacing.xs / 2, color: theme.colors.muted },
     loadingContainer: {
       paddingTop: theme.spacing.xl + theme.spacing.xs,

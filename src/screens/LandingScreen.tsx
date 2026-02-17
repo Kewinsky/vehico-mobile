@@ -138,7 +138,7 @@ const makeStyles = (theme: any) =>
     },
     title: {
       fontSize: theme.typography.largeTitle + 4,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       letterSpacing: -0.5,
       textAlign: "center",
     },
@@ -153,7 +153,7 @@ const makeStyles = (theme: any) =>
     },
     sectionTitle: {
       fontSize: theme.typography.title,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     featuresList: {
       gap: theme.spacing.sm,
@@ -183,7 +183,7 @@ const makeFeatureStyles = (theme: any) =>
     },
     title: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     description: {
       fontSize: theme.typography.small,

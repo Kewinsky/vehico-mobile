@@ -216,7 +216,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     list: { flex: 1 },
-    listContent: { paddingBottom: insets.bottom + theme.spacing.xl },
+    listContent: { paddingBottom: insets.bottom },
     card: {
       borderWidth: 1,
       borderRadius: theme.radius.md,
@@ -234,7 +234,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     itemTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     badge: {
       paddingHorizontal: theme.spacing.xs,
@@ -244,7 +244,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     badgeText: {
       fontSize: theme.typography.xs,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       color: "#000000",
       letterSpacing: 0.3,
     },

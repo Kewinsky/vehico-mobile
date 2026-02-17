@@ -219,7 +219,7 @@ function makeStyles(theme: any) {
     },
     sectionTitle: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       marginBottom: theme.spacing.sm,
     },
     card: {
@@ -232,7 +232,7 @@ function makeStyles(theme: any) {
     },
     cardValue: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
     },
     currentRow: {
       flexDirection: "row",
@@ -263,7 +263,7 @@ function makeStyles(theme: any) {
     tileTitle: {
       color: theme.colors.fg,
       fontSize: theme.typography.body,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       textAlign: "center",
     },
   });

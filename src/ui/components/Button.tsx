@@ -28,10 +28,10 @@ export function Button({
         variant === "primary"
           ? styles.primary
           : variant === "destructive"
-          ? styles.destructive
-          : variant === "outlined"
-          ? styles.outlined
-          : styles.ghost,
+            ? styles.destructive
+            : variant === "outlined"
+              ? styles.outlined
+              : styles.ghost,
         disabled && styles.disabled,
         pressed && !disabled && styles.pressed,
         style,
@@ -43,10 +43,10 @@ export function Button({
           variant === "primary"
             ? styles.textPrimary
             : variant === "destructive"
-            ? styles.textDestructive
-            : variant === "outlined"
-            ? styles.textOutlined
-            : styles.textGhost,
+              ? styles.textDestructive
+              : variant === "outlined"
+                ? styles.textOutlined
+                : styles.textGhost,
         ]}
       >
         {children}
@@ -97,7 +97,7 @@ const makeStyles = (theme: any) =>
     },
     text: {
       fontSize: theme.typography.body,
-      fontWeight: "700",
+      fontWeight: theme.typography.fontWeight.bold,
       letterSpacing: 0.2,
     },
     textPrimary: {
@@ -110,7 +110,7 @@ const makeStyles = (theme: any) =>
       color: theme.colors.accent,
     },
     textDestructive: {
-      color: theme.colors.bg,
+      color: "#000000",
     },
     disabled: {
       opacity: 0.5,

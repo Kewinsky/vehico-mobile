@@ -54,7 +54,7 @@ const makeStyles = (theme: any) =>
     label: {
       marginBottom: theme.spacing.xs / 2,
       fontSize: theme.typography.small,
-      fontWeight: "800",
+      fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.muted,
     },
     wrap: {
