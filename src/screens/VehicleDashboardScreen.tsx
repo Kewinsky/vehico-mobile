@@ -43,7 +43,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, insets);
   const { vehicleId } = route.params;
-  const { isPremium } = useEntitlements();
+  const { isPremium, remindersLimit } = useEntitlements();
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
@@ -180,8 +180,8 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     setShowMenu(false);
     if (!isPremium) {
       Alert.alert(
-        t("limits.premiumRequiredTitle"),
-        t("limits.premiumRequiredBody"),
+        t("limits.reminderLimitReachedTitle"),
+        t("limits.reminderLimitReachedBody", { limit: remindersLimit }),
         [
           { text: t("common.cancel"), style: "cancel" },
           {
