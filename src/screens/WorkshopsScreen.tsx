@@ -133,21 +133,7 @@ export function WorkshopsScreen({ navigation }: Props) {
   }
 
   function onAddWorkshopPress() {
-    if (!isPremium) {
-      Alert.alert(
-        t("limits.premiumRequiredTitle"),
-        t("limits.premiumRequiredBody"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("limits.upgradeToPremium"),
-            onPress: () => navigation.navigate("Shop"),
-          },
-        ],
-      );
-      return;
-    }
-    if (items.length >= workshopsLimit) {
+    if (!isPremium && items.length >= workshopsLimit) {
       Alert.alert(
         t("limits.workshopLimitReachedTitle"),
         t("limits.workshopLimitReachedBody", { limit: workshopsLimit }),

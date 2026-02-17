@@ -318,21 +318,7 @@ export function RemindersScreen({ route, navigation }: Props) {
   }, [items, query, dateFrom, dateTo, statusFilter]);
 
   function onAddReminderPress() {
-    if (!isPremium) {
-      Alert.alert(
-        t("limits.premiumRequiredTitle"),
-        t("limits.premiumRequiredBody"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("limits.upgradeToPremium"),
-            onPress: () => navigation.navigate("Shop"),
-          },
-        ],
-      );
-      return;
-    }
-    if (items.length >= remindersLimit) {
+    if (!isPremium && items.length >= remindersLimit) {
       Alert.alert(
         t("limits.reminderLimitReachedTitle"),
         t("limits.reminderLimitReachedBody", { limit: remindersLimit }),

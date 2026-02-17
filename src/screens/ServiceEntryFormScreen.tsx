@@ -114,12 +114,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [workshopId, setWorkshopId] = useState<string | null>(null);
 
-  const workshopOptions = useMemo(() => {
-    const ids = workshops.map((w) => w.id);
-    if (workshopId && !ids.includes(workshopId)) return [workshopId, ...ids];
-    return ids;
-  }, [workshops, workshopId]);
-
   const checkAndUpload = useCallback(
     async (params: {
       serviceEntryId: string;
@@ -778,7 +772,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             showPicker<string>({
               title: t("entryForm.workshop"),
               value: workshopId,
-              options: workshopOptions,
+              options: workshops.map((w) => w.id),
               getLabel: (id) => workshops.find((w) => w.id === id)?.name ?? id,
               onChange: setWorkshopId,
               placeholderLabel: t("entryForm.workshopPlaceholder"),
