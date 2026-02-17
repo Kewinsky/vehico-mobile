@@ -114,7 +114,7 @@ export function ShopScreen({ navigation }: Props) {
     return revenueCatProducts[productId]?.description ?? fallbackMap[productId];
   }
 
-  function confirmPurchase(productId: RevenueCatProductId) {
+  function startPurchase(productId: RevenueCatProductId) {
     if (purchasing) return;
     if (isPremium) {
       Alert.alert(t("shop.premiumIsActive"), t("shop.premiumIsActiveBody"), [
@@ -122,17 +122,7 @@ export function ShopScreen({ navigation }: Props) {
       ]);
       return;
     }
-    const price = revenueCatProducts[productId]?.priceString ?? "—";
-
-    Alert.alert(
-      t("shop.confirmPurchase"),
-      `${getProductName(productId)}\n${price}\n\n${getProductDescription(productId)}`,
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        { text: t("shop.buy"), onPress: () => void handlePurchase(productId) },
-      ],
-      { cancelable: true },
-    );
+    void handlePurchase(productId);
   }
 
   const accentBg = useMemo(
@@ -370,7 +360,7 @@ export function ShopScreen({ navigation }: Props) {
               </Button>
             ) : (
               <Button
-                onPress={() => confirmPurchase(selectedId)}
+                onPress={() => startPurchase(selectedId)}
                 disabled={!canPurchase}
               >
                 {purchasing ? t("common.loading") : t("shop.unlockPremium")}
