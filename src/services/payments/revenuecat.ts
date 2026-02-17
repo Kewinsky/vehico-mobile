@@ -6,7 +6,9 @@ import type {
   PurchasesStoreProduct,
 } from "react-native-purchases";
 
-export const REVENUECAT_PUBLIC_API_KEY = "test_YItopNwyzRYzzhDWbvTBnDOTtor";
+import { ENV } from "../../config/env";
+
+export const REVENUECAT_PUBLIC_API_KEY = ENV.REVENUECAT_API_KEY;
 export const REVENUECAT_PREMIUM_ENTITLEMENT_ID = "vehico Premium";
 
 export const REVENUECAT_SUBSCRIPTION_PRODUCT_IDS = [
