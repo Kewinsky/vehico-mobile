@@ -219,20 +219,26 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           isPremium ? undefined : { limit: remindersLimit },
         );
         const header = [
-          "type",
           "due_date",
           "due_mileage",
           "title",
           "notes",
           "status",
+          "recurrence_interval_value",
+          "recurrence_interval_unit",
+          "recurrence_interval_km",
+          "recurrence_anchor_mileage",
         ];
         const lines = rows.map((e) => [
-          csvEscape(e.type ?? ""),
           csvEscape(e.due_date ?? ""),
           csvEscape(e.due_mileage ?? ""),
           csvEscape(e.title ?? ""),
           csvEscape(e.notes ?? ""),
           csvEscape(e.status ?? ""),
+          csvEscape(e.recurrence_interval_value ?? ""),
+          csvEscape(e.recurrence_interval_unit ?? ""),
+          csvEscape(e.recurrence_interval_km ?? ""),
+          csvEscape(e.recurrence_anchor_mileage ?? ""),
         ]);
         const csvText = [
           header.join(","),

@@ -363,14 +363,12 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     const reminderRows = showReminders
       ? reminders
           .filter((r) => {
-            // Only show active reminders
             if (r.status !== "active") return false;
-            const sortKey =
-              r.type === "mileage"
-                ? "9999-12-31"
-                : String(r.due_date ?? "").slice(0, 10);
-            if (from && r.type === "time" && sortKey < from) return false;
-            if (to && r.type === "time" && sortKey > to) return false;
+            const sortKey = r.due_date
+              ? String(r.due_date).slice(0, 10)
+              : "9999-12-31";
+            if (from && r.due_date && sortKey < from) return false;
+            if (to && r.due_date && sortKey > to) return false;
             if (q.length) {
               const hay = `${r.title ?? ""}\n${r.notes ?? ""}`.toLowerCase();
               if (!hay.includes(q)) return false;
@@ -380,10 +378,9 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           .map((r) => ({
             kind: "reminder" as const,
             id: r.id,
-            sortKey:
-              r.type === "mileage"
-                ? "9999-12-31"
-                : String(r.due_date ?? "").slice(0, 10),
+            sortKey: r.due_date
+              ? String(r.due_date).slice(0, 10)
+              : "9999-12-31",
             reminder: r,
           }))
       : [];
@@ -1089,13 +1086,19 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
             const rowItem = item.item;
             if (rowItem.kind === "reminder") {
               const r = rowItem.reminder;
-              const dueText =
-                r.type === "time"
-                  ? t("reminders.dueTime", { date: r.due_date ?? "" })
-                  : t("reminders.dueMileage", {
-                      mileage: r.due_mileage ?? "",
+              const dueText = [
+                r.due_date
+                  ? t("reminders.dueTime", { date: r.due_date })
+                  : null,
+                r.due_mileage != null
+                  ? t("reminders.dueMileage", {
+                      mileage: String(r.due_mileage),
                       unit: distanceUnit,
-                    });
+                    })
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ");
               return (
                 <Pressable
                   style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}

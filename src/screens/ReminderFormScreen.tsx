@@ -5,6 +5,7 @@ import {
   Platform,
   Pressable,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
@@ -18,7 +19,7 @@ import {
   isPositiveNumber,
   isNonNegativeNumber,
 } from "../utils/validation";
-import type { ReminderType, ReminderStatus } from "../types/domain";
+import type { ReminderStatus, ReminderRecurrenceUnit } from "../types/domain";
 import {
   createReminder,
   deleteReminder,
@@ -38,8 +39,14 @@ import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlementAlerts";
 import { Ionicons } from "@expo/vector-icons";
+import { ScrollView } from "react-native";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { Textarea } from "../ui/components/Textarea";
+import {
+  REMINDER_PRESETS,
+  getPresetDueDate,
+  type ReminderPreset,
+} from "./reminderPresets";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
 
@@ -54,12 +61,15 @@ function formatYmd(d: Date) {
 function parseYmd(ymd: string): Date {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
   if (!m) return new Date();
-  const year = Number(m[1]);
-  const month = Number(m[2]);
-  const day = Number(m[3]);
-  // Use local time to avoid UTC date shifting.
-  return new Date(year, month - 1, day);
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
 }
+
+const RECURRENCE_UNITS: { value: ReminderRecurrenceUnit; max: number }[] = [
+  { value: "days", max: 31 },
+  { value: "weeks", max: 4 },
+  { value: "months", max: 12 },
+  { value: "years", max: 10 },
+];
 
 export function ReminderFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -72,8 +82,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
-  const [type, setType] = useState<ReminderType>("time");
-  const [status, setStatus] = useState<ReminderStatus>("active");
+  const [dateEnabled, setDateEnabled] = useState(false);
   const [dueDate, setDueDate] = useState(() =>
     new Date().toISOString().slice(0, 10),
   );
@@ -81,9 +90,73 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const [datePickerDraft, setDatePickerDraft] = useState<Date>(
     () => new Date(),
   );
-  const [dueMileage, setDueMileage] = useState("");
   const [daysBefore, setDaysBefore] = useState("7");
+  const [dateRepeats, setDateRepeats] = useState(false);
+  const [recurrenceValue, setRecurrenceValue] = useState("6");
+  const [recurrenceUnit, setRecurrenceUnit] =
+    useState<ReminderRecurrenceUnit>("months");
+
+  const [mileageEnabled, setMileageEnabled] = useState(false);
+  const [dueMileage, setDueMileage] = useState("");
+  const [mileageRepeats, setMileageRepeats] = useState(false);
+  const [recurrenceKm, setRecurrenceKm] = useState("");
+
   const [saving, setSaving] = useState(false);
+
+  function getPresetRecurrenceParts(preset: ReminderPreset): string[] {
+    const parts: string[] = [];
+    if (
+      preset.dateRepeats &&
+      preset.recurrenceValue != null &&
+      preset.recurrenceUnit
+    ) {
+      const unitKey =
+        preset.recurrenceUnit === "days"
+          ? "presetsEveryDays"
+          : preset.recurrenceUnit === "weeks"
+            ? "presetsEveryWeeks"
+            : preset.recurrenceUnit === "months"
+              ? "presetsEveryMonths"
+              : "presetsEveryYears";
+      parts.push(
+        t(`reminderForm.${unitKey}`, { value: preset.recurrenceValue }),
+      );
+    }
+    if (preset.mileageRepeats && preset.recurrenceKm != null) {
+      parts.push(
+        t("reminderForm.presetsEveryKm", {
+          value: preset.recurrenceKm.toLocaleString(),
+        }),
+      );
+    }
+    return parts;
+  }
+
+  function applyPreset(preset: ReminderPreset) {
+    setTitle(t(`reminderForm.${preset.titleKey}`));
+    setNotes(preset.notesKey ? t(`reminderForm.${preset.notesKey}`) : "");
+    setDateEnabled(preset.dateEnabled);
+    setDueDate(getPresetDueDate(preset));
+    setDaysBefore(String(preset.daysBefore));
+    setDateRepeats(preset.dateRepeats);
+    setRecurrenceValue(
+      preset.recurrenceValue != null ? String(preset.recurrenceValue) : "6",
+    );
+    setRecurrenceUnit(preset.recurrenceUnit ?? "months");
+    setMileageEnabled(preset.mileageEnabled);
+    setDueMileage(
+      preset.dueMileage != null
+        ? String(preset.dueMileage)
+        : preset.recurrenceKm != null
+          ? String(preset.recurrenceKm)
+          : "",
+    );
+    setMileageRepeats(preset.mileageRepeats);
+    setRecurrenceKm(
+      preset.recurrenceKm != null ? String(preset.recurrenceKm) : "",
+    );
+  }
+
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -94,26 +167,62 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     void (async () => {
       try {
         const r = await getReminder(reminderId);
-        setType(r.type);
-        setStatus(r.status);
-        if (r.type === "time" && r.due_date) setDueDate(r.due_date);
-        if (r.type === "mileage" && r.due_mileage != null)
-          setDueMileage(String(r.due_mileage));
-        if (r.type === "time" && r.days_before != null)
-          setDaysBefore(String(r.days_before));
         setTitle(r.title ?? "");
         setNotes(r.notes ?? "");
-      } catch (err: any) {
-        toastError(err?.message ?? t("common.error"));
+        if (r.due_date != null) {
+          setDateEnabled(true);
+          setDueDate(r.due_date);
+          if (r.days_before != null) setDaysBefore(String(r.days_before));
+          if (
+            r.recurrence_interval_value != null &&
+            r.recurrence_interval_unit != null
+          ) {
+            setDateRepeats(true);
+            setRecurrenceValue(String(r.recurrence_interval_value));
+            setRecurrenceUnit(r.recurrence_interval_unit);
+          }
+        }
+        if (r.due_mileage != null) {
+          setMileageEnabled(true);
+          setDueMileage(String(r.due_mileage));
+          if (r.recurrence_interval_km != null) {
+            setMileageRepeats(true);
+            setRecurrenceKm(String(r.recurrence_interval_km));
+          }
+        }
+      } catch (err: unknown) {
+        toastError((err as Error)?.message ?? t("common.error"));
       }
     })();
   }, [reminderId, t]);
 
   const canSave = useMemo(() => {
-    const okTitle = title.trim().length > 0;
-    if (type === "time") return okTitle && isValidDate(dueDate);
-    return okTitle && isPositiveNumber(dueMileage);
-  }, [type, dueDate, dueMileage, title]);
+    if (!title.trim()) return false;
+    if (dateEnabled && !isValidDate(dueDate)) return false;
+    if (mileageEnabled && !isPositiveNumber(dueMileage)) return false;
+    if (!dateEnabled && !mileageEnabled) return false;
+    if (dateRepeats) {
+      const max =
+        RECURRENCE_UNITS.find((u) => u.value === recurrenceUnit)?.max ?? 12;
+      const v = parseInt(recurrenceValue, 10);
+      if (!Number.isInteger(v) || v < 1 || v > max) return false;
+    }
+    if (mileageRepeats && !isPositiveNumber(recurrenceKm)) return false;
+    if (daysBefore.trim() && !isNonNegativeNumber(daysBefore)) return false;
+    return true;
+  }, [
+    title,
+    dateEnabled,
+    dueDate,
+    mileageEnabled,
+    dueMileage,
+    dateRepeats,
+    recurrenceValue,
+    recurrenceUnit,
+    mileageRepeats,
+    recurrenceKm,
+    daysBefore,
+  ]);
 
   function openDatePicker() {
     setDatePickerDraft(parseYmd(dueDate));
@@ -135,8 +244,8 @@ export function ReminderFormScreen({ navigation, route }: Props) {
               await cancelLocalReminder(reminderId);
               await deleteReminder(reminderId);
               navigation.goBack();
-            } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+            } catch (e: unknown) {
+              toastError((e as Error)?.message ?? t("common.error"));
             }
           },
         },
@@ -147,11 +256,15 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   async function onSave() {
     try {
       setSaving(true);
-      if (type === "time" && !isValidDate(dueDate)) {
+      if (!dateEnabled && !mileageEnabled) {
         toastError(t("validation.invalidDate"));
         return;
       }
-      if (type === "mileage" && !isPositiveNumber(dueMileage)) {
+      if (dateEnabled && !isValidDate(dueDate)) {
+        toastError(t("validation.invalidDate"));
+        return;
+      }
+      if (mileageEnabled && !isPositiveNumber(dueMileage)) {
         toastError(t("validation.positiveRequired"));
         return;
       }
@@ -159,7 +272,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         toastError(t("validation.nonNegativeRequired"));
         return;
       }
-      // Check reminder limit (only for new reminders)
       if (!reminderId && !isPremium) {
         const existingReminders = await listReminders(
           vehicleId,
@@ -183,17 +295,32 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
       const payload = {
         vehicle_id: vehicleId,
-        type,
-        due_date: type === "time" ? dueDate.trim() : null,
-        due_mileage: type === "mileage" ? Number(dueMileage) : null,
-        days_before: type === "time" ? Number(daysBefore) || null : null,
+        due_date: dateEnabled ? dueDate.trim() : null,
+        due_mileage: mileageEnabled ? Number(dueMileage) : null,
+        days_before:
+          dateEnabled && daysBefore.trim() ? Number(daysBefore) || null : null,
         title: title.trim(),
         notes: notes.trim().length ? notes.trim() : null,
-        status: status,
+        status: "active" as ReminderStatus,
         channel_email: true,
         channel_push: true,
         enabled: true,
+        recurrence_interval_value: dateRepeats
+          ? parseInt(recurrenceValue, 10) || null
+          : null,
+        recurrence_interval_unit: dateRepeats ? recurrenceUnit : null,
+        recurrence_interval_km: mileageRepeats
+          ? parseInt(recurrenceKm, 10) || null
+          : null,
+        recurrence_anchor_mileage:
+          mileageEnabled &&
+          mileageRepeats &&
+          dueMileage.trim() &&
+          recurrenceKm.trim()
+            ? Number(dueMileage) - Number(recurrenceKm)
+            : null,
       };
+
       let saved: Awaited<ReturnType<typeof createReminder>>;
       if (reminderId) {
         saved = await updateReminder(reminderId, payload);
@@ -206,13 +333,28 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         await scheduleLocalReminder(saved);
       }
       navigation.goBack();
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) return;
-      toastError(e?.message ?? t("common.error"));
+      toastError((e as Error)?.message ?? t("common.error"));
     } finally {
       setSaving(false);
     }
   }
+
+  const recurrenceUnitLabel = useMemo(() => {
+    switch (recurrenceUnit) {
+      case "days":
+        return t("reminderForm.intervalDays");
+      case "weeks":
+        return t("reminderForm.intervalWeeks");
+      case "months":
+        return t("reminderForm.intervalMonths");
+      case "years":
+        return t("reminderForm.intervalYears");
+      default:
+        return "";
+    }
+  }, [recurrenceUnit, t]);
 
   return (
     <FormScreen
@@ -275,6 +417,66 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       <Text style={styles.h1}>
         {reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle")}
       </Text>
+
+      {!reminderId ? (
+        <>
+          <Text
+            style={[styles.presetsSectionLabel, { color: theme.colors.muted }]}
+          >
+            {t("reminderForm.presetsTitle")}
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.presetsScrollContent}
+            style={styles.presetsScroll}
+          >
+            {REMINDER_PRESETS.map((preset) => {
+              const summaryParts = getPresetRecurrenceParts(preset);
+              return (
+                <Pressable
+                  key={preset.titleKey}
+                  onPress={() => applyPreset(preset)}
+                  style={({ pressed }) => [
+                    styles.presetChip,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                    pressed && { opacity: 0.85 },
+                  ]}
+                >
+                  <Text
+                    style={[styles.presetChipTitle, { color: theme.colors.fg }]}
+                    numberOfLines={2}
+                  >
+                    {t(`reminderForm.${preset.titleKey}`)}
+                  </Text>
+                  {summaryParts.length ? (
+                    <View style={styles.presetChipSummaryWrap}>
+                      {summaryParts.slice(0, 2).map((line, idx) => (
+                        <Text
+                          key={`${preset.titleKey}-summary-${idx}`}
+                          style={[
+                            styles.presetChipSummary,
+                            { color: theme.colors.muted },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {line}
+                        </Text>
+                      ))}
+                    </View>
+                  ) : null}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+          <View style={{ height: theme.spacing.md }} />
+        </>
+      ) : null}
+
+      {/* Section 1: Title */}
       <View
         style={[
           styles.card,
@@ -310,15 +512,38 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             ]}
             autoCorrect={false}
           />
+          {title.length > 0 ? (
+            <Pressable
+              onPress={() => setTitle("")}
+              hitSlop={8}
+              style={{ padding: 4 }}
+            >
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={theme.colors.muted}
+              />
+            </Pressable>
+          ) : null}
         </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
+      </View>
 
-        <View style={styles.row}>
+      <View style={{ height: theme.spacing.sm }} />
+
+      {/* Section 2: Date reminder */}
+      <View
+        style={[
+          styles.card,
+          {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.card,
+          },
+        ]}
+      >
+        <View style={[styles.row, { justifyContent: "space-between" }]}>
           <View style={styles.rowLeft}>
             <Ionicons
-              name="options-outline"
+              name="calendar-outline"
               size={20}
               color={theme.colors.accent}
             />
@@ -326,73 +551,25 @@ export function ReminderFormScreen({ navigation, route }: Props) {
               style={[styles.label, { color: theme.colors.muted }]}
               numberOfLines={1}
             >
-              {t("reminderForm.type")}
+              {t("reminderForm.dateReminder")}
             </Text>
           </View>
-          <View style={styles.segmentWrap}>
-            <Pressable
-              onPress={() => setType("time")}
-              style={[
-                styles.segment,
-                type === "time" && [
-                  styles.segmentSelected,
-                  {
-                    backgroundColor: accentBg,
-                    borderColor: theme.colors.accent,
-                  },
-                ],
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  {
-                    color:
-                      type === "time"
-                        ? theme.colors.accent
-                        : theme.colors.muted,
-                  },
-                ]}
-              >
-                {t("reminderForm.time")}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setType("mileage")}
-              style={[
-                styles.segment,
-                type === "mileage" && [
-                  styles.segmentSelected,
-                  {
-                    backgroundColor: accentBg,
-                    borderColor: theme.colors.accent,
-                  },
-                ],
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  {
-                    color:
-                      type === "mileage"
-                        ? theme.colors.accent
-                        : theme.colors.muted,
-                  },
-                ]}
-              >
-                {t("reminderForm.mileage")}
-              </Text>
-            </Pressable>
-          </View>
+          <Switch
+            value={dateEnabled}
+            onValueChange={setDateEnabled}
+            trackColor={{
+              false: theme.colors.border,
+              true: theme.colors.accent,
+            }}
+            thumbColor="#fff"
+          />
         </View>
 
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-
-        {type === "time" ? (
+        {dateEnabled && (
           <>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
             <Pressable
               onPress={openDatePicker}
               disabled={saving}
@@ -401,34 +578,23 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                 pressed && !saving ? { opacity: 0.85 } : null,
               ]}
             >
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("reminderForm.dueDate")}
-                </Text>
-              </View>
+              <Text
+                style={[styles.label, { color: theme.colors.muted }]}
+                numberOfLines={1}
+              >
+                {t("reminderForm.dueDateLabel")}
+              </Text>
               <Text
                 style={[
                   styles.valueText,
-                  {
-                    color: theme.colors.fg,
-                    textAlign: "right",
-                  },
+                  { color: theme.colors.fg, textAlign: "right" },
                 ]}
-                numberOfLines={1}
               >
                 {dueDate}
               </Text>
             </Pressable>
 
-            {datePickerOpen ? (
+            {datePickerOpen && (
               <View
                 style={[
                   styles.pickerWrap,
@@ -449,9 +615,9 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                       if (selected) setDatePickerDraft(selected);
                       return;
                     }
-
                     setDatePickerOpen(false);
-                    if ((event as any)?.type === "dismissed") return;
+                    if ((event as { type?: string })?.type === "dismissed")
+                      return;
                     if (selected) setDueDate(formatYmd(selected));
                   }}
                 />
@@ -503,26 +669,18 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                   </View>
                 ) : null}
               </View>
-            ) : null}
+            )}
 
             <View
               style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
-
             <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="notifications-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("reminderForm.daysBefore")}
-                </Text>
-              </View>
+              <Text
+                style={[styles.label, { color: theme.colors.muted }]}
+                numberOfLines={1}
+              >
+                {t("reminderForm.daysBefore")}
+              </Text>
               <TextInput
                 value={daysBefore}
                 onChangeText={setDaysBefore}
@@ -536,40 +694,247 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                 ]}
               />
             </View>
-          </>
-        ) : (
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
-              <Ionicons
-                name="speedometer-outline"
-                size={20}
-                color={theme.colors.accent}
+
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+            <View style={[styles.row, { justifyContent: "space-between" }]}>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="repeat-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("reminderForm.repeats")}
+                </Text>
+              </View>
+              <Switch
+                value={dateRepeats}
+                onValueChange={setDateRepeats}
+                trackColor={{
+                  false: theme.colors.border,
+                  true: theme.colors.accent,
+                }}
+                thumbColor="#fff"
               />
+            </View>
+
+            {dateRepeats && (
+              <>
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+                <View style={styles.row}>
+                  <View style={styles.rowLeft}>
+                    <Text
+                      style={[styles.label, { color: theme.colors.muted }]}
+                      numberOfLines={1}
+                    >
+                      {t("reminderForm.every")}
+                    </Text>
+                  </View>
+                  <View style={styles.rowRight}>
+                    <TextInput
+                      value={recurrenceValue}
+                      onChangeText={setRecurrenceValue}
+                      placeholder="6"
+                      placeholderTextColor={theme.colors.muted}
+                      keyboardType="number-pad"
+                      editable={!saving}
+                      style={[
+                        styles.input,
+                        {
+                          color: theme.colors.fg,
+                          textAlign: "right",
+                          flex: 0,
+                          minWidth: 48,
+                          maxWidth: 56,
+                        },
+                      ]}
+                    />
+                    <Pressable
+                      onPress={() => {
+                        const unitLabels: Record<
+                          ReminderRecurrenceUnit,
+                          string
+                        > = {
+                          days: t("reminderForm.intervalDays"),
+                          weeks: t("reminderForm.intervalWeeks"),
+                          months: t("reminderForm.intervalMonths"),
+                          years: t("reminderForm.intervalYears"),
+                        };
+                        Alert.alert(
+                          t("reminderForm.every"),
+                          "",
+                          [
+                            { text: t("common.cancel"), style: "cancel" },
+                            ...RECURRENCE_UNITS.map((u) => ({
+                              text: unitLabels[u.value],
+                              onPress: () => setRecurrenceUnit(u.value),
+                            })),
+                          ],
+                          { cancelable: true },
+                        );
+                      }}
+                      style={({ pressed }) => [
+                        { paddingVertical: 4, paddingLeft: theme.spacing.sm },
+                        pressed && { opacity: 0.75 },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.valueText,
+                          {
+                            color: theme.colors.fg,
+                            textAlign: "right",
+                          },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {recurrenceUnitLabel}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </>
+            )}
+          </>
+        )}
+      </View>
+
+      <View style={{ height: theme.spacing.sm }} />
+
+      {/* Section 3: Mileage reminder */}
+      <View
+        style={[
+          styles.card,
+          {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.card,
+          },
+        ]}
+      >
+        <View style={[styles.row, { justifyContent: "space-between" }]}>
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="speedometer-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[styles.label, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {t("reminderForm.mileageReminder")}
+            </Text>
+          </View>
+          <Switch
+            value={mileageEnabled}
+            onValueChange={setMileageEnabled}
+            trackColor={{
+              false: theme.colors.border,
+              true: theme.colors.accent,
+            }}
+            thumbColor="#fff"
+          />
+        </View>
+
+        {mileageEnabled && (
+          <>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+            <View style={styles.row}>
               <Text
                 style={[styles.label, { color: theme.colors.muted }]}
                 numberOfLines={1}
               >
                 {t("reminderForm.dueMileage", { unit: distanceUnit })}
               </Text>
+              <TextInput
+                value={dueMileage}
+                onChangeText={setDueMileage}
+                placeholder={t("reminderForm.placeholderDueMileage")}
+                placeholderTextColor={theme.colors.muted}
+                keyboardType="number-pad"
+                editable={!saving}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
             </View>
-            <TextInput
-              value={dueMileage}
-              onChangeText={setDueMileage}
-              placeholder={t("reminderForm.placeholderDueMileage")}
-              placeholderTextColor={theme.colors.muted}
-              keyboardType="number-pad"
-              editable={!saving}
-              style={[
-                styles.input,
-                { color: theme.colors.fg, textAlign: "right" },
-              ]}
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
-          </View>
+            <View style={[styles.row, { justifyContent: "space-between" }]}>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="repeat-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("reminderForm.repeats")}
+                </Text>
+              </View>
+              <Switch
+                value={mileageRepeats}
+                onValueChange={setMileageRepeats}
+                trackColor={{
+                  false: theme.colors.border,
+                  true: theme.colors.accent,
+                }}
+                thumbColor="#fff"
+              />
+            </View>
+            {mileageRepeats && (
+              <>
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+                <View style={styles.row}>
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("reminderForm.everyKm")}
+                  </Text>
+                  <TextInput
+                    value={recurrenceKm}
+                    onChangeText={setRecurrenceKm}
+                    placeholder={t("reminderForm.placeholderEveryKm")}
+                    placeholderTextColor={theme.colors.muted}
+                    keyboardType="number-pad"
+                    editable={!saving}
+                    style={[
+                      styles.input,
+                      { color: theme.colors.fg, textAlign: "right" },
+                    ]}
+                  />
+                </View>
+              </>
+            )}
+          </>
         )}
       </View>
 
       <View style={{ height: theme.spacing.sm }} />
 
+      {/* Section 4: Notes */}
       <View
         style={[
           styles.card,
@@ -616,10 +981,17 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   );
 }
 
-const makeStyles = (theme: any) =>
+const makeStyles = (theme: {
+  layout?: { contentPaddingHorizontal?: number };
+  spacing: Record<string, number>;
+  typography: Record<string, number>;
+  radius: Record<string, number>;
+  colors: Record<string, string>;
+}) =>
   StyleSheet.create({
     topBar: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      paddingHorizontal:
+        theme.layout?.contentPaddingHorizontal ?? theme.spacing.md,
       paddingBottom: theme.spacing.sm,
       paddingTop: theme.spacing.sm,
       flexDirection: "row",
@@ -642,6 +1014,39 @@ const makeStyles = (theme: any) =>
       marginVertical: theme.spacing.md,
       fontWeight: "700",
       color: theme.colors.fg,
+    },
+    presetsSectionLabel: {
+      fontSize: theme.typography.small,
+      fontWeight: "600",
+      marginBottom: theme.spacing.sm,
+    },
+    presetsScroll: {
+      marginHorizontal: -(
+        theme.layout?.contentPaddingHorizontal ?? theme.spacing.md
+      ),
+      maxHeight: 90,
+    },
+    presetsScrollContent: {
+      paddingHorizontal:
+        theme.layout?.contentPaddingHorizontal ?? theme.spacing.md,
+      gap: theme.spacing.sm,
+    },
+    presetChip: {
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    presetChipTitle: {
+      fontSize: theme.typography.body,
+      fontWeight: "700",
+    },
+    presetChipSummaryWrap: {
+      marginTop: theme.spacing.xs,
+      gap: 2,
+    },
+    presetChipSummary: {
+      fontSize: theme.typography.small,
     },
     card: {
       borderWidth: 1,
@@ -668,13 +1073,7 @@ const makeStyles = (theme: any) =>
       flexDirection: "row",
       justifyContent: "flex-end",
       alignItems: "center",
-    },
-    rowMultiline: {
-      alignItems: "flex-start",
-    },
-    divider: {
-      height: 1,
-      width: "100%",
+      gap: theme.spacing.sm,
     },
     input: {
       flex: 1,
@@ -695,30 +1094,9 @@ const makeStyles = (theme: any) =>
       minWidth: 0,
       fontSize: theme.typography.body,
     },
-    segmentWrap: {
-      flex: 1,
-      minWidth: 0,
-      flexDirection: "row",
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      backgroundColor: theme.colors.bg,
-      borderRadius: theme.radius.md,
-      padding: 2,
-    },
-    segment: {
-      flex: 1,
-      borderRadius: theme.radius.md - 2,
-      paddingVertical: theme.spacing.xs - 2,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    segmentSelected: {
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-    },
-    segmentText: {
-      fontSize: theme.typography.small,
-      fontWeight: "700",
+    divider: {
+      height: 1,
+      width: "100%",
     },
     pickerWrap: {
       borderTopWidth: 1,

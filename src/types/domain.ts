@@ -206,17 +206,16 @@ export type FuelingEntry = {
 
 export type ExpenseCategory = "service" | "parts" | "insurance" | "other";
 
-export type ReminderType = "time" | "mileage";
-
 export type ReminderStatus = "active" | "done";
+
+export type ReminderRecurrenceUnit = "days" | "weeks" | "months" | "years";
 
 export type Reminder = {
   id: string;
   vehicle_id: string;
-  type: ReminderType;
   due_date: string | null;
   due_mileage: number | null;
-  days_before: number | null; // Only for type 'time', number of days before due_date to send reminder
+  days_before: number | null;
   title: string | null;
   notes: string | null;
   status: ReminderStatus;
@@ -225,6 +224,10 @@ export type Reminder = {
   enabled: boolean;
   delivered_at: string | null;
   created_at: string;
+  recurrence_interval_value: number | null;
+  recurrence_interval_unit: ReminderRecurrenceUnit | null;
+  recurrence_interval_km: number | null;
+  recurrence_anchor_mileage: number | null;
 };
 
 export type MarketplacePlatform = "olx" | "facebook" | "generic";

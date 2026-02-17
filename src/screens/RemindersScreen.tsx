@@ -25,6 +25,7 @@ import type { Reminder } from "../types/domain";
 import {
   listReminders,
   updateReminder,
+  getRecurrenceAdvancePatch,
 } from "../services/reminders/remindersRepo";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -118,17 +119,56 @@ export function RemindersScreen({ route, navigation }: Props) {
     return unsub;
   }, [navigation, load]);
 
-  async function toggleStatus(reminderId: string, currentStatus: string) {
+  async function performToggle(reminder: Reminder) {
     try {
-      const newStatus = currentStatus === "active" ? "done" : "active";
-      await updateReminder(reminderId, { status: newStatus });
-      setItems((prev) =>
-        prev.map((r) =>
-          r.id === reminderId ? { ...r, status: newStatus } : r,
-        ),
+      if (reminder.status === "done") {
+        await updateReminder(reminder.id, { status: "active" });
+        setItems((prev) =>
+          prev.map((r) =>
+            r.id === reminder.id ? { ...r, status: "active" as const } : r,
+          ),
+        );
+        return;
+      }
+      const advancePatch = getRecurrenceAdvancePatch(reminder);
+      if (advancePatch) {
+        const updated = await updateReminder(reminder.id, advancePatch);
+        setItems((prev) =>
+          prev.map((r) => (r.id === reminder.id ? updated : r)),
+        );
+      } else {
+        await updateReminder(reminder.id, { status: "done" });
+        setItems((prev) =>
+          prev.map((r) =>
+            r.id === reminder.id ? { ...r, status: "done" as const } : r,
+          ),
+        );
+      }
+    } catch (err: unknown) {
+      toastError((err as Error)?.message ?? t("common.error"));
+    }
+  }
+
+  function toggleStatus(reminder: Reminder) {
+    if (reminder.status === "done") {
+      void performToggle(reminder);
+      return;
+    }
+    const advancePatch = getRecurrenceAdvancePatch(reminder);
+    if (advancePatch) {
+      Alert.alert(
+        t("reminderDetail.markDoneRecurringTitle"),
+        t("reminderDetail.markDoneRecurringBody"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("reminderDetail.markDone"),
+            onPress: () => void performToggle(reminder),
+          },
+        ],
       );
-    } catch (err: any) {
-      toastError(err?.message ?? t("common.error"));
+    } else {
+      void performToggle(reminder);
     }
   }
 
@@ -259,8 +299,8 @@ export function RemindersScreen({ route, navigation }: Props) {
       // Filter by status
       if (statusFilter !== "all" && r.status !== statusFilter) return false;
 
-      // Filter by date - only for time-based reminders
-      if (r.type === "time" && r.due_date) {
+      // Filter by date when reminder has due_date
+      if (r.due_date) {
         const reminderDate = String(r.due_date).slice(0, 10);
         if (from && reminderDate < from) return false;
         if (to && reminderDate > to) return false;
@@ -269,27 +309,18 @@ export function RemindersScreen({ route, navigation }: Props) {
       return true;
     });
 
-    // Sort by date (time-based reminders) or mileage (mileage-based reminders)
+    // Sort: by due_date if present, else by due_mileage; both descending
     const sorted = [...filtered].sort((a, b) => {
-      if (a.type === "time" && b.type === "time") {
-        const dateA = a.due_date
-          ? String(a.due_date).slice(0, 10)
-          : "9999-12-31";
-        const dateB = b.due_date
-          ? String(b.due_date).slice(0, 10)
-          : "9999-12-31";
-        return dateB.localeCompare(dateA); // Descending
-      }
-      if (a.type === "mileage" && b.type === "mileage") {
-        const mileageA = a.due_mileage ?? 0;
-        const mileageB = b.due_mileage ?? 0;
-        return mileageB - mileageA; // Descending
-      }
-      // Time-based reminders come before mileage-based
-      return a.type === "time" ? -1 : 1;
+      const dateA = a.due_date ? String(a.due_date).slice(0, 10) : "9999-12-31";
+      const dateB = b.due_date ? String(b.due_date).slice(0, 10) : "9999-12-31";
+      const dateCmp = dateB.localeCompare(dateA);
+      if (dateCmp !== 0) return dateCmp;
+      const mileageA = a.due_mileage ?? 0;
+      const mileageB = b.due_mileage ?? 0;
+      return mileageB - mileageA;
     });
 
-    // Group by month/year and add separators (only for time-based reminders)
+    // Group by month/year and add separators for reminders with due_date
     const grouped: Array<
       | { type: "separator"; monthYear: string; monthYearKey: string }
       | { type: "item"; item: Reminder }
@@ -297,8 +328,8 @@ export function RemindersScreen({ route, navigation }: Props) {
     let currentMonthYear: string | null = null;
 
     for (const reminder of sorted) {
-      if (reminder.type === "time" && reminder.due_date) {
-        const monthYearKey = String(reminder.due_date).slice(0, 7); // YYYY-MM
+      if (reminder.due_date) {
+        const monthYearKey = String(reminder.due_date).slice(0, 7);
         if (monthYearKey !== currentMonthYear) {
           currentMonthYear = monthYearKey;
           grouped.push({
@@ -307,11 +338,8 @@ export function RemindersScreen({ route, navigation }: Props) {
             monthYearKey,
           });
         }
-        grouped.push({ type: "item", item: reminder });
-      } else {
-        // Mileage-based reminders don't have separators
-        grouped.push({ type: "item", item: reminder });
       }
+      grouped.push({ type: "item", item: reminder });
     }
 
     return grouped;
@@ -694,18 +722,25 @@ export function RemindersScreen({ route, navigation }: Props) {
                         isDone && { opacity: 0.6 },
                       ]}
                     >
-                      {reminder.type === "time"
-                        ? t("reminders.dueTime", {
-                            date: reminder.due_date ?? "",
-                          })
-                        : t("reminders.dueMileage", {
-                            mileage: reminder.due_mileage ?? "",
-                            unit: distanceUnit,
-                          })}
+                      {[
+                        reminder.due_date
+                          ? t("reminders.dueTime", {
+                              date: reminder.due_date,
+                            })
+                          : null,
+                        reminder.due_mileage != null
+                          ? t("reminders.dueMileage", {
+                              mileage: String(reminder.due_mileage),
+                              unit: distanceUnit,
+                            })
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </Text>
                   </Pressable>
                   <IconButton
-                    onPress={() => toggleStatus(reminder.id, reminder.status)}
+                    onPress={() => toggleStatus(reminder)}
                     variant="ghost"
                   >
                     <Ionicons
@@ -750,7 +785,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flexDirection: "row",
       gap: theme.spacing.sm,
     },
-    list: { flex: 1 },
+    list: { flex: 1, paddingTop: theme.spacing.md },
     listContent: {
       paddingBottom: insets.bottom + theme.spacing.xl,
     },

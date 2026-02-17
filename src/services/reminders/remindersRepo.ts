@@ -1,18 +1,72 @@
-import type { Reminder, ReminderType } from "../../types/domain";
+import type { Reminder, ReminderRecurrenceUnit } from "../../types/domain";
 import { supabase } from "../supabase/client";
 
-type NewReminder = {
+/** Add interval to a YYYY-MM-DD date string; returns YYYY-MM-DD */
+function addIntervalToDate(
+  ymd: string,
+  value: number,
+  unit: ReminderRecurrenceUnit,
+): string {
+  const d = new Date(ymd + "T12:00:00");
+  if (unit === "days") d.setDate(d.getDate() + value);
+  else if (unit === "weeks") d.setDate(d.getDate() + value * 7);
+  else if (unit === "months") d.setMonth(d.getMonth() + value);
+  else if (unit === "years") d.setFullYear(d.getFullYear() + value);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Returns patch to apply when user marks a recurring reminder as "done":
+ * advance due_date and/or due_mileage/anchor by one interval and keep status active.
+ * Returns null if reminder is not recurring (then caller should set status to "done").
+ */
+export function getRecurrenceAdvancePatch(
+  reminder: Reminder,
+): Partial<NewReminder> | null {
+  const hasTimeRecurrence =
+    reminder.recurrence_interval_value != null &&
+    reminder.recurrence_interval_unit != null;
+  const hasMileageRecurrence = reminder.recurrence_interval_km != null;
+  if (!hasTimeRecurrence && !hasMileageRecurrence) return null;
+
+  const patch: Partial<NewReminder> = { status: "active" };
+  if (
+    hasTimeRecurrence &&
+    reminder.due_date &&
+    reminder.recurrence_interval_unit
+  ) {
+    patch.due_date = addIntervalToDate(
+      reminder.due_date,
+      reminder.recurrence_interval_value!,
+      reminder.recurrence_interval_unit,
+    );
+  }
+  if (
+    hasMileageRecurrence &&
+    reminder.due_mileage != null
+  ) {
+    patch.recurrence_anchor_mileage = reminder.due_mileage;
+    patch.due_mileage =
+      reminder.due_mileage + reminder.recurrence_interval_km!;
+  }
+  return patch;
+}
+
+export type NewReminder = {
   vehicle_id: string;
-  type: ReminderType;
   due_date: string | null;
   due_mileage: number | null;
-  days_before: number | null; // Only for type 'time'
+  days_before: number | null;
   title: string | null;
   notes: string | null;
-  status?: 'active' | 'done';
+  status?: "active" | "done";
   channel_email: boolean;
   channel_push: boolean;
   enabled: boolean;
+  recurrence_interval_value?: number | null;
+  recurrence_interval_unit?: ReminderRecurrenceUnit | null;
+  recurrence_interval_km?: number | null;
+  recurrence_anchor_mileage?: number | null;
 };
 
 export type ListRemindersOptions = {
@@ -50,7 +104,6 @@ export async function getReminder(id: string): Promise<Reminder> {
 export async function createReminder(input: NewReminder): Promise<Reminder> {
   const { data, error } = await supabase.rpc("create_reminder", {
     p_vehicle_id: input.vehicle_id,
-    p_type: input.type,
     p_due_date: input.due_date,
     p_due_mileage: input.due_mileage,
     p_days_before: input.days_before,
@@ -60,6 +113,10 @@ export async function createReminder(input: NewReminder): Promise<Reminder> {
     p_channel_email: input.channel_email,
     p_channel_push: input.channel_push,
     p_enabled: input.enabled,
+    p_recurrence_interval_value: input.recurrence_interval_value ?? null,
+    p_recurrence_interval_unit: input.recurrence_interval_unit ?? null,
+    p_recurrence_interval_km: input.recurrence_interval_km ?? null,
+    p_recurrence_anchor_mileage: input.recurrence_anchor_mileage ?? null,
   });
   if (error) throw error;
   return data as Reminder;

@@ -181,29 +181,40 @@ INSERT INTO public.fueling_entries (vehicle_id, date, distance, fuel_amount, fue
 (vehicle_id, '2026-01-09', 380.8, 46.0, 239.60, '95');
 
 -- ================
--- REMINDERS
+-- REMINDERS (new format: date and/or mileage; optional recurrence; no type)
 -- ================
--- Mix of time-based and mileage-based reminders
--- Some active, some done
+-- Columns: vehicle_id, due_date?, due_mileage?, days_before?, title, notes?, status,
+--   recurrence_interval_value?, recurrence_interval_unit?, recurrence_interval_km?, recurrence_anchor_mileage?
+-- Constraint: at least one of due_date, due_mileage must be set.
 
--- Time-based reminders
-INSERT INTO public.reminders (vehicle_id, type, due_date, days_before, title, notes, status) VALUES
-(vehicle_id, 'time', '2025-02-15', 7, 'Wymiana oleju', 'Następna wymiana oleju zaplanowana', 'done'),
-(vehicle_id, 'time', '2025-04-01', 14, 'Przegląd wiosenny', 'Roczny przegląd pojazdu wiosenny', 'done'),
-(vehicle_id, 'time', '2025-06-10', 7, 'Serwis klimatyzacji', 'Kontrola klimatyzacji przed latem', 'done'),
-(vehicle_id, 'time', '2025-09-01', 14, 'Przegląd przed zimą', 'Przygotowanie pojazdu na sezon zimowy', 'done'),
-(vehicle_id, 'time', '2025-12-20', 7, 'Serwis świąteczny', 'Serwis przed podróżą świąteczną', 'done'),
-(vehicle_id, 'time', '2026-02-01', 14, 'Przegląd roczny', 'Roczny kompleksowy przegląd', 'active'),
-(vehicle_id, 'time', '2026-03-15', 7, 'Konserwacja wiosenna', 'Kontrola konserwacyjna wiosenna', 'active'),
-(vehicle_id, 'time', '2026-05-01', 14, 'Przygotowanie na lato', 'Przygotowanie pojazdu na lato', 'active');
+-- Time-only (one-off)
+INSERT INTO public.reminders (vehicle_id, due_date, days_before, title, notes, status) VALUES
+(vehicle_id, '2025-02-15', 7, 'Wymiana oleju', 'Następna wymiana oleju zaplanowana', 'done'),
+(vehicle_id, '2025-04-01', 14, 'Przegląd wiosenny', 'Roczny przegląd pojazdu wiosenny', 'done'),
+(vehicle_id, '2025-06-10', 7, 'Serwis klimatyzacji', 'Kontrola klimatyzacji przed latem', 'done'),
+(vehicle_id, '2025-09-01', 14, 'Przegląd przed zimą', 'Przygotowanie pojazdu na sezon zimowy', 'done'),
+(vehicle_id, '2025-12-20', 7, 'Serwis świąteczny', 'Serwis przed podróżą świąteczną', 'done');
 
--- Mileage-based reminders
-INSERT INTO public.reminders (vehicle_id, type, due_mileage, title, notes, status) VALUES
-(vehicle_id, 'mileage', 20000, 'Serwis główny', 'Główny serwis przy 20 000 km', 'done'),
-(vehicle_id, 'mileage', 25000, 'Serwis skrzyni biegów', 'Serwis skrzyni biegów przy 25 000 km', 'done'),
-(vehicle_id, 'mileage', 30000, 'Serwis główny', 'Główny serwis przy 30 000 km', 'active'),
-(vehicle_id, 'mileage', 35000, 'Kontrola paska rozrządu', 'Kontrola paska rozrządu przy 35 000 km', 'active'),
-(vehicle_id, 'mileage', 40000, 'Serwis główny', 'Główny serwis przy 40 000 km', 'active');
+-- Time recurring (e.g. every 6 months)
+INSERT INTO public.reminders (vehicle_id, due_date, days_before, title, notes, status, recurrence_interval_value, recurrence_interval_unit) VALUES
+(vehicle_id, '2026-02-01', 14, 'Przegląd roczny', 'Roczny kompleksowy przegląd', 'active', 6, 'months'),
+(vehicle_id, '2026-03-15', 7, 'Konserwacja wiosenna', 'Kontrola konserwacyjna wiosenna', 'active', 3, 'months'),
+(vehicle_id, '2026-05-01', 14, 'Przygotowanie na lato', 'Przygotowanie pojazdu na lato', 'active', 12, 'months');
+
+-- Mileage-only (one-off): anchor = od którego km liczymy, due_mileage = docelowy przebieg
+INSERT INTO public.reminders (vehicle_id, due_mileage, recurrence_anchor_mileage, title, notes, status) VALUES
+(vehicle_id, 20000, 15000, 'Serwis główny', 'Główny serwis przy 20 000 km', 'done'),
+(vehicle_id, 25000, 20000, 'Serwis skrzyni biegów', 'Serwis skrzyni biegów przy 25 000 km', 'done');
+
+-- Mileage recurring (e.g. every 10000 km): anchor + due_mileage + recurrence_interval_km
+INSERT INTO public.reminders (vehicle_id, due_mileage, recurrence_anchor_mileage, recurrence_interval_km, title, notes, status) VALUES
+(vehicle_id, 30000, 20000, 10000, 'Serwis główny', 'Główny serwis co 10 000 km', 'active'),
+(vehicle_id, 35000, 25000, 10000, 'Kontrola paska rozrządu', 'Kontrola paska rozrządu przy 35 000 km', 'active'),
+(vehicle_id, 40000, 30000, 10000, 'Serwis główny', 'Serwis główny przy 40 000 km', 'active');
+
+-- Combined: date + mileage (e.g. oil change every 12 months or 8000 km)
+INSERT INTO public.reminders (vehicle_id, due_date, due_mileage, days_before, recurrence_interval_value, recurrence_interval_unit, recurrence_interval_km, recurrence_anchor_mileage, title, notes, status) VALUES
+(vehicle_id, '2026-06-01', 128000, 7, 12, 'months', 8000, 120000, 'Wymiana oleju silnikowego', 'Co 12 miesięcy lub co 8000 km', 'active');
 
 -- ================
 -- VEHICLE TIRES (opony)

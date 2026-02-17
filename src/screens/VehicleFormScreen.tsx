@@ -1319,7 +1319,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     <Ionicons
                       name="close-circle"
                       size={20}
-                      color={theme.colors.fg}
+                      color={theme.colors.muted}
                       style={{ marginLeft: theme.spacing.xs }}
                     />
                   </Pressable>
@@ -1391,7 +1391,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     <Ionicons
                       name="close-circle"
                       size={20}
-                      color={theme.colors.fg}
+                      color={theme.colors.muted}
                       style={{ marginLeft: theme.spacing.xs }}
                     />
                   </Pressable>

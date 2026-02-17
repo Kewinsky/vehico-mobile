@@ -10,7 +10,6 @@ const PREFIX_BEFORE = "vehico-reminder-before-";
 export type ReminderForSchedule = {
   id: string;
   vehicle_id: string;
-  type: "time" | "mileage";
   due_date: string | null;
   days_before: number | null;
   title: string | null;
@@ -20,16 +19,14 @@ export type ReminderForSchedule = {
 };
 
 /**
- * Schedule local notifications for a time-based reminder.
+ * Schedule local notifications when reminder has a due_date.
  * - On due_date at 9:00 (or due_date - days_before if set).
- * - Optionally on due_date - days_before if days_before > 0.
- * Does nothing for mileage reminders or if push is disabled / reminder not active.
- * Requests notification permission if not yet granted.
+ * Does nothing if no due_date or push disabled / reminder not active.
  */
 export async function scheduleLocalReminder(
   reminder: ReminderForSchedule
 ): Promise<void> {
-  if (reminder.type !== "time" || !reminder.due_date) return;
+  if (!reminder.due_date) return;
   if (
     reminder.status !== "active" ||
     !reminder.channel_push ||

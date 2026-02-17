@@ -119,12 +119,11 @@ create index if not exists fueling_entries_vehicle_id_idx on public.fueling_entr
 drop index if exists public.fueling_entries_date_idx;
 create index if not exists fueling_entries_date_idx on public.fueling_entries(date desc);
 
--- Reminders (time-based or mileage-based)
+-- Reminders (date and/or mileage; optional recurrence)
 drop table if exists public.reminders cascade;
 create table if not exists public.reminders (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
-  type text not null check (type in ('time', 'mileage')),
   due_date date,
   due_mileage integer,
   days_before integer,
@@ -136,10 +135,14 @@ create table if not exists public.reminders (
   enabled boolean not null default true,
   delivered_at timestamptz,
   created_at timestamptz not null default now(),
+  -- Recurrence: time interval (value 1-31 days, 1-4 weeks, 1-12 months, 1-10 years)
+  recurrence_interval_value integer,
+  recurrence_interval_unit text check (recurrence_interval_unit is null or recurrence_interval_unit in ('days', 'weeks', 'months', 'years')),
+  -- Recurrence: mileage interval (e.g. every 8000 km)
+  recurrence_interval_km integer,
+  recurrence_anchor_mileage integer,
   constraint reminders_due_check check (
-    (type = 'time' and due_date is not null and due_mileage is null)
-    or
-    (type = 'mileage' and due_mileage is not null and due_date is null)
+    due_date is not null or due_mileage is not null
   )
 );
 
@@ -1730,12 +1733,12 @@ $$;
 
 grant execute on function public.create_workshop(text, text, text, text) to authenticated;
 
--- Create reminder with entitlement check (full reminder fields used by the app)
+-- Create reminder with entitlement check (no type; date and/or mileage; optional recurrence)
 drop function if exists public.create_reminder(uuid, text, date, integer, text);
 drop function if exists public.create_reminder(uuid, text, date, integer, integer, text, text, text, boolean, boolean, boolean);
+drop function if exists public.create_reminder(uuid, date, integer, integer, text, text, text, boolean, boolean, boolean, integer, text, integer, integer);
 create or replace function public.create_reminder(
   p_vehicle_id uuid,
-  p_type text,
   p_due_date date,
   p_due_mileage integer,
   p_days_before integer,
@@ -1744,7 +1747,11 @@ create or replace function public.create_reminder(
   p_status text,
   p_channel_email boolean,
   p_channel_push boolean,
-  p_enabled boolean
+  p_enabled boolean,
+  p_recurrence_interval_value integer default null,
+  p_recurrence_interval_unit text default null,
+  p_recurrence_interval_km integer default null,
+  p_recurrence_anchor_mileage integer default null
 )
 returns public.reminders
 language plpgsql
@@ -1755,12 +1762,15 @@ declare
   v_reminder public.reminders;
   v_can_create jsonb;
 begin
-  -- Verify ownership
   if not exists (
     select 1 from public.vehicles v
     where v.id = p_vehicle_id and v.owner_id = auth.uid()
   ) then
     raise exception 'Vehicle not found or access denied';
+  end if;
+
+  if p_due_date is null and p_due_mileage is null then
+    raise exception 'At least one of due_date or due_mileage must be set';
   end if;
 
   v_can_create := public.check_resource_limit('reminder', p_vehicle_id);
@@ -1770,7 +1780,6 @@ begin
 
   insert into public.reminders (
     vehicle_id,
-    type,
     due_date,
     due_mileage,
     days_before,
@@ -1779,10 +1788,13 @@ begin
     status,
     channel_email,
     channel_push,
-    enabled
+    enabled,
+    recurrence_interval_value,
+    recurrence_interval_unit,
+    recurrence_interval_km,
+    recurrence_anchor_mileage
   ) values (
     p_vehicle_id,
-    p_type,
     p_due_date,
     p_due_mileage,
     p_days_before,
@@ -1791,7 +1803,11 @@ begin
     coalesce(p_status, 'active'),
     coalesce(p_channel_email, true),
     coalesce(p_channel_push, true),
-    coalesce(p_enabled, true)
+    coalesce(p_enabled, true),
+    p_recurrence_interval_value,
+    p_recurrence_interval_unit,
+    p_recurrence_interval_km,
+    p_recurrence_anchor_mileage
   )
   returning * into v_reminder;
 
@@ -1800,5 +1816,5 @@ end;
 $$;
 
 grant execute on function public.create_reminder(
-  uuid, text, date, integer, integer, text, text, text, boolean, boolean, boolean
+  uuid, date, integer, integer, text, text, text, boolean, boolean, boolean, integer, text, integer, integer
 ) to authenticated;
