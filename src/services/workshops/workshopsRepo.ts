@@ -74,15 +74,3 @@ export async function deleteWorkshop(id: string): Promise<void> {
   const { error } = await supabase.from("workshops").delete().eq("id", id);
   if (error) throw error;
 }
-
-export async function listServiceEntriesByWorkshop(
-  workshopId: string,
-): Promise<ServiceEntry[]> {
-  const { data, error } = await supabase
-    .from("service_entries")
-    .select("*")
-    .eq("workshop_id", workshopId)
-    .order("service_date", { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as ServiceEntry[];
-}

@@ -83,8 +83,3 @@ export async function deleteVehicle(vehicleId: string): Promise<void> {
     .eq("id", vehicleId);
   if (error) throw error;
 }
-
-// Backward-compatible alias (old naming)
-export async function softDeleteVehicle(vehicleId: string): Promise<void> {
-  return deleteVehicle(vehicleId);
-}

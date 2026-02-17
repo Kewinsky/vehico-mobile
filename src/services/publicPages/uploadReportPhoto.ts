@@ -87,34 +87,3 @@ export async function uploadReportPhotos(params: {
 
   return Promise.all(uploadPromises);
 }
-
-/**
- * Deletes a temporary report photo
- */
-export async function deleteReportPhoto(storagePath: string): Promise<void> {
-  const { error } = await supabase.storage.from(BUCKET).remove([storagePath]);
-
-  if (error) throw error;
-}
-
-/**
- * Deletes multiple temporary report photos
- */
-export async function deleteReportPhotos(
-  storagePaths: string[],
-): Promise<void> {
-  if (storagePaths.length === 0) return;
-
-  const { error } = await supabase.storage.from(BUCKET).remove(storagePaths);
-
-  if (error) throw error;
-}
-
-/**
- * Gets public URL for a report photo
- * Note: Bucket is public, so we use public URLs directly
- */
-export function getReportPhotoUrl(storagePath: string): string {
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
-  return data.publicUrl;
-}
