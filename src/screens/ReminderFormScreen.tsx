@@ -75,7 +75,12 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
-  const { isPremium, remindersLimit } = useEntitlements();
+  const {
+    isPremium,
+    remindersLimit,
+    freePlanVehicleId,
+    freePlanReminderIds,
+  } = useEntitlements();
   const styles = makeStyles(theme);
   const { vehicleId, reminderId } = route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
@@ -290,10 +295,11 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         return;
       }
       if (!reminderId && !isPremium) {
-        const existingReminders = await listReminders(
-          vehicleId,
-          isPremium ? undefined : { limit: remindersLimit },
-        );
+        const options =
+          freePlanVehicleId === vehicleId
+            ? { freePlanReminderIds }
+            : { limit: remindersLimit };
+        const existingReminders = await listReminders(vehicleId, options);
         if (existingReminders.length >= remindersLimit) {
           Alert.alert(
             t("limits.reminderLimitReachedTitle"),

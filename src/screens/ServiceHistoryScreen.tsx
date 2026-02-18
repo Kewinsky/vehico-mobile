@@ -68,7 +68,12 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
-  const { isPremium, remindersLimit } = useEntitlements();
+  const {
+    isPremium,
+    remindersLimit,
+    freePlanVehicleId,
+    freePlanReminderIds,
+  } = useEntitlements();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const contentPad = theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
@@ -117,12 +122,15 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           if (opts?.refreshing) setRefreshing(true);
           else setLoading(true);
         }
+        const reminderOpts =
+          isPremium
+            ? undefined
+            : freePlanVehicleId === vehicleId
+              ? { freePlanReminderIds }
+              : { limit: remindersLimit };
         const [data, rs, attachments] = await Promise.all([
           listServiceEntries(vehicleId),
-          listReminders(
-            vehicleId,
-            isPremium ? undefined : { limit: remindersLimit },
-          ),
+          listReminders(vehicleId, reminderOpts),
           listVehicleAttachments(vehicleId),
         ]);
         setItems(data);
@@ -146,7 +154,14 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
         }
       }
     },
-    [vehicleId, t, isPremium, remindersLimit],
+    [
+      vehicleId,
+      t,
+      isPremium,
+      remindersLimit,
+      freePlanVehicleId,
+      freePlanReminderIds,
+    ],
   );
 
   useEffect(() => {

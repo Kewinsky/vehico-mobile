@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
@@ -47,7 +47,28 @@ export function TiresListScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const { vehicleId } = route.params;
-  const { isPremium, tiresPerVehicleLimit } = useEntitlements();
+  const {
+    isPremium,
+    tiresPerVehicleLimit,
+    freePlanVehicleId,
+    freePlanTireId,
+    refresh: refreshEntitlements,
+  } = useEntitlements();
+  const tireOptions = useMemo(
+    () =>
+      isPremium
+        ? undefined
+        : freePlanVehicleId === vehicleId
+          ? { freePlanTireId: freePlanTireId ?? null }
+          : { limit: tiresPerVehicleLimit },
+    [
+      isPremium,
+      vehicleId,
+      freePlanVehicleId,
+      freePlanTireId,
+      tiresPerVehicleLimit,
+    ],
+  );
 
   const [tires, setTires] = useState<VehicleTire[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,10 +78,7 @@ export function TiresListScreen({ route, navigation }: Props) {
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
-        const data = await listVehicleTires(
-          vehicleId,
-          isPremium ? undefined : { limit: tiresPerVehicleLimit },
-        );
+        const data = await listVehicleTires(vehicleId, tireOptions);
         setTires(data);
       } catch (err: unknown) {
         const message =
@@ -72,17 +90,21 @@ export function TiresListScreen({ route, navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t, isPremium, tiresPerVehicleLimit],
+    [vehicleId, t, tireOptions],
   );
+
+  const loadRef = useRef(load);
+  loadRef.current = load;
 
   useEffect(() => {
     void load();
-    const unsub = navigation.addListener(
-      "focus",
-      () => void load({ showLoading: false }),
-    );
+    const unsub = navigation.addListener("focus", () => {
+      void refreshEntitlements().then(() => {
+        setTimeout(() => loadRef.current?.({ showLoading: false }), 0);
+      });
+    });
     return unsub;
-  }, [navigation, load]);
+  }, [navigation, load, refreshEntitlements]);
 
   function onAddTirePress() {
     if (!isPremium && tires.length >= tiresPerVehicleLimit) {

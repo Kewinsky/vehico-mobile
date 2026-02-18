@@ -64,6 +64,9 @@ export const en = {
       "You have reached the limit of {{limit}} photos per vehicle. Upgrade to Premium for up to 40 photos.",
     reportLimitReachedTitle: "Report Limit Reached",
     listingLimitReachedTitle: "Listing Limit Reached",
+    limitReachedTitle: "Limit Reached",
+    limitReachedBody:
+      "You have reached the limit for this feature. Upgrade to Premium for more.",
     premiumRequiredTitle: "Premium Required",
     premiumRequiredBody:
       "This feature is available only with an active Premium plan.",

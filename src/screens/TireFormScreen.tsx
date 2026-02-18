@@ -45,9 +45,20 @@ const TIRE_TYPES: TireType[] = [
 export function TireFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium, tiresPerVehicleLimit } = useEntitlements();
+  const {
+    isPremium,
+    tiresPerVehicleLimit,
+    freePlanVehicleId,
+    freePlanTireId,
+  } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId, tireId } = route.params;
+  const tireOptions =
+    isPremium
+      ? undefined
+      : freePlanVehicleId === vehicleId
+        ? { freePlanTireId: freePlanTireId ?? null }
+        : { limit: tiresPerVehicleLimit };
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -175,9 +186,7 @@ export function TireFormScreen({ navigation, route }: Props) {
       }
       // Check tire limit (only for new tires)
       if (!tireId && !isPremium) {
-        const tires = await listVehicleTires(vehicleId, {
-          limit: tiresPerVehicleLimit,
-        });
+        const tires = await listVehicleTires(vehicleId, tireOptions);
         if (tires.length >= tiresPerVehicleLimit) {
           Alert.alert(
             t("limits.tireLimitReachedTitle"),

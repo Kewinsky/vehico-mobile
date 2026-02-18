@@ -64,6 +64,9 @@ export const pl = {
       "Osiągnięto limit {{limit}} zdjęć na pojazd. Przejdź na Premium, aby mieć do 40 zdjęć.",
     reportLimitReachedTitle: "Osiągnięto limit raportów",
     listingLimitReachedTitle: "Osiągnięto limit ogłoszeń",
+    limitReachedTitle: "Osiągnięto limit",
+    limitReachedBody:
+      "Osiągnięto limit dla tej funkcji. Przejdź na Premium, aby zyskać więcej.",
     premiumRequiredTitle: "Wymagany Premium",
     premiumRequiredBody:
       "Ta funkcja jest dostępna tylko przy aktywnym planie Premium.",

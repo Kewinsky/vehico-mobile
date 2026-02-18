@@ -10,25 +10,39 @@ export type NewWorkshopInput = {
 };
 
 export type ListWorkshopsOptions = {
-  /** When set (e.g. free plan), return only first N by created_at. */
+  /** When set (e.g. free plan), return only first N by created_at. Ignored if freePlanWorkshopIds is set. */
   limit?: number;
+  /** Free plan: return only workshops whose id is in this list (stable set, no auto-reveal). */
+  freePlanWorkshopIds?: string[] | null;
 };
 
 export async function listWorkshops(
   options?: ListWorkshopsOptions,
 ): Promise<Workshop[]> {
-  const query =
-    options?.limit != null
-      ? supabase
-          .from("workshops")
-          .select("*")
-          .order("created_at", { ascending: true })
-          .limit(options.limit)
-      : supabase
-          .from("workshops")
-          .select("*")
-          .order("name", { ascending: true });
-  const { data, error } = await query;
+  const ids = options?.freePlanWorkshopIds;
+  if (ids != null) {
+    if (ids.length === 0) return [];
+    const { data, error } = await supabase
+      .from("workshops")
+      .select("*")
+      .in("id", ids)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return (data ?? []) as Workshop[];
+  }
+  if (options?.limit != null) {
+    const { data, error } = await supabase
+      .from("workshops")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .limit(options.limit);
+    if (error) throw error;
+    return (data ?? []) as Workshop[];
+  }
+  const { data, error } = await supabase
+    .from("workshops")
+    .select("*")
+    .order("name", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Workshop[];
 }

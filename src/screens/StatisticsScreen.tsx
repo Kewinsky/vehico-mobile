@@ -358,12 +358,48 @@ function SimplePieChart({
 export function StatisticsScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium, tiresPerVehicleLimit, wheelsPerVehicleLimit } =
-    useEntitlements();
   const { settings } = useUserSettings();
   const isFocused = useIsFocused();
   const { width: windowWidth } = useWindowDimensions();
   const vehicleId = route.params.vehicleId;
+  const {
+    isPremium,
+    tiresPerVehicleLimit,
+    wheelsPerVehicleLimit,
+    freePlanVehicleId,
+    freePlanTireId,
+    freePlanWheelId,
+  } = useEntitlements();
+  const tireOpts = useMemo(
+    () =>
+      isPremium
+        ? undefined
+        : freePlanVehicleId === vehicleId
+          ? { freePlanTireId: freePlanTireId ?? null }
+          : { limit: tiresPerVehicleLimit },
+    [
+      isPremium,
+      vehicleId,
+      freePlanVehicleId,
+      freePlanTireId,
+      tiresPerVehicleLimit,
+    ],
+  );
+  const wheelOpts = useMemo(
+    () =>
+      isPremium
+        ? undefined
+        : freePlanVehicleId === vehicleId
+          ? { freePlanWheelId: freePlanWheelId ?? null }
+          : { limit: wheelsPerVehicleLimit },
+    [
+      isPremium,
+      vehicleId,
+      freePlanVehicleId,
+      freePlanWheelId,
+      wheelsPerVehicleLimit,
+    ],
+  );
 
   const [period, setPeriod] = useState<PeriodKey>("3m");
   const [tab, setTab] = useState<StatsTabKey>("metrics");
@@ -402,14 +438,8 @@ export function StatisticsScreen({ route, navigation }: Props) {
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
           listFuelingEntries(vehicleId),
-          listVehicleTires(
-            vehicleId,
-            isPremium ? undefined : { limit: tiresPerVehicleLimit },
-          ),
-          listVehicleWheels(
-            vehicleId,
-            isPremium ? undefined : { limit: wheelsPerVehicleLimit },
-          ),
+          listVehicleTires(vehicleId, tireOpts),
+          listVehicleWheels(vehicleId, wheelOpts),
         ]);
         if (!alive) return;
         setVehicle(v);
@@ -426,14 +456,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
     return () => {
       alive = false;
     };
-  }, [
-    isFocused,
-    vehicleId,
-    t,
-    isPremium,
-    tiresPerVehicleLimit,
-    wheelsPerVehicleLimit,
-  ]);
+  }, [isFocused, vehicleId, t, tireOpts, wheelOpts]);
 
   const periodOptions: { key: PeriodKey; label: string }[] = [
     { key: "1m", label: t("dashboard.stats.periods.1m") },

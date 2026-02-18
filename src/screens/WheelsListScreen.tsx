@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
@@ -52,7 +52,28 @@ export function WheelsListScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const { vehicleId } = route.params;
-  const { isPremium, wheelsPerVehicleLimit } = useEntitlements();
+  const {
+    isPremium,
+    wheelsPerVehicleLimit,
+    freePlanVehicleId,
+    freePlanWheelId,
+    refresh: refreshEntitlements,
+  } = useEntitlements();
+  const wheelOptions = useMemo(
+    () =>
+      isPremium
+        ? undefined
+        : freePlanVehicleId === vehicleId
+          ? { freePlanWheelId: freePlanWheelId ?? null }
+          : { limit: wheelsPerVehicleLimit },
+    [
+      isPremium,
+      vehicleId,
+      freePlanVehicleId,
+      freePlanWheelId,
+      wheelsPerVehicleLimit,
+    ],
+  );
 
   const [wheels, setWheels] = useState<VehicleWheel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,10 +83,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
-        const data = await listVehicleWheels(
-          vehicleId,
-          isPremium ? undefined : { limit: wheelsPerVehicleLimit },
-        );
+        const data = await listVehicleWheels(vehicleId, wheelOptions);
         setWheels(data);
       } catch (err: unknown) {
         const message =
@@ -77,17 +95,21 @@ export function WheelsListScreen({ route, navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t, isPremium, wheelsPerVehicleLimit],
+    [vehicleId, t, wheelOptions],
   );
+
+  const loadRef = useRef(load);
+  loadRef.current = load;
 
   useEffect(() => {
     void load();
-    const unsub = navigation.addListener(
-      "focus",
-      () => void load({ showLoading: false }),
-    );
+    const unsub = navigation.addListener("focus", () => {
+      void refreshEntitlements().then(() => {
+        setTimeout(() => loadRef.current?.({ showLoading: false }), 0);
+      });
+    });
     return unsub;
-  }, [navigation, load]);
+  }, [navigation, load, refreshEntitlements]);
 
   function onAddWheelPress() {
     if (!isPremium && wheels.length >= wheelsPerVehicleLimit) {

@@ -43,7 +43,13 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, insets);
   const { vehicleId } = route.params;
-  const { isPremium, remindersLimit } = useEntitlements();
+  const {
+    isPremium,
+    remindersLimit,
+    freePlanVehicleId,
+    freePlanReminderIds,
+    refresh: refreshEntitlements,
+  } = useEntitlements();
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
@@ -70,12 +76,13 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     void load();
-    const unsub = navigation.addListener(
-      "focus",
-      () => void load({ showLoading: false }),
-    );
+    const unsub = navigation.addListener("focus", () => {
+      void load({ showLoading: false });
+      // Keep entitlements fresh so FAB reminder limit check uses current freePlanReminderIds
+      void refreshEntitlements();
+    });
     return unsub;
-  }, [navigation, load]);
+  }, [navigation, load, refreshEntitlements]);
 
   async function onCopyVin() {
     if (vehicle?.vin) {
@@ -178,19 +185,23 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
   const handleAddReminder = () => {
     setShowMenu(false);
-    if (!isPremium) {
-      Alert.alert(
-        t("limits.reminderLimitReachedTitle"),
-        t("limits.reminderLimitReachedBody", { limit: remindersLimit }),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("limits.upgradeToPremium"),
-            onPress: () => navigation.navigate("Shop"),
-          },
-        ],
-      );
-      return;
+    // Limit check before navigating to ReminderForm (FAB and any other entry point)
+    if (!isPremium && freePlanVehicleId === vehicleId) {
+      const visibleCount = freePlanReminderIds?.length ?? 0;
+      if (visibleCount >= remindersLimit) {
+        Alert.alert(
+          t("limits.reminderLimitReachedTitle"),
+          t("limits.reminderLimitReachedBody", { limit: remindersLimit }),
+          [
+            { text: t("common.cancel"), style: "cancel" },
+            {
+              text: t("limits.upgradeToPremium"),
+              onPress: () => navigation.navigate("Shop"),
+            },
+          ],
+        );
+        return;
+      }
     }
     navigation.navigate("ReminderForm", { vehicleId });
   };

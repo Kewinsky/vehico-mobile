@@ -36,9 +36,20 @@ type Props = NativeStackScreenProps<AppStackParamList, "WheelForm">;
 export function WheelFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium, wheelsPerVehicleLimit } = useEntitlements();
+  const {
+    isPremium,
+    wheelsPerVehicleLimit,
+    freePlanVehicleId,
+    freePlanWheelId,
+  } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId, wheelId } = route.params;
+  const wheelOptions =
+    isPremium
+      ? undefined
+      : freePlanVehicleId === vehicleId
+        ? { freePlanWheelId: freePlanWheelId ?? null }
+        : { limit: wheelsPerVehicleLimit };
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -136,9 +147,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
       }
       // Check wheel limit (only for new wheels)
       if (!wheelId && !isPremium) {
-        const wheels = await listVehicleWheels(vehicleId, {
-          limit: wheelsPerVehicleLimit,
-        });
+        const wheels = await listVehicleWheels(vehicleId, wheelOptions);
         if (wheels.length >= wheelsPerVehicleLimit) {
           Alert.alert(
             t("limits.wheelLimitReachedTitle"),

@@ -1228,6 +1228,11 @@ create table if not exists public.entitlements (
   product_id text, -- monthly, yearly, or lifetime when premium; null when free
   free_plan_vehicle_id uuid references public.vehicles(id) on delete set null, -- vehicle visible on free; set only on picker Save; cleared when premium
   downgraded_at timestamptz, -- when user downgraded to free; used for 90-day retention cleanup
+  -- Free plan: fixed set of visible IDs (oldest by created_at at downgrade); no auto-reveal on delete
+  free_plan_workshop_ids uuid[] default '{}', -- up to 3; populated when plan goes free
+  free_plan_reminder_ids uuid[] default '{}', -- up to 5 for free_plan_vehicle_id; populated when user sets free_plan_vehicle_id
+  free_plan_tire_id uuid references public.tires(id) on delete set null, -- 1 set for free vehicle
+  free_plan_wheel_id uuid references public.wheels(id) on delete set null, -- 1 set for free vehicle
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -1293,6 +1298,134 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- RPC: set free plan vehicle and populate reminder/tire/wheel IDs (oldest by created_at)
+drop function if exists public.set_free_plan_vehicle(uuid);
+create or replace function public.set_free_plan_vehicle(p_vehicle_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_reminder_ids uuid[];
+  v_tire_id uuid;
+  v_wheel_id uuid;
+begin
+  if v_user_id is null then raise exception 'Not authenticated'; end if;
+  if not exists (select 1 from public.vehicles where id = p_vehicle_id and owner_id = v_user_id) then
+    raise exception 'Vehicle not found or access denied';
+  end if;
+  select array_agg(id order by created_at asc)
+  into v_reminder_ids
+  from (select id, created_at from public.reminders where vehicle_id = p_vehicle_id order by created_at asc limit 5) t;
+  select id into v_tire_id from public.tires where vehicle_id = p_vehicle_id order by created_at asc limit 1;
+  select id into v_wheel_id from public.wheels where vehicle_id = p_vehicle_id order by created_at asc limit 1;
+  update public.entitlements
+  set free_plan_vehicle_id = p_vehicle_id, free_plan_reminder_ids = coalesce(v_reminder_ids, '{}'),
+      free_plan_tire_id = v_tire_id, free_plan_wheel_id = v_wheel_id, updated_at = now()
+  where user_id = v_user_id;
+end;
+$$;
+
+-- Triggers: remove from free-plan list on delete
+create or replace function public.entitlements_remove_workshop_from_free_list()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  update public.entitlements set free_plan_workshop_ids = array_remove(coalesce(free_plan_workshop_ids, '{}'), old.id), updated_at = now()
+  where user_id = old.owner_id and old.id = any(coalesce(free_plan_workshop_ids, '{}'));
+  return old;
+end;
+$$;
+drop trigger if exists after_workshop_delete_entitlements on public.workshops;
+create trigger after_workshop_delete_entitlements after delete on public.workshops for each row execute function public.entitlements_remove_workshop_from_free_list();
+
+create or replace function public.entitlements_remove_reminder_from_free_list()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  update public.entitlements e set free_plan_reminder_ids = array_remove(coalesce(e.free_plan_reminder_ids, '{}'), old.id), updated_at = now()
+  from public.vehicles v where v.id = old.vehicle_id and e.user_id = v.owner_id and old.id = any(coalesce(e.free_plan_reminder_ids, '{}'));
+  return old;
+end;
+$$;
+drop trigger if exists after_reminder_delete_entitlements on public.reminders;
+create trigger after_reminder_delete_entitlements after delete on public.reminders for each row execute function public.entitlements_remove_reminder_from_free_list();
+
+create or replace function public.entitlements_clear_free_tire_on_delete()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  update public.entitlements set free_plan_tire_id = null, updated_at = now() where free_plan_tire_id = old.id;
+  return old;
+end;
+$$;
+drop trigger if exists after_tire_delete_entitlements on public.tires;
+create trigger after_tire_delete_entitlements after delete on public.tires for each row execute function public.entitlements_clear_free_tire_on_delete();
+
+create or replace function public.entitlements_clear_free_wheel_on_delete()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  update public.entitlements set free_plan_wheel_id = null, updated_at = now() where free_plan_wheel_id = old.id;
+  return old;
+end;
+$$;
+drop trigger if exists after_wheel_delete_entitlements on public.wheels;
+create trigger after_wheel_delete_entitlements after delete on public.wheels for each row execute function public.entitlements_clear_free_wheel_on_delete();
+
+-- Triggers: append to free-plan list on insert when under limit
+create or replace function public.entitlements_append_workshop_on_insert()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare v_plan text; v_arr uuid[]; v_len int;
+begin
+  select e.plan, e.free_plan_workshop_ids into v_plan, v_arr from public.entitlements e where e.user_id = new.owner_id;
+  if v_plan is null or v_plan not in ('free') then return new; end if;
+  v_len := coalesce(array_length(v_arr, 1), 0);
+  if v_len < 3 then update public.entitlements set free_plan_workshop_ids = array_append(coalesce(free_plan_workshop_ids, '{}'), new.id), updated_at = now() where user_id = new.owner_id; end if;
+  return new;
+end;
+$$;
+drop trigger if exists after_workshop_insert_entitlements on public.workshops;
+create trigger after_workshop_insert_entitlements after insert on public.workshops for each row execute function public.entitlements_append_workshop_on_insert();
+
+create or replace function public.entitlements_append_reminder_on_insert()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare v_plan text; v_vehicle_id uuid; v_arr uuid[]; v_len int;
+begin
+  select e.plan, e.free_plan_vehicle_id, e.free_plan_reminder_ids into v_plan, v_vehicle_id, v_arr from public.entitlements e join public.vehicles v on v.owner_id = e.user_id where v.id = new.vehicle_id;
+  if v_plan is null or v_plan not in ('free') or v_vehicle_id is distinct from new.vehicle_id then return new; end if;
+  v_len := coalesce(array_length(v_arr, 1), 0);
+  if v_len < 5 then update public.entitlements e set free_plan_reminder_ids = array_append(coalesce(e.free_plan_reminder_ids, '{}'), new.id), updated_at = now() from public.vehicles v where v.id = new.vehicle_id and e.user_id = v.owner_id; end if;
+  return new;
+end;
+$$;
+drop trigger if exists after_reminder_insert_entitlements on public.reminders;
+create trigger after_reminder_insert_entitlements after insert on public.reminders for each row execute function public.entitlements_append_reminder_on_insert();
+
+create or replace function public.entitlements_set_free_tire_on_insert()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare v_plan text; v_vehicle_id uuid; v_current_tire_id uuid;
+begin
+  select e.plan, e.free_plan_vehicle_id, e.free_plan_tire_id into v_plan, v_vehicle_id, v_current_tire_id from public.entitlements e join public.vehicles v on v.owner_id = e.user_id where v.id = new.vehicle_id;
+  if v_plan is null or v_plan not in ('free') or v_vehicle_id is distinct from new.vehicle_id then return new; end if;
+  if v_current_tire_id is null then update public.entitlements e set free_plan_tire_id = new.id, updated_at = now() from public.vehicles v where v.id = new.vehicle_id and e.user_id = v.owner_id; end if;
+  return new;
+end;
+$$;
+drop trigger if exists after_tire_insert_entitlements on public.tires;
+create trigger after_tire_insert_entitlements after insert on public.tires for each row execute function public.entitlements_set_free_tire_on_insert();
+
+create or replace function public.entitlements_set_free_wheel_on_insert()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare v_plan text; v_vehicle_id uuid; v_current_wheel_id uuid;
+begin
+  select e.plan, e.free_plan_vehicle_id, e.free_plan_wheel_id into v_plan, v_vehicle_id, v_current_wheel_id from public.entitlements e join public.vehicles v on v.owner_id = e.user_id where v.id = new.vehicle_id;
+  if v_plan is null or v_plan not in ('free') or v_vehicle_id is distinct from new.vehicle_id then return new; end if;
+  if v_current_wheel_id is null then update public.entitlements e set free_plan_wheel_id = new.id, updated_at = now() from public.vehicles v where v.id = new.vehicle_id and e.user_id = v.owner_id; end if;
+  return new;
+end;
+$$;
+drop trigger if exists after_wheel_insert_entitlements on public.wheels;
+create trigger after_wheel_insert_entitlements after insert on public.wheels for each row execute function public.entitlements_set_free_wheel_on_insert();
+
 -- ================
 -- RPC Functions for entitlements (unified helpers, not exposed as RPC)
 -- ================
@@ -1324,6 +1457,16 @@ begin
   end;
   return jsonb_build_object('allowed', false, 'reason', v_reason, 'plan', v_entitlement.plan);
 end;
+$$;
+
+-- Safe length for free_plan_*_ids: works for uuid[] or single uuid (in case column type differs).
+create or replace function public._free_plan_ids_length(ids uuid[])
+returns integer language sql immutable as $$
+  select coalesce(array_length(ids, 1), 0);
+$$;
+create or replace function public._free_plan_ids_length(ids uuid)
+returns integer language sql immutable as $$
+  select case when ids is null then 0 else 1 end;
 $$;
 
 -- Single helper: resource limit check. p_kind in ('vehicle','workshop','reminder','tire','wheel').
@@ -1358,7 +1501,8 @@ begin
       v_limit := v_entitlement.vehicles_limit;
       v_reason := format('Vehicle limit reached (%s). Upgrade to Premium for unlimited vehicles.', v_limit);
     when 'workshop' then
-      select count(*) into v_count from public.workshops where owner_id = auth.uid();
+      -- Free plan: limit by visible set (free_plan_workshop_ids), not total count
+      v_count := public._free_plan_ids_length(v_entitlement.free_plan_workshop_ids);
       v_limit := v_entitlement.workshops_limit;
       v_reason := format('Workshop limit reached (%s). Upgrade to Premium for unlimited workshops.', v_limit);
     when 'reminder' then
@@ -1368,7 +1512,11 @@ begin
       if not exists (select 1 from public.vehicles v where v.id = p_vehicle_id and v.owner_id = auth.uid()) then
         return jsonb_build_object('allowed', false, 'reason', 'Vehicle not found or access denied', 'plan', v_entitlement.plan);
       end if;
-      select count(*) into v_count from public.reminders where vehicle_id = p_vehicle_id;
+      -- Free plan: only the free-plan vehicle can have reminders; limit by visible set (free_plan_reminder_ids)
+      if v_entitlement.free_plan_vehicle_id is not null and v_entitlement.free_plan_vehicle_id <> p_vehicle_id then
+        return jsonb_build_object('allowed', false, 'reason', 'Reminder limit reached. Upgrade to Premium for unlimited reminders.', 'plan', v_entitlement.plan);
+      end if;
+      v_count := public._free_plan_ids_length(v_entitlement.free_plan_reminder_ids);
       v_limit := v_entitlement.reminders_limit;
       v_reason := format('Reminder limit reached (%s per vehicle). Upgrade to Premium for unlimited reminders.', v_limit);
     when 'tire' then
@@ -1377,6 +1525,15 @@ begin
       end if;
       if not exists (select 1 from public.vehicles v where v.id = p_vehicle_id and v.owner_id = auth.uid()) then
         return jsonb_build_object('allowed', false, 'reason', 'Vehicle not found or access denied', 'plan', v_entitlement.plan);
+      end if;
+      -- Free plan: only free-plan vehicle can have tires; one visible set; allow create only when slot is empty
+      if v_entitlement.free_plan_vehicle_id is not null then
+        if v_entitlement.free_plan_vehicle_id <> p_vehicle_id then
+          return jsonb_build_object('allowed', false, 'reason', 'Vehicle not found or access denied', 'plan', v_entitlement.plan);
+        end if;
+        v_allowed := (v_entitlement.free_plan_tire_id is null);
+        v_reason := format('Tire limit reached (%s set per vehicle). Upgrade to Premium for unlimited tires.', 1);
+        return jsonb_build_object('allowed', v_allowed, 'reason', case when v_allowed then null else v_reason end, 'plan', v_entitlement.plan);
       end if;
       select count(*) into v_count from public.tires where vehicle_id = p_vehicle_id;
       v_limit := v_entitlement.tires_per_vehicle_limit;
@@ -1387,6 +1544,15 @@ begin
       end if;
       if not exists (select 1 from public.vehicles v where v.id = p_vehicle_id and v.owner_id = auth.uid()) then
         return jsonb_build_object('allowed', false, 'reason', 'Vehicle not found or access denied', 'plan', v_entitlement.plan);
+      end if;
+      -- Free plan: only free-plan vehicle can have wheels; one visible set; allow create only when slot is empty
+      if v_entitlement.free_plan_vehicle_id is not null then
+        if v_entitlement.free_plan_vehicle_id <> p_vehicle_id then
+          return jsonb_build_object('allowed', false, 'reason', 'Vehicle not found or access denied', 'plan', v_entitlement.plan);
+        end if;
+        v_allowed := (v_entitlement.free_plan_wheel_id is null);
+        v_reason := format('Wheel limit reached (%s set per vehicle). Upgrade to Premium for unlimited wheels.', 1);
+        return jsonb_build_object('allowed', v_allowed, 'reason', case when v_allowed then null else v_reason end, 'plan', v_entitlement.plan);
       end if;
       select count(*) into v_count from public.wheels where vehicle_id = p_vehicle_id;
       v_limit := v_entitlement.wheels_per_vehicle_limit;

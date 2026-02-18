@@ -20,7 +20,7 @@ import { AppHeader } from "../ui/components/AppHeader";
 import { ScreenLayout } from "../ui/components/ScreenLayout";
 import { Screen } from "../ui/components/Screen";
 import { useTheme } from "../ui/ThemeProvider";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Reminder } from "../types/domain";
 import {
   listReminders,
@@ -83,7 +83,14 @@ export function RemindersScreen({ route, navigation }: Props) {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "done">(
     "all",
   );
-  const { isPremium, remindersLimit } = useEntitlements();
+  const {
+    isPremium,
+    remindersLimit,
+    freePlanVehicleId,
+    freePlanReminderIds,
+    refresh: refreshEntitlements,
+  } = useEntitlements();
+  const vehicleId = route.params.vehicleId;
 
   const load = useCallback(
     async (opts?: { refreshing?: boolean; showLoading?: boolean }) => {
@@ -92,10 +99,13 @@ export function RemindersScreen({ route, navigation }: Props) {
           if (opts?.refreshing) setRefreshing(true);
           else setLoading(true);
         }
-        const data = await listReminders(
-          route.params.vehicleId,
-          isPremium ? undefined : { limit: remindersLimit },
-        );
+        const options =
+          isPremium
+            ? undefined
+            : freePlanVehicleId === vehicleId
+              ? { freePlanReminderIds }
+              : { limit: remindersLimit };
+        const data = await listReminders(vehicleId, options);
         setItems(data);
       } catch (e: any) {
         toastError(e?.message ?? t("common.error"));
@@ -106,18 +116,30 @@ export function RemindersScreen({ route, navigation }: Props) {
         }
       }
     },
-    [route.params.vehicleId, t, isPremium, remindersLimit],
+    [
+      vehicleId,
+      t,
+      isPremium,
+      remindersLimit,
+      freePlanVehicleId,
+      freePlanReminderIds,
+    ],
   );
+
+  const loadRef = useRef(load);
+  loadRef.current = load;
 
   useEffect(() => {
     // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
     void load();
-    const unsub = navigation.addListener(
-      "focus",
-      () => void load({ showLoading: false }),
-    );
+    const unsub = navigation.addListener("focus", () => {
+      // Refresh entitlements first (trigger updated free_plan_reminder_ids), then reload list after React has updated context
+      void refreshEntitlements().then(() => {
+        setTimeout(() => loadRef.current?.({ showLoading: false }), 0);
+      });
+    });
     return unsub;
-  }, [navigation, load]);
+  }, [navigation, load, refreshEntitlements]);
 
   async function performToggle(reminder: Reminder) {
     try {

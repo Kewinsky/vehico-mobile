@@ -47,10 +47,30 @@ type CsvDataType =
 export function DataPortabilityScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium, remindersLimit, workshopsLimit, wheelsPerVehicleLimit, tiresPerVehicleLimit } =
-    useEntitlements();
+  const {
+    isPremium,
+    freePlanVehicleId,
+    freePlanWorkshopIds,
+    freePlanReminderIds,
+    freePlanTireId,
+    freePlanWheelId,
+  } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
+
+  // Export only what the user has access to on current tier. On Free we use the visible set from entitlements (no numeric limit).
+  const isFreeVehicle = freePlanVehicleId === vehicleId;
+  const reminderOpts = isPremium
+    ? undefined
+    : { freePlanReminderIds: isFreeVehicle ? freePlanReminderIds : [] };
+  const tireOpts = isPremium
+    ? undefined
+    : { freePlanTireId: isFreeVehicle ? (freePlanTireId ?? null) : null };
+  const wheelOpts = isPremium
+    ? undefined
+    : { freePlanWheelId: isFreeVehicle ? (freePlanWheelId ?? null) : null };
+  const workshopOpts = isPremium ? undefined : { freePlanWorkshopIds };
+
   const [exporting, setExporting] = useState(false);
 
   function showExportFormatAlert() {
@@ -112,21 +132,10 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
         getVehicle(vehicleId),
         listServiceEntries(vehicleId),
         listFuelingEntries(vehicleId),
-        listReminders(
-          vehicleId,
-          isPremium ? undefined : { limit: remindersLimit },
-        ),
-        listVehicleWheels(
-          vehicleId,
-          isPremium ? undefined : { limit: wheelsPerVehicleLimit },
-        ),
-        listVehicleTires(
-          vehicleId,
-          isPremium ? undefined : { limit: tiresPerVehicleLimit },
-        ),
-        listWorkshops(
-          isPremium ? undefined : { limit: workshopsLimit },
-        ),
+        listReminders(vehicleId, reminderOpts),
+        listVehicleWheels(vehicleId, wheelOpts),
+        listVehicleTires(vehicleId, tireOpts),
+        listWorkshops(workshopOpts),
       ]);
 
       const payload = {
@@ -214,10 +223,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           message: csvText,
         });
       } else if (dataType === "reminders") {
-        const rows = await listReminders(
-          vehicleId,
-          isPremium ? undefined : { limit: remindersLimit },
-        );
+        const rows = await listReminders(vehicleId, reminderOpts);
         const header = [
           "due_date",
           "due_mileage",
@@ -249,10 +255,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           message: csvText,
         });
       } else if (dataType === "wheels") {
-        const rows = await listVehicleWheels(
-          vehicleId,
-          isPremium ? undefined : { limit: wheelsPerVehicleLimit },
-        );
+        const rows = await listVehicleWheels(vehicleId, wheelOpts);
         const header = [
           "name",
           "width_inch",
@@ -284,10 +287,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           message: csvText,
         });
       } else if (dataType === "tires") {
-        const rows = await listVehicleTires(
-          vehicleId,
-          isPremium ? undefined : { limit: tiresPerVehicleLimit },
-        );
+        const rows = await listVehicleTires(vehicleId, tireOpts);
         const header = [
           "name",
           "width_mm",
@@ -315,9 +315,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           message: csvText,
         });
       } else {
-        const rows = await listWorkshops(
-          isPremium ? undefined : { limit: workshopsLimit },
-        );
+        const rows = await listWorkshops(workshopOpts);
         const header = ["name", "workshop_type", "phone_number", "address"];
         const lines = rows.map((e) => [
           csvEscape(e.name ?? ""),

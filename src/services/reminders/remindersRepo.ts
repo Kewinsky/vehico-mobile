@@ -70,14 +70,28 @@ export type NewReminder = {
 };
 
 export type ListRemindersOptions = {
-  /** When set (e.g. free plan), return only first N by created_at (newest first). */
+  /** When set (e.g. free plan), return only first N by created_at (newest first). Ignored if freePlanReminderIds is set. */
   limit?: number;
+  /** Free plan: return only reminders whose id is in this list (stable set). */
+  freePlanReminderIds?: string[] | null;
 };
 
 export async function listReminders(
   vehicleId: string,
   options?: ListRemindersOptions,
 ): Promise<Reminder[]> {
+  const ids = options?.freePlanReminderIds;
+  if (ids != null) {
+    if (ids.length === 0) return [];
+    const { data, error } = await supabase
+      .from("reminders")
+      .select("*")
+      .eq("vehicle_id", vehicleId)
+      .in("id", ids)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return (data ?? []) as Reminder[];
+  }
   let query = supabase
     .from("reminders")
     .select("*")

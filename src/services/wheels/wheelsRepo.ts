@@ -19,14 +19,28 @@ export function formatWheelDimensions(width: number, diameter: number): string {
 }
 
 export type ListVehicleWheelsOptions = {
-  /** When set (e.g. free plan), return first N: is_currently_fitted desc, then created_at asc. */
+  /** When set (e.g. free plan), return first N: is_currently_fitted desc, then created_at asc. Ignored if freePlanWheelId is set. */
   limit?: number;
+  /** Free plan: return only the wheel set with this id (single stable set). */
+  freePlanWheelId?: string | null;
 };
 
 export async function listVehicleWheels(
   vehicleId: string,
   options?: ListVehicleWheelsOptions,
 ): Promise<VehicleWheel[]> {
+  if (options?.freePlanWheelId !== undefined) {
+    const singleId = options.freePlanWheelId;
+    if (singleId == null || singleId === "") return [];
+    const { data, error } = await supabase
+      .from("wheels")
+      .select("*")
+      .eq("vehicle_id", vehicleId)
+      .eq("id", singleId)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? [data as VehicleWheel] : [];
+  }
   let query = supabase
     .from("wheels")
     .select("*")

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -28,10 +28,47 @@ type Props = NativeStackScreenProps<AppStackParamList, "Wheels">;
 export function WheelsOverviewScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium, tiresPerVehicleLimit, wheelsPerVehicleLimit } =
-    useEntitlements();
+  const {
+    isPremium,
+    tiresPerVehicleLimit,
+    wheelsPerVehicleLimit,
+    freePlanVehicleId,
+    freePlanTireId,
+    freePlanWheelId,
+    refresh: refreshEntitlements,
+  } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
+  const tireOpts = useMemo(
+    () =>
+      isPremium
+        ? undefined
+        : freePlanVehicleId === vehicleId
+          ? { freePlanTireId: freePlanTireId ?? null }
+          : { limit: tiresPerVehicleLimit },
+    [
+      isPremium,
+      vehicleId,
+      freePlanVehicleId,
+      freePlanTireId,
+      tiresPerVehicleLimit,
+    ],
+  );
+  const wheelOpts = useMemo(
+    () =>
+      isPremium
+        ? undefined
+        : freePlanVehicleId === vehicleId
+          ? { freePlanWheelId: freePlanWheelId ?? null }
+          : { limit: wheelsPerVehicleLimit },
+    [
+      isPremium,
+      vehicleId,
+      freePlanVehicleId,
+      freePlanWheelId,
+      wheelsPerVehicleLimit,
+    ],
+  );
 
   const [tires, setTires] = useState<VehicleTire[]>([]);
   const [wheels, setWheels] = useState<VehicleWheel[]>([]);
@@ -43,14 +80,8 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
       try {
         if (showLoading) setLoading(true);
         const [tiresData, wheelsData] = await Promise.all([
-          listVehicleTires(
-            vehicleId,
-            isPremium ? undefined : { limit: tiresPerVehicleLimit },
-          ),
-          listVehicleWheels(
-            vehicleId,
-            isPremium ? undefined : { limit: wheelsPerVehicleLimit },
-          ),
+          listVehicleTires(vehicleId, tireOpts),
+          listVehicleWheels(vehicleId, wheelOpts),
         ]);
         setTires(tiresData);
         setWheels(wheelsData);
@@ -60,17 +91,21 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t, isPremium, tiresPerVehicleLimit, wheelsPerVehicleLimit],
+    [vehicleId, t, tireOpts, wheelOpts],
   );
+
+  const loadRef = useRef(load);
+  loadRef.current = load;
 
   useEffect(() => {
     void load();
-    const unsub = navigation.addListener(
-      "focus",
-      () => void load({ showLoading: false }),
-    );
+    const unsub = navigation.addListener("focus", () => {
+      void refreshEntitlements().then(() => {
+        setTimeout(() => loadRef.current?.({ showLoading: false }), 0);
+      });
+    });
     return unsub;
-  }, [navigation, load]);
+  }, [navigation, load, refreshEntitlements]);
 
   const fittedTires = useMemo(
     () => tires.filter((x) => x.is_currently_fitted).slice(0, 2),

@@ -50,6 +50,14 @@ export type Entitlements = {
   free_plan_vehicle_id: string | null;
   /** When user downgraded to free; used for 90-day retention and countdown. */
   downgraded_at: string | null;
+  /** Free plan: fixed set of visible workshop IDs (oldest by created_at). */
+  free_plan_workshop_ids: string[];
+  /** Free plan: fixed set of visible reminder IDs for free_plan_vehicle_id. */
+  free_plan_reminder_ids: string[];
+  /** Free plan: single visible tire set for free vehicle. */
+  free_plan_tire_id: string | null;
+  /** Free plan: single visible wheel set for free vehicle. */
+  free_plan_wheel_id: string | null;
 };
 
 const PREMIUM_PHOTOS_PER_VEHICLE_LIMIT = 40;
@@ -104,6 +112,14 @@ type EntitlementsContextValue = {
   currentPlanProductId: RevenueCatProductId | null;
   /** Vehicle id visible on free plan; null when premium or not yet chosen. */
   freePlanVehicleId: string | null;
+  /** Free plan: workshop IDs to display (empty when premium). */
+  freePlanWorkshopIds: string[];
+  /** Free plan: reminder IDs to display for free vehicle (empty when premium). */
+  freePlanReminderIds: string[];
+  /** Free plan: tire ID to display for free vehicle (null when premium). */
+  freePlanTireId: string | null;
+  /** Free plan: wheel ID to display for free vehicle (null when premium). */
+  freePlanWheelId: string | null;
   /** When user downgraded to free (ISO string); null when premium. */
   downgradedAt: string | null;
   /** Days until hidden vehicles data is deleted (90-day retention). Null when premium or no downgraded_at. */
@@ -147,6 +163,10 @@ const DEFAULT_ENTITLEMENTS: Entitlements = {
   product_id: null,
   free_plan_vehicle_id: null,
   downgraded_at: null,
+  free_plan_workshop_ids: [],
+  free_plan_reminder_ids: [],
+  free_plan_tire_id: null,
+  free_plan_wheel_id: null,
 };
 
 async function fetchEntitlements(): Promise<Entitlements> {
@@ -177,6 +197,10 @@ async function fetchEntitlements(): Promise<Entitlements> {
     product_id: data.product_id ?? null,
     free_plan_vehicle_id: data.free_plan_vehicle_id ?? null,
     downgraded_at: data.downgraded_at ?? null,
+    free_plan_workshop_ids: Array.isArray(data.free_plan_workshop_ids) ? data.free_plan_workshop_ids : [],
+    free_plan_reminder_ids: Array.isArray(data.free_plan_reminder_ids) ? data.free_plan_reminder_ids : [],
+    free_plan_tire_id: data.free_plan_tire_id ?? null,
+    free_plan_wheel_id: data.free_plan_wheel_id ?? null,
   };
 }
 
@@ -311,13 +335,9 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
   const setFreePlanVehicleId = useCallback(
     async (vehicleId: string) => {
       if (!userId) return;
-      const { error } = await supabase
-        .from("entitlements")
-        .update({
-          free_plan_vehicle_id: vehicleId,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", userId);
+      const { error } = await supabase.rpc("set_free_plan_vehicle", {
+        p_vehicle_id: vehicleId,
+      });
       if (error) throw error;
       await refreshSupabaseEntitlements();
     },
@@ -634,6 +654,10 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
         remindersLimit: 5,
         currentPlanProductId: null,
         freePlanVehicleId: null,
+        freePlanWorkshopIds: [],
+        freePlanReminderIds: [],
+        freePlanTireId: null,
+        freePlanWheelId: null,
         downgradedAt: null,
         daysUntilHiddenDataDeletion: null,
         setFreePlanVehicleId,
@@ -722,6 +746,10 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
         : Math.min(entitlements.reminders_limit, FREE_REMINDERS_LIMIT),
       currentPlanProductId,
       freePlanVehicleId: entitlements.free_plan_vehicle_id ?? null,
+      freePlanWorkshopIds: isPremium ? [] : (entitlements.free_plan_workshop_ids ?? []),
+      freePlanReminderIds: isPremium ? [] : (entitlements.free_plan_reminder_ids ?? []),
+      freePlanTireId: isPremium ? null : (entitlements.free_plan_tire_id ?? null),
+      freePlanWheelId: isPremium ? null : (entitlements.free_plan_wheel_id ?? null),
       downgradedAt,
       daysUntilHiddenDataDeletion,
       setFreePlanVehicleId,

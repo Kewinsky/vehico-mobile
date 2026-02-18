@@ -40,12 +40,37 @@ export function showUpgradeToPremiumAlert(
   ]);
 }
 
+/** Show limit-reached alert (backend returned "limit reached"); use reason as body when provided. */
+export function showLimitReachedAlert(
+  t: TFunction,
+  navigation: MinimalNavigation,
+  reason?: string,
+) {
+  Alert.alert(
+    t("limits.limitReachedTitle"),
+    reason && reason.trim() ? reason : t("limits.limitReachedBody"),
+    [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("limits.upgradeToPremium"),
+        onPress: () => navigation.navigate("Shop"),
+      },
+    ],
+  );
+}
+
 export function maybeHandleBackendEntitlementLimitError(
   err: unknown,
   t: TFunction,
   navigation: MinimalNavigation,
 ): boolean {
   if (!isBackendEntitlementLimitError(err)) return false;
+  const msg = getErrorMessage(err);
+  // When backend says "limit reached", show limit-specific message instead of generic "feature only on Premium"
+  if (msg.toLowerCase().includes("limit reached")) {
+    showLimitReachedAlert(t, navigation, msg);
+    return true;
+  }
   showUpgradeToPremiumAlert(t, navigation);
   return true;
 }

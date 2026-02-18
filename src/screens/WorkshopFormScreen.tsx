@@ -42,7 +42,7 @@ const WORKSHOP_TYPES: WorkshopType[] = [
 export function WorkshopFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium, workshopsLimit } = useEntitlements();
+  const { isPremium, workshopsLimit, freePlanWorkshopIds } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { workshopId } = route.params ?? {};
   const accentBg = useMemo(
@@ -146,7 +146,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       // Check workshop limit (only for new workshops)
       if (!workshopId && !isPremium) {
         const workshops = await listWorkshops(
-          isPremium ? undefined : { limit: workshopsLimit },
+          isPremium ? undefined : { freePlanWorkshopIds },
         );
         if (workshops.length >= workshopsLimit) {
           Alert.alert(

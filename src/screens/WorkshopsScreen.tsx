@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -43,16 +43,21 @@ export function WorkshopsScreen({ navigation }: Props) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<WorkshopType | "all">("all");
   const [sortOrder, setSortOrder] = useState<"az" | "za">("az");
-  const { isPremium, workshopsLimit } = useEntitlements();
+  const {
+    isPremium,
+    workshopsLimit,
+    freePlanWorkshopIds,
+    refresh: refreshEntitlements,
+  } = useEntitlements();
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
-        const data = await listWorkshops(
-          isPremium ? undefined : { limit: workshopsLimit },
-        );
+        const options =
+          isPremium ? undefined : { freePlanWorkshopIds };
+        const data = await listWorkshops(options);
         setItems(data);
       } catch (e: any) {
         toastError(e?.message ?? t("common.error"));
@@ -60,17 +65,21 @@ export function WorkshopsScreen({ navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [t, isPremium, workshopsLimit],
+    [t, isPremium, workshopsLimit, freePlanWorkshopIds],
   );
+
+  const loadRef = useRef(load);
+  loadRef.current = load;
 
   useEffect(() => {
     void load();
-    const unsub = navigation.addListener(
-      "focus",
-      () => void load({ showLoading: false }),
-    );
+    const unsub = navigation.addListener("focus", () => {
+      void refreshEntitlements().then(() => {
+        setTimeout(() => loadRef.current?.({ showLoading: false }), 0);
+      });
+    });
     return unsub;
-  }, [navigation, load]);
+  }, [navigation, load, refreshEntitlements]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

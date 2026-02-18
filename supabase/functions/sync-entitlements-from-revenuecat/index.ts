@@ -228,9 +228,20 @@ Deno.serve(async (req: Request): Promise<Response> => {
   };
   if (update.plan === "free") {
     dbUpdate.downgraded_at = now;
+    const { data: workshopRows } = await supabase
+      .from("workshops")
+      .select("id")
+      .eq("owner_id", appUserId)
+      .order("created_at", { ascending: true })
+      .limit(3);
+    dbUpdate.free_plan_workshop_ids = (workshopRows ?? []).map((r) => r.id);
   } else {
     dbUpdate.free_plan_vehicle_id = null;
     dbUpdate.downgraded_at = null;
+    dbUpdate.free_plan_workshop_ids = [];
+    dbUpdate.free_plan_reminder_ids = [];
+    dbUpdate.free_plan_tire_id = null;
+    dbUpdate.free_plan_wheel_id = null;
   }
 
   const { error } = await supabase

@@ -21,14 +21,28 @@ export function formatTireDimensions(
 }
 
 export type ListVehicleTiresOptions = {
-  /** When set (e.g. free plan), return first N: is_currently_fitted desc, then created_at asc. */
+  /** When set (e.g. free plan), return first N: is_currently_fitted desc, then created_at asc. Ignored if freePlanTireId is set. */
   limit?: number;
+  /** Free plan: return only the tire set with this id (single stable set). */
+  freePlanTireId?: string | null;
 };
 
 export async function listVehicleTires(
   vehicleId: string,
   options?: ListVehicleTiresOptions,
 ): Promise<VehicleTire[]> {
+  if (options?.freePlanTireId !== undefined) {
+    const singleId = options.freePlanTireId;
+    if (singleId == null || singleId === "") return [];
+    const { data, error } = await supabase
+      .from("tires")
+      .select("*")
+      .eq("vehicle_id", vehicleId)
+      .eq("id", singleId)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? [data as VehicleTire] : [];
+  }
   let query = supabase
     .from("tires")
     .select("*")
