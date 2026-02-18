@@ -18,40 +18,36 @@ export function TimelineItem({
   const styles = makeStyles(theme);
   const isMutedBadge = badgeVariant === "muted";
   return (
-    <View style={styles.row}>
-      <View style={styles.card}>
-        <View style={styles.cardRow}>
-          <View style={styles.cardMain}>
-            <View style={styles.titleRow}>
-              <Text style={styles.title}>{title}</Text>
-
-              {badge && (
-                <View
+    <View style={styles.card}>
+      <View style={styles.content}>
+        <View style={styles.main}>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>{title}</Text>
+            {badge && (
+              <View
+                style={[
+                  styles.badge,
+                  isMutedBadge ? styles.badgeMuted : styles.badgeAccent,
+                ]}
+              >
+                <Text
                   style={[
-                    styles.badge,
-                    isMutedBadge ? styles.badgeMuted : styles.badgeAccent,
+                    styles.badgeText,
+                    isMutedBadge ? styles.badgeTextMuted : null,
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.badgeText,
-                      isMutedBadge ? styles.badgeTextMuted : null,
-                    ]}
-                  >
-                    {badge}
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+                  {badge}
+                </Text>
+              </View>
+            )}
           </View>
-          <Ionicons
-            name="chevron-forward"
-            size={22}
-            color={theme.colors.accent}
-          />
+          {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
         </View>
+        <Ionicons
+          name="chevron-forward"
+          size={22}
+          color={theme.colors.accent}
+        />
       </View>
     </View>
   );
@@ -59,10 +55,6 @@ export function TimelineItem({
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    row: {
-      flexDirection: "row",
-      gap: theme.spacing.sm,
-    },
     card: {
       flex: 1,
       borderWidth: 1,
@@ -70,13 +62,14 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       padding: theme.spacing.sm,
       backgroundColor: theme.colors.card,
+      marginTop: theme.spacing.sm,
     },
-    cardRow: {
+    content: {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
     },
-    cardMain: {
+    main: {
       flex: 1,
       gap: theme.spacing.sm / 2,
     },

@@ -148,7 +148,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
           </View>
         ) : posts.length === 0 ? (
           <Text
-            style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}
+            style={{ color: theme.colors.muted, marginTop: theme.spacing.sm }}
           >
             {t("marketplace.noSavedPosts")}
           </Text>

@@ -387,7 +387,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
                     <Text
                       style={{
                         color: theme.colors.muted,
-                        marginTop: theme.spacing.xs,
+                        marginTop: theme.spacing.sm,
                       }}
                     >
                       {(() => {
@@ -494,7 +494,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
                     <Text
                       style={{
                         color: theme.colors.muted,
-                        marginTop: theme.spacing.xs,
+                        marginTop: theme.spacing.sm,
                       }}
                     >
                       {(() => {

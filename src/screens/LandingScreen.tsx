@@ -157,7 +157,6 @@ const makeStyles = (theme: any) =>
     },
     featuresList: {
       gap: theme.spacing.sm,
-      marginTop: theme.spacing.xs,
     },
   });
 

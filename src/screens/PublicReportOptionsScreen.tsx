@@ -127,7 +127,6 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     wrap: {
-      paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.xl,
       gap: theme.spacing.md,
     },
@@ -135,12 +134,6 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.small,
       color: theme.colors.muted,
       fontWeight: theme.typography.fontWeight.bold,
-    },
-    lead: {
-      marginTop: theme.spacing.xs / 2,
-      fontSize: theme.typography.small,
-      lineHeight: theme.typography.body + 4,
-      color: theme.colors.muted,
     },
     card: {
       padding: theme.spacing.md,

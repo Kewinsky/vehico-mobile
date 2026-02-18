@@ -99,12 +99,11 @@ export function RemindersScreen({ route, navigation }: Props) {
           if (opts?.refreshing) setRefreshing(true);
           else setLoading(true);
         }
-        const options =
-          isPremium
-            ? undefined
-            : freePlanVehicleId === vehicleId
-              ? { freePlanReminderIds }
-              : { limit: remindersLimit };
+        const options = isPremium
+          ? undefined
+          : freePlanVehicleId === vehicleId
+            ? { freePlanReminderIds }
+            : { limit: remindersLimit };
         const data = await listReminders(vehicleId, options);
         setItems(data);
       } catch (e: any) {
@@ -742,7 +741,7 @@ export function RemindersScreen({ route, navigation }: Props) {
                       style={[
                         {
                           color: theme.colors.muted,
-                          marginTop: theme.spacing.xs / 2,
+                          marginTop: theme.spacing.xs,
                         },
                         isDone && { opacity: 0.6 },
                       ]}
@@ -815,12 +814,8 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingBottom: insets.bottom,
     },
     emptyText: {
-      marginTop: theme.spacing.xs,
+      marginTop: theme.spacing.sm,
       fontSize: theme.typography.small,
-    },
-    body: {
-      marginTop: theme.spacing.xs,
-      lineHeight: theme.typography.body + 6,
     },
     card: {
       borderWidth: 1,

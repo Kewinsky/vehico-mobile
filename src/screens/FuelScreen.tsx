@@ -707,7 +707,7 @@ export function FuelScreen({ route, navigation }: Props) {
                           styles.cardMeta,
                           {
                             color: theme.colors.muted,
-                            marginTop: theme.spacing.xs / 2,
+                            marginTop: theme.spacing.xs,
                           },
                         ]}
                       >
@@ -755,7 +755,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingBottom: insets.bottom,
     },
     emptyText: {
-      marginTop: theme.spacing.xs,
+      marginTop: theme.spacing.sm,
       fontSize: theme.typography.small,
     },
     body: {

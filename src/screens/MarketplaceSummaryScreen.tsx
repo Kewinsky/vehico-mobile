@@ -629,7 +629,6 @@ const makeStyles = (theme: any) =>
       borderColor: theme.colors.border,
       alignItems: "center",
       justifyContent: "center",
-      marginTop: theme.spacing.xs,
     },
     checkboxChecked: {
       backgroundColor: theme.colors.accent,

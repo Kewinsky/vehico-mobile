@@ -75,12 +75,8 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
-  const {
-    isPremium,
-    remindersLimit,
-    freePlanVehicleId,
-    freePlanReminderIds,
-  } = useEntitlements();
+  const { isPremium, remindersLimit, freePlanVehicleId, freePlanReminderIds } =
+    useEntitlements();
   const styles = makeStyles(theme);
   const { vehicleId, reminderId } = route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
@@ -986,18 +982,16 @@ export function ReminderFormScreen({ navigation, route }: Props) {
               {t("reminderForm.notesLabel")}
             </Text>
           </View>
-          <View style={{ marginTop: theme.spacing.xs }}>
-            <Textarea
-              value={notes}
-              onChangeText={setNotes}
-              placeholder={t("reminderForm.placeholderNotes")}
-              placeholderTextColor={theme.colors.muted}
-              editable={!saving}
-              multiline
-              textAlignVertical="top"
-              style={[styles.inputMultiline, { color: theme.colors.fg }]}
-            />
-          </View>
+          <Textarea
+            value={notes}
+            onChangeText={setNotes}
+            placeholder={t("reminderForm.placeholderNotes")}
+            placeholderTextColor={theme.colors.muted}
+            editable={!saving}
+            multiline
+            textAlignVertical="top"
+            style={[styles.inputMultiline, { color: theme.colors.fg }]}
+          />
         </View>
       </View>
 
@@ -1064,8 +1058,7 @@ const makeStyles = (theme: any) =>
       fontWeight: theme.typography.fontWeight.bold,
     },
     presetChipSummaryWrap: {
-      marginTop: theme.spacing.xs,
-      gap: 2,
+      marginTop: theme.spacing.sm,
     },
     presetChipSummary: {
       fontSize: theme.typography.small,

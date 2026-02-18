@@ -193,7 +193,7 @@ export function TiresListScreen({ route, navigation }: Props) {
                         styles.itemSubtitle,
                         {
                           color: theme.colors.muted,
-                          marginTop: theme.spacing.xs / 2,
+                          marginTop: theme.spacing.xs,
                         },
                       ]}
                       numberOfLines={1}

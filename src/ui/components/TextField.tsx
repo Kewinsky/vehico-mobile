@@ -38,7 +38,6 @@ export function TextField(props: Props) {
           style={[isMultiline ? styles.inputMultiline : styles.input, style]}
         />
       </View>
-      {helperText ? <Text style={styles.helper}>{helperText}</Text> : null}
     </View>
   );
 }
@@ -52,7 +51,7 @@ const makeStyles = (theme: any) =>
       marginTop: 0,
     },
     label: {
-      marginBottom: theme.spacing.xs / 2,
+      marginBottom: theme.spacing.sm,
       fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.muted,
@@ -80,11 +79,5 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
       color: theme.colors.fg,
       textAlignVertical: "top",
-    },
-    helper: {
-      marginTop: theme.spacing.xs / 2,
-      fontSize: theme.typography.small,
-      color: theme.colors.muted,
-      lineHeight: theme.typography.body + 2,
     },
   });

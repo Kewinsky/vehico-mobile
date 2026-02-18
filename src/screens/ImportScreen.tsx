@@ -221,8 +221,9 @@ export function ImportScreen({ navigation, route }: Props) {
             <Text style={[styles.hint, { color: theme.colors.muted }]}>
               {t("import.csvHint")}
             </Text>
-            <View style={{ marginTop: theme.spacing.xs }}>
+            <View style={{ marginTop: theme.spacing.sm }}>
               <Textarea
+                followCursor
                 value={csv}
                 onChangeText={setCsv}
                 editable={!importing}

@@ -68,12 +68,8 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
-  const {
-    isPremium,
-    remindersLimit,
-    freePlanVehicleId,
-    freePlanReminderIds,
-  } = useEntitlements();
+  const { isPremium, remindersLimit, freePlanVehicleId, freePlanReminderIds } =
+    useEntitlements();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const contentPad = theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
@@ -122,12 +118,11 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           if (opts?.refreshing) setRefreshing(true);
           else setLoading(true);
         }
-        const reminderOpts =
-          isPremium
-            ? undefined
-            : freePlanVehicleId === vehicleId
-              ? { freePlanReminderIds }
-              : { limit: remindersLimit };
+        const reminderOpts = isPremium
+          ? undefined
+          : freePlanVehicleId === vehicleId
+            ? { freePlanReminderIds }
+            : { limit: remindersLimit };
         const [data, rs, attachments] = await Promise.all([
           listServiceEntries(vehicleId),
           listReminders(vehicleId, reminderOpts),
@@ -1071,7 +1066,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
               <Text
                 style={{
                   color: theme.colors.muted,
-                  marginTop: theme.spacing.xs,
+                  marginTop: theme.spacing.sm,
                 }}
               >
                 {t("timeline.noServiceEntries")}
@@ -1169,13 +1164,6 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
                 />
               </Pressable>
             );
-          }}
-          ItemSeparatorComponent={({ leadingItem }) => {
-            // Don't add separator before separator items
-            if (leadingItem && leadingItem.type === "separator") {
-              return null;
-            }
-            return <View style={{ height: theme.spacing.sm }} />;
           }}
         />
       </ScreenLayout>
@@ -1327,7 +1315,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     separator: {
       marginTop: theme.spacing.lg,
-      marginBottom: theme.spacing.sm,
     },
     separatorText: {
       fontSize: theme.typography.small,

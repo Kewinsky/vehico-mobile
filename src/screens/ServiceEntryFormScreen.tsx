@@ -138,8 +138,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }, []);
 
   useEffect(() => {
-    const options =
-      isPremium ? undefined : { freePlanWorkshopIds };
+    const options = isPremium ? undefined : { freePlanWorkshopIds };
     listWorkshops(options).then(setWorkshops);
   }, [isPremium, workshopsLimit, freePlanWorkshopIds]);
 
@@ -1060,17 +1059,15 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   {t("entryForm.description")}
                 </Text>
               </View>
-              <View style={{ marginTop: theme.spacing.xs }}>
-                <Textarea
-                  value={description}
-                  onChangeText={setDescription}
-                  editable={!saving && !uploading}
-                  multiline
-                  placeholder={t("entryForm.placeholderDescription")}
-                  placeholderTextColor={theme.colors.muted}
-                  style={[styles.inputMultiline, { color: theme.colors.fg }]}
-                />
-              </View>
+              <Textarea
+                value={description}
+                onChangeText={setDescription}
+                editable={!saving && !uploading}
+                multiline
+                placeholder={t("entryForm.placeholderDescription")}
+                placeholderTextColor={theme.colors.muted}
+                style={[styles.inputMultiline, { color: theme.colors.fg }]}
+              />
             </View>
           </View>
 

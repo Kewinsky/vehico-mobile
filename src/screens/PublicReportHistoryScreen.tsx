@@ -150,7 +150,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
           </View>
         ) : reports.length === 0 ? (
           <Text
-            style={{ color: theme.colors.muted, marginTop: theme.spacing.xs }}
+            style={{ color: theme.colors.muted, marginTop: theme.spacing.sm }}
           >
             {t("share.noReports")}
           </Text>

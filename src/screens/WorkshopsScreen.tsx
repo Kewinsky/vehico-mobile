@@ -55,8 +55,7 @@ export function WorkshopsScreen({ navigation }: Props) {
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
-        const options =
-          isPremium ? undefined : { freePlanWorkshopIds };
+        const options = isPremium ? undefined : { freePlanWorkshopIds };
         const data = await listWorkshops(options);
         setItems(data);
       } catch (e: any) {
@@ -553,7 +552,7 @@ function makeStyles(theme: any, insets: { bottom: number }) {
     list: { flex: 1, paddingTop: theme.spacing.md },
     listContent: { paddingBottom: insets.bottom },
     emptyText: {
-      marginTop: theme.spacing.xs,
+      marginTop: theme.spacing.sm,
       fontSize: theme.typography.small,
     },
     card: {
@@ -572,10 +571,6 @@ function makeStyles(theme: any, insets: { bottom: number }) {
       fontWeight: theme.typography.fontWeight.bold,
     },
     cardSubtitle: {
-      fontSize: theme.typography.small,
-      marginTop: theme.spacing.xs,
-    },
-    cardPhone: {
       fontSize: theme.typography.small,
       marginTop: theme.spacing.xs,
     },

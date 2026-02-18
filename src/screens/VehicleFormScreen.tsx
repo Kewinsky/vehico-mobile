@@ -824,7 +824,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                 onPress={pickSource}
                 disabled={saving || uploadingPhoto}
                 variant="ghost"
-                style={{ marginTop: theme.spacing.xs / 2 }}
               >
                 {t("vehicleForm.addPhoto")}
               </Button>
