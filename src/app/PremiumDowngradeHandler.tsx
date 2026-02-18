@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { useAuth } from "./providers/AuthProvider";
 import { useEntitlements } from "./providers/EntitlementsProvider";
 import { navigationRef } from "./navigationRef";
 
@@ -10,16 +11,17 @@ function currentRouteName(): string | null {
   return navigationRef.getCurrentRoute()?.name ?? null;
 }
 
-function redirectToVehicles() {
+function redirectToVehiclesAndShowPicker() {
   if (!navigationRef.isReady()) return;
   navigationRef.reset({
     index: 0,
-    routes: [{ name: "Vehicles" }],
+    routes: [{ name: "Vehicles", params: { showVehiclePicker: true } }],
   });
 }
 
 export function PremiumDowngradeHandler() {
   const { t } = useTranslation();
+  const { session } = useAuth();
   const { isPremium, isLoading } = useEntitlements();
 
   const prevIsPremium = useRef<boolean | null>(null);
@@ -27,6 +29,11 @@ export function PremiumDowngradeHandler() {
 
   useEffect(() => {
     if (isLoading) return;
+    // Only treat premium→free as "downgrade" when user is still logged in. On logout, isPremium becomes false but we must not show the alert or reset to Vehicles (that screen isn't in the unauthenticated stack).
+    if (!session) {
+      prevIsPremium.current = isPremium;
+      return;
+    }
 
     if (prevIsPremium.current == null) {
       prevIsPremium.current = isPremium;
@@ -51,13 +58,13 @@ export function PremiumDowngradeHandler() {
       t("limits.premiumExpiredBody"),
       [
         {
-          text: t("limits.chooseVehicle"),
-          onPress: redirectToVehicles,
+          text: t("common.ok"),
+          onPress: redirectToVehiclesAndShowPicker,
         },
       ],
       { cancelable: false },
     );
-  }, [isPremium, isLoading, t]);
+  }, [session, isPremium, isLoading, t]);
 
   return null;
 }

@@ -55,7 +55,7 @@ export type AppStackParamList = {
   TermsOfUse: undefined;
   PrivacyPolicy: undefined;
   Onboarding: undefined;
-  Vehicles: undefined;
+  Vehicles: { showVehiclePicker?: boolean } | undefined;
   VehicleForm: { vehicleId?: string };
   Settings: undefined;
   Appearance: undefined;

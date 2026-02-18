@@ -21,6 +21,7 @@ export const pl = {
     off: "Wył.",
     yes: "Tak",
     no: "Nie",
+    ok: "OK",
     copied: "Skopiowano",
     and: "i",
     clearButton: "Wyczyść",
