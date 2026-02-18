@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { Image } from "expo-image";
+import { useIsFocused } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -202,11 +203,12 @@ function getTimeOfDay(): "morning" | "afternoon" | "evening" {
   return "evening";
 }
 
-export function VehiclesScreen({ navigation }: Props) {
+export function VehiclesScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const [items, setItems] = useState<Vehicle[]>([]);
   const [photoUrlsMap, setPhotoUrlsMap] = useState<Map<string, string[]>>(
@@ -237,6 +239,10 @@ export function VehiclesScreen({ navigation }: Props) {
     !isPremium &&
     !freePlanVehicleId &&
     items.length >= 2;
+  const shouldShowPicker =
+    isFocused &&
+    items.length >= 2 &&
+    (showFreePlanPicker || route.params?.showVehiclePicker === true);
   const hasShownPickerRef = useRef(false);
 
   const sortedItems = useMemo(() => {
@@ -328,12 +334,15 @@ export function VehiclesScreen({ navigation }: Props) {
   }, [navigation, load]);
 
   useEffect(() => {
-    if (!showFreePlanPicker || items.length < 2) {
+    if (!shouldShowPicker) {
       hasShownPickerRef.current = false;
       return;
     }
     if (hasShownPickerRef.current) return;
     hasShownPickerRef.current = true;
+    if (route.params?.showVehiclePicker === true) {
+      navigation.setParams({ showVehiclePicker: false });
+    }
     const vehicleButtons = items.map((item) => ({
       text: `${item.make} ${item.model}${item.production_year ? ` (${item.production_year})` : ""}`,
       onPress: () => setFreePlanVehicleId(item.id),
@@ -343,7 +352,14 @@ export function VehiclesScreen({ navigation }: Props) {
       t("vehicles.freePlanPickerBody"),
       vehicleButtons,
     );
-  }, [showFreePlanPicker, items, t, setFreePlanVehicleId]);
+  }, [
+    shouldShowPicker,
+    items,
+    t,
+    setFreePlanVehicleId,
+    navigation,
+    route.params?.showVehiclePicker,
+  ]);
 
   const handleLockedVehiclePress = () => {
     const days = daysUntilHiddenDataDeletion ?? 0;
@@ -438,10 +454,7 @@ export function VehiclesScreen({ navigation }: Props) {
                     {(() => {
                       const photoUrls = photoUrlsMap.get(item.id) || [];
                       const carouselWidth =
-                        windowWidth -
-                        (theme.layout?.contentPaddingHorizontal ??
-                          theme.spacing.md) *
-                          2;
+                        windowWidth - theme.layout.contentPaddingHorizontal * 2;
 
                       if (photoUrls.length === 0) {
                         return (

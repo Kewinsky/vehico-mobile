@@ -33,6 +33,7 @@ export function WorkshopsScreen({ navigation }: Props) {
   const { theme, mode } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
+  const contentPad = theme.layout.contentPaddingHorizontal;
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -262,7 +263,7 @@ export function WorkshopsScreen({ navigation }: Props) {
 
       {filtersOpen ? (
         <>
-          <View style={{ height: theme.spacing.sm }} />
+          <View style={{ height: theme.spacing.md }} />
           <View
             style={[
               styles.filtersCard,
@@ -398,16 +399,22 @@ export function WorkshopsScreen({ navigation }: Props) {
         />
       }
     >
-      <ScreenLayout
-        title={t("workshops.title")}
-        scrollable={false}
-        filterPanel={filterPanelContent}
-      >
+      <View style={[styles.listWrap, { paddingHorizontal: contentPad }]}>
         <FlatList
           data={filtered}
+          ListHeaderComponent={
+            <ScreenLayout
+              title={t("workshops.title")}
+              filterPanel={filterPanelContent}
+              listHeaderOnly
+            />
+          }
           keyExtractor={(item) => item.id}
-          style={styles.list}
-          contentContainerStyle={styles.listContent}
+          style={[styles.list, { marginHorizontal: -contentPad }]}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingHorizontal: contentPad },
+          ]}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
           onTouchStart={Keyboard.dismiss}
@@ -460,13 +467,14 @@ export function WorkshopsScreen({ navigation }: Props) {
             </Pressable>
           )}
         />
-      </ScreenLayout>
+      </View>
     </Screen>
   );
 }
 
 function makeStyles(theme: any, insets: { bottom: number }) {
   return StyleSheet.create({
+    listWrap: { flex: 1 },
     searchRow: {
       flexDirection: "row",
       alignItems: "center",

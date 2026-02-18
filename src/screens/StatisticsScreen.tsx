@@ -745,8 +745,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
   const insuranceValidUntilLabel = vehicle?.insurance_valid_until ?? "—";
   const inspectionValidUntilLabel = vehicle?.inspection_valid_until ?? "—";
 
-  const contentPadding =
-    theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
+  const contentPadding = theme.layout.contentPaddingHorizontal;
   const chartWidth = Math.max(
     280,
     windowWidth - contentPadding * 2 - theme.spacing.md * 2 - 20,

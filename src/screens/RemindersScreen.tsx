@@ -63,7 +63,7 @@ export function RemindersScreen({ route, navigation }: Props) {
   const { settings } = useUserSettings();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
-  const contentPad = theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
+  const contentPad = theme.layout.contentPaddingHorizontal;
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -492,7 +492,7 @@ export function RemindersScreen({ route, navigation }: Props) {
 
       {filtersOpen ? (
         <>
-          <View style={{ height: theme.spacing.sm }} />
+          <View style={{ height: theme.spacing.md }} />
           <View
             style={[
               styles.filtersCard,
@@ -653,13 +653,16 @@ export function RemindersScreen({ route, navigation }: Props) {
         />
       }
     >
-      <ScreenLayout
-        title={t("dashboard.tiles.remindersTitle")}
-        scrollable={false}
-        filterPanel={filterPanelContent}
-      >
+      <View style={[styles.listWrap, { paddingHorizontal: contentPad }]}>
         <FlatList
           data={filteredItemsWithSeparators}
+          ListHeaderComponent={
+            <ScreenLayout
+              title={t("dashboard.tiles.remindersTitle")}
+              filterPanel={filterPanelContent}
+              listHeaderOnly
+            />
+          }
           keyExtractor={(item) => {
             if (item.type === "separator") {
               return `separator-${item.monthYearKey}`;
@@ -797,13 +800,14 @@ export function RemindersScreen({ route, navigation }: Props) {
             )
           }
         />
-      </ScreenLayout>
+      </View>
     </Screen>
   );
 }
 
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
+    listWrap: { flex: 1 },
     panelButtonsRow: {
       marginLeft: theme.spacing.sm,
       flexDirection: "row",

@@ -38,6 +38,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const contentPad = theme.layout.contentPaddingHorizontal;
   const { vehicleId } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [reports, setReports] = useState<PublicReportSnapshot[]>([]);
@@ -139,94 +140,100 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
         />
       }
     >
-      <ScreenLayout
-        title={t("share.historyTitle")}
-        scrollable={false}
-        contentContainerStyle={styles.wrap}
-      >
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <LoadingIndicator />
-          </View>
-        ) : reports.length === 0 ? (
-          <Text
-            style={{ color: theme.colors.muted, marginTop: theme.spacing.sm }}
-          >
-            {t("share.noReports")}
-          </Text>
-        ) : (
-          <FlatList
-            data={reports}
-            keyExtractor={(item) => item.id}
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            contentContainerStyle={styles.list}
-            renderItem={({ item }) => (
-              <Pressable
-                onPress={() => handleReportPress(item)}
-                style={({ pressed }) => [
-                  styles.reportCard,
-                  {
-                    backgroundColor: theme.colors.card,
-                    borderColor: theme.colors.border,
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                ]}
+      <View style={[styles.listWrap, { paddingHorizontal: contentPad }]}>
+        <FlatList
+          data={reports}
+          ListHeaderComponent={
+            <ScreenLayout title={t("share.historyTitle")} listHeaderOnly />
+          }
+          keyExtractor={(item) => item.id}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          style={[styles.list, { marginHorizontal: -contentPad }]}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingHorizontal: contentPad },
+          ]}
+          ListEmptyComponent={
+            loading ? (
+              <View style={styles.loadingContainer}>
+                <LoadingIndicator />
+              </View>
+            ) : (
+              <Text
+                style={{
+                  color: theme.colors.muted,
+                  marginTop: theme.spacing.sm,
+                }}
               >
-                <View style={styles.cardRow}>
-                  <Pressable
-                    style={{ flex: 1 }}
-                    onPress={() => handleReportPress(item)}
+                {t("share.noReports")}
+              </Text>
+            )
+          }
+          renderItem={({ item }) => (
+            <Pressable
+              onPress={() => handleReportPress(item)}
+              style={({ pressed }) => [
+                styles.reportCard,
+                {
+                  backgroundColor: theme.colors.card,
+                  borderColor: theme.colors.border,
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}
+            >
+              <View style={styles.cardRow}>
+                <Pressable
+                  style={{ flex: 1 }}
+                  onPress={() => handleReportPress(item)}
+                >
+                  <Text
+                    style={[styles.reportTitle, { color: theme.colors.fg }]}
                   >
-                    <Text
-                      style={[styles.reportTitle, { color: theme.colors.fg }]}
-                    >
-                      {item.title || t("publicReport.defaultTitle")}
-                    </Text>
-                    <Text
-                      style={[styles.reportDate, { color: theme.colors.muted }]}
-                    >
-                      {t("share.generatedOn")}{" "}
-                      {formatDateDisplay(item.created_at, i18n.language)}
-                    </Text>
-                  </Pressable>
-                  <View style={{ flexDirection: "row", gap: theme.spacing.xs }}>
-                    <IconButton
-                      onPress={() => handleEditTitle(item)}
-                      variant="ghost"
-                    >
-                      <Feather
-                        name="edit"
-                        size={24}
-                        color={theme.colors.accent}
-                      />
-                    </IconButton>
-                  </View>
+                    {item.title || t("publicReport.defaultTitle")}
+                  </Text>
+                  <Text
+                    style={[styles.reportDate, { color: theme.colors.muted }]}
+                  >
+                    {t("share.generatedOn")}{" "}
+                    {formatDateDisplay(item.created_at, i18n.language)}
+                  </Text>
+                </Pressable>
+                <View style={{ flexDirection: "row", gap: theme.spacing.xs }}>
+                  <IconButton
+                    onPress={() => handleEditTitle(item)}
+                    variant="ghost"
+                  >
+                    <Feather
+                      name="edit"
+                      size={24}
+                      color={theme.colors.accent}
+                    />
+                  </IconButton>
                 </View>
-              </Pressable>
-            )}
-            ItemSeparatorComponent={() => (
-              <View style={{ height: theme.spacing.sm }} />
-            )}
-          />
-        )}
-      </ScreenLayout>
+              </View>
+            </Pressable>
+          )}
+          ItemSeparatorComponent={() => (
+            <View style={{ height: theme.spacing.sm }} />
+          )}
+        />
+      </View>
     </Screen>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    wrap: {
-      flex: 1,
-    },
+    listWrap: { flex: 1 },
     loadingContainer: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
       paddingVertical: theme.spacing.xl,
     },
-    list: {
+    list: { flex: 1 },
+    listContent: {
       paddingBottom: theme.spacing.md,
     },
     reportCard: {

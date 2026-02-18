@@ -72,7 +72,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     useEntitlements();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
-  const contentPad = theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
+  const contentPad = theme.layout.contentPaddingHorizontal;
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -619,7 +619,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
 
       {filtersOpen ? (
         <>
-          <View style={{ height: theme.spacing.sm }} />
+          <View style={{ height: theme.spacing.md }} />
           <View
             style={[
               styles.filtersCard,
@@ -1033,13 +1033,16 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
         />
       }
     >
-      <ScreenLayout
-        title={t("dashboard.tiles.serviceTitle")}
-        scrollable={false}
-        filterPanel={filterPanelContent}
-      >
+      <View style={[styles.listWrap, { paddingHorizontal: contentPad }]}>
         <FlatList
           data={timelineRows}
+          ListHeaderComponent={
+            <ScreenLayout
+              title={t("dashboard.tiles.serviceTitle")}
+              filterPanel={filterPanelContent}
+              listHeaderOnly
+            />
+          }
           keyExtractor={(e) => {
             if (e.type === "separator") {
               return `separator-${e.monthYearKey}`;
@@ -1166,7 +1169,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
             );
           }}
         />
-      </ScreenLayout>
+      </View>
     </Screen>
   );
 }
@@ -1177,6 +1180,9 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       marginLeft: theme.spacing.sm,
       flexDirection: "row",
       gap: theme.spacing.sm,
+    },
+    listWrap: {
+      flex: 1,
     },
     list: {
       flex: 1,

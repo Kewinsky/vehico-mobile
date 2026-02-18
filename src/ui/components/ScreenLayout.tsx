@@ -23,31 +23,29 @@ export type DefaultFilterPanelProps = {
 };
 
 export type ScreenLayoutProps = PropsWithChildren<{
-  /** Main title in the fixed header. */
+  /** Title (required). */
   title: string | ReactNode;
   /**
-   * When `true`, renders the default filter panel (search bar, add button, filter button).
-   * When a ReactNode, renders that custom content as the panel.
-   * When `false` or undefined, no panel; no borderBottom under the header.
+   * Optional panel below title. ReactNode = custom content (define in screen). true = default search+add+filter panel (use filterPanelProps).
    */
   filterPanel?: boolean | ReactNode;
-  /** Props for the default filter panel when filterPanel === true. */
   filterPanelProps?: DefaultFilterPanelProps;
-  /** When true, body is a ScrollView; when false, a View. */
+  /** When true, body is ScrollView (title + panel + children scroll together). When false, header + View(children). */
   scrollable?: boolean;
-  /** Optional style for the scroll/content container. */
+  /** When true, render only the header block (for FlatList ListHeaderComponent). Ignores children and scrollable. */
+  listHeaderOnly?: boolean;
   contentContainerStyle?: object;
 }>;
 
 /**
- * Reusable layout: fixed header (title + optional filter panel) and body (ScrollView or View).
- * Use to unify screens with title, optional search/filters, and scrollable or static content.
+ * One layout: title (required) + optional filterPanel. Either wraps children in ScrollView/View, or renders only header (listHeaderOnly for FlatList).
  */
 export function ScreenLayout({
   title,
   filterPanel = false,
   filterPanelProps,
   scrollable = true,
+  listHeaderOnly = false,
   contentContainerStyle,
   children,
 }: ScreenLayoutProps) {
@@ -56,7 +54,6 @@ export function ScreenLayout({
 
   const hasPanel =
     filterPanel === true || (filterPanel && typeof filterPanel === "object");
-
   const panelContent =
     filterPanel === true ? (
       <DefaultFilterPanel theme={theme} styles={styles} {...filterPanelProps} />
@@ -64,14 +61,8 @@ export function ScreenLayout({
       filterPanel
     ) : null;
 
-  const headerBlock = (
-    <View
-      style={[
-        styles.fixedHeader,
-        hasPanel ? styles.fixedHeaderBorder : undefined,
-        { backgroundColor: theme.colors.bg },
-      ]}
-    >
+  const headerContent = (
+    <>
       <View style={styles.titleRow}>
         {typeof title === "string" ? (
           <Text
@@ -87,31 +78,62 @@ export function ScreenLayout({
       {panelContent ? (
         <View style={styles.panelWrap}>{panelContent}</View>
       ) : null}
-    </View>
+    </>
   );
 
+  const header = (headerStyle: object, fullWidthBorder?: boolean) => {
+    if (fullWidthBorder) {
+      return (
+        <View
+          style={[
+            styles.headerOuterFullWidth,
+            hasPanel ? styles.headerBlockBorder : undefined,
+            { backgroundColor: theme.colors.bg },
+          ]}
+        >
+          <View style={styles.headerInner}>{headerContent}</View>
+        </View>
+      );
+    }
+    return (
+      <View
+        style={[
+          headerStyle,
+          hasPanel ? styles.headerBlockBorder : undefined,
+          { backgroundColor: theme.colors.bg },
+        ]}
+      >
+        {headerContent}
+      </View>
+    );
+  };
+
+  if (listHeaderOnly) {
+    return header(styles.headerBlockInScroll, true);
+  }
+  if (scrollable) {
+    return (
+      <ScrollView
+        style={styles.bodyScroll}
+        contentContainerStyle={[
+          styles.bodyContentScroll,
+          contentContainerStyle,
+        ]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+      >
+        {header(styles.headerBlockInScroll, true)}
+        {children}
+      </ScrollView>
+    );
+  }
   return (
     <>
-      {headerBlock}
-
-      {scrollable ? (
-        <ScrollView
-          style={styles.bodyScroll}
-          contentContainerStyle={[
-            styles.bodyContentScroll,
-            contentContainerStyle,
-          ]}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          showsVerticalScrollIndicator={false}
-        >
-          {children}
-        </ScrollView>
-      ) : (
-        <View style={[styles.bodyContent, contentContainerStyle]}>
-          {children}
-        </View>
-      )}
+      {header(styles.headerBlock)}
+      <View style={[styles.bodyContent, contentContainerStyle]}>
+        {children}
+      </View>
     </>
   );
 }
@@ -198,12 +220,24 @@ function DefaultFilterPanel({
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    fixedHeader: {
+    headerBlock: {
       paddingVertical: theme.spacing.md,
-      paddingHorizontal:
-        theme.layout?.contentPaddingHorizontal ?? theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
-    fixedHeaderBorder: {
+    /** Header inside ScrollView: no horizontal padding (content container has it). */
+    headerBlockInScroll: {
+      paddingVertical: theme.spacing.md,
+    },
+    /** Full-width header wrapper: negative margin so border spans screen width. */
+    headerOuterFullWidth: {
+      marginHorizontal: -theme.layout.contentPaddingHorizontal,
+      paddingVertical: theme.spacing.md,
+    },
+    /** Inner padding to align with scroll content. */
+    headerInner: {
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+    },
+    headerBlockBorder: {
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
@@ -261,14 +295,12 @@ const makeStyles = (theme: any) =>
     },
     /** For ScrollView: no flex so content can grow and scroll. */
     bodyContentScroll: {
-      paddingHorizontal:
-        theme.layout?.contentPaddingHorizontal ?? theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingBottom: theme.spacing.xl * 2,
     },
     /** For View (scrollable=false): flex so container fills space. */
     bodyContent: {
       flex: 1,
-      paddingHorizontal:
-        theme.layout?.contentPaddingHorizontal ?? theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
   });

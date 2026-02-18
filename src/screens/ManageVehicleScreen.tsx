@@ -255,10 +255,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                 <VehicleCarousel
                   photoUrls={photoUrls}
                   width={
-                    windowWidth -
-                    (theme.layout?.contentPaddingHorizontal ??
-                      theme.spacing.md) *
-                      2
+                    windowWidth - theme.layout.contentPaddingHorizontal * 2
                   }
                   height={220}
                   theme={theme}

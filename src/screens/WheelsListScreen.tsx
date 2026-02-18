@@ -51,6 +51,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
+  const contentPad = theme.layout.contentPaddingHorizontal;
   const { vehicleId } = route.params;
   const {
     isPremium,
@@ -143,12 +144,18 @@ export function WheelsListScreen({ route, navigation }: Props) {
         <Button onPress={onAddWheelPress}>{t("wheels.addWheelSingle")}</Button>
       }
     >
-      <ScreenLayout title={t("wheels.rimsSection")} scrollable={false}>
+      <View style={[styles.listWrap, { paddingHorizontal: contentPad }]}>
         <FlatList
           data={wheels}
+          ListHeaderComponent={
+            <ScreenLayout title={t("wheels.rimsSection")} listHeaderOnly />
+          }
           keyExtractor={(item) => item.id}
-          style={styles.list}
-          contentContainerStyle={styles.listContent}
+          style={[styles.list, { marginHorizontal: -contentPad }]}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingHorizontal: contentPad },
+          ]}
           ItemSeparatorComponent={() => (
             <View style={{ height: theme.spacing.sm }} />
           )}
@@ -230,13 +237,14 @@ export function WheelsListScreen({ route, navigation }: Props) {
             )
           }
         />
-      </ScreenLayout>
+      </View>
     </Screen>
   );
 }
 
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
+    listWrap: { flex: 1 },
     list: { flex: 1 },
     listContent: { paddingBottom: insets.bottom },
     card: {

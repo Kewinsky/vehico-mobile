@@ -197,8 +197,12 @@ async function fetchEntitlements(): Promise<Entitlements> {
     product_id: data.product_id ?? null,
     free_plan_vehicle_id: data.free_plan_vehicle_id ?? null,
     downgraded_at: data.downgraded_at ?? null,
-    free_plan_workshop_ids: Array.isArray(data.free_plan_workshop_ids) ? data.free_plan_workshop_ids : [],
-    free_plan_reminder_ids: Array.isArray(data.free_plan_reminder_ids) ? data.free_plan_reminder_ids : [],
+    free_plan_workshop_ids: Array.isArray(data.free_plan_workshop_ids)
+      ? data.free_plan_workshop_ids
+      : [],
+    free_plan_reminder_ids: Array.isArray(data.free_plan_reminder_ids)
+      ? data.free_plan_reminder_ids
+      : [],
     free_plan_tire_id: data.free_plan_tire_id ?? null,
     free_plan_wheel_id: data.free_plan_wheel_id ?? null,
   };
@@ -700,12 +704,11 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
     const canGenerateListing = isPremium;
 
     const currentPlanProductId: RevenueCatProductId | null = isPremium
-      ? (entitlements.product_id &&
+      ? ((entitlements.product_id &&
         isRevenueCatProductId(entitlements.product_id)
-        ? entitlements.product_id
-        : normalizeProductIdFromRC(
-            premiumEntitlement?.productIdentifier,
-          )) ?? null
+          ? entitlements.product_id
+          : normalizeProductIdFromRC(premiumEntitlement?.productIdentifier)) ??
+        null)
       : null;
 
     const downgradedAt = entitlements.downgraded_at ?? null;
@@ -714,7 +717,9 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       const deadline = new Date(downgradedAt);
       deadline.setDate(deadline.getDate() + RETENTION_DAYS);
       const now = new Date();
-      const diff = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      const diff = Math.ceil(
+        (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+      );
       daysUntilHiddenDataDeletion = Math.max(0, diff);
     }
 
@@ -746,10 +751,18 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
         : Math.min(entitlements.reminders_limit, FREE_REMINDERS_LIMIT),
       currentPlanProductId,
       freePlanVehicleId: entitlements.free_plan_vehicle_id ?? null,
-      freePlanWorkshopIds: isPremium ? [] : (entitlements.free_plan_workshop_ids ?? []),
-      freePlanReminderIds: isPremium ? [] : (entitlements.free_plan_reminder_ids ?? []),
-      freePlanTireId: isPremium ? null : (entitlements.free_plan_tire_id ?? null),
-      freePlanWheelId: isPremium ? null : (entitlements.free_plan_wheel_id ?? null),
+      freePlanWorkshopIds: isPremium
+        ? []
+        : (entitlements.free_plan_workshop_ids ?? []),
+      freePlanReminderIds: isPremium
+        ? []
+        : (entitlements.free_plan_reminder_ids ?? []),
+      freePlanTireId: isPremium
+        ? null
+        : (entitlements.free_plan_tire_id ?? null),
+      freePlanWheelId: isPremium
+        ? null
+        : (entitlements.free_plan_wheel_id ?? null),
       downgradedAt,
       daysUntilHiddenDataDeletion,
       setFreePlanVehicleId,
