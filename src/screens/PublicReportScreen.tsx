@@ -16,7 +16,6 @@ type Props = NativeStackScreenProps<AppStackParamList, "PublicReport">;
 export function PublicReportScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
   const { isPremium } = useEntitlements();
 
@@ -53,7 +52,7 @@ export function PublicReportScreen({ navigation, route }: Props) {
         <Button onPress={onGeneratePress}>
           {t("publicReport.generateButton")}
         </Button>
-        <View style={{ height: theme.spacing.xs }} />
+        <View style={{ height: theme.spacing.sm }} />
         <Button
           onPress={() =>
             navigation.navigate("PublicReportHistory", {

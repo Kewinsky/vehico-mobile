@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View, Pressable, ScrollView } from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
@@ -366,15 +366,14 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         <Button onPress={handleNext}>{t("publicReport.nextButton")}</Button>
       }
     >
-      <ScreenLayout title={t("publicReport.configureTitle")} scrollable={true}>
-        <View style={styles.scrollView}>
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <LoadingIndicator />
-            </View>
-          ) : (
-            <>
-              <View style={styles.section}>
+      <ScreenLayout title={t("publicReport.configureTitle")} scrollable>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <LoadingIndicator />
+          </View>
+        ) : (
+          <>
+            <View style={styles.section}>
                 <CheckboxRow
                   label={t("publicReport.optionTechnicalData")}
                   checked={includeTechnicalData}
@@ -568,9 +567,8 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
                   )}
                 </View>
               )}
-            </>
-          )}
-        </View>
+          </>
+        )}
       </ScreenLayout>
     </Screen>
   );
@@ -578,7 +576,6 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    scrollView: { flex: 1 },
     header: { gap: theme.spacing.xs / 2, marginBottom: theme.spacing.md },
     h1: {
       fontSize: theme.typography.largeTitle,

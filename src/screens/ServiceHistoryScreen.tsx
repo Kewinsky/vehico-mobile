@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
-  FlatList,
   Keyboard,
   Platform,
   Pressable,
@@ -40,11 +39,8 @@ import { hexToRgba } from "../ui/components/ChoiceChip";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceHistory">;
 
-import {
-  formatDateDisplay,
-  formatMonthYear,
-  formatMonthYearPL,
-} from "../utils/dateFormatting";
+import { formatDateDisplay } from "../utils/dateFormatting";
+import { ScreenFlatList } from "../ui/components/ScreenFlatList";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -72,7 +68,6 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     useEntitlements();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
-  const contentPad = theme.layout.contentPaddingHorizontal;
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -458,46 +453,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
       allRows = [...sortedServiceRows, ...sortedReminderRows];
     }
 
-    // Group by month/year and add separators (only when sorting by date)
-    const grouped: Array<
-      | { type: "separator"; monthYear: string; monthYearKey: string }
-      | { type: "item"; item: (typeof allRows)[0] }
-    > = [];
-
-    if (sortBy === "date") {
-      // Only add separators when sorting by date
-      let currentMonthYear: string | null = null;
-
-      for (const row of allRows) {
-        // Get month/year from sortKey (YYYY-MM-DD or 9999-12-31 for mileage reminders)
-        let monthYearKey: string;
-        if (row.sortKey === "9999-12-31") {
-          // Mileage reminders - use a special key
-          monthYearKey = "future";
-        } else {
-          monthYearKey = row.sortKey.slice(0, 7); // YYYY-MM
-        }
-
-        if (monthYearKey !== currentMonthYear) {
-          currentMonthYear = monthYearKey;
-          if (monthYearKey !== "future") {
-            grouped.push({
-              type: "separator",
-              monthYear: monthYearKey,
-              monthYearKey,
-            });
-          }
-        }
-        grouped.push({ type: "item", item: row });
-      }
-    } else {
-      // When sorting by title/cost, don't add separators - just add items
-      for (const row of allRows) {
-        grouped.push({ type: "item", item: row });
-      }
-    }
-
-    return grouped;
+    return allRows;
   }, [
     items,
     reminders,
@@ -510,6 +466,10 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     showReminders,
     sortOption,
   ]);
+
+  const sortByDate = sortOption.startsWith("date");
+  const getMonthYearKey = (row: { sortKey: string }) =>
+    row.sortKey === "9999-12-31" ? "future" : row.sortKey.slice(0, 7);
 
   const filterPanelContent = (
     <>
@@ -1033,143 +993,111 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
         />
       }
     >
-      <View style={[styles.listWrap, { paddingHorizontal: contentPad }]}>
-        <FlatList
-          data={timelineRows}
-          ListHeaderComponent={
-            <ScreenLayout
-              title={t("dashboard.tiles.serviceTitle")}
-              filterPanel={filterPanelContent}
-              listHeaderOnly
-            />
-          }
-          keyExtractor={(e) => {
-            if (e.type === "separator") {
-              return `separator-${e.monthYearKey}`;
-            }
-            return `${e.item.kind}:${e.item.id}`;
-          }}
-          style={[styles.list, { marginHorizontal: -contentPad }]}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingHorizontal: contentPad },
-          ]}
-          scrollIndicatorInsets={{ right: 0 }}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          onTouchStart={Keyboard.dismiss}
-          refreshing={refreshing}
-          onRefresh={() => void load({ refreshing: true })}
-          ListEmptyComponent={
-            loading ? (
-              <View style={styles.loadingContainer}>
-                <LoadingIndicator />
-              </View>
-            ) : (
-              <Text
-                style={{
-                  color: theme.colors.muted,
-                  marginTop: theme.spacing.sm,
-                }}
-              >
-                {t("timeline.noServiceEntries")}
-              </Text>
-            )
-          }
-          renderItem={({ item }) => {
-            if (item.type === "separator") {
-              const monthYearText =
-                i18n.language === "pl"
-                  ? formatMonthYearPL(item.monthYear + "-01")
-                  : formatMonthYear(item.monthYear + "-01");
-              return (
-                <View style={styles.separator}>
-                  <Text
-                    style={[
-                      styles.separatorText,
-                      { color: theme.colors.muted },
-                    ]}
-                  >
-                    {monthYearText}
-                  </Text>
-                </View>
-              );
-            }
-
-            const rowItem = item.item;
-            if (rowItem.kind === "reminder") {
-              const r = rowItem.reminder;
-              const dueText = [
-                r.due_date
-                  ? t("reminders.dueTime", { date: r.due_date })
-                  : null,
-                r.due_mileage != null
-                  ? t("reminders.dueMileage", {
-                      mileage: String(r.due_mileage),
-                      unit: distanceUnit,
-                    })
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" · ");
-              return (
-                <Pressable
-                  style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
-                  onPress={() =>
-                    navigation.navigate("ReminderForm", {
-                      vehicleId,
-                      reminderId: r.id,
-                    })
-                  }
-                >
-                  <TimelineItem
-                    title={r.title ?? t("reminders.title")}
-                    subtitle={dueText}
-                  />
-                </Pressable>
-              );
-            }
-
-            const e = rowItem.entry;
-            const cat = (e.category ?? "other") as ServiceEntryCategory;
+      <ScreenFlatList<(typeof timelineRows)[number]>
+        data={timelineRows}
+        listHeaderComponent={
+          <ScreenLayout
+            title={t("dashboard.tiles.serviceTitle")}
+            filterPanel={filterPanelContent}
+            listHeaderOnly
+          />
+        }
+        groupByMonth={sortByDate}
+        getMonthYearKey={getMonthYearKey}
+        keyExtractor={(e) => `${e.kind}:${e.id}`}
+        renderItem={({ item: rowItem }) => {
+          if (rowItem.kind === "reminder") {
+            const r = rowItem.reminder;
+            const dueText = [
+              r.due_date ? t("reminders.dueTime", { date: r.due_date }) : null,
+              r.due_mileage != null
+                ? t("reminders.dueMileage", {
+                    mileage: String(r.due_mileage),
+                    unit: distanceUnit,
+                  })
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" · ");
             return (
               <Pressable
                 style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
                 onPress={() =>
-                  navigation.navigate("ServiceEntryForm", {
-                    entryId: e.id,
+                  navigation.navigate("ReminderForm", {
                     vehicleId,
+                    reminderId: r.id,
                   })
                 }
               >
                 <TimelineItem
-                  title={e.title}
-                  badge={t(`entryForm.categories.${cat}` as any)}
-                  badgeVariant="accent"
-                  subtitle={[
-                    e.service_date
-                      ? formatDateDisplay(e.service_date, i18n.language)
-                      : null,
-                    e.mileage
-                      ? `${e.mileage.toLocaleString()} ${distanceUnit}`
-                      : null,
-                    e.cost != null ? `${e.cost} ${currency}` : null,
-                    attachmentsCount[e.id] > 0
-                      ? `${attachmentsCount[e.id]} ${
-                          attachmentsCount[e.id] === 1
-                            ? t("attachments.attachmentLabel")
-                            : t("attachments.title").toLowerCase()
-                        }`
-                      : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
+                  title={r.title ?? t("reminders.title")}
+                  subtitle={dueText}
                 />
               </Pressable>
             );
-          }}
-        />
-      </View>
+          }
+
+          const e = rowItem.entry;
+          const cat = (e.category ?? "other") as ServiceEntryCategory;
+          return (
+            <Pressable
+              style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+              onPress={() =>
+                navigation.navigate("ServiceEntryForm", {
+                  entryId: e.id,
+                  vehicleId,
+                })
+              }
+            >
+              <TimelineItem
+                title={e.title}
+                badge={t(`entryForm.categories.${cat}` as any)}
+                badgeVariant="accent"
+                subtitle={[
+                  e.service_date
+                    ? formatDateDisplay(e.service_date, i18n.language)
+                    : null,
+                  e.mileage
+                    ? `${e.mileage.toLocaleString()} ${distanceUnit}`
+                    : null,
+                  e.cost != null ? `${e.cost} ${currency}` : null,
+                  attachmentsCount[e.id] > 0
+                    ? `${attachmentsCount[e.id]} ${
+                        attachmentsCount[e.id] === 1
+                          ? t("attachments.attachmentLabel")
+                          : t("attachments.title").toLowerCase()
+                      }`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              />
+            </Pressable>
+          );
+        }}
+        ListEmptyComponent={
+          loading ? (
+            <View style={styles.loadingContainer}>
+              <LoadingIndicator />
+            </View>
+          ) : (
+            <Text
+              style={{
+                color: theme.colors.muted,
+                marginTop: theme.spacing.sm,
+              }}
+            >
+              {t("timeline.noServiceEntries")}
+            </Text>
+          )
+        }
+        scrollIndicatorInsets={{ right: 0 }}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        onTouchStart={Keyboard.dismiss}
+        refreshing={refreshing}
+        onRefresh={() => void load({ refreshing: true })}
+      />
     </Screen>
   );
 }
@@ -1180,15 +1108,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       marginLeft: theme.spacing.sm,
       flexDirection: "row",
       gap: theme.spacing.sm,
-    },
-    listWrap: {
-      flex: 1,
-    },
-    list: {
-      flex: 1,
-    },
-    listContent: {
-      paddingBottom: insets.bottom,
     },
     editLink: {
       color: theme.colors.accent,
@@ -1318,14 +1237,5 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       marginTop: theme.spacing.xs,
       lineHeight: theme.typography.body + 6,
       color: theme.colors.muted,
-    },
-    separator: {
-      marginTop: theme.spacing.lg,
-    },
-    separatorText: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.bold,
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
     },
   });

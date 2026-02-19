@@ -1,7 +1,6 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
-  FlatList,
   Keyboard,
   Platform,
   Pressable,
@@ -13,7 +12,6 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
-import { i18n } from "../i18n/i18n";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
@@ -43,7 +41,7 @@ const GAS_STATION_OPTIONS: readonly GasStation[] = [
 
 type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
 
-import { formatMonthYear, formatMonthYearPL } from "../utils/dateFormatting";
+import { ScreenFlatList } from "../ui/components/ScreenFlatList";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -70,7 +68,6 @@ export function FuelScreen({ route, navigation }: Props) {
   const { isPremium } = useEntitlements();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
-  const contentPad = theme.layout.contentPaddingHorizontal;
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -256,7 +253,7 @@ export function FuelScreen({ route, navigation }: Props) {
     Alert.alert(t("timeline.filterStation"), "", buttons, { cancelable: true });
   }
 
-  const filteredFuelingWithSeparators = useMemo(() => {
+  const filteredFuelingList = useMemo(() => {
     const min = minCost.trim().length ? Number(minCost) : null;
     const max = maxCost.trim().length ? Number(maxCost) : null;
     const from = dateFrom.trim().length === 10 ? dateFrom.trim() : null;
@@ -303,31 +300,10 @@ export function FuelScreen({ route, navigation }: Props) {
       const dateB = String(b.date).slice(0, 10);
       return dateB.localeCompare(dateA);
     });
-
-    // Group by month/year and add separators
-    const grouped: Array<
-      | { type: "separator"; monthYear: string; monthYearKey: string }
-      | { type: "item"; item: FuelingEntry }
-    > = [];
-    let currentMonthYear: string | null = null;
-
-    for (const entry of sorted) {
-      const dateStr = String(entry.date).slice(0, 10);
-      const monthYearKey = dateStr.slice(0, 7); // YYYY-MM
-
-      if (monthYearKey !== currentMonthYear) {
-        currentMonthYear = monthYearKey;
-        grouped.push({
-          type: "separator",
-          monthYear: monthYearKey,
-          monthYearKey,
-        });
-      }
-      grouped.push({ type: "item", item: entry });
-    }
-
-    return grouped;
+    return sorted;
   }, [fueling, query, dateFrom, dateTo, stationFilter, minCost, maxCost, t]);
+
+  const getMonthYearKey = (entry: FuelingEntry) => String(entry.date).slice(0, 7);
 
   const filterPanelContent = (
     <>
@@ -621,142 +597,99 @@ export function FuelScreen({ route, navigation }: Props) {
         />
       }
     >
-      <View style={[styles.listWrap, { paddingHorizontal: contentPad }]}>
-        <FlatList
-          data={filteredFuelingWithSeparators}
-          ListHeaderComponent={
-            <ScreenLayout
-              title={t("dashboard.tiles.fuelTitle")}
-              filterPanel={filterPanelContent}
-              listHeaderOnly
-            />
-          }
-          keyExtractor={(item) => {
-            if (item.type === "separator") {
-              return `separator-${item.monthYearKey}`;
+      <ScreenFlatList<FuelingEntry>
+        data={filteredFuelingList}
+        listHeaderComponent={
+          <ScreenLayout
+            title={t("dashboard.tiles.fuelTitle")}
+            filterPanel={filterPanelContent}
+            listHeaderOnly
+          />
+        }
+        groupByMonth
+        getMonthYearKey={getMonthYearKey}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item: entry }) => (
+          <Pressable
+            style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+            onPress={() =>
+              navigation.navigate("FuelingEntryForm", {
+                vehicleId: route.params.vehicleId,
+                entryId: entry.id,
+              })
             }
-            return item.item.id;
-          }}
-          style={[styles.list, { marginHorizontal: -contentPad }]}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingHorizontal: contentPad },
-          ]}
-          scrollIndicatorInsets={{ right: 0 }}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          onTouchStart={Keyboard.dismiss}
-          ItemSeparatorComponent={({ leadingItem }) => {
-            if (leadingItem && leadingItem.type === "separator") {
-              return null;
-            }
-            return <View style={{ height: theme.spacing.sm }} />;
-          }}
-          renderItem={({ item }) => {
-            if (item.type === "separator") {
-              const monthYearText =
-                i18n.language === "pl"
-                  ? formatMonthYearPL(item.monthYear + "-01")
-                  : formatMonthYear(item.monthYear + "-01");
-              return (
-                <View style={styles.separator}>
+          >
+            <View
+              style={[
+                styles.card,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <View style={styles.cardRow}>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[styles.cardTitle, { color: theme.colors.fg }]}
+                  >
+                    {entry.date}
+                    {entry.fuel_type
+                      ? ` · ${t(`fuelingForm.fuelTypes.${entry.fuel_type}`)}`
+                      : ""}
+                    {entry.gas_station
+                      ? ` · ${t(`fuelingForm.stations.${entry.gas_station}`)}`
+                      : ""}
+                  </Text>
                   <Text
                     style={[
-                      styles.separatorText,
-                      { color: theme.colors.muted },
+                      styles.cardMeta,
+                      {
+                        color: theme.colors.muted,
+                        marginTop: theme.spacing.xs,
+                      },
                     ]}
                   >
-                    {monthYearText}
+                    {Number(entry.distance).toFixed(1)} {distanceUnit} ·{" "}
+                    {Number(entry.fuel_amount).toFixed(1)} {fuelUnitLabel} ·{" "}
+                    {Number(entry.fuel_cost).toFixed(2)} {currency}
                   </Text>
                 </View>
-              );
-            }
-
-            const entry = item.item;
-            return (
-              <Pressable
-                style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
-                onPress={() =>
-                  navigation.navigate("FuelingEntryForm", {
-                    vehicleId: route.params.vehicleId,
-                    entryId: entry.id,
-                  })
-                }
-              >
-                <View
-                  style={[
-                    styles.card,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
-                  <View style={styles.cardRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={[styles.cardTitle, { color: theme.colors.fg }]}
-                      >
-                        {entry.date}
-                        {entry.fuel_type
-                          ? ` · ${t(`fuelingForm.fuelTypes.${entry.fuel_type}`)}`
-                          : ""}
-                        {entry.gas_station
-                          ? ` · ${t(`fuelingForm.stations.${entry.gas_station}`)}`
-                          : ""}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.cardMeta,
-                          {
-                            color: theme.colors.muted,
-                            marginTop: theme.spacing.xs,
-                          },
-                        ]}
-                      >
-                        {Number(entry.distance).toFixed(1)} {distanceUnit} ·{" "}
-                        {Number(entry.fuel_amount).toFixed(1)} {fuelUnitLabel} ·{" "}
-                        {Number(entry.fuel_cost).toFixed(2)} {currency}
-                      </Text>
-                    </View>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={22}
-                      color={theme.colors.accent}
-                    />
-                  </View>
-                </View>
-              </Pressable>
-            );
-          }}
-          ListEmptyComponent={
-            loading ? (
-              <View style={styles.loadingContainer}>
-                <LoadingIndicator />
+                <Ionicons
+                  name="chevron-forward"
+                  size={22}
+                  color={theme.colors.accent}
+                />
               </View>
-            ) : (
-              <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
-                {t("fuelCosts.noFueling")}
-              </Text>
-            )
-          }
-        />
-      </View>
+            </View>
+          </Pressable>
+        )}
+        ListEmptyComponent={
+          loading ? (
+            <View style={styles.loadingContainer}>
+              <LoadingIndicator />
+            </View>
+          ) : (
+            <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
+              {t("fuelCosts.noFueling")}
+            </Text>
+          )
+        }
+        scrollIndicatorInsets={{ right: 0 }}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        onTouchStart={Keyboard.dismiss}
+      />
     </Screen>
   );
 }
 
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
-    listWrap: { flex: 1 },
     panelButtonsRow: {
       marginLeft: theme.spacing.sm,
       flexDirection: "row",
       gap: theme.spacing.sm,
-    },
-    list: { flex: 1 },
-    listContent: {
-      paddingBottom: insets.bottom,
     },
     emptyText: {
       marginTop: theme.spacing.sm,
@@ -875,16 +808,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     pickerActionText: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
-    },
-    separator: {
-      marginTop: theme.spacing.md,
-      marginBottom: theme.spacing.sm,
-    },
-    separatorText: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.bold,
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
     },
     loadingContainer: {
       flex: 1,

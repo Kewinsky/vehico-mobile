@@ -1,7 +1,6 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
-  FlatList,
   Keyboard,
   Platform,
   Pressable,
@@ -12,7 +11,6 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../i18n/i18n";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
@@ -34,10 +32,8 @@ import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { hexToRgba } from "../ui/components/ChoiceChip";
-
+import { ScreenFlatList } from "../ui/components/ScreenFlatList";
 type Props = NativeStackScreenProps<AppStackParamList, "Reminders">;
-
-import { formatMonthYear, formatMonthYearPL } from "../utils/dateFormatting";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -63,7 +59,6 @@ export function RemindersScreen({ route, navigation }: Props) {
   const { settings } = useUserSettings();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
-  const contentPad = theme.layout.contentPaddingHorizontal;
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -306,7 +301,7 @@ export function RemindersScreen({ route, navigation }: Props) {
     );
   }
 
-  const filteredItemsWithSeparators = useMemo(() => {
+  const filteredRemindersList = useMemo(() => {
     const from = dateFrom.trim().length === 10 ? dateFrom.trim() : null;
     const to = dateTo.trim().length === 10 ? dateTo.trim() : null;
 
@@ -341,30 +336,11 @@ export function RemindersScreen({ route, navigation }: Props) {
       return mileageB - mileageA;
     });
 
-    // Group by month/year and add separators for reminders with due_date
-    const grouped: Array<
-      | { type: "separator"; monthYear: string; monthYearKey: string }
-      | { type: "item"; item: Reminder }
-    > = [];
-    let currentMonthYear: string | null = null;
-
-    for (const reminder of sorted) {
-      if (reminder.due_date) {
-        const monthYearKey = String(reminder.due_date).slice(0, 7);
-        if (monthYearKey !== currentMonthYear) {
-          currentMonthYear = monthYearKey;
-          grouped.push({
-            type: "separator",
-            monthYear: monthYearKey,
-            monthYearKey,
-          });
-        }
-      }
-      grouped.push({ type: "item", item: reminder });
-    }
-
-    return grouped;
+    return sorted;
   }, [items, query, dateFrom, dateTo, statusFilter]);
+
+  const getMonthYearKey = (reminder: Reminder) =>
+    reminder.due_date ? String(reminder.due_date).slice(0, 7) : "";
 
   function onAddReminderPress() {
     if (!isPremium && items.length >= remindersLimit) {
@@ -653,169 +629,128 @@ export function RemindersScreen({ route, navigation }: Props) {
         />
       }
     >
-      <View style={[styles.listWrap, { paddingHorizontal: contentPad }]}>
-        <FlatList
-          data={filteredItemsWithSeparators}
-          ListHeaderComponent={
-            <ScreenLayout
-              title={t("dashboard.tiles.remindersTitle")}
-              filterPanel={filterPanelContent}
-              listHeaderOnly
-            />
-          }
-          keyExtractor={(item) => {
-            if (item.type === "separator") {
-              return `separator-${item.monthYearKey}`;
-            }
-            return item.item.id;
-          }}
-          style={[styles.list, { marginHorizontal: -contentPad }]}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingHorizontal: contentPad },
-          ]}
-          scrollIndicatorInsets={{ right: 0 }}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          onTouchStart={Keyboard.dismiss}
-          refreshing={refreshing}
-          onRefresh={() => void load({ refreshing: true })}
-          ItemSeparatorComponent={({ leadingItem }) => {
-            if (leadingItem && leadingItem.type === "separator") {
-              return null;
-            }
-            return <View style={{ height: theme.spacing.sm }} />;
-          }}
-          renderItem={({ item }) => {
-            if (item.type === "separator") {
-              const monthYearText =
-                i18n.language === "pl"
-                  ? formatMonthYearPL(item.monthYear + "-01")
-                  : formatMonthYear(item.monthYear + "-01");
-              return (
-                <View style={styles.separator}>
+      <ScreenFlatList<Reminder>
+        data={filteredRemindersList}
+        listHeaderComponent={
+          <ScreenLayout
+            title={t("dashboard.tiles.remindersTitle")}
+            filterPanel={filterPanelContent}
+            listHeaderOnly
+          />
+        }
+        groupByMonth
+        getMonthYearKey={getMonthYearKey}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item: reminder }) => {
+          const isDone = reminder.status === "done";
+          return (
+            <View
+              style={[
+                styles.card,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+                isDone && styles.cardDone,
+              ]}
+            >
+              <View style={styles.cardRow}>
+                <Pressable
+                  style={{ flex: 1 }}
+                  onPress={() =>
+                    navigation.navigate("ReminderForm", {
+                      vehicleId: route.params.vehicleId,
+                      reminderId: reminder.id,
+                    })
+                  }
+                >
                   <Text
                     style={[
-                      styles.separatorText,
-                      { color: theme.colors.muted },
+                      {
+                        color: theme.colors.fg,
+                        fontWeight: theme.typography.fontWeight.bold,
+                      },
+                      isDone && { color: theme.colors.muted },
                     ]}
                   >
-                    {monthYearText}
+                    {reminder.title ?? ""}
                   </Text>
-                </View>
-              );
-            }
-
-            const reminder = item.item;
-            const isDone = reminder.status === "done";
-            return (
-              <View
-                style={[
-                  styles.card,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                  isDone && styles.cardDone,
-                ]}
-              >
-                <View style={styles.cardRow}>
-                  <Pressable
-                    style={{ flex: 1 }}
-                    onPress={() =>
-                      navigation.navigate("ReminderForm", {
-                        vehicleId: route.params.vehicleId,
-                        reminderId: reminder.id,
-                      })
+                  <Text
+                    style={[
+                      {
+                        color: theme.colors.muted,
+                        marginTop: theme.spacing.xs,
+                      },
+                      isDone && { opacity: 0.6 },
+                    ]}
+                  >
+                    {[
+                      reminder.due_date
+                        ? t("reminders.dueTime", {
+                            date: reminder.due_date,
+                          })
+                        : null,
+                      reminder.due_mileage != null
+                        ? t("reminders.dueMileage", {
+                            mileage: String(reminder.due_mileage),
+                            unit: distanceUnit,
+                          })
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </Text>
+                </Pressable>
+                <IconButton
+                  onPress={() => toggleStatus(reminder)}
+                  variant="ghost"
+                >
+                  <Ionicons
+                    name={
+                      reminder.status === "active"
+                        ? "checkmark-circle"
+                        : "checkmark-circle-outline"
                     }
-                  >
-                    <Text
-                      style={[
-                        {
-                          color: theme.colors.fg,
-                          fontWeight: theme.typography.fontWeight.bold,
-                        },
-                        isDone && { color: theme.colors.muted },
-                      ]}
-                    >
-                      {reminder.title ?? ""}
-                    </Text>
-                    <Text
-                      style={[
-                        {
-                          color: theme.colors.muted,
-                          marginTop: theme.spacing.xs,
-                        },
-                        isDone && { opacity: 0.6 },
-                      ]}
-                    >
-                      {[
-                        reminder.due_date
-                          ? t("reminders.dueTime", {
-                              date: reminder.due_date,
-                            })
-                          : null,
-                        reminder.due_mileage != null
-                          ? t("reminders.dueMileage", {
-                              mileage: String(reminder.due_mileage),
-                              unit: distanceUnit,
-                            })
-                          : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </Text>
-                  </Pressable>
-                  <IconButton
-                    onPress={() => toggleStatus(reminder)}
-                    variant="ghost"
-                  >
-                    <Ionicons
-                      name={
-                        reminder.status === "active"
-                          ? "checkmark-circle"
-                          : "checkmark-circle-outline"
-                      }
-                      size={30}
-                      color={
-                        reminder.status === "active"
-                          ? theme.colors.accent
-                          : theme.colors.muted
-                      }
-                    />
-                  </IconButton>
-                </View>
+                    size={30}
+                    color={
+                      reminder.status === "active"
+                        ? theme.colors.accent
+                        : theme.colors.muted
+                    }
+                  />
+                </IconButton>
               </View>
-            );
-          }}
-          ListEmptyComponent={
-            loading ? (
-              <View style={styles.loadingContainer}>
-                <LoadingIndicator />
-              </View>
-            ) : (
-              <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
-                {t("reminders.noItems")}
-              </Text>
-            )
-          }
-        />
-      </View>
+            </View>
+          );
+        }}
+        ListEmptyComponent={
+          loading ? (
+            <View style={styles.loadingContainer}>
+              <LoadingIndicator />
+            </View>
+          ) : (
+            <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
+              {t("reminders.noItems")}
+            </Text>
+          )
+        }
+        scrollIndicatorInsets={{ right: 0 }}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        onTouchStart={Keyboard.dismiss}
+        refreshing={refreshing}
+        onRefresh={() => void load({ refreshing: true })}
+      />
     </Screen>
   );
 }
 
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
-    listWrap: { flex: 1 },
     panelButtonsRow: {
       marginLeft: theme.spacing.sm,
       flexDirection: "row",
       gap: theme.spacing.sm,
-    },
-    list: { flex: 1, paddingTop: theme.spacing.md },
-    listContent: {
-      paddingBottom: insets.bottom,
     },
     emptyText: {
       marginTop: theme.spacing.sm,
@@ -934,16 +869,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     pickerActionText: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
-    },
-    separator: {
-      marginTop: theme.spacing.md,
-      marginBottom: theme.spacing.sm,
-    },
-    separatorText: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.bold,
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
     },
     loadingContainer: {
       flex: 1,

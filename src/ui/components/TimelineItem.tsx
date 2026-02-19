@@ -62,7 +62,6 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       padding: theme.spacing.sm,
       backgroundColor: theme.colors.card,
-      marginTop: theme.spacing.sm,
     },
     content: {
       flexDirection: "row",
