@@ -27,13 +27,13 @@ const appEnv = getAppEnv();
 const revenucatKey = getOptionalEnv("EXPO_PUBLIC_REVENUECAT_API_KEY");
 if (appEnv === "production" && !revenucatKey) {
   throw new Error(
-    "Missing EXPO_PUBLIC_REVENUECAT_API_KEY. Set it for production builds."
+    "Missing EXPO_PUBLIC_REVENUECAT_API_KEY. Set it for production builds.",
   );
 }
 
 /** Base URL of the public Next.js web app (terms, privacy pages). */
 const webAppUrl =
-  getOptionalEnv("EXPO_PUBLIC_WEB_APP_URL") ?? "https://vehico.app";
+  getOptionalEnv("EXPO_PUBLIC_REPORTS_APP_URL") ?? "https://vehico.app";
 
 export const ENV = {
   APP_ENV: appEnv,
