@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { AppHeader } from "../ui/components/AppHeader";
-import { Screen } from "../ui/components/Screen";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { AppLayout } from "../ui/components/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ExampleListing">;
@@ -16,16 +16,8 @@ export function ExampleListingScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   return (
-    <Screen
-      padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
-    >
-      <ScrollView
-        contentContainerStyle={[
-          styles.container,
-          { paddingHorizontal: theme.layout.contentPaddingHorizontal },
-        ]}
-      >
+    <AppLayout header={<AppNavbar onBack={() => navigation.goBack()} />}>
+      <ScrollView contentContainerStyle={styles.container}>
         <Text style={[styles.largeTitle, { color: theme.colors.fg }]}>
           {t("shop.exampleListingPage.title")}
         </Text>
@@ -50,7 +42,7 @@ export function ExampleListingScreen({ navigation }: Props) {
         </View>
         <View style={styles.bottomSpacer} />
       </ScrollView>
-    </Screen>
+    </AppLayout>
   );
 }
 

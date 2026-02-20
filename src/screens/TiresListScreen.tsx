@@ -17,15 +17,16 @@ import {
   listVehicleTires,
   formatTireDimensions,
 } from "../services/tires/tiresRepo";
-import { AppHeader } from "../ui/components/AppHeader";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { AppLayout } from "../ui/components/AppLayout";
 import { Button } from "../ui/components/Button";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { EmptyState } from "../ui/components/EmptyState";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CustomFlatList } from "../ui/components/CustomFlatList";
 
 type Props = NativeStackScreenProps<AppStackParamList, "TiresList">;
 
@@ -46,7 +47,6 @@ export function TiresListScreen({ route, navigation }: Props) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
-  const contentPad = theme.layout.contentPaddingHorizontal;
   const { vehicleId } = route.params;
   const {
     isPremium,
@@ -126,10 +126,10 @@ export function TiresListScreen({ route, navigation }: Props) {
   }
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
@@ -139,21 +139,13 @@ export function TiresListScreen({ route, navigation }: Props) {
         <Button onPress={onAddTirePress}>{t("wheels.addTireSingle")}</Button>
       }
     >
-      <View style={[styles.listWrap, { paddingHorizontal: contentPad }]}>
-        <FlatList
+      <View style={styles.listWrap}>
+        <CustomFlatList
           data={tires}
-          ListHeaderComponent={
-            <ScreenLayout title={t("wheels.tiresSection")} listHeaderOnly />
+          listHeaderComponent={
+            <ContentHeader title={t("wheels.tiresSection")} />
           }
-          keyExtractor={(item) => item.id}
-          style={[styles.list, { marginHorizontal: -contentPad }]}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingHorizontal: contentPad },
-          ]}
-          ItemSeparatorComponent={() => (
-            <View style={{ height: theme.spacing.sm }} />
-          )}
+          keyExtractor={(item: VehicleTire) => item.id}
           renderItem={({ item }) => (
             <Pressable
               style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
@@ -217,20 +209,10 @@ export function TiresListScreen({ route, navigation }: Props) {
               </View>
             </Pressable>
           )}
-          ListEmptyComponent={
-            loading ? (
-              <View style={styles.loadingContainer}>
-                <LoadingIndicator />
-              </View>
-            ) : (
-              <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
-                {t("wheels.noTires")}
-              </Text>
-            )
-          }
+          ListEmptyComponent={<EmptyState body={t("wheels.noTires")} />}
         />
       </View>
-    </Screen>
+    </AppLayout>
   );
 }
 
@@ -271,15 +253,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       letterSpacing: 0.3,
     },
     itemSubtitle: {
-      fontSize: theme.typography.small,
-    },
-    loadingContainer: {
-      paddingTop: theme.spacing.lg * 2.5,
-      paddingBottom: theme.spacing.lg * 2.5,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    emptyText: {
       fontSize: theme.typography.small,
     },
   });

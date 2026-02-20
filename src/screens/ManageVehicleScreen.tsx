@@ -25,7 +25,7 @@ import {
   listVehiclePhotos,
   getVehiclePhotoUrl,
 } from "../services/vehicles/uploadPhoto";
-import { AppHeader } from "../ui/components/AppHeader";
+import { AppNavbar } from "../ui/components/AppNavbar";
 import { DriveTypeIcon } from "../ui/components/DriveTypeIcon";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
@@ -219,7 +219,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   return (
     <FormScreen
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}

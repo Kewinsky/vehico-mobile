@@ -39,6 +39,7 @@ import type { Workshop } from "../types/domain";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { Button } from "../ui/components/Button";
+import { FormNavbar } from "../ui/components/FormNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
@@ -47,6 +48,8 @@ import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { Textarea } from "../ui/components/Textarea";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { EmptyState } from "../ui/components/EmptyState";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "maintenance",
@@ -513,60 +516,31 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   return (
     <FormScreen
       header={
-        <View
-          style={[
-            styles.topBar,
-            {
-              borderBottomColor: theme.colors.border,
-              backgroundColor: theme.colors.bg,
-            },
-          ]}
-        >
-          <Pressable
-            onPress={() => navigation.goBack()}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.pillButton,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-                opacity: pressed ? 0.75 : 1,
-              },
-            ]}
-          >
-            <Text style={[styles.pillText, { color: theme.colors.fg }]}>
-              {t("common.cancel")}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              if (canSave && !saving) void onSave();
-            }}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.pillButton,
-              {
-                borderColor: theme.colors.accent,
-                backgroundColor: accentBg,
-                opacity: !canSave || saving ? 0.5 : pressed ? 0.75 : 1,
-              },
-            ]}
-          >
-            <Text style={[styles.pillText, { color: theme.colors.accent }]}>
-              {t("common.done")}
-            </Text>
-          </Pressable>
-        </View>
+        <FormNavbar
+          onCancel={() => navigation.goBack()}
+          onSave={onSave}
+          canSave={canSave}
+          saving={saving}
+        />
+      }
+      footer={
+        entryId ? (
+          <Button variant="destructive" onPress={confirmDeleteEntry}>
+            {t("common.delete")}
+          </Button>
+        ) : (
+          <Button variant="outlined" onPress={clearForm} disabled={saving}>
+            {t("common.clearButton")}
+          </Button>
+        )
       }
     >
-      <View style={{ height: theme.spacing.md }} />
-      <Text style={styles.h1}>
-        {entryId ? t("entryForm.editTitle") : t("entryForm.title")}
-      </Text>
+      <ContentHeader
+        title={entryId ? t("entryForm.editTitle") : t("entryForm.title")}
+      />
 
       {!entryId ? (
         <>
-          <View style={{ height: theme.spacing.sm }} />
           <View
             style={[
               styles.segmentWrap,
@@ -610,10 +584,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               );
             })}
           </View>
+          <View style={{ height: theme.spacing.sm }} />
         </>
       ) : null}
-
-      <View style={{ height: theme.spacing.sm }} />
 
       <View
         style={[
@@ -731,7 +704,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             ) : null}
           </View>
         ) : null}
-
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
@@ -1071,7 +1043,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             </View>
           </View>
 
-          <View style={{ height: theme.spacing.lg }} />
+          <View style={{ height: theme.spacing.xl }} />
           <View style={styles.sectionHeader}>
             <Text style={styles.h2}>
               {t("attachments.titleWithCount", {
@@ -1163,6 +1135,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             />
           ) : (
             <FlatList
+              showsVerticalScrollIndicator={false}
               data={pendingFiles}
               keyExtractor={(_, index) => `pending-${index}`}
               scrollEnabled={false}
@@ -1205,31 +1178,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   </View>
                 </View>
               )}
-              ListEmptyComponent={
-                pendingFiles.length === 0 ? (
-                  <Text style={styles.muted}>
-                    {t("entryForm.attachmentsEmpty")}
-                  </Text>
-                ) : null
-              }
             />
           )}
-        </>
-      )}
-
-      {entryId ? (
-        <>
-          <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
-          <Button variant="destructive" onPress={confirmDeleteEntry}>
-            {t("common.delete")}
-          </Button>
-        </>
-      ) : (
-        <>
-          <View style={{ flex: 1, minHeight: theme.spacing.lg }} />
-          <Button variant="outlined" onPress={clearForm} disabled={saving}>
-            {t("common.clearButton")}
-          </Button>
         </>
       )}
     </FormScreen>
@@ -1238,25 +1188,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    topBar: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingBottom: theme.spacing.sm,
-      paddingTop: theme.spacing.sm,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      borderBottomWidth: 1,
-    },
-    pillButton: {
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.md,
-      borderRadius: 9999,
-      borderWidth: 1,
-    },
-    pillText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
     h1: {
       fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,

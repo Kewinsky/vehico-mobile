@@ -16,8 +16,8 @@ import { Crown } from "lucide-react-native";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useAuth } from "../app/providers/AuthProvider";
 import { normalizeDisplayName } from "../utils/displayName";
-import { AppHeader } from "../ui/components/AppHeader";
-import { Screen } from "../ui/components/Screen";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { AppLayout } from "../ui/components/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { supabase } from "../services/supabase/client";
@@ -182,16 +182,8 @@ export function SettingsScreen({ navigation }: Props) {
   );
 
   return (
-    <Screen
-      padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
-    >
-      <ScrollView
-        contentContainerStyle={[
-          styles.container,
-          { paddingHorizontal: theme.layout.contentPaddingHorizontal },
-        ]}
-      >
+    <AppLayout header={<AppNavbar onBack={() => navigation.goBack()} />}>
+      <ScrollView contentContainerStyle={styles.container}>
         <Text style={[styles.largeTitle, { color: theme.colors.fg }]}>
           {t("settings.title")}
         </Text>
@@ -288,7 +280,7 @@ export function SettingsScreen({ navigation }: Props) {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
-    </Screen>
+    </AppLayout>
   );
 }
 

@@ -26,15 +26,14 @@ import {
   generateMarketplacePost,
   saveMarketplacePost,
 } from "../services/marketplace/marketplaceRepo";
-import { AppHeader } from "../ui/components/AppHeader";
+import { AppNavbar } from "../ui/components/AppNavbar";
 import { Button } from "../ui/components/Button";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { AppLayout } from "../ui/components/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceSummary">;
 
@@ -194,27 +193,6 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
     }
   }
 
-  if (loading) {
-    return (
-      <Screen
-        padding={false}
-        header={
-          <AppHeader
-            onBack={() => navigation.goBack()}
-            showShopIcon={!isPremium}
-            onShopPress={() => navigation.navigate("Shop")}
-          />
-        }
-      >
-        <ScreenLayout title={t("marketplace.summaryTitle")} scrollable={false}>
-          <View style={styles.loadingContainer}>
-            <LoadingIndicator />
-          </View>
-        </ScreenLayout>
-      </Screen>
-    );
-  }
-
   const hasInsurance =
     (vehicle?.insurance_valid_until?.trim() ?? "").length > 0;
   const hasInspection =
@@ -222,10 +200,10 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   const hasNotes = (vehicle?.notes?.trim() ?? "").length > 0;
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
@@ -260,8 +238,13 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
         </Button>
       }
     >
-      <ScreenLayout title={t("marketplace.summaryTitle")} scrollable={false}>
-        <ScrollView style={styles.scrollView}>
+      {!loading && (
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <ContentHeader title={t("marketplace.summaryTitle")} />
+
           {/* Technical data */}
           {reportOptions.include_technical_data && vehicle && (
             <View style={styles.section}>
@@ -374,7 +357,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
           )}
 
           {/* InfoCards */}
-          <ScrollView style={styles.section}>
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               {t("publicReport.includedData")}
             </Text>
@@ -502,7 +485,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
               theme={theme}
               styles={styles}
             />
-          </ScrollView>
+          </View>
 
           {/* Entitlements info */}
           {!isPremium && (
@@ -547,8 +530,8 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
             </Pressable>
           </View>
         </ScrollView>
-      </ScreenLayout>
-    </Screen>
+      )}
+    </AppLayout>
   );
 }
 

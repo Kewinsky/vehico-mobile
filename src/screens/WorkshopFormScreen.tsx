@@ -21,12 +21,14 @@ import {
   listWorkshops,
 } from "../services/workshops/workshopsRepo";
 import { Button } from "../ui/components/Button";
+import { FormNavbar } from "../ui/components/FormNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlementAlerts";
 import { hexToRgba } from "../ui/components/ChoiceChip";
+import { ContentHeader } from "../ui/components/ContentHeader";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WorkshopForm">;
 
@@ -187,62 +189,30 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   return (
     <FormScreen
       header={
-        <View
-          style={[
-            styles.topBar,
-            {
-              borderBottomColor: theme.colors.border,
-              backgroundColor: theme.colors.bg,
-            },
-          ]}
-        >
-          <Pressable
-            onPress={() => navigation.goBack()}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.pillButton,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-                opacity: pressed ? 0.75 : 1,
-              },
-            ]}
-          >
-            <Text style={[styles.pillText, { color: theme.colors.fg }]}>
-              {t("common.cancel")}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              if (canSave && !saving) void onSave();
-            }}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.pillButton,
-              {
-                borderColor: theme.colors.accent,
-                backgroundColor: accentBg,
-                opacity: !canSave || saving ? 0.5 : pressed ? 0.75 : 1,
-              },
-            ]}
-          >
-            <Text style={[styles.pillText, { color: theme.colors.accent }]}>
-              {t("common.done")}
-            </Text>
-          </Pressable>
-        </View>
+        <FormNavbar
+          onCancel={() => navigation.goBack()}
+          onSave={onSave}
+          canSave={canSave}
+          saving={saving}
+        />
       }
       footer={
         workshopId ? (
           <Button variant="destructive" onPress={confirmDelete}>
             {t("common.delete")}
           </Button>
-        ) : null
+        ) : (
+          <Button variant="outlined" onPress={clearForm} disabled={saving}>
+            {t("common.clearButton")}
+          </Button>
+        )
       }
     >
-      <Text style={styles.h1}>
-        {workshopId ? t("workshopForm.editTitle") : t("workshopForm.addTitle")}
-      </Text>
+      <ContentHeader
+        title={
+          workshopId ? t("workshopForm.editTitle") : t("workshopForm.addTitle")
+        }
+      />
 
       <View
         style={[
@@ -380,39 +350,12 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
           />
         </View>
       </View>
-      {!workshopId ? (
-        <>
-          <View style={{ height: theme.spacing.sm }} />
-          <Button variant="outlined" onPress={clearForm} disabled={saving}>
-            {t("common.clearButton")}
-          </Button>
-        </>
-      ) : null}
     </FormScreen>
   );
 }
 
 function makeStyles(theme: any) {
   return StyleSheet.create({
-    topBar: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingBottom: theme.spacing.sm,
-      paddingTop: theme.spacing.sm,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      borderBottomWidth: 1,
-    },
-    pillButton: {
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.md,
-      borderRadius: 9999,
-      borderWidth: 1,
-    },
-    pillText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
     h1: {
       fontSize: theme.typography.largeTitle,
       marginVertical: theme.spacing.md,

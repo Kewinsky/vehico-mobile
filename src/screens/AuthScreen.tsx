@@ -10,7 +10,7 @@ import * as AuthSession from "expo-auth-session";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { supabase } from "../services/supabase/client";
 import { Button } from "../ui/components/Button";
-import { AppHeader } from "../ui/components/AppHeader";
+import { AppNavbar } from "../ui/components/AppNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
 import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
@@ -220,7 +220,7 @@ export function AuthScreen({ navigation }: Props) {
   // Show magic link sent confirmation
   if (magicLinkSent) {
     return (
-      <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
+      <FormScreen header={<AppNavbar onBack={() => navigation.goBack()} />}>
         <View style={styles.magicLinkContainer}>
           <View style={styles.iconContainer}>
             <Text style={[styles.icon, { color: theme.colors.accent }]}>
@@ -257,7 +257,7 @@ export function AuthScreen({ navigation }: Props) {
   }
 
   return (
-    <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
+    <FormScreen header={<AppNavbar onBack={() => navigation.goBack()} />}>
       <Text style={[styles.authTitle, { color: theme.colors.fg }]}>
         {t("auth.title")}
       </Text>

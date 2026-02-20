@@ -20,16 +20,17 @@ import {
   getPublicPageUrl,
   updatePublicReportTitle,
 } from "../services/publicPages/publicPagesRepo";
-import { AppHeader } from "../ui/components/AppHeader";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { AppLayout } from "../ui/components/AppLayout";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { EmptyState } from "../ui/components/EmptyState";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { IconButton } from "../ui/components/IconButton";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { formatDateDisplay } from "../utils/dateFormatting";
 import { i18n } from "../i18n/i18n";
+import { CustomFlatList } from "../ui/components/CustomFlatList";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportHistory">;
 
@@ -38,7 +39,6 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const contentPad = theme.layout.contentPaddingHorizontal;
   const { vehicleId } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [reports, setReports] = useState<PublicReportSnapshot[]>([]);
@@ -130,46 +130,26 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >
-      <View style={[styles.listWrap, { paddingHorizontal: contentPad }]}>
-        <FlatList
+      <View style={styles.listWrap}>
+        <CustomFlatList
           data={reports}
-          ListHeaderComponent={
-            <ScreenLayout title={t("share.historyTitle")} listHeaderOnly />
+          listHeaderComponent={
+            <ContentHeader title={t("share.historyTitle")} />
           }
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item: PublicReportSnapshot) => item.id}
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          style={[styles.list, { marginHorizontal: -contentPad }]}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingHorizontal: contentPad },
-          ]}
-          ListEmptyComponent={
-            loading ? (
-              <View style={styles.loadingContainer}>
-                <LoadingIndicator />
-              </View>
-            ) : (
-              <Text
-                style={{
-                  color: theme.colors.muted,
-                  marginTop: theme.spacing.sm,
-                }}
-              >
-                {t("share.noReports")}
-              </Text>
-            )
-          }
+          ListEmptyComponent={<EmptyState body={t("share.noReports")} />}
           renderItem={({ item }) => (
             <Pressable
               onPress={() => handleReportPress(item)}
@@ -219,23 +199,14 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
           )}
         />
       </View>
-    </Screen>
+    </AppLayout>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     listWrap: { flex: 1 },
-    loadingContainer: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: theme.spacing.xl,
-    },
     list: { flex: 1 },
-    listContent: {
-      paddingBottom: theme.spacing.md,
-    },
     reportCard: {
       borderWidth: 1,
       borderRadius: theme.radius.md,

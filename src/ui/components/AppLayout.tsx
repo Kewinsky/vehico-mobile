@@ -1,31 +1,24 @@
-import type { PropsWithChildren, ReactNode } from "react";
+import { type PropsWithChildren, type ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "../ThemeProvider";
+import { LoadingView } from "./LoadingView";
 
 export type AppLayoutProps = PropsWithChildren<{
-  /** Top bar (e.g. <AppHeader />). */
   header?: ReactNode;
-  /** Bottom bar with buttons – single shared style (safe area, border) across the app. */
   footer?: ReactNode;
-  /** Whether to apply horizontal padding to root (when no header). Usually false for ScrollView/FlatList content. */
-  contentPadding?: boolean;
+  loading?: boolean;
 }>;
 
-/**
- * Shared layout for all screens: header + content area (flex:1) + optional footer.
- * Safe area and footer style in one place – consistent look across the app.
- */
 export function AppLayout({
   children,
   header,
   footer,
-  contentPadding = true,
+  loading = false,
 }: AppLayoutProps) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
-
   return (
     <View
       style={[
@@ -34,13 +27,21 @@ export function AppLayout({
           paddingTop: insets.top,
           backgroundColor: theme.colors.bg,
         },
-        contentPadding && {
-          paddingHorizontal: theme.layout.contentPaddingHorizontal,
-        },
       ]}
     >
       {header}
-      <View style={styles.content}>{children}</View>
+      {loading ? (
+        <LoadingView />
+      ) : (
+        <View
+          style={[
+            styles.content,
+            { paddingHorizontal: theme.layout.contentPaddingHorizontal },
+          ]}
+        >
+          {children}
+        </View>
+      )}
       {footer != null ? (
         <View
           style={[

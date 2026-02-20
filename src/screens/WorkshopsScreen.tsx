@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
-  FlatList,
-  Keyboard,
   Pressable,
   StyleSheet,
   Text,
@@ -16,30 +14,28 @@ import { Ionicons } from "@expo/vector-icons";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { Workshop, WorkshopType } from "../types/domain";
 import { listWorkshops } from "../services/workshops/workshopsRepo";
-import { AppHeader } from "../ui/components/AppHeader";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { AppLayout } from "../ui/components/AppLayout";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { CustomFlatList } from "../ui/components/CustomFlatList";
+import { EmptyState } from "../ui/components/EmptyState";
 import { useTheme } from "../ui/ThemeProvider";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { toastError } from "../ui/toast/toast";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Workshops">;
 
 export function WorkshopsScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
-  const insets = useSafeAreaInsets();
-  const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
-  const contentPad = theme.layout.contentPaddingHorizontal;
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
   );
   const [items, setItems] = useState<Workshop[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<WorkshopType | "all">("all");
@@ -70,16 +66,18 @@ export function WorkshopsScreen({ navigation }: Props) {
 
   const loadRef = useRef(load);
   loadRef.current = load;
+  const refreshEntitlementsRef = useRef(refreshEntitlements);
+  refreshEntitlementsRef.current = refreshEntitlements;
 
   useEffect(() => {
-    void load();
+    void load({ showLoading: false });
     const unsub = navigation.addListener("focus", () => {
-      void refreshEntitlements().then(() => {
+      void refreshEntitlementsRef.current?.().then(() => {
         setTimeout(() => loadRef.current?.({ showLoading: false }), 0);
       });
     });
     return unsub;
-  }, [navigation, load, refreshEntitlements]);
+  }, [navigation, load]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -263,7 +261,7 @@ export function WorkshopsScreen({ navigation }: Props) {
 
       {filtersOpen ? (
         <>
-          <View style={{ height: theme.spacing.md }} />
+          <View style={{ height: theme.spacing.sm }} />
           <View
             style={[
               styles.filtersCard,
@@ -367,122 +365,82 @@ export function WorkshopsScreen({ navigation }: Props) {
     </>
   );
 
-  if (loading) {
-    return (
-      <Screen
-        padding={false}
-        header={
-          <AppHeader
-            onBack={() => navigation.goBack()}
-            showShopIcon={!isPremium}
-            onShopPress={() => navigation.navigate("Shop")}
-          />
-        }
-      >
-        <ScreenLayout title={t("workshops.title")} scrollable={false}>
-          <View style={styles.loadingContainer}>
-            <LoadingIndicator />
-          </View>
-        </ScreenLayout>
-      </Screen>
-    );
-  }
-
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >
-      <View style={[styles.listWrap, { paddingHorizontal: contentPad }]}>
-        <FlatList
-          data={filtered}
-          ListHeaderComponent={
-            <ScreenLayout
-              title={t("workshops.title")}
-              filterPanel={filterPanelContent}
-              listHeaderOnly
-            />
-          }
-          keyExtractor={(item) => item.id}
-          style={[styles.list, { marginHorizontal: -contentPad }]}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingHorizontal: contentPad },
-          ]}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          onTouchStart={Keyboard.dismiss}
-          ListEmptyComponent={
-            <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
-              {t("workshops.noWorkshops")}
-            </Text>
-          }
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() =>
-                navigation.navigate("WorkshopForm", { workshopId: item.id })
-              }
-              style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+      <CustomFlatList<Workshop>
+        data={filtered}
+        listHeaderComponent={
+          <ContentHeader
+            title={t("workshops.title")}
+            filterPanel={filterPanelContent}
+          />
+        }
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <Pressable
+            onPress={() =>
+              navigation.navigate("WorkshopForm", { workshopId: item.id })
+            }
+            style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+          >
+            <View
+              style={[
+                styles.card,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
             >
-              <View
-                style={[
-                  styles.card,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <View style={styles.cardRow}>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text
-                      style={[styles.cardTitle, { color: theme.colors.fg }]}
-                      numberOfLines={1}
-                    >
-                      {item.name}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.cardSubtitle,
-                        { color: theme.colors.muted },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {item.address}
-                    </Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
-                    color={theme.colors.accent}
-                  />
+              <View style={styles.cardRow}>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text
+                    style={[styles.cardTitle, { color: theme.colors.fg }]}
+                    numberOfLines={1}
+                  >
+                    {item.name}
+                  </Text>
+                  <Text
+                    style={[styles.cardSubtitle, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {item.address}
+                  </Text>
                 </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={22}
+                  color={theme.colors.accent}
+                />
               </View>
-            </Pressable>
-          )}
-        />
-      </View>
-    </Screen>
+            </View>
+          </Pressable>
+        )}
+        ListEmptyComponent={<EmptyState body={t("workshops.noWorkshops")} />}
+      />
+    </AppLayout>
   );
 }
 
-function makeStyles(theme: any, insets: { bottom: number }) {
+function makeStyles(theme: any) {
   return StyleSheet.create({
-    listWrap: { flex: 1 },
     searchRow: {
       flexDirection: "row",
       alignItems: "center",
     },
     panelButtonsRow: {
-      marginLeft: theme.spacing.sm,
+      marginLeft: theme.spacing.xs,
       flexDirection: "row",
-      gap: theme.spacing.sm,
+      gap: theme.spacing.xs,
     },
     searchBarWrap: {
       flex: 1,
@@ -551,23 +509,10 @@ function makeStyles(theme: any, insets: { bottom: number }) {
     },
     divider: { height: 1, width: "100%" },
     valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
-    loadingContainer: {
-      flex: 1,
-      minHeight: 200,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    list: { flex: 1, paddingTop: theme.spacing.md },
-    listContent: { paddingBottom: insets.bottom },
-    emptyText: {
-      marginTop: theme.spacing.sm,
-      fontSize: theme.typography.small,
-    },
     card: {
       borderRadius: theme.radius.md,
       borderWidth: 1,
       padding: theme.spacing.sm,
-      marginBottom: theme.spacing.sm,
     },
     cardRow: {
       flexDirection: "row",

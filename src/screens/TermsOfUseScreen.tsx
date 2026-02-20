@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { AppHeader } from "../ui/components/AppHeader";
+import { AppNavbar } from "../ui/components/AppNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
 import { i18n } from "../i18n/i18n";
@@ -27,11 +27,8 @@ export function TermsOfUseScreen({ navigation }: Props) {
   };
 
   return (
-    <FormScreen header={<AppHeader onBack={() => navigation.goBack()} />}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+    <FormScreen header={<AppNavbar onBack={() => navigation.goBack()} />}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           <View style={styles.titleContainer}>
             <Text style={[styles.title, { color: theme.colors.fg }]}>
@@ -94,9 +91,6 @@ export function TermsOfUseScreen({ navigation }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    scrollContent: {
-      flexGrow: 1,
-    },
     content: {
       paddingVertical: theme.spacing.lg,
       paddingHorizontal: theme.spacing.xs,

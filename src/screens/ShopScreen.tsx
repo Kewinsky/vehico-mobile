@@ -14,11 +14,11 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Purchases from "react-native-purchases";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { AppHeader } from "../ui/components/AppHeader";
+import { AppNavbar } from "../ui/components/AppNavbar";
 import { Card } from "../ui/components/Card";
 import { Button } from "../ui/components/Button";
 import { LegalLinksRow } from "../ui/components/LegalLinksRow";
-import { Screen } from "../ui/components/Screen";
+import { AppLayout } from "../ui/components/AppLayout";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import type { AppTheme } from "../ui/theme";
 import { useTheme } from "../ui/ThemeProvider";
@@ -340,9 +340,8 @@ export function ShopScreen({ navigation }: Props) {
   };
 
   return (
-    <Screen
-      padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
+    <AppLayout
+      header={<AppNavbar onBack={() => navigation.goBack()} />}
       footer={
         <>
           <View style={styles.footerButtons}>
@@ -371,12 +370,7 @@ export function ShopScreen({ navigation }: Props) {
         </>
       }
     >
-      <ScrollView
-        contentContainerStyle={[
-          styles.container,
-          { paddingHorizontal: theme.layout.contentPaddingHorizontal },
-        ]}
-      >
+      <ScrollView contentContainerStyle={styles.container}>
         {isPremium && (
           <Card style={styles.premiumBadge}>
             <Ionicons name="star" size={24} color={theme.colors.accent} />
@@ -428,7 +422,7 @@ export function ShopScreen({ navigation }: Props) {
           <PriceCard productId={subs.right} label={t("shop.subCards.yearly")} />
         </View>
       </ScrollView>
-    </Screen>
+    </AppLayout>
   );
 }
 

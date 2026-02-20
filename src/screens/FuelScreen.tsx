@@ -15,9 +15,8 @@ import { useMemo } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { AppHeader } from "../ui/components/AppHeader";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { ContentHeader } from "../ui/components/ContentHeader";
 import { useTheme } from "../ui/ThemeProvider";
 import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
 import { useCallback, useEffect, useState } from "react";
@@ -26,7 +25,6 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 
 const GAS_STATION_OPTIONS: readonly GasStation[] = [
@@ -41,7 +39,9 @@ const GAS_STATION_OPTIONS: readonly GasStation[] = [
 
 type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
 
-import { ScreenFlatList } from "../ui/components/ScreenFlatList";
+import { CustomFlatList } from "../ui/components/CustomFlatList";
+import { AppLayout } from "../ui/components/AppLayout";
+import { EmptyState } from "../ui/components/EmptyState";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -303,7 +303,8 @@ export function FuelScreen({ route, navigation }: Props) {
     return sorted;
   }, [fueling, query, dateFrom, dateTo, stationFilter, minCost, maxCost, t]);
 
-  const getMonthYearKey = (entry: FuelingEntry) => String(entry.date).slice(0, 7);
+  const getMonthYearKey = (entry: FuelingEntry) =>
+    String(entry.date).slice(0, 7);
 
   const filterPanelContent = (
     <>
@@ -416,7 +417,7 @@ export function FuelScreen({ route, navigation }: Props) {
 
       {filtersOpen ? (
         <>
-          <View style={{ height: theme.spacing.md }} />
+          <View style={{ height: theme.spacing.sm }} />
           <View
             style={[
               styles.filtersCard,
@@ -587,23 +588,22 @@ export function FuelScreen({ route, navigation }: Props) {
   );
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >
-      <ScreenFlatList<FuelingEntry>
+      <CustomFlatList<FuelingEntry>
         data={filteredFuelingList}
         listHeaderComponent={
-          <ScreenLayout
+          <ContentHeader
             title={t("dashboard.tiles.fuelTitle")}
             filterPanel={filterPanelContent}
-            listHeaderOnly
           />
         }
         groupByMonth
@@ -630,9 +630,7 @@ export function FuelScreen({ route, navigation }: Props) {
             >
               <View style={styles.cardRow}>
                 <View style={{ flex: 1 }}>
-                  <Text
-                    style={[styles.cardTitle, { color: theme.colors.fg }]}
-                  >
+                  <Text style={[styles.cardTitle, { color: theme.colors.fg }]}>
                     {entry.date}
                     {entry.fuel_type
                       ? ` · ${t(`fuelingForm.fuelTypes.${entry.fuel_type}`)}`
@@ -664,32 +662,18 @@ export function FuelScreen({ route, navigation }: Props) {
             </View>
           </Pressable>
         )}
-        ListEmptyComponent={
-          loading ? (
-            <View style={styles.loadingContainer}>
-              <LoadingIndicator />
-            </View>
-          ) : (
-            <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
-              {t("fuelCosts.noFueling")}
-            </Text>
-          )
-        }
-        scrollIndicatorInsets={{ right: 0 }}
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
-        onTouchStart={Keyboard.dismiss}
+        ListEmptyComponent={<EmptyState body={t("fuelCosts.noFueling")} />}
       />
-    </Screen>
+    </AppLayout>
   );
 }
 
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     panelButtonsRow: {
-      marginLeft: theme.spacing.sm,
+      marginLeft: theme.spacing.xs,
       flexDirection: "row",
-      gap: theme.spacing.sm,
+      gap: theme.spacing.xs,
     },
     emptyText: {
       marginTop: theme.spacing.sm,

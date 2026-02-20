@@ -1,4 +1,12 @@
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Keyboard,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,10 +15,10 @@ import * as Clipboard from "expo-clipboard";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { createServiceEntry } from "../services/serviceEntries/serviceEntriesRepo";
-import { AppHeader } from "../ui/components/AppHeader";
+import { AppNavbar } from "../ui/components/AppNavbar";
 import { Button } from "../ui/components/Button";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { AppLayout } from "../ui/components/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
@@ -170,10 +178,9 @@ export function ImportScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
@@ -197,66 +204,72 @@ export function ImportScreen({ navigation, route }: Props) {
         </>
       }
     >
-      <ScreenLayout title={t("import.title")} scrollable={false}>
-        <View
-          style={[
-            styles.card,
-            {
-              borderColor: theme.colors.border,
-              backgroundColor: theme.colors.card,
-            },
-          ]}
-        >
-          <View style={styles.cardInner}>
-            <View style={styles.rowLeft}>
-              <Ionicons
-                name="document-text-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("import.csvLabel")}
-              </Text>
-            </View>
-            <Text style={[styles.hint, { color: theme.colors.muted }]}>
-              {t("import.csvHint")}
-            </Text>
-            <View style={{ marginTop: theme.spacing.sm }}>
-              <Textarea
-                followCursor
-                value={csv}
-                onChangeText={setCsv}
-                editable={!importing}
-                multiline
-                placeholder={t("import.placeholder")}
-                placeholderTextColor={theme.colors.muted}
-                style={[styles.textArea, { color: theme.colors.fg }]}
-                fixedHeight={250}
-              />
-            </View>
-          </View>
-        </View>
-        <View style={styles.actionsRow}>
-          <Pressable
-            onPress={() => void copyColumns()}
-            disabled={importing}
-            style={({ pressed }) => [
-              styles.actionPill,
+      <TouchableWithoutFeedback
+        onPress={Keyboard.dismiss}
+        accessible={false}
+      >
+        <View style={{ flex: 1 }}>
+          <ContentHeader title={t("import.title")} />
+          <View
+            style={[
+              styles.card,
               {
                 borderColor: theme.colors.border,
                 backgroundColor: theme.colors.card,
-                opacity: pressed && !importing ? 0.8 : importing ? 0.5 : 1,
               },
             ]}
           >
-            <Ionicons name="copy-outline" size={18} color={theme.colors.fg} />
-            <Text style={[styles.actionPillText, { color: theme.colors.fg }]}>
-              {t("import.copyColumnsButton")}
-            </Text>
-          </Pressable>
+            <View style={styles.cardInner}>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text style={[styles.label, { color: theme.colors.muted }]}>
+                  {t("import.csvLabel")}
+                </Text>
+              </View>
+              <Text style={[styles.hint, { color: theme.colors.muted }]}>
+                {t("import.csvHint")}
+              </Text>
+              <View style={{ marginTop: theme.spacing.sm }}>
+                <Textarea
+                  followCursor
+                  value={csv}
+                  onChangeText={setCsv}
+                  editable={!importing}
+                  multiline
+                  placeholder={t("import.placeholder")}
+                  placeholderTextColor={theme.colors.muted}
+                  style={[styles.textArea, { color: theme.colors.fg }]}
+                  fixedHeight={250}
+                />
+              </View>
+            </View>
+          </View>
+          <View style={styles.actionsRow}>
+            <Pressable
+              onPress={() => void copyColumns()}
+              disabled={importing}
+              style={({ pressed }) => [
+                styles.actionPill,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                  opacity: pressed && !importing ? 0.8 : importing ? 0.5 : 1,
+                },
+              ]}
+            >
+              <Ionicons name="copy-outline" size={18} color={theme.colors.fg} />
+              <Text style={[styles.actionPillText, { color: theme.colors.fg }]}>
+                {t("import.copyColumnsButton")}
+              </Text>
+            </Pressable>
+          </View>
         </View>
-      </ScreenLayout>
-    </Screen>
+      </TouchableWithoutFeedback>
+    </AppLayout>
   );
 }
 

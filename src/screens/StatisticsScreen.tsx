@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -39,15 +40,14 @@ import type {
   VehicleTire,
   VehicleWheel,
 } from "../types/domain";
-import { AppHeader } from "../ui/components/AppHeader";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
-import { Screen } from "../ui/components/Screen";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { ContentHeader } from "../ui/components/ContentHeader";
 import { useTheme } from "../ui/ThemeProvider";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { toastError } from "../ui/toast/toast";
 import { TireIcon } from "../ui/components/TireIcon";
 import { RimIcon } from "../ui/components/RimIcon";
+import { AppLayout } from "../ui/components/AppLayout";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Statistics">;
 type PeriodKey = "1m" | "3m" | "6m" | "1y" | "all";
@@ -745,10 +745,9 @@ export function StatisticsScreen({ route, navigation }: Props) {
   const insuranceValidUntilLabel = vehicle?.insurance_valid_until ?? "—";
   const inspectionValidUntilLabel = vehicle?.inspection_valid_until ?? "—";
 
-  const contentPadding = theme.layout.contentPaddingHorizontal;
   const chartWidth = Math.max(
     280,
-    windowWidth - contentPadding * 2 - theme.spacing.md * 2 - 20,
+    windowWidth - theme.layout.contentPaddingHorizontal * 2,
   );
   const palette = useMemo(
     () => [theme.colors.accent, "#10B981", "#3B82F6", "#A78BFA", "#EF4444"],
@@ -851,14 +850,10 @@ export function StatisticsScreen({ route, navigation }: Props) {
     </View>
   );
 
-  const cardContent = loading ? (
-    <View style={styles.loading}>
-      <LoadingIndicator />
-    </View>
-  ) : (
-    <View style={styles.container}>
+  const cardContent = (
+    <View>
       {tab === "metrics" ? (
-        <>
+        <View style={styles.section}>
           <View
             style={[
               styles.heroCard,
@@ -1048,7 +1043,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
               </Text>
             </View>
           </View>
-        </>
+        </View>
       ) : null}
 
       {tab === "charts" ? (
@@ -1435,31 +1430,35 @@ export function StatisticsScreen({ route, navigation }: Props) {
   );
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >
-      <ScreenLayout
-        title={t("dashboard.stats.title")}
-        scrollable
-        filterPanel={filterPanelContent}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: theme.spacing.xl }}
+        showsVerticalScrollIndicator={false}
       >
+        <ContentHeader
+          title={t("dashboard.stats.title")}
+          filterPanel={filterPanelContent}
+        />
         {cardContent}
-      </ScreenLayout>
-    </Screen>
+      </ScrollView>
+    </AppLayout>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     panelWrap: {
-      gap: theme.spacing.md,
+      gap: theme.spacing.xs,
     },
     segmentWrap: {
       flexDirection: "row",
@@ -1482,10 +1481,6 @@ const makeStyles = (theme: any) =>
     segmentTextSmall: {
       fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.bold,
-    },
-    container: {
-      marginTop: theme.spacing.md,
-      gap: theme.spacing.md,
     },
     loading: {
       alignItems: "center",
@@ -1510,7 +1505,7 @@ const makeStyles = (theme: any) =>
       fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.small,
     },
-    tilesRow: { flexDirection: "row", gap: theme.spacing.sm },
+    tilesRow: { flexDirection: "row", gap: theme.spacing.xs },
     tile: {
       flex: 1,
       borderWidth: 1,
@@ -1526,7 +1521,7 @@ const makeStyles = (theme: any) =>
       fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.body,
     },
-    section: { gap: theme.spacing.sm },
+    section: { paddingBottom: theme.spacing.md, gap: theme.spacing.xs },
     sectionTitle: {
       fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.title,

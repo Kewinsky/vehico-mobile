@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
@@ -18,14 +18,13 @@ import {
   getVehiclePhotoUrl,
 } from "../services/vehicles/uploadPhoto";
 import type { Vehicle, VehiclePhoto } from "../types/domain";
-import { AppHeader } from "../ui/components/AppHeader";
+import { AppNavbar } from "../ui/components/AppNavbar";
 import { Button } from "../ui/components/Button";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { AppLayout } from "../ui/components/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 const MAX_PHOTOS = 40;
 
@@ -257,30 +256,17 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           contentFit="cover"
           transition={200}
         />
-        {item.isVehiclePhoto && (
-          <Pressable
-            onPress={() => item.photoId && toggleVehiclePhoto(item.photoId)}
-            style={[
-              styles.photoCheckbox,
-              selectedVehiclePhotoIds.has(item.photoId || "") &&
-                styles.photoCheckboxChecked,
-            ]}
-            hitSlop={5}
-          >
-            {selectedVehiclePhotoIds.has(item.photoId || "") && (
-              <Ionicons name="checkmark" size={16} color="#000000" />
-            )}
-          </Pressable>
-        )}
-        {!item.isVehiclePhoto && (
-          <Pressable
-            onPress={() => item.tempId && removeTempPhoto(item.tempId)}
-            style={styles.photoDeleteButton}
-            hitSlop={5}
-          >
-            <Ionicons name="close" size={16} color={theme.colors.fg} />
-          </Pressable>
-        )}
+        <Pressable
+          onPress={() =>
+            item.isVehiclePhoto
+              ? item.photoId && toggleVehiclePhoto(item.photoId)
+              : item.tempId && removeTempPhoto(item.tempId)
+          }
+          style={styles.photoCloseButton}
+          hitSlop={5}
+        >
+          <Ionicons name="close-circle" size={28} color={theme.colors.accent} />
+        </Pressable>
       </View>
     </View>
   );
@@ -340,23 +326,25 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         {label}
         {suffix ? ` ${suffix}` : ""}
       </Text>
-      <View
-        style={[
-          styles.optionCheckbox,
-          checked && styles.optionCheckboxChecked,
-          disabled && styles.optionCheckboxDisabled,
-        ]}
-      >
-        {checked && <Ionicons name="checkmark" size={16} color="#000000" />}
-      </View>
+      <Ionicons
+        name={checked ? "checkbox" : "checkbox-outline"}
+        size={24}
+        color={
+          disabled
+            ? theme.colors.muted
+            : checked
+              ? theme.colors.accent
+              : theme.colors.muted
+        }
+      />
     </Pressable>
   );
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
@@ -366,211 +354,187 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         <Button onPress={handleNext}>{t("publicReport.nextButton")}</Button>
       }
     >
-      <ScreenLayout title={t("publicReport.configureTitle")} scrollable>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <LoadingIndicator />
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <ContentHeader title={t("publicReport.configureTitle")} />
+        <View style={styles.section}>
+          <CheckboxRow
+            label={t("publicReport.optionTechnicalData")}
+            checked={includeTechnicalData}
+            onPress={() => {}}
+            disabled
+            suffix={t("publicReport.optionTechnicalDataAlways")}
+          />
+          <CheckboxRow
+            label={t("publicReport.optionInsurance")}
+            checked={includeInsurance}
+            onPress={() => setIncludeInsurance(!includeInsurance)}
+            disabled={!hasInsurance}
+            suffix={!hasInsurance ? `(${t("publicReport.noData")})` : undefined}
+          />
+          <CheckboxRow
+            label={t("publicReport.optionInspection")}
+            checked={includeInspection}
+            onPress={() => setIncludeInspection(!includeInspection)}
+            disabled={!hasInspection}
+            suffix={
+              !hasInspection ? `(${t("publicReport.noData")})` : undefined
+            }
+          />
+          <CheckboxRow
+            label={t("publicReport.optionNotes", { vehicleTitle })}
+            checked={includeNotes}
+            onPress={() => setIncludeNotes(!includeNotes)}
+            disabled={!hasNotes}
+            suffix={!hasNotes ? `(${t("publicReport.noData")})` : undefined}
+          />
+          <CheckboxRow
+            label={t("publicReport.optionWheels")}
+            checked={includeWheels}
+            onPress={() => setIncludeWheels(!includeWheels)}
+            disabled={!hasWheels}
+            suffix={!hasWheels ? `(${t("publicReport.noData")})` : undefined}
+          />
+          <CheckboxRow
+            label={t("publicReport.optionTires")}
+            checked={includeTires}
+            onPress={() => setIncludeTires(!includeTires)}
+            disabled={!hasTires}
+            suffix={!hasTires ? `(${t("publicReport.noData")})` : undefined}
+          />
+          <CheckboxRow
+            label={t("publicReport.optionServiceHistory")}
+            checked={includeServiceHistory}
+            onPress={() => setIncludeServiceHistory(!includeServiceHistory)}
+            disabled={!hasServiceHistory}
+            suffix={
+              hasServiceHistory
+                ? t("publicReport.optionServiceHistoryEntries", {
+                    count: serviceEntriesCount,
+                  })
+                : t("publicReport.optionServiceHistoryNoData")
+            }
+          />
+          <CheckboxRow
+            label={t("publicReport.optionServiceStats")}
+            checked={includeServiceStats}
+            onPress={() => setIncludeServiceStats(!includeServiceStats)}
+            disabled={!hasServiceStats}
+            suffix={
+              !hasServiceStats ? `(${t("publicReport.noData")})` : undefined
+            }
+          />
+          <CheckboxRow
+            label={t("publicReport.optionFuelingStats")}
+            checked={includeFuelingStats}
+            onPress={() => setIncludeFuelingStats(!includeFuelingStats)}
+            disabled={!hasFuelingStats}
+            suffix={
+              !hasFuelingStats ? `(${t("publicReport.noData")})` : undefined
+            }
+          />
+          <CheckboxRow
+            label={t("publicReport.optionPhotos")}
+            checked={includePhotos}
+            onPress={() => setIncludePhotos(!includePhotos)}
+            suffix={
+              includePhotos && totalPhotoCount > 0
+                ? t("publicReport.optionPhotosCount", {
+                    count: totalPhotoCount,
+                  })
+                : undefined
+            }
+          />
+        </View>
+
+        {unavailableOptions.length > 0 && (
+          <View style={[styles.section, styles.hintSection]}>
+            <Text style={styles.hintText}>
+              {t("publicReport.unavailableOptionsHint", {
+                list: unavailableOptions.join(", "),
+              })}
+            </Text>
           </View>
-        ) : (
-          <>
-            <View style={styles.section}>
-                <CheckboxRow
-                  label={t("publicReport.optionTechnicalData")}
-                  checked={includeTechnicalData}
-                  onPress={() => {}}
-                  disabled
-                  suffix={t("publicReport.optionTechnicalDataAlways")}
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionInsurance")}
-                  checked={includeInsurance}
-                  onPress={() => setIncludeInsurance(!includeInsurance)}
-                  disabled={!hasInsurance}
-                  suffix={
-                    !hasInsurance ? `(${t("publicReport.noData")})` : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionInspection")}
-                  checked={includeInspection}
-                  onPress={() => setIncludeInspection(!includeInspection)}
-                  disabled={!hasInspection}
-                  suffix={
-                    !hasInspection ? `(${t("publicReport.noData")})` : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionNotes", { vehicleTitle })}
-                  checked={includeNotes}
-                  onPress={() => setIncludeNotes(!includeNotes)}
-                  disabled={!hasNotes}
-                  suffix={
-                    !hasNotes ? `(${t("publicReport.noData")})` : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionWheels")}
-                  checked={includeWheels}
-                  onPress={() => setIncludeWheels(!includeWheels)}
-                  disabled={!hasWheels}
-                  suffix={
-                    !hasWheels ? `(${t("publicReport.noData")})` : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionTires")}
-                  checked={includeTires}
-                  onPress={() => setIncludeTires(!includeTires)}
-                  disabled={!hasTires}
-                  suffix={
-                    !hasTires ? `(${t("publicReport.noData")})` : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionServiceHistory")}
-                  checked={includeServiceHistory}
-                  onPress={() =>
-                    setIncludeServiceHistory(!includeServiceHistory)
-                  }
-                  disabled={!hasServiceHistory}
-                  suffix={
-                    hasServiceHistory
-                      ? t("publicReport.optionServiceHistoryEntries", {
-                          count: serviceEntriesCount,
-                        })
-                      : t("publicReport.optionServiceHistoryNoData")
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionServiceStats")}
-                  checked={includeServiceStats}
-                  onPress={() => setIncludeServiceStats(!includeServiceStats)}
-                  disabled={!hasServiceStats}
-                  suffix={
-                    !hasServiceStats
-                      ? `(${t("publicReport.noData")})`
-                      : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionFuelingStats")}
-                  checked={includeFuelingStats}
-                  onPress={() => setIncludeFuelingStats(!includeFuelingStats)}
-                  disabled={!hasFuelingStats}
-                  suffix={
-                    !hasFuelingStats
-                      ? `(${t("publicReport.noData")})`
-                      : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionPhotos")}
-                  checked={includePhotos}
-                  onPress={() => setIncludePhotos(!includePhotos)}
-                  suffix={
-                    includePhotos && totalPhotoCount > 0
-                      ? t("publicReport.optionPhotosCount", {
-                          count: totalPhotoCount,
-                        })
-                      : undefined
-                  }
-                />
-              </View>
-
-              {unavailableOptions.length > 0 && (
-                <View style={[styles.section, styles.hintSection]}>
-                  <Text style={styles.hintText}>
-                    {t("publicReport.unavailableOptionsHint", {
-                      list: unavailableOptions.join(", "),
-                    })}
-                  </Text>
-                </View>
-              )}
-
-              {includePhotos && (
-                <View style={styles.section}>
-                  <View style={styles.photosHeader}>
-                    <Text style={styles.sectionTitle}>
-                      {t("publicReport.photosSection")}
-                    </Text>
-                    <Text style={styles.photosCount}>
-                      {t("publicReport.photosCount", {
-                        count: totalPhotoCount,
-                      })}
-                    </Text>
-                  </View>
-                  {vehiclePhotos.length > 0 && (
-                    <>
-                      <Text style={styles.photosSubtitle}>
-                        {t("publicReport.photosFromApp")}
-                      </Text>
-                      <View style={styles.vehiclePhotosList}>
-                        {vehiclePhotos.map((photo) => {
-                          const isSelected = selectedVehiclePhotoIds.has(
-                            photo.id,
-                          );
-                          return (
-                            <Pressable
-                              key={photo.id}
-                              onPress={() => toggleVehiclePhoto(photo.id)}
-                              style={[
-                                styles.vehiclePhotoItem,
-                                isSelected && styles.vehiclePhotoItemSelected,
-                              ]}
-                            >
-                              <Image
-                                source={{ uri: getVehiclePhotoUrl(photo) }}
-                                style={styles.vehiclePhotoThumbnail}
-                                contentFit="cover"
-                              />
-                              <Pressable
-                                style={[
-                                  styles.vehiclePhotoCheckbox,
-                                  isSelected &&
-                                    styles.vehiclePhotoCheckboxChecked,
-                                ]}
-                                hitSlop={5}
-                              >
-                                {isSelected && (
-                                  <Ionicons
-                                    name="checkmark"
-                                    size={16}
-                                    color="#000000"
-                                  />
-                                )}
-                              </Pressable>
-                            </Pressable>
-                          );
-                        })}
-                      </View>
-                    </>
-                  )}
-                  {allPhotos.length > 0 && (
-                    <DraggableGrid
-                      numColumns={3}
-                      renderItem={renderPhotoItem}
-                      data={allPhotos}
-                      onDragStart={() => setIsDragging(true)}
-                      onDragRelease={handleDragRelease}
-                    />
-                  )}
-                  {totalPhotoCount < MAX_PHOTOS && (
-                    <View style={styles.addPhotoButtons}>
-                      <Button
-                        onPress={pickFromGallery}
-                        variant="ghost"
-                        style={styles.addPhotoButton}
-                      >
-                        {t("publicReport.addPhotos")}
-                      </Button>
-                    </View>
-                  )}
-                </View>
-              )}
-          </>
         )}
-      </ScreenLayout>
-    </Screen>
+
+        {includePhotos && (
+          <View style={styles.section}>
+            <View style={styles.photosHeader}>
+              <Text style={styles.sectionTitle}>
+                {t("publicReport.photosSection")}
+              </Text>
+              <Text style={styles.photosCount}>
+                {t("publicReport.photosCount", {
+                  count: totalPhotoCount,
+                })}
+              </Text>
+            </View>
+            {vehiclePhotos.length > 0 && (
+              <>
+                <Text style={styles.photosSubtitle}>
+                  {t("publicReport.photosFromApp")}
+                </Text>
+                <View style={styles.vehiclePhotosList}>
+                  {vehiclePhotos.map((photo) => {
+                    const isSelected = selectedVehiclePhotoIds.has(photo.id);
+                    return (
+                      <Pressable
+                        key={photo.id}
+                        onPress={() => toggleVehiclePhoto(photo.id)}
+                        style={[
+                          styles.vehiclePhotoItem,
+                          isSelected && styles.vehiclePhotoItemSelected,
+                        ]}
+                      >
+                        <Image
+                          source={{ uri: getVehiclePhotoUrl(photo) }}
+                          style={styles.vehiclePhotoThumbnail}
+                          contentFit="cover"
+                        />
+                        <View style={styles.vehiclePhotoCheckbox}>
+                          <Ionicons
+                            name={
+                              isSelected
+                                ? "checkmark-circle"
+                                : "checkmark-circle-outline"
+                            }
+                            size={28}
+                            color={
+                              isSelected
+                                ? theme.colors.accent
+                                : theme.colors.muted
+                            }
+                          />
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </>
+            )}
+            {allPhotos.length > 0 && (
+              <DraggableGrid
+                numColumns={3}
+                renderItem={renderPhotoItem}
+                data={allPhotos}
+                onDragStart={() => setIsDragging(true)}
+                onDragRelease={handleDragRelease}
+              />
+            )}
+            {totalPhotoCount < MAX_PHOTOS && (
+              <View style={styles.addPhotoButtons}>
+                <Button
+                  onPress={pickFromGallery}
+                  variant="ghost"
+                  style={styles.addPhotoButton}
+                >
+                  {t("publicReport.addPhotos")}
+                </Button>
+              </View>
+            )}
+          </View>
+        )}
+      </ScrollView>
+    </AppLayout>
   );
 }
 
@@ -581,10 +545,6 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
-    },
-    loadingContainer: {
-      paddingVertical: theme.spacing.xl,
-      alignItems: "center",
     },
     section: { marginBottom: theme.spacing.lg },
     hintSection: {
@@ -612,20 +572,6 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.sm,
     },
     checkboxRowDisabled: { opacity: 0.7 },
-    optionCheckbox: {
-      width: 24,
-      height: 24,
-      borderRadius: theme.radius.xs,
-      borderWidth: 2,
-      borderColor: theme.colors.border,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    optionCheckboxChecked: {
-      backgroundColor: theme.colors.accent,
-      borderColor: theme.colors.accent,
-    },
-    optionCheckboxDisabled: { opacity: 0.6 },
     optionLabel: {
       flex: 1,
       fontSize: theme.typography.body,
@@ -668,17 +614,8 @@ const makeStyles = (theme: any) =>
       position: "absolute",
       top: 4,
       right: 4,
-      width: 28,
-      height: 28,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: theme.colors.bg,
-      borderRadius: theme.radius.md,
-      opacity: 0.7,
-    },
-    vehiclePhotoCheckboxChecked: {
-      backgroundColor: theme.colors.accent,
-      opacity: 1,
     },
     photoCard: { margin: theme.spacing.xs },
     photoImageContainer: {
@@ -690,34 +627,13 @@ const makeStyles = (theme: any) =>
       position: "relative",
     },
     photoImage: { width: "100%", height: "100%" },
-    photoCheckbox: {
+    photoCloseButton: {
       position: "absolute",
       top: 4,
       right: 4,
-      width: 28,
-      height: 28,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: theme.colors.bg,
-      borderRadius: theme.radius.md,
-      opacity: 0.7,
     },
-    photoCheckboxChecked: {
-      backgroundColor: theme.colors.accent,
-      opacity: 1,
-    },
-    photoDeleteButton: {
-      position: "absolute",
-      top: 4,
-      right: 4,
-      width: 28,
-      height: 28,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: theme.colors.bg,
-      borderRadius: theme.radius.md,
-      opacity: 0.7,
-    },
-    addPhotoButtons: { marginTop: theme.spacing.md },
+    addPhotoButtons: { marginTop: theme.spacing.sm / 2 },
     addPhotoButton: { marginBottom: theme.spacing.xs },
   });

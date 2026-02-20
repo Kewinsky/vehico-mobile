@@ -4,10 +4,10 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { AppHeader } from "../ui/components/AppHeader";
+import { AppNavbar } from "../ui/components/AppNavbar";
 import { Button } from "../ui/components/Button";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { AppLayout } from "../ui/components/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 
@@ -16,7 +16,6 @@ type Props = NativeStackScreenProps<AppStackParamList, "Marketplace">;
 export function MarketplaceScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
   const { isPremium } = useEntitlements();
 
@@ -39,21 +38,21 @@ export function MarketplaceScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >
-      <ScreenLayout title={t("marketplace.screenTitle")} scrollable={false}>
+      <ContentHeader title={t("marketplace.screenTitle")} />
+      <View style={{ flex: 1 }}>
         <Button onPress={onGeneratePress}>
           {t("marketplace.generateButton")}
         </Button>
-        <View style={{ height: theme.spacing.xs }} />
+        <View style={{ height: theme.spacing.sm }} />
         <Button
           onPress={() =>
             navigation.navigate("MarketplacePostHistory", {
@@ -64,9 +63,7 @@ export function MarketplaceScreen({ navigation, route }: Props) {
         >
           {t("marketplace.historyButton")}
         </Button>
-      </ScreenLayout>
-    </Screen>
+      </View>
+    </AppLayout>
   );
 }
-
-const makeStyles = (_theme: any) => StyleSheet.create({});

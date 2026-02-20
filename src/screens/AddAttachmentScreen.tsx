@@ -1,6 +1,5 @@
 import {
   Alert,
-  FlatList,
   Pressable,
   StyleSheet,
   Text,
@@ -17,13 +16,15 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { ServiceEntry } from "../types/domain";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { uploadAttachment } from "../services/attachments/attachmentsRepo";
-import { AppHeader } from "../ui/components/AppHeader";
-import { Screen } from "../ui/components/Screen";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { AppLayout } from "../ui/components/AppLayout";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { CustomFlatList } from "../ui/components/CustomFlatList";
+import { EmptyState } from "../ui/components/EmptyState";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { toastError } from "../ui/toast/toast";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "AddAttachment">;
 
@@ -180,123 +181,90 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     });
   }, [items, query]);
 
+  const filterPanelContent = (
+    <View
+      style={[
+        styles.searchBarWrap,
+        {
+          borderColor: theme.colors.border,
+          backgroundColor: theme.colors.card,
+        },
+      ]}
+    >
+      <Ionicons
+        name="search-outline"
+        size={20}
+        color={theme.colors.muted}
+        style={styles.searchBarIcon}
+      />
+      <TextInput
+        value={query}
+        onChangeText={setQuery}
+        placeholder={t("timeline.searchPlaceholder")}
+        placeholderTextColor={theme.colors.muted}
+        autoCapitalize="none"
+        autoCorrect={false}
+        clearButtonMode="while-editing"
+        keyboardAppearance={mode === "dark" ? "dark" : "light"}
+        style={[styles.searchBarInput, { color: theme.colors.fg }]}
+      />
+    </View>
+  );
+
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >
-      <View style={[styles.fixedHeader, { backgroundColor: theme.colors.bg }]}>
-        <Text style={styles.h1}>{t("documents.addAttachment")}</Text>
-        <View style={{ height: theme.spacing.sm }} />
-        <View
-          style={[
-            styles.searchBarWrap,
-            {
-              borderColor: theme.colors.border,
-              backgroundColor: theme.colors.card,
-            },
-          ]}
-        >
-          <Ionicons
-            name="search-outline"
-            size={20}
-            color={theme.colors.muted}
-            style={styles.searchBarIcon}
-          />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder={t("timeline.searchPlaceholder")}
-            placeholderTextColor={theme.colors.muted}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-            blurOnSubmit={true}
-            keyboardAppearance={mode === "dark" ? "dark" : "light"}
-            style={[styles.searchBarInput, { color: theme.colors.fg }]}
-          />
-        </View>
-        <View style={{ height: theme.spacing.md }} />
-      </View>
-      <FlatList
-        contentContainerStyle={{
-          paddingHorizontal: theme.layout.contentPaddingHorizontal,
-          paddingTop: theme.spacing.md,
-          paddingBottom: theme.spacing.xl,
-        }}
+      <CustomFlatList<ServiceEntry>
         data={filteredItems}
+        listHeaderComponent={
+          <ContentHeader
+            title={t("documents.addAttachment")}
+            filterPanel={filterPanelContent}
+          />
+        }
         keyExtractor={(x) => x.id}
         refreshing={refreshing}
         onRefresh={() => void load({ refreshing: true })}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-        ItemSeparatorComponent={() => (
-          <View style={{ height: theme.spacing.sm }} />
-        )}
         renderItem={({ item }) => (
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
+          <Pressable
+            onPress={() => pickSource(item.id)}
+            disabled={uploading}
+            style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
           >
-            <Pressable
-              onPress={() => pickSource(item.id)}
-              disabled={uploading}
-              style={{ flex: 1 }}
+            <View
+              style={[
+                styles.card,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
             >
               <Text style={styles.cardTitle}>{item.title}</Text>
               <Text style={styles.cardMeta}>
                 {String(item.service_date).slice(0, 10)}
               </Text>
-            </Pressable>
-          </View>
+            </View>
+          </Pressable>
         )}
         ListEmptyComponent={
-          loading ? (
-            <View style={styles.loadingContainer}>
-              <LoadingIndicator />
-            </View>
-          ) : (
-            <Text
-              style={{
-                color: theme.colors.muted,
-                marginTop: theme.spacing.md,
-              }}
-            >
-              {query.trim().length
-                ? t("documents.noServiceEntries")
-                : t("documents.noServiceEntries")}
-            </Text>
-          )
+          <EmptyState body={t("documents.noServiceEntries")} />
         }
       />
-    </Screen>
+    </AppLayout>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    fixedHeader: {
-      paddingTop: theme.spacing.md,
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-    },
-    h1: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: theme.typography.fontWeight.bold,
-      color: theme.colors.fg,
-    },
     searchBarWrap: {
       flexDirection: "row",
       alignItems: "center",
@@ -324,10 +292,4 @@ const makeStyles = (theme: any) =>
       fontWeight: theme.typography.fontWeight.bold,
     },
     cardMeta: { marginTop: theme.spacing.xs, color: theme.colors.muted },
-    loadingContainer: {
-      paddingTop: theme.spacing.xl + theme.spacing.xs,
-      paddingBottom: theme.spacing.xl + theme.spacing.xs,
-      alignItems: "center",
-      justifyContent: "center",
-    },
   });

@@ -5,11 +5,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../ThemeProvider";
 import { MonthYearSeparator } from "./MonthYearSeparator";
 
-export type ScreenFlatListRow<T> =
+export type CustomFlatListRow<T> =
   | { type: "separator"; monthYear: string; monthYearKey: string }
   | { type: "item"; item: T };
 
-type ScreenFlatListProps<T> = Omit<
+type CustomFlatListProps<T> = Omit<
   FlatListProps<T>,
   "data" | "renderItem" | "keyExtractor" | "ListHeaderComponent"
 > & {
@@ -27,8 +27,8 @@ type ScreenFlatListProps<T> = Omit<
 function buildGrouped<T>(
   data: T[],
   getMonthYearKey: (item: T) => string,
-): ScreenFlatListRow<T>[] {
-  const grouped: ScreenFlatListRow<T>[] = [];
+): CustomFlatListRow<T>[] {
+  const grouped: CustomFlatListRow<T>[] = [];
   let currentMonthYear: string | null = null;
 
   for (const item of data) {
@@ -49,7 +49,7 @@ function buildGrouped<T>(
   return grouped;
 }
 
-export function ScreenFlatList<T>({
+export function CustomFlatList<T>({
   data,
   renderItem,
   keyExtractor,
@@ -60,11 +60,10 @@ export function ScreenFlatList<T>({
   style,
   ListEmptyComponent,
   ...rest
-}: ScreenFlatListProps<T>) {
+}: CustomFlatListProps<T>) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
-  const contentPad = theme.layout?.contentPaddingHorizontal ?? theme.spacing.md;
 
   const flatData = useMemo(() => {
     if (groupByMonth && getMonthYearKey) {
@@ -75,27 +74,25 @@ export function ScreenFlatList<T>({
 
   const isGrouped = groupByMonth && getMonthYearKey;
 
-  const listStyle = [styles.list, { marginHorizontal: -contentPad }];
-  const contentStyle = [
-    styles.listContent,
-    { paddingHorizontal: contentPad },
-    contentContainerStyle,
-  ];
+  const listStyle = [styles.list];
+  const contentStyle = [styles.listContent, contentContainerStyle];
 
   if (isGrouped) {
-    const groupedData = flatData as ScreenFlatListRow<T>[];
+    const groupedData = flatData as CustomFlatListRow<T>[];
     const {
       data: _data,
       renderItem: _renderItem,
       keyExtractor: _keyExtractor,
       ListHeaderComponent: _ListHeaderComponent,
       ...groupedRest
-    } = rest as FlatListProps<ScreenFlatListRow<T>>;
+    } = rest as FlatListProps<CustomFlatListRow<T>>;
     return (
-      <View style={[styles.listWrap, { paddingHorizontal: contentPad }]}>
-        <FlatList<ScreenFlatListRow<T>>
+      <View style={styles.listWrap}>
+        <FlatList<CustomFlatListRow<T>>
           data={groupedData}
-          ListHeaderComponent={listHeaderComponent != null ? <>{listHeaderComponent}</> : undefined}
+          ListHeaderComponent={
+            listHeaderComponent != null ? <>{listHeaderComponent}</> : undefined
+          }
           keyExtractor={(row) =>
             row.type === "separator"
               ? `sep-${row.monthYearKey}`
@@ -107,12 +104,12 @@ export function ScreenFlatList<T>({
             }
             return renderItem({ item: row.item });
           }}
-          ItemSeparatorComponent={({ leadingItem }) => {
-            if (leadingItem?.type === "separator") return null;
-            return <View style={{ height: theme.spacing.sm }} />;
-          }}
+          ItemSeparatorComponent={() => (
+            <View style={{ height: theme.spacing.sm }} />
+          )}
           style={listStyle}
           contentContainerStyle={contentStyle}
+          showsVerticalScrollIndicator={false}
           ListEmptyComponent={ListEmptyComponent}
           {...groupedRest}
         />
@@ -121,21 +118,22 @@ export function ScreenFlatList<T>({
   }
 
   return (
-    <View style={[styles.listWrap, { paddingHorizontal: contentPad }]}>
-      <FlatList<T>
-        data={data}
-        ListHeaderComponent={listHeaderComponent != null ? <>{listHeaderComponent}</> : undefined}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        ItemSeparatorComponent={() => (
-          <View style={{ height: theme.spacing.sm }} />
-        )}
-        style={style ?? listStyle}
-        contentContainerStyle={contentStyle}
-        ListEmptyComponent={ListEmptyComponent}
-        {...rest}
-      />
-    </View>
+    <FlatList<T>
+      data={data}
+      ListHeaderComponent={
+        listHeaderComponent != null ? <>{listHeaderComponent}</> : undefined
+      }
+      keyExtractor={keyExtractor}
+      renderItem={renderItem}
+      ItemSeparatorComponent={() => (
+        <View style={{ height: theme.spacing.sm }} />
+      )}
+      style={style ?? listStyle}
+      contentContainerStyle={contentStyle}
+      showsVerticalScrollIndicator={false}
+      ListEmptyComponent={ListEmptyComponent}
+      {...rest}
+    />
   );
 }
 

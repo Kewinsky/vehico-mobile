@@ -1,4 +1,4 @@
-import { StyleSheet, View, TextInput } from "react-native";
+import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,11 +8,11 @@ import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { resolveMarketplacePostContent } from "../services/marketplace/marketplaceRepo";
-import { AppHeader } from "../ui/components/AppHeader";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { ContentHeader } from "../ui/components/ContentHeader";
 import { SegmentTabs } from "../ui/components/SegmentTabs";
 import { Button } from "../ui/components/Button";
-import { Screen } from "../ui/components/Screen";
+import { AppLayout } from "../ui/components/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastSuccess, toastError } from "../ui/toast/toast";
 
@@ -60,21 +60,17 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
     : t("marketplace.postGenerated");
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
       header={
-        <AppHeader
+        <AppNavbar
           onBack={handleBack}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >
-      <ScreenLayout
-        title={layoutTitle}
-        scrollable={true}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <ScrollView style={{ flex: 1 }}>
+        <ContentHeader title={layoutTitle} />
         <SegmentTabs<"pl" | "en">
           value={displayLang}
           options={[
@@ -84,7 +80,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
           onChange={(v) => setDisplayLang(v)}
         />
 
-        <View style={{ height: theme.spacing.md }} />
+        <View style={{ height: theme.spacing.sm }} />
 
         <View style={styles.contentContainer}>
           <TextInput
@@ -99,21 +95,18 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
           />
         </View>
 
-        <View style={{ height: theme.spacing.md }} />
+        <View style={{ height: theme.spacing.sm }} />
 
         <Button onPress={handleCopyContent}>
           {t("marketplace.copyToClipboard")}
         </Button>
-      </ScreenLayout>
-    </Screen>
+      </ScrollView>
+    </AppLayout>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    scrollContent: {
-      paddingBottom: theme.spacing.xl,
-    },
     contentContainer: {
       borderWidth: 1,
       borderColor: theme.colors.border,

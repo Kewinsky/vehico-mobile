@@ -21,26 +21,28 @@ import type {
   Reminder,
   ServiceEntry,
   ServiceEntryCategory,
+  TimelineItem as TimelineRow,
 } from "../types/domain";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { listReminders } from "../services/reminders/remindersRepo";
 import { listVehicleAttachments } from "../services/attachments/attachmentsRepo";
-import { AppHeader } from "../ui/components/AppHeader";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { ContentHeader } from "../ui/components/ContentHeader";
 import { TimelineItem } from "../ui/components/TimelineItem";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { hexToRgba } from "../ui/components/ChoiceChip";
+import { AppLayout } from "../ui/components/AppLayout";
+import { EmptyState } from "../ui/components/EmptyState";
+import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceHistory">;
 
 import { formatDateDisplay } from "../utils/dateFormatting";
-import { ScreenFlatList } from "../ui/components/ScreenFlatList";
+import { CustomFlatList } from "../ui/components/CustomFlatList";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -579,7 +581,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
 
       {filtersOpen ? (
         <>
-          <View style={{ height: theme.spacing.md }} />
+          <View style={{ height: theme.spacing.sm }} />
           <View
             style={[
               styles.filtersCard,
@@ -983,23 +985,22 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   );
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >
-      <ScreenFlatList<(typeof timelineRows)[number]>
+      <CustomFlatList<TimelineRow>
         data={timelineRows}
         listHeaderComponent={
-          <ScreenLayout
+          <ContentHeader
             title={t("dashboard.tiles.serviceTitle")}
             filterPanel={filterPanelContent}
-            listHeaderOnly
           />
         }
         groupByMonth={sortByDate}
@@ -1076,38 +1077,21 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           );
         }}
         ListEmptyComponent={
-          loading ? (
-            <View style={styles.loadingContainer}>
-              <LoadingIndicator />
-            </View>
-          ) : (
-            <Text
-              style={{
-                color: theme.colors.muted,
-                marginTop: theme.spacing.sm,
-              }}
-            >
-              {t("timeline.noServiceEntries")}
-            </Text>
-          )
+          <EmptyState body={t("timeline.noServiceEntries")} />
         }
-        scrollIndicatorInsets={{ right: 0 }}
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
-        onTouchStart={Keyboard.dismiss}
         refreshing={refreshing}
         onRefresh={() => void load({ refreshing: true })}
       />
-    </Screen>
+    </AppLayout>
   );
 }
 
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     panelButtonsRow: {
-      marginLeft: theme.spacing.sm,
+      marginLeft: theme.spacing.xs,
       flexDirection: "row",
-      gap: theme.spacing.sm,
+      gap: theme.spacing.xs,
     },
     editLink: {
       color: theme.colors.accent,
@@ -1224,6 +1208,10 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingBottom: theme.spacing.lg * 2.5,
       alignItems: "center",
       justifyContent: "center",
+    },
+    emptyText: {
+      marginTop: theme.spacing.sm,
+      fontSize: theme.typography.small,
     },
     empty: {
       paddingTop: theme.spacing.xl,

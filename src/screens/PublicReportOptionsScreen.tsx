@@ -1,10 +1,11 @@
 import {
-  StyleSheet,
-  View,
   Linking,
-  Share,
-  useWindowDimensions,
   Platform,
+  ScrollView,
+  Share,
+  StyleSheet,
+  useWindowDimensions,
+  View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo } from "react";
@@ -12,10 +13,10 @@ import { useTranslation } from "react-i18next";
 import QRCode from "react-native-qrcode-svg";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { AppHeader } from "../ui/components/AppHeader";
+import { AppNavbar } from "../ui/components/AppNavbar";
 import { Button } from "../ui/components/Button";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { AppLayout } from "../ui/components/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
@@ -77,21 +78,24 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
       : t("share.onlineReport");
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
       header={
-        <AppHeader
+        <AppNavbar
           onBack={handleBack}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >
-      <ScreenLayout
-        title={layoutTitle}
-        scrollable={true}
-        contentContainerStyle={styles.wrap}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[
+          styles.wrap,
+          { paddingBottom: theme.spacing.xl },
+        ]}
+        showsVerticalScrollIndicator={false}
       >
+        <ContentHeader title={layoutTitle} />
         <View style={styles.qrContainer}>
           <View
             style={[
@@ -119,8 +123,8 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
             {t("share.title")}
           </Button>
         </View>
-      </ScreenLayout>
-    </Screen>
+      </ScrollView>
+    </AppLayout>
   );
 }
 

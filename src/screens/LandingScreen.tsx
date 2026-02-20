@@ -6,7 +6,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { Button } from "../ui/components/Button";
 import { LegalLinksRow } from "../ui/components/LegalLinksRow";
-import { Screen } from "../ui/components/Screen";
+import { AppLayout } from "../ui/components/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Landing">;
@@ -17,8 +17,7 @@ export function LandingScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
       footer={
         <>
           <Button onPress={() => navigation.navigate("Auth")}>
@@ -82,7 +81,7 @@ export function LandingScreen({ navigation }: Props) {
           </View>
         </View>
       </ScrollView>
-    </Screen>
+    </AppLayout>
   );
 }
 

@@ -28,9 +28,7 @@ import { MarketplaceScreen } from "../../screens/MarketplaceScreen";
 import { MarketplaceConfigureScreen } from "../../screens/MarketplaceConfigureScreen";
 import { MarketplaceSummaryScreen } from "../../screens/MarketplaceSummaryScreen";
 import { MarketplacePostOptionsScreen } from "../../screens/MarketplacePostOptionsScreen";
-import { MarketplacePostScreen } from "../../screens/MarketplacePostScreen";
 import { MarketplacePostHistoryScreen } from "../../screens/MarketplacePostHistoryScreen";
-import { MarketplacePostEditScreen } from "../../screens/MarketplacePostEditScreen";
 import { PublicReportOptionsScreen } from "../../screens/PublicReportOptionsScreen";
 import { PublicReportHistoryScreen } from "../../screens/PublicReportHistoryScreen";
 import { PublicReportScreen } from "../../screens/PublicReportScreen";
@@ -218,16 +216,8 @@ export function RootNavigator() {
             component={MarketplacePostOptionsScreen}
           />
           <Stack.Screen
-            name="MarketplacePost"
-            component={MarketplacePostScreen}
-          />
-          <Stack.Screen
             name="MarketplacePostHistory"
             component={MarketplacePostHistoryScreen}
-          />
-          <Stack.Screen
-            name="MarketplacePostEdit"
-            component={MarketplacePostEditScreen}
           />
           <Stack.Screen name="PublicReport" component={PublicReportScreen} />
           <Stack.Screen

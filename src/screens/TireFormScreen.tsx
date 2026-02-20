@@ -23,6 +23,7 @@ import {
   listVehicleTires,
 } from "../services/tires/tiresRepo";
 import { Button } from "../ui/components/Button";
+import { FormNavbar } from "../ui/components/FormNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -30,6 +31,7 @@ import { toastError } from "../ui/toast/toast";
 import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlementAlerts";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { SunSnowIcon } from "lucide-react-native";
+import { ContentHeader } from "../ui/components/ContentHeader";
 
 type Props = NativeStackScreenProps<AppStackParamList, "TireForm">;
 
@@ -45,20 +47,15 @@ const TIRE_TYPES: TireType[] = [
 export function TireFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const {
-    isPremium,
-    tiresPerVehicleLimit,
-    freePlanVehicleId,
-    freePlanTireId,
-  } = useEntitlements();
+  const { isPremium, tiresPerVehicleLimit, freePlanVehicleId, freePlanTireId } =
+    useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId, tireId } = route.params;
-  const tireOptions =
-    isPremium
-      ? undefined
-      : freePlanVehicleId === vehicleId
-        ? { freePlanTireId: freePlanTireId ?? null }
-        : { limit: tiresPerVehicleLimit };
+  const tireOptions = isPremium
+    ? undefined
+    : freePlanVehicleId === vehicleId
+      ? { freePlanTireId: freePlanTireId ?? null }
+      : { limit: tiresPerVehicleLimit };
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -238,65 +235,28 @@ export function TireFormScreen({ navigation, route }: Props) {
   return (
     <FormScreen
       header={
-        <View
-          style={[
-            styles.topBar,
-            {
-              borderBottomColor: theme.colors.border,
-              backgroundColor: theme.colors.bg,
-            },
-          ]}
-        >
-          <Pressable
-            onPress={() => navigation.goBack()}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.pillButton,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-                opacity: pressed ? 0.75 : 1,
-              },
-            ]}
-          >
-            <Text style={[styles.pillText, { color: theme.colors.fg }]}>
-              {t("common.cancel")}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              if (canSave && !saving) void onSave();
-            }}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.pillButton,
-              {
-                borderColor: theme.colors.accent,
-                backgroundColor: accentBg,
-                opacity: !canSave || saving ? 0.5 : pressed ? 0.75 : 1,
-              },
-            ]}
-          >
-            <Text style={[styles.pillText, { color: theme.colors.accent }]}>
-              {t("common.done")}
-            </Text>
-          </Pressable>
-        </View>
+        <FormNavbar
+          onCancel={() => navigation.goBack()}
+          onSave={onSave}
+          canSave={canSave}
+          saving={saving}
+        />
       }
       footer={
         tireId ? (
           <Button variant="destructive" onPress={confirmDelete}>
             {t("common.delete")}
           </Button>
-        ) : null
+        ) : (
+          <Button variant="outlined" onPress={clearForm} disabled={saving}>
+            {t("common.clearButton")}
+          </Button>
+        )
       }
     >
-      <View style={{ height: theme.spacing.md }} />
-      <Text style={styles.h1}>
-        {tireId ? t("tireForm.editTitle") : t("tireForm.addTitle")}
-      </Text>
-
-      <View style={{ height: theme.spacing.md }} />
+      <ContentHeader
+        title={tireId ? t("tireForm.editTitle") : t("tireForm.addTitle")}
+      />
 
       <View
         style={[
@@ -523,39 +483,12 @@ export function TireFormScreen({ navigation, route }: Props) {
           </View>
         </View>
       </View>
-      {!tireId ? (
-        <>
-          <View style={{ height: theme.spacing.sm }} />
-          <Button variant="outlined" onPress={clearForm} disabled={saving}>
-            {t("common.clearButton")}
-          </Button>
-        </>
-      ) : null}
     </FormScreen>
   );
 }
 
 function makeStyles(theme: any) {
   return StyleSheet.create({
-    topBar: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingBottom: theme.spacing.sm,
-      paddingTop: theme.spacing.sm,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      borderBottomWidth: 1,
-    },
-    pillButton: {
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.md,
-      borderRadius: 9999,
-      borderWidth: 1,
-    },
-    pillText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
     h1: {
       fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,

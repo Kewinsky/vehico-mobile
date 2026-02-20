@@ -29,8 +29,7 @@ export function MonthYearSeparator({ monthYear }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     separator: {
-      marginTop: theme.spacing.md,
-      marginBottom: theme.spacing.sm,
+      marginTop: theme.spacing.sm,
     },
     separatorText: {
       fontSize: theme.typography.small,

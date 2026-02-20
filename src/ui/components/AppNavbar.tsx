@@ -28,7 +28,7 @@ function getInitials(user: {
   return email.slice(0, 2).toUpperCase() || "??";
 }
 
-export function AppHeader({
+export function AppNavbar({
   onBack,
   right,
   title,
@@ -152,7 +152,7 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     root: {
       height: theme.spacing.lg * 2 + theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "flex-start",

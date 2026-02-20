@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
@@ -13,13 +13,13 @@ import {
   listVehicleWheels,
   formatWheelDimensions,
 } from "../services/wheels/wheelsRepo";
-import { AppHeader } from "../ui/components/AppHeader";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { AppLayout } from "../ui/components/AppLayout";
+import { Tile } from "../ui/components/Tile";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { RimIcon } from "../ui/components/RimIcon";
 import { TireIcon } from "../ui/components/TireIcon";
 
@@ -116,45 +116,24 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
     [wheels],
   );
 
-  const content = loading ? (
-    <View style={styles.loadingContainer}>
-      <LoadingIndicator />
-    </View>
-  ) : (
+  const content = (
     <>
-      <View style={styles.buttonsRow}>
-        <Pressable
+      <View style={styles.row}>
+        <Tile
+          title={t("wheels.tiresSection")}
+          icon={<TireIcon size={32} color={theme.colors.accent} />}
           onPress={() => navigation.navigate("TiresList", { vehicleId })}
-          style={({ pressed }) => [
-            styles.tile,
-            pressed && styles.tilePressed,
-            {
-              borderColor: theme.colors.border,
-              backgroundColor: theme.colors.card,
-            },
-          ]}
-        >
-          <TireIcon size={32} color={theme.colors.accent} />
-          <Text style={styles.tileTitle}>{t("wheels.tiresSection")}</Text>
-        </Pressable>
-
-        <Pressable
+          minHeight={110}
+        />
+        <Tile
+          title={t("wheels.rimsSection")}
+          icon={<RimIcon size={32} color={theme.colors.accent} />}
           onPress={() => navigation.navigate("WheelsList", { vehicleId })}
-          style={({ pressed }) => [
-            styles.tile,
-            pressed && styles.tilePressed,
-            {
-              borderColor: theme.colors.border,
-              backgroundColor: theme.colors.card,
-            },
-          ]}
-        >
-          <RimIcon size={32} color={theme.colors.accent} />
-          <Text style={styles.tileTitle}>{t("wheels.rimsSection")}</Text>
-        </Pressable>
+          minHeight={110}
+        />
       </View>
 
-      <View style={{ height: theme.spacing.md }} />
+      <View style={{ height: theme.spacing.sm }} />
 
       <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
         {t("wheels.currentlyFitted")}
@@ -227,31 +206,24 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
   );
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >
-      <ScreenLayout title={t("wheels.title")} scrollable={false}>
-        {content}
-      </ScreenLayout>
-    </Screen>
+      <ContentHeader title={t("wheels.title")} />
+      <View style={{ flex: 1 }}>{content}</View>
+    </AppLayout>
   );
 }
 
 function makeStyles(theme: any) {
   return StyleSheet.create({
-    loadingContainer: {
-      flex: 1,
-      minHeight: 200,
-      alignItems: "center",
-      justifyContent: "center",
-    },
     sectionTitle: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
@@ -278,28 +250,9 @@ function makeStyles(theme: any) {
     },
     currentRowText: { flex: 1, minWidth: 0 },
     divider: { height: 1, width: "100%" },
-    buttonsRow: {
+    row: {
       flexDirection: "row",
-      gap: theme.spacing.md,
-    },
-    tile: {
-      flex: 1,
-      minHeight: 110,
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
-      alignItems: "center",
-      justifyContent: "center",
       gap: theme.spacing.sm,
-    },
-    tilePressed: {
-      opacity: 0.9,
-    },
-    tileTitle: {
-      color: theme.colors.fg,
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-      textAlign: "center",
     },
   });
 }

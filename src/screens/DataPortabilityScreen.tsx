@@ -13,9 +13,9 @@ import { listReminders } from "../services/reminders/remindersRepo";
 import { listVehicleWheels } from "../services/wheels/wheelsRepo";
 import { listVehicleTires } from "../services/tires/tiresRepo";
 import { listWorkshops } from "../services/workshops/workshopsRepo";
-import { AppHeader } from "../ui/components/AppHeader";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { AppLayout } from "../ui/components/AppLayout";
 import { Tile } from "../ui/components/Tile";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -360,17 +360,17 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
   );
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >
-      <ScreenLayout title={t("dataPortability.title")} scrollable={false}>
+      <ContentHeader title={t("dataPortability.title")} />
+      <View style={{ flex: 1 }}>
         <View style={styles.row}>
           {tiles.map((item) => (
             <Tile
@@ -389,8 +389,8 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
             />
           ))}
         </View>
-      </ScreenLayout>
-    </Screen>
+      </View>
+    </AppLayout>
   );
 }
 

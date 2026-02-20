@@ -43,6 +43,7 @@ import {
   uploadVehiclePhoto,
 } from "../services/vehicles/uploadPhoto";
 import { Button } from "../ui/components/Button";
+import { FormNavbar } from "../ui/components/FormNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
 import { SegmentTabs } from "../ui/components/SegmentTabs";
 import { hexToRgba } from "../ui/components/ChoiceChip";
@@ -55,6 +56,7 @@ import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlemen
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { Textarea } from "../ui/components/Textarea";
 import { DriveTypeIcon } from "../ui/components/DriveTypeIcon";
+import { ContentHeader } from "../ui/components/ContentHeader";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
 
@@ -701,55 +703,19 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     <FormScreen
       scrollEnabled={!isDragging}
       header={
-        <View
-          style={[
-            styles.topBar,
-            {
-              borderBottomColor: theme.colors.border,
-              backgroundColor: theme.colors.bg,
-            },
-          ]}
-        >
-          <Pressable
-            onPress={() => navigation.goBack()}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.pillButton,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-                opacity: pressed ? 0.75 : 1,
-              },
-            ]}
-          >
-            <Text style={[styles.pillText, { color: theme.colors.fg }]}>
-              {t("common.cancel")}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              if (canSave && !saving) void onSave();
-            }}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.pillButton,
-              {
-                borderColor: theme.colors.accent,
-                backgroundColor: accentBg,
-                opacity: !canSave || saving ? 0.5 : pressed ? 0.75 : 1,
-              },
-            ]}
-          >
-            <Text style={[styles.pillText, { color: theme.colors.accent }]}>
-              {t("common.done")}
-            </Text>
-          </Pressable>
-        </View>
+        <FormNavbar
+          onCancel={() => navigation.goBack()}
+          onSave={onSave}
+          canSave={canSave}
+          saving={saving}
+        />
       }
     >
-      <Text style={styles.h1}>
-        {isEditMode ? t("manageVehicle.editTitle") : t("vehicleForm.title")}
-      </Text>
+      <ContentHeader
+        title={
+          isEditMode ? t("manageVehicle.editTitle") : t("vehicleForm.title")
+        }
+      />
 
       {isEditMode && loading ? (
         <View style={styles.loadingContainer}>
@@ -824,6 +790,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                 onPress={pickSource}
                 disabled={saving || uploadingPhoto}
                 variant="ghost"
+                style={{ marginTop: theme.spacing.sm / 2 }}
               >
                 {t("vehicleForm.addPhoto")}
               </Button>
@@ -1451,25 +1418,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    topBar: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingBottom: theme.spacing.sm,
-      paddingTop: theme.spacing.sm,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      borderBottomWidth: 1,
-    },
-    pillButton: {
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.md,
-      borderRadius: 9999,
-      borderWidth: 1,
-    },
-    pillText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
     h1: {
       fontSize: theme.typography.largeTitle,
       marginVertical: theme.spacing.md,

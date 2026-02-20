@@ -230,6 +230,22 @@ export type Reminder = {
   recurrence_anchor_mileage: number | null;
 };
 
+/** One row in the service history timeline: either a reminder or a service entry. */
+export type TimelineItem =
+  | {
+      kind: "reminder";
+      id: string;
+      sortKey: string;
+      reminder: Reminder;
+    }
+  | {
+      kind: "service";
+      id: string;
+      sortKey: string;
+      sortMileage: number;
+      entry: ServiceEntry;
+    };
+
 export type MarketplacePlatform = "olx" | "facebook" | "generic";
 
 export type MarketplacePostContent = {

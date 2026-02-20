@@ -14,9 +14,10 @@ import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { AppHeader } from "../ui/components/AppHeader";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { AppLayout } from "../ui/components/AppLayout";
+import { EmptyState } from "../ui/components/EmptyState";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -41,7 +42,6 @@ import { Button } from "../ui/components/Button";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
@@ -311,7 +311,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
         autoCapitalize="none"
         autoCorrect={false}
         clearButtonMode="while-editing"
-        blurOnSubmit={true}
         keyboardAppearance={mode === "dark" ? "dark" : "light"}
         style={[styles.searchBarInput, { color: theme.colors.fg }]}
       />
@@ -319,10 +318,10 @@ export function DocumentsScreen({ route, navigation }: Props) {
   );
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
@@ -334,11 +333,11 @@ export function DocumentsScreen({ route, navigation }: Props) {
         </Button>
       }
     >
-      <ScreenLayout
-        title={t("dashboard.tiles.docsTitle")}
-        scrollable={true}
-        filterPanel={filterPanelContent}
-      >
+      <ScrollView style={{ flex: 1 }}>
+        <ContentHeader
+          title={t("dashboard.tiles.docsTitle")}
+          filterPanel={filterPanelContent}
+        />
         <Text
           style={[
             styles.section,
@@ -431,19 +430,13 @@ export function DocumentsScreen({ route, navigation }: Props) {
               </View>
             </View>
           ))}
-        {loading && vehicleDocs.length === 0 ? (
-          <View style={styles.loadingContainer}>
-            <LoadingIndicator />
-          </View>
-        ) : vehicleDocs.filter((d) => {
-            const q = query.trim().toLowerCase();
-            if (!q.length) return true;
-            const description = d.description || "";
-            return description.toLowerCase().includes(q);
-          }).length === 0 ? (
-          <Text style={{ color: theme.colors.muted }}>
-            {t("documents.noVehicleDocuments")}
-          </Text>
+        {vehicleDocs.filter((d) => {
+          const q = query.trim().toLowerCase();
+          if (!q.length) return true;
+          const description = d.description || "";
+          return description.toLowerCase().includes(q);
+        }).length === 0 ? (
+          <EmptyState body={t("documents.noVehicleDocuments")} />
         ) : null}
 
         <View style={{ height: theme.spacing.xl }} />
@@ -531,13 +524,11 @@ export function DocumentsScreen({ route, navigation }: Props) {
           if (!q.length) return true;
           const title = a.serviceEntryTitle || "";
           return title.toLowerCase().includes(q);
-        }).length === 0 && !loading ? (
-          <Text style={{ color: theme.colors.muted }}>
-            {t("documents.noAttachments")}
-          </Text>
+        }).length === 0 ? (
+          <EmptyState body={t("documents.noAttachments")} />
         ) : null}
-      </ScreenLayout>
-    </Screen>
+      </ScrollView>
+    </AppLayout>
   );
 }
 

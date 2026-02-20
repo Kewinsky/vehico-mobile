@@ -28,15 +28,14 @@ import {
   updatePublicReportTempPhotos,
 } from "../services/publicPages/publicPagesRepo";
 import { uploadReportPhotos } from "../services/publicPages/uploadReportPhoto";
-import { AppHeader } from "../ui/components/AppHeader";
+import { AppNavbar } from "../ui/components/AppNavbar";
 import { Button } from "../ui/components/Button";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { AppLayout } from "../ui/components/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportSummary">;
 
@@ -199,27 +198,6 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
 
   const photoCount = allPhotoUrls.length;
 
-  if (loading) {
-    return (
-      <Screen
-        padding={false}
-        header={
-          <AppHeader
-            onBack={() => navigation.goBack()}
-            showShopIcon={!isPremium}
-            onShopPress={() => navigation.navigate("Shop")}
-          />
-        }
-      >
-        <ScreenLayout title={t("publicReport.summaryTitle")} scrollable={false}>
-          <View style={styles.loadingContainer}>
-            <LoadingIndicator />
-          </View>
-        </ScreenLayout>
-      </Screen>
-    );
-  }
-
   const hasInsurance =
     (vehicle?.insurance_valid_until?.trim() ?? "").length > 0;
   const hasInspection =
@@ -227,10 +205,10 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const hasNotes = (vehicle?.notes?.trim() ?? "").length > 0;
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
@@ -265,8 +243,13 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
         </Button>
       }
     >
-      <ScreenLayout title={t("publicReport.summaryTitle")} scrollable={false}>
-        <ScrollView style={styles.scrollView}>
+      {!loading && (
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <ContentHeader title={t("publicReport.summaryTitle")} />
+
           {/* Summary of technical data */}
           {reportOptions.include_technical_data && vehicle && (
             <View style={styles.section}>
@@ -546,8 +529,8 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
             </Pressable>
           </View>
         </ScrollView>
-      </ScreenLayout>
-    </Screen>
+      )}
+    </AppLayout>
   );
 }
 

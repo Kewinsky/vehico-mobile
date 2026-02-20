@@ -20,7 +20,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as Notifications from "expo-notifications";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { Screen } from "../ui/components/Screen";
+import { AppLayout } from "../ui/components/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
 import { Button } from "../ui/components/Button";
 import { hexToRgba } from "../ui/components/ChoiceChip";
@@ -868,7 +868,7 @@ export function OnboardingFlowScreen({ navigation }: Props) {
   }
 
   return (
-    <Screen padding={false}>
+    <AppLayout>
       <View
         style={[
           styles.topBar,
@@ -994,7 +994,7 @@ export function OnboardingFlowScreen({ navigation }: Props) {
           </View>
         )}
       </View>
-    </Screen>
+    </AppLayout>
   );
 }
 

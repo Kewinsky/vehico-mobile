@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,15 +14,14 @@ import { listVehicleWheels } from "../services/wheels/wheelsRepo";
 import { getVehicle } from "../services/vehicles/vehiclesRepo";
 import { listPublicPages } from "../services/publicPages/publicPagesRepo";
 import type { Vehicle, PublicReportSnapshot } from "../types/domain";
-import { AppHeader } from "../ui/components/AppHeader";
+import { AppNavbar } from "../ui/components/AppNavbar";
 import { Button } from "../ui/components/Button";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { AppLayout } from "../ui/components/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { PickerField } from "../ui/components/PickerField";
 import { TextField } from "../ui/components/TextField";
 
@@ -193,10 +192,10 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   );
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
@@ -206,197 +205,169 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
         <Button onPress={handleNext}>{t("marketplace.nextButton")}</Button>
       }
     >
-      <ScreenLayout title={t("marketplace.configureTitle")} scrollable>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <LoadingIndicator />
-          </View>
-        ) : (
-          <>
-            <View style={styles.section}>
-                <CheckboxRow
-                  label={t("publicReport.optionTechnicalData")}
-                  checked={includeTechnicalData}
-                  onPress={() => {}}
-                  disabled
-                  suffix={t("publicReport.optionTechnicalDataAlways")}
+      <ScrollView style={{ flex: 1 }}>
+        <ContentHeader title={t("marketplace.configureTitle")} />
+        <View style={styles.section}>
+          <CheckboxRow
+            label={t("publicReport.optionTechnicalData")}
+            checked={includeTechnicalData}
+            onPress={() => {}}
+            disabled
+            suffix={t("publicReport.optionTechnicalDataAlways")}
+          />
+          <CheckboxRow
+            label={t("publicReport.optionInsurance")}
+            checked={includeInsurance}
+            onPress={() => setIncludeInsurance(!includeInsurance)}
+            disabled={!hasInsurance}
+            suffix={!hasInsurance ? `(${t("publicReport.noData")})` : undefined}
+          />
+          <CheckboxRow
+            label={t("publicReport.optionInspection")}
+            checked={includeInspection}
+            onPress={() => setIncludeInspection(!includeInspection)}
+            disabled={!hasInspection}
+            suffix={
+              !hasInspection ? `(${t("publicReport.noData")})` : undefined
+            }
+          />
+          <CheckboxRow
+            label={t("publicReport.optionNotes", {
+              vehicleTitle: vehicle ? `${vehicle.make} ${vehicle.model}` : "",
+            })}
+            checked={includeNotes}
+            onPress={() => setIncludeNotes(!includeNotes)}
+            disabled={!hasNotes}
+            suffix={!hasNotes ? `(${t("publicReport.noData")})` : undefined}
+          />
+          <CheckboxRow
+            label={t("publicReport.optionWheels")}
+            checked={includeWheels}
+            onPress={() => setIncludeWheels(!includeWheels)}
+            disabled={!hasWheels}
+            suffix={!hasWheels ? `(${t("publicReport.noData")})` : undefined}
+          />
+          <CheckboxRow
+            label={t("publicReport.optionTires")}
+            checked={includeTires}
+            onPress={() => setIncludeTires(!includeTires)}
+            disabled={!hasTires}
+            suffix={!hasTires ? `(${t("publicReport.noData")})` : undefined}
+          />
+          <CheckboxRow
+            label={t("publicReport.optionServiceHistory")}
+            checked={includeServiceHistory}
+            onPress={() => setIncludeServiceHistory(!includeServiceHistory)}
+            disabled={!hasServiceHistory}
+            suffix={
+              hasServiceHistory
+                ? t("publicReport.optionServiceHistoryEntries", {
+                    count: serviceEntriesCount,
+                  })
+                : t("publicReport.optionServiceHistoryNoData")
+            }
+          />
+          <CheckboxRow
+            label={t("publicReport.optionServiceStats")}
+            checked={includeServiceStats}
+            onPress={() => setIncludeServiceStats(!includeServiceStats)}
+            disabled={!hasServiceStats}
+            suffix={
+              !hasServiceStats ? `(${t("publicReport.noData")})` : undefined
+            }
+          />
+          <CheckboxRow
+            label={t("publicReport.optionFuelingStats")}
+            checked={includeFuelingStats}
+            onPress={() => setIncludeFuelingStats(!includeFuelingStats)}
+            disabled={!hasFuelingStats}
+            suffix={
+              !hasFuelingStats ? `(${t("publicReport.noData")})` : undefined
+            }
+          />
+          <CheckboxRow
+            label={t("marketplace.optionPrice")}
+            checked={includePrice}
+            onPress={() => setIncludePrice(!includePrice)}
+          />
+          {includePrice && (
+            <View style={styles.priceSection}>
+              <View style={styles.priceField}>
+                <TextField
+                  noMarginTop
+                  value={price}
+                  onChangeText={setPrice}
+                  keyboardType="decimal-pad"
+                  placeholder={t("marketplace.pricePlaceholder")}
                 />
-                <CheckboxRow
-                  label={t("publicReport.optionInsurance")}
-                  checked={includeInsurance}
-                  onPress={() => setIncludeInsurance(!includeInsurance)}
-                  disabled={!hasInsurance}
-                  suffix={
-                    !hasInsurance ? `(${t("publicReport.noData")})` : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionInspection")}
-                  checked={includeInspection}
-                  onPress={() => setIncludeInspection(!includeInspection)}
-                  disabled={!hasInspection}
-                  suffix={
-                    !hasInspection ? `(${t("publicReport.noData")})` : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionNotes", {
-                    vehicleTitle: vehicle
-                      ? `${vehicle.make} ${vehicle.model}`
-                      : "",
-                  })}
-                  checked={includeNotes}
-                  onPress={() => setIncludeNotes(!includeNotes)}
-                  disabled={!hasNotes}
-                  suffix={
-                    !hasNotes ? `(${t("publicReport.noData")})` : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionWheels")}
-                  checked={includeWheels}
-                  onPress={() => setIncludeWheels(!includeWheels)}
-                  disabled={!hasWheels}
-                  suffix={
-                    !hasWheels ? `(${t("publicReport.noData")})` : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionTires")}
-                  checked={includeTires}
-                  onPress={() => setIncludeTires(!includeTires)}
-                  disabled={!hasTires}
-                  suffix={
-                    !hasTires ? `(${t("publicReport.noData")})` : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionServiceHistory")}
-                  checked={includeServiceHistory}
-                  onPress={() =>
-                    setIncludeServiceHistory(!includeServiceHistory)
-                  }
-                  disabled={!hasServiceHistory}
-                  suffix={
-                    hasServiceHistory
-                      ? t("publicReport.optionServiceHistoryEntries", {
-                          count: serviceEntriesCount,
-                        })
-                      : t("publicReport.optionServiceHistoryNoData")
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionServiceStats")}
-                  checked={includeServiceStats}
-                  onPress={() => setIncludeServiceStats(!includeServiceStats)}
-                  disabled={!hasServiceStats}
-                  suffix={
-                    !hasServiceStats
-                      ? `(${t("publicReport.noData")})`
-                      : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("publicReport.optionFuelingStats")}
-                  checked={includeFuelingStats}
-                  onPress={() => setIncludeFuelingStats(!includeFuelingStats)}
-                  disabled={!hasFuelingStats}
-                  suffix={
-                    !hasFuelingStats
-                      ? `(${t("publicReport.noData")})`
-                      : undefined
-                  }
-                />
-                <CheckboxRow
-                  label={t("marketplace.optionPrice")}
-                  checked={includePrice}
-                  onPress={() => setIncludePrice(!includePrice)}
-                />
-                {includePrice && (
-                  <View style={styles.priceSection}>
-                    <View style={styles.priceField}>
-                      <TextField
-                        noMarginTop
-                        value={price}
-                        onChangeText={setPrice}
-                        keyboardType="decimal-pad"
-                        placeholder={t("marketplace.pricePlaceholder")}
-                      />
-                    </View>
-                    <View style={styles.currencyField}>
-                      <PickerField
-                        noMarginTop
-                        label=""
-                        value={currency}
-                        options={["PLN", "EUR"] as const}
-                        getLabel={(value) => value}
-                        onChange={(value) => {
-                          if (value) setCurrency(value);
-                        }}
-                      />
-                    </View>
-                  </View>
-                )}
-                <CheckboxRow
-                  label={t("marketplace.optionPublicReport")}
-                  checked={includePublicReport}
-                  onPress={() => setIncludePublicReport(!includePublicReport)}
-                  disabled={publicReports.length === 0}
-                  suffix={
-                    publicReports.length === 0
-                      ? `(${t("marketplace.noReports")})`
-                      : undefined
-                  }
-                />
-                {includePublicReport && (
-                  <View style={styles.section}>
-                    {publicReports.length > 0 ? (
-                      <PickerField
-                        noMarginTop
-                        label=""
-                        value={selectedReportId as string | null}
-                        options={
-                          publicReports.map((r) => r.id) as readonly string[]
-                        }
-                        getLabel={(value) => {
-                          const report = publicReports.find(
-                            (r) => r.id === value,
-                          );
-                          if (!report) return t("marketplace.noReport");
-                          const date = formatDateDisplay(
-                            report.created_at,
-                            i18n.language,
-                          );
-                          return (
-                            report.title ||
-                            `${t("marketplace.report")} - ${date}`
-                          );
-                        }}
-                        onChange={(value) => setSelectedReportId(value)}
-                        placeholder={t("marketplace.noReport")}
-                      />
-                    ) : (
-                      <Text style={styles.noReportsText}>
-                        {t("marketplace.noReports")}
-                      </Text>
-                    )}
-                  </View>
-                )}
               </View>
-
-              {unavailableOptions.length > 0 && (
-                <View style={[styles.section, styles.hintSection]}>
-                  <Text style={styles.hintText}>
-                    {t("publicReport.unavailableOptionsHint", {
-                      list: unavailableOptions.join(", "),
-                    })}
-                  </Text>
-                </View>
+              <View style={styles.currencyField}>
+                <PickerField
+                  noMarginTop
+                  label=""
+                  value={currency}
+                  options={["PLN", "EUR"] as const}
+                  getLabel={(value) => value}
+                  onChange={(value) => {
+                    if (value) setCurrency(value);
+                  }}
+                />
+              </View>
+            </View>
+          )}
+          <CheckboxRow
+            label={t("marketplace.optionPublicReport")}
+            checked={includePublicReport}
+            onPress={() => setIncludePublicReport(!includePublicReport)}
+            disabled={publicReports.length === 0}
+            suffix={
+              publicReports.length === 0
+                ? `(${t("marketplace.noReports")})`
+                : undefined
+            }
+          />
+          {includePublicReport && (
+            <View style={styles.section}>
+              {publicReports.length > 0 ? (
+                <PickerField
+                  noMarginTop
+                  label=""
+                  value={selectedReportId as string | null}
+                  options={publicReports.map((r) => r.id) as readonly string[]}
+                  getLabel={(value) => {
+                    const report = publicReports.find((r) => r.id === value);
+                    if (!report) return t("marketplace.noReport");
+                    const date = formatDateDisplay(
+                      report.created_at,
+                      i18n.language,
+                    );
+                    return (
+                      report.title || `${t("marketplace.report")} - ${date}`
+                    );
+                  }}
+                  onChange={(value) => setSelectedReportId(value)}
+                  placeholder={t("marketplace.noReport")}
+                />
+              ) : (
+                <Text style={styles.noReportsText}>
+                  {t("marketplace.noReports")}
+                </Text>
               )}
-          </>
+            </View>
+          )}
+        </View>
+
+        {unavailableOptions.length > 0 && (
+          <View style={[styles.section, styles.hintSection]}>
+            <Text style={styles.hintText}>
+              {t("publicReport.unavailableOptionsHint", {
+                list: unavailableOptions.join(", "),
+              })}
+            </Text>
+          </View>
         )}
-      </ScreenLayout>
-    </Screen>
+      </ScrollView>
+    </AppLayout>
   );
 }
 
@@ -407,10 +378,6 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
-    },
-    loadingContainer: {
-      paddingVertical: theme.spacing.xl,
-      alignItems: "center",
     },
     section: { marginBottom: theme.spacing.lg },
     hintSection: {

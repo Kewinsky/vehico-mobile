@@ -1,12 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Dimensions,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { useIsFocused } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -24,17 +17,18 @@ import {
 } from "../services/vehicles/uploadPhoto";
 import { Alert } from "react-native";
 import { Button } from "../ui/components/Button";
-import { Screen } from "../ui/components/Screen";
-import { AppHeader } from "../ui/components/AppHeader";
+import { EmptyState } from "../ui/components/EmptyState";
+import { AppNavbar } from "../ui/components/AppNavbar";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../app/providers/AuthProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { normalizeDisplayName } from "../utils/displayName";
 import { hexToRgba } from "../ui/components/ChoiceChip";
+import { AppLayout } from "../ui/components/AppLayout";
+import { CustomFlatList } from "../ui/components/CustomFlatList";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 
@@ -399,10 +393,10 @@ export function VehiclesScreen({ navigation, route }: Props) {
   };
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           title={headerTitle}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
@@ -412,133 +406,118 @@ export function VehiclesScreen({ navigation, route }: Props) {
         <Button onPress={handleAddVehicle}>{t("vehicles.addVehicle")}</Button>
       }
     >
-      <View style={styles.body}>
-        {loading && items.length === 0 ? (
-          <View style={styles.loadingContainer}>
-            <LoadingIndicator />
-          </View>
-        ) : items.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>{t("vehicles.emptyTitle")}</Text>
-            <Text style={styles.emptyBody}>{t("vehicles.emptyBody")}</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={sortedItems}
-            keyExtractor={(v) => v.id}
-            contentContainerStyle={styles.list}
-            showsVerticalScrollIndicator={false}
-            refreshing={refreshing}
-            onRefresh={() => void load({ refreshing: true })}
-            renderItem={({ item }) => {
-              const isLocked =
-                !isPremium &&
-                (visibleVehicleId == null || item.id !== visibleVehicleId);
-              return (
-                <Pressable
-                  onPress={() => {
-                    if (isLocked) {
-                      handleLockedVehiclePress();
-                      return;
-                    }
-                    navigation.navigate("VehicleDashboard", {
-                      vehicleId: item.id,
-                    });
-                  }}
-                  style={({ pressed }) => [
-                    styles.vehicleCard,
-                    pressed && styles.vehicleCardPressed,
-                  ]}
-                >
-                  <View style={styles.vehicleImageContainer}>
-                    {(() => {
-                      const photoUrls = photoUrlsMap.get(item.id) || [];
-                      const carouselWidth =
-                        windowWidth - theme.layout.contentPaddingHorizontal * 2;
+      <CustomFlatList
+        data={sortedItems}
+        keyExtractor={(v) => v.id}
+        refreshing={refreshing}
+        onRefresh={() => void load({ refreshing: true })}
+        contentContainerStyle={{ paddingTop: theme.spacing.sm }}
+        ListEmptyComponent={<EmptyState body={t("vehicles.emptyTitle")} />}
+        renderItem={({ item }) => {
+          const isLocked =
+            !isPremium &&
+            (visibleVehicleId == null || item.id !== visibleVehicleId);
+          return (
+            <Pressable
+              onPress={() => {
+                if (isLocked) {
+                  handleLockedVehiclePress();
+                  return;
+                }
+                navigation.navigate("VehicleDashboard", {
+                  vehicleId: item.id,
+                });
+              }}
+              style={({ pressed }) => [
+                styles.vehicleCard,
+                pressed && styles.vehicleCardPressed,
+              ]}
+            >
+              <View style={styles.vehicleImageContainer}>
+                {(() => {
+                  const photoUrls = photoUrlsMap.get(item.id) || [];
 
-                      if (photoUrls.length === 0) {
-                        return (
-                          <>
-                            {isLocked && (
-                              <View
-                                style={{
-                                  position: "absolute",
-                                  top: 0,
-                                  left: 0,
-                                  right: 0,
-                                  bottom: 0,
-                                  backgroundColor: "rgba(0,0,0,0.65)",
-                                  zIndex: 5,
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                }}
-                                pointerEvents="none"
-                              >
-                                <Ionicons
-                                  name="lock-closed"
-                                  size={48}
-                                  color="rgba(255,255,255,0.9)"
-                                />
-                              </View>
-                            )}
-                            <View style={styles.vehicleImagePlaceholder}>
-                              <Text style={styles.vehicleImagePlaceholderText}>
-                                {item.type === "car" ? "🚗" : "🏍️"}
-                              </Text>
-                            </View>
-                            <View style={styles.vehicleImageContent}>
-                              <Text
-                                style={[
-                                  styles.vehicleTitle,
-                                  styles.vehicleTitleOverlay,
-                                ]}
-                                numberOfLines={2}
-                              >
-                                {`${item.make} ${item.model}`}
-                              </Text>
-                              <Text
-                                style={[
-                                  styles.vehicleMeta,
-                                  styles.vehicleMetaOverlay,
-                                ]}
-                                numberOfLines={1}
-                              >
-                                {item.production_year}
-                                {item.power_hp
-                                  ? ` · ${item.power_hp}${
-                                      i18n.language === "pl" ? "KM" : "HP"
-                                    }`
-                                  : ""}
-                                {item.mileage
-                                  ? ` · ${formatMileage(item.mileage)}`
-                                  : ""}
-                              </Text>
-                            </View>
-                          </>
-                        );
-                      }
+                  if (photoUrls.length === 0) {
+                    return (
+                      <>
+                        {isLocked && (
+                          <View
+                            style={{
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              backgroundColor: "rgba(0,0,0,0.65)",
+                              zIndex: 5,
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                            pointerEvents="none"
+                          >
+                            <Ionicons
+                              name="lock-closed"
+                              size={48}
+                              color="rgba(255,255,255,0.9)"
+                            />
+                          </View>
+                        )}
+                        <View style={styles.vehicleImagePlaceholder}>
+                          <Text style={styles.vehicleImagePlaceholderText}>
+                            {item.type === "car" ? "🚗" : "🏍️"}
+                          </Text>
+                        </View>
+                        <View style={styles.vehicleImageContent}>
+                          <Text
+                            style={[
+                              styles.vehicleTitle,
+                              styles.vehicleTitleOverlay,
+                            ]}
+                            numberOfLines={2}
+                          >
+                            {`${item.make} ${item.model}`}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.vehicleMeta,
+                              styles.vehicleMetaOverlay,
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {item.production_year}
+                            {item.power_hp
+                              ? ` · ${item.power_hp}${
+                                  i18n.language === "pl" ? "KM" : "HP"
+                                }`
+                              : ""}
+                            {item.mileage
+                              ? ` · ${formatMileage(item.mileage)}`
+                              : ""}
+                          </Text>
+                        </View>
+                      </>
+                    );
+                  }
 
-                      return (
-                        <VehicleCardImage
-                          item={item}
-                          photoUrls={photoUrls}
-                          carouselWidth={carouselWidth}
-                          theme={theme}
-                          styles={styles}
-                          formatMileage={formatMileage}
-                          i18n={i18n}
-                          isLocked={isLocked}
-                        />
-                      );
-                    })()}
-                  </View>
-                </Pressable>
-              );
-            }}
-          />
-        )}
-      </View>
-    </Screen>
+                  return (
+                    <VehicleCardImage
+                      item={item}
+                      photoUrls={photoUrls}
+                      carouselWidth={windowWidth}
+                      theme={theme}
+                      styles={styles}
+                      formatMileage={formatMileage}
+                      i18n={i18n}
+                      isLocked={isLocked}
+                    />
+                  );
+                })()}
+              </View>
+            </Pressable>
+          );
+        }}
+      />
+    </AppLayout>
   );
 }
 
@@ -546,29 +525,8 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     body: {
       flex: 1,
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    emptyContainer: {
-      gap: theme.spacing.xs / 2,
-    },
-    emptyTitle: {
-      fontSize: theme.typography.title,
-      fontWeight: theme.typography.fontWeight.bold,
-      color: theme.colors.fg,
-    },
-    emptyBody: {
-      color: theme.colors.muted,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    list: {
-      paddingBottom: insets.bottom,
     },
     vehicleCard: {
-      marginTop: theme.spacing.md,
       borderRadius: theme.radius.md,
       overflow: "hidden",
       backgroundColor: theme.colors.card,

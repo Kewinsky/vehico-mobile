@@ -1,7 +1,6 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
-  Keyboard,
   Platform,
   Pressable,
   StyleSheet,
@@ -14,9 +13,10 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { AppHeader } from "../ui/components/AppHeader";
-import { ScreenLayout } from "../ui/components/ScreenLayout";
-import { Screen } from "../ui/components/Screen";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { AppLayout } from "../ui/components/AppLayout";
+import { ContentHeader } from "../ui/components/ContentHeader";
+import { EmptyState } from "../ui/components/EmptyState";
 import { useTheme } from "../ui/ThemeProvider";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Reminder } from "../types/domain";
@@ -30,9 +30,8 @@ import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
-import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { hexToRgba } from "../ui/components/ChoiceChip";
-import { ScreenFlatList } from "../ui/components/ScreenFlatList";
+import { CustomFlatList } from "../ui/components/CustomFlatList";
 type Props = NativeStackScreenProps<AppStackParamList, "Reminders">;
 
 function pad2(n: number) {
@@ -64,7 +63,7 @@ export function RemindersScreen({ route, navigation }: Props) {
     [theme.colors.accent],
   );
   const [items, setItems] = useState<Reminder[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const distanceUnit = settings?.distanceUnit ?? "km";
   const [query, setQuery] = useState("");
@@ -122,18 +121,19 @@ export function RemindersScreen({ route, navigation }: Props) {
 
   const loadRef = useRef(load);
   loadRef.current = load;
+  const refreshEntitlementsRef = useRef(refreshEntitlements);
+  refreshEntitlementsRef.current = refreshEntitlements;
 
   useEffect(() => {
-    // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
-    void load();
+    void load({ showLoading: false });
     const unsub = navigation.addListener("focus", () => {
       // Refresh entitlements first (trigger updated free_plan_reminder_ids), then reload list after React has updated context
-      void refreshEntitlements().then(() => {
+      void refreshEntitlementsRef.current?.().then(() => {
         setTimeout(() => loadRef.current?.({ showLoading: false }), 0);
       });
     });
     return unsub;
-  }, [navigation, load, refreshEntitlements]);
+  }, [navigation, load]);
 
   async function performToggle(reminder: Reminder) {
     try {
@@ -468,7 +468,7 @@ export function RemindersScreen({ route, navigation }: Props) {
 
       {filtersOpen ? (
         <>
-          <View style={{ height: theme.spacing.md }} />
+          <View style={{ height: theme.spacing.sm }} />
           <View
             style={[
               styles.filtersCard,
@@ -619,23 +619,22 @@ export function RemindersScreen({ route, navigation }: Props) {
   );
 
   return (
-    <Screen
-      padding={false}
+    <AppLayout
+      loading={loading}
       header={
-        <AppHeader
+        <AppNavbar
           onBack={() => navigation.goBack()}
           showShopIcon={!isPremium}
           onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >
-      <ScreenFlatList<Reminder>
+      <CustomFlatList<Reminder>
         data={filteredRemindersList}
         listHeaderComponent={
-          <ScreenLayout
+          <ContentHeader
             title={t("dashboard.tiles.remindersTitle")}
             filterPanel={filterPanelContent}
-            listHeaderOnly
           />
         }
         groupByMonth
@@ -723,38 +722,20 @@ export function RemindersScreen({ route, navigation }: Props) {
             </View>
           );
         }}
-        ListEmptyComponent={
-          loading ? (
-            <View style={styles.loadingContainer}>
-              <LoadingIndicator />
-            </View>
-          ) : (
-            <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
-              {t("reminders.noItems")}
-            </Text>
-          )
-        }
-        scrollIndicatorInsets={{ right: 0 }}
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
-        onTouchStart={Keyboard.dismiss}
+        ListEmptyComponent={<EmptyState body={t("reminders.noItems")} />}
         refreshing={refreshing}
         onRefresh={() => void load({ refreshing: true })}
       />
-    </Screen>
+    </AppLayout>
   );
 }
 
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     panelButtonsRow: {
-      marginLeft: theme.spacing.sm,
+      marginLeft: theme.spacing.xs,
       flexDirection: "row",
-      gap: theme.spacing.sm,
-    },
-    emptyText: {
-      marginTop: theme.spacing.sm,
-      fontSize: theme.typography.small,
+      gap: theme.spacing.xs,
     },
     card: {
       borderWidth: 1,
@@ -869,13 +850,5 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     pickerActionText: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
-    },
-    loadingContainer: {
-      flex: 1,
-      minHeight: 200,
-      paddingTop: theme.spacing.lg * 2.5,
-      paddingBottom: theme.spacing.lg * 2.5,
-      alignItems: "center",
-      justifyContent: "center",
     },
   });

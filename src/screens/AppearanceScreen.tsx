@@ -13,8 +13,8 @@ import { Ionicons } from "@expo/vector-icons";
 import type { TFunction } from "i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { AppHeader } from "../ui/components/AppHeader";
-import { Screen } from "../ui/components/Screen";
+import { AppNavbar } from "../ui/components/AppNavbar";
+import { AppLayout } from "../ui/components/AppLayout";
 import type { UserSettings } from "../app/providers/UserSettingsProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useTheme } from "../ui/ThemeProvider";
@@ -117,128 +117,107 @@ export function AppearanceScreen({ navigation }: Props) {
     }
   }
 
-  if (!settings) {
-    return (
-      <Screen
-        padding={false}
-        header={<AppHeader onBack={() => navigation.goBack()} />}
-      >
-        <View
-          style={[
-            styles.loadingWrap,
-            { paddingHorizontal: theme.layout.contentPaddingHorizontal },
-          ]}
-        >
-          <ActivityIndicator />
-        </View>
-      </Screen>
-    );
-  }
-
   const themeIcon: React.ComponentProps<typeof Ionicons>["name"] =
     mode === "dark" ? "moon-outline" : "sunny-outline";
 
   return (
-    <Screen
-      padding={false}
-      header={<AppHeader onBack={() => navigation.goBack()} />}
+    <AppLayout
+      loading={!settings}
+      header={<AppNavbar onBack={() => navigation.goBack()} />}
     >
-      <ScrollView
-        contentContainerStyle={[
-          styles.container,
-          { paddingHorizontal: theme.layout.contentPaddingHorizontal },
-        ]}
-      >
-        <Text style={[styles.largeTitle, { color: theme.colors.fg }]}>
-          {t("settings.appearanceButton")}
-        </Text>
+      {settings && (
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={[styles.largeTitle, { color: theme.colors.fg }]}>
+            {t("settings.appearanceButton")}
+          </Text>
 
-        {cardConfig.map(({ cardLabelKey, items }) => (
-          <View
-            key={cardLabelKey}
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <Text style={[styles.cardTitle, { color: theme.colors.fg }]}>
-              {t(cardLabelKey)}
-            </Text>
-            {items.map(({ key, icon, labelKey, options }) => {
-              const currentIcon = key === "theme" ? themeIcon : icon;
-              const value = settings[key];
-              return (
-                <View key={key} style={[styles.row]}>
-                  <View style={styles.sectionTitleRow}>
-                    <Ionicons
-                      name={currentIcon}
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
+          {cardConfig.map(({ cardLabelKey, items }) => (
+            <View
+              key={cardLabelKey}
+              style={[
+                styles.card,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <Text style={[styles.cardTitle, { color: theme.colors.fg }]}>
+                {t(cardLabelKey)}
+              </Text>
+              {items.map(({ key, icon, labelKey, options }) => {
+                const currentIcon = key === "theme" ? themeIcon : icon;
+                const value = settings[key];
+                return (
+                  <View key={key} style={[styles.row]}>
+                    <View style={styles.sectionTitleRow}>
+                      <Ionicons
+                        name={currentIcon}
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <Text
+                        style={[
+                          styles.sectionLabel,
+                          { color: theme.colors.muted },
+                        ]}
+                      >
+                        {t(labelKey)}
+                      </Text>
+                    </View>
+                    <View
                       style={[
-                        styles.sectionLabel,
-                        { color: theme.colors.muted },
+                        styles.tabsWrap,
+                        {
+                          borderColor: theme.colors.border,
+                          backgroundColor: theme.colors.bg,
+                        },
                       ]}
                     >
-                      {t(labelKey)}
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.tabsWrap,
-                      {
-                        borderColor: theme.colors.border,
-                        backgroundColor: theme.colors.bg,
-                      },
-                    ]}
-                  >
-                    {options.map((opt) => {
-                      const selected = value === opt.value;
-                      return (
-                        <Pressable
-                          key={String(opt.value)}
-                          onPress={() => void pick(key, opt.value)}
-                          style={({ pressed }) => [
-                            styles.tab,
-                            selected && styles.tabSelected,
-                            {
-                              borderColor: theme.colors.accent,
-                              backgroundColor: selected
-                                ? accentBg
-                                : "transparent",
-                              opacity: pressed ? 0.85 : 1,
-                            },
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.tabText,
+                      {options.map((opt) => {
+                        const selected = value === opt.value;
+                        return (
+                          <Pressable
+                            key={String(opt.value)}
+                            onPress={() => void pick(key, opt.value)}
+                            style={({ pressed }) => [
+                              styles.tab,
+                              selected && styles.tabSelected,
                               {
-                                color: selected
-                                  ? theme.colors.accent
-                                  : theme.colors.muted,
+                                borderColor: theme.colors.accent,
+                                backgroundColor: selected
+                                  ? accentBg
+                                  : "transparent",
+                                opacity: pressed ? 0.85 : 1,
                               },
                             ]}
                           >
-                            {opt.label}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
+                            <Text
+                              style={[
+                                styles.tabText,
+                                {
+                                  color: selected
+                                    ? theme.colors.accent
+                                    : theme.colors.muted,
+                                },
+                              ]}
+                            >
+                              {opt.label}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
                   </View>
-                </View>
-              );
-            })}
-          </View>
-        ))}
+                );
+              })}
+            </View>
+          ))}
 
-        <View style={styles.bottomSpacer} />
-      </ScrollView>
-    </Screen>
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+      )}
+    </AppLayout>
   );
 }
 
