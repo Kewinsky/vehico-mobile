@@ -27,6 +27,7 @@ import { toastError } from "../ui/toast/toast";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CustomFlatList } from "../ui/components/CustomFlatList";
+import { TimelineItem } from "../ui/components/TimelineItem";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WheelsList">;
 
@@ -152,70 +153,22 @@ export function WheelsListScreen({ route, navigation }: Props) {
           }
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <Pressable
-              style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+            <TimelineItem
+              title={item.name}
+              subtitle={wheelSubtitle(item, t)}
+              badge={
+                item.is_currently_fitted
+                  ? t("wheels.currentlyFitted")
+                  : undefined
+              }
+              badgeVariant="accent"
               onPress={() =>
                 navigation.navigate("WheelForm", {
                   vehicleId,
                   wheelId: item.id,
                 })
               }
-            >
-              <View
-                style={[
-                  styles.card,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <View style={styles.cardRow}>
-                  <View style={{ flex: 1 }}>
-                    <View style={styles.titleRow}>
-                      <Text
-                        style={[styles.itemTitle, { color: theme.colors.fg }]}
-                        numberOfLines={1}
-                      >
-                        {item.name}
-                      </Text>
-                      {item.is_currently_fitted && (
-                        <View
-                          style={[
-                            styles.badge,
-                            {
-                              borderColor: theme.colors.accent,
-                              backgroundColor: theme.colors.accent,
-                            },
-                          ]}
-                        >
-                          <Text style={styles.badgeText}>
-                            {t("wheels.currentlyFitted")}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text
-                      style={[
-                        styles.itemSubtitle,
-                        {
-                          color: theme.colors.muted,
-                          marginTop: theme.spacing.xs,
-                        },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {wheelSubtitle(item, t)}
-                    </Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
-                    color={theme.colors.accent}
-                  />
-                </View>
-              </View>
-            </Pressable>
+            />
           )}
           ListEmptyComponent={<EmptyState body={t("wheels.noWheels")} />}
         />

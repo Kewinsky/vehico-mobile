@@ -42,6 +42,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
 import { CustomFlatList } from "../ui/components/CustomFlatList";
 import { AppLayout } from "../ui/components/AppLayout";
 import { EmptyState } from "../ui/components/EmptyState";
+import { TimelineItem } from "../ui/components/TimelineItem";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -610,57 +611,24 @@ export function FuelScreen({ route, navigation }: Props) {
         getMonthYearKey={getMonthYearKey}
         keyExtractor={(item) => item.id}
         renderItem={({ item: entry }) => (
-          <Pressable
-            style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+          <TimelineItem
+            title={`${entry.date}${
+              entry.fuel_type
+                ? ` · ${t(`fuelingForm.fuelTypes.${entry.fuel_type}`)}`
+                : ""
+            }${
+              entry.gas_station
+                ? ` · ${t(`fuelingForm.stations.${entry.gas_station}`)}`
+                : ""
+            }`}
+            subtitle={`${Number(entry.distance).toFixed(1)} ${distanceUnit} · ${Number(entry.fuel_amount).toFixed(1)} ${fuelUnitLabel} · ${Number(entry.fuel_cost).toFixed(2)} ${currency}`}
             onPress={() =>
               navigation.navigate("FuelingEntryForm", {
                 vehicleId: route.params.vehicleId,
                 entryId: entry.id,
               })
             }
-          >
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.cardRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.cardTitle, { color: theme.colors.fg }]}>
-                    {entry.date}
-                    {entry.fuel_type
-                      ? ` · ${t(`fuelingForm.fuelTypes.${entry.fuel_type}`)}`
-                      : ""}
-                    {entry.gas_station
-                      ? ` · ${t(`fuelingForm.stations.${entry.gas_station}`)}`
-                      : ""}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.cardMeta,
-                      {
-                        color: theme.colors.muted,
-                        marginTop: theme.spacing.xs,
-                      },
-                    ]}
-                  >
-                    {Number(entry.distance).toFixed(1)} {distanceUnit} ·{" "}
-                    {Number(entry.fuel_amount).toFixed(1)} {fuelUnitLabel} ·{" "}
-                    {Number(entry.fuel_cost).toFixed(2)} {currency}
-                  </Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={22}
-                  color={theme.colors.accent}
-                />
-              </View>
-            </View>
-          </Pressable>
+          />
         )}
         ListEmptyComponent={<EmptyState body={t("fuelCosts.noFueling")} />}
       />

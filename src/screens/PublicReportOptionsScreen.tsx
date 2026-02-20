@@ -28,7 +28,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
   const { theme, mode } = useTheme();
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { url, vehicleId, reportTitle } = route.params;
+  const { url, vehicleId, reportTitle, generatedAt } = route.params;
   const { width } = useWindowDimensions();
 
   const qrSize = useMemo(() => {
@@ -87,15 +87,8 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
         />
       }
     >
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={[
-          styles.wrap,
-          { paddingBottom: theme.spacing.xl },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <ContentHeader title={layoutTitle} />
+      <View style={{ flex: 1, paddingBottom: theme.spacing.xl }}>
+        <ContentHeader title={layoutTitle} subtitle={generatedAt} />
         <View style={styles.qrContainer}>
           <View
             style={[
@@ -123,34 +116,17 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
             {t("share.title")}
           </Button>
         </View>
-      </ScrollView>
+      </View>
     </AppLayout>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    wrap: {
-      paddingBottom: theme.spacing.xl,
-      gap: theme.spacing.md,
-    },
-    subtitle: {
-      fontSize: theme.typography.small,
-      color: theme.colors.muted,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    card: {
-      padding: theme.spacing.md,
-      gap: theme.spacing.sm,
-    },
-    cardTitle: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-      color: theme.colors.fg,
-    },
     qrContainer: {
       alignItems: "center",
       justifyContent: "center",
+      marginBottom: theme.spacing.md,
     },
     qrWrapper: {
       padding: theme.spacing.md,

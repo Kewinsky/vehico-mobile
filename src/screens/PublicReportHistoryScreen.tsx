@@ -27,6 +27,7 @@ import { EmptyState } from "../ui/components/EmptyState";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { IconButton } from "../ui/components/IconButton";
+import { ListRowWithActions } from "../ui/components/ListRowWithActions";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { formatDateDisplay } from "../utils/dateFormatting";
 import { i18n } from "../i18n/i18n";
@@ -123,6 +124,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
         vehicleTitle,
         vehicleId,
         reportTitle: report.title,
+        generatedAt: `${t("share.generatedOn")} ${formatDateDisplay(report.created_at, i18n.language)}`,
       });
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
@@ -151,48 +153,23 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
           onRefresh={handleRefresh}
           ListEmptyComponent={<EmptyState body={t("share.noReports")} />}
           renderItem={({ item }) => (
-            <Pressable
+            <ListRowWithActions
+              title={item.title || t("publicReport.defaultTitle")}
+              subtitle={`${t("share.generatedOn")} ${formatDateDisplay(item.created_at, i18n.language)}`}
               onPress={() => handleReportPress(item)}
-              style={({ pressed }) => [
-                styles.reportCard,
-                {
-                  backgroundColor: theme.colors.card,
-                  borderColor: theme.colors.border,
-                  opacity: pressed ? 0.7 : 1,
-                },
-              ]}
-            >
-              <View style={styles.cardRow}>
-                <Pressable
-                  style={{ flex: 1 }}
-                  onPress={() => handleReportPress(item)}
+              trailing={
+                <IconButton
+                  onPress={() => handleEditTitle(item)}
+                  variant="ghost"
                 >
-                  <Text
-                    style={[styles.reportTitle, { color: theme.colors.fg }]}
-                  >
-                    {item.title || t("publicReport.defaultTitle")}
-                  </Text>
-                  <Text
-                    style={[styles.reportDate, { color: theme.colors.muted }]}
-                  >
-                    {t("share.generatedOn")}{" "}
-                    {formatDateDisplay(item.created_at, i18n.language)}
-                  </Text>
-                </Pressable>
-                <View style={{ flexDirection: "row", gap: theme.spacing.xs }}>
-                  <IconButton
-                    onPress={() => handleEditTitle(item)}
-                    variant="ghost"
-                  >
-                    <Feather
-                      name="edit"
-                      size={24}
-                      color={theme.colors.accent}
-                    />
-                  </IconButton>
-                </View>
-              </View>
-            </Pressable>
+                  <Feather
+                    name="edit"
+                    size={24}
+                    color={theme.colors.accent}
+                  />
+                </IconButton>
+              }
+            />
           )}
           ItemSeparatorComponent={() => (
             <View style={{ height: theme.spacing.sm }} />

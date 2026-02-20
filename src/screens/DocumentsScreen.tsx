@@ -39,6 +39,7 @@ import {
   uploadVehicleDocument,
 } from "../services/vehicleDocuments/vehicleDocumentsRepo";
 import { Button } from "../ui/components/Button";
+import { ListRowWithActions } from "../ui/components/ListRowWithActions";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
 import { Feather, Ionicons } from "@expo/vector-icons";
@@ -361,50 +362,22 @@ export function DocumentsScreen({ route, navigation }: Props) {
           })
           .map((item) => (
             <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
-              <View
-                style={[
-                  styles.card,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <View style={styles.cardRow}>
-                  <Pressable
-                    style={{ flex: 1 }}
-                    onPress={() => void openVehicleDocument(item)}
-                  >
-                    <Text
-                      style={{
-                        color: theme.colors.fg,
-                        fontWeight: theme.typography.fontWeight.bold,
-                      }}
-                    >
-                      {item.description || t("documents.documentLabel")}
-                    </Text>
-                    <Text
-                      style={{
-                        color: theme.colors.muted,
-                        marginTop: theme.spacing.sm,
-                      }}
-                    >
-                      {(() => {
-                        const fileName = getFileNameFromItem(item);
-                        const ext =
-                          fileName.split(".").pop()?.toUpperCase() || "FILE";
-                        const date = new Date(item.created_at);
-                        const formattedDate = date.toLocaleDateString(
-                          i18n.language === "pl" ? "pl-PL" : "en-US",
-                          { day: "2-digit", month: "2-digit", year: "numeric" },
-                        );
-                        return `${t(
-                          "documents.added",
-                        )} ${formattedDate} · ${ext}`;
-                      })()}
-                    </Text>
-                  </Pressable>
-                  <View style={{ flexDirection: "row", gap: theme.spacing.xs }}>
+              <ListRowWithActions
+                title={item.description || t("documents.documentLabel")}
+                subtitle={(() => {
+                  const fileName = getFileNameFromItem(item);
+                  const ext =
+                    fileName.split(".").pop()?.toUpperCase() || "FILE";
+                  const date = new Date(item.created_at);
+                  const formattedDate = date.toLocaleDateString(
+                    i18n.language === "pl" ? "pl-PL" : "en-US",
+                    { day: "2-digit", month: "2-digit", year: "numeric" },
+                  );
+                  return `${t("documents.added")} ${formattedDate} · ${ext}`;
+                })()}
+                onPress={() => void openVehicleDocument(item)}
+                trailing={
+                  <>
                     <IconButton
                       onPress={() => editDocumentDescription(item)}
                       variant="ghost"
@@ -425,9 +398,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
                         color={theme.colors.danger}
                       />
                     </IconButton>
-                  </View>
-                </View>
-              </View>
+                  </>
+                }
+              />
             </View>
           ))}
         {vehicleDocs.filter((d) => {
@@ -460,51 +433,25 @@ export function DocumentsScreen({ route, navigation }: Props) {
           })
           .map((item) => (
             <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
-              <View
-                style={[
-                  styles.card,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <View style={styles.cardRow}>
-                  <Pressable
-                    style={{ flex: 1 }}
-                    onPress={() => void openAttachment(item)}
-                  >
-                    <Text
-                      style={{
-                        color: theme.colors.fg,
-                        fontWeight: theme.typography.fontWeight.bold,
-                      }}
-                    >
-                      {item.serviceEntryTitle
-                        ? item.serviceEntryTitle
-                        : t("documents.attachmentLabel")}
-                    </Text>
-                    <Text
-                      style={{
-                        color: theme.colors.muted,
-                        marginTop: theme.spacing.sm,
-                      }}
-                    >
-                      {(() => {
-                        const fileName = getFileNameFromItem(item);
-                        const ext =
-                          fileName.split(".").pop()?.toUpperCase() || "FILE";
-                        const date = new Date(item.created_at);
-                        const formattedDate = date.toLocaleDateString(
-                          i18n.language === "pl" ? "pl-PL" : "en-US",
-                          { day: "2-digit", month: "2-digit", year: "numeric" },
-                        );
-                        return `${t(
-                          "documents.added",
-                        )} ${formattedDate} · ${ext}`;
-                      })()}
-                    </Text>
-                  </Pressable>
+              <ListRowWithActions
+                title={
+                  item.serviceEntryTitle
+                    ? item.serviceEntryTitle
+                    : t("documents.attachmentLabel")
+                }
+                subtitle={(() => {
+                  const fileName = getFileNameFromItem(item);
+                  const ext =
+                    fileName.split(".").pop()?.toUpperCase() || "FILE";
+                  const date = new Date(item.created_at);
+                  const formattedDate = date.toLocaleDateString(
+                    i18n.language === "pl" ? "pl-PL" : "en-US",
+                    { day: "2-digit", month: "2-digit", year: "numeric" },
+                  );
+                  return `${t("documents.added")} ${formattedDate} · ${ext}`;
+                })()}
+                onPress={() => void openAttachment(item)}
+                trailing={
                   <IconButton
                     onPress={() => confirmDeleteAttachment(item)}
                     variant="danger"
@@ -515,8 +462,8 @@ export function DocumentsScreen({ route, navigation }: Props) {
                       color={theme.colors.danger}
                     />
                   </IconButton>
-                </View>
-              </View>
+                }
+              />
             </View>
           ))}
         {attachments.filter((a) => {

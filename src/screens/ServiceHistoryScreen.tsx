@@ -498,7 +498,6 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
             placeholderTextColor={theme.colors.muted}
             autoCapitalize="none"
             autoCorrect={false}
-            clearButtonMode="while-editing"
             keyboardAppearance={mode === "dark" ? "dark" : "light"}
             style={[styles.searchBarInput, { color: theme.colors.fg }]}
           />
@@ -1021,59 +1020,51 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
               .filter(Boolean)
               .join(" · ");
             return (
-              <Pressable
-                style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+              <TimelineItem
+                title={r.title ?? t("reminders.title")}
+                subtitle={dueText}
                 onPress={() =>
                   navigation.navigate("ReminderForm", {
                     vehicleId,
                     reminderId: r.id,
                   })
                 }
-              >
-                <TimelineItem
-                  title={r.title ?? t("reminders.title")}
-                  subtitle={dueText}
-                />
-              </Pressable>
+              />
             );
           }
 
           const e = rowItem.entry;
           const cat = (e.category ?? "other") as ServiceEntryCategory;
           return (
-            <Pressable
-              style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+            <TimelineItem
+              title={e.title}
+              badge={t(`entryForm.categories.${cat}` as any)}
+              badgeVariant="accent"
+              subtitle={[
+                e.service_date
+                  ? formatDateDisplay(e.service_date, i18n.language)
+                  : null,
+                e.mileage
+                  ? `${e.mileage.toLocaleString()} ${distanceUnit}`
+                  : null,
+                e.cost != null ? `${e.cost} ${currency}` : null,
+                attachmentsCount[e.id] > 0
+                  ? `${attachmentsCount[e.id]} ${
+                      attachmentsCount[e.id] === 1
+                        ? t("attachments.attachmentLabel")
+                        : t("attachments.title").toLowerCase()
+                    }`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
               onPress={() =>
                 navigation.navigate("ServiceEntryForm", {
                   entryId: e.id,
                   vehicleId,
                 })
               }
-            >
-              <TimelineItem
-                title={e.title}
-                badge={t(`entryForm.categories.${cat}` as any)}
-                badgeVariant="accent"
-                subtitle={[
-                  e.service_date
-                    ? formatDateDisplay(e.service_date, i18n.language)
-                    : null,
-                  e.mileage
-                    ? `${e.mileage.toLocaleString()} ${distanceUnit}`
-                    : null,
-                  e.cost != null ? `${e.cost} ${currency}` : null,
-                  attachmentsCount[e.id] > 0
-                    ? `${attachmentsCount[e.id]} ${
-                        attachmentsCount[e.id] === 1
-                          ? t("attachments.attachmentLabel")
-                          : t("attachments.title").toLowerCase()
-                      }`
-                    : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              />
-            </Pressable>
+            />
           );
         }}
         ListEmptyComponent={
@@ -1115,7 +1106,12 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flex: 1,
       height: "100%",
       paddingVertical: 0,
+      paddingRight: theme.spacing.xs,
       fontSize: theme.typography.body,
+    },
+    searchBarClear: {
+      paddingHorizontal: theme.spacing.xs,
+      justifyContent: "center",
     },
     addButton: {
       width: theme.spacing.xl + theme.spacing.sm,

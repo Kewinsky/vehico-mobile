@@ -49,7 +49,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { Textarea } from "../ui/components/Textarea";
 import { ContentHeader } from "../ui/components/ContentHeader";
-import { EmptyState } from "../ui/components/EmptyState";
+import { ListRowWithActions } from "../ui/components/ListRowWithActions";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "maintenance",
@@ -1070,44 +1070,28 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 <View style={{ height: theme.spacing.sm }} />
               )}
               renderItem={({ item }) => (
-                <View
-                  style={[
-                    styles.attachmentCard,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
-                  <View style={styles.cardRow}>
-                    <Pressable
-                      style={{ flex: 1 }}
-                      onPress={() => void openAttachment(item)}
-                    >
-                      <Text style={styles.cardTitle}>
-                        {getFileNameFromItem(item) ||
-                          t("attachments.attachmentLabel")}
-                      </Text>
-                      <Text style={styles.cardMeta}>
-                        {(() => {
-                          const fileName = getFileNameFromItem(item);
-                          const ext =
-                            fileName.split(".").pop()?.toUpperCase() || "FILE";
-                          const date = new Date(item.created_at);
-                          const formattedDate = date.toLocaleDateString(
-                            i18n.language === "pl" ? "pl-PL" : "en-US",
-                            {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            },
-                          );
-                          return `${t(
-                            "documents.added",
-                          )} ${formattedDate} · ${ext}`;
-                        })()}
-                      </Text>
-                    </Pressable>
+                <ListRowWithActions
+                  title={
+                    getFileNameFromItem(item) ||
+                    t("attachments.attachmentLabel")
+                  }
+                  subtitle={(() => {
+                    const fileName = getFileNameFromItem(item);
+                    const ext =
+                      fileName.split(".").pop()?.toUpperCase() || "FILE";
+                    const date = new Date(item.created_at);
+                    const formattedDate = date.toLocaleDateString(
+                      i18n.language === "pl" ? "pl-PL" : "en-US",
+                      {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      },
+                    );
+                    return `${t("documents.added")} ${formattedDate} · ${ext}`;
+                  })()}
+                  onPress={() => void openAttachment(item)}
+                  trailing={
                     <IconButton
                       onPress={() => confirmDeleteAttachment(item)}
                       variant="danger"
@@ -1118,8 +1102,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                         color={theme.colors.danger}
                       />
                     </IconButton>
-                  </View>
-                </View>
+                  }
+                />
               )}
               ListEmptyComponent={
                 attachmentsLoading ? (
@@ -1143,24 +1127,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 <View style={{ height: theme.spacing.sm }} />
               )}
               renderItem={({ item, index }) => (
-                <View
-                  style={[
-                    styles.attachmentCard,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                  ]}
-                >
-                  <View style={styles.cardRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.cardTitle}>
-                        {item.fileName || t("attachments.attachmentLabel")}
-                      </Text>
-                      <Text style={styles.cardMeta}>
-                        {t("entryForm.pendingAttachments", { count: 1 })}
-                      </Text>
-                    </View>
+                <ListRowWithActions
+                  title={item.fileName || t("attachments.attachmentLabel")}
+                  subtitle={t("entryForm.pendingAttachments", { count: 1 })}
+                  trailing={
                     <IconButton
                       onPress={() => {
                         setPendingFiles((prev) =>
@@ -1175,8 +1145,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                         color={theme.colors.danger}
                       />
                     </IconButton>
-                  </View>
-                </View>
+                  }
+                />
               )}
             />
           )}

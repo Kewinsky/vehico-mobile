@@ -1,31 +1,47 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../ThemeProvider";
+import type { AppTheme } from "../theme";
 import { Ionicons } from "@expo/vector-icons";
+
+export type TimelineItemProps = {
+  title: string;
+  subtitle?: string;
+  badge?: string;
+  badgeVariant?: "accent" | "muted";
+  /** When provided, the row is wrapped in a Pressable (e.g. for navigation). */
+  onPress?: () => void;
+};
 
 export function TimelineItem({
   title,
   subtitle,
   badge,
   badgeVariant = "accent",
-}: {
-  title: string;
-  subtitle?: string;
-  badge?: string;
-  badgeVariant?: "accent" | "muted";
-}) {
+  onPress,
+}: TimelineItemProps) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
   const isMutedBadge = badgeVariant === "muted";
-  return (
+
+  const content = (
     <View style={styles.card}>
       <View style={styles.content}>
         <View style={styles.main}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>{title}</Text>
+            <View style={styles.titleWrap}>
+              <Text
+                style={[styles.title, { color: theme.colors.fg }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {title}
+              </Text>
+            </View>
             {badge && (
               <View
                 style={[
+                  styles.badgeWrap,
                   styles.badge,
                   isMutedBadge ? styles.badgeMuted : styles.badgeAccent,
                 ]}
@@ -41,7 +57,15 @@ export function TimelineItem({
               </View>
             )}
           </View>
-          {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+          {!!subtitle && (
+            <Text
+              style={[styles.subtitle, { color: theme.colors.muted }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {subtitle}
+            </Text>
+          )}
         </View>
         <Ionicons
           name="chevron-forward"
@@ -51,9 +75,22 @@ export function TimelineItem({
       </View>
     </View>
   );
+
+  if (onPress) {
+    return (
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+      >
+        {content}
+      </Pressable>
+    );
+  }
+
+  return content;
 }
 
-const makeStyles = (theme: any) =>
+const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     card: {
       flex: 1,
@@ -70,6 +107,7 @@ const makeStyles = (theme: any) =>
     },
     main: {
       flex: 1,
+      minWidth: 0,
       gap: theme.spacing.sm / 2,
     },
     badge: {
@@ -97,16 +135,24 @@ const makeStyles = (theme: any) =>
     title: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
-      color: theme.colors.fg,
     },
     subtitle: {
       fontSize: theme.typography.small,
-      color: theme.colors.muted,
       lineHeight: theme.typography.body + 2,
     },
     titleRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm / 2,
+      alignSelf: "flex-start",
+      maxWidth: "100%",
+      minWidth: 0,
+    },
+    titleWrap: {
+      flexShrink: 1,
+      minWidth: 0,
+    },
+    badgeWrap: {
+      flexShrink: 0,
     },
   });

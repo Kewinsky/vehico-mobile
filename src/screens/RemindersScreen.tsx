@@ -29,6 +29,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
+import { ListRowWithActions } from "../ui/components/ListRowWithActions";
 import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { CustomFlatList } from "../ui/components/CustomFlatList";
@@ -643,63 +644,30 @@ export function RemindersScreen({ route, navigation }: Props) {
         renderItem={({ item: reminder }) => {
           const isDone = reminder.status === "done";
           return (
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-                isDone && styles.cardDone,
-              ]}
-            >
-              <View style={styles.cardRow}>
-                <Pressable
-                  style={{ flex: 1 }}
-                  onPress={() =>
-                    navigation.navigate("ReminderForm", {
-                      vehicleId: route.params.vehicleId,
-                      reminderId: reminder.id,
+            <ListRowWithActions
+              title={reminder.title ?? ""}
+              subtitle={[
+                reminder.due_date
+                  ? t("reminders.dueTime", { date: reminder.due_date })
+                  : null,
+                reminder.due_mileage != null
+                  ? t("reminders.dueMileage", {
+                      mileage: String(reminder.due_mileage),
+                      unit: distanceUnit,
                     })
-                  }
-                >
-                  <Text
-                    style={[
-                      {
-                        color: theme.colors.fg,
-                        fontWeight: theme.typography.fontWeight.bold,
-                      },
-                      isDone && { color: theme.colors.muted },
-                    ]}
-                  >
-                    {reminder.title ?? ""}
-                  </Text>
-                  <Text
-                    style={[
-                      {
-                        color: theme.colors.muted,
-                        marginTop: theme.spacing.xs,
-                      },
-                      isDone && { opacity: 0.6 },
-                    ]}
-                  >
-                    {[
-                      reminder.due_date
-                        ? t("reminders.dueTime", {
-                            date: reminder.due_date,
-                          })
-                        : null,
-                      reminder.due_mileage != null
-                        ? t("reminders.dueMileage", {
-                            mileage: String(reminder.due_mileage),
-                            unit: distanceUnit,
-                          })
-                        : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </Text>
-                </Pressable>
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+              onPress={() =>
+                navigation.navigate("ReminderForm", {
+                  vehicleId: route.params.vehicleId,
+                  reminderId: reminder.id,
+                })
+              }
+              muted={isDone}
+              dimmed={isDone}
+              trailing={
                 <IconButton
                   onPress={() => toggleStatus(reminder)}
                   variant="ghost"
@@ -718,8 +686,8 @@ export function RemindersScreen({ route, navigation }: Props) {
                     }
                   />
                 </IconButton>
-              </View>
-            </View>
+              }
+            />
           );
         }}
         ListEmptyComponent={<EmptyState body={t("reminders.noItems")} />}

@@ -499,19 +499,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             ]}
             autoCorrect={false}
           />
-          {title.length > 0 ? (
-            <Pressable
-              onPress={() => setTitle("")}
-              hitSlop={8}
-              style={{ padding: 4 }}
-            >
-              <Ionicons
-                name="close-circle"
-                size={20}
-                color={theme.colors.muted}
-              />
-            </Pressable>
-          ) : null}
         </View>
       </View>
 

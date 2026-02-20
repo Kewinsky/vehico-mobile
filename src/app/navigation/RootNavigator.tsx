@@ -86,6 +86,7 @@ export type AppStackParamList = {
     vehicleTitle: string;
     vehicleId: string;
     postTitle?: string | null;
+    generatedAt?: string;
   };
   MarketplacePost: { vehicleId: string };
   MarketplacePostHistory: { vehicleId: string };
@@ -119,6 +120,7 @@ export type AppStackParamList = {
     vehicleTitle: string;
     vehicleId: string;
     reportTitle?: string | null;
+    generatedAt?: string;
   };
   PublicReportHistory: { vehicleId: string };
   ManageVehicle: { vehicleId: string };

@@ -36,6 +36,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
+import { formatDateDisplay } from "../utils/dateFormatting";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportSummary">;
 
@@ -73,7 +74,7 @@ function InfoCard({
 }
 
 export function PublicReportSummaryScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const { isPremium } = useEntitlements();
@@ -175,7 +176,13 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
           { name: "PublicReport", params: { vehicleId } },
           {
             name: "PublicReportOptions",
-            params: { url, vehicleTitle, vehicleId, reportTitle: report.title },
+            params: {
+              url,
+              vehicleTitle,
+              vehicleId,
+              reportTitle: report.title,
+              generatedAt: `${t("share.generatedOn")} ${formatDateDisplay(report.created_at, i18n.language)}`,
+            },
           },
         ],
       });

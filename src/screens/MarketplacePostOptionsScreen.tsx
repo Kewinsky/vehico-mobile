@@ -27,7 +27,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
   const { settings } = useUserSettings();
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { content, vehicleId, postTitle } = route.params;
+  const { content, vehicleId, postTitle, generatedAt } = route.params;
   const [displayLang, setDisplayLang] = useState<"pl" | "en">(
     (settings?.language as "pl" | "en") ?? "pl",
   );
@@ -69,8 +69,8 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
         />
       }
     >
-      <ScrollView style={{ flex: 1 }}>
-        <ContentHeader title={layoutTitle} />
+      <View style={{ flex: 1 }}>
+        <ContentHeader title={layoutTitle} subtitle={generatedAt} />
         <SegmentTabs<"pl" | "en">
           value={displayLang}
           options={[
@@ -100,7 +100,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
         <Button onPress={handleCopyContent}>
           {t("marketplace.copyToClipboard")}
         </Button>
-      </ScrollView>
+      </View>
     </AppLayout>
   );
 }

@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from "react";
 import {
   Alert,
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import * as WebBrowser from "expo-web-browser";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -170,8 +170,7 @@ export function ShopScreen({ navigation }: Props) {
       }
       if (link.url) {
         try {
-          const canOpen = await Linking.canOpenURL(link.url);
-          if (canOpen) await Linking.openURL(link.url);
+          await WebBrowser.openBrowserAsync(link.url);
         } catch {
           toastError(t("common.error"));
         }
@@ -370,7 +369,10 @@ export function ShopScreen({ navigation }: Props) {
         </>
       }
     >
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
         {isPremium && (
           <Card style={styles.premiumBadge}>
             <Ionicons name="star" size={24} color={theme.colors.accent} />
@@ -479,7 +481,7 @@ function makeStyles(theme: AppTheme) {
     },
     featureRow: {
       flexDirection: "row",
-      alignItems: "flex-start",
+      alignItems: "center",
       gap: spacing.sm,
     },
     featureIcon: {
@@ -488,7 +490,6 @@ function makeStyles(theme: AppTheme) {
       borderRadius: 13,
       alignItems: "center",
       justifyContent: "center",
-      marginTop: 2,
     },
     featureTextWrap: {
       flex: 1,

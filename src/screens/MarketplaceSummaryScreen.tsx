@@ -34,6 +34,7 @@ import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
+import { formatDateDisplay } from "../utils/dateFormatting";
 
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceSummary">;
 
@@ -75,7 +76,7 @@ function InfoCard({
 }
 
 export function MarketplaceSummaryScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const { isPremium } = useEntitlements();
@@ -182,6 +183,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
               content,
               vehicleTitle: vehicle ? `${vehicle.make} ${vehicle.model}` : "",
               vehicleId,
+              generatedAt: `${t("marketplace.generatedOn")} ${formatDateDisplay(new Date().toISOString(), i18n.language)}`,
             },
           },
         ],

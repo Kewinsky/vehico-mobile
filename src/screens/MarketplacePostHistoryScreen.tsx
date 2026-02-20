@@ -26,6 +26,7 @@ import { EmptyState } from "../ui/components/EmptyState";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { IconButton } from "../ui/components/IconButton";
+import { ListRowWithActions } from "../ui/components/ListRowWithActions";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 
 import { formatDateDisplay } from "../utils/dateFormatting";
@@ -124,6 +125,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
       vehicleTitle,
       vehicleId,
       postTitle: post.title,
+      generatedAt: `${t("marketplace.generatedOn")} ${formatDateDisplay(post.created_at, i18n.language)}`,
     });
   }
 
@@ -151,46 +153,23 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
             <EmptyState body={t("marketplace.noSavedPosts")} />
           }
           renderItem={({ item }) => (
-            <Pressable
+            <ListRowWithActions
+              title={item.title || t("marketplace.defaultTitle")}
+              subtitle={`${t("marketplace.generatedOn")} ${formatDateDisplay(item.created_at, i18n.language)}`}
               onPress={() => handlePostPress(item)}
-              style={({ pressed }) => [
-                styles.postCard,
-                {
-                  backgroundColor: theme.colors.card,
-                  borderColor: theme.colors.border,
-                  opacity: pressed ? 0.7 : 1,
-                },
-              ]}
-            >
-              <View style={styles.cardRow}>
-                <Pressable
-                  style={{ flex: 1 }}
-                  onPress={() => handlePostPress(item)}
+              trailing={
+                <IconButton
+                  onPress={() => handleEditTitle(item)}
+                  variant="ghost"
                 >
-                  <Text style={[styles.postTitle, { color: theme.colors.fg }]}>
-                    {item.title || t("marketplace.defaultTitle")}
-                  </Text>
-                  <Text
-                    style={[styles.postDate, { color: theme.colors.muted }]}
-                  >
-                    {t("marketplace.generatedOn")}{" "}
-                    {formatDateDisplay(item.created_at, i18n.language)}
-                  </Text>
-                </Pressable>
-                <View style={{ flexDirection: "row", gap: theme.spacing.xs }}>
-                  <IconButton
-                    onPress={() => handleEditTitle(item)}
-                    variant="ghost"
-                  >
-                    <Feather
-                      name="edit"
-                      size={24}
-                      color={theme.colors.accent}
-                    />
-                  </IconButton>
-                </View>
-              </View>
-            </Pressable>
+                  <Feather
+                    name="edit"
+                    size={24}
+                    color={theme.colors.accent}
+                  />
+                </IconButton>
+              }
+            />
           )}
           ItemSeparatorComponent={() => (
             <View style={{ height: theme.spacing.sm }} />

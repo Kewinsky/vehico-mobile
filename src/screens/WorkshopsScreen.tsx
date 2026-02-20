@@ -19,6 +19,7 @@ import { AppLayout } from "../ui/components/AppLayout";
 import { ContentHeader } from "../ui/components/ContentHeader";
 import { CustomFlatList } from "../ui/components/CustomFlatList";
 import { EmptyState } from "../ui/components/EmptyState";
+import { TimelineItem } from "../ui/components/TimelineItem";
 import { useTheme } from "../ui/ThemeProvider";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { toastError } from "../ui/toast/toast";
@@ -386,44 +387,13 @@ export function WorkshopsScreen({ navigation }: Props) {
         }
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <Pressable
+          <TimelineItem
+            title={item.name}
+            subtitle={item.address ?? undefined}
             onPress={() =>
               navigation.navigate("WorkshopForm", { workshopId: item.id })
             }
-            style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
-          >
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.cardRow}>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text
-                    style={[styles.cardTitle, { color: theme.colors.fg }]}
-                    numberOfLines={1}
-                  >
-                    {item.name}
-                  </Text>
-                  <Text
-                    style={[styles.cardSubtitle, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {item.address}
-                  </Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={22}
-                  color={theme.colors.accent}
-                />
-              </View>
-            </View>
-          </Pressable>
+          />
         )}
         ListEmptyComponent={<EmptyState body={t("workshops.noWorkshops")} />}
       />

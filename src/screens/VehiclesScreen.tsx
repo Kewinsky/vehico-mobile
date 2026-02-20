@@ -135,7 +135,7 @@ function VehicleCardImage({
         theme={theme}
         progress={progress}
       />
-      <View style={styles.vehicleImageContent}>
+      <View style={styles.vehicleImageContent} pointerEvents="none">
         <Text
           style={[styles.vehicleTitle, styles.vehicleTitleOverlay]}
           numberOfLines={2}
@@ -464,12 +464,17 @@ export function VehiclesScreen({ navigation, route }: Props) {
                         )}
                         <View style={styles.vehicleImagePlaceholder}>
                           <MaterialCommunityIcons
-                            name={item.type === "car" ? "car-outline" : "motorbike"}
+                            name={
+                              item.type === "car" ? "car-outline" : "motorbike"
+                            }
                             size={theme.spacing.xl * 2}
                             color={theme.colors.muted}
                           />
                         </View>
-                        <View style={styles.vehicleImageContent}>
+                        <View
+                          style={styles.vehicleImageContent}
+                          pointerEvents="none"
+                        >
                           <Text
                             style={[
                               styles.vehicleTitle,
