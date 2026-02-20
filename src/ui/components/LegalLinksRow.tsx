@@ -1,15 +1,16 @@
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import * as WebBrowser from "expo-web-browser";
 
 import { useTheme } from "../ThemeProvider";
 
 type Props = {
-  onPressTerms: () => void;
-  onPressPrivacy: () => void;
+  termsUrl: string;
+  privacyUrl: string;
 };
 
-export function LegalLinksRow({ onPressTerms, onPressPrivacy }: Props) {
+export function LegalLinksRow({ termsUrl, privacyUrl }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -17,7 +18,7 @@ export function LegalLinksRow({ onPressTerms, onPressPrivacy }: Props) {
   return (
     <View style={styles.legalRow}>
       <Pressable
-        onPress={onPressTerms}
+        onPress={() => void WebBrowser.openBrowserAsync(termsUrl)}
         hitSlop={8}
         style={({ pressed }) => [
           styles.legalLink,
@@ -30,7 +31,7 @@ export function LegalLinksRow({ onPressTerms, onPressPrivacy }: Props) {
       </Pressable>
       <Text style={[styles.legalText, { color: theme.colors.muted }]}>·</Text>
       <Pressable
-        onPress={onPressPrivacy}
+        onPress={() => void WebBrowser.openBrowserAsync(privacyUrl)}
         hitSlop={8}
         style={({ pressed }) => [
           styles.legalLink,

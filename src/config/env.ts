@@ -31,10 +31,15 @@ if (appEnv === "production" && !revenucatKey) {
   );
 }
 
+/** Base URL of the public Next.js web app (terms, privacy pages). */
+const webAppUrl =
+  getOptionalEnv("EXPO_PUBLIC_WEB_APP_URL") ?? "https://vehico.app";
+
 export const ENV = {
   APP_ENV: appEnv,
   SUPABASE_URL: getRequiredEnv("EXPO_PUBLIC_SUPABASE_URL"),
   SUPABASE_ANON_KEY: getRequiredEnv("EXPO_PUBLIC_SUPABASE_ANON_KEY"),
   REPORTS_APP_URL: getRequiredEnv("EXPO_PUBLIC_REPORTS_APP_URL"),
   REVENUECAT_API_KEY: revenucatKey,
+  WEB_APP_URL: webAppUrl,
 };

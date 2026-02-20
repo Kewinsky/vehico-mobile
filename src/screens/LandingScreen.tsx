@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import { ENV } from "../config/env";
 import { Button } from "../ui/components/Button";
 import { LegalLinksRow } from "../ui/components/LegalLinksRow";
 import { AppLayout } from "../ui/components/AppLayout";
@@ -24,8 +25,8 @@ export function LandingScreen({ navigation }: Props) {
             {t("landing.getStarted")}
           </Button>
           <LegalLinksRow
-            onPressTerms={() => navigation.navigate("TermsOfUse")}
-            onPressPrivacy={() => navigation.navigate("PrivacyPolicy")}
+            termsUrl={`${ENV.WEB_APP_URL}/terms`}
+            privacyUrl={`${ENV.WEB_APP_URL}/privacy`}
           />
         </>
       }

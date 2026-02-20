@@ -6,10 +6,15 @@ import { useTheme } from "../ThemeProvider";
 
 export type ContentHeaderProps = {
   title: string;
+  subtitle?: string;
   filterPanel?: ReactNode;
 };
 
-export function ContentHeader({ title, filterPanel }: ContentHeaderProps) {
+export function ContentHeader({
+  title,
+  subtitle,
+  filterPanel,
+}: ContentHeaderProps) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
@@ -18,6 +23,9 @@ export function ContentHeader({ title, filterPanel }: ContentHeaderProps) {
       <View style={styles.headerBlock}>
         <Text style={styles.title}>{title}</Text>
       </View>
+      {subtitle != null ? (
+        <Text style={styles.subtitle}>{subtitle}</Text>
+      ) : null}
       {filterPanel != null ? (
         <View style={styles.panelBlock}>{filterPanel}</View>
       ) : null}
@@ -34,6 +42,11 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
+    },
+    subtitle: {
+      fontSize: theme.typography.body,
+      color: theme.colors.muted,
+      paddingBottom: theme.spacing.sm,
     },
     panelBlock: {
       paddingBottom: theme.spacing.sm,

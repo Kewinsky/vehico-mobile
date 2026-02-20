@@ -364,8 +364,8 @@ export function ShopScreen({ navigation }: Props) {
             )}
           </View>
           <LegalLinksRow
-            onPressTerms={() => navigation.navigate("TermsOfUse")}
-            onPressPrivacy={() => navigation.navigate("PrivacyPolicy")}
+            termsUrl={`${ENV.WEB_APP_URL}/terms`}
+            privacyUrl={`${ENV.WEB_APP_URL}/privacy`}
           />
         </>
       }

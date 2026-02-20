@@ -5,8 +5,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../providers/AuthProvider";
 import { LandingScreen } from "../../screens/LandingScreen";
 import { AuthScreen } from "../../screens/AuthScreen";
-import { TermsOfUseScreen } from "../../screens/TermsOfUseScreen";
-import { PrivacyPolicyScreen } from "../../screens/PrivacyPolicyScreen";
 import { VehiclesScreen } from "../../screens/VehiclesScreen";
 import { VehicleFormScreen } from "../../screens/VehicleFormScreen";
 import { VehicleDashboardScreen } from "../../screens/VehicleDashboardScreen";
@@ -44,14 +42,12 @@ import { WorkshopFormScreen } from "../../screens/WorkshopFormScreen";
 import { ShopScreen } from "../../screens/ShopScreen";
 import { ExampleListingScreen } from "../../screens/ExampleListingScreen";
 import { AppearanceScreen } from "../../screens/AppearanceScreen";
-import { OnboardingFlowScreen } from "../../screens/OnboardingFlowScreenImpl";
+import { OnboardingScreen } from "../../screens/OnboardingScreen";
 
 export type AppStackParamList = {
   Landing: undefined;
   Auth: undefined;
   EmailConfirmation: { email?: string };
-  TermsOfUse: undefined;
-  PrivacyPolicy: undefined;
   Onboarding: undefined;
   Vehicles: { showVehiclePicker?: boolean } | undefined;
   VehicleForm: { vehicleId?: string };
@@ -172,14 +168,10 @@ export function RootNavigator() {
         <>
           <Stack.Screen name="Landing" component={LandingScreen} />
           <Stack.Screen name="Auth" component={AuthScreen} />
-          <Stack.Screen name="TermsOfUse" component={TermsOfUseScreen} />
-          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
         </>
       ) : (
         <>
-          <Stack.Screen name="TermsOfUse" component={TermsOfUseScreen} />
-          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
-          <Stack.Screen name="Onboarding" component={OnboardingFlowScreen} />
+          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Vehicles" component={VehiclesScreen} />
           <Stack.Screen name="VehicleForm" component={VehicleFormScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />

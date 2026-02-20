@@ -1,18 +1,17 @@
 import React, { useMemo, useState } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import * as WebBrowser from "expo-web-browser";
 import * as AuthSession from "expo-auth-session";
+import * as WebBrowser from "expo-web-browser";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { supabase } from "../services/supabase/client";
 import { Button } from "../ui/components/Button";
 import { AppNavbar } from "../ui/components/AppNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
-import { TextField } from "../ui/components/TextField";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { ENV } from "../config/env";
@@ -24,7 +23,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "Auth">;
 
 export function AuthScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -263,17 +262,43 @@ export function AuthScreen({ navigation }: Props) {
       </Text>
       {/* Magic Link Section */}
       <View style={styles.magicLinkSection}>
-        <TextField
-          noMarginTop
-          label={`${t("auth.emailLabel")} *`}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="email-address"
-          placeholder={t("auth.emailPlaceholder")}
-          editable={!isSubmitting && !isSocialLoading}
-        />
+        <View
+          style={[
+            styles.card,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="mail-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text
+                style={[styles.label, { color: theme.colors.muted }]}
+                numberOfLines={1}
+              >
+                {t("auth.emailLabel")}
+              </Text>
+            </View>
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              placeholder={t("auth.emailPlaceholder")}
+              placeholderTextColor={theme.colors.muted}
+              keyboardAppearance={mode === "dark" ? "dark" : "light"}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              editable={!isSubmitting && !isSocialLoading}
+              style={[styles.input, { color: theme.colors.fg }]}
+            />
+          </View>
+        </View>
 
         <Button onPress={sendMagicLink} disabled={!canSubmit}>
           {isSubmitting ? t("auth.sendingLink") : t("auth.sendMagicLink")}
@@ -348,14 +373,18 @@ export function AuthScreen({ navigation }: Props) {
           {"\n"}
           <Text
             style={[styles.footerLink, { color: theme.colors.accent }]}
-            onPress={() => navigation.navigate("TermsOfUse")}
+            onPress={() =>
+              void WebBrowser.openBrowserAsync(`${ENV.WEB_APP_URL}/terms`)
+            }
           >
             {t("auth.termsOfService")}
           </Text>{" "}
           {t("common.and")}{" "}
           <Text
             style={[styles.footerLink, { color: theme.colors.accent }]}
-            onPress={() => navigation.navigate("PrivacyPolicy")}
+            onPress={() =>
+              void WebBrowser.openBrowserAsync(`${ENV.WEB_APP_URL}/privacy`)
+            }
           >
             {t("auth.privacyPolicy")}
           </Text>
@@ -383,6 +412,36 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,
       marginVertical: theme.spacing.md,
+    },
+    card: {
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    rowLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      flex: 0,
+      flexShrink: 1,
+    },
+    label: {
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    input: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.body,
+      paddingVertical: 0,
+      textAlign: "right",
     },
     socialSection: {
       gap: theme.spacing.sm,
@@ -437,7 +496,6 @@ const makeStyles = (theme: any) =>
       lineHeight: theme.typography.body + 2,
     },
     footerLink: {
-      fontWeight: theme.typography.fontWeight.bold,
       textDecorationLine: "underline",
     },
     magicLinkContainer: {

@@ -21,7 +21,7 @@ import { EmptyState } from "../ui/components/EmptyState";
 import { AppNavbar } from "../ui/components/AppNavbar";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAuth } from "../app/providers/AuthProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -463,9 +463,11 @@ export function VehiclesScreen({ navigation, route }: Props) {
                           </View>
                         )}
                         <View style={styles.vehicleImagePlaceholder}>
-                          <Text style={styles.vehicleImagePlaceholderText}>
-                            {item.type === "car" ? "🚗" : "🏍️"}
-                          </Text>
+                          <MaterialCommunityIcons
+                            name={item.type === "car" ? "car-outline" : "motorbike"}
+                            size={theme.spacing.xl * 2}
+                            color={theme.colors.muted}
+                          />
                         </View>
                         <View style={styles.vehicleImageContent}>
                           <Text
@@ -553,9 +555,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       backgroundColor: theme.colors.border,
       alignItems: "center",
       justifyContent: "center",
-    },
-    vehicleImagePlaceholderText: {
-      fontSize: theme.typography.title,
     },
     vehicleImageContent: {
       position: "absolute",

@@ -38,6 +38,7 @@ import { toastError, toastSuccess } from "../ui/toast/toast";
 import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlementAlerts";
 import { useAuth } from "../app/providers/AuthProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
+import { ContentHeader } from "../ui/components/ContentHeader";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Onboarding">;
 
@@ -51,7 +52,7 @@ const TOTAL_STEPS = 6;
 const LAST_STEP_INDEX = TOTAL_STEPS - 1;
 const PROGRESS_STEPS = TOTAL_STEPS - 1; // don't count welcome step
 
-export function OnboardingFlowScreen({ navigation }: Props) {
+export function OnboardingScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const insets = useSafeAreaInsets();
@@ -347,20 +348,16 @@ export function OnboardingFlowScreen({ navigation }: Props) {
       case 0:
         return (
           <View style={styles.step}>
-            <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("onboarding.welcome.title")}
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-              {t("onboarding.welcome.subtitle")}
-            </Text>
+            <ContentHeader
+              title={t("onboarding.welcome.title")}
+              subtitle={t("onboarding.welcome.subtitle")}
+            />
           </View>
         );
       case 1:
         return (
           <View style={styles.step}>
-            <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("onboarding.name.title")}
-            </Text>
+            <ContentHeader title={t("onboarding.name.title")} />
             <View
               style={[
                 styles.card,
@@ -416,9 +413,7 @@ export function OnboardingFlowScreen({ navigation }: Props) {
       case 2:
         return (
           <View style={styles.step}>
-            <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("onboarding.vehicle.type.title")}
-            </Text>
+            <ContentHeader title={t("onboarding.vehicle.type.title")} />
             <View style={styles.vehicleTypeRow}>
               <Pressable
                 onPress={() => setVehicleType("car")}
@@ -513,9 +508,7 @@ export function OnboardingFlowScreen({ navigation }: Props) {
       case 3:
         return (
           <View style={styles.step}>
-            <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("onboarding.vehicle.makeModel.title")}
-            </Text>
+            <ContentHeader title={t("onboarding.vehicle.makeModel.title")} />
             <View
               style={[
                 styles.card,
@@ -679,9 +672,7 @@ export function OnboardingFlowScreen({ navigation }: Props) {
       case 4:
         return (
           <View style={styles.step}>
-            <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("onboarding.vehicle.photo.title")}
-            </Text>
+            <ContentHeader title={t("onboarding.vehicle.photo.title")} />
             {photo?.uri ? (
               <View
                 style={[
@@ -731,16 +722,14 @@ export function OnboardingFlowScreen({ navigation }: Props) {
       case 5:
         return (
           <View style={styles.step}>
-            <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("onboarding.summary.title", {
+            <ContentHeader
+              title={t("onboarding.summary.title", {
                 nameSuffix: normalizeDisplayName(name).trim()
                   ? `, ${normalizeDisplayName(name).trim()}!`
                   : "!",
               })}
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
-              {t("onboarding.summary.subtitle")}
-            </Text>
+              subtitle={t("onboarding.summary.subtitle")}
+            />
 
             <View
               style={[
@@ -928,14 +917,7 @@ export function OnboardingFlowScreen({ navigation }: Props) {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <View
-          style={[
-            styles.content,
-            { paddingHorizontal: theme.layout.contentPaddingHorizontal },
-          ]}
-        >
-          {renderStep()}
-        </View>
+        <View style={[styles.content]}>{renderStep()}</View>
       </KeyboardAvoidingView>
 
       <View
@@ -1002,7 +984,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     topBar: {
       height: theme.spacing.lg * 2 + theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
@@ -1314,7 +1295,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flex: 1,
     },
     footer: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
       paddingTop: theme.spacing.sm,
       paddingBottom: insets.bottom,
       gap: theme.spacing.xs,

@@ -53,9 +53,7 @@ export function AppNavbar({
   const hideProfileAvatar =
     route.name === "Settings" ||
     route.name === "Appearance" ||
-    route.name === "Shop" ||
-    route.name === "TermsOfUse" ||
-    route.name === "PrivacyPolicy";
+    route.name === "Shop";
   const showInitials =
     !!user && right === undefined && !hideProfileAvatar && !showShopIcon;
   const initials = user ? getInitials(user) : "";
