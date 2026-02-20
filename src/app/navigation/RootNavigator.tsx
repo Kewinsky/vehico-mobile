@@ -169,15 +169,47 @@ export function RootNavigator() {
       {!session ? (
         <>
           <Stack.Screen name="Landing" component={LandingScreen} />
-          <Stack.Screen name="Auth" component={AuthScreen} />
+          <Stack.Screen
+            name="Auth"
+            component={AuthScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
         </>
       ) : (
         <>
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Vehicles" component={VehiclesScreen} />
-          <Stack.Screen name="VehicleForm" component={VehicleFormScreen} />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
-          <Stack.Screen name="Appearance" component={AppearanceScreen} />
+          <Stack.Screen
+            name="VehicleForm"
+            component={VehicleFormScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
+          <Stack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
+          <Stack.Screen
+            name="Appearance"
+            component={AppearanceScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
           <Stack.Screen
             name="VehicleDashboard"
             component={VehicleDashboardScreen}
@@ -192,9 +224,22 @@ export function RootNavigator() {
           <Stack.Screen
             name="FuelingEntryForm"
             component={FuelingEntryFormScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
           />
           <Stack.Screen name="Reminders" component={RemindersScreen} />
-          <Stack.Screen name="ReminderForm" component={ReminderFormScreen} />
+          <Stack.Screen
+            name="ReminderForm"
+            component={ReminderFormScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
           <Stack.Screen name="Share" component={ShareScreen} />
           <Stack.Screen name="Marketplace" component={MarketplaceScreen} />
           <Stack.Screen
@@ -240,18 +285,60 @@ export function RootNavigator() {
           <Stack.Screen
             name="ServiceEntryForm"
             component={ServiceEntryFormScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
           />
           <Stack.Screen name="Wheels" component={WheelsOverviewScreen} />
           <Stack.Screen name="TiresList" component={TiresListScreen} />
           <Stack.Screen name="WheelsList" component={WheelsListScreen} />
-          <Stack.Screen name="TireForm" component={TireFormScreen} />
-          <Stack.Screen name="WheelForm" component={WheelFormScreen} />
+          <Stack.Screen
+            name="TireForm"
+            component={TireFormScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
+          <Stack.Screen
+            name="WheelForm"
+            component={WheelFormScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
           <Stack.Screen name="Workshops" component={WorkshopsScreen} />
-          <Stack.Screen name="WorkshopForm" component={WorkshopFormScreen} />
-          <Stack.Screen name="Shop" component={ShopScreen} />
+          <Stack.Screen
+            name="WorkshopForm"
+            component={WorkshopFormScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
+          <Stack.Screen
+            name="Shop"
+            component={ShopScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
           <Stack.Screen
             name="ExampleListing"
             component={ExampleListingScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
           />
         </>
       )}

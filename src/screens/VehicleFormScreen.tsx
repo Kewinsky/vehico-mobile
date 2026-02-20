@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
@@ -43,8 +43,8 @@ import {
   uploadVehiclePhoto,
 } from "../services/vehicles/uploadPhoto";
 import { Button } from "../ui/components/Button";
-import { FormNavbar } from "../ui/components/FormNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
+import { ModalButton } from "../ui/components/ModalButton";
 import { SegmentTabs } from "../ui/components/SegmentTabs";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -56,7 +56,6 @@ import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlemen
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
 import { Textarea } from "../ui/components/Textarea";
 import { DriveTypeIcon } from "../ui/components/DriveTypeIcon";
-import { ContentHeader } from "../ui/components/ContentHeader";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
 
@@ -525,7 +524,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
             style={styles.photoDeleteButton}
             hitSlop={5}
           >
-            <Ionicons name="close" size={16} color={theme.colors.fg} />
+            <Ionicons name="close-circle" size={28} color={theme.colors.accent} />
           </Pressable>
         </View>
       </View>
@@ -592,7 +591,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
             style={styles.photoDeleteButton}
             hitSlop={5}
           >
-            <Ionicons name="close" size={16} color={theme.colors.fg} />
+            <Ionicons name="close-circle" size={28} color={theme.colors.accent} />
           </Pressable>
         </View>
       </View>
@@ -699,24 +698,31 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     }
   }
 
-  return (
-    <FormScreen
-      scrollEnabled={!isDragging}
-      header={
-        <FormNavbar
-          onCancel={() => navigation.goBack()}
-          onSave={onSave}
-          canSave={canSave}
-          saving={saving}
-        />
-      }
-    >
-      <ContentHeader
-        title={
-          isEditMode ? t("manageVehicle.editTitle") : t("vehicleForm.title")
-        }
-      />
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: isEditMode ? t("manageVehicle.editTitle") : t("vehicleForm.title"),
+      headerBackVisible: false,
+      headerStyle: { backgroundColor: theme.colors.bg },
+      headerTitleStyle: { color: theme.colors.fg },
+      headerLeft: () => (
+        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+          {t("common.cancel")}
+        </ModalButton>
+      ),
+      headerRight: () => (
+        <ModalButton
+          variant="done"
+          onPress={onSave}
+          disabled={!canSave || saving}
+        >
+          {t("common.done")}
+        </ModalButton>
+      ),
+    });
+  }, [navigation, t, theme.colors.bg, theme.colors.fg, isEditMode, canSave, saving, onSave]);
 
+  return (
+    <FormScreen scrollEnabled={!isDragging} isModal>
       {isEditMode && loading ? (
         <View style={styles.loadingContainer}>
           <LoadingIndicator />
@@ -1410,6 +1416,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
               </View>
             </View>
           </View>
+          <View style={{ height: theme.spacing.xl * 2 }} />
         </>
       )}
     </FormScreen>
@@ -1537,13 +1544,8 @@ const makeStyles = (theme: any) =>
       position: "absolute",
       top: 4,
       right: 4,
-      width: 28,
-      height: 28,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: theme.colors.bg,
-      borderRadius: theme.radius.md,
-      opacity: 0.7,
     },
     photoMainBadge: {
       position: "absolute",

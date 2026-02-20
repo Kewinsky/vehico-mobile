@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useLayoutEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -10,8 +10,8 @@ import * as WebBrowser from "expo-web-browser";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { supabase } from "../services/supabase/client";
 import { Button } from "../ui/components/Button";
-import { AppNavbar } from "../ui/components/AppNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
+import { ModalButton } from "../ui/components/ModalButton";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { ENV } from "../config/env";
@@ -52,6 +52,22 @@ export function AuthScreen({ navigation }: Props) {
     () => emailTrimmed.length > 0 && isValidEmail && !isSubmitting,
     [emailTrimmed, isValidEmail, isSubmitting],
   );
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: magicLinkSent
+        ? t("auth.magicLinkSentTitle")
+        : t("auth.title"),
+      headerBackVisible: false,
+      headerStyle: { backgroundColor: theme.colors.bg },
+      headerTitleStyle: { color: theme.colors.fg },
+      headerLeft: () => (
+        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+          {t("common.cancel")}
+        </ModalButton>
+      ),
+    });
+  }, [navigation, t, theme.colors.bg, theme.colors.fg, magicLinkSent]);
 
   async function sendMagicLink() {
     try {
@@ -127,6 +143,7 @@ export function AuthScreen({ navigation }: Props) {
       throw new Error("Session was not created");
     }
 
+    // Don't show toast for first-time users (has_completed_onboarding === false) — they go to onboarding
     const hasCompletedOnboarding =
       sessionData.session.user?.user_metadata?.has_completed_onboarding ===
       true;
@@ -203,6 +220,7 @@ export function AuthScreen({ navigation }: Props) {
       if (error) throw error;
 
       const { data: sessionData } = await supabase.auth.getSession();
+      // Don't show toast for first-time users (they go to onboarding)
       const hasCompletedOnboarding =
         sessionData.session?.user?.user_metadata?.has_completed_onboarding ===
         true;
@@ -219,7 +237,7 @@ export function AuthScreen({ navigation }: Props) {
   // Show magic link sent confirmation
   if (magicLinkSent) {
     return (
-      <FormScreen header={<AppNavbar onBack={() => navigation.goBack()} />}>
+      <FormScreen isModal>
         <View style={styles.magicLinkContainer}>
           <View style={styles.iconContainer}>
             <Text style={[styles.icon, { color: theme.colors.accent }]}>
@@ -256,12 +274,9 @@ export function AuthScreen({ navigation }: Props) {
   }
 
   return (
-    <FormScreen header={<AppNavbar onBack={() => navigation.goBack()} />}>
-      <Text style={[styles.authTitle, { color: theme.colors.fg }]}>
-        {t("auth.title")}
-      </Text>
+    <FormScreen isModal>
       {/* Magic Link Section */}
-      <View style={styles.magicLinkSection}>
+      <View style={[styles.magicLinkSection, { marginTop: theme.spacing.md }]}>
         <View
           style={[
             styles.card,

@@ -3,12 +3,14 @@ import {
   Alert,
   Animated,
   Easing,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -672,7 +674,12 @@ export function OnboardingScreen({ navigation }: Props) {
       case 4:
         return (
           <View style={styles.step}>
-            <ContentHeader title={t("onboarding.vehicle.photo.title")} />
+            <ContentHeader
+              title={t("onboarding.vehicle.photo.title", {
+                make: make.trim(),
+                model: model.trim(),
+              })}
+            />
             {photo?.uri ? (
               <View
                 style={[
@@ -771,12 +778,14 @@ export function OnboardingScreen({ navigation }: Props) {
                 <Text style={[styles.detailsTitle, { color: theme.colors.fg }]}>
                   {[make.trim(), model.trim()].filter(Boolean).join(" ") || "—"}
                 </Text>
-                <View
-                  style={[
-                    styles.detailsDivider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
+              </View>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.detailsContent}>
                 <View style={styles.detailsGrid}>
                   <View style={styles.detailsRow}>
                     <View style={styles.detailItem}>
@@ -917,7 +926,9 @@ export function OnboardingScreen({ navigation }: Props) {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <View style={[styles.content]}>{renderStep()}</View>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={[styles.content, { flex: 1 }]}>{renderStep()}</View>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 
       <View
@@ -1058,10 +1069,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     rowTopAligned: {
       alignItems: "flex-start",
-    },
-    divider: {
-      height: 1,
-      width: "100%",
     },
     input: {
       flex: 1,
@@ -1220,7 +1227,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     detailsTitle: {
       fontSize: theme.typography.title,
       fontWeight: theme.typography.fontWeight.bold,
-      marginBottom: theme.spacing.xs,
     },
     vinRow: {
       marginBottom: theme.spacing.md,
@@ -1229,9 +1235,8 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.bold,
     },
-    detailsDivider: {
+    divider: {
       height: 1,
-      marginBottom: theme.spacing.md,
     },
     detailsGrid: {
       gap: theme.spacing.sm,

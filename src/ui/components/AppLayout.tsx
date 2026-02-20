@@ -9,6 +9,7 @@ export type AppLayoutProps = PropsWithChildren<{
   header?: ReactNode;
   footer?: ReactNode;
   loading?: boolean;
+  isModal?: boolean;
 }>;
 
 export function AppLayout({
@@ -16,6 +17,7 @@ export function AppLayout({
   header,
   footer,
   loading = false,
+  isModal = false,
 }: AppLayoutProps) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
@@ -24,7 +26,7 @@ export function AppLayout({
       style={[
         styles.root,
         {
-          paddingTop: insets.top,
+          paddingTop: isModal ? 0 : insets.top,
           backgroundColor: theme.colors.bg,
         },
       ]}
@@ -48,7 +50,7 @@ export function AppLayout({
             {
               paddingHorizontal: theme.layout.contentPaddingHorizontal,
               paddingTop: theme.spacing.md,
-              paddingBottom: insets.bottom,
+              paddingBottom: insets.bottom + (isModal ? theme.spacing.lg : 0),
               borderTopColor: theme.colors.border,
               backgroundColor: theme.colors.bg,
               gap: theme.spacing.sm,

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
@@ -32,8 +32,8 @@ import {
   scheduleLocalReminder,
 } from "../services/push/localReminderNotifications";
 import { Button } from "../ui/components/Button";
-import { FormNavbar } from "../ui/components/FormNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
+import { ModalButton } from "../ui/components/ModalButton";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
@@ -48,7 +48,6 @@ import {
   getPresetDueDate,
   type ReminderPreset,
 } from "./reminderPresets";
-import { ContentHeader } from "../ui/components/ContentHeader";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
 
@@ -377,16 +376,33 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     }
   }, [recurrenceUnit, t]);
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title:
+        reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle"),
+      headerBackVisible: false,
+      headerStyle: { backgroundColor: theme.colors.bg },
+      headerTitleStyle: { color: theme.colors.fg },
+      headerLeft: () => (
+        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+          {t("common.cancel")}
+        </ModalButton>
+      ),
+      headerRight: () => (
+        <ModalButton
+          variant="done"
+          onPress={onSave}
+          disabled={!canSave || saving}
+        >
+          {t("common.done")}
+        </ModalButton>
+      ),
+    });
+  }, [navigation, t, theme.colors.bg, theme.colors.fg, reminderId, canSave, saving, onSave]);
+
   return (
     <FormScreen
-      header={
-        <FormNavbar
-          onCancel={() => navigation.goBack()}
-          onSave={onSave}
-          canSave={canSave}
-          saving={saving}
-        />
-      }
+      isModal
       footer={
         reminderId ? (
           <Button variant="destructive" onPress={confirmDelete}>
@@ -399,12 +415,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         )
       }
     >
-      <ContentHeader
-        title={
-          reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle")
-        }
-      />
-
       {!reminderId ? (
         <>
           <Text

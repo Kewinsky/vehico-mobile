@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -22,14 +22,13 @@ import {
   updateFuelingEntry,
 } from "../services/fuel/fuelingEntriesRepo";
 import { Button } from "../ui/components/Button";
-import { FormNavbar } from "../ui/components/FormNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
+import { ModalButton } from "../ui/components/ModalButton";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { toastError } from "../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../ui/components/ChoiceChip";
-import { ContentHeader } from "../ui/components/ContentHeader";
 
 const FUEL_TYPE_OPTIONS: readonly FuelGrade[] = [
   "95",
@@ -226,16 +225,32 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     }
   }
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: entryId ? t("fuelingForm.editTitle") : t("fuelingForm.addTitle"),
+      headerBackVisible: false,
+      headerStyle: { backgroundColor: theme.colors.bg },
+      headerTitleStyle: { color: theme.colors.fg },
+      headerLeft: () => (
+        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+          {t("common.cancel")}
+        </ModalButton>
+      ),
+      headerRight: () => (
+        <ModalButton
+          variant="done"
+          onPress={onSave}
+          disabled={!canSave || saving}
+        >
+          {t("common.done")}
+        </ModalButton>
+      ),
+    });
+  }, [navigation, t, theme.colors.bg, theme.colors.fg, entryId, canSave, saving, onSave]);
+
   return (
     <FormScreen
-      header={
-        <FormNavbar
-          onCancel={() => navigation.goBack()}
-          onSave={onSave}
-          canSave={canSave}
-          saving={saving}
-        />
-      }
+      isModal
       footer={
         entryId ? (
           <Button variant="destructive" onPress={confirmDelete}>
@@ -248,9 +263,6 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         )
       }
     >
-      <ContentHeader
-        title={entryId ? t("fuelingForm.editTitle") : t("fuelingForm.addTitle")}
-      />
       <View
         style={[
           styles.card,

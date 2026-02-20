@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -16,8 +16,8 @@ import { Crown } from "lucide-react-native";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useAuth } from "../app/providers/AuthProvider";
 import { normalizeDisplayName } from "../utils/displayName";
-import { AppNavbar } from "../ui/components/AppNavbar";
 import { AppLayout } from "../ui/components/AppLayout";
+import { ModalButton } from "../ui/components/ModalButton";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { supabase } from "../services/supabase/client";
@@ -181,12 +181,23 @@ export function SettingsScreen({ navigation }: Props) {
     [t, navigation, restoreLoading, theme.colors.accent],
   );
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: t("settings.title"),
+      headerBackVisible: false,
+      headerStyle: { backgroundColor: theme.colors.bg },
+      headerTitleStyle: { color: theme.colors.fg },
+      headerLeft: () => (
+        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+          {t("common.cancel")}
+        </ModalButton>
+      ),
+    });
+  }, [navigation, t, theme.colors.bg, theme.colors.fg]);
+
   return (
-    <AppLayout header={<AppNavbar onBack={() => navigation.goBack()} />}>
+    <AppLayout isModal>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={[styles.largeTitle, { color: theme.colors.fg }]}>
-          {t("settings.title")}
-        </Text>
         <View style={styles.avatarBlock}>
           <View
             style={[
@@ -288,6 +299,7 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       flexGrow: 1,
+      paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.xl,
     },
     largeTitle: {

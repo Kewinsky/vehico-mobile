@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -21,14 +21,13 @@ import {
   listWorkshops,
 } from "../services/workshops/workshopsRepo";
 import { Button } from "../ui/components/Button";
-import { FormNavbar } from "../ui/components/FormNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
+import { ModalButton } from "../ui/components/ModalButton";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
 import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlementAlerts";
 import { hexToRgba } from "../ui/components/ChoiceChip";
-import { ContentHeader } from "../ui/components/ContentHeader";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WorkshopForm">;
 
@@ -53,9 +52,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   );
 
   const [name, setName] = useState("");
-  const [workshopType, setWorkshopType] = useState<WorkshopType | null>(
-    "mechanic",
-  );
+  const [workshopType, setWorkshopType] = useState<WorkshopType | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
@@ -116,6 +113,30 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
     Alert.alert(opts.title, "", buttons, { cancelable: true });
   }
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title:
+        workshopId ? t("workshopForm.editTitle") : t("workshopForm.addTitle"),
+      headerBackVisible: false,
+      headerStyle: { backgroundColor: theme.colors.bg },
+      headerTitleStyle: { color: theme.colors.fg },
+      headerLeft: () => (
+        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+          {t("common.cancel")}
+        </ModalButton>
+      ),
+      headerRight: () => (
+        <ModalButton
+          variant="done"
+          onPress={onSave}
+          disabled={!canSave || saving}
+        >
+          {t("common.done")}
+        </ModalButton>
+      ),
+    });
+  }, [navigation, t, theme.colors.bg, theme.colors.fg, workshopId, canSave, saving, onSave]);
+
   function confirmDelete() {
     if (!workshopId) return;
     Alert.alert(t("workshops.deleteTitle"), t("workshops.deleteBody"), [
@@ -137,7 +158,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
 
   function clearForm() {
     setName("");
-    setWorkshopType("mechanic");
+    setWorkshopType(null);
     setPhoneNumber("");
     setAddress("");
   }
@@ -188,14 +209,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
 
   return (
     <FormScreen
-      header={
-        <FormNavbar
-          onCancel={() => navigation.goBack()}
-          onSave={onSave}
-          canSave={canSave}
-          saving={saving}
-        />
-      }
+      isModal
       footer={
         workshopId ? (
           <Button variant="destructive" onPress={confirmDelete}>
@@ -208,12 +222,6 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
         )
       }
     >
-      <ContentHeader
-        title={
-          workshopId ? t("workshopForm.editTitle") : t("workshopForm.addTitle")
-        }
-      />
-
       <View
         style={[
           styles.card,
@@ -260,6 +268,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
               options: WORKSHOP_TYPES,
               getLabel: (v) => t(`workshopForm.types.${v}`),
               onChange: setWorkshopType,
+              placeholderLabel: t("workshopForm.selectType"),
             })
           }
           style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
@@ -287,7 +296,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
             ]}
             numberOfLines={1}
           >
-            {workshopType ? t(`workshopForm.types.${workshopType}`) : "—"}
+            {workshopType ? t(`workshopForm.types.${workshopType}`) : t("workshopForm.selectType")}
           </Text>
         </Pressable>
         <View

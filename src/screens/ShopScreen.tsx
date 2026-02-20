@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useLayoutEffect, useMemo, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -14,8 +14,8 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Purchases from "react-native-purchases";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { AppNavbar } from "../ui/components/AppNavbar";
 import { Card } from "../ui/components/Card";
+import { ModalButton } from "../ui/components/ModalButton";
 import { Button } from "../ui/components/Button";
 import { LegalLinksRow } from "../ui/components/LegalLinksRow";
 import { AppLayout } from "../ui/components/AppLayout";
@@ -338,9 +338,23 @@ export function ShopScreen({ navigation }: Props) {
     right: "yearly" as const,
   };
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: t("shop.title"),
+      headerBackVisible: false,
+      headerStyle: { backgroundColor: theme.colors.bg },
+      headerTitleStyle: { color: theme.colors.fg },
+      headerLeft: () => (
+        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+          {t("common.cancel")}
+        </ModalButton>
+      ),
+    });
+  }, [navigation, t, theme.colors.bg, theme.colors.fg]);
+
   return (
     <AppLayout
-      header={<AppNavbar onBack={() => navigation.goBack()} />}
+      isModal
       footer={
         <>
           <View style={styles.footerButtons}>

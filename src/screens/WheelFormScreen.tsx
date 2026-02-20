@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -22,8 +22,8 @@ import {
   listVehicleWheels,
 } from "../services/wheels/wheelsRepo";
 import { Button } from "../ui/components/Button";
-import { FormNavbar } from "../ui/components/FormNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
+import { ModalButton } from "../ui/components/ModalButton";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError } from "../ui/toast/toast";
@@ -31,7 +31,6 @@ import { maybeHandleBackendEntitlementLimitError } from "../ui/limits/entitlemen
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { BoltPatternIcon } from "../ui/components/BoltPatternIcon";
 import { BoltTypeIcon } from "../ui/components/BoltTypeIcon";
-import { ContentHeader } from "../ui/components/ContentHeader";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WheelForm">;
 
@@ -199,16 +198,32 @@ export function WheelFormScreen({ navigation, route }: Props) {
     }
   }
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: wheelId ? t("wheelForm.editTitle") : t("wheelForm.addTitle"),
+      headerBackVisible: false,
+      headerStyle: { backgroundColor: theme.colors.bg },
+      headerTitleStyle: { color: theme.colors.fg },
+      headerLeft: () => (
+        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+          {t("common.cancel")}
+        </ModalButton>
+      ),
+      headerRight: () => (
+        <ModalButton
+          variant="done"
+          onPress={onSave}
+          disabled={!canSave || saving}
+        >
+          {t("common.done")}
+        </ModalButton>
+      ),
+    });
+  }, [navigation, t, theme.colors.bg, theme.colors.fg, wheelId, canSave, saving, onSave]);
+
   return (
     <FormScreen
-      header={
-        <FormNavbar
-          onCancel={() => navigation.goBack()}
-          onSave={onSave}
-          canSave={canSave}
-          saving={saving}
-        />
-      }
+      isModal
       footer={
         wheelId ? (
           <Button variant="destructive" onPress={confirmDelete}>
@@ -221,10 +236,6 @@ export function WheelFormScreen({ navigation, route }: Props) {
         )
       }
     >
-      <ContentHeader
-        title={wheelId ? t("wheelForm.editTitle") : t("wheelForm.addTitle")}
-      />
-
       <View
         style={[
           styles.card,

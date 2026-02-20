@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
@@ -39,8 +45,8 @@ import type { Workshop } from "../types/domain";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { Button } from "../ui/components/Button";
-import { FormNavbar } from "../ui/components/FormNavbar";
 import { FormScreen } from "../ui/components/FormScreen";
+import { ModalButton } from "../ui/components/ModalButton";
 import { useTheme } from "../ui/ThemeProvider";
 import { toastError } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
@@ -48,7 +54,6 @@ import { IconButton } from "../ui/components/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 import { Textarea } from "../ui/components/Textarea";
-import { ContentHeader } from "../ui/components/ContentHeader";
 import { ListRowWithActions } from "../ui/components/ListRowWithActions";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
@@ -513,16 +518,42 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     }
   }
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: entryId ? t("entryForm.editTitle") : t("entryForm.title"),
+      headerBackVisible: false,
+      headerStyle: { backgroundColor: theme.colors.bg },
+      headerTitleStyle: { color: theme.colors.fg },
+      headerLeft: () => (
+        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+          {t("common.cancel")}
+        </ModalButton>
+      ),
+      headerRight: () => (
+        <ModalButton
+          variant="done"
+          onPress={onSave}
+          disabled={!canSave || saving || uploading}
+        >
+          {t("common.done")}
+        </ModalButton>
+      ),
+    });
+  }, [
+    navigation,
+    t,
+    theme.colors.bg,
+    theme.colors.fg,
+    entryId,
+    canSave,
+    saving,
+    uploading,
+    onSave,
+  ]);
+
   return (
     <FormScreen
-      header={
-        <FormNavbar
-          onCancel={() => navigation.goBack()}
-          onSave={onSave}
-          canSave={canSave}
-          saving={saving}
-        />
-      }
+      isModal
       footer={
         entryId ? (
           <Button variant="destructive" onPress={confirmDeleteEntry}>
@@ -535,10 +566,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         )
       }
     >
-      <ContentHeader
-        title={entryId ? t("entryForm.editTitle") : t("entryForm.title")}
-      />
-
       {!entryId ? (
         <>
           <View
@@ -1150,6 +1177,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               )}
             />
           )}
+          <View style={{ height: theme.spacing.xl }} />
         </>
       )}
     </FormScreen>

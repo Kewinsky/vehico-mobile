@@ -30,17 +30,19 @@ export function useFormScreenScrollRef() {
 
 export function FormScreen({
   children,
-  padding = true,
   header,
   scrollEnabled = true,
   scrollRef,
   footer,
+  isModal = false,
 }: PropsWithChildren<{
   padding?: boolean;
   header?: ReactNode;
   scrollEnabled?: boolean;
   scrollRef?: React.RefObject<ScrollViewInstance | null>;
   footer?: ReactNode;
+  /** When true, layout assumes native modal header (no top inset, extra footer padding). */
+  isModal?: boolean;
 }>) {
   const { theme } = useTheme();
   const internalScrollRef = useRef<ScrollViewInstance | null>(null);
@@ -63,7 +65,7 @@ export function FormScreen({
   }, []);
 
   return (
-    <AppLayout header={header} footer={footer}>
+    <AppLayout header={header} footer={footer} isModal={isModal}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}

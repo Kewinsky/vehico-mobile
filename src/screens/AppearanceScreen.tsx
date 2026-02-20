@@ -8,13 +8,13 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { useMemo } from "react";
+import { useLayoutEffect, useMemo } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import type { TFunction } from "i18next";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { AppNavbar } from "../ui/components/AppNavbar";
 import { AppLayout } from "../ui/components/AppLayout";
+import { ModalButton } from "../ui/components/ModalButton";
 import type { UserSettings } from "../app/providers/UserSettingsProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useTheme } from "../ui/ThemeProvider";
@@ -120,17 +120,24 @@ export function AppearanceScreen({ navigation }: Props) {
   const themeIcon: React.ComponentProps<typeof Ionicons>["name"] =
     mode === "dark" ? "moon-outline" : "sunny-outline";
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: t("settings.appearanceButton"),
+      headerBackVisible: false,
+      headerStyle: { backgroundColor: theme.colors.bg },
+      headerTitleStyle: { color: theme.colors.fg },
+      headerLeft: () => (
+        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+          {t("common.cancel")}
+        </ModalButton>
+      ),
+    });
+  }, [navigation, t, theme.colors.bg, theme.colors.fg]);
+
   return (
-    <AppLayout
-      loading={!settings}
-      header={<AppNavbar onBack={() => navigation.goBack()} />}
-    >
+    <AppLayout isModal loading={!settings}>
       {settings && (
         <ScrollView contentContainerStyle={styles.container}>
-          <Text style={[styles.largeTitle, { color: theme.colors.fg }]}>
-            {t("settings.appearanceButton")}
-          </Text>
-
           {cardConfig.map(({ cardLabelKey, items }) => (
             <View
               key={cardLabelKey}
@@ -225,6 +232,7 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       flexGrow: 1,
+      paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.xl,
     },
     loadingWrap: {
