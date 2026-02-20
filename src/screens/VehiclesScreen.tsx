@@ -58,6 +58,11 @@ function VehicleCarousel({
         data={photoUrls}
         width={width}
         height={height}
+        onConfigurePanGesture={(pan) => {
+          pan
+            .activeOffsetX([-12, 12])
+            .failOffsetY([-15, 15]);
+        }}
         onProgressChange={(_offset, absoluteProgress) => {
           progress.value = absoluteProgress;
         }}
@@ -412,6 +417,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
         refreshing={refreshing}
         onRefresh={() => void load({ refreshing: true })}
         contentContainerStyle={{ paddingTop: theme.spacing.sm }}
+        nestedScrollEnabled={true}
         ListEmptyComponent={<EmptyState body={t("vehicles.emptyTitle")} />}
         renderItem={({ item }) => {
           const isLocked =

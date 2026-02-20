@@ -434,7 +434,6 @@ function makeStyles(theme: AppTheme) {
     container: {
       flexGrow: 1,
       paddingBottom: spacing.xl * 2,
-      paddingTop: spacing.md,
     },
     premiumBadge: {
       flexDirection: "row",
@@ -558,6 +557,7 @@ function makeStyles(theme: AppTheme) {
     },
     inlineBadgeText: {
       fontSize: typography.small,
+      fontWeight: typography.fontWeight.bold,
     },
     optionRight: {
       alignItems: "flex-end",
