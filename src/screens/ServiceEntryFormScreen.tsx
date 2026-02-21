@@ -34,6 +34,7 @@ import {
 import {
   deleteAttachment,
   listAttachments,
+  updateAttachmentDisplayName,
   uploadAttachment,
 } from "../services/attachments/attachmentsRepo";
 import {
@@ -227,6 +228,63 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           },
         },
       ],
+    );
+  }
+
+  function handleEditAttachmentName(att: Attachment) {
+    Alert.prompt(
+      t("attachments.editAttachmentNameTitle"),
+      t("attachments.editAttachmentNameBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.save"),
+          onPress: async (newName: string | undefined) => {
+            try {
+              await updateAttachmentDisplayName(
+                att.id,
+                newName?.trim() || null,
+              );
+              setAttachments((prev) =>
+                prev.map((a) =>
+                  a.id === att.id
+                    ? { ...a, display_name: newName?.trim() || null }
+                    : a,
+                ),
+              );
+            } catch (e: any) {
+              toastError(e?.message ?? t("common.error"));
+            }
+          },
+        },
+      ],
+      "plain-text",
+      att.display_name?.trim() || "",
+    );
+  }
+
+  function handleEditPendingFileName(
+    index: number,
+    currentFileName: string | null | undefined,
+  ) {
+    Alert.prompt(
+      t("attachments.editAttachmentNameTitle"),
+      t("attachments.editAttachmentNameBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.save"),
+          onPress: (newName: string | undefined) => {
+            setPendingFiles((prev) =>
+              prev.map((f, i) =>
+                i === index ? { ...f, fileName: newName?.trim() || null } : f,
+              ),
+            );
+          },
+        },
+      ],
+      "plain-text",
+      currentFileName?.trim() || "",
     );
   }
 
@@ -1065,7 +1123,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 multiline
                 placeholder={t("entryForm.placeholderDescription")}
                 placeholderTextColor={theme.colors.muted}
-                style={[styles.inputMultiline, { color: theme.colors.fg }]}
+                style={[
+                  styles.inputMultiline,
+                  { color: theme.colors.fg, paddingTop: theme.spacing.xs },
+                ]}
               />
             </View>
           </View>
@@ -1099,7 +1160,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               renderItem={({ item }) => (
                 <ListRowWithActions
                   title={
-                    getFileNameFromItem(item) ||
+                    item.display_name?.trim() ||
                     t("attachments.attachmentLabel")
                   }
                   subtitle={(() => {
@@ -1119,16 +1180,30 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   })()}
                   onPress={() => void openAttachment(item)}
                   trailing={
-                    <IconButton
-                      onPress={() => confirmDeleteAttachment(item)}
-                      variant="danger"
+                    <View
+                      style={{ flexDirection: "row", gap: theme.spacing.xs }}
                     >
-                      <Ionicons
-                        name="trash-outline"
-                        size={24}
-                        color={theme.colors.danger}
-                      />
-                    </IconButton>
+                      <IconButton
+                        onPress={() => handleEditAttachmentName(item)}
+                        variant="ghost"
+                      >
+                        <Ionicons
+                          name="create-outline"
+                          size={24}
+                          color={theme.colors.accent}
+                        />
+                      </IconButton>
+                      <IconButton
+                        onPress={() => confirmDeleteAttachment(item)}
+                        variant="danger"
+                      >
+                        <Ionicons
+                          name="trash-outline"
+                          size={24}
+                          color={theme.colors.danger}
+                        />
+                      </IconButton>
+                    </View>
                   }
                 />
               )}
@@ -1155,23 +1230,40 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               )}
               renderItem={({ item, index }) => (
                 <ListRowWithActions
-                  title={item.fileName || t("attachments.attachmentLabel")}
-                  subtitle={t("entryForm.pendingAttachments", { count: 1 })}
+                  title={
+                    item.fileName?.trim() || t("attachments.attachmentLabel")
+                  }
                   trailing={
-                    <IconButton
-                      onPress={() => {
-                        setPendingFiles((prev) =>
-                          prev.filter((_, i) => i !== index),
-                        );
-                      }}
-                      variant="danger"
+                    <View
+                      style={{ flexDirection: "row", gap: theme.spacing.xs }}
                     >
-                      <Ionicons
-                        name="trash-outline"
-                        size={24}
-                        color={theme.colors.danger}
-                      />
-                    </IconButton>
+                      <IconButton
+                        onPress={() =>
+                          handleEditPendingFileName(index, item.fileName)
+                        }
+                        variant="ghost"
+                      >
+                        <Ionicons
+                          name="create-outline"
+                          size={24}
+                          color={theme.colors.accent}
+                        />
+                      </IconButton>
+                      <IconButton
+                        onPress={() => {
+                          setPendingFiles((prev) =>
+                            prev.filter((_, i) => i !== index),
+                          );
+                        }}
+                        variant="danger"
+                      >
+                        <Ionicons
+                          name="trash-outline"
+                          size={24}
+                          color={theme.colors.danger}
+                        />
+                      </IconButton>
+                    </View>
                   }
                 />
               )}

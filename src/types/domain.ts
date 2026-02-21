@@ -110,6 +110,8 @@ export type Attachment = {
   created_at: string;
   /** When set, file is stored locally (not in Supabase). */
   local_path?: string;
+  /** User-facing display name; defaults to e.g. "Załącznik" when empty. */
+  display_name?: string | null;
 };
 
 export type PublicReportSnapshot = {

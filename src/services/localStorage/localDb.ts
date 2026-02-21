@@ -15,43 +15,42 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
 
 async function migrateIfNeeded(db: SQLite.SQLiteDatabase): Promise<void> {
   const { user_version: currentVersion } = (await db.getFirstAsync(
-    "PRAGMA user_version"
+    "PRAGMA user_version",
   )) as { user_version: number };
 
-  if (currentVersion >= DATABASE_VERSION) return;
+  if (currentVersion === DATABASE_VERSION) return;
 
-  if (currentVersion === 0) {
-    await db.execAsync(`
-      PRAGMA journal_mode = WAL;
+  await db.execAsync(`
+    PRAGMA journal_mode = WAL;
 
-      CREATE TABLE IF NOT EXISTS local_attachments (
-        id TEXT PRIMARY KEY NOT NULL,
-        service_entry_id TEXT NOT NULL,
-        type TEXT NOT NULL CHECK (type IN ('receipt', 'invoice', 'photo')),
-        local_path TEXT NOT NULL,
-        created_at TEXT NOT NULL DEFAULT (datetime('now'))
-      );
+    DROP TABLE IF EXISTS local_attachments;
+    DROP TABLE IF EXISTS local_vehicle_documents;
 
-      CREATE INDEX IF NOT EXISTS idx_local_attachments_service_entry
-        ON local_attachments(service_entry_id);
-      CREATE INDEX IF NOT EXISTS idx_local_attachments_created
-        ON local_attachments(created_at DESC);
+    CREATE TABLE local_attachments (
+      id TEXT PRIMARY KEY NOT NULL,
+      service_entry_id TEXT NOT NULL,
+      type TEXT NOT NULL CHECK (type IN ('receipt', 'invoice', 'photo')),
+      local_path TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      display_name TEXT
+    );
+    CREATE INDEX idx_local_attachments_service_entry
+      ON local_attachments(service_entry_id);
+    CREATE INDEX idx_local_attachments_created
+      ON local_attachments(created_at DESC);
 
-      CREATE TABLE IF NOT EXISTS local_vehicle_documents (
-        id TEXT PRIMARY KEY NOT NULL,
-        vehicle_id TEXT NOT NULL,
-        local_path TEXT NOT NULL,
-        description TEXT,
-        created_at TEXT NOT NULL DEFAULT (datetime('now'))
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_local_vehicle_documents_vehicle
-        ON local_vehicle_documents(vehicle_id);
-      CREATE INDEX IF NOT EXISTS idx_local_vehicle_documents_created
-        ON local_vehicle_documents(created_at DESC);
-    `);
-  }
-
+    CREATE TABLE local_vehicle_documents (
+      id TEXT PRIMARY KEY NOT NULL,
+      vehicle_id TEXT NOT NULL,
+      local_path TEXT NOT NULL,
+      description TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX idx_local_vehicle_documents_vehicle
+      ON local_vehicle_documents(vehicle_id);
+    CREATE INDEX idx_local_vehicle_documents_created
+      ON local_vehicle_documents(created_at DESC);
+  `);
   await db.runAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
 }
 
@@ -63,57 +62,76 @@ export type LocalAttachmentRow = {
   type: "receipt" | "invoice" | "photo";
   local_path: string;
   created_at: string;
+  display_name?: string | null;
 };
 
-export async function insertLocalAttachment(row: LocalAttachmentRow): Promise<void> {
+export async function insertLocalAttachment(
+  row: LocalAttachmentRow,
+): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    `INSERT INTO local_attachments (id, service_entry_id, type, local_path, created_at)
-     VALUES ($id, $service_entry_id, $type, $local_path, $created_at)`,
+    `INSERT INTO local_attachments (id, service_entry_id, type, local_path, created_at, display_name)
+     VALUES ($id, $service_entry_id, $type, $local_path, $created_at, $display_name)`,
     {
       $id: row.id,
       $service_entry_id: row.service_entry_id,
       $type: row.type,
       $local_path: row.local_path,
       $created_at: row.created_at,
-    }
+      $display_name: row.display_name ?? null,
+    },
   );
 }
 
 export async function listLocalAttachments(
-  serviceEntryId: string
+  serviceEntryId: string,
 ): Promise<LocalAttachmentRow[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<LocalAttachmentRow>(
     `SELECT * FROM local_attachments WHERE service_entry_id = $id ORDER BY created_at DESC`,
-    { $id: serviceEntryId }
+    { $id: serviceEntryId },
   );
   return rows;
 }
 
 export async function listAllLocalAttachmentsByVehicle(
-  serviceEntryIds: string[]
+  serviceEntryIds: string[],
 ): Promise<LocalAttachmentRow[]> {
   if (serviceEntryIds.length === 0) return [];
   const db = await getDb();
   const placeholders = serviceEntryIds.map(() => "?").join(", ");
   const rows = await db.getAllAsync<LocalAttachmentRow>(
     `SELECT * FROM local_attachments WHERE service_entry_id IN (${placeholders}) ORDER BY created_at DESC`,
-    serviceEntryIds as unknown as SQLite.SQLiteBindValue[]
+    serviceEntryIds as unknown as SQLite.SQLiteBindValue[],
   );
   return rows;
 }
 
-export async function deleteLocalAttachment(id: string): Promise<void> {
+export async function updateLocalAttachmentDisplayName(
+  id: string,
+  displayName: string | null,
+): Promise<void> {
   const db = await getDb();
-  await db.runAsync(`DELETE FROM local_attachments WHERE id = $id`, { $id: id });
+  await db.runAsync(
+    `UPDATE local_attachments SET display_name = $display_name WHERE id = $id`,
+    { $id: id, $display_name: displayName },
+  );
 }
 
-export async function getLocalAttachment(id: string): Promise<LocalAttachmentRow | null> {
+export async function deleteLocalAttachment(id: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`DELETE FROM local_attachments WHERE id = $id`, {
+    $id: id,
+  });
+}
+
+export async function getLocalAttachment(
+  id: string,
+): Promise<LocalAttachmentRow | null> {
   const db = await getDb();
   const row = await db.getFirstAsync<LocalAttachmentRow>(
     `SELECT * FROM local_attachments WHERE id = $id`,
-    { $id: id }
+    { $id: id },
   );
   return row ?? null;
 }
@@ -129,7 +147,7 @@ export type LocalVehicleDocumentRow = {
 };
 
 export async function insertLocalVehicleDocument(
-  row: LocalVehicleDocumentRow
+  row: LocalVehicleDocumentRow,
 ): Promise<void> {
   const db = await getDb();
   await db.runAsync(
@@ -141,29 +159,29 @@ export async function insertLocalVehicleDocument(
       $local_path: row.local_path,
       $description: row.description,
       $created_at: row.created_at,
-    }
+    },
   );
 }
 
 export async function listLocalVehicleDocuments(
-  vehicleId: string
+  vehicleId: string,
 ): Promise<LocalVehicleDocumentRow[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<LocalVehicleDocumentRow>(
     `SELECT * FROM local_vehicle_documents WHERE vehicle_id = $id ORDER BY created_at DESC`,
-    { $id: vehicleId }
+    { $id: vehicleId },
   );
   return rows;
 }
 
 export async function updateLocalVehicleDocumentDescription(
   id: string,
-  description: string | null
+  description: string | null,
 ): Promise<void> {
   const db = await getDb();
   await db.runAsync(
     `UPDATE local_vehicle_documents SET description = $desc WHERE id = $id`,
-    { $id: id, $desc: description }
+    { $id: id, $desc: description },
   );
 }
 
@@ -175,12 +193,12 @@ export async function deleteLocalVehicleDocument(id: string): Promise<void> {
 }
 
 export async function getLocalVehicleDocument(
-  id: string
+  id: string,
 ): Promise<LocalVehicleDocumentRow | null> {
   const db = await getDb();
   const row = await db.getFirstAsync<LocalVehicleDocumentRow>(
     `SELECT * FROM local_vehicle_documents WHERE id = $id`,
-    { $id: id }
+    { $id: id },
   );
   return row ?? null;
 }

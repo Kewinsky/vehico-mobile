@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
@@ -524,7 +530,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
             style={styles.photoDeleteButton}
             hitSlop={5}
           >
-            <Ionicons name="close-circle" size={28} color={theme.colors.accent} />
+            <Ionicons
+              name="close-circle"
+              size={28}
+              color={theme.colors.accent}
+            />
           </Pressable>
         </View>
       </View>
@@ -591,7 +601,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
             style={styles.photoDeleteButton}
             hitSlop={5}
           >
-            <Ionicons name="close-circle" size={28} color={theme.colors.accent} />
+            <Ionicons
+              name="close-circle"
+              size={28}
+              color={theme.colors.accent}
+            />
           </Pressable>
         </View>
       </View>
@@ -719,7 +733,16 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         </ModalButton>
       ),
     });
-  }, [navigation, t, theme.colors.bg, theme.colors.fg, isEditMode, canSave, saving, onSave]);
+  }, [
+    navigation,
+    t,
+    theme.colors.bg,
+    theme.colors.fg,
+    isEditMode,
+    canSave,
+    saving,
+    onSave,
+  ]);
 
   return (
     <FormScreen scrollEnabled={!isDragging} isModal>
@@ -1411,7 +1434,10 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   multiline
                   placeholder={t("vehicleForm.placeholderNotes")}
                   placeholderTextColor={theme.colors.muted}
-                  style={[styles.inputMultiline, { color: theme.colors.fg }]}
+                  style={[
+                    styles.inputMultiline,
+                    { color: theme.colors.fg, paddingTop: theme.spacing.xs },
+                  ]}
                 />
               </View>
             </View>

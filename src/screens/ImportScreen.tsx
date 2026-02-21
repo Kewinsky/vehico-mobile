@@ -204,10 +204,7 @@ export function ImportScreen({ navigation, route }: Props) {
         </>
       }
     >
-      <TouchableWithoutFeedback
-        onPress={Keyboard.dismiss}
-        accessible={false}
-      >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={{ flex: 1 }}>
           <ContentHeader title={t("import.title")} />
           <View
@@ -319,6 +316,5 @@ const makeStyles = (theme: any) =>
     textArea: {
       minHeight: 160,
       fontSize: theme.typography.body,
-      paddingTop: 2,
     },
   });

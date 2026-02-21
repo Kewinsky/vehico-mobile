@@ -378,8 +378,9 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title:
-        reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle"),
+      title: reminderId
+        ? t("reminderForm.editTitle")
+        : t("reminderForm.addTitle"),
       headerBackVisible: false,
       headerStyle: { backgroundColor: theme.colors.bg },
       headerTitleStyle: { color: theme.colors.fg },
@@ -398,7 +399,16 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         </ModalButton>
       ),
     });
-  }, [navigation, t, theme.colors.bg, theme.colors.fg, reminderId, canSave, saving, onSave]);
+  }, [
+    navigation,
+    t,
+    theme.colors.bg,
+    theme.colors.fg,
+    reminderId,
+    canSave,
+    saving,
+    onSave,
+  ]);
 
   return (
     <FormScreen
@@ -955,7 +965,10 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             editable={!saving}
             multiline
             textAlignVertical="top"
-            style={[styles.inputMultiline, { color: theme.colors.fg }]}
+            style={[
+              styles.inputMultiline,
+              { color: theme.colors.fg, paddingTop: theme.spacing.xs },
+            ]}
           />
         </View>
       </View>

@@ -9,6 +9,7 @@ import {
   insertLocalAttachment,
   listLocalAttachments,
   listAllLocalAttachmentsByVehicle,
+  updateLocalAttachmentDisplayName,
 } from "../localStorage/localDb";
 import {
   deleteLocalFile,
@@ -33,6 +34,7 @@ export async function listAttachments(
     storage_path: "",
     created_at: row.created_at,
     local_path: row.local_path,
+    display_name: row.display_name ?? undefined,
   }));
 }
 
@@ -66,12 +68,15 @@ export async function uploadAttachment(params: {
 
   const id = uuid();
   const created_at = new Date().toISOString();
+  const displayName =
+    params.fileName?.trim() || null;
   await insertLocalAttachment({
     id,
     service_entry_id: params.serviceEntryId,
     type: attachmentType,
     local_path: localPath,
     created_at,
+    display_name: displayName,
   });
 
   return {
@@ -82,7 +87,16 @@ export async function uploadAttachment(params: {
     storage_path: "",
     created_at,
     local_path: localPath,
+    display_name: displayName ?? undefined,
   };
+}
+
+/** Update display name for an attachment (local only). */
+export async function updateAttachmentDisplayName(
+  attachmentId: string,
+  displayName: string | null
+): Promise<void> {
+  await updateLocalAttachmentDisplayName(attachmentId, displayName?.trim() || null);
 }
 
 export async function deleteAttachment(att: Attachment): Promise<void> {
@@ -109,6 +123,7 @@ export async function listVehicleAttachments(
     storage_path: "",
     created_at: row.created_at,
     local_path: row.local_path,
+    display_name: row.display_name ?? undefined,
     serviceEntryTitle: titleMap.get(row.service_entry_id) ?? null,
   }));
 }
