@@ -98,9 +98,14 @@ export function CustomFlatList<T>({
               ? `sep-${row.monthYearKey}`
               : keyExtractor(row.item)
           }
-          renderItem={({ item: row }) => {
+          renderItem={({ item: row, index }) => {
             if (row.type === "separator") {
-              return <MonthYearSeparator monthYear={row.monthYear} />;
+              return (
+                <MonthYearSeparator
+                  isFirst={index === 0}
+                  monthYear={row.monthYear}
+                />
+              );
             }
             return renderItem({ item: row.item });
           }}

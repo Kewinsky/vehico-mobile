@@ -9,11 +9,14 @@ import { VehiclesScreen } from "../../screens/VehiclesScreen";
 import { VehicleFormScreen } from "../../screens/VehicleFormScreen";
 import { VehicleDashboardScreen } from "../../screens/VehicleDashboardScreen";
 import { ServiceHistoryScreen } from "../../screens/ServiceHistoryScreen";
+import { ServiceHistoryFiltersScreen } from "../../screens/ServiceHistoryFiltersScreen";
 import { ManageVehicleScreen } from "../../screens/ManageVehicleScreen";
 import { DocumentsScreen } from "../../screens/DocumentsScreen";
 import { FuelScreen } from "../../screens/FuelScreen";
+import { FuelFiltersScreen } from "../../screens/FuelFiltersScreen";
 import { FuelingEntryFormScreen } from "../../screens/FuelingEntryFormScreen";
 import { RemindersScreen } from "../../screens/RemindersScreen";
+import { RemindersFiltersScreen } from "../../screens/RemindersFiltersScreen";
 import { ReminderFormScreen } from "../../screens/ReminderFormScreen";
 import { ServiceEntryFormScreen } from "../../screens/ServiceEntryFormScreen";
 import { SettingsScreen } from "../../screens/SettingsScreen";
@@ -38,6 +41,7 @@ import { WheelsListScreen } from "../../screens/WheelsListScreen";
 import { TireFormScreen } from "../../screens/TireFormScreen";
 import { WheelFormScreen } from "../../screens/WheelFormScreen";
 import { WorkshopsScreen } from "../../screens/WorkshopsScreen";
+import { WorkshopsFiltersScreen } from "../../screens/WorkshopsFiltersScreen";
 import { WorkshopFormScreen } from "../../screens/WorkshopFormScreen";
 import { ShopScreen } from "../../screens/ShopScreen";
 import { ExampleListingScreen } from "../../screens/ExampleListingScreen";
@@ -56,10 +60,34 @@ export type AppStackParamList = {
   Appearance: undefined;
   VehicleDashboard: { vehicleId: string };
   ServiceHistory: { vehicleId: string };
+  ServiceHistoryFilters: {
+    vehicleId: string;
+    categoryFilter?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    minCost?: string;
+    maxCost?: string;
+    showReminders?: boolean;
+    sortOption?: string;
+  };
   Documents: { vehicleId: string };
   Fuel: { vehicleId: string };
+  FuelFilters: {
+    vehicleId: string;
+    dateFrom?: string;
+    dateTo?: string;
+    stationFilter?: string | null;
+    minCost?: string;
+    maxCost?: string;
+  };
   Statistics: { vehicleId: string };
   Reminders: { vehicleId: string };
+  RemindersFilters: {
+    vehicleId: string;
+    dateFrom?: string;
+    dateTo?: string;
+    statusFilter?: "all" | "active" | "done";
+  };
   Share: { vehicleId: string };
   Marketplace: { vehicleId: string };
   MarketplaceConfigure: { vehicleId: string };
@@ -137,6 +165,10 @@ export type AppStackParamList = {
   TireForm: { vehicleId: string; tireId?: string };
   WheelForm: { vehicleId: string; wheelId?: string };
   Workshops: undefined;
+  WorkshopsFilters: {
+    typeFilter?: string;
+    sortOrder?: "az" | "za";
+  };
   WorkshopForm: { workshopId?: string };
   Shop: undefined;
   ExampleListing: undefined;
@@ -220,8 +252,26 @@ export function RootNavigator() {
             name="ServiceHistory"
             component={ServiceHistoryScreen}
           />
+          <Stack.Screen
+            name="ServiceHistoryFilters"
+            component={ServiceHistoryFiltersScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
           <Stack.Screen name="Documents" component={DocumentsScreen} />
           <Stack.Screen name="Fuel" component={FuelScreen} />
+          <Stack.Screen
+            name="FuelFilters"
+            component={FuelFiltersScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
           <Stack.Screen name="Statistics" component={StatisticsScreen} />
           <Stack.Screen
             name="FuelingEntryForm"
@@ -233,6 +283,15 @@ export function RootNavigator() {
             }}
           />
           <Stack.Screen name="Reminders" component={RemindersScreen} />
+          <Stack.Screen
+            name="RemindersFilters"
+            component={RemindersFiltersScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
           <Stack.Screen
             name="ReminderForm"
             component={ReminderFormScreen}
@@ -315,6 +374,15 @@ export function RootNavigator() {
             }}
           />
           <Stack.Screen name="Workshops" component={WorkshopsScreen} />
+          <Stack.Screen
+            name="WorkshopsFilters"
+            component={WorkshopsFiltersScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
           <Stack.Screen
             name="WorkshopForm"
             component={WorkshopFormScreen}

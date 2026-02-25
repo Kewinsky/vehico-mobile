@@ -5,13 +5,14 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppNavbar } from "../ui/components/AppNavbar";
@@ -20,7 +21,6 @@ import { AppLayout } from "../ui/components/AppLayout";
 import { EmptyState } from "../ui/components/EmptyState";
 import { useTheme } from "../ui/ThemeProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
-import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Attachment, VehicleDocument } from "../types/domain";
 import {
   deleteAttachment,
@@ -38,24 +38,23 @@ import {
   updateVehicleDocument,
   uploadVehicleDocument,
 } from "../services/vehicleDocuments/vehicleDocumentsRepo";
-import { Button } from "../ui/components/Button";
 import { ListRowWithActions } from "../ui/components/ListRowWithActions";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { IconButton } from "../ui/components/IconButton";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
 export function DocumentsScreen({ route, navigation }: Props) {
   const { t, i18n } = useTranslation();
-  const { theme, mode } = useTheme();
+  const { theme } = useTheme();
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [vehicleDocs, setVehicleDocs] = useState<VehicleDocument[]>([]);
   const [attachments, setAttachments] = useState<VehicleAttachment[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query] = useState("");
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -288,33 +287,28 @@ export function DocumentsScreen({ route, navigation }: Props) {
     );
   }
 
-  const filterPanelContent = (
-    <View
-      style={[
-        styles.searchBarWrap,
-        {
-          borderColor: theme.colors.border,
-          backgroundColor: theme.colors.card,
-        },
-      ]}
-    >
-      <Ionicons
-        name="search-outline"
-        size={20}
-        color={theme.colors.muted}
-        style={styles.searchBarIcon}
-      />
-      <TextInput
-        value={query}
-        onChangeText={setQuery}
-        placeholder={t("documents.searchPlaceholder")}
-        placeholderTextColor={theme.colors.muted}
-        autoCapitalize="none"
-        autoCorrect={false}
-        clearButtonMode="while-editing"
-        keyboardAppearance={mode === "dark" ? "dark" : "light"}
-        style={[styles.searchBarInput, { color: theme.colors.fg }]}
-      />
+  const headerRight = (
+    <View style={styles.headerRight}>
+      <Pressable
+        onPress={() => {}}
+        style={({ pressed }) => [
+          styles.headerIconBtn,
+          pressed && styles.headerIconBtnPressed,
+        ]}
+      >
+        <Ionicons name="search-outline" size={22} color={theme.colors.fg} />
+      </Pressable>
+      <Pressable
+        onPress={openAddPicker}
+        disabled={uploading}
+        style={({ pressed }) => [
+          styles.headerIconBtn,
+          pressed && styles.headerIconBtnPressed,
+          uploading && styles.headerIconBtnDisabled,
+        ]}
+      >
+        <Ionicons name="add" size={24} color={theme.colors.fg} />
+      </Pressable>
     </View>
   );
 
@@ -324,21 +318,12 @@ export function DocumentsScreen({ route, navigation }: Props) {
       header={
         <AppNavbar
           onBack={() => navigation.goBack()}
-          showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
+          right={headerRight}
         />
-      }
-      footer={
-        <Button onPress={openAddPicker} disabled={uploading}>
-          {t("documents.addVehicleDocument")}
-        </Button>
       }
     >
       <ScrollView style={{ flex: 1 }}>
-        <ContentHeader
-          title={t("dashboard.tiles.docsTitle")}
-          filterPanel={filterPanelContent}
-        />
+        <ContentHeader title={t("dashboard.tiles.docsTitle")} />
         <Text
           style={[
             styles.section,
@@ -488,23 +473,22 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
     },
-    searchBarWrap: {
+    headerRight: {
       flexDirection: "row",
       alignItems: "center",
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      height: theme.spacing.lg * 2,
-      paddingLeft: theme.spacing.sm,
-      minWidth: 0,
+      gap: theme.spacing.sm,
     },
-    searchBarIcon: {
-      marginRight: theme.spacing.xs,
+    headerIconBtn: {
+      width: theme.spacing.xl + theme.spacing.xs,
+      height: theme.spacing.xl + theme.spacing.xs,
+      justifyContent: "center",
+      alignItems: "center",
     },
-    searchBarInput: {
-      flex: 1,
-      height: "100%",
-      paddingVertical: 0,
-      fontSize: theme.typography.body,
+    headerIconBtnPressed: {
+      opacity: 0.6,
+    },
+    headerIconBtnDisabled: {
+      opacity: 0.5,
     },
     card: {
       borderWidth: 1,
