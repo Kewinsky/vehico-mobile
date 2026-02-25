@@ -178,14 +178,11 @@ export function ShopScreen({ navigation }: Props) {
     }
     return (
       <View style={styles.featureRow}>
-        <View
-          style={[
-            styles.featureIcon,
-            { backgroundColor: theme.colors.accent + "18" },
-          ]}
-        >
-          <Ionicons name="checkmark" size={16} color={theme.colors.accent} />
-        </View>
+        <Ionicons
+          name="checkmark-circle"
+          size={26}
+          color={theme.colors.accent}
+        />
         <View style={styles.featureTextWrap}>
           <Text style={[styles.featureText, { color: theme.colors.fg }]}>
             {text}
@@ -496,13 +493,6 @@ function makeStyles(theme: AppTheme) {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
-    },
-    featureIcon: {
-      width: 26,
-      height: 26,
-      borderRadius: 13,
-      alignItems: "center",
-      justifyContent: "center",
     },
     featureTextWrap: {
       flex: 1,
