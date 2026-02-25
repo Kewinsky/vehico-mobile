@@ -7,6 +7,7 @@ export const pl = {
     saving: "Zapisywanie…",
     all: "Wszystkie",
     cancel: "Anuluj",
+    search: "Szukaj",
     done: "Gotowe",
     save: "Zapisz",
     delete: "Usuń",

@@ -7,6 +7,7 @@ export const en = {
     saving: "Saving…",
     all: "All",
     cancel: "Cancel",
+    search: "Search",
     done: "Done",
     save: "Save",
     delete: "Delete",

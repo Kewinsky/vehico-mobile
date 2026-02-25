@@ -7,6 +7,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "../ThemeProvider";
 import { ModalButton } from "./ModalButton";
@@ -96,26 +97,35 @@ export function HeaderWithSearch({
         ]}
         pointerEvents={searchBarVisible ? "auto" : "none"}
       >
-        <TextInput
-          ref={searchInputRef}
-          value={query}
-          onChangeText={onQueryChange}
-          placeholder={placeholder}
-          placeholderTextColor={theme.colors.muted}
+        <View
           style={[
-            styles.searchInput,
+            styles.searchInputWrap,
             {
-              color: theme.colors.fg,
               backgroundColor: theme.colors.card,
               borderColor: theme.colors.border,
             },
           ]}
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-          keyboardAppearance={mode === "dark" ? "dark" : "light"}
-          returnKeyType="search"
-        />
+        >
+          <Ionicons
+            name="search-outline"
+            size={20}
+            color={theme.colors.muted}
+            style={styles.searchIcon}
+          />
+          <TextInput
+            ref={searchInputRef}
+            value={query}
+            onChangeText={onQueryChange}
+            placeholder={placeholder}
+            placeholderTextColor={theme.colors.muted}
+            style={[styles.searchInput, { color: theme.colors.fg }]}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+            keyboardAppearance={mode === "dark" ? "dark" : "light"}
+            returnKeyType="search"
+          />
+        </View>
         <ModalButton onPress={closeSearch}>{cancelLabel}</ModalButton>
       </Animated.View>
     </View>
@@ -141,14 +151,26 @@ const makeStyles = (theme: any) =>
       top: 0,
       flexDirection: "row",
       alignItems: "center",
+      gap: theme.spacing.sm,
       borderBottomWidth: 1,
+    },
+    searchInputWrap: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      height: 36,
+      borderRadius: theme.radius.md,
+      borderWidth: 1,
+      paddingLeft: theme.spacing.sm,
+    },
+    searchIcon: {
+      marginRight: theme.spacing.xs,
     },
     searchInput: {
       flex: 1,
       height: 36,
-      borderRadius: theme.radius.md,
-      borderWidth: 1,
-      paddingHorizontal: theme.spacing.sm,
+      paddingVertical: 0,
+      paddingRight: theme.spacing.sm,
       fontSize: theme.typography.body,
     },
   });
