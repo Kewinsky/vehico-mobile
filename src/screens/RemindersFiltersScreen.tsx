@@ -2,13 +2,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLayoutEffect, useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import {
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { setPendingModalResult } from "../app/pendingModalResult";
@@ -57,7 +51,9 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
 
   const [dateFrom, setDateFrom] = useState(params.dateFrom ?? "");
   const [dateTo, setDateTo] = useState(params.dateTo ?? "");
-  const [openDatePicker, setOpenDatePicker] = useState<"from" | "to" | null>(null);
+  const [openDatePicker, setOpenDatePicker] = useState<"from" | "to" | null>(
+    null,
+  );
   const [datePickerDraft, setDatePickerDraft] = useState<Date>(new Date());
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "done">(
     params.statusFilter ?? "all",
@@ -185,14 +181,12 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
       headerStyle: { backgroundColor: theme.colors.bg },
       headerTitleStyle: { color: theme.colors.fg },
       headerLeft: () => (
-        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+        <ModalButton onPress={() => navigation.goBack()}>
           {t("common.cancel")}
         </ModalButton>
       ),
       headerRight: () => (
-        <ModalButton variant="done" onPress={applyFilters}>
-          {t("common.done")}
-        </ModalButton>
+        <ModalButton onPress={applyFilters}>{t("common.done")}</ModalButton>
       ),
     });
   }, [
@@ -278,7 +272,9 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
           </View>
         </View>
 
-        <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
         <Pressable
           onPress={() => openPicker("from")}
           style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}

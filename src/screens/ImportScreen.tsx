@@ -182,8 +182,8 @@ export function ImportScreen({ navigation, route }: Props) {
       header={
         <AppNavbar
           onBack={() => navigation.goBack()}
+          showProfileAvatar
           showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
         />
       }
       footer={

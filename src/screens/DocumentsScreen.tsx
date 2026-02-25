@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { AppNavbar } from "../ui/components/AppNavbar";
 import { ContentHeader } from "../ui/components/ContentHeader";
+import { HeaderWithSearch } from "../ui/components/HeaderWithSearch";
 import { AppLayout } from "../ui/components/AppLayout";
 import { EmptyState } from "../ui/components/EmptyState";
 import { useTheme } from "../ui/ThemeProvider";
@@ -54,7 +55,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
   const [attachments, setAttachments] = useState<VehicleAttachment[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [query] = useState("");
+  const [query, setQuery] = useState("");
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -287,16 +288,23 @@ export function DocumentsScreen({ route, navigation }: Props) {
     );
   }
 
-  const headerRight = (
+  const renderHeaderRight = (
+    openSearch: () => void,
+    hasSearchQuery: boolean,
+  ) => (
     <View style={styles.headerRight}>
       <Pressable
-        onPress={() => {}}
+        onPress={openSearch}
         style={({ pressed }) => [
           styles.headerIconBtn,
           pressed && styles.headerIconBtnPressed,
         ]}
       >
-        <Ionicons name="search-outline" size={22} color={theme.colors.fg} />
+        <Ionicons
+          name="search-outline"
+          size={22}
+          color={hasSearchQuery ? theme.colors.accent : theme.colors.fg}
+        />
       </Pressable>
       <Pressable
         onPress={openAddPicker}
@@ -316,9 +324,17 @@ export function DocumentsScreen({ route, navigation }: Props) {
     <AppLayout
       loading={loading}
       header={
-        <AppNavbar
-          onBack={() => navigation.goBack()}
-          right={headerRight}
+        <HeaderWithSearch
+          query={query}
+          onQueryChange={setQuery}
+          placeholder={t("common.search", { defaultValue: "Search" })}
+          cancelLabel={t("common.cancel")}
+          renderHeaderContent={(openSearch, hasSearchQuery) => (
+            <AppNavbar
+              onBack={() => navigation.goBack()}
+              right={renderHeaderRight(openSearch, hasSearchQuery)}
+            />
+          )}
         />
       }
     >

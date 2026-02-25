@@ -1,10 +1,9 @@
 import { useLayoutEffect, useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import type { WorkshopType } from "../types/domain";
 import { setPendingModalResult } from "../app/pendingModalResult";
 import { Button } from "../ui/components/Button";
 import { FormScreen } from "../ui/components/FormScreen";
@@ -13,24 +12,14 @@ import { useTheme } from "../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../ui/components/ChoiceChip";
 
-export type WorkshopsFiltersParams = {
-  typeFilter: WorkshopType | "all";
+export type WheelsListFiltersParams = {
+  fittedFilter: "all" | "fitted" | "not_fitted";
   sortOrder: "az" | "za";
 };
 
-const WORKSHOP_TYPES: (WorkshopType | "all")[] = [
-  "all",
-  "mechanic",
-  "electrician",
-  "detailer",
-  "bodywork",
-  "car_wash",
-  "other",
-];
+type Props = NativeStackScreenProps<AppStackParamList, "WheelsListFilters">;
 
-type Props = NativeStackScreenProps<AppStackParamList, "WorkshopsFilters">;
-
-export function WorkshopsFiltersScreen({ navigation, route }: Props) {
+export function WheelsListFiltersScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -41,44 +30,24 @@ export function WorkshopsFiltersScreen({ navigation, route }: Props) {
 
   const params = route.params;
 
-  const [typeFilter, setTypeFilter] = useState<WorkshopType | "all">(
-    (params.typeFilter as WorkshopType | "all") ?? "all",
-  );
+  const [fittedFilter, setFittedFilter] = useState<
+    "all" | "fitted" | "not_fitted"
+  >(params.fittedFilter ?? "all");
   const [sortOrder, setSortOrder] = useState<"az" | "za">(
     params.sortOrder ?? "az",
   );
 
-  function getWorkshopTypeLabel(type: string): string {
-    return t(`workshopForm.types.${type}`);
-  }
-
   function clearFilters() {
-    setTypeFilter("all");
+    setFittedFilter("all");
     setSortOrder("az");
   }
 
-  function showTypePicker() {
-    const buttons: Array<{
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default";
-    }> = [
-      { text: t("common.cancel"), style: "cancel" },
-      { text: t("workshops.typeAll"), onPress: () => setTypeFilter("all") },
-      ...WORKSHOP_TYPES.filter((x) => x !== "all").map((tp) => ({
-        text: getWorkshopTypeLabel(tp),
-        onPress: () => setTypeFilter(tp),
-      })),
-    ];
-    Alert.alert(t("workshops.filterByType"), "", buttons, { cancelable: true });
-  }
-
   function applyFilters() {
-    const applied: WorkshopsFiltersParams = {
-      typeFilter,
+    const applied: WheelsListFiltersParams = {
+      fittedFilter,
       sortOrder,
     };
-    setPendingModalResult("workshops", applied);
+    setPendingModalResult("wheelsList", applied);
     navigation.goBack();
   }
 
@@ -97,7 +66,14 @@ export function WorkshopsFiltersScreen({ navigation, route }: Props) {
         <ModalButton onPress={applyFilters}>{t("common.done")}</ModalButton>
       ),
     });
-  }, [navigation, t, theme.colors.bg, theme.colors.fg, typeFilter, sortOrder]);
+  }, [
+    navigation,
+    t,
+    theme.colors.bg,
+    theme.colors.fg,
+    fittedFilter,
+    sortOrder,
+  ]);
 
   return (
     <FormScreen
@@ -117,35 +93,60 @@ export function WorkshopsFiltersScreen({ navigation, route }: Props) {
           },
         ]}
       >
-        <Pressable
-          onPress={showTypePicker}
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
-        >
+        <View style={styles.row}>
           <Ionicons
-            name="pricetag-outline"
+            name="checkmark-circle-outline"
             size={20}
             color={theme.colors.accent}
           />
-          <Text
+          <View
             style={[
-              styles.valueText,
+              styles.segmentWrap,
               {
-                color:
-                  typeFilter === "all" ? theme.colors.muted : theme.colors.fg,
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.bg,
               },
             ]}
-            numberOfLines={1}
           >
-            {typeFilter === "all"
-              ? t("workshops.filterByType")
-              : getWorkshopTypeLabel(typeFilter)}
-          </Text>
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={theme.colors.accent}
-          />
-        </Pressable>
+            {(["all", "fitted", "not_fitted"] as const).map((opt) => {
+              const selected = fittedFilter === opt;
+              const label =
+                opt === "all"
+                  ? t("common.all")
+                  : opt === "fitted"
+                    ? t("wheels.currentlyFitted")
+                    : t("wheels.notFitted", { defaultValue: "Not fitted" });
+              return (
+                <Pressable
+                  key={opt}
+                  onPress={() => setFittedFilter(opt)}
+                  style={({ pressed }) => [
+                    styles.segment,
+                    selected && styles.segmentSelected,
+                    {
+                      borderColor: theme.colors.accent,
+                      backgroundColor: selected ? accentBg : "transparent",
+                      opacity: pressed ? 0.85 : 1,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentTextSmall,
+                      {
+                        color: selected
+                          ? theme.colors.accent
+                          : theme.colors.muted,
+                      },
+                    ]}
+                  >
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
 
         <View
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
@@ -220,7 +221,6 @@ const makeStyles = (theme: any) =>
       paddingHorizontal: theme.spacing.md,
     },
     divider: { height: 1, width: "100%" },
-    valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
     segmentWrap: {
       flex: 1,
       minWidth: 0,

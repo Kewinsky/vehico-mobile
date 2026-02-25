@@ -227,14 +227,12 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
       headerStyle: { backgroundColor: theme.colors.bg },
       headerTitleStyle: { color: theme.colors.fg },
       headerLeft: () => (
-        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+        <ModalButton onPress={() => navigation.goBack()}>
           {t("common.cancel")}
         </ModalButton>
       ),
       headerRight: () => (
-        <ModalButton variant="done" onPress={applyFilters}>
-          {t("common.done")}
-        </ModalButton>
+        <ModalButton onPress={applyFilters}>{t("common.done")}</ModalButton>
       ),
     });
   }, [
@@ -282,9 +280,7 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
               styles.valueText,
               {
                 color:
-                  stationFilter != null
-                    ? theme.colors.fg
-                    : theme.colors.muted,
+                  stationFilter != null ? theme.colors.fg : theme.colors.muted,
               },
             ]}
           >
@@ -299,7 +295,9 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
           />
         </Pressable>
 
-        <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
         <Pressable
           onPress={() => openPicker("from")}
           style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
@@ -363,11 +361,7 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
         )}
 
         <View style={styles.row}>
-          <Ionicons
-            name="cash-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <Ionicons name="cash-outline" size={20} color={theme.colors.accent} />
           <TextInput
             value={minCost}
             onChangeText={setMinCost}
@@ -381,11 +375,7 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.row}>
-          <Ionicons
-            name="cash-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <Ionicons name="cash-outline" size={20} color={theme.colors.accent} />
           <TextInput
             value={maxCost}
             onChangeText={setMaxCost}

@@ -32,14 +32,14 @@ export function AppNavbar({
   onBack,
   right,
   title,
+  showProfileAvatar,
   showShopIcon,
-  onShopPress,
 }: {
   onBack?: () => void;
   right?: ReactNode;
   title?: string;
+  showProfileAvatar?: boolean;
   showShopIcon?: boolean;
-  onShopPress?: () => void;
 }) {
   const { theme } = useTheme();
   const { user } = useAuth();
@@ -55,7 +55,11 @@ export function AppNavbar({
     route.name === "Appearance" ||
     route.name === "Shop";
   const showInitials =
-    !!user && right === undefined && !hideProfileAvatar && !showShopIcon;
+    !!user &&
+    right === undefined &&
+    !hideProfileAvatar &&
+    !showShopIcon &&
+    showProfileAvatar;
   const initials = user ? getInitials(user) : "";
 
   return (
@@ -89,10 +93,10 @@ export function AppNavbar({
         <View style={styles.titleSpacer} />
       )}
       <View style={styles.right}>
-        {showShopIcon && onShopPress ? (
+        {showShopIcon ? (
           <View style={styles.rightIcons}>
             <Pressable
-              onPress={onShopPress}
+              onPress={() => navigation.navigate("Shop")}
               hitSlop={10}
               style={({ pressed }) => [
                 styles.iconButton,
@@ -101,7 +105,7 @@ export function AppNavbar({
             >
               <Crown size={22} color={theme.colors.accent} />
             </Pressable>
-            {user && (
+            {showProfileAvatar && user && (
               <Pressable
                 onPress={() => navigation.navigate("Settings")}
                 hitSlop={10}

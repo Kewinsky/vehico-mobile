@@ -59,9 +59,7 @@ function VehicleCarousel({
         width={width}
         height={height}
         onConfigurePanGesture={(pan) => {
-          pan
-            .activeOffsetX([-12, 12])
-            .failOffsetY([-15, 15]);
+          pan.activeOffsetX([-12, 12]).failOffsetY([-15, 15]);
         }}
         onProgressChange={(_offset, absoluteProgress) => {
           progress.value = absoluteProgress;
@@ -403,8 +401,8 @@ export function VehiclesScreen({ navigation, route }: Props) {
       header={
         <AppNavbar
           title={headerTitle}
+          showProfileAvatar
           showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
         />
       }
       footer={

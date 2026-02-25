@@ -60,15 +60,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
     : t("marketplace.postGenerated");
 
   return (
-    <AppLayout
-      header={
-        <AppNavbar
-          onBack={handleBack}
-          showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
-        />
-      }
-    >
+    <AppLayout header={<AppNavbar onBack={handleBack} showProfileAvatar />}>
       <View style={{ flex: 1 }}>
         <ContentHeader title={layoutTitle} subtitle={generatedAt} />
         <SegmentTabs<"pl" | "en">

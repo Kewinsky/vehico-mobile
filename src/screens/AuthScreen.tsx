@@ -55,14 +55,12 @@ export function AuthScreen({ navigation }: Props) {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: magicLinkSent
-        ? t("auth.magicLinkSentTitle")
-        : t("auth.title"),
+      title: magicLinkSent ? t("auth.magicLinkSentTitle") : t("auth.title"),
       headerBackVisible: false,
       headerStyle: { backgroundColor: theme.colors.bg },
       headerTitleStyle: { color: theme.colors.fg },
       headerLeft: () => (
-        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+        <ModalButton onPress={() => navigation.goBack()}>
           {t("common.cancel")}
         </ModalButton>
       ),

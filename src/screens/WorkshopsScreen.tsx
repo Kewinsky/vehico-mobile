@@ -11,6 +11,7 @@ import { listWorkshops } from "../services/workshops/workshopsRepo";
 import { getAndClearPendingModalResult } from "../app/pendingModalResult";
 import { AppNavbar } from "../ui/components/AppNavbar";
 import { AppLayout } from "../ui/components/AppLayout";
+import { HeaderWithSearch } from "../ui/components/HeaderWithSearch";
 import { ContentHeader } from "../ui/components/ContentHeader";
 import { CustomFlatList } from "../ui/components/CustomFlatList";
 import { EmptyState } from "../ui/components/EmptyState";
@@ -128,16 +129,23 @@ export function WorkshopsScreen({ navigation }: Props) {
     });
   }, [navigation, typeFilter, sortOrder]);
 
-  const headerRight = (
+  const renderHeaderRight = (
+    openSearch: () => void,
+    hasSearchQuery: boolean,
+  ) => (
     <View style={styles.headerRight}>
       <Pressable
-        onPress={() => {}}
+        onPress={openSearch}
         style={({ pressed }) => [
           styles.headerIconBtn,
           pressed && styles.headerIconBtnPressed,
         ]}
       >
-        <Ionicons name="search-outline" size={22} color={theme.colors.fg} />
+        <Ionicons
+          name="search-outline"
+          size={22}
+          color={hasSearchQuery ? theme.colors.accent : theme.colors.fg}
+        />
       </Pressable>
       <Pressable
         onPress={openFilters}
@@ -168,7 +176,18 @@ export function WorkshopsScreen({ navigation }: Props) {
     <AppLayout
       loading={loading}
       header={
-        <AppNavbar onBack={() => navigation.goBack()} right={headerRight} />
+        <HeaderWithSearch
+          query={query}
+          onQueryChange={setQuery}
+          placeholder={t("common.search", { defaultValue: "Search" })}
+          cancelLabel={t("common.cancel")}
+          renderHeaderContent={(openSearch, hasSearchQuery) => (
+            <AppNavbar
+              onBack={() => navigation.goBack()}
+              right={renderHeaderRight(openSearch, hasSearchQuery)}
+            />
+          )}
+        />
       }
     >
       <CustomFlatList<Workshop>

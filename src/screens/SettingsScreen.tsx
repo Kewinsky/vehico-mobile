@@ -188,7 +188,7 @@ export function SettingsScreen({ navigation }: Props) {
       headerStyle: { backgroundColor: theme.colors.bg },
       headerTitleStyle: { color: theme.colors.fg },
       headerLeft: () => (
-        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+        <ModalButton onPress={() => navigation.goBack()}>
           {t("common.cancel")}
         </ModalButton>
       ),

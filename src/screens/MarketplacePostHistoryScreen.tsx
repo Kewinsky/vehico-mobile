@@ -133,11 +133,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
     <AppLayout
       loading={loading}
       header={
-        <AppNavbar
-          onBack={() => navigation.goBack()}
-          showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
-        />
+        <AppNavbar onBack={() => navigation.goBack()} showProfileAvatar />
       }
     >
       <View style={styles.listWrap}>
@@ -162,11 +158,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
                   onPress={() => handleEditTitle(item)}
                   variant="ghost"
                 >
-                  <Feather
-                    name="edit"
-                    size={24}
-                    color={theme.colors.accent}
-                  />
+                  <Feather name="edit" size={24} color={theme.colors.accent} />
                 </IconButton>
               }
             />

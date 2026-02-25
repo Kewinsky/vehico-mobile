@@ -23,6 +23,7 @@ import { SettingsScreen } from "../../screens/SettingsScreen";
 import { DataPortabilityScreen } from "../../screens/DataPortabilityScreen";
 import { ImportScreen } from "../../screens/ImportScreen";
 import { AddAttachmentScreen } from "../../screens/AddAttachmentScreen";
+import { AddAttachmentFiltersScreen } from "../../screens/AddAttachmentFiltersScreen";
 import { ShareScreen } from "../../screens/ShareScreen";
 import { StatisticsScreen } from "../../screens/StatisticsScreen";
 import { MarketplaceScreen } from "../../screens/MarketplaceScreen";
@@ -37,7 +38,9 @@ import { PublicReportConfigureScreen } from "../../screens/PublicReportConfigure
 import { PublicReportSummaryScreen } from "../../screens/PublicReportSummaryScreen";
 import { WheelsOverviewScreen } from "../../screens/WheelsOverviewScreen";
 import { TiresListScreen } from "../../screens/TiresListScreen";
+import { TiresListFiltersScreen } from "../../screens/TiresListFiltersScreen";
 import { WheelsListScreen } from "../../screens/WheelsListScreen";
+import { WheelsListFiltersScreen } from "../../screens/WheelsListFiltersScreen";
 import { TireFormScreen } from "../../screens/TireFormScreen";
 import { WheelFormScreen } from "../../screens/WheelFormScreen";
 import { WorkshopsScreen } from "../../screens/WorkshopsScreen";
@@ -156,12 +159,27 @@ export type AppStackParamList = {
   DataPortability: { vehicleId: string };
   Import: { vehicleId: string };
   AddAttachment: { vehicleId: string };
+  AddAttachmentFilters: {
+    vehicleId: string;
+    sortOption?: "date-newest" | "date-oldest" | "title-az" | "title-za";
+  };
   ServiceEntryForm: { vehicleId: string; entryId?: string };
   FuelingEntryForm: { vehicleId: string; entryId?: string };
   ReminderForm: { vehicleId: string; reminderId?: string };
   Wheels: { vehicleId: string };
   TiresList: { vehicleId: string };
+  TiresListFilters: {
+    vehicleId: string;
+    tireTypeFilter?: string;
+    fittedFilter?: "all" | "fitted" | "not_fitted";
+    sortOrder?: "az" | "za";
+  };
   WheelsList: { vehicleId: string };
+  WheelsListFilters: {
+    vehicleId: string;
+    fittedFilter?: "all" | "fitted" | "not_fitted";
+    sortOrder?: "az" | "za";
+  };
   TireForm: { vehicleId: string; tireId?: string };
   WheelForm: { vehicleId: string; wheelId?: string };
   Workshops: undefined;
@@ -344,6 +362,15 @@ export function RootNavigator() {
           <Stack.Screen name="Import" component={ImportScreen} />
           <Stack.Screen name="AddAttachment" component={AddAttachmentScreen} />
           <Stack.Screen
+            name="AddAttachmentFilters"
+            component={AddAttachmentFiltersScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
+          <Stack.Screen
             name="ServiceEntryForm"
             component={ServiceEntryFormScreen}
             options={{
@@ -354,7 +381,25 @@ export function RootNavigator() {
           />
           <Stack.Screen name="Wheels" component={WheelsOverviewScreen} />
           <Stack.Screen name="TiresList" component={TiresListScreen} />
+          <Stack.Screen
+            name="TiresListFilters"
+            component={TiresListFiltersScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
           <Stack.Screen name="WheelsList" component={WheelsListScreen} />
+          <Stack.Screen
+            name="WheelsListFilters"
+            component={WheelsListFiltersScreen}
+            options={{
+              presentation: "modal",
+              headerShown: true,
+              headerShadowVisible: false,
+            }}
+          />
           <Stack.Screen
             name="TireForm"
             component={TireFormScreen}

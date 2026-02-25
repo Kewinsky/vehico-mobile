@@ -4,7 +4,6 @@ import { Pressable, StyleSheet, Text } from "react-native";
 import { useTheme } from "../ThemeProvider";
 
 type ModalButtonProps = PropsWithChildren<{
-  variant: "cancel" | "done";
   onPress: () => void;
   disabled?: boolean;
 }>;
@@ -14,7 +13,6 @@ type ModalButtonProps = PropsWithChildren<{
  * Similar to default React Native header buttons: no border, default font weight, theme-aware.
  */
 export function ModalButton({
-  variant: _variant,
   onPress,
   disabled = false,
   children,
@@ -28,12 +26,7 @@ export function ModalButton({
       hitSlop={8}
       style={[styles.root, disabled && styles.disabled]}
     >
-      <Text
-        style={[
-          styles.text,
-          { color: theme.colors.accent },
-        ]}
-      >
+      <Text style={[styles.text, { color: theme.colors.accent }]}>
         {children}
       </Text>
     </Pressable>

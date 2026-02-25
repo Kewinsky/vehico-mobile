@@ -42,11 +42,7 @@ export function ShareScreen({ navigation, route }: Props) {
   return (
     <AppLayout
       header={
-        <AppNavbar
-          onBack={() => navigation.goBack()}
-          showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
-        />
+        <AppNavbar onBack={() => navigation.goBack()} showProfileAvatar />
       }
     >
       <ContentHeader title={t("dashboard.tiles.shareTitle")} />

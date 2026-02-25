@@ -344,11 +344,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
     <AppLayout
       loading={loading}
       header={
-        <AppNavbar
-          onBack={() => navigation.goBack()}
-          showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
-        />
+        <AppNavbar onBack={() => navigation.goBack()} showProfileAvatar />
       }
       footer={
         <Button onPress={handleNext}>{t("publicReport.nextButton")}</Button>

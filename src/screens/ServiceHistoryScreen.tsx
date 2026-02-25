@@ -19,6 +19,7 @@ import { listReminders } from "../services/reminders/remindersRepo";
 import { listVehicleAttachments } from "../services/attachments/attachmentsRepo";
 import { AppNavbar } from "../ui/components/AppNavbar";
 import { ContentHeader } from "../ui/components/ContentHeader";
+import { HeaderWithSearch } from "../ui/components/HeaderWithSearch";
 import { TimelineItem } from "../ui/components/TimelineItem";
 import { useTheme } from "../ui/ThemeProvider";
 import { useUserSettings } from "../app/providers/UserSettingsProvider";
@@ -322,16 +323,23 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   const getMonthYearKey = (row: { sortKey: string }) =>
     row.sortKey === "9999-12-31" ? "future" : row.sortKey.slice(0, 7);
 
-  const headerRight = (
+  const renderHeaderRight = (
+    openSearch: () => void,
+    hasSearchQuery: boolean,
+  ) => (
     <View style={styles.headerRight}>
       <Pressable
-        onPress={() => {}}
+        onPress={openSearch}
         style={({ pressed }) => [
           styles.headerIconBtn,
           pressed && styles.headerIconBtnPressed,
         ]}
       >
-        <Ionicons name="search-outline" size={22} color={theme.colors.fg} />
+        <Ionicons
+          name="search-outline"
+          size={22}
+          color={hasSearchQuery ? theme.colors.accent : theme.colors.fg}
+        />
       </Pressable>
       <Pressable
         onPress={openFilters}
@@ -364,9 +372,17 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     <AppLayout
       loading={loading}
       header={
-        <AppNavbar
-          onBack={() => navigation.goBack()}
-          right={headerRight}
+        <HeaderWithSearch
+          query={query}
+          onQueryChange={setQuery}
+          placeholder={t("common.search", { defaultValue: "Search" })}
+          cancelLabel={t("common.cancel")}
+          renderHeaderContent={(openSearch, hasSearchQuery) => (
+            <AppNavbar
+              onBack={() => navigation.goBack()}
+              right={renderHeaderRight(openSearch, hasSearchQuery)}
+            />
+          )}
         />
       }
     >

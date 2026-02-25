@@ -385,16 +385,12 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       headerStyle: { backgroundColor: theme.colors.bg },
       headerTitleStyle: { color: theme.colors.fg },
       headerLeft: () => (
-        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+        <ModalButton onPress={() => navigation.goBack()}>
           {t("common.cancel")}
         </ModalButton>
       ),
       headerRight: () => (
-        <ModalButton
-          variant="done"
-          onPress={onSave}
-          disabled={!canSave || saving}
-        >
+        <ModalButton onPress={onSave} disabled={!canSave || saving}>
           {t("common.done")}
         </ModalButton>
       ),

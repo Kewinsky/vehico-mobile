@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Alert,
   Pressable,
@@ -115,27 +121,33 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title:
-        workshopId ? t("workshopForm.editTitle") : t("workshopForm.addTitle"),
+      title: workshopId
+        ? t("workshopForm.editTitle")
+        : t("workshopForm.addTitle"),
       headerBackVisible: false,
       headerStyle: { backgroundColor: theme.colors.bg },
       headerTitleStyle: { color: theme.colors.fg },
       headerLeft: () => (
-        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
+        <ModalButton onPress={() => navigation.goBack()}>
           {t("common.cancel")}
         </ModalButton>
       ),
       headerRight: () => (
-        <ModalButton
-          variant="done"
-          onPress={onSave}
-          disabled={!canSave || saving}
-        >
+        <ModalButton onPress={onSave} disabled={!canSave || saving}>
           {t("common.done")}
         </ModalButton>
       ),
     });
-  }, [navigation, t, theme.colors.bg, theme.colors.fg, workshopId, canSave, saving, onSave]);
+  }, [
+    navigation,
+    t,
+    theme.colors.bg,
+    theme.colors.fg,
+    workshopId,
+    canSave,
+    saving,
+    onSave,
+  ]);
 
   function confirmDelete() {
     if (!workshopId) return;
@@ -275,7 +287,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
         >
           <View style={styles.rowLeft}>
             <Ionicons
-              name="briefcase-outline"
+              name="pricetag-outline"
               size={20}
               color={theme.colors.accent}
             />
@@ -296,7 +308,9 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
             ]}
             numberOfLines={1}
           >
-            {workshopType ? t(`workshopForm.types.${workshopType}`) : t("workshopForm.selectType")}
+            {workshopType
+              ? t(`workshopForm.types.${workshopType}`)
+              : t("workshopForm.selectType")}
           </Text>
         </Pressable>
         <View

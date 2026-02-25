@@ -1435,8 +1435,8 @@ export function StatisticsScreen({ route, navigation }: Props) {
       header={
         <AppNavbar
           onBack={() => navigation.goBack()}
+          showProfileAvatar
           showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >

@@ -1,14 +1,14 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { useMemo } from "react";
-import { View } from "react-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import type { FuelFiltersParams } from "./FuelFiltersScreen";
 import { getAndClearPendingModalResult } from "../app/pendingModalResult";
 import { AppNavbar } from "../ui/components/AppNavbar";
 import { ContentHeader } from "../ui/components/ContentHeader";
+import { HeaderWithSearch } from "../ui/components/HeaderWithSearch";
 import { useTheme } from "../ui/ThemeProvider";
 import { listFuelingEntries } from "../services/fuel/fuelingEntriesRepo";
 import type { FuelingEntry, GasStation } from "../types/domain";
@@ -19,7 +19,6 @@ import { CustomFlatList } from "../ui/components/CustomFlatList";
 import { AppLayout } from "../ui/components/AppLayout";
 import { EmptyState } from "../ui/components/EmptyState";
 import { TimelineItem } from "../ui/components/TimelineItem";
-import { Pressable, StyleSheet } from "react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
 
@@ -32,6 +31,7 @@ export function FuelScreen({ route, navigation }: Props) {
   const [fueling, setFueling] = useState<FuelingEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [stationFilter, setStationFilter] = useState<GasStation | null>(null);
@@ -165,10 +165,13 @@ export function FuelScreen({ route, navigation }: Props) {
   const getMonthYearKey = (entry: FuelingEntry) =>
     String(entry.date).slice(0, 7);
 
-  const headerRight = (
+  const renderHeaderRight = (
+    openSearch: () => void,
+    hasSearchQuery: boolean,
+  ) => (
     <View style={styles.headerRight}>
       <Pressable
-        onPress={() => {}}
+        onPress={openSearch}
         style={({ pressed }) => [
           styles.headerIconBtn,
           pressed && styles.headerIconBtnPressed,
@@ -177,7 +180,7 @@ export function FuelScreen({ route, navigation }: Props) {
         <Ionicons
           name="search-outline"
           size={22}
-          color={theme.colors.fg}
+          color={hasSearchQuery ? theme.colors.accent : theme.colors.fg}
         />
       </Pressable>
       <Pressable
@@ -209,9 +212,17 @@ export function FuelScreen({ route, navigation }: Props) {
     <AppLayout
       loading={loading}
       header={
-        <AppNavbar
-          onBack={() => navigation.goBack()}
-          right={headerRight}
+        <HeaderWithSearch
+          query={query}
+          onQueryChange={setQuery}
+          placeholder={t("common.search", { defaultValue: "Search" })}
+          cancelLabel={t("common.cancel")}
+          renderHeaderContent={(openSearch, hasSearchQuery) => (
+            <AppNavbar
+              onBack={() => navigation.goBack()}
+              right={renderHeaderRight(openSearch, hasSearchQuery)}
+            />
+          )}
         />
       }
     >

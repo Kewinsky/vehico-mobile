@@ -33,6 +33,7 @@ import { useUserSettings } from "../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../ui/toast/toast";
 import { LoadingIndicator } from "../ui/components/LoadingIndicator";
+import { ContentHeader } from "../ui/components/ContentHeader";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicle">;
 
@@ -216,32 +217,26 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
     ]);
   }
 
+  const headerRight = vehicle ? (
+    <Pressable
+      onPress={openActions}
+      hitSlop={10}
+      style={({ pressed }) => [
+        styles.menuButton,
+        pressed && styles.menuButtonPressed,
+      ]}
+    >
+      <Ionicons name="ellipsis-horizontal" size={22} color={theme.colors.fg} />
+    </Pressable>
+  ) : null;
+
   return (
     <FormScreen
       header={
-        <AppNavbar
-          onBack={() => navigation.goBack()}
-          showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
-        />
+        <AppNavbar onBack={() => navigation.goBack()} right={headerRight} />
       }
     >
-      <View style={styles.headerRow}>
-        <Text style={styles.h1}>{t("dashboard.tiles.manageTitle")}</Text>
-        {vehicle ? (
-          <Pressable
-            onPress={openActions}
-            hitSlop={10}
-            style={styles.menuButton}
-          >
-            <Ionicons
-              name="ellipsis-horizontal"
-              size={20}
-              color={theme.colors.fg}
-            />
-          </Pressable>
-        ) : null}
-      </View>
+      <ContentHeader title={t("dashboard.tiles.manageTitle")} />
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -659,8 +654,13 @@ const makeStyles = (theme: any) =>
       marginVertical: theme.spacing.md,
     },
     menuButton: {
+      width: theme.spacing.xl + theme.spacing.xs,
+      height: theme.spacing.xl + theme.spacing.xs,
       justifyContent: "center",
       alignItems: "center",
+    },
+    menuButtonPressed: {
+      opacity: 0.6,
     },
     muted: {
       marginTop: theme.spacing.sm / 2,

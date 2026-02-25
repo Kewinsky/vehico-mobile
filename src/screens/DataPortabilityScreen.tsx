@@ -364,8 +364,8 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
       header={
         <AppNavbar
           onBack={() => navigation.goBack()}
+          showProfileAvatar
           showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
         />
       }
     >

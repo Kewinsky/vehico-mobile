@@ -1,9 +1,7 @@
 import {
   Alert,
-  FlatList,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -12,14 +10,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import type { VehicleTire } from "../types/domain";
+import type { VehicleTire, TireType } from "../types/domain";
+import type { TiresListFiltersParams } from "./TiresListFiltersScreen";
+import { getAndClearPendingModalResult } from "../app/pendingModalResult";
 import {
   listVehicleTires,
   formatTireDimensions,
 } from "../services/tires/tiresRepo";
 import { AppNavbar } from "../ui/components/AppNavbar";
 import { AppLayout } from "../ui/components/AppLayout";
-import { Button } from "../ui/components/Button";
+import { HeaderWithSearch } from "../ui/components/HeaderWithSearch";
 import { ContentHeader } from "../ui/components/ContentHeader";
 import { EmptyState } from "../ui/components/EmptyState";
 import { useTheme } from "../ui/ThemeProvider";
@@ -74,6 +74,12 @@ export function TiresListScreen({ route, navigation }: Props) {
 
   const [tires, setTires] = useState<VehicleTire[]>([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
+  const [tireTypeFilter, setTireTypeFilter] = useState<TireType | "all">("all");
+  const [fittedFilter, setFittedFilter] = useState<
+    "all" | "fitted" | "not_fitted"
+  >("all");
+  const [sortOrder, setSortOrder] = useState<"az" | "za">("az");
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -101,12 +107,50 @@ export function TiresListScreen({ route, navigation }: Props) {
   useEffect(() => {
     void load();
     const unsub = navigation.addListener("focus", () => {
+      const pending = getAndClearPendingModalResult<TiresListFiltersParams>(
+        "tiresList",
+      );
+      if (pending) {
+        setTireTypeFilter((pending.tireTypeFilter as TireType | "all") ?? "all");
+        setFittedFilter(pending.fittedFilter ?? "all");
+        setSortOrder(pending.sortOrder ?? "az");
+      }
       void refreshEntitlements().then(() => {
         setTimeout(() => loadRef.current?.({ showLoading: false }), 0);
       });
     });
     return unsub;
   }, [navigation, load, refreshEntitlements]);
+
+  const hasActiveFilters =
+    tireTypeFilter !== "all" || fittedFilter !== "all" || sortOrder !== "az";
+
+  const filteredTires = useMemo(() => {
+    let list = tires;
+    const q = query.trim().toLowerCase();
+    if (q.length) {
+      list = list.filter(
+        (tire) =>
+          (tire.name ?? "").toLowerCase().includes(q) ||
+          (tire.dot ?? "").toLowerCase().includes(q),
+      );
+    }
+    if (tireTypeFilter !== "all") {
+      list = list.filter((tire) => tire.tire_type === tireTypeFilter);
+    }
+    if (fittedFilter === "fitted") {
+      list = list.filter((tire) => tire.is_currently_fitted);
+    } else if (fittedFilter === "not_fitted") {
+      list = list.filter((tire) => !tire.is_currently_fitted);
+    }
+    const sorted = [...list].sort((a, b) => {
+      const cmp = (a.name ?? "").localeCompare(b.name ?? "", undefined, {
+        sensitivity: "base",
+      });
+      return sortOrder === "az" ? cmp : -cmp;
+    });
+    return sorted;
+  }, [tires, query, tireTypeFilter, fittedFilter, sortOrder]);
 
   function onAddTirePress() {
     if (!isPremium && tires.length >= tiresPerVehicleLimit) {
@@ -126,23 +170,79 @@ export function TiresListScreen({ route, navigation }: Props) {
     navigation.navigate("TireForm", { vehicleId });
   }
 
+  const openFilters = useCallback(() => {
+    navigation.navigate("TiresListFilters", {
+      vehicleId,
+      tireTypeFilter,
+      fittedFilter,
+      sortOrder,
+    });
+  }, [navigation, vehicleId, tireTypeFilter, fittedFilter, sortOrder]);
+
+  const renderHeaderRight = (
+    openSearch: () => void,
+    hasSearchQuery: boolean,
+  ) => (
+    <View style={styles.headerRight}>
+      <Pressable
+        onPress={openSearch}
+        style={({ pressed }) => [
+          styles.headerIconBtn,
+          pressed && styles.headerIconBtnPressed,
+        ]}
+      >
+        <Ionicons
+          name="search-outline"
+          size={22}
+          color={hasSearchQuery ? theme.colors.accent : theme.colors.fg}
+        />
+      </Pressable>
+      <Pressable
+        onPress={openFilters}
+        style={({ pressed }) => [
+          styles.headerIconBtn,
+          pressed && styles.headerIconBtnPressed,
+        ]}
+      >
+        <Ionicons
+          name="filter-outline"
+          size={22}
+          color={hasActiveFilters ? theme.colors.accent : theme.colors.fg}
+        />
+      </Pressable>
+      <Pressable
+        onPress={onAddTirePress}
+        style={({ pressed }) => [
+          styles.headerIconBtn,
+          pressed && styles.headerIconBtnPressed,
+        ]}
+      >
+        <Ionicons name="add" size={24} color={theme.colors.fg} />
+      </Pressable>
+    </View>
+  );
+
   return (
     <AppLayout
       loading={loading}
       header={
-        <AppNavbar
-          onBack={() => navigation.goBack()}
-          showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
+        <HeaderWithSearch
+          query={query}
+          onQueryChange={setQuery}
+          placeholder={t("common.search", { defaultValue: "Search" })}
+          cancelLabel={t("common.cancel")}
+          renderHeaderContent={(openSearch, hasSearchQuery) => (
+            <AppNavbar
+              onBack={() => navigation.goBack()}
+              right={renderHeaderRight(openSearch, hasSearchQuery)}
+            />
+          )}
         />
-      }
-      footer={
-        <Button onPress={onAddTirePress}>{t("wheels.addTireSingle")}</Button>
       }
     >
       <View style={styles.listWrap}>
         <CustomFlatList
-          data={tires}
+          data={filteredTires}
           listHeaderComponent={
             <ContentHeader title={t("wheels.tiresSection")} />
           }
@@ -174,38 +274,18 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     listWrap: { flex: 1 },
     list: { flex: 1 },
     listContent: { paddingBottom: insets.bottom },
-    card: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      padding: theme.spacing.sm,
-    },
-    cardRow: {
+    headerRight: {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
     },
-    titleRow: {
-      flexDirection: "row",
+    headerIconBtn: {
+      width: theme.spacing.xl + theme.spacing.xs,
+      height: theme.spacing.xl + theme.spacing.xs,
+      justifyContent: "center",
       alignItems: "center",
-      gap: theme.spacing.sm,
     },
-    itemTitle: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    badge: {
-      paddingHorizontal: theme.spacing.xs,
-      paddingVertical: theme.spacing.xs / 2,
-      borderRadius: 999,
-      borderWidth: 1,
-    },
-    badgeText: {
-      fontSize: theme.typography.xs,
-      fontWeight: theme.typography.fontWeight.bold,
-      color: "#000000",
-      letterSpacing: 0.3,
-    },
-    itemSubtitle: {
-      fontSize: theme.typography.small,
+    headerIconBtnPressed: {
+      opacity: 0.6,
     },
   });

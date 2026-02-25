@@ -3,26 +3,28 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
+import type { AddAttachmentFiltersParams } from "./AddAttachmentFiltersScreen";
 import type { ServiceEntry } from "../types/domain";
+import { getAndClearPendingModalResult } from "../app/pendingModalResult";
 import { listServiceEntries } from "../services/serviceEntries/serviceEntriesRepo";
 import { uploadAttachment } from "../services/attachments/attachmentsRepo";
 import { AppNavbar } from "../ui/components/AppNavbar";
 import { AppLayout } from "../ui/components/AppLayout";
+import { HeaderWithSearch } from "../ui/components/HeaderWithSearch";
 import { ContentHeader } from "../ui/components/ContentHeader";
 import { CustomFlatList } from "../ui/components/CustomFlatList";
 import { EmptyState } from "../ui/components/EmptyState";
 import { useTheme } from "../ui/ThemeProvider";
-import { useEntitlements } from "../app/providers/EntitlementsProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { toastError } from "../ui/toast/toast";
 
@@ -30,8 +32,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "AddAttachment">;
 
 export function AddAttachmentScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
-  const { theme, mode } = useTheme();
-  const { isPremium } = useEntitlements();
+  const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
 
@@ -40,6 +41,9 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [query, setQuery] = useState("");
+  const [sortOption, setSortOption] = useState<
+    "date-newest" | "date-oldest" | "title-az" | "title-za"
+  >("date-newest");
 
   const load = useCallback(
     async (opts?: { refreshing?: boolean }) => {
@@ -61,6 +65,19 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const pending = getAndClearPendingModalResult<AddAttachmentFiltersParams>(
+        "addAttachment",
+      );
+      if (pending?.sortOption) setSortOption(pending.sortOption);
+    }, []),
+  );
+
+  function openFilters() {
+    navigation.navigate("AddAttachmentFilters", { vehicleId, sortOption });
+  }
 
   async function uploadTo(
     serviceEntryId: string,
@@ -172,42 +189,62 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
 
   const filteredItems = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q.length) return items;
-    return items.filter((item) => {
-      const title = item.title.toLowerCase();
-      const date = String(item.service_date).slice(0, 10);
-      const description = (item.description || "").toLowerCase();
-      return title.includes(q) || date.includes(q) || description.includes(q);
+    let list = items;
+    if (q.length) {
+      list = list.filter((item) => {
+        const title = (item.title ?? "").toLowerCase();
+        const date = String(item.service_date).slice(0, 10);
+        const description = (item.description || "").toLowerCase();
+        return title.includes(q) || date.includes(q) || description.includes(q);
+      });
+    }
+    const [sortBy, order] = sortOption.split("-") as [string, string];
+    return [...list].sort((a, b) => {
+      if (sortBy === "title") {
+        const cmp = (a.title ?? "").localeCompare(b.title ?? "", undefined, {
+          sensitivity: "base",
+        });
+        return order === "az" ? cmp : -cmp;
+      }
+      const dateA = String(a.service_date).slice(0, 10);
+      const dateB = String(b.service_date).slice(0, 10);
+      return order === "newest"
+        ? dateB.localeCompare(dateA)
+        : dateA.localeCompare(dateB);
     });
-  }, [items, query]);
+  }, [items, query, sortOption]);
 
-  const filterPanelContent = (
-    <View
-      style={[
-        styles.searchBarWrap,
-        {
-          borderColor: theme.colors.border,
-          backgroundColor: theme.colors.card,
-        },
-      ]}
-    >
-      <Ionicons
-        name="search-outline"
-        size={20}
-        color={theme.colors.muted}
-        style={styles.searchBarIcon}
-      />
-      <TextInput
-        value={query}
-        onChangeText={setQuery}
-        placeholder={t("timeline.searchPlaceholder")}
-        placeholderTextColor={theme.colors.muted}
-        autoCapitalize="none"
-        autoCorrect={false}
-        clearButtonMode="while-editing"
-        keyboardAppearance={mode === "dark" ? "dark" : "light"}
-        style={[styles.searchBarInput, { color: theme.colors.fg }]}
-      />
+  const renderHeaderRight = (
+    openSearch: () => void,
+    hasSearchQuery: boolean,
+  ) => (
+    <View style={styles.headerRight}>
+      <Pressable
+        onPress={openSearch}
+        style={({ pressed }) => [
+          styles.headerIconBtn,
+          pressed && styles.headerIconBtnPressed,
+        ]}
+      >
+        <Ionicons
+          name="search-outline"
+          size={22}
+          color={hasSearchQuery ? theme.colors.accent : theme.colors.fg}
+        />
+      </Pressable>
+      <Pressable
+        onPress={openFilters}
+        style={({ pressed }) => [
+          styles.headerIconBtn,
+          pressed && styles.headerIconBtnPressed,
+        ]}
+      >
+        <Ionicons
+          name="filter-outline"
+          size={22}
+          color={theme.colors.fg}
+        />
+      </Pressable>
     </View>
   );
 
@@ -215,20 +252,24 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     <AppLayout
       loading={loading}
       header={
-        <AppNavbar
-          onBack={() => navigation.goBack()}
-          showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
+        <HeaderWithSearch
+          query={query}
+          onQueryChange={setQuery}
+          placeholder={t("common.search", { defaultValue: "Search" })}
+          cancelLabel={t("common.cancel")}
+          renderHeaderContent={(openSearch, hasSearchQuery) => (
+            <AppNavbar
+              onBack={() => navigation.goBack()}
+              right={renderHeaderRight(openSearch, hasSearchQuery)}
+            />
+          )}
         />
       }
     >
       <CustomFlatList<ServiceEntry>
         data={filteredItems}
         listHeaderComponent={
-          <ContentHeader
-            title={t("documents.addAttachment")}
-            filterPanel={filterPanelContent}
-          />
+          <ContentHeader title={t("documents.addAttachment")} />
         }
         keyExtractor={(x) => x.id}
         refreshing={refreshing}
@@ -265,22 +306,19 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    searchBarWrap: {
+    headerRight: {
       flexDirection: "row",
       alignItems: "center",
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      height: theme.spacing.lg * 2,
-      paddingLeft: theme.spacing.sm,
+      gap: theme.spacing.sm,
     },
-    searchBarIcon: {
-      marginRight: theme.spacing.xs,
+    headerIconBtn: {
+      width: theme.spacing.xl + theme.spacing.xs,
+      height: theme.spacing.xl + theme.spacing.xs,
+      justifyContent: "center",
+      alignItems: "center",
     },
-    searchBarInput: {
-      flex: 1,
-      height: "100%",
-      paddingVertical: 0,
-      fontSize: theme.typography.body,
+    headerIconBtnPressed: {
+      opacity: 0.6,
     },
     card: {
       borderWidth: 1,

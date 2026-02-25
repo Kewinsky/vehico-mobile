@@ -78,15 +78,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
       : t("share.onlineReport");
 
   return (
-    <AppLayout
-      header={
-        <AppNavbar
-          onBack={handleBack}
-          showShopIcon={!isPremium}
-          onShopPress={() => navigation.navigate("Shop")}
-        />
-      }
-    >
+    <AppLayout header={<AppNavbar onBack={handleBack} showProfileAvatar />}>
       <View style={{ flex: 1, paddingBottom: theme.spacing.xl }}>
         <ContentHeader title={layoutTitle} subtitle={generatedAt} />
         <View style={styles.qrContainer}>
