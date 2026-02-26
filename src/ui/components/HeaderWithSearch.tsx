@@ -151,7 +151,6 @@ const makeStyles = (theme: any) =>
       top: 0,
       flexDirection: "row",
       alignItems: "center",
-      gap: theme.spacing.sm,
       borderBottomWidth: 1,
     },
     searchInputWrap: {
