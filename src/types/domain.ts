@@ -13,6 +13,8 @@ export type Vehicle = {
   model: string;
   production_year: number;
   mileage: number | null; // current mileage in km
+  first_registration_date: string | null; // ISO date YYYY-MM-DD
+  license_plate: string | null;
   engine_capacity: number | null; // in cm³
   power_hp: number | null; // horsepower
   fuel_type: FuelType | null;

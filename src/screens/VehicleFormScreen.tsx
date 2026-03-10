@@ -105,6 +105,8 @@ export function VehicleFormScreen({ navigation, route }: Props) {
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
   const [mileage, setMileage] = useState("");
+  const [firstRegistrationDate, setFirstRegistrationDate] = useState("");
+  const [licensePlate, setLicensePlate] = useState("");
   const [engineCapacity, setEngineCapacity] = useState("");
   const [powerHp, setPowerHp] = useState("");
   const [fuelType, setFuelType] = useState<FuelType | null>(null);
@@ -116,7 +118,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
   const [insuranceValidUntil, setInsuranceValidUntil] = useState("");
   const [inspectionValidUntil, setInspectionValidUntil] = useState("");
   const [openDatePicker, setOpenDatePicker] = useState<
-    "insurance" | "inspection" | null
+    "insurance" | "inspection" | "firstRegistration" | null
   >(null);
   const [datePickerDraft, setDatePickerDraft] = useState<Date>(new Date());
   const [saving, setSaving] = useState(false);
@@ -140,6 +142,8 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       setModel(v.model);
       setYear(String(v.production_year));
       setMileage(v.mileage ? String(v.mileage) : "");
+      setFirstRegistrationDate(v.first_registration_date ?? "");
+      setLicensePlate(v.license_plate ?? "");
       setEngineCapacity(v.engine_capacity ? String(v.engine_capacity) : "");
       setPowerHp(v.power_hp ? String(v.power_hp) : "");
       setFuelType(v.fuel_type);
@@ -177,9 +181,13 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     );
   }, [make, model, year, mileage, engineCapacity, powerHp]);
 
-  function openPicker(kind: "insurance" | "inspection") {
+  function openPicker(kind: "insurance" | "inspection" | "firstRegistration") {
     const currentYmd =
-      kind === "insurance" ? insuranceValidUntil : inspectionValidUntil;
+      kind === "insurance"
+        ? insuranceValidUntil
+        : kind === "inspection"
+          ? inspectionValidUntil
+          : firstRegistrationDate;
     setDatePickerDraft(
       parseYmd(currentYmd || new Date().toISOString().slice(0, 10)),
     );
@@ -195,6 +203,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     const ymd = formatYmd(datePickerDraft);
     if (openDatePicker === "insurance") setInsuranceValidUntil(ymd);
     if (openDatePicker === "inspection") setInspectionValidUntil(ymd);
+    if (openDatePicker === "firstRegistration") setFirstRegistrationDate(ymd);
     setOpenDatePicker(null);
   }
 
@@ -231,6 +240,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
               const ymd = formatYmd(selectedDate);
               if (openDatePicker === "insurance") setInsuranceValidUntil(ymd);
               if (openDatePicker === "inspection") setInspectionValidUntil(ymd);
+              if (openDatePicker === "firstRegistration") setFirstRegistrationDate(ymd);
             }
           }}
         />
@@ -642,6 +652,10 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         model: model.trim(),
         production_year,
         mileage: mileage.trim().length ? Number(mileage) : null,
+        first_registration_date: firstRegistrationDate.trim().length
+          ? firstRegistrationDate.trim()
+          : null,
+        license_plate: licensePlate.trim().length ? licensePlate.trim() : null,
         engine_capacity: engineCapacity.trim().length
           ? Number(engineCapacity)
           : null,
@@ -1037,6 +1051,107 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                 keyboardType="number-pad"
                 editable={!saving}
                 placeholder={t("vehicleForm.placeholderMileage")}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
+            </View>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            />
+            <Pressable
+              onPress={() => !saving && openPicker("firstRegistration")}
+              style={({ pressed }) => [
+                styles.row,
+                pressed && { opacity: 0.75 },
+              ]}
+            >
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("vehicleForm.firstRegistrationDateLabel")}
+                </Text>
+              </View>
+              <View style={styles.rowRight}>
+                <Text
+                  style={[
+                    styles.valueText,
+                    {
+                      color: firstRegistrationDate
+                        ? theme.colors.fg
+                        : theme.colors.muted,
+                      textAlign: "right",
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {firstRegistrationDate || t("manageVehicle.selectDate")}
+                </Text>
+                {firstRegistrationDate ? (
+                  <Pressable
+                    onPress={(e) => {
+                      e?.stopPropagation?.();
+                      setFirstRegistrationDate("");
+                    }}
+                    hitSlop={10}
+                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                  >
+                    <Ionicons
+                      name="close-circle"
+                      size={20}
+                      color={theme.colors.muted}
+                      style={{ marginLeft: theme.spacing.xs }}
+                    />
+                  </Pressable>
+                ) : null}
+              </View>
+            </Pressable>
+            {openDatePicker === "firstRegistration" ? (
+              <>
+                {renderInlineDatePicker()}
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+              </>
+            ) : (
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+            )}
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="car-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("vehicleForm.licensePlateLabel")}
+                </Text>
+              </View>
+              <TextInput
+                value={licensePlate}
+                onChangeText={setLicensePlate}
+                editable={!saving}
+                placeholder={t("vehicleForm.placeholderLicensePlate")}
                 placeholderTextColor={theme.colors.muted}
                 style={[
                   styles.input,

@@ -23,6 +23,8 @@ create table if not exists public.vehicles (
   model text not null,
   production_year integer not null,
   mileage integer, -- current mileage in km
+  first_registration_date date, -- data pierwszej rejestracji
+  license_plate text, -- numer rejestracyjny
   engine_capacity integer, -- in cm³
   power_hp integer, -- horsepower
   fuel_type text check (fuel_type in ('petrol', 'diesel', 'hybrid', 'electric', 'lpg')),
@@ -1629,6 +1631,9 @@ grant execute on function public.create_marketplace_post(uuid, text, numeric, js
 
 -- Create vehicle with entitlement check
 drop function if exists public.create_vehicle(
+  text, text, text, integer, integer, date, text, integer, integer, text, text, text, text, date, date
+);
+drop function if exists public.create_vehicle(
   text, text, text, integer, integer, integer, text, text, text, text, date, date
 );
 create or replace function public.create_vehicle(
@@ -1638,6 +1643,8 @@ create or replace function public.create_vehicle(
   p_model text,
   p_production_year integer,
   p_mileage integer,
+  p_first_registration_date date,
+  p_license_plate text,
   p_engine_capacity integer,
   p_power_hp integer,
   p_fuel_type text,
@@ -1670,6 +1677,8 @@ begin
     model,
     production_year,
     mileage,
+    first_registration_date,
+    license_plate,
     engine_capacity,
     power_hp,
     fuel_type,
@@ -1686,6 +1695,8 @@ begin
     p_model,
     p_production_year,
     p_mileage,
+    p_first_registration_date,
+    p_license_plate,
     p_engine_capacity,
     p_power_hp,
     p_fuel_type,
@@ -1701,7 +1712,7 @@ begin
 end;
 $$;
 
-grant execute on function public.create_vehicle(text, text, text, text, integer, integer, integer, integer, text, text, text, text, date, date) to authenticated;
+grant execute on function public.create_vehicle(text, text, text, text, integer, integer, date, text, integer, integer, text, text, text, text, date, date) to authenticated;
 
 -- Create tire with entitlement check
 drop function if exists public.create_tire(uuid, text, integer, integer, integer, text, text, boolean);

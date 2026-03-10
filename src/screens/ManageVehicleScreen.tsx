@@ -339,7 +339,55 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                     </View>
                   </View>
 
-                  {/* Row 2: Silnik + Moc */}
+                  {/* Row 2: Data pierwszej rej. + Numer rej. */}
+                  <View style={styles.detailsRow}>
+                    <View style={styles.detailItem}>
+                      <View
+                        style={[
+                          styles.detailIconContainer,
+                          { backgroundColor: theme.colors.accent + "25" },
+                        ]}
+                      >
+                        <Ionicons
+                          name="calendar-outline"
+                          size={18}
+                          color={theme.colors.accent}
+                        />
+                      </View>
+                      <View style={styles.detailContent}>
+                        <Text style={styles.detailLabel}>
+                          {t("vehicleForm.firstRegistrationDateLabel")}
+                        </Text>
+                        <Text style={styles.detailValue}>
+                          {vehicle.first_registration_date ?? "N/A"}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.detailItem}>
+                      <View
+                        style={[
+                          styles.detailIconContainer,
+                          { backgroundColor: theme.colors.accent + "25" },
+                        ]}
+                      >
+                        <Ionicons
+                          name="car-outline"
+                          size={18}
+                          color={theme.colors.accent}
+                        />
+                      </View>
+                      <View style={styles.detailContent}>
+                        <Text style={styles.detailLabel}>
+                          {t("vehicleForm.licensePlateLabel")}
+                        </Text>
+                        <Text style={styles.detailValue}>
+                          {vehicle.license_plate ?? "N/A"}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Row 3: Poj. sil. + Moc */}
                   <View style={styles.detailsRow}>
                     <View style={styles.detailItem}>
                       <View
@@ -389,7 +437,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                     </View>
                   </View>
 
-                  {/* Row 3: Skrzynia + Napęd */}
+                  {/* Row 4: Skrzynia + Napęd */}
                   <View style={styles.detailsRow}>
                     <View style={styles.detailItem}>
                       <View

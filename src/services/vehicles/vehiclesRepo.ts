@@ -8,6 +8,8 @@ type NewVehicleInput = {
   model: string;
   production_year: number;
   mileage?: number | null;
+  first_registration_date?: string | null;
+  license_plate?: string | null;
   engine_capacity?: number | null;
   power_hp?: number | null;
   fuel_type?: "petrol" | "diesel" | "hybrid" | "electric" | "lpg" | null;
@@ -48,6 +50,8 @@ export async function createVehicle(input: NewVehicleInput): Promise<Vehicle> {
     p_model: input.model,
     p_production_year: input.production_year,
     p_mileage: input.mileage ?? null,
+    p_first_registration_date: input.first_registration_date ?? null,
+    p_license_plate: input.license_plate ?? null,
     p_engine_capacity: input.engine_capacity ?? null,
     p_power_hp: input.power_hp ?? null,
     p_fuel_type: input.fuel_type ?? null,
