@@ -29,6 +29,9 @@ import { DashboardFab } from "../ui/components/DashboardFab";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
+/** Set to true to show the floating action button (add service/fuel/reminder). */
+const SHOW_DASHBOARD_FAB = false;
+
 type DashboardTile = {
   key: string;
   title: string;
@@ -267,11 +270,13 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         )}
       />
 
-      <DashboardFab
-        onAddService={handleAddService}
-        onAddFuel={handleAddFuel}
-        onAddReminder={handleAddReminder}
-      />
+      {SHOW_DASHBOARD_FAB && (
+        <DashboardFab
+          onAddService={handleAddService}
+          onAddFuel={handleAddFuel}
+          onAddReminder={handleAddReminder}
+        />
+      )}
     </AppLayout>
   );
 }
