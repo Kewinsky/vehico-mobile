@@ -273,12 +273,14 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
       headerStyle: { backgroundColor: theme.colors.bg },
       headerTitleStyle: { color: theme.colors.fg },
       headerLeft: () => (
-        <ModalButton onPress={() => navigation.goBack()}>
+        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
           {t("common.cancel")}
         </ModalButton>
       ),
       headerRight: () => (
-        <ModalButton onPress={applyFilters}>{t("common.done")}</ModalButton>
+        <ModalButton variant="done" onPress={applyFilters}>
+          {t("common.done")}
+        </ModalButton>
       ),
     });
   }, [

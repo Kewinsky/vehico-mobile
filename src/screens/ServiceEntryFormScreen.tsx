@@ -583,12 +583,13 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       headerStyle: { backgroundColor: theme.colors.bg },
       headerTitleStyle: { color: theme.colors.fg },
       headerLeft: () => (
-        <ModalButton onPress={() => navigation.goBack()}>
+        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
           {t("common.cancel")}
         </ModalButton>
       ),
       headerRight: () => (
         <ModalButton
+          variant="done"
           onPress={onSave}
           disabled={!canSave || saving || uploading}
         >

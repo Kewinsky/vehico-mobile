@@ -1,50 +1,76 @@
-import type { PropsWithChildren } from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import type { ReactNode } from "react";
+import { StyleSheet, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { HeaderButton } from "@react-navigation/elements";
 
 import { useTheme } from "../ThemeProvider";
 
-type ModalButtonProps = PropsWithChildren<{
+const ICON_SIZE = 20;
+
+type ModalButtonProps = {
   onPress: () => void;
   disabled?: boolean;
-}>;
+  variant?: "cancel" | "done";
+  children?: ReactNode;
+};
 
 /**
- * Text-style buttons for native modal header (headerLeft / headerRight).
- * Similar to default React Native header buttons: no border, default font weight, theme-aware.
+ * Buttons for native modal header (headerLeft / headerRight).
+ * Uses HeaderButton from @react-navigation/elements for native-style layout and feedback.
+ * Use variant="cancel" / "done" for iOS-style tick and cross icons; otherwise renders children as text.
  */
 export function ModalButton({
   onPress,
   disabled = false,
+  variant,
   children,
 }: ModalButtonProps) {
   const { theme } = useTheme();
 
+  const a11yLabel = typeof children === "string" ? children : undefined;
+
+  if (variant === "cancel") {
+    return (
+      <HeaderButton
+        onPress={onPress}
+        disabled={disabled}
+        accessibilityLabel={a11yLabel}
+        tintColor={theme.colors.fg}
+      >
+        <Ionicons
+          name="close-outline"
+          size={ICON_SIZE}
+          color={theme.colors.fg}
+        />
+      </HeaderButton>
+    );
+  }
+
+  if (variant === "done") {
+    return (
+      <HeaderButton
+        onPress={onPress}
+        disabled={disabled}
+        accessibilityLabel={a11yLabel}
+        tintColor={theme.colors.accent}
+      >
+        <Ionicons
+          name="checkmark"
+          size={ICON_SIZE}
+          color={theme.colors.accent}
+        />
+      </HeaderButton>
+    );
+  }
+
   return (
-    <Pressable
+    <HeaderButton
       onPress={onPress}
       disabled={disabled}
-      hitSlop={8}
-      style={[styles.root, disabled && styles.disabled]}
+      accessibilityLabel={a11yLabel}
+      tintColor={theme.colors.accent}
     >
-      <Text style={[styles.text, { color: theme.colors.accent }]}>
-        {children}
-      </Text>
-    </Pressable>
+      <Text style={{ color: theme.colors.accent }}>{children}</Text>
+    </HeaderButton>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    justifyContent: "center",
-    minHeight: 36,
-  },
-  text: {
-    fontSize: 17,
-    fontWeight: "400",
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-});

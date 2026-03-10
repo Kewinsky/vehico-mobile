@@ -126,7 +126,9 @@ export function HeaderWithSearch({
             returnKeyType="search"
           />
         </View>
-        <ModalButton onPress={closeSearch}>{cancelLabel}</ModalButton>
+        <ModalButton variant="cancel" onPress={closeSearch}>
+          {cancelLabel}
+        </ModalButton>
       </Animated.View>
     </View>
   );

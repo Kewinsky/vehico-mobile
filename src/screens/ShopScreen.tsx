@@ -342,7 +342,7 @@ export function ShopScreen({ navigation }: Props) {
       headerStyle: { backgroundColor: theme.colors.bg },
       headerTitleStyle: { color: theme.colors.fg },
       headerLeft: () => (
-        <ModalButton onPress={() => navigation.goBack()}>
+        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
           {t("common.cancel")}
         </ModalButton>
       ),
