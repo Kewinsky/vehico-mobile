@@ -91,7 +91,7 @@ export function WelcomeHeaderLayout({
             style={{
               color: theme.colors.fg,
               fontWeight: theme.typography.fontWeight.bold,
-              fontSize: theme.typography.largeTitle,
+              fontSize: theme.typography.title,
             }}
           >
             {title || ""}
@@ -110,7 +110,7 @@ export function WelcomeHeaderLayout({
     theme.colors.bg,
     theme.colors.fg,
     theme.typography.fontWeight.bold,
-    theme.typography.largeTitle,
+    theme.typography.title,
     theme.icons.headerButton,
     showShopIcon,
     showProfileAvatar,
