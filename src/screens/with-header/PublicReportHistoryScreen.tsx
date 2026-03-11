@@ -21,16 +21,16 @@ import {
   updatePublicReportTitle,
 } from "../../services/publicPages/publicPagesRepo";
 import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/ContentHeader";
-import { EmptyState } from "../../ui/components/EmptyState";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { IconButton } from "../../ui/components/IconButton";
-import { ListRowWithActions } from "../../ui/components/ListRowWithActions";
+import { IconButton } from "../../ui/components/common/IconButton";
+import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { formatDateDisplay } from "../../utils/dateFormatting";
 import { i18n } from "../../i18n/i18n";
-import { CustomFlatList } from "../../ui/components/CustomFlatList";
+import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportHistory">;
 

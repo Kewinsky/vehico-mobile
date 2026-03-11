@@ -6,12 +6,12 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { WorkshopType } from "../../types/domain";
 import { setPendingModalResult } from "../../app/pendingModalResult";
-import { Button } from "../../ui/components/Button";
-import { FormScreen } from "../../ui/components/FormScreen";
+import { Button } from "../../ui/components/common/Button";
+import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
-import { hexToRgba } from "../../ui/components/ChoiceChip";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 export type WorkshopsFiltersParams = {
   typeFilter: WorkshopType | "all";

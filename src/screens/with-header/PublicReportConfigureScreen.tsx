@@ -19,8 +19,8 @@ import {
 } from "../../services/vehicles/uploadPhoto";
 import type { Vehicle, VehiclePhoto } from "../../types/domain";
 import { HeaderLayout } from "../../layouts";
-import { Button } from "../../ui/components/Button";
-import { ContentHeader } from "../../ui/components/ContentHeader";
+import { Button } from "../../ui/components/common/Button";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -333,7 +333,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
             ? theme.colors.muted
             : checked
               ? theme.colors.accent
-              : theme.colors.muted
+              : theme.colors.fg
         }
       />
     </Pressable>
@@ -350,7 +350,16 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
     >
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <ContentHeader title={t("publicReport.configureTitle")} />
-        <View style={styles.section}>
+        {unavailableOptions.length > 0 && (
+          <View style={[styles.section, styles.hintSection]}>
+            <Text style={styles.hintText}>
+              {t("publicReport.unavailableOptionsHint", {
+                list: unavailableOptions.join(", "),
+              })}
+            </Text>
+          </View>
+        )}
+        <View>
           <CheckboxRow
             label={t("publicReport.optionTechnicalData")}
             checked={includeTechnicalData}
@@ -439,16 +448,6 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
             }
           />
         </View>
-
-        {unavailableOptions.length > 0 && (
-          <View style={[styles.section, styles.hintSection]}>
-            <Text style={styles.hintText}>
-              {t("publicReport.unavailableOptionsHint", {
-                list: unavailableOptions.join(", "),
-              })}
-            </Text>
-          </View>
-        )}
 
         {includePhotos && (
           <View style={styles.section}>
@@ -540,7 +539,7 @@ const makeStyles = (theme: any) =>
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
-    section: { marginBottom: theme.spacing.lg },
+    section: { marginBottom: theme.spacing.md },
     hintSection: {
       backgroundColor: theme.colors.card,
       borderWidth: 1,

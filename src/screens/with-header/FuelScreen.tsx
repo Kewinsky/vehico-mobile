@@ -7,17 +7,17 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { FuelFiltersParams } from "../modal/FuelFiltersScreen";
 import { getAndClearPendingModalResult } from "../../app/pendingModalResult";
 import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/ContentHeader";
-import { SearchBar } from "../../ui/components";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { SearchBar } from "../../ui/components/common/SearchBar";
 import { useTheme } from "../../ui/ThemeProvider";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import type { FuelingEntry, GasStation } from "../../types/domain";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
-import { CustomFlatList } from "../../ui/components/CustomFlatList";
-import { EmptyState } from "../../ui/components/EmptyState";
-import { TimelineItem } from "../../ui/components/TimelineItem";
+import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
+import { EmptyState } from "../../ui/components/common/EmptyState";
+import { TimelineItem } from "../../ui/components/list/TimelineItem";
 import { HeaderButton } from "@react-navigation/elements";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
@@ -178,10 +178,7 @@ export function FuelScreen({ route, navigation }: Props) {
             color={hasActiveFilters ? theme.colors.accent : theme.colors.fg}
           />
         </HeaderButton>
-        <HeaderButton
-          onPress={openAddEntry}
-          tintColor={theme.colors.fg}
-        >
+        <HeaderButton onPress={openAddEntry} tintColor={theme.colors.fg}>
           <Ionicons name="add" size={24} color={theme.colors.fg} />
         </HeaderButton>
       </View>

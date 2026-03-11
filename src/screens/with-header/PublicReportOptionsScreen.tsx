@@ -14,8 +14,8 @@ import QRCode from "react-native-qrcode-svg";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { HeaderLayout } from "../../layouts";
-import { Button } from "../../ui/components/Button";
-import { ContentHeader } from "../../ui/components/ContentHeader";
+import { Button } from "../../ui/components/common/Button";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";

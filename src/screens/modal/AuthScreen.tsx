@@ -9,8 +9,8 @@ import * as WebBrowser from "expo-web-browser";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { supabase } from "../../services/supabase/client";
-import { Button } from "../../ui/components/Button";
-import { FormScreen } from "../../ui/components/FormScreen";
+import { Button } from "../../ui/components/common/Button";
+import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";

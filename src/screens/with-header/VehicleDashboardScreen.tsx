@@ -19,11 +19,11 @@ import type { Vehicle } from "../../types/domain";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
-import { Tile as TileCard } from "../../ui/components/Tile";
+import { Tile as TileCard } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { WheelsIcon } from "../../ui/components/WheelsIcon";
-import { DashboardFab } from "../../ui/components/DashboardFab";
+import { WheelsIcon } from "../../ui/components/icons/WheelsIcon";
+import { DashboardFab } from "../../ui/components/common/DashboardFab";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 

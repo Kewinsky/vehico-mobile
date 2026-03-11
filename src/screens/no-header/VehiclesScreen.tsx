@@ -16,8 +16,8 @@ import {
   getVehiclePhotoUrl,
 } from "../../services/vehicles/uploadPhoto";
 import { Alert } from "react-native";
-import { Button } from "../../ui/components/Button";
-import { EmptyState } from "../../ui/components/EmptyState";
+import { Button } from "../../ui/components/common/Button";
+import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -25,9 +25,9 @@ import { useAuth } from "../../app/providers/AuthProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { normalizeDisplayName } from "../../utils/displayName";
-import { hexToRgba } from "../../ui/components/ChoiceChip";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { WelcomeHeaderLayout } from "../../layouts";
-import { CustomFlatList } from "../../ui/components/CustomFlatList";
+import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 

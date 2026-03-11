@@ -10,12 +10,12 @@ import type { Workshop, WorkshopType } from "../../types/domain";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
 import { getAndClearPendingModalResult } from "../../app/pendingModalResult";
 import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/ContentHeader";
-import { SearchBar } from "../../ui/components";
-import { CustomFlatList } from "../../ui/components/CustomFlatList";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { SearchBar } from "../../ui/components/common/SearchBar";
+import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import { HeaderButton } from "@react-navigation/elements";
-import { EmptyState } from "../../ui/components/EmptyState";
-import { TimelineItem } from "../../ui/components/TimelineItem";
+import { EmptyState } from "../../ui/components/common/EmptyState";
+import { TimelineItem } from "../../ui/components/list/TimelineItem";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -65,9 +65,8 @@ export function WorkshopsScreen({ navigation }: Props) {
   useEffect(() => {
     void load({ showLoading: false });
     const unsub = navigation.addListener("focus", () => {
-      const pending = getAndClearPendingModalResult<WorkshopsFiltersParams>(
-        "workshops",
-      );
+      const pending =
+        getAndClearPendingModalResult<WorkshopsFiltersParams>("workshops");
       if (pending) {
         setTypeFilter(pending.typeFilter ?? "all");
         setSortOrder(pending.sortOrder ?? "az");
@@ -142,10 +141,7 @@ export function WorkshopsScreen({ navigation }: Props) {
             color={hasActiveFilters ? theme.colors.accent : theme.colors.fg}
           />
         </HeaderButton>
-        <HeaderButton
-          onPress={onAddWorkshopPress}
-          tintColor={theme.colors.fg}
-        >
+        <HeaderButton onPress={onAddWorkshopPress} tintColor={theme.colors.fg}>
           <Ionicons name="add" size={24} color={theme.colors.fg} />
         </HeaderButton>
       </View>

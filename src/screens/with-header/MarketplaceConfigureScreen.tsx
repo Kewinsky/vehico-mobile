@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,20 +15,20 @@ import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import { listPublicPages } from "../../services/publicPages/publicPagesRepo";
 import type { Vehicle, PublicReportSnapshot } from "../../types/domain";
 import { HeaderLayout } from "../../layouts";
-import { Button } from "../../ui/components/Button";
-import { ContentHeader } from "../../ui/components/ContentHeader";
+import { Button } from "../../ui/components/common/Button";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
-import { PickerField } from "../../ui/components/PickerField";
-import { TextField } from "../../ui/components/TextField";
+import { PickerField } from "../../ui/components/common/PickerField";
 
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceConfigure">;
 
 export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -67,7 +67,6 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   const [includeFuelingStats, setIncludeFuelingStats] = useState(false);
   const [includePrice, setIncludePrice] = useState(false);
   const [price, setPrice] = useState("");
-  const [currency, setCurrency] = useState<string>(settings?.currency ?? "PLN");
   const [includePublicReport, setIncludePublicReport] = useState(false);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
 
@@ -148,7 +147,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
       },
       includePrice,
       price: priceNum,
-      currency,
+      currency: settings?.currency ?? "PLN",
       includePublicReport,
       selectedReportId: includePublicReport ? selectedReportId : null,
     });
@@ -178,15 +177,17 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
         {label}
         {suffix ? ` ${suffix}` : ""}
       </Text>
-      <View
-        style={[
-          styles.optionCheckbox,
-          checked && styles.optionCheckboxChecked,
-          disabled && styles.optionCheckboxDisabled,
-        ]}
-      >
-        {checked && <Ionicons name="checkmark" size={16} color="#000000" />}
-      </View>
+      <Ionicons
+        name={checked ? "checkbox" : "checkbox-outline"}
+        size={24}
+        color={
+          disabled
+            ? theme.colors.muted
+            : checked
+              ? theme.colors.accent
+              : theme.colors.fg
+        }
+      />
     </Pressable>
   );
 
@@ -199,9 +200,18 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
         <Button onPress={handleNext}>{t("marketplace.nextButton")}</Button>
       }
     >
-      <ScrollView style={{ flex: 1 }}>
+      <FormScreen noLayout>
         <ContentHeader title={t("marketplace.configureTitle")} />
-        <View style={styles.section}>
+        {unavailableOptions.length > 0 && (
+          <View style={[styles.section, styles.hintSection]}>
+            <Text style={styles.hintText}>
+              {t("publicReport.unavailableOptionsHint", {
+                list: unavailableOptions.join(", "),
+              })}
+            </Text>
+          </View>
+        )}
+        <View>
           <CheckboxRow
             label={t("publicReport.optionTechnicalData")}
             checked={includeTechnicalData}
@@ -285,26 +295,37 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
             onPress={() => setIncludePrice(!includePrice)}
           />
           {includePrice && (
-            <View style={styles.priceSection}>
-              <View style={styles.priceField}>
-                <TextField
-                  noMarginTop
+            <View
+              style={[
+                styles.priceCard,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <View style={styles.priceRow}>
+                <View style={styles.priceRowLeft}>
+                  <Ionicons
+                    name="pricetag-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.priceLabel, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("marketplace.optionPrice")}
+                  </Text>
+                </View>
+                <TextInput
                   value={price}
                   onChangeText={setPrice}
                   keyboardType="decimal-pad"
+                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
                   placeholder={t("marketplace.pricePlaceholder")}
-                />
-              </View>
-              <View style={styles.currencyField}>
-                <PickerField
-                  noMarginTop
-                  label=""
-                  value={currency}
-                  options={["PLN", "EUR"] as const}
-                  getLabel={(value) => value}
-                  onChange={(value) => {
-                    if (value) setCurrency(value);
-                  }}
+                  placeholderTextColor={theme.colors.muted}
+                  style={[styles.priceInput, { color: theme.colors.fg }]}
                 />
               </View>
             </View>
@@ -350,17 +371,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
             </View>
           )}
         </View>
-
-        {unavailableOptions.length > 0 && (
-          <View style={[styles.section, styles.hintSection]}>
-            <Text style={styles.hintText}>
-              {t("publicReport.unavailableOptionsHint", {
-                list: unavailableOptions.join(", "),
-              })}
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+      </FormScreen>
     </HeaderLayout>
   );
 }
@@ -373,7 +384,7 @@ const makeStyles = (theme: any) =>
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
-    section: { marginBottom: theme.spacing.lg },
+    section: { marginBottom: theme.spacing.md },
     hintSection: {
       backgroundColor: theme.colors.card,
       borderWidth: 1,
@@ -392,14 +403,36 @@ const makeStyles = (theme: any) =>
       color: theme.colors.fg,
       marginBottom: theme.spacing.sm,
     },
-    priceSection: {
-      flexDirection: "row",
-      alignItems: "stretch",
-      gap: theme.spacing.sm,
-      marginBottom: theme.spacing.xs,
+    priceCard: {
+      borderWidth: 1,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+      marginBottom: theme.spacing.sm,
     },
-    priceField: { flex: 3 },
-    currencyField: { flex: 1 },
+    priceRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    priceRowLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      flexShrink: 0,
+    },
+    priceLabel: {
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    priceInput: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.body,
+      paddingVertical: 0,
+      textAlign: "right",
+    },
     noReportsText: {
       fontSize: theme.typography.body,
       color: theme.colors.muted,
@@ -411,20 +444,6 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.sm,
     },
     checkboxRowDisabled: { opacity: 0.7 },
-    optionCheckbox: {
-      width: 24,
-      height: 24,
-      borderRadius: theme.radius.xs,
-      borderWidth: 2,
-      borderColor: theme.colors.border,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    optionCheckboxChecked: {
-      backgroundColor: theme.colors.accent,
-      borderColor: theme.colors.accent,
-    },
-    optionCheckboxDisabled: { opacity: 0.6 },
     optionLabel: {
       flex: 1,
       fontSize: theme.typography.body,

@@ -14,18 +14,18 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Purchases from "react-native-purchases";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { Card } from "../../ui/components/Card";
-import { Button } from "../../ui/components/Button";
-import { LegalLinksRow } from "../../ui/components/LegalLinksRow";
+import { Card } from "../../ui/components/common/Card";
+import { Button } from "../../ui/components/common/Button";
+import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
 import { ModalLayout } from "../../layouts";
-import { hexToRgba } from "../../ui/components/ChoiceChip";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import type { AppTheme } from "../../ui/theme";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import type { RevenueCatProductId } from "../../services/payments/revenuecat";
 import { ENV } from "../../config/env";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { LoadingIndicator } from "../../ui/components/LoadingIndicator";
+import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { Crown } from "lucide-react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Shop">;

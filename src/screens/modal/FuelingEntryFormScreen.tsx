@@ -21,14 +21,14 @@ import {
   getFuelingEntry,
   updateFuelingEntry,
 } from "../../services/fuel/fuelingEntriesRepo";
-import { Button } from "../../ui/components/Button";
-import { FormScreen } from "../../ui/components/FormScreen";
+import { Button } from "../../ui/components/common/Button";
+import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
-import { hexToRgba } from "../../ui/components/ChoiceChip";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 const FUEL_TYPE_OPTIONS: readonly FuelGrade[] = [
   "95",

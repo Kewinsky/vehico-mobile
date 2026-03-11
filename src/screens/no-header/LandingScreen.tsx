@@ -5,8 +5,8 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { ENV } from "../../config/env";
-import { Button } from "../../ui/components/Button";
-import { LegalLinksRow } from "../../ui/components/LegalLinksRow";
+import { Button } from "../../ui/components/common/Button";
+import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
 import { NoHeaderLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 

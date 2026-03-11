@@ -7,9 +7,9 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { RemindersFiltersParams } from "../modal/RemindersFiltersScreen";
 import { getAndClearPendingModalResult } from "../../app/pendingModalResult";
 import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/ContentHeader";
-import { SearchBar } from "../../ui/components";
-import { EmptyState } from "../../ui/components/EmptyState";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { SearchBar } from "../../ui/components/common/SearchBar";
+import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import type { Reminder } from "../../types/domain";
 import {
@@ -21,10 +21,10 @@ import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { HeaderButton } from "@react-navigation/elements";
-import { IconButton } from "../../ui/components/IconButton";
-import { ListRowWithActions } from "../../ui/components/ListRowWithActions";
+import { IconButton } from "../../ui/components/common/IconButton";
+import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { Ionicons } from "@expo/vector-icons";
-import { CustomFlatList } from "../../ui/components/CustomFlatList";
+import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Reminders">;
 
@@ -96,9 +96,8 @@ export function RemindersScreen({ route, navigation }: Props) {
   useEffect(() => {
     void load({ showLoading: false });
     const unsub = navigation.addListener("focus", () => {
-      const pending = getAndClearPendingModalResult<RemindersFiltersParams>(
-        "reminders",
-      );
+      const pending =
+        getAndClearPendingModalResult<RemindersFiltersParams>("reminders");
       if (pending) {
         setDateFrom(pending.dateFrom ?? "");
         setDateTo(pending.dateTo ?? "");
@@ -252,10 +251,7 @@ export function RemindersScreen({ route, navigation }: Props) {
             color={hasActiveFilters ? theme.colors.accent : theme.colors.fg}
           />
         </HeaderButton>
-        <HeaderButton
-          onPress={onAddReminderPress}
-          tintColor={theme.colors.fg}
-        >
+        <HeaderButton onPress={onAddReminderPress} tintColor={theme.colors.fg}>
           <Ionicons name="add" size={24} color={theme.colors.fg} />
         </HeaderButton>
       </View>

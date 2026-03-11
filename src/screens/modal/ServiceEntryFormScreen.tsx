@@ -39,17 +39,17 @@ import { listWorkshops } from "../../services/workshops/workshopsRepo";
 import type { Workshop } from "../../types/domain";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { Button } from "../../ui/components/Button";
-import { FormScreen } from "../../ui/components/FormScreen";
+import { Button } from "../../ui/components/common/Button";
+import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
-import { LoadingIndicator } from "../../ui/components/LoadingIndicator";
-import { IconButton } from "../../ui/components/IconButton";
+import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
+import { IconButton } from "../../ui/components/common/IconButton";
 import { Ionicons } from "@expo/vector-icons";
-import { hexToRgba } from "../../ui/components/ChoiceChip";
-import { Textarea } from "../../ui/components/Textarea";
-import { ListRowWithActions } from "../../ui/components/ListRowWithActions";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
+import { Textarea } from "../../ui/components/common/Textarea";
+import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "maintenance",

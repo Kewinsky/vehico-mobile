@@ -9,9 +9,9 @@ import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { resolveMarketplacePostContent } from "../../services/marketplace/marketplaceRepo";
 import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/ContentHeader";
-import { SegmentTabs } from "../../ui/components/SegmentTabs";
-import { Button } from "../../ui/components/Button";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
+import { Button } from "../../ui/components/common/Button";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastSuccess, toastError } from "../../ui/toast/toast";
 

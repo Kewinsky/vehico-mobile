@@ -1,1 +1,0 @@
-export { SegmentTabs } from "./common";

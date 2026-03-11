@@ -41,12 +41,12 @@ import type {
   VehicleWheel,
 } from "../../types/domain";
 import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/ContentHeader";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { useTheme } from "../../ui/ThemeProvider";
-import { hexToRgba } from "../../ui/components/ChoiceChip";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { toastError } from "../../ui/toast/toast";
-import { TireIcon } from "../../ui/components/TireIcon";
-import { RimIcon } from "../../ui/components/RimIcon";
+import { TireIcon } from "../../ui/components/icons/TireIcon";
+import { RimIcon } from "../../ui/components/icons/RimIcon";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Statistics">;
 type PeriodKey = "1m" | "3m" | "6m" | "1y" | "all";

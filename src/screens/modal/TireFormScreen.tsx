@@ -22,14 +22,14 @@ import {
   updateVehicleTire,
   listVehicleTires,
 } from "../../services/tires/tiresRepo";
-import { Button } from "../../ui/components/Button";
-import { FormScreen } from "../../ui/components/FormScreen";
+import { Button } from "../../ui/components/common/Button";
+import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
-import { hexToRgba } from "../../ui/components/ChoiceChip";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { SunSnowIcon } from "lucide-react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "TireForm">;

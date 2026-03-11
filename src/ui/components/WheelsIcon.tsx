@@ -1,1 +1,0 @@
-export { WheelsIcon } from "./icons";

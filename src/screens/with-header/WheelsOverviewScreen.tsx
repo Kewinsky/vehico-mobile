@@ -14,13 +14,13 @@ import {
   formatWheelDimensions,
 } from "../../services/wheels/wheelsRepo";
 import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/ContentHeader";
-import { Tile } from "../../ui/components/Tile";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { Tile } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
-import { RimIcon } from "../../ui/components/RimIcon";
-import { TireIcon } from "../../ui/components/TireIcon";
+import { RimIcon } from "../../ui/components/icons/RimIcon";
+import { TireIcon } from "../../ui/components/icons/TireIcon";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Wheels">;
 

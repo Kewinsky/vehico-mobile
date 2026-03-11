@@ -24,8 +24,8 @@ import * as Notifications from "expo-notifications";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { OnboardingLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
-import { Button } from "../../ui/components/Button";
-import { hexToRgba } from "../../ui/components/ChoiceChip";
+import { Button } from "../../ui/components/common/Button";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import type { VehicleType } from "../../types/domain";
 import { normalizeDisplayName } from "../../utils/displayName";
 import {
@@ -40,7 +40,7 @@ import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
-import { ContentHeader } from "../../ui/components/ContentHeader";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Onboarding">;
 

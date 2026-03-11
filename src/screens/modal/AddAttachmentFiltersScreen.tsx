@@ -5,12 +5,13 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { setPendingModalResult } from "../../app/pendingModalResult";
-import { Button } from "../../ui/components/Button";
-import { FormScreen } from "../../ui/components/FormScreen";
-import { ModalButton } from "../../ui/components/ModalButton";
+import { ModalLayout } from "../../layouts";
+import { Button } from "../../ui/components/common/Button";
+import { FormScreen } from "../../ui/components/layout/FormScreen";
+import { ModalButton } from "../../ui/components/layout/ModalButton";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
-import { hexToRgba } from "../../ui/components/ChoiceChip";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 export type AddAttachmentFiltersParams = {
   sortOption: "date-newest" | "date-oldest" | "title-az" | "title-za";

@@ -15,9 +15,9 @@ import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/ContentHeader";
-import { SearchBar } from "../../ui/components";
-import { EmptyState } from "../../ui/components/EmptyState";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { SearchBar } from "../../ui/components/common/SearchBar";
+import { EmptyState } from "../../ui/components/common/EmptyState";
 import { HeaderButton } from "@react-navigation/elements";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -38,9 +38,9 @@ import {
   updateVehicleDocument,
   uploadVehicleDocument,
 } from "../../services/vehicleDocuments/vehicleDocumentsRepo";
-import { ListRowWithActions } from "../../ui/components/ListRowWithActions";
+import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { IconButton } from "../../ui/components/IconButton";
+import { IconButton } from "../../ui/components/common/IconButton";
 import { Feather } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;

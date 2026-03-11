@@ -16,12 +16,12 @@ import * as Clipboard from "expo-clipboard";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { createServiceEntry } from "../../services/serviceEntries/serviceEntriesRepo";
 import { HeaderLayout } from "../../layouts";
-import { Button } from "../../ui/components/Button";
-import { ContentHeader } from "../../ui/components/ContentHeader";
+import { Button } from "../../ui/components/common/Button";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { Textarea } from "../../ui/components/Textarea";
+import { Textarea } from "../../ui/components/common/Textarea";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Import">;
 

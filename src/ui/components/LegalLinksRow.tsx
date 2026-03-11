@@ -1,1 +1,0 @@
-export { LegalLinksRow } from "./common";

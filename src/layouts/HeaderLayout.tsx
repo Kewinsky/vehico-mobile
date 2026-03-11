@@ -1,10 +1,10 @@
 import type { PropsWithChildren, ReactNode } from "react";
 
+import { AppLayout } from "../ui/components/layout/AppLayout";
 import {
-  AppLayout,
   useNativeHeaderAsAppNavbar,
   type AppNavbarProps,
-} from "../ui/components";
+} from "../ui/components/layout/AppNavbar";
 
 export type HeaderLayoutProps = PropsWithChildren<
   AppNavbarProps & {

@@ -1,1 +1,0 @@
-export { BoltTypeIcon } from "./icons";

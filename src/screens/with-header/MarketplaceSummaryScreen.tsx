@@ -27,8 +27,8 @@ import {
   saveMarketplacePost,
 } from "../../services/marketplace/marketplaceRepo";
 import { HeaderLayout } from "../../layouts";
-import { Button } from "../../ui/components/Button";
-import { ContentHeader } from "../../ui/components/ContentHeader";
+import { Button } from "../../ui/components/common/Button";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -60,16 +60,13 @@ function InfoCard({
         : count != null
           ? t("publicReport.includedWithCount", { count })
           : t("publicReport.included")
-      : status === "noData"
-        ? t("publicReport.noData")
-        : t("publicReport.notIncluded");
-  const valueColor =
-    status === "included" ? theme.colors.accent : theme.colors.muted;
+      : "—";
+  const valueColor = value === "—" ? theme.colors.muted : theme.colors.accent;
 
   return (
-    <View style={styles.infoCard}>
-      <Text style={styles.infoCardTitle}>{title}</Text>
-      <Text style={[styles.infoCardValue, { color: valueColor }]}>{value}</Text>
+    <View style={styles.dataRow}>
+      <Text style={styles.dataLabel}>{title}</Text>
+      <Text style={[styles.dataValue, { color: valueColor }]}>{value}</Text>
     </View>
   );
 }
@@ -247,108 +244,240 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
               <Text style={styles.sectionTitle}>
                 {t("publicReport.technicalData")}
               </Text>
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>{t("vehicleForm.type")}</Text>
-                <Text style={styles.dataValue}>
-                  {vehicle.type === "car"
+              {(() => {
+                const dash = "—";
+                const val = (
+                  v: string | number | null | undefined,
+                  fallback: string,
+                ) =>
+                  v != null && String(v).trim() !== ""
+                    ? String(v).trim()
+                    : fallback;
+                const typeVal =
+                  vehicle.type === "car"
                     ? t("vehicleForm.car")
-                    : t("vehicleForm.motorcycle")}
-                </Text>
-              </View>
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("vehicleForm.makeLabel")}
-                </Text>
-                <Text style={styles.dataValue}>{vehicle.make}</Text>
-              </View>
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("vehicleForm.modelLabel")}
-                </Text>
-                <Text style={styles.dataValue}>{vehicle.model}</Text>
-              </View>
-              <View style={styles.dataRow}>
-                <Text style={styles.dataLabel}>
-                  {t("vehicleForm.yearLabel")}
-                </Text>
-                <Text style={styles.dataValue}>{vehicle.production_year}</Text>
-              </View>
-              {vehicle.vin && (
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>
-                    {t("vehicleForm.vinLabel")}
-                  </Text>
-                  <Text style={styles.dataValue}>{vehicle.vin}</Text>
-                </View>
-              )}
-              {vehicle.mileage != null && (
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>
-                    {t("vehicleForm.mileageLabel")}
-                  </Text>
-                  <Text style={styles.dataValue}>
-                    {vehicle.mileage.toLocaleString()} {distanceUnit}
-                  </Text>
-                </View>
-              )}
-              {vehicle.engine_capacity != null && (
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>
-                    {t("vehicleForm.engineCapacityLabel")}
-                  </Text>
-                  <Text style={styles.dataValue}>
-                    {vehicle.engine_capacity} cm³
-                  </Text>
-                </View>
-              )}
-              {vehicle.power_hp != null && (
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>
-                    {t("vehicleForm.powerHpLabel")}
-                  </Text>
-                  <Text style={styles.dataValue}>{vehicle.power_hp} HP</Text>
-                </View>
-              )}
-              {vehicle.transmission != null && (
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>
-                    {t("vehicleForm.transmissionLabel")}
-                  </Text>
-                  <Text style={styles.dataValue}>
-                    {vehicle.transmission === "manual"
+                    : t("vehicleForm.motorcycle");
+                const makeVal = val(vehicle.make, dash);
+                const modelVal = val(vehicle.model, dash);
+                const yearVal =
+                  vehicle.production_year != null
+                    ? String(vehicle.production_year)
+                    : dash;
+                const vinVal = val(vehicle.vin, dash);
+                const firstRegVal = vehicle.first_registration_date
+                  ? formatDateDisplay(
+                      vehicle.first_registration_date,
+                      i18n.language,
+                    )
+                  : dash;
+                const licenseVal = val(vehicle.license_plate, dash);
+                const mileageVal =
+                  vehicle.mileage != null
+                    ? `${vehicle.mileage.toLocaleString()} ${distanceUnit}`
+                    : dash;
+                const engineVal =
+                  vehicle.engine_capacity != null
+                    ? `${vehicle.engine_capacity} cm³`
+                    : dash;
+                const powerVal =
+                  vehicle.power_hp != null ? `${vehicle.power_hp} HP` : dash;
+                const transVal =
+                  vehicle.transmission != null
+                    ? vehicle.transmission === "manual"
                       ? t("vehicleForm.transmissionManual")
-                      : t("vehicleForm.transmissionAutomatic")}
-                  </Text>
-                </View>
-              )}
-              {vehicle.drive_type != null && (
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>
-                    {t("vehicleForm.driveTypeLabel")}
-                  </Text>
-                  <Text style={styles.dataValue}>{vehicle.drive_type}</Text>
-                </View>
-              )}
-              {vehicle.fuel_type != null && (
-                <View style={styles.dataRow}>
-                  <Text style={styles.dataLabel}>
-                    {t("vehicleForm.fuelTypeLabel")}
-                  </Text>
-                  <Text style={styles.dataValue}>
-                    {t(
-                      `vehicleForm.fuelType${
-                        vehicle.fuel_type.charAt(0).toUpperCase() +
-                        vehicle.fuel_type.slice(1)
-                      }` as
-                        | "vehicleForm.fuelTypePetrol"
-                        | "vehicleForm.fuelTypeDiesel"
-                        | "vehicleForm.fuelTypeHybrid"
-                        | "vehicleForm.fuelTypeElectric"
-                        | "vehicleForm.fuelTypeLpg",
-                    )}
-                  </Text>
-                </View>
-              )}
+                      : t("vehicleForm.transmissionAutomatic")
+                    : dash;
+                const driveVal = vehicle.drive_type ?? dash;
+                const fuelVal =
+                  vehicle.fuel_type != null
+                    ? t(
+                        `vehicleForm.fuelType${
+                          vehicle.fuel_type.charAt(0).toUpperCase() +
+                          vehicle.fuel_type.slice(1)
+                        }` as
+                          | "vehicleForm.fuelTypePetrol"
+                          | "vehicleForm.fuelTypeDiesel"
+                          | "vehicleForm.fuelTypeHybrid"
+                          | "vehicleForm.fuelTypeElectric"
+                          | "vehicleForm.fuelTypeLpg",
+                      )
+                    : dash;
+                const valueColor = (v: string) =>
+                  v === dash ? theme.colors.muted : theme.colors.accent;
+                return (
+                  <>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.type")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: theme.colors.accent },
+                        ]}
+                      >
+                        {typeVal}
+                      </Text>
+                    </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.makeLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(makeVal) },
+                        ]}
+                      >
+                        {makeVal}
+                      </Text>
+                    </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.modelLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(modelVal) },
+                        ]}
+                      >
+                        {modelVal}
+                      </Text>
+                    </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.yearLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(yearVal) },
+                        ]}
+                      >
+                        {yearVal}
+                      </Text>
+                    </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.vinLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(vinVal) },
+                        ]}
+                      >
+                        {vinVal}
+                      </Text>
+                    </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.firstRegistrationDateLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(firstRegVal) },
+                        ]}
+                      >
+                        {firstRegVal}
+                      </Text>
+                    </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.licensePlateLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(licenseVal) },
+                        ]}
+                      >
+                        {licenseVal}
+                      </Text>
+                    </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.mileageLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(mileageVal) },
+                        ]}
+                      >
+                        {mileageVal}
+                      </Text>
+                    </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.engineCapacityLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(engineVal) },
+                        ]}
+                      >
+                        {engineVal}
+                      </Text>
+                    </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.powerHpLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(powerVal) },
+                        ]}
+                      >
+                        {powerVal}
+                      </Text>
+                    </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.transmissionLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(transVal) },
+                        ]}
+                      >
+                        {transVal}
+                      </Text>
+                    </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.driveTypeLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(driveVal) },
+                        ]}
+                      >
+                        {driveVal}
+                      </Text>
+                    </View>
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.fuelTypeLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(fuelVal) },
+                        ]}
+                      >
+                        {fuelVal}
+                      </Text>
+                    </View>
+                  </>
+                );
+              })()}
             </View>
           )}
 
@@ -577,23 +706,6 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
-    },
-    infoCard: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingVertical: theme.spacing.sm,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-    },
-    infoCardTitle: {
-      fontSize: theme.typography.body,
-      color: theme.colors.fg,
-      flex: 1,
-    },
-    infoCardValue: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
     },
     checkboxRow: {
       flexDirection: "row",

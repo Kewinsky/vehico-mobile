@@ -42,20 +42,20 @@ import {
   reorderVehiclePhotos,
   uploadVehiclePhoto,
 } from "../../services/vehicles/uploadPhoto";
-import { Button } from "../../ui/components/Button";
-import { FormScreen } from "../../ui/components/FormScreen";
+import { Button } from "../../ui/components/common/Button";
+import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalLayout } from "../../layouts";
-import { SegmentTabs } from "../../ui/components/SegmentTabs";
-import { hexToRgba } from "../../ui/components/ChoiceChip";
+import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
-import { LoadingIndicator } from "../../ui/components/LoadingIndicator";
-import { Textarea } from "../../ui/components/Textarea";
-import { DriveTypeIcon } from "../../ui/components/DriveTypeIcon";
+import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
+import { Textarea } from "../../ui/components/common/Textarea";
+import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
 

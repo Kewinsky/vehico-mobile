@@ -15,13 +15,13 @@ import {
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { GasStation } from "../../types/domain";
 import { setPendingModalResult } from "../../app/pendingModalResult";
-import { Button } from "../../ui/components/Button";
-import { FormScreen } from "../../ui/components/FormScreen";
+import { Button } from "../../ui/components/common/Button";
+import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { Ionicons } from "@expo/vector-icons";
-import { hexToRgba } from "../../ui/components/ChoiceChip";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 const GAS_STATION_OPTIONS: readonly GasStation[] = [
   "orlen",

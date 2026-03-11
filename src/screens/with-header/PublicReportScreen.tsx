@@ -2,11 +2,11 @@ import { View, Alert } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { Button } from "../../ui/components/Button";
+import { Button } from "../../ui/components/common/Button";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/ContentHeader";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReport">;
 

@@ -1,1 +1,0 @@
-export { DriveTypeIcon } from "./icons";

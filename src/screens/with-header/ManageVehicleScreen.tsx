@@ -26,14 +26,14 @@ import {
   getVehiclePhotoUrl,
 } from "../../services/vehicles/uploadPhoto";
 import { HeaderLayout } from "../../layouts";
-import { DriveTypeIcon } from "../../ui/components/DriveTypeIcon";
-import { FormScreen } from "../../ui/components/FormScreen";
+import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
+import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { LoadingIndicator } from "../../ui/components/LoadingIndicator";
-import { ContentHeader } from "../../ui/components/ContentHeader";
+import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicle">;
 

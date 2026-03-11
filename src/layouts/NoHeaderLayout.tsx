@@ -1,6 +1,6 @@
 import type { PropsWithChildren, ReactNode } from "react";
 
-import { AppLayout } from "../ui/components";
+import { AppLayout } from "../ui/components/layout/AppLayout";
 
 export type NoHeaderLayoutProps = PropsWithChildren<{
   loading?: boolean;

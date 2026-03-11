@@ -10,7 +10,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { NoHeaderLayout } from "../../layouts";
-import { AppNavbar } from "../../ui/components/AppNavbar";
+import { AppNavbar } from "../../ui/components/layout/AppNavbar";
 import { useTheme } from "../../ui/ThemeProvider";
 
 import {

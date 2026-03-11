@@ -7,7 +7,7 @@ import { HeaderButton } from "@react-navigation/elements";
 import { Ionicons } from "@expo/vector-icons";
 import { Crown } from "lucide-react-native";
 
-import { AppLayout } from "../ui/components";
+import { AppLayout } from "../ui/components/layout/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
 import type { AppStackParamList } from "../app/navigation/RootNavigator";
 import { useAuth } from "../app/providers/AuthProvider";

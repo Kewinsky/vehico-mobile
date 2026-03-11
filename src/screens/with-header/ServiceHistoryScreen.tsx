@@ -17,18 +17,18 @@ import { listServiceEntries } from "../../services/serviceEntries/serviceEntries
 import { listReminders } from "../../services/reminders/remindersRepo";
 import { listVehicleAttachments } from "../../services/attachments/attachmentsRepo";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
-import { ContentHeader } from "../../ui/components/ContentHeader";
-import { SearchBar } from "../../ui/components";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { SearchBar } from "../../ui/components/common/SearchBar";
 import { HeaderButton } from "@react-navigation/elements";
-import { TimelineItem } from "../../ui/components/TimelineItem";
+import { TimelineItem } from "../../ui/components/list/TimelineItem";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
-import { EmptyState } from "../../ui/components/EmptyState";
+import { EmptyState } from "../../ui/components/common/EmptyState";
 import { formatDateDisplay } from "../../utils/dateFormatting";
-import { CustomFlatList } from "../../ui/components/CustomFlatList";
+import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceHistory">;
 
@@ -119,9 +119,10 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   useEffect(() => {
     void load();
     const unsub = navigation.addListener("focus", () => {
-      const pending = getAndClearPendingModalResult<ServiceHistoryFiltersParams>(
-        "serviceHistory",
-      );
+      const pending =
+        getAndClearPendingModalResult<ServiceHistoryFiltersParams>(
+          "serviceHistory",
+        );
       if (pending) {
         setCategoryFilter(
           (pending.categoryFilter as "all" | ServiceEntryCategory) ?? "all",
@@ -361,88 +362,90 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     >
       <View style={{ flex: 1 }}>
         <CustomFlatList<TimelineRow>
-        data={timelineRows}
-        listHeaderComponent={
-          <>
-            <ContentHeader title={t("dashboard.tiles.serviceTitle")} />
-            <SearchBar
-              value={query}
-              onChangeText={setQuery}
-              placeholder={t("common.search", { defaultValue: "Search" })}
-            />
-          </>
-        }
-        groupByMonth={sortByDate}
-        getMonthYearKey={getMonthYearKey}
-        keyExtractor={(e) => `${e.kind}:${e.id}`}
-        renderItem={({ item: rowItem }) => {
-          if (rowItem.kind === "reminder") {
-            const r = rowItem.reminder;
-            const dueText = [
-              r.due_date ? t("reminders.dueTime", { date: r.due_date }) : null,
-              r.due_mileage != null
-                ? t("reminders.dueMileage", {
-                    mileage: String(r.due_mileage),
-                    unit: distanceUnit,
-                  })
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" · ");
+          data={timelineRows}
+          listHeaderComponent={
+            <>
+              <ContentHeader title={t("dashboard.tiles.serviceTitle")} />
+              <SearchBar
+                value={query}
+                onChangeText={setQuery}
+                placeholder={t("common.search", { defaultValue: "Search" })}
+              />
+            </>
+          }
+          groupByMonth={sortByDate}
+          getMonthYearKey={getMonthYearKey}
+          keyExtractor={(e) => `${e.kind}:${e.id}`}
+          renderItem={({ item: rowItem }) => {
+            if (rowItem.kind === "reminder") {
+              const r = rowItem.reminder;
+              const dueText = [
+                r.due_date
+                  ? t("reminders.dueTime", { date: r.due_date })
+                  : null,
+                r.due_mileage != null
+                  ? t("reminders.dueMileage", {
+                      mileage: String(r.due_mileage),
+                      unit: distanceUnit,
+                    })
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ");
+              return (
+                <TimelineItem
+                  title={r.title ?? t("reminders.title")}
+                  subtitle={dueText}
+                  onPress={() =>
+                    navigation.navigate("ReminderForm", {
+                      vehicleId,
+                      reminderId: r.id,
+                    })
+                  }
+                />
+              );
+            }
+
+            const e = rowItem.entry;
+            const cat = (e.category ?? "other") as ServiceEntryCategory;
             return (
               <TimelineItem
-                title={r.title ?? t("reminders.title")}
-                subtitle={dueText}
+                title={e.title}
+                badge={t(`entryForm.categories.${cat}` as any)}
+                badgeVariant="accent"
+                subtitle={[
+                  e.service_date
+                    ? formatDateDisplay(e.service_date, i18n.language)
+                    : null,
+                  e.mileage
+                    ? `${e.mileage.toLocaleString()} ${distanceUnit}`
+                    : null,
+                  e.cost != null ? `${e.cost} ${currency}` : null,
+                  attachmentsCount[e.id] > 0
+                    ? `${attachmentsCount[e.id]} ${
+                        attachmentsCount[e.id] === 1
+                          ? t("attachments.attachmentLabel")
+                          : t("attachments.title").toLowerCase()
+                      }`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
                 onPress={() =>
-                  navigation.navigate("ReminderForm", {
+                  navigation.navigate("ServiceEntryForm", {
+                    entryId: e.id,
                     vehicleId,
-                    reminderId: r.id,
                   })
                 }
               />
             );
+          }}
+          ListEmptyComponent={
+            <EmptyState body={t("timeline.noServiceEntries")} />
           }
-
-          const e = rowItem.entry;
-          const cat = (e.category ?? "other") as ServiceEntryCategory;
-          return (
-            <TimelineItem
-              title={e.title}
-              badge={t(`entryForm.categories.${cat}` as any)}
-              badgeVariant="accent"
-              subtitle={[
-                e.service_date
-                  ? formatDateDisplay(e.service_date, i18n.language)
-                  : null,
-                e.mileage
-                  ? `${e.mileage.toLocaleString()} ${distanceUnit}`
-                  : null,
-                e.cost != null ? `${e.cost} ${currency}` : null,
-                attachmentsCount[e.id] > 0
-                  ? `${attachmentsCount[e.id]} ${
-                      attachmentsCount[e.id] === 1
-                        ? t("attachments.attachmentLabel")
-                        : t("attachments.title").toLowerCase()
-                    }`
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-              onPress={() =>
-                navigation.navigate("ServiceEntryForm", {
-                  entryId: e.id,
-                  vehicleId,
-                })
-              }
-            />
-          );
-        }}
-        ListEmptyComponent={
-          <EmptyState body={t("timeline.noServiceEntries")} />
-        }
-        refreshing={refreshing}
-        onRefresh={() => void load({ refreshing: true })}
-      />
+          refreshing={refreshing}
+          onRefresh={() => void load({ refreshing: true })}
+        />
       </View>
     </HeaderLayout>
   );

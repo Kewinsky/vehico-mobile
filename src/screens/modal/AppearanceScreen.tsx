@@ -18,7 +18,7 @@ import type { UserSettings } from "../../app/providers/UserSettingsProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
-import { hexToRgba } from "../../ui/components/ChoiceChip";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Appearance">;
 

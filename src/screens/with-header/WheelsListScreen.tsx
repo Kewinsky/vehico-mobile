@@ -13,16 +13,16 @@ import {
   formatWheelDimensions,
 } from "../../services/wheels/wheelsRepo";
 import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/ContentHeader";
-import { SearchBar } from "../../ui/components";
-import { EmptyState } from "../../ui/components/EmptyState";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { SearchBar } from "../../ui/components/common/SearchBar";
+import { EmptyState } from "../../ui/components/common/EmptyState";
 import { HeaderButton } from "@react-navigation/elements";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CustomFlatList } from "../../ui/components/CustomFlatList";
-import { TimelineItem } from "../../ui/components/TimelineItem";
+import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
+import { TimelineItem } from "../../ui/components/list/TimelineItem";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WheelsList">;
 

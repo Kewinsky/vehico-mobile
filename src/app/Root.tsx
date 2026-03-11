@@ -13,7 +13,7 @@ import { AuthProvider } from "./providers/AuthProvider";
 import { UserSettingsProvider } from "./providers/UserSettingsProvider";
 import { EntitlementsProvider } from "./providers/EntitlementsProvider";
 import { ThemeProvider, useTheme } from "../ui/ThemeProvider";
-import { ErrorBoundary } from "../ui/components/ErrorBoundary";
+import { ErrorBoundary } from "../ui/components/common/ErrorBoundary";
 import { AppToasts } from "../ui/toast/AppToasts";
 import { setThemeColorsGetter } from "../ui/toast/toast";
 import { supabase } from "../services/supabase/client";

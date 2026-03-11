@@ -31,8 +31,8 @@ import {
   cancelLocalReminder,
   scheduleLocalReminder,
 } from "../../services/push/localReminderNotifications";
-import { Button } from "../../ui/components/Button";
-import { FormScreen } from "../../ui/components/FormScreen";
+import { Button } from "../../ui/components/common/Button";
+import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
@@ -41,8 +41,8 @@ import { toastError } from "../../ui/toast/toast";
 import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
 import { Ionicons } from "@expo/vector-icons";
 import { ScrollView } from "react-native";
-import { hexToRgba } from "../../ui/components/ChoiceChip";
-import { Textarea } from "../../ui/components/Textarea";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
+import { Textarea } from "../../ui/components/common/Textarea";
 import {
   REMINDER_PRESETS,
   getPresetDueDate,
