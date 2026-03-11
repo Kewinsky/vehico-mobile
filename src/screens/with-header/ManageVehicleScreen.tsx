@@ -228,7 +228,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
       accessibilityLabel={undefined}
     >
       <Ionicons
-        name="ellipsis-vertical"
+        name="ellipsis-horizontal"
         size={theme.icons.headerButton}
         color={theme.colors.fg}
       />
