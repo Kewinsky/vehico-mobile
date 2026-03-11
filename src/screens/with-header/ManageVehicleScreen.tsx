@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HeaderButton } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
+import { Hash, CalendarCheck } from "lucide-react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
@@ -337,7 +338,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                           <Text style={styles.detailValue}>
                             {vehicle.mileage
                               ? `${vehicle.mileage.toLocaleString()} ${distanceUnit}`
-                              : "N/A"}
+                              : "—"}
                           </Text>
                         </View>
                       </View>
@@ -352,8 +353,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                             { backgroundColor: theme.colors.accent + "25" },
                           ]}
                         >
-                          <Ionicons
-                            name="calendar-outline"
+                          <CalendarCheck
                             size={18}
                             color={theme.colors.accent}
                           />
@@ -363,7 +363,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                             {t("vehicleForm.firstRegistrationDateLabel")}
                           </Text>
                           <Text style={styles.detailValue}>
-                            {vehicle.first_registration_date ?? "N/A"}
+                            {vehicle.first_registration_date ?? "—"}
                           </Text>
                         </View>
                       </View>
@@ -374,8 +374,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                             { backgroundColor: theme.colors.accent + "25" },
                           ]}
                         >
-                          <Ionicons
-                            name="car-outline"
+                          <Hash
                             size={18}
                             color={theme.colors.accent}
                           />
@@ -385,7 +384,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                             {t("vehicleForm.licensePlateLabel")}
                           </Text>
                           <Text style={styles.detailValue}>
-                            {vehicle.license_plate ?? "N/A"}
+                            {vehicle.license_plate ?? "—"}
                           </Text>
                         </View>
                       </View>
@@ -413,7 +412,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                           <Text style={styles.detailValue}>
                             {vehicle.engine_capacity
                               ? `${vehicle.engine_capacity} cm³`
-                              : "N/A"}
+                              : "—"}
                           </Text>
                         </View>
                       </View>
@@ -437,7 +436,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                           <Text style={styles.detailValue}>
                             {vehicle.power_hp
                               ? `${vehicle.power_hp} HP`
-                              : "N/A"}
+                              : "—"}
                           </Text>
                         </View>
                       </View>
@@ -474,7 +473,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                                     | "vehicleForm.transmissionManual"
                                     | "vehicleForm.transmissionAutomatic",
                                 )
-                              : "N/A"}
+                              : "—"}
                           </Text>
                         </View>
                       </View>
@@ -495,7 +494,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                             {t("vehicleForm.driveTypeLabel")}
                           </Text>
                           <Text style={styles.detailValue}>
-                            {vehicle.drive_type || "N/A"}
+                            {vehicle.drive_type || "—"}
                           </Text>
                         </View>
                       </View>
@@ -533,7 +532,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                                     | "vehicleForm.fuelTypeElectric"
                                     | "vehicleForm.fuelTypeLpg",
                                 )
-                              : "N/A"}
+                              : "—"}
                           </Text>
                         </View>
                       </View>
@@ -559,7 +558,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                               ? vehicle.notes.length > 30
                                 ? `${vehicle.notes.substring(0, 30)}...`
                                 : vehicle.notes
-                              : "N/A"}
+                              : "—"}
                           </Text>
                         </View>
                       </View>

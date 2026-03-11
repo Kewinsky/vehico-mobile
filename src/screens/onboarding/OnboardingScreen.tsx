@@ -816,7 +816,7 @@ export function OnboardingScreen({ navigation }: Props) {
                             { color: theme.colors.fg },
                           ]}
                         >
-                          {isValidProductionYear(year) ? year.trim() : "N/A"}
+                          {isValidProductionYear(year) ? year.trim() : "—"}
                         </Text>
                       </View>
                     </View>
@@ -850,7 +850,7 @@ export function OnboardingScreen({ navigation }: Props) {
                         >
                           {mileage.trim().length
                             ? `${Number(mileage.trim()).toLocaleString()} ${distanceUnit}`
-                            : "N/A"}
+                            : "—"}
                         </Text>
                       </View>
                     </View>

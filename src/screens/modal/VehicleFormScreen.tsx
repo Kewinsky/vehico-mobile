@@ -47,6 +47,7 @@ import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalLayout } from "../../layouts";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
+import { Hash, CalendarCheck } from "lucide-react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
@@ -991,8 +992,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
               ]}
             >
               <View style={styles.rowLeft}>
-                <Ionicons
-                  name="calendar-outline"
+                <CalendarCheck
                   size={20}
                   color={theme.colors.accent}
                 />
@@ -1057,8 +1057,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
             )}
             <View style={styles.row}>
               <View style={styles.rowLeft}>
-                <Ionicons
-                  name="car-outline"
+                <Hash
                   size={20}
                   color={theme.colors.accent}
                 />
