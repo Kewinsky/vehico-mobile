@@ -7,6 +7,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { setPendingModalResult } from "../../app/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
+import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
@@ -201,52 +202,20 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
             size={20}
             color={theme.colors.accent}
           />
-          <View
-            style={[
-              styles.segmentWrap,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.bg,
-              },
-            ]}
-          >
-            {(["all", "active", "done"] as const).map((status) => {
-              const selected = statusFilter === status;
-              const label =
-                status === "all"
-                  ? t("reminders.filterAll")
-                  : status === "active"
-                    ? t("reminderDetail.status.active")
-                    : t("reminderDetail.status.done");
-              return (
-                <Pressable
-                  key={status}
-                  onPress={() => setStatusFilter(status)}
-                  style={({ pressed }) => [
-                    styles.segment,
-                    selected && styles.segmentSelected,
-                    {
-                      borderColor: theme.colors.accent,
-                      backgroundColor: selected ? accentBg : "transparent",
-                      opacity: pressed ? 0.85 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.segmentTextSmall,
-                      {
-                        color: selected
-                          ? theme.colors.accent
-                          : theme.colors.muted,
-                      },
-                    ]}
-                  >
-                    {label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+          <View style={styles.segmentWrap}>
+            <SegmentTabs<"all" | "active" | "done">
+              value={statusFilter}
+              options={[
+                { value: "all", label: t("reminders.filterAll") },
+                {
+                  value: "active",
+                  label: t("reminderDetail.status.active"),
+                },
+                { value: "done", label: t("reminderDetail.status.done") },
+              ]}
+              onChange={setStatusFilter}
+              size="sm"
+            />
           </View>
         </View>
 
@@ -333,22 +302,6 @@ const makeStyles = (theme: any) =>
     segmentWrap: {
       flex: 1,
       minWidth: 0,
-      flexDirection: "row",
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      padding: 2,
-    },
-    segment: {
-      flex: 1,
-      borderRadius: theme.radius.md - 2,
-      paddingVertical: theme.spacing.xs - 2,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    segmentSelected: { borderWidth: 1 },
-    segmentTextSmall: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.bold,
     },
     divider: { height: 1, width: "100%" },
     valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },

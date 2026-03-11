@@ -1,17 +1,17 @@
 import { useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { setPendingModalResult } from "../../app/pendingModalResult";
 import { ModalLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
+import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalButton } from "../../ui/components/layout/ModalButton";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 export type AddAttachmentFiltersParams = {
   sortOption: "date-newest" | "date-oldest" | "title-az" | "title-za";
@@ -23,10 +23,6 @@ export function AddAttachmentFiltersScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
 
   const params = route.params;
 
@@ -81,50 +77,16 @@ export function AddAttachmentFiltersScreen({ navigation, route }: Props) {
             size={20}
             color={theme.colors.accent}
           />
-          <View
-            style={[
-              styles.segmentWrap,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.bg,
-              },
-            ]}
-          >
-            {(["date", "title"] as const).map((f) => {
-              const selected = sortField === f;
-              const label =
-                f === "date"
-                  ? t("timeline.sortFieldDate")
-                  : t("timeline.sortFieldTitle");
-              return (
-                <Pressable
-                  key={f}
-                  onPress={() => setSortField(f)}
-                  style={({ pressed }) => [
-                    styles.segment,
-                    selected && styles.segmentSelected,
-                    {
-                      borderColor: theme.colors.accent,
-                      backgroundColor: selected ? accentBg : "transparent",
-                      opacity: pressed ? 0.85 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.segmentTextSmall,
-                      {
-                        color: selected
-                          ? theme.colors.accent
-                          : theme.colors.muted,
-                      },
-                    ]}
-                  >
-                    {label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+          <View style={styles.segmentWrap}>
+            <SegmentTabs<"date" | "title">
+              value={sortField}
+              options={[
+                { value: "date", label: t("timeline.sortFieldDate") },
+                { value: "title", label: t("timeline.sortFieldTitle") },
+              ]}
+              onChange={setSortField}
+              size="sm"
+            />
           </View>
         </View>
 
@@ -137,92 +99,34 @@ export function AddAttachmentFiltersScreen({ navigation, route }: Props) {
             size={20}
             color={theme.colors.accent}
           />
-          <View
-            style={[
-              styles.segmentWrap,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.bg,
-              },
-            ]}
-          >
-            {sortField === "date"
-              ? (["newest", "oldest"] as const).map((o) => {
-                  const selected = sortOption === `date-${o}`;
-                  const label =
-                    o === "newest"
-                      ? t("timeline.sortOrderNewest")
-                      : t("timeline.sortOrderOldest");
-                  return (
-                    <Pressable
-                      key={o}
-                      onPress={() =>
-                        setSortOption(
-                          o === "newest" ? "date-newest" : "date-oldest",
-                        )
-                      }
-                      style={({ pressed }) => [
-                        styles.segment,
-                        selected && styles.segmentSelected,
-                        {
-                          borderColor: theme.colors.accent,
-                          backgroundColor: selected ? accentBg : "transparent",
-                          opacity: pressed ? 0.85 : 1,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.segmentTextSmall,
-                          {
-                            color: selected
-                              ? theme.colors.accent
-                              : theme.colors.muted,
-                          },
-                        ]}
-                      >
-                        {label}
-                      </Text>
-                    </Pressable>
-                  );
-                })
-              : (["az", "za"] as const).map((o) => {
-                  const selected = sortOption === `title-${o}`;
-                  const label =
-                    o === "az"
-                      ? t("timeline.sortOrderAz")
-                      : t("timeline.sortOrderZa");
-                  return (
-                    <Pressable
-                      key={o}
-                      onPress={() =>
-                        setSortOption(o === "az" ? "title-az" : "title-za")
-                      }
-                      style={({ pressed }) => [
-                        styles.segment,
-                        selected && styles.segmentSelected,
-                        {
-                          borderColor: theme.colors.accent,
-                          backgroundColor: selected ? accentBg : "transparent",
-                          opacity: pressed ? 0.85 : 1,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.segmentTextSmall,
-                          {
-                            color: selected
-                              ? theme.colors.accent
-                              : theme.colors.muted,
-                          },
-                        ]}
-                      >
-                        {label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
+          <View style={styles.segmentWrap}>
+            {sortField === "date" ? (
+              <SegmentTabs<"date-newest" | "date-oldest">
+                value={sortOption}
+                options={[
+                  {
+                    value: "date-newest",
+                    label: t("timeline.sortOrderNewest"),
+                  },
+                  {
+                    value: "date-oldest",
+                    label: t("timeline.sortOrderOldest"),
+                  },
+                ]}
+                onChange={setSortOption}
+                size="sm"
+              />
+            ) : (
+              <SegmentTabs<"title-az" | "title-za">
+                value={sortOption}
+                options={[
+                  { value: "title-az", label: t("timeline.sortOrderAz") },
+                  { value: "title-za", label: t("timeline.sortOrderZa") },
+                ]}
+                onChange={setSortOption}
+                size="sm"
+              />
+            )}
           </View>
         </View>
       </View>
@@ -249,21 +153,5 @@ const makeStyles = (theme: any) =>
     segmentWrap: {
       flex: 1,
       minWidth: 0,
-      flexDirection: "row",
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      padding: 2,
-    },
-    segment: {
-      flex: 1,
-      borderRadius: theme.radius.md - 2,
-      paddingVertical: theme.spacing.xs - 2,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    segmentSelected: { borderWidth: 1 },
-    segmentTextSmall: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.bold,
     },
   });

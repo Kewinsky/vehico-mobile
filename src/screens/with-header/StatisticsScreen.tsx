@@ -42,8 +42,8 @@ import type {
 } from "../../types/domain";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { useTheme } from "../../ui/ThemeProvider";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { toastError } from "../../ui/toast/toast";
 import { TireIcon } from "../../ui/components/icons/TireIcon";
 import { RimIcon } from "../../ui/components/icons/RimIcon";
@@ -409,10 +409,6 @@ export function StatisticsScreen({ route, navigation }: Props) {
   const [tires, setTires] = useState<VehicleTire[]>([]);
   const [wheels, setWheels] = useState<VehicleWheel[]>([]);
 
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const currency = settings?.currency ?? "PLN";
@@ -768,84 +764,17 @@ export function StatisticsScreen({ route, navigation }: Props) {
 
   const filterPanelContent = (
     <View style={styles.panelWrap}>
-      <View
-        style={[
-          styles.segmentWrap,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.bg,
-          },
-        ]}
-      >
-        {periodOptions.map((p) => {
-          const selected = p.key === period;
-          return (
-            <Pressable
-              key={p.key}
-              onPress={() => setPeriod(p.key)}
-              style={({ pressed }) => [
-                styles.segment,
-                selected && styles.segmentSelected,
-                {
-                  borderColor: theme.colors.accent,
-                  backgroundColor: selected ? accentBg : "transparent",
-                  opacity: pressed ? 0.85 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentTextSmall,
-                  {
-                    color: selected ? theme.colors.accent : theme.colors.muted,
-                  },
-                ]}
-              >
-                {p.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      <View
-        style={[
-          styles.segmentWrap,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.bg,
-          },
-        ]}
-      >
-        {tabOptions.map((x) => {
-          const selected = x.key === tab;
-          return (
-            <Pressable
-              key={x.key}
-              onPress={() => setTab(x.key)}
-              style={({ pressed }) => [
-                styles.segment,
-                selected && styles.segmentSelected,
-                {
-                  borderColor: theme.colors.accent,
-                  backgroundColor: selected ? accentBg : "transparent",
-                  opacity: pressed ? 0.85 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  {
-                    color: selected ? theme.colors.accent : theme.colors.muted,
-                  },
-                ]}
-              >
-                {x.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <SegmentTabs<PeriodKey>
+        value={period}
+        options={periodOptions.map((p) => ({ value: p.key, label: p.label }))}
+        onChange={setPeriod}
+        size="sm"
+      />
+      <SegmentTabs<StatsTabKey>
+        value={tab}
+        options={tabOptions.map((x) => ({ value: x.key, label: x.label }))}
+        onChange={setTab}
+      />
     </View>
   );
 
@@ -1454,28 +1383,6 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     panelWrap: {
       gap: theme.spacing.xs,
-    },
-    segmentWrap: {
-      flexDirection: "row",
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      padding: 2,
-    },
-    segment: {
-      flex: 1,
-      borderRadius: theme.radius.md - 2,
-      paddingVertical: theme.spacing.xs - 2,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    segmentSelected: { borderWidth: 1 },
-    segmentText: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    segmentTextSmall: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.bold,
     },
     loading: {
       alignItems: "center",

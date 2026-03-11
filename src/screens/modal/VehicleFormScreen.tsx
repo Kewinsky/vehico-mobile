@@ -814,68 +814,14 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
           <View style={{ height: theme.spacing.xl }} />
 
-          <View
-            style={[
-              styles.segmentWrap,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.bg,
-              },
+          <SegmentTabs<VehicleType>
+            value={type}
+            options={[
+              { value: "car", label: t("vehicleForm.car") },
+              { value: "motorcycle", label: t("vehicleForm.motorcycle") },
             ]}
-          >
-            <Pressable
-              onPress={() => setType("car")}
-              style={[
-                styles.segment,
-                type === "car" && [
-                  styles.segmentSelected,
-                  {
-                    backgroundColor: accentBg,
-                    borderColor: theme.colors.accent,
-                  },
-                ],
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  {
-                    color:
-                      type === "car" ? theme.colors.accent : theme.colors.muted,
-                  },
-                ]}
-              >
-                {t("vehicleForm.car")}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setType("motorcycle")}
-              style={[
-                styles.segment,
-                type === "motorcycle" && [
-                  styles.segmentSelected,
-                  {
-                    backgroundColor: accentBg,
-                    borderColor: theme.colors.accent,
-                  },
-                ],
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  {
-                    color:
-                      type === "motorcycle"
-                        ? theme.colors.accent
-                        : theme.colors.muted,
-                  },
-                ]}
-              >
-                {t("vehicleForm.motorcycle")}
-              </Text>
-            </Pressable>
-          </View>
+            onChange={setType}
+          />
 
           <View style={{ height: theme.spacing.sm }} />
 
@@ -1544,24 +1490,6 @@ const makeStyles = (theme: any) =>
       marginVertical: theme.spacing.md,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
-    },
-    segmentWrap: {
-      flexDirection: "row",
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      padding: 2,
-    },
-    segment: {
-      flex: 1,
-      borderRadius: theme.radius.md - 2,
-      paddingVertical: theme.spacing.xs - 2,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    segmentSelected: { borderWidth: 1 },
-    segmentText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
     },
     card: { borderWidth: 1, borderRadius: theme.radius.md, overflow: "hidden" },
     row: {

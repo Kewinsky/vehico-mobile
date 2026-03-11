@@ -17,12 +17,12 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { ServiceEntryCategory } from "../../types/domain";
 import { setPendingModalResult } from "../../app/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
+import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { Ionicons } from "@expo/vector-icons";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 export type ServiceHistoryFiltersParams = {
   categoryFilter: "all" | ServiceEntryCategory;
@@ -73,10 +73,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
 
   const params = route.params;
   const currency = settings?.currency ?? "PLN";
@@ -348,52 +344,17 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
             size={20}
             color={theme.colors.accent}
           />
-          <View
-            style={[
-              styles.segmentWrap,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.bg,
-              },
-            ]}
-          >
-            {(["date", "title", "cost"] as const).map((f) => {
-              const selected = sortField === f;
-              const label =
-                f === "date"
-                  ? t("timeline.sortFieldDate")
-                  : f === "title"
-                    ? t("timeline.sortFieldTitle")
-                    : t("timeline.sortFieldAmount");
-              return (
-                <Pressable
-                  key={f}
-                  onPress={() => setSortField(f)}
-                  style={({ pressed }) => [
-                    styles.segment,
-                    selected && styles.segmentSelected,
-                    {
-                      borderColor: theme.colors.accent,
-                      backgroundColor: selected ? accentBg : "transparent",
-                      opacity: pressed ? 0.85 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.segmentTextSmall,
-                      {
-                        color: selected
-                          ? theme.colors.accent
-                          : theme.colors.muted,
-                      },
-                    ]}
-                  >
-                    {label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+          <View style={styles.segmentWrap}>
+            <SegmentTabs<"date" | "title" | "cost">
+              value={sortField}
+              options={[
+                { value: "date", label: t("timeline.sortFieldDate") },
+                { value: "title", label: t("timeline.sortFieldTitle") },
+                { value: "cost", label: t("timeline.sortFieldAmount") },
+              ]}
+              onChange={setSortField}
+              size="sm"
+            />
           </View>
         </View>
 
@@ -406,134 +367,50 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
             size={20}
             color={theme.colors.accent}
           />
-          <View
-            style={[
-              styles.segmentWrap,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.bg,
-              },
-            ]}
-          >
-            {sortField === "date"
-              ? (["newest", "oldest"] as const).map((o) => {
-                  const selected = sortOption === `date-${o}`;
-                  const label =
-                    o === "newest"
-                      ? t("timeline.sortOrderNewest")
-                      : t("timeline.sortOrderOldest");
-                  return (
-                    <Pressable
-                      key={o}
-                      onPress={() =>
-                        setSortOption(
-                          o === "newest" ? "date-newest" : "date-oldest",
-                        )
-                      }
-                      style={({ pressed }) => [
-                        styles.segment,
-                        selected && styles.segmentSelected,
-                        {
-                          borderColor: theme.colors.accent,
-                          backgroundColor: selected ? accentBg : "transparent",
-                          opacity: pressed ? 0.85 : 1,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.segmentTextSmall,
-                          {
-                            color: selected
-                              ? theme.colors.accent
-                              : theme.colors.muted,
-                          },
-                        ]}
-                      >
-                        {label}
-                      </Text>
-                    </Pressable>
-                  );
-                })
-              : sortField === "title"
-                ? (["az", "za"] as const).map((o) => {
-                    const selected = sortOption === `title-${o}`;
-                    const label =
-                      o === "az"
-                        ? t("timeline.sortOrderAz")
-                        : t("timeline.sortOrderZa");
-                    return (
-                      <Pressable
-                        key={o}
-                        onPress={() =>
-                          setSortOption(o === "az" ? "title-az" : "title-za")
-                        }
-                        style={({ pressed }) => [
-                          styles.segment,
-                          selected && styles.segmentSelected,
-                          {
-                            borderColor: theme.colors.accent,
-                            backgroundColor: selected
-                              ? accentBg
-                              : "transparent",
-                            opacity: pressed ? 0.85 : 1,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.segmentTextSmall,
-                            {
-                              color: selected
-                                ? theme.colors.accent
-                                : theme.colors.muted,
-                            },
-                          ]}
-                        >
-                          {label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })
-                : (["asc", "desc"] as const).map((o) => {
-                    const selected = sortOption === `cost-${o}`;
-                    const label =
-                      o === "asc"
-                        ? t("timeline.sortOrderAmountAsc")
-                        : t("timeline.sortOrderAmountDesc");
-                    return (
-                      <Pressable
-                        key={o}
-                        onPress={() =>
-                          setSortOption(o === "asc" ? "cost-asc" : "cost-desc")
-                        }
-                        style={({ pressed }) => [
-                          styles.segment,
-                          selected && styles.segmentSelected,
-                          {
-                            borderColor: theme.colors.accent,
-                            backgroundColor: selected
-                              ? accentBg
-                              : "transparent",
-                            opacity: pressed ? 0.85 : 1,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.segmentTextSmall,
-                            {
-                              color: selected
-                                ? theme.colors.accent
-                                : theme.colors.muted,
-                            },
-                          ]}
-                        >
-                          {label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
+          <View style={styles.segmentWrap}>
+            {sortField === "date" ? (
+              <SegmentTabs<"date-newest" | "date-oldest">
+                value={sortOption}
+                options={[
+                  {
+                    value: "date-newest",
+                    label: t("timeline.sortOrderNewest"),
+                  },
+                  {
+                    value: "date-oldest",
+                    label: t("timeline.sortOrderOldest"),
+                  },
+                ]}
+                onChange={setSortOption}
+                size="sm"
+              />
+            ) : sortField === "title" ? (
+              <SegmentTabs<"title-az" | "title-za">
+                value={sortOption}
+                options={[
+                  { value: "title-az", label: t("timeline.sortOrderAz") },
+                  { value: "title-za", label: t("timeline.sortOrderZa") },
+                ]}
+                onChange={setSortOption}
+                size="sm"
+              />
+            ) : (
+              <SegmentTabs<"cost-asc" | "cost-desc">
+                value={sortOption}
+                options={[
+                  {
+                    value: "cost-asc",
+                    label: t("timeline.sortOrderAmountAsc"),
+                  },
+                  {
+                    value: "cost-desc",
+                    label: t("timeline.sortOrderAmountDesc"),
+                  },
+                ]}
+                onChange={setSortOption}
+                size="sm"
+              />
+            )}
           </View>
         </View>
 
@@ -654,22 +531,6 @@ const makeStyles = (theme: any) =>
     segmentWrap: {
       flex: 1,
       minWidth: 0,
-      flexDirection: "row",
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      padding: 2,
-    },
-    segment: {
-      flex: 1,
-      borderRadius: theme.radius.md - 2,
-      paddingVertical: theme.spacing.xs - 2,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    segmentSelected: { borderWidth: 1 },
-    segmentTextSmall: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.bold,
     },
     pickerWrap: {
       borderTopWidth: 1,

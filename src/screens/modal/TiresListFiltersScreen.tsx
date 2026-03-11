@@ -7,11 +7,11 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { TireType } from "../../types/domain";
 import { setPendingModalResult } from "../../app/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
+import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 export type TiresListFiltersParams = {
   tireTypeFilter: TireType | "all";
@@ -35,10 +35,6 @@ export function TiresListFiltersScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
 
   const params = route.params;
 
@@ -152,52 +148,20 @@ export function TiresListFiltersScreen({ navigation, route }: Props) {
             size={20}
             color={theme.colors.accent}
           />
-          <View
-            style={[
-              styles.segmentWrap,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.bg,
-              },
-            ]}
-          >
-            {(["all", "fitted", "not_fitted"] as const).map((opt) => {
-              const selected = fittedFilter === opt;
-              const label =
-                opt === "all"
-                  ? t("common.all")
-                  : opt === "fitted"
-                    ? t("wheels.currentlyFitted")
-                    : t("wheels.notFitted", { defaultValue: "Not fitted" });
-              return (
-                <Pressable
-                  key={opt}
-                  onPress={() => setFittedFilter(opt)}
-                  style={({ pressed }) => [
-                    styles.segment,
-                    selected && styles.segmentSelected,
-                    {
-                      borderColor: theme.colors.accent,
-                      backgroundColor: selected ? accentBg : "transparent",
-                      opacity: pressed ? 0.85 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.segmentTextSmall,
-                      {
-                        color: selected
-                          ? theme.colors.accent
-                          : theme.colors.muted,
-                      },
-                    ]}
-                  >
-                    {label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+          <View style={styles.segmentWrap}>
+            <SegmentTabs<"all" | "fitted" | "not_fitted">
+              value={fittedFilter}
+              options={[
+                { value: "all", label: t("common.all") },
+                { value: "fitted", label: t("wheels.currentlyFitted") },
+                {
+                  value: "not_fitted",
+                  label: t("wheels.notFitted", { defaultValue: "Not fitted" }),
+                },
+              ]}
+              onChange={setFittedFilter}
+              size="sm"
+            />
           </View>
         </View>
 
@@ -210,48 +174,16 @@ export function TiresListFiltersScreen({ navigation, route }: Props) {
             size={20}
             color={theme.colors.accent}
           />
-          <View
-            style={[
-              styles.segmentWrap,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.bg,
-              },
-            ]}
-          >
-            {(["az", "za"] as const).map((opt) => {
-              const selected = sortOrder === opt;
-              return (
-                <Pressable
-                  key={opt}
-                  onPress={() => setSortOrder(opt)}
-                  style={({ pressed }) => [
-                    styles.segment,
-                    selected && styles.segmentSelected,
-                    {
-                      borderColor: theme.colors.accent,
-                      backgroundColor: selected ? accentBg : "transparent",
-                      opacity: pressed ? 0.85 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.segmentTextSmall,
-                      {
-                        color: selected
-                          ? theme.colors.accent
-                          : theme.colors.muted,
-                      },
-                    ]}
-                  >
-                    {opt === "az"
-                      ? t("workshops.sortAz")
-                      : t("workshops.sortZa")}
-                  </Text>
-                </Pressable>
-              );
-            })}
+          <View style={styles.segmentWrap}>
+            <SegmentTabs<"az" | "za">
+              value={sortOrder}
+              options={[
+                { value: "az", label: t("workshops.sortAz") },
+                { value: "za", label: t("workshops.sortZa") },
+              ]}
+              onChange={setSortOrder}
+              size="sm"
+            />
           </View>
         </View>
       </View>
@@ -279,21 +211,5 @@ const makeStyles = (theme: any) =>
     segmentWrap: {
       flex: 1,
       minWidth: 0,
-      flexDirection: "row",
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      padding: 2,
-    },
-    segment: {
-      flex: 1,
-      borderRadius: theme.radius.md - 2,
-      paddingVertical: theme.spacing.xs - 2,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    segmentSelected: { borderWidth: 1 },
-    segmentTextSmall: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.bold,
     },
   });

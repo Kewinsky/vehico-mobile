@@ -47,6 +47,7 @@ import { toastError } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { IconButton } from "../../ui/components/common/IconButton";
 import { Ionicons } from "@expo/vector-icons";
+import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Textarea } from "../../ui/components/common/Textarea";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
@@ -594,49 +595,14 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       <FormScreen noLayout>
       {!entryId ? (
         <>
-          <View
-            style={[
-              styles.segmentWrap,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.bg,
-              },
+          <SegmentTabs<"single" | "multi">
+            value={mode}
+            options={[
+              { value: "single", label: t("entryForm.modeSingle") },
+              { value: "multi", label: t("entryForm.modeMulti") },
             ]}
-          >
-            {(["single", "multi"] as const).map((m) => {
-              const selected = mode === m;
-              return (
-                <Pressable
-                  key={m}
-                  onPress={() => setFormMode(m)}
-                  style={({ pressed }) => [
-                    styles.segment,
-                    selected && styles.segmentSelected,
-                    {
-                      borderColor: theme.colors.accent,
-                      backgroundColor: selected ? accentBg : "transparent",
-                      opacity: pressed ? 0.85 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      {
-                        color: selected
-                          ? theme.colors.accent
-                          : theme.colors.muted,
-                      },
-                    ]}
-                  >
-                    {m === "single"
-                      ? t("entryForm.modeSingle")
-                      : t("entryForm.modeMulti")}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+            onChange={setFormMode}
+          />
           <View style={{ height: theme.spacing.sm }} />
         </>
       ) : null}
@@ -1331,26 +1297,6 @@ const makeStyles = (theme: any) =>
       borderWidth: 1,
     },
     pickerActionText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    segmentWrap: {
-      flexDirection: "row",
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      padding: 2,
-    },
-    segment: {
-      flex: 1,
-      borderRadius: theme.radius.md - 2,
-      paddingVertical: theme.spacing.xs - 2,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    segmentSelected: {
-      borderWidth: 1,
-    },
-    segmentText: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
     },
