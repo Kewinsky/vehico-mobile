@@ -59,7 +59,7 @@ export function useNativeHeaderAsAppNavbar({
           tintColor={theme.colors.accent}
           accessibilityLabel="Shop"
         >
-          <Crown size={22} color={theme.colors.accent} />
+          <Crown size={theme.icons.headerButton} color={theme.colors.accent} />
         </HeaderButton>
           {showProfileAvatar && user && (
             <HeaderButton
@@ -69,7 +69,7 @@ export function useNativeHeaderAsAppNavbar({
             >
               <Ionicons
                 name="settings-outline"
-                size={22}
+                size={theme.icons.headerButton}
                 color={theme.colors.accent}
               />
             </HeaderButton>
@@ -86,7 +86,7 @@ export function useNativeHeaderAsAppNavbar({
         >
           <Ionicons
             name="settings-outline"
-            size={22}
+            size={theme.icons.headerButton}
             color={theme.colors.accent}
           />
         </HeaderButton>
@@ -104,7 +104,7 @@ export function useNativeHeaderAsAppNavbar({
             >
               <Ionicons
                 name="chevron-back"
-                size={22}
+                size={theme.icons.headerButton}
                 color={theme.colors.accent}
               />
             </HeaderButton>
@@ -127,6 +127,7 @@ export function useNativeHeaderAsAppNavbar({
     theme.spacing.sm,
     theme.typography.fontWeight.bold,
     theme.typography.title,
+    theme.icons.headerButton,
     onBack,
     right,
     title,
@@ -176,7 +177,7 @@ export function AppNavbar({
           >
             <Ionicons
               name="chevron-back"
-              size={22}
+              size={theme.icons.headerButton}
               color={theme.colors.accent}
             />
           </HeaderButton>
@@ -200,7 +201,7 @@ export function AppNavbar({
               tintColor={theme.colors.accent}
               accessibilityLabel="Shop"
             >
-              <Crown size={22} color={theme.colors.accent} />
+              <Crown size={theme.icons.headerButton} color={theme.colors.accent} />
             </HeaderButton>
             {showProfileAvatar && user && (
               <HeaderButton

@@ -238,31 +238,52 @@ export function RemindersScreen({ route, navigation }: Props) {
     });
   }, [navigation, route.params.vehicleId, dateFrom, dateTo, statusFilter]);
 
+  const resetFilters = useCallback(() => {
+    setDateFrom("");
+    setDateTo("");
+    setStatusFilter("all");
+  }, []);
+
   const headerRight = useMemo(
     () => (
       <View style={styles.headerRight}>
+        {hasActiveFilters && (
+          <HeaderButton
+            onPress={resetFilters}
+            tintColor={theme.colors.accent}
+            accessibilityLabel={t("common.clearButton")}
+          >
+            <Ionicons
+              name="sync-outline"
+              size={theme.icons.headerButton}
+              color={theme.colors.accent}
+            />
+          </HeaderButton>
+        )}
         <HeaderButton
           onPress={openFilters}
-          tintColor={hasActiveFilters ? theme.colors.accent : theme.colors.fg}
+          tintColor={theme.colors.accent}
         >
           <Ionicons
-            name="filter-outline"
-            size={22}
-            color={hasActiveFilters ? theme.colors.accent : theme.colors.fg}
+            name="options"
+            size={theme.icons.headerButton}
+            color={theme.colors.accent}
           />
         </HeaderButton>
-        <HeaderButton onPress={onAddReminderPress} tintColor={theme.colors.fg}>
-          <Ionicons name="add" size={24} color={theme.colors.fg} />
+        <HeaderButton onPress={onAddReminderPress} tintColor={theme.colors.accent}>
+          <Ionicons name="add" size={theme.icons.headerButton} color={theme.colors.accent} />
         </HeaderButton>
       </View>
     ),
     [
       openFilters,
       onAddReminderPress,
+      resetFilters,
       hasActiveFilters,
       theme.colors.accent,
-      theme.colors.fg,
+      theme.icons.headerButton,
       styles.headerRight,
+      t,
     ],
   );
 

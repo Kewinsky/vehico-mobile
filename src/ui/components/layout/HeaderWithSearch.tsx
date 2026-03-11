@@ -109,7 +109,7 @@ export function HeaderWithSearch({
           <Ionicons
             name="search-outline"
             size={20}
-            color={theme.colors.muted}
+            color={theme.colors.accent}
             style={styles.searchIcon}
           />
           <TextInput

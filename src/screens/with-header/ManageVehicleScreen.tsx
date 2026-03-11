@@ -12,6 +12,7 @@ import {
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { HeaderButton } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
@@ -20,7 +21,10 @@ import { useSharedValue } from "react-native-reanimated";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { Vehicle } from "../../types/domain";
-import { deleteVehicle, getVehicle } from "../../services/vehicles/vehiclesRepo";
+import {
+  deleteVehicle,
+  getVehicle,
+} from "../../services/vehicles/vehiclesRepo";
 import {
   listVehiclePhotos,
   getVehiclePhotoUrl,
@@ -218,461 +222,472 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   }
 
   const headerRight = vehicle ? (
-    <Pressable
+    <HeaderButton
       onPress={openActions}
-      hitSlop={10}
-      style={({ pressed }) => [
-        styles.menuButton,
-        pressed && styles.menuButtonPressed,
-      ]}
+      tintColor={theme.colors.fg}
+      accessibilityLabel={undefined}
     >
-      <Ionicons name="ellipsis-horizontal" size={22} color={theme.colors.fg} />
-    </Pressable>
+      <Ionicons
+        name="ellipsis-vertical"
+        size={theme.icons.headerButton}
+        color={theme.colors.fg}
+      />
+    </HeaderButton>
   ) : null;
 
   return (
-    <HeaderLayout
-      onBack={() => navigation.goBack()}
-      right={headerRight}
-    >
+    <HeaderLayout onBack={() => navigation.goBack()} right={headerRight}>
       <FormScreen noLayout>
-      <ContentHeader title={t("dashboard.tiles.manageTitle")} />
+        <ContentHeader title={t("dashboard.tiles.manageTitle")} />
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <LoadingIndicator />
-        </View>
-      ) : vehicle ? (
-        <>
-          <View style={styles.detailsCard}>
-            <View style={styles.vehicleImageContainer}>
-              {photoUrls.length > 0 ? (
-                <VehicleCarousel
-                  photoUrls={photoUrls}
-                  width={
-                    windowWidth - theme.layout.contentPaddingHorizontal * 2
-                  }
-                  height={220}
-                  theme={theme}
-                  onPhotoPress={(index) => setFullScreenIndex(index)}
-                />
-              ) : (
-                <View style={styles.vehicleImagePlaceholder}>
-                  <MaterialCommunityIcons
-                    name={vehicle.type === "car" ? "car-outline" : "motorbike"}
-                    size={theme.spacing.xl * 2}
-                    color={theme.colors.muted}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <LoadingIndicator />
+          </View>
+        ) : vehicle ? (
+          <>
+            <View style={styles.detailsCard}>
+              <View style={styles.vehicleImageContainer}>
+                {photoUrls.length > 0 ? (
+                  <VehicleCarousel
+                    photoUrls={photoUrls}
+                    width={
+                      windowWidth - theme.layout.contentPaddingHorizontal * 2
+                    }
+                    height={220}
+                    theme={theme}
+                    onPhotoPress={(index) => setFullScreenIndex(index)}
                   />
-                </View>
-              )}
-            </View>
-            <View>
-              <View style={styles.detailsContent}>
-                <Text
-                  style={styles.detailsTitle}
-                >{`${vehicle.make} ${vehicle.model}`}</Text>
-                {vehicle.vin && (
-                  <Pressable
-                    onPress={onCopyVin}
-                    style={styles.vinRow}
-                    hitSlop={10}
-                  >
-                    <Text style={styles.vinText}>{vehicle.vin}</Text>
-                    <Ionicons
-                      name="copy-outline"
-                      size={16}
+                ) : (
+                  <View style={styles.vehicleImagePlaceholder}>
+                    <MaterialCommunityIcons
+                      name={
+                        vehicle.type === "car" ? "car-outline" : "motorbike"
+                      }
+                      size={theme.spacing.xl * 2}
                       color={theme.colors.muted}
                     />
-                  </Pressable>
+                  </View>
                 )}
               </View>
-              <View style={styles.divider} />
-              <View style={styles.detailsContent}>
-                <View style={styles.detailsGrid}>
-                  {/* Row 1: Rok + Przebieg */}
-                  <View style={styles.detailsRow}>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="calendar-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("vehicleForm.yearLabel")}
-                        </Text>
-                        <Text style={styles.detailValue}>
-                          {String(vehicle.production_year)}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="speedometer-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("vehicleForm.mileageLabel")}
-                        </Text>
-                        <Text style={styles.detailValue}>
-                          {vehicle.mileage
-                            ? `${vehicle.mileage.toLocaleString()} ${distanceUnit}`
-                            : "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Row 2: Data pierwszej rej. + Numer rej. */}
-                  <View style={styles.detailsRow}>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="calendar-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("vehicleForm.firstRegistrationDateLabel")}
-                        </Text>
-                        <Text style={styles.detailValue}>
-                          {vehicle.first_registration_date ?? "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="car-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("vehicleForm.licensePlateLabel")}
-                        </Text>
-                        <Text style={styles.detailValue}>
-                          {vehicle.license_plate ?? "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Row 3: Poj. sil. + Moc */}
-                  <View style={styles.detailsRow}>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <MaterialCommunityIcons
-                          name="engine"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("vehicleForm.engineCapacityLabel")}
-                        </Text>
-                        <Text style={styles.detailValue}>
-                          {vehicle.engine_capacity
-                            ? `${vehicle.engine_capacity} cm³`
-                            : "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="flash-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("vehicleForm.powerHpLabel")}
-                        </Text>
-                        <Text style={styles.detailValue}>
-                          {vehicle.power_hp ? `${vehicle.power_hp} HP` : "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Row 4: Skrzynia + Napęd */}
-                  <View style={styles.detailsRow}>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <MaterialCommunityIcons
-                          name="car-shift-pattern"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("vehicleForm.transmissionLabel")}
-                        </Text>
-                        <Text style={styles.detailValue}>
-                          {vehicle.transmission
-                            ? t(
-                                `vehicleForm.transmission${
-                                  vehicle.transmission.charAt(0).toUpperCase() +
-                                  vehicle.transmission.slice(1)
-                                }` as
-                                  | "vehicleForm.transmissionManual"
-                                  | "vehicleForm.transmissionAutomatic",
-                              )
-                            : "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <DriveTypeIcon size={18} color={theme.colors.accent} />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("vehicleForm.driveTypeLabel")}
-                        </Text>
-                        <Text style={styles.detailValue}>
-                          {vehicle.drive_type || "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Row 4: Rodzaj paliwa + Notatki (skrócone) */}
-                  <View style={styles.detailsRow}>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="water-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("vehicleForm.fuelTypeLabel")}
-                        </Text>
-                        <Text style={styles.detailValue}>
-                          {vehicle.fuel_type
-                            ? t(
-                                `vehicleForm.fuelType${
-                                  vehicle.fuel_type.charAt(0).toUpperCase() +
-                                  vehicle.fuel_type.slice(1)
-                                }` as
-                                  | "vehicleForm.fuelTypePetrol"
-                                  | "vehicleForm.fuelTypeDiesel"
-                                  | "vehicleForm.fuelTypeHybrid"
-                                  | "vehicleForm.fuelTypeElectric"
-                                  | "vehicleForm.fuelTypeLpg",
-                              )
-                            : "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <View
-                        style={[
-                          styles.detailIconContainer,
-                          { backgroundColor: theme.colors.accent + "25" },
-                        ]}
-                      >
-                        <Ionicons
-                          name="document-text-outline"
-                          size={18}
-                          color={theme.colors.accent}
-                        />
-                      </View>
-                      <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>
-                          {t("manageVehicle.notesLabel")}
-                        </Text>
-                        <Text style={styles.detailValue} numberOfLines={1}>
-                          {vehicle.notes
-                            ? vehicle.notes.length > 30
-                              ? `${vehicle.notes.substring(0, 30)}...`
-                              : vehicle.notes
-                            : "N/A"}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Row 5: Ubezpieczenie + Przegląd (gdy ustawione) */}
-                  {(vehicle.insurance_valid_until != null ||
-                    vehicle.inspection_valid_until != null) && (
-                    <View style={styles.detailsRow}>
-                      {vehicle.insurance_valid_until != null && (
-                        <View style={styles.detailItem}>
-                          <View
-                            style={[
-                              styles.detailIconContainer,
-                              {
-                                backgroundColor: theme.colors.accent + "25",
-                              },
-                            ]}
-                          >
-                            <Ionicons
-                              name="shield-checkmark-outline"
-                              size={18}
-                              color={theme.colors.accent}
-                            />
-                          </View>
-                          <View style={styles.detailContent}>
-                            <Text style={styles.detailLabel}>
-                              {t("manageVehicle.insuranceLabel")}
-                            </Text>
-                            <Text style={styles.detailValue}>
-                              {vehicle.insurance_valid_until}
-                            </Text>
-                          </View>
-                        </View>
-                      )}
-                      {vehicle.inspection_valid_until != null && (
-                        <View style={styles.detailItem}>
-                          <View
-                            style={[
-                              styles.detailIconContainer,
-                              {
-                                backgroundColor: theme.colors.accent + "25",
-                              },
-                            ]}
-                          >
-                            <Ionicons
-                              name="checkmark-done-outline"
-                              size={18}
-                              color={theme.colors.accent}
-                            />
-                          </View>
-                          <View style={styles.detailContent}>
-                            <Text style={styles.detailLabel}>
-                              {t("manageVehicle.inspectionLabel")}
-                            </Text>
-                            <Text style={styles.detailValue}>
-                              {vehicle.inspection_valid_until}
-                            </Text>
-                          </View>
-                        </View>
-                      )}
-                    </View>
+              <View>
+                <View style={styles.detailsContent}>
+                  <Text
+                    style={styles.detailsTitle}
+                  >{`${vehicle.make} ${vehicle.model}`}</Text>
+                  {vehicle.vin && (
+                    <Pressable
+                      onPress={onCopyVin}
+                      style={styles.vinRow}
+                      hitSlop={10}
+                    >
+                      <Text style={styles.vinText}>{vehicle.vin}</Text>
+                      <Ionicons
+                        name="copy-outline"
+                        size={16}
+                        color={theme.colors.muted}
+                      />
+                    </Pressable>
                   )}
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.detailsContent}>
+                  <View style={styles.detailsGrid}>
+                    {/* Row 1: Rok + Przebieg */}
+                    <View style={styles.detailsRow}>
+                      <View style={styles.detailItem}>
+                        <View
+                          style={[
+                            styles.detailIconContainer,
+                            { backgroundColor: theme.colors.accent + "25" },
+                          ]}
+                        >
+                          <Ionicons
+                            name="calendar-outline"
+                            size={18}
+                            color={theme.colors.accent}
+                          />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>
+                            {t("vehicleForm.yearLabel")}
+                          </Text>
+                          <Text style={styles.detailValue}>
+                            {String(vehicle.production_year)}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.detailItem}>
+                        <View
+                          style={[
+                            styles.detailIconContainer,
+                            { backgroundColor: theme.colors.accent + "25" },
+                          ]}
+                        >
+                          <Ionicons
+                            name="speedometer-outline"
+                            size={18}
+                            color={theme.colors.accent}
+                          />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>
+                            {t("vehicleForm.mileageLabel")}
+                          </Text>
+                          <Text style={styles.detailValue}>
+                            {vehicle.mileage
+                              ? `${vehicle.mileage.toLocaleString()} ${distanceUnit}`
+                              : "N/A"}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Row 2: Data pierwszej rej. + Numer rej. */}
+                    <View style={styles.detailsRow}>
+                      <View style={styles.detailItem}>
+                        <View
+                          style={[
+                            styles.detailIconContainer,
+                            { backgroundColor: theme.colors.accent + "25" },
+                          ]}
+                        >
+                          <Ionicons
+                            name="calendar-outline"
+                            size={18}
+                            color={theme.colors.accent}
+                          />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>
+                            {t("vehicleForm.firstRegistrationDateLabel")}
+                          </Text>
+                          <Text style={styles.detailValue}>
+                            {vehicle.first_registration_date ?? "N/A"}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.detailItem}>
+                        <View
+                          style={[
+                            styles.detailIconContainer,
+                            { backgroundColor: theme.colors.accent + "25" },
+                          ]}
+                        >
+                          <Ionicons
+                            name="car-outline"
+                            size={18}
+                            color={theme.colors.accent}
+                          />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>
+                            {t("vehicleForm.licensePlateLabel")}
+                          </Text>
+                          <Text style={styles.detailValue}>
+                            {vehicle.license_plate ?? "N/A"}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Row 3: Poj. sil. + Moc */}
+                    <View style={styles.detailsRow}>
+                      <View style={styles.detailItem}>
+                        <View
+                          style={[
+                            styles.detailIconContainer,
+                            { backgroundColor: theme.colors.accent + "25" },
+                          ]}
+                        >
+                          <MaterialCommunityIcons
+                            name="engine"
+                            size={18}
+                            color={theme.colors.accent}
+                          />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>
+                            {t("vehicleForm.engineCapacityLabel")}
+                          </Text>
+                          <Text style={styles.detailValue}>
+                            {vehicle.engine_capacity
+                              ? `${vehicle.engine_capacity} cm³`
+                              : "N/A"}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.detailItem}>
+                        <View
+                          style={[
+                            styles.detailIconContainer,
+                            { backgroundColor: theme.colors.accent + "25" },
+                          ]}
+                        >
+                          <Ionicons
+                            name="flash-outline"
+                            size={18}
+                            color={theme.colors.accent}
+                          />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>
+                            {t("vehicleForm.powerHpLabel")}
+                          </Text>
+                          <Text style={styles.detailValue}>
+                            {vehicle.power_hp
+                              ? `${vehicle.power_hp} HP`
+                              : "N/A"}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Row 4: Skrzynia + Napęd */}
+                    <View style={styles.detailsRow}>
+                      <View style={styles.detailItem}>
+                        <View
+                          style={[
+                            styles.detailIconContainer,
+                            { backgroundColor: theme.colors.accent + "25" },
+                          ]}
+                        >
+                          <MaterialCommunityIcons
+                            name="car-shift-pattern"
+                            size={18}
+                            color={theme.colors.accent}
+                          />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>
+                            {t("vehicleForm.transmissionLabel")}
+                          </Text>
+                          <Text style={styles.detailValue}>
+                            {vehicle.transmission
+                              ? t(
+                                  `vehicleForm.transmission${
+                                    vehicle.transmission
+                                      .charAt(0)
+                                      .toUpperCase() +
+                                    vehicle.transmission.slice(1)
+                                  }` as
+                                    | "vehicleForm.transmissionManual"
+                                    | "vehicleForm.transmissionAutomatic",
+                                )
+                              : "N/A"}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.detailItem}>
+                        <View
+                          style={[
+                            styles.detailIconContainer,
+                            { backgroundColor: theme.colors.accent + "25" },
+                          ]}
+                        >
+                          <DriveTypeIcon
+                            size={18}
+                            color={theme.colors.accent}
+                          />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>
+                            {t("vehicleForm.driveTypeLabel")}
+                          </Text>
+                          <Text style={styles.detailValue}>
+                            {vehicle.drive_type || "N/A"}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Row 4: Rodzaj paliwa + Notatki (skrócone) */}
+                    <View style={styles.detailsRow}>
+                      <View style={styles.detailItem}>
+                        <View
+                          style={[
+                            styles.detailIconContainer,
+                            { backgroundColor: theme.colors.accent + "25" },
+                          ]}
+                        >
+                          <Ionicons
+                            name="water-outline"
+                            size={18}
+                            color={theme.colors.accent}
+                          />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>
+                            {t("vehicleForm.fuelTypeLabel")}
+                          </Text>
+                          <Text style={styles.detailValue}>
+                            {vehicle.fuel_type
+                              ? t(
+                                  `vehicleForm.fuelType${
+                                    vehicle.fuel_type.charAt(0).toUpperCase() +
+                                    vehicle.fuel_type.slice(1)
+                                  }` as
+                                    | "vehicleForm.fuelTypePetrol"
+                                    | "vehicleForm.fuelTypeDiesel"
+                                    | "vehicleForm.fuelTypeHybrid"
+                                    | "vehicleForm.fuelTypeElectric"
+                                    | "vehicleForm.fuelTypeLpg",
+                                )
+                              : "N/A"}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.detailItem}>
+                        <View
+                          style={[
+                            styles.detailIconContainer,
+                            { backgroundColor: theme.colors.accent + "25" },
+                          ]}
+                        >
+                          <Ionicons
+                            name="document-text-outline"
+                            size={18}
+                            color={theme.colors.accent}
+                          />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>
+                            {t("manageVehicle.notesLabel")}
+                          </Text>
+                          <Text style={styles.detailValue} numberOfLines={1}>
+                            {vehicle.notes
+                              ? vehicle.notes.length > 30
+                                ? `${vehicle.notes.substring(0, 30)}...`
+                                : vehicle.notes
+                              : "N/A"}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Row 5: Ubezpieczenie + Przegląd (gdy ustawione) */}
+                    {(vehicle.insurance_valid_until != null ||
+                      vehicle.inspection_valid_until != null) && (
+                      <View style={styles.detailsRow}>
+                        {vehicle.insurance_valid_until != null && (
+                          <View style={styles.detailItem}>
+                            <View
+                              style={[
+                                styles.detailIconContainer,
+                                {
+                                  backgroundColor: theme.colors.accent + "25",
+                                },
+                              ]}
+                            >
+                              <Ionicons
+                                name="shield-checkmark-outline"
+                                size={18}
+                                color={theme.colors.accent}
+                              />
+                            </View>
+                            <View style={styles.detailContent}>
+                              <Text style={styles.detailLabel}>
+                                {t("manageVehicle.insuranceLabel")}
+                              </Text>
+                              <Text style={styles.detailValue}>
+                                {vehicle.insurance_valid_until}
+                              </Text>
+                            </View>
+                          </View>
+                        )}
+                        {vehicle.inspection_valid_until != null && (
+                          <View style={styles.detailItem}>
+                            <View
+                              style={[
+                                styles.detailIconContainer,
+                                {
+                                  backgroundColor: theme.colors.accent + "25",
+                                },
+                              ]}
+                            >
+                              <Ionicons
+                                name="checkmark-done-outline"
+                                size={18}
+                                color={theme.colors.accent}
+                              />
+                            </View>
+                            <View style={styles.detailContent}>
+                              <Text style={styles.detailLabel}>
+                                {t("manageVehicle.inspectionLabel")}
+                              </Text>
+                              <Text style={styles.detailValue}>
+                                {vehicle.inspection_valid_until}
+                              </Text>
+                            </View>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                  </View>
                 </View>
               </View>
             </View>
-          </View>
 
-          <Modal
-            visible={fullScreenIndex !== null}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setFullScreenIndex(null)}
-          >
-            <View
-              style={[
-                styles.fullScreenOverlay,
-                { paddingTop: insets.top, paddingBottom: insets.bottom },
-              ]}
+            <Modal
+              visible={fullScreenIndex !== null}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setFullScreenIndex(null)}
             >
-              <Pressable
-                style={[styles.fullScreenClose, { top: insets.top + 8 }]}
-                onPress={() => setFullScreenIndex(null)}
-                hitSlop={12}
+              <View
+                style={[
+                  styles.fullScreenOverlay,
+                  { paddingTop: insets.top, paddingBottom: insets.bottom },
+                ]}
               >
-                <Ionicons name="close" size={28} color="#FFFFFF" />
-              </Pressable>
-              {fullScreenIndex !== null && photoUrls.length > 0 && (
-                <FlatList
-                  data={photoUrls}
-                  horizontal
-                  pagingEnabled
-                  initialScrollIndex={fullScreenIndex}
-                  getItemLayout={(_, index) => ({
-                    length: windowWidth,
-                    offset: windowWidth * index,
-                    index,
-                  })}
-                  keyExtractor={(url) => url}
-                  renderItem={({ item: url }) => (
-                    <View
-                      style={{
-                        width: windowWidth,
-                        height: windowHeight - insets.top - insets.bottom,
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Image
-                        source={{ uri: url }}
+                <Pressable
+                  style={[styles.fullScreenClose, { top: insets.top + 8 }]}
+                  onPress={() => setFullScreenIndex(null)}
+                  hitSlop={12}
+                >
+                  <Ionicons
+                    name="close"
+                    size={theme.icons.headerButton}
+                    color="#FFFFFF"
+                  />
+                </Pressable>
+                {fullScreenIndex !== null && photoUrls.length > 0 && (
+                  <FlatList
+                    data={photoUrls}
+                    horizontal
+                    pagingEnabled
+                    initialScrollIndex={fullScreenIndex}
+                    getItemLayout={(_, index) => ({
+                      length: windowWidth,
+                      offset: windowWidth * index,
+                      index,
+                    })}
+                    keyExtractor={(url) => url}
+                    renderItem={({ item: url }) => (
+                      <View
                         style={{
                           width: windowWidth,
                           height: windowHeight - insets.top - insets.bottom,
+                          justifyContent: "center",
                         }}
-                        contentFit="contain"
-                      />
-                    </View>
-                  )}
-                  showsHorizontalScrollIndicator={false}
-                />
-              )}
-            </View>
-          </Modal>
-        </>
-      ) : null}
+                      >
+                        <Image
+                          source={{ uri: url }}
+                          style={{
+                            width: windowWidth,
+                            height: windowHeight - insets.top - insets.bottom,
+                          }}
+                          contentFit="contain"
+                        />
+                      </View>
+                    )}
+                    showsHorizontalScrollIndicator={false}
+                  />
+                )}
+              </View>
+            </Modal>
+          </>
+        ) : null}
       </FormScreen>
     </HeaderLayout>
   );
@@ -701,15 +716,6 @@ const makeStyles = (theme: any) =>
       flexDirection: "row",
       alignItems: "center",
       marginVertical: theme.spacing.md,
-    },
-    menuButton: {
-      width: theme.spacing.xl + theme.spacing.xs,
-      height: theme.spacing.xl + theme.spacing.xs,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    menuButtonPressed: {
-      opacity: 0.6,
     },
     muted: {
       marginTop: theme.spacing.sm / 2,

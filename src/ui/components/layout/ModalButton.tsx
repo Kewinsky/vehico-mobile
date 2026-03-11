@@ -1,11 +1,9 @@
 import type { ReactNode } from "react";
-import { StyleSheet, Text } from "react-native";
+import { Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { HeaderButton } from "@react-navigation/elements";
 
 import { useTheme } from "../../ThemeProvider";
-
-const ICON_SIZE = 20;
 
 type ModalButtonProps = {
   onPress: () => void;
@@ -14,11 +12,6 @@ type ModalButtonProps = {
   children?: ReactNode;
 };
 
-/**
- * Buttons for native modal header (headerLeft / headerRight).
- * Uses HeaderButton from @react-navigation/elements for native-style layout and feedback.
- * Use variant="cancel" / "done" for iOS-style tick and cross icons; otherwise renders children as text.
- */
 export function ModalButton({
   onPress,
   disabled = false,
@@ -39,7 +32,7 @@ export function ModalButton({
       >
         <Ionicons
           name="close-outline"
-          size={ICON_SIZE}
+          size={theme.icons.headerButton}
           color={theme.colors.fg}
         />
       </HeaderButton>
@@ -56,7 +49,7 @@ export function ModalButton({
       >
         <Ionicons
           name="checkmark"
-          size={ICON_SIZE}
+          size={theme.icons.headerButton}
           color={theme.colors.accent}
         />
       </HeaderButton>

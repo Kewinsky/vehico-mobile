@@ -264,7 +264,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           style={styles.photoCloseButton}
           hitSlop={5}
         >
-          <Ionicons name="close-circle" size={28} color={theme.colors.accent} />
+          <Ionicons name="close-circle" size={theme.icons.headerButton} color={theme.colors.accent} />
         </Pressable>
       </View>
     </View>

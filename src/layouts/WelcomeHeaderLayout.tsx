@@ -1,6 +1,6 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import { useLayoutEffect } from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HeaderButton } from "@react-navigation/elements";
@@ -53,7 +53,10 @@ export function WelcomeHeaderLayout({
             tintColor={theme.colors.accent}
             accessibilityLabel="Shop"
           >
-            <Crown size={22} color={theme.colors.accent} />
+            <Crown
+              size={theme.icons.headerButton}
+              color={theme.colors.accent}
+            />
           </HeaderButton>
         )}
         {showSettingsIcon && (
@@ -64,7 +67,7 @@ export function WelcomeHeaderLayout({
           >
             <Ionicons
               name="settings-outline"
-              size={22}
+              size={theme.icons.headerButton}
               color={theme.colors.accent}
             />
           </HeaderButton>
@@ -75,16 +78,30 @@ export function WelcomeHeaderLayout({
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: title || "",
+      headerTitle: () => (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "flex-start",
+          }}
+        >
+          <Text
+            numberOfLines={2}
+            style={{
+              color: theme.colors.fg,
+              fontWeight: theme.typography.fontWeight.bold,
+              fontSize: theme.typography.largeTitle,
+            }}
+          >
+            {title || ""}
+          </Text>
+        </View>
+      ),
       headerTitleAlign: "left",
       headerBackVisible: false,
       headerRight: rightContent ? () => rightContent : undefined,
       headerStyle: { backgroundColor: theme.colors.bg },
-      headerTitleStyle: {
-        color: theme.colors.fg,
-        fontWeight: theme.typography.fontWeight.bold,
-        fontSize: theme.typography.title,
-      },
       headerShadowVisible: false,
     });
   }, [
@@ -93,7 +110,8 @@ export function WelcomeHeaderLayout({
     theme.colors.bg,
     theme.colors.fg,
     theme.typography.fontWeight.bold,
-    theme.typography.title,
+    theme.typography.largeTitle,
+    theme.icons.headerButton,
     showShopIcon,
     showProfileAvatar,
     user,

@@ -75,9 +75,15 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     }, []),
   );
 
+  const hasActiveFilters = sortOption !== "date-newest";
+
   function openFilters() {
     navigation.navigate("AddAttachmentFilters", { vehicleId, sortOption });
   }
+
+  const resetFilters = useCallback(() => {
+    setSortOption("date-newest");
+  }, []);
 
   async function uploadTo(
     serviceEntryId: string,
@@ -216,11 +222,30 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
 
   const headerRight = useMemo(
     () => (
-      <HeaderButton onPress={openFilters} tintColor={theme.colors.fg}>
-        <Ionicons name="filter-outline" size={22} color={theme.colors.fg} />
-      </HeaderButton>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm }}>
+        {hasActiveFilters && (
+          <HeaderButton
+            onPress={resetFilters}
+            tintColor={theme.colors.accent}
+            accessibilityLabel={t("common.clearButton")}
+          >
+            <Ionicons
+              name="sync-outline"
+              size={theme.icons.headerButton}
+              color={theme.colors.accent}
+            />
+          </HeaderButton>
+        )}
+        <HeaderButton onPress={openFilters} tintColor={theme.colors.accent}>
+          <Ionicons
+            name="options"
+            size={theme.icons.headerButton}
+            color={theme.colors.accent}
+          />
+        </HeaderButton>
+      </View>
     ),
-    [openFilters, theme.colors.fg],
+    [openFilters, resetFilters, hasActiveFilters, theme.colors.accent, theme.spacing.sm, theme.icons.headerButton, t],
   );
 
   return (

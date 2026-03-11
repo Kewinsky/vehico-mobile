@@ -253,7 +253,7 @@ export function ImportScreen({ navigation, route }: Props) {
                 },
               ]}
             >
-              <Ionicons name="copy-outline" size={18} color={theme.colors.fg} />
+              <Ionicons name="copy-outline" size={theme.icons.headerButton} color={theme.colors.fg} />
               <Text style={[styles.actionPillText, { color: theme.colors.fg }]}>
                 {t("import.copyColumnsButton")}
               </Text>

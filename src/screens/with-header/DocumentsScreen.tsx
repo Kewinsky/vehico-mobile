@@ -291,13 +291,13 @@ export function DocumentsScreen({ route, navigation }: Props) {
     () => (
       <HeaderButton
         onPress={openAddPicker}
-        tintColor={theme.colors.fg}
+        tintColor={theme.colors.accent}
         disabled={uploading}
       >
-        <Ionicons name="add" size={24} color={theme.colors.fg} />
+        <Ionicons name="add" size={theme.icons.headerButton} color={theme.colors.accent} />
       </HeaderButton>
     ),
-    [openAddPicker, uploading, theme.colors.fg],
+    [openAddPicker, uploading, theme.colors.accent],
   );
 
   return (

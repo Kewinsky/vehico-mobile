@@ -181,6 +181,16 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     sortOption,
   ]);
 
+  const resetFilters = useCallback(() => {
+    setCategoryFilter("all");
+    setDateFrom("");
+    setDateTo("");
+    setMinCost("");
+    setMaxCost("");
+    setShowReminders(false);
+    setSortOption("date-newest");
+  }, []);
+
   const timelineRows = useMemo(() => {
     const q = query.trim().toLowerCase();
     const min = minCost.trim().length ? Number(minCost) : null;
@@ -326,31 +336,47 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   const headerRight = useMemo(
     () => (
       <View style={styles.headerRight}>
+        {hasActiveFilters && (
+          <HeaderButton
+            onPress={resetFilters}
+            tintColor={theme.colors.accent}
+            accessibilityLabel={t("common.clearButton")}
+          >
+            <Ionicons
+              name="sync-outline"
+              size={theme.icons.headerButton}
+              color={theme.colors.accent}
+            />
+          </HeaderButton>
+        )}
         <HeaderButton
           onPress={openFilters}
-          tintColor={hasActiveFilters ? theme.colors.accent : theme.colors.fg}
+          tintColor={theme.colors.accent}
         >
           <Ionicons
-            name="filter-outline"
-            size={22}
-            color={hasActiveFilters ? theme.colors.accent : theme.colors.fg}
+            name="options"
+            size={theme.icons.headerButton}
+            color={theme.colors.accent}
           />
         </HeaderButton>
         <HeaderButton
           onPress={() => navigation.navigate("ServiceEntryForm", { vehicleId })}
-          tintColor={theme.colors.fg}
+          tintColor={theme.colors.accent}
         >
-          <Ionicons name="add" size={24} color={theme.colors.fg} />
+          <Ionicons name="add" size={theme.icons.headerButton} color={theme.colors.accent} />
         </HeaderButton>
       </View>
     ),
     [
       openFilters,
+      resetFilters,
       hasActiveFilters,
       theme.colors.accent,
-      theme.colors.fg,
+      theme.icons.headerButton,
       navigation,
       vehicleId,
+      styles.headerRight,
+      t,
     ],
   );
 

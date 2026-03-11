@@ -1,6 +1,10 @@
 export type ThemeMode = "light" | "dark";
 
 export type AppTheme = {
+  /** Icon size for native header buttons (back, settings, shop, and custom right icons). Use this for all header bar icons. */
+  icons: {
+    headerButton: number;
+  };
   colors: {
     bg: string;
     fg: string;
@@ -44,6 +48,7 @@ export type AppTheme = {
 };
 
 export const lightTheme: AppTheme = {
+  icons: { headerButton: 20 },
   colors: {
     bg: "#FFFFFF", // pure white
     fg: "#000000", // pure black
@@ -85,6 +90,7 @@ export const lightTheme: AppTheme = {
 };
 
 export const darkTheme: AppTheme = {
+  icons: lightTheme.icons,
   colors: {
     bg: "#0a0a0a", // soft black (iOS 26 style)
     fg: "#FFFFFF", // pure white
