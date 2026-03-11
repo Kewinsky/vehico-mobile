@@ -2,55 +2,61 @@ import React from "react";
 import { ActivityIndicator, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+/** Opcje dla ekranów używających HeaderLayout (natywny navbar). */
+const nativeHeaderScreenOptions = {
+  headerShown: true,
+  headerShadowVisible: false,
+} as const;
+
 import { useAuth } from "../providers/AuthProvider";
-import { LandingScreen } from "../../screens/LandingScreen";
-import { AuthScreen } from "../../screens/AuthScreen";
-import { VehiclesScreen } from "../../screens/VehiclesScreen";
-import { VehicleFormScreen } from "../../screens/VehicleFormScreen";
-import { VehicleDashboardScreen } from "../../screens/VehicleDashboardScreen";
-import { ServiceHistoryScreen } from "../../screens/ServiceHistoryScreen";
-import { ServiceHistoryFiltersScreen } from "../../screens/ServiceHistoryFiltersScreen";
-import { ManageVehicleScreen } from "../../screens/ManageVehicleScreen";
-import { DocumentsScreen } from "../../screens/DocumentsScreen";
-import { FuelScreen } from "../../screens/FuelScreen";
-import { FuelFiltersScreen } from "../../screens/FuelFiltersScreen";
-import { FuelingEntryFormScreen } from "../../screens/FuelingEntryFormScreen";
-import { RemindersScreen } from "../../screens/RemindersScreen";
-import { RemindersFiltersScreen } from "../../screens/RemindersFiltersScreen";
-import { ReminderFormScreen } from "../../screens/ReminderFormScreen";
-import { ServiceEntryFormScreen } from "../../screens/ServiceEntryFormScreen";
-import { SettingsScreen } from "../../screens/SettingsScreen";
-import { DataPortabilityScreen } from "../../screens/DataPortabilityScreen";
-import { ImportScreen } from "../../screens/ImportScreen";
-import { AddAttachmentScreen } from "../../screens/AddAttachmentScreen";
-import { AddAttachmentFiltersScreen } from "../../screens/AddAttachmentFiltersScreen";
-import { ShareScreen } from "../../screens/ShareScreen";
-import { StatisticsScreen } from "../../screens/StatisticsScreen";
-import { MarketplaceScreen } from "../../screens/MarketplaceScreen";
-import { MarketplaceConfigureScreen } from "../../screens/MarketplaceConfigureScreen";
-import { MarketplaceSummaryScreen } from "../../screens/MarketplaceSummaryScreen";
-import { MarketplacePostOptionsScreen } from "../../screens/MarketplacePostOptionsScreen";
-import { MarketplacePostHistoryScreen } from "../../screens/MarketplacePostHistoryScreen";
-import { PublicReportOptionsScreen } from "../../screens/PublicReportOptionsScreen";
-import { PublicReportHistoryScreen } from "../../screens/PublicReportHistoryScreen";
-import { PublicReportScreen } from "../../screens/PublicReportScreen";
-import { PublicReportConfigureScreen } from "../../screens/PublicReportConfigureScreen";
-import { PublicReportSummaryScreen } from "../../screens/PublicReportSummaryScreen";
-import { WheelsOverviewScreen } from "../../screens/WheelsOverviewScreen";
-import { TiresListScreen } from "../../screens/TiresListScreen";
-import { TiresListFiltersScreen } from "../../screens/TiresListFiltersScreen";
-import { WheelsListScreen } from "../../screens/WheelsListScreen";
-import { WheelsListFiltersScreen } from "../../screens/WheelsListFiltersScreen";
-import { TireFormScreen } from "../../screens/TireFormScreen";
-import { WheelFormScreen } from "../../screens/WheelFormScreen";
-import { WorkshopsScreen } from "../../screens/WorkshopsScreen";
-import { WorkshopsFiltersScreen } from "../../screens/WorkshopsFiltersScreen";
-import { WorkshopFormScreen } from "../../screens/WorkshopFormScreen";
-import { ShopScreen } from "../../screens/ShopScreen";
-import { ExampleListingScreen } from "../../screens/ExampleListingScreen";
-import { PlaygroundScreen } from "../../screens/PlaygroundScreen";
-import { AppearanceScreen } from "../../screens/AppearanceScreen";
-import { OnboardingScreen } from "../../screens/OnboardingScreen";
+import { LandingScreen } from "../../screens/no-header/LandingScreen";
+import { AuthScreen } from "../../screens/modal/AuthScreen";
+import { VehiclesScreen } from "../../screens/no-header/VehiclesScreen";
+import { VehicleFormScreen } from "../../screens/modal/VehicleFormScreen";
+import { VehicleDashboardScreen } from "../../screens/with-header/VehicleDashboardScreen";
+import { ServiceHistoryScreen } from "../../screens/with-header/ServiceHistoryScreen";
+import { ServiceHistoryFiltersScreen } from "../../screens/modal/ServiceHistoryFiltersScreen";
+import { ManageVehicleScreen } from "../../screens/with-header/ManageVehicleScreen";
+import { DocumentsScreen } from "../../screens/with-header/DocumentsScreen";
+import { FuelScreen } from "../../screens/with-header/FuelScreen";
+import { FuelFiltersScreen } from "../../screens/modal/FuelFiltersScreen";
+import { FuelingEntryFormScreen } from "../../screens/modal/FuelingEntryFormScreen";
+import { RemindersScreen } from "../../screens/with-header/RemindersScreen";
+import { RemindersFiltersScreen } from "../../screens/modal/RemindersFiltersScreen";
+import { ReminderFormScreen } from "../../screens/modal/ReminderFormScreen";
+import { ServiceEntryFormScreen } from "../../screens/modal/ServiceEntryFormScreen";
+import { SettingsScreen } from "../../screens/modal/SettingsScreen";
+import { DataPortabilityScreen } from "../../screens/with-header/DataPortabilityScreen";
+import { ImportScreen } from "../../screens/with-header/ImportScreen";
+import { AddAttachmentScreen } from "../../screens/with-header/AddAttachmentScreen";
+import { AddAttachmentFiltersScreen } from "../../screens/modal/AddAttachmentFiltersScreen";
+import { ShareScreen } from "../../screens/with-header/ShareScreen";
+import { StatisticsScreen } from "../../screens/with-header/StatisticsScreen";
+import { MarketplaceScreen } from "../../screens/with-header/MarketplaceScreen";
+import { MarketplaceConfigureScreen } from "../../screens/with-header/MarketplaceConfigureScreen";
+import { MarketplaceSummaryScreen } from "../../screens/with-header/MarketplaceSummaryScreen";
+import { MarketplacePostOptionsScreen } from "../../screens/with-header/MarketplacePostOptionsScreen";
+import { MarketplacePostHistoryScreen } from "../../screens/with-header/MarketplacePostHistoryScreen";
+import { PublicReportOptionsScreen } from "../../screens/with-header/PublicReportOptionsScreen";
+import { PublicReportHistoryScreen } from "../../screens/with-header/PublicReportHistoryScreen";
+import { PublicReportScreen } from "../../screens/with-header/PublicReportScreen";
+import { PublicReportConfigureScreen } from "../../screens/with-header/PublicReportConfigureScreen";
+import { PublicReportSummaryScreen } from "../../screens/with-header/PublicReportSummaryScreen";
+import { WheelsOverviewScreen } from "../../screens/with-header/WheelsOverviewScreen";
+import { TiresListScreen } from "../../screens/with-header/TiresListScreen";
+import { TiresListFiltersScreen } from "../../screens/modal/TiresListFiltersScreen";
+import { WheelsListScreen } from "../../screens/with-header/WheelsListScreen";
+import { WheelsListFiltersScreen } from "../../screens/modal/WheelsListFiltersScreen";
+import { TireFormScreen } from "../../screens/modal/TireFormScreen";
+import { WheelFormScreen } from "../../screens/modal/WheelFormScreen";
+import { WorkshopsScreen } from "../../screens/with-header/WorkshopsScreen";
+import { WorkshopsFiltersScreen } from "../../screens/modal/WorkshopsFiltersScreen";
+import { WorkshopFormScreen } from "../../screens/modal/WorkshopFormScreen";
+import { ShopScreen } from "../../screens/modal/ShopScreen";
+import { ExampleListingScreen } from "../../screens/modal/ExampleListingScreen";
+import { PlaygroundScreen } from "../../screens/no-header/PlaygroundScreen";
+import { AppearanceScreen } from "../../screens/modal/AppearanceScreen";
+import { OnboardingScreen } from "../../screens/onboarding/OnboardingScreen";
 
 export type AppStackParamList = {
   Landing: undefined;
@@ -234,7 +240,11 @@ export function RootNavigator() {
       ) : (
         <>
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-          <Stack.Screen name="Vehicles" component={VehiclesScreen} />
+          <Stack.Screen
+            name="Vehicles"
+            component={VehiclesScreen}
+            options={nativeHeaderScreenOptions}
+          />
           <Stack.Screen
             name="VehicleForm"
             component={VehicleFormScreen}
@@ -265,10 +275,12 @@ export function RootNavigator() {
           <Stack.Screen
             name="VehicleDashboard"
             component={VehicleDashboardScreen}
+            options={nativeHeaderScreenOptions}
           />
           <Stack.Screen
             name="ServiceHistory"
             component={ServiceHistoryScreen}
+            options={nativeHeaderScreenOptions}
           />
           <Stack.Screen
             name="ServiceHistoryFilters"
@@ -279,8 +291,16 @@ export function RootNavigator() {
               headerShadowVisible: false,
             }}
           />
-          <Stack.Screen name="Documents" component={DocumentsScreen} />
-          <Stack.Screen name="Fuel" component={FuelScreen} />
+          <Stack.Screen
+            name="Documents"
+            component={DocumentsScreen}
+            options={nativeHeaderScreenOptions}
+          />
+          <Stack.Screen
+            name="Fuel"
+            component={FuelScreen}
+            options={nativeHeaderScreenOptions}
+          />
           <Stack.Screen
             name="FuelFilters"
             component={FuelFiltersScreen}
@@ -290,7 +310,11 @@ export function RootNavigator() {
               headerShadowVisible: false,
             }}
           />
-          <Stack.Screen name="Statistics" component={StatisticsScreen} />
+          <Stack.Screen
+            name="Statistics"
+            component={StatisticsScreen}
+            options={nativeHeaderScreenOptions}
+          />
           <Stack.Screen
             name="FuelingEntryForm"
             component={FuelingEntryFormScreen}
@@ -300,7 +324,11 @@ export function RootNavigator() {
               headerShadowVisible: false,
             }}
           />
-          <Stack.Screen name="Reminders" component={RemindersScreen} />
+          <Stack.Screen
+            name="Reminders"
+            component={RemindersScreen}
+            options={nativeHeaderScreenOptions}
+          />
           <Stack.Screen
             name="RemindersFilters"
             component={RemindersFiltersScreen}
@@ -319,48 +347,81 @@ export function RootNavigator() {
               headerShadowVisible: false,
             }}
           />
-          <Stack.Screen name="Share" component={ShareScreen} />
-          <Stack.Screen name="Marketplace" component={MarketplaceScreen} />
+          <Stack.Screen
+            name="Share"
+            component={ShareScreen}
+            options={nativeHeaderScreenOptions}
+          />
+          <Stack.Screen
+            name="Marketplace"
+            component={MarketplaceScreen}
+            options={nativeHeaderScreenOptions}
+          />
           <Stack.Screen
             name="MarketplaceConfigure"
             component={MarketplaceConfigureScreen}
+            options={nativeHeaderScreenOptions}
           />
           <Stack.Screen
             name="MarketplaceSummary"
             component={MarketplaceSummaryScreen}
+            options={nativeHeaderScreenOptions}
           />
           <Stack.Screen
             name="MarketplacePostOptions"
             component={MarketplacePostOptionsScreen}
+            options={nativeHeaderScreenOptions}
           />
           <Stack.Screen
             name="MarketplacePostHistory"
             component={MarketplacePostHistoryScreen}
+            options={nativeHeaderScreenOptions}
           />
-          <Stack.Screen name="PublicReport" component={PublicReportScreen} />
+          <Stack.Screen
+            name="PublicReport"
+            component={PublicReportScreen}
+            options={nativeHeaderScreenOptions}
+          />
           <Stack.Screen
             name="PublicReportConfigure"
             component={PublicReportConfigureScreen}
+            options={nativeHeaderScreenOptions}
           />
           <Stack.Screen
             name="PublicReportSummary"
             component={PublicReportSummaryScreen}
+            options={nativeHeaderScreenOptions}
           />
           <Stack.Screen
             name="PublicReportOptions"
             component={PublicReportOptionsScreen}
+            options={nativeHeaderScreenOptions}
           />
           <Stack.Screen
             name="PublicReportHistory"
             component={PublicReportHistoryScreen}
+            options={nativeHeaderScreenOptions}
           />
-          <Stack.Screen name="ManageVehicle" component={ManageVehicleScreen} />
+          <Stack.Screen
+            name="ManageVehicle"
+            component={ManageVehicleScreen}
+            options={nativeHeaderScreenOptions}
+          />
           <Stack.Screen
             name="DataPortability"
             component={DataPortabilityScreen}
+            options={nativeHeaderScreenOptions}
           />
-          <Stack.Screen name="Import" component={ImportScreen} />
-          <Stack.Screen name="AddAttachment" component={AddAttachmentScreen} />
+          <Stack.Screen
+            name="Import"
+            component={ImportScreen}
+            options={nativeHeaderScreenOptions}
+          />
+          <Stack.Screen
+            name="AddAttachment"
+            component={AddAttachmentScreen}
+            options={nativeHeaderScreenOptions}
+          />
           <Stack.Screen
             name="AddAttachmentFilters"
             component={AddAttachmentFiltersScreen}
@@ -379,8 +440,16 @@ export function RootNavigator() {
               headerShadowVisible: false,
             }}
           />
-          <Stack.Screen name="Wheels" component={WheelsOverviewScreen} />
-          <Stack.Screen name="TiresList" component={TiresListScreen} />
+          <Stack.Screen
+            name="Wheels"
+            component={WheelsOverviewScreen}
+            options={nativeHeaderScreenOptions}
+          />
+          <Stack.Screen
+            name="TiresList"
+            component={TiresListScreen}
+            options={nativeHeaderScreenOptions}
+          />
           <Stack.Screen
             name="TiresListFilters"
             component={TiresListFiltersScreen}
@@ -390,7 +459,11 @@ export function RootNavigator() {
               headerShadowVisible: false,
             }}
           />
-          <Stack.Screen name="WheelsList" component={WheelsListScreen} />
+          <Stack.Screen
+            name="WheelsList"
+            component={WheelsListScreen}
+            options={nativeHeaderScreenOptions}
+          />
           <Stack.Screen
             name="WheelsListFilters"
             component={WheelsListFiltersScreen}
@@ -418,7 +491,11 @@ export function RootNavigator() {
               headerShadowVisible: false,
             }}
           />
-          <Stack.Screen name="Workshops" component={WorkshopsScreen} />
+          <Stack.Screen
+            name="Workshops"
+            component={WorkshopsScreen}
+            options={nativeHeaderScreenOptions}
+          />
           <Stack.Screen
             name="WorkshopsFilters"
             component={WorkshopsFiltersScreen}
