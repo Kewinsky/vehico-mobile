@@ -348,7 +348,11 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         <Button onPress={handleNext}>{t("publicReport.nextButton")}</Button>
       }
     >
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        scrollEnabled={!isDragging}
+      >
         <ContentHeader title={t("publicReport.configureTitle")} />
         {unavailableOptions.length > 0 && (
           <View style={[styles.section, styles.hintSection]}>
