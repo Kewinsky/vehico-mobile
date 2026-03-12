@@ -19,7 +19,10 @@ import {
   isPositiveNumber,
   isNonNegativeNumber,
 } from "../../utils/validation";
-import type { ReminderStatus, ReminderRecurrenceUnit } from "../../types/domain";
+import type {
+  ReminderStatus,
+  ReminderRecurrenceUnit,
+} from "../../types/domain";
 import {
   createReminder,
   deleteReminder,
@@ -379,9 +382,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   return (
     <ModalLayout
       title={
-        reminderId
-          ? t("reminderForm.editTitle")
-          : t("reminderForm.addTitle")
+        reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle")
       }
       cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
       done={{
@@ -402,553 +403,582 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       }
     >
       <FormScreen noLayout>
-      {!reminderId ? (
-        <>
-          <Text
-            style={[styles.presetsSectionLabel, { color: theme.colors.muted }]}
-          >
-            {t("reminderForm.presetsTitle")}
-          </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.presetsScrollContent}
-            style={styles.presetsScroll}
-          >
-            {REMINDER_PRESETS.map((preset) => {
-              const summaryParts = getPresetRecurrenceParts(preset);
-              return (
-                <Pressable
-                  key={preset.titleKey}
-                  onPress={() => applyPreset(preset)}
-                  style={({ pressed }) => [
-                    styles.presetChip,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                    pressed && { opacity: 0.85 },
-                  ]}
-                >
-                  <Text
-                    style={[styles.presetChipTitle, { color: theme.colors.fg }]}
-                    numberOfLines={2}
-                  >
-                    {t(`reminderForm.${preset.titleKey}`)}
-                  </Text>
-                  {summaryParts.length ? (
-                    <View style={styles.presetChipSummaryWrap}>
-                      {summaryParts.slice(0, 2).map((line, idx) => (
-                        <Text
-                          key={`${preset.titleKey}-summary-${idx}`}
-                          style={[
-                            styles.presetChipSummary,
-                            { color: theme.colors.muted },
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {line}
-                        </Text>
-                      ))}
-                    </View>
-                  ) : null}
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-          <View style={{ height: theme.spacing.sm }} />
-        </>
-      ) : null}
-
-      {/* Section 1: Title */}
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="document-text-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("reminderForm.titleLabel")}
-            </Text>
-          </View>
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            placeholder={t("reminderForm.placeholderTitle")}
-            placeholderTextColor={theme.colors.muted}
-            editable={!saving}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-            autoCorrect={false}
-          />
-        </View>
-      </View>
-
-      <View style={{ height: theme.spacing.sm }} />
-
-      {/* Section 2: Date reminder */}
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <View style={[styles.row, { justifyContent: "space-between" }]}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="calendar-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("reminderForm.dateReminder")}
-            </Text>
-          </View>
-          <Switch
-            value={dateEnabled}
-            onValueChange={setDateEnabled}
-            trackColor={{
-              false: theme.colors.border,
-              true: theme.colors.accent,
-            }}
-            thumbColor="#fff"
-          />
-        </View>
-
-        {dateEnabled && (
+        {!reminderId ? (
           <>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <Pressable
-              onPress={openDatePicker}
-              disabled={saving}
-              style={({ pressed }) => [
-                styles.row,
-                pressed && !saving ? { opacity: 0.85 } : null,
+            <Text
+              style={[
+                styles.presetsSectionLabel,
+                { color: theme.colors.muted },
               ]}
             >
+              {t("reminderForm.presetsTitle")}
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.presetsScrollContent}
+              style={styles.presetsScroll}
+            >
+              {REMINDER_PRESETS.map((preset) => {
+                const summaryParts = getPresetRecurrenceParts(preset);
+                return (
+                  <Pressable
+                    key={preset.titleKey}
+                    onPress={() => applyPreset(preset)}
+                    style={({ pressed }) => [
+                      styles.presetChip,
+                      {
+                        borderColor: theme.colors.border,
+                        backgroundColor: theme.colors.card,
+                      },
+                      pressed && { opacity: 0.85 },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.presetChipTitle,
+                        { color: theme.colors.fg },
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {t(`reminderForm.${preset.titleKey}`)}
+                    </Text>
+                    {summaryParts.length ? (
+                      <View style={styles.presetChipSummaryWrap}>
+                        {summaryParts.slice(0, 2).map((line, idx) => (
+                          <Text
+                            key={`${preset.titleKey}-summary-${idx}`}
+                            style={[
+                              styles.presetChipSummary,
+                              { color: theme.colors.muted },
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {line}
+                          </Text>
+                        ))}
+                      </View>
+                    ) : null}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+            <View style={{ height: theme.spacing.sm }} />
+          </>
+        ) : null}
+
+        {/* Section 1: Title */}
+        <View
+          style={[
+            styles.card,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="document-text-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
               <Text
                 style={[styles.label, { color: theme.colors.muted }]}
                 numberOfLines={1}
               >
-                {t("reminderForm.dueDateLabel")}
+                {t("reminderForm.titleLabel")}
               </Text>
-              <Text
-                style={[
-                  styles.valueText,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              >
-                {dueDate}
-              </Text>
-            </Pressable>
+            </View>
+            <TextInput
+              value={title}
+              onChangeText={setTitle}
+              placeholder={t("reminderForm.placeholderTitle")}
+              placeholderTextColor={theme.colors.muted}
+              editable={!saving}
+              style={[
+                styles.input,
+                { color: theme.colors.fg, textAlign: "right" },
+              ]}
+              autoCorrect={false}
+            />
+          </View>
+        </View>
 
-            {datePickerOpen && (
+        <View style={{ height: theme.spacing.sm }} />
+
+        {/* Section 2: Date reminder */}
+        <View
+          style={[
+            styles.card,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <View style={[styles.row, { justifyContent: "space-between" }]}>
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text
+                style={[styles.label, { color: theme.colors.muted }]}
+                numberOfLines={1}
+              >
+                {t("reminderForm.dateReminder")}
+              </Text>
+            </View>
+            <Switch
+              value={dateEnabled}
+              onValueChange={setDateEnabled}
+              trackColor={{
+                false: theme.colors.border,
+                true: theme.colors.accent,
+              }}
+              thumbColor="#fff"
+            />
+          </View>
+
+          {dateEnabled && (
+            <>
               <View
                 style={[
-                  styles.pickerWrap,
-                  { borderTopColor: theme.colors.border },
-                ]}
-              >
-                <DateTimePicker
-                  value={datePickerDraft}
-                  mode="date"
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
-                  themeVariant={
-                    Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
-                      ? "dark"
-                      : "light"
-                  }
-                  onChange={(event, selected) => {
-                    if (Platform.OS === "ios") {
-                      if (selected) setDatePickerDraft(selected);
-                      return;
-                    }
-                    setDatePickerOpen(false);
-                    if ((event as { type?: string })?.type === "dismissed")
-                      return;
-                    if (selected) setDueDate(formatYmd(selected));
-                  }}
-                />
-                {Platform.OS === "ios" ? (
-                  <View style={styles.pickerActionsRow}>
-                    <Pressable
-                      onPress={() => setDatePickerOpen(false)}
-                      style={({ pressed }) => [
-                        styles.pickerActionBtn,
-                        {
-                          borderColor: theme.colors.border,
-                          backgroundColor: "transparent",
-                          opacity: pressed ? 0.8 : 1,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.pickerActionText,
-                          { color: theme.colors.muted },
-                        ]}
-                      >
-                        {t("common.cancel")}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => {
-                        setDueDate(formatYmd(datePickerDraft));
-                        setDatePickerOpen(false);
-                      }}
-                      style={({ pressed }) => [
-                        styles.pickerActionBtn,
-                        {
-                          borderColor: theme.colors.accent,
-                          backgroundColor: accentBg,
-                          opacity: pressed ? 0.8 : 1,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.pickerActionText,
-                          { color: theme.colors.accent },
-                        ]}
-                      >
-                        {t("common.done")}
-                      </Text>
-                    </Pressable>
-                  </View>
-                ) : null}
-              </View>
-            )}
-
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
-              <Text
-                style={[styles.label, { color: theme.colors.muted }]}
-                numberOfLines={1}
-              >
-                {t("reminderForm.daysBefore")}
-              </Text>
-              <TextInput
-                value={daysBefore}
-                onChangeText={setDaysBefore}
-                placeholder="7"
-                placeholderTextColor={theme.colors.muted}
-                keyboardType="number-pad"
-                editable={!saving}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
                 ]}
               />
-            </View>
-
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={[styles.row, { justifyContent: "space-between" }]}>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="repeat-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
+              <Pressable
+                onPress={openDatePicker}
+                disabled={saving}
+                style={({ pressed }) => [
+                  styles.row,
+                  pressed && !saving ? { opacity: 0.85 } : null,
+                ]}
+              >
                 <Text
                   style={[styles.label, { color: theme.colors.muted }]}
                   numberOfLines={1}
                 >
-                  {t("reminderForm.repeats")}
+                  {t("reminderForm.dueDateLabel")}
                 </Text>
-              </View>
-              <Switch
-                value={dateRepeats}
-                onValueChange={setDateRepeats}
-                trackColor={{
-                  false: theme.colors.border,
-                  true: theme.colors.accent,
-                }}
-                thumbColor="#fff"
-              />
-            </View>
+                <Text
+                  style={[
+                    styles.valueText,
+                    { color: theme.colors.fg, textAlign: "right" },
+                  ]}
+                >
+                  {dueDate}
+                </Text>
+              </Pressable>
 
-            {dateRepeats && (
-              <>
+              {datePickerOpen && (
                 <View
                   style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
+                    styles.pickerWrap,
+                    { borderTopColor: theme.colors.border },
+                  ]}
+                >
+                  <DateTimePicker
+                    value={datePickerDraft}
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    themeVariant={
+                      Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
+                        ? "dark"
+                        : "light"
+                    }
+                    onChange={(event, selected) => {
+                      if (Platform.OS === "ios") {
+                        if (selected) setDatePickerDraft(selected);
+                        return;
+                      }
+                      setDatePickerOpen(false);
+                      if ((event as { type?: string })?.type === "dismissed")
+                        return;
+                      if (selected) setDueDate(formatYmd(selected));
+                    }}
+                  />
+                  {Platform.OS === "ios" ? (
+                    <View style={styles.pickerActionsRow}>
+                      <Pressable
+                        onPress={() => setDatePickerOpen(false)}
+                        style={({ pressed }) => [
+                          styles.pickerActionBtn,
+                          {
+                            borderColor: theme.colors.border,
+                            backgroundColor: "transparent",
+                            opacity: pressed ? 0.8 : 1,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.pickerActionText,
+                            { color: theme.colors.muted },
+                          ]}
+                        >
+                          {t("common.cancel")}
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          setDueDate(formatYmd(datePickerDraft));
+                          setDatePickerOpen(false);
+                        }}
+                        style={({ pressed }) => [
+                          styles.pickerActionBtn,
+                          {
+                            borderColor: theme.colors.accent,
+                            backgroundColor: accentBg,
+                            opacity: pressed ? 0.8 : 1,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.pickerActionText,
+                            { color: theme.colors.accent },
+                          ]}
+                        >
+                          {t("common.done")}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  ) : null}
+                </View>
+              )}
+
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("reminderForm.daysBefore")}
+                </Text>
+                <TextInput
+                  value={daysBefore}
+                  onChangeText={setDaysBefore}
+                  placeholder="7"
+                  placeholderTextColor={theme.colors.muted}
+                  keyboardType="number-pad"
+                  editable={!saving}
+                  style={[
+                    styles.input,
+                    { color: theme.colors.fg, textAlign: "right" },
                   ]}
                 />
-                <View style={styles.row}>
-                  <View style={styles.rowLeft}>
+              </View>
+
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={[styles.row, { justifyContent: "space-between" }]}>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="repeat-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("reminderForm.repeats")}
+                  </Text>
+                </View>
+                <Switch
+                  value={dateRepeats}
+                  onValueChange={setDateRepeats}
+                  trackColor={{
+                    false: theme.colors.border,
+                    true: theme.colors.accent,
+                  }}
+                  thumbColor="#fff"
+                />
+              </View>
+
+              {dateRepeats && (
+                <>
+                  <View
+                    style={[
+                      styles.divider,
+                      { backgroundColor: theme.colors.border },
+                    ]}
+                  />
+                  <View style={styles.row}>
+                    <View style={styles.rowLeft}>
+                      <Text
+                        style={[styles.label, { color: theme.colors.muted }]}
+                        numberOfLines={1}
+                      >
+                        {t("reminderForm.every")}
+                      </Text>
+                    </View>
+                    <View style={styles.rowRight}>
+                      <TextInput
+                        value={recurrenceValue}
+                        onChangeText={setRecurrenceValue}
+                        placeholder="6"
+                        placeholderTextColor={theme.colors.muted}
+                        keyboardType="number-pad"
+                        editable={!saving}
+                        style={[
+                          styles.input,
+                          {
+                            color: theme.colors.fg,
+                            textAlign: "right",
+                            flex: 0,
+                            minWidth: 48,
+                            maxWidth: 56,
+                          },
+                        ]}
+                      />
+                      <Pressable
+                        onPress={() => {
+                          const unitLabels: Record<
+                            ReminderRecurrenceUnit,
+                            string
+                          > = {
+                            days: t("reminderForm.intervalDays"),
+                            weeks: t("reminderForm.intervalWeeks"),
+                            months: t("reminderForm.intervalMonths"),
+                            years: t("reminderForm.intervalYears"),
+                          };
+                          Alert.alert(
+                            t("reminderForm.every"),
+                            "",
+                            [
+                              { text: t("common.cancel"), style: "cancel" },
+                              ...RECURRENCE_UNITS.map((u) => ({
+                                text: unitLabels[u.value],
+                                onPress: () => setRecurrenceUnit(u.value),
+                              })),
+                            ],
+                            { cancelable: true },
+                          );
+                        }}
+                        style={({ pressed }) => [
+                          {
+                            backgroundColor: theme.colors.accent,
+                            paddingVertical: 6,
+                            paddingHorizontal: theme.spacing.sm,
+                            borderRadius: 9999,
+                            marginLeft: theme.spacing.sm,
+                          },
+                          pressed && { opacity: 0.85 },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.valueText,
+                            {
+                              color: "#000000",
+                              textAlign: "center",
+                              fontWeight: theme.typography.fontWeight.bold,
+                              fontSize: theme.typography.small,
+                            },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {recurrenceUnitLabel}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                </>
+              )}
+            </>
+          )}
+        </View>
+
+        <View style={{ height: theme.spacing.sm }} />
+
+        {/* Section 3: Mileage reminder */}
+        <View
+          style={[
+            styles.card,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <View style={[styles.row, { justifyContent: "space-between" }]}>
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="speedometer-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text
+                style={[styles.label, { color: theme.colors.muted }]}
+                numberOfLines={1}
+              >
+                {t("reminderForm.mileageReminder")}
+              </Text>
+            </View>
+            <Switch
+              value={mileageEnabled}
+              onValueChange={setMileageEnabled}
+              trackColor={{
+                false: theme.colors.border,
+                true: theme.colors.accent,
+              }}
+              thumbColor="#fff"
+            />
+          </View>
+
+          {mileageEnabled && (
+            <>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("reminderForm.dueMileage", { unit: distanceUnit })}
+                </Text>
+                <TextInput
+                  value={dueMileage}
+                  onChangeText={setDueMileage}
+                  placeholder={t("reminderForm.placeholderDueMileage")}
+                  placeholderTextColor={theme.colors.muted}
+                  keyboardType="number-pad"
+                  editable={!saving}
+                  style={[
+                    styles.input,
+                    { color: theme.colors.fg, textAlign: "right" },
+                  ]}
+                />
+              </View>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={[styles.row, { justifyContent: "space-between" }]}>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="repeat-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("reminderForm.repeats")}
+                  </Text>
+                </View>
+                <Switch
+                  value={mileageRepeats}
+                  onValueChange={setMileageRepeats}
+                  trackColor={{
+                    false: theme.colors.border,
+                    true: theme.colors.accent,
+                  }}
+                  thumbColor="#fff"
+                />
+              </View>
+              {mileageRepeats && (
+                <>
+                  <View
+                    style={[
+                      styles.divider,
+                      { backgroundColor: theme.colors.border },
+                    ]}
+                  />
+                  <View style={styles.row}>
                     <Text
                       style={[styles.label, { color: theme.colors.muted }]}
                       numberOfLines={1}
                     >
-                      {t("reminderForm.every")}
+                      {t("reminderForm.everyKm")}
                     </Text>
-                  </View>
-                  <View style={styles.rowRight}>
                     <TextInput
-                      value={recurrenceValue}
-                      onChangeText={setRecurrenceValue}
-                      placeholder="6"
+                      value={recurrenceKm}
+                      onChangeText={setRecurrenceKm}
+                      placeholder={t("reminderForm.placeholderEveryKm")}
                       placeholderTextColor={theme.colors.muted}
                       keyboardType="number-pad"
                       editable={!saving}
                       style={[
                         styles.input,
-                        {
-                          color: theme.colors.fg,
-                          textAlign: "right",
-                          flex: 0,
-                          minWidth: 48,
-                          maxWidth: 56,
-                        },
+                        { color: theme.colors.fg, textAlign: "right" },
                       ]}
                     />
-                    <Pressable
-                      onPress={() => {
-                        const unitLabels: Record<
-                          ReminderRecurrenceUnit,
-                          string
-                        > = {
-                          days: t("reminderForm.intervalDays"),
-                          weeks: t("reminderForm.intervalWeeks"),
-                          months: t("reminderForm.intervalMonths"),
-                          years: t("reminderForm.intervalYears"),
-                        };
-                        Alert.alert(
-                          t("reminderForm.every"),
-                          "",
-                          [
-                            { text: t("common.cancel"), style: "cancel" },
-                            ...RECURRENCE_UNITS.map((u) => ({
-                              text: unitLabels[u.value],
-                              onPress: () => setRecurrenceUnit(u.value),
-                            })),
-                          ],
-                          { cancelable: true },
-                        );
-                      }}
-                      style={({ pressed }) => [
-                        { paddingVertical: 4, paddingLeft: theme.spacing.sm },
-                        pressed && { opacity: 0.75 },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.valueText,
-                          {
-                            color: theme.colors.fg,
-                            textAlign: "right",
-                          },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {recurrenceUnitLabel}
-                      </Text>
-                    </Pressable>
                   </View>
-                </View>
-              </>
-            )}
-          </>
-        )}
-      </View>
-
-      <View style={{ height: theme.spacing.sm }} />
-
-      {/* Section 3: Mileage reminder */}
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <View style={[styles.row, { justifyContent: "space-between" }]}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="speedometer-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("reminderForm.mileageReminder")}
-            </Text>
-          </View>
-          <Switch
-            value={mileageEnabled}
-            onValueChange={setMileageEnabled}
-            trackColor={{
-              false: theme.colors.border,
-              true: theme.colors.accent,
-            }}
-            thumbColor="#fff"
-          />
+                </>
+              )}
+            </>
+          )}
         </View>
 
-        {mileageEnabled && (
-          <>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
+        <View style={{ height: theme.spacing.sm }} />
+
+        {/* Section 4: Notes */}
+        <View
+          style={[
+            styles.card,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.card,
+            },
+          ]}
+        >
+          <View
+            style={{
+              paddingVertical: theme.spacing.sm,
+              paddingHorizontal: theme.spacing.md,
+            }}
+          >
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="create-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
               <Text
                 style={[styles.label, { color: theme.colors.muted }]}
                 numberOfLines={1}
               >
-                {t("reminderForm.dueMileage", { unit: distanceUnit })}
+                {t("reminderForm.notesLabel")}
               </Text>
-              <TextInput
-                value={dueMileage}
-                onChangeText={setDueMileage}
-                placeholder={t("reminderForm.placeholderDueMileage")}
-                placeholderTextColor={theme.colors.muted}
-                keyboardType="number-pad"
-                editable={!saving}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
             </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+            <Textarea
+              value={notes}
+              onChangeText={setNotes}
+              placeholder={t("reminderForm.placeholderNotes")}
+              placeholderTextColor={theme.colors.muted}
+              editable={!saving}
+              multiline
+              textAlignVertical="top"
+              style={[
+                styles.inputMultiline,
+                { color: theme.colors.fg, paddingTop: theme.spacing.xs },
+              ]}
             />
-            <View style={[styles.row, { justifyContent: "space-between" }]}>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="repeat-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("reminderForm.repeats")}
-                </Text>
-              </View>
-              <Switch
-                value={mileageRepeats}
-                onValueChange={setMileageRepeats}
-                trackColor={{
-                  false: theme.colors.border,
-                  true: theme.colors.accent,
-                }}
-                thumbColor="#fff"
-              />
-            </View>
-            {mileageRepeats && (
-              <>
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-                <View style={styles.row}>
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("reminderForm.everyKm")}
-                  </Text>
-                  <TextInput
-                    value={recurrenceKm}
-                    onChangeText={setRecurrenceKm}
-                    placeholder={t("reminderForm.placeholderEveryKm")}
-                    placeholderTextColor={theme.colors.muted}
-                    keyboardType="number-pad"
-                    editable={!saving}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </View>
-              </>
-            )}
-          </>
-        )}
-      </View>
-
-      <View style={{ height: theme.spacing.sm }} />
-
-      {/* Section 4: Notes */}
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <View
-          style={{
-            paddingVertical: theme.spacing.sm,
-            paddingHorizontal: theme.spacing.md,
-          }}
-        >
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="create-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("reminderForm.notesLabel")}
-            </Text>
           </View>
-          <Textarea
-            value={notes}
-            onChangeText={setNotes}
-            placeholder={t("reminderForm.placeholderNotes")}
-            placeholderTextColor={theme.colors.muted}
-            editable={!saving}
-            multiline
-            textAlignVertical="top"
-            style={[
-              styles.inputMultiline,
-              { color: theme.colors.fg, paddingTop: theme.spacing.xs },
-            ]}
-          />
         </View>
-      </View>
       </FormScreen>
     </ModalLayout>
   );
