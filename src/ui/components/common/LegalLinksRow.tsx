@@ -8,15 +8,39 @@ import { useTheme } from "../../ThemeProvider";
 type Props = {
   termsUrl: string;
   privacyUrl: string;
+  onRestorePurchases?: () => void;
+  restoreLoading?: boolean;
 };
 
-export function LegalLinksRow({ termsUrl, privacyUrl }: Props) {
+export function LegalLinksRow({
+  termsUrl,
+  privacyUrl,
+  onRestorePurchases,
+  restoreLoading,
+}: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   return (
     <View style={styles.legalRow}>
+      {onRestorePurchases != null && (
+        <>
+          <Pressable
+            onPress={restoreLoading ? undefined : onRestorePurchases}
+            hitSlop={8}
+            style={({ pressed }) => [
+              styles.legalLink,
+              (pressed && !restoreLoading) && { opacity: 0.7 },
+            ]}
+          >
+            <Text style={[styles.legalText, { color: theme.colors.muted }]}>
+              {restoreLoading ? t("common.loading") : t("shop.restorePurchases")}
+            </Text>
+          </Pressable>
+          <Text style={[styles.legalText, { color: theme.colors.muted }]}>·</Text>
+        </>
+      )}
       <Pressable
         onPress={() => void WebBrowser.openBrowserAsync(termsUrl)}
         hitSlop={8}

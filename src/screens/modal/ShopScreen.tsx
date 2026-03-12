@@ -91,6 +91,20 @@ export function ShopScreen({ navigation }: Props) {
     }
   }
 
+  async function handleRestorePurchases() {
+    if (actionLoading || purchasing) return;
+    try {
+      setActionLoading("restore");
+      await restoreRevenueCatPurchases();
+      await refresh();
+      toastSuccess(t("shop.purchaseSuccess"));
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   function getProductName(productId: RevenueCatProductId): string {
     switch (productId) {
       case "monthly":
@@ -362,6 +376,8 @@ export function ShopScreen({ navigation }: Props) {
           <LegalLinksRow
             termsUrl={`${ENV.WEB_APP_URL}/terms`}
             privacyUrl={`${ENV.WEB_APP_URL}/privacy`}
+            onRestorePurchases={() => void handleRestorePurchases()}
+            restoreLoading={actionLoading === "restore"}
           />
         </>
       }

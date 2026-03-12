@@ -349,12 +349,9 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
             />
           </HeaderButton>
         )}
-        <HeaderButton
-          onPress={openFilters}
-          tintColor={theme.colors.accent}
-        >
+        <HeaderButton onPress={openFilters} tintColor={theme.colors.accent}>
           <Ionicons
-            name="options"
+            name="options-outline"
             size={theme.icons.headerButton}
             color={theme.colors.accent}
           />
@@ -363,7 +360,11 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           onPress={() => navigation.navigate("ServiceEntryForm", { vehicleId })}
           tintColor={theme.colors.accent}
         >
-          <Ionicons name="add" size={theme.icons.headerButton} color={theme.colors.accent} />
+          <Ionicons
+            name="add"
+            size={theme.icons.headerButton}
+            color={theme.colors.accent}
+          />
         </HeaderButton>
       </View>
     ),

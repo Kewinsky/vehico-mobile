@@ -20,7 +20,6 @@ import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { supabase } from "../../services/supabase/client";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Settings">;
 
@@ -54,8 +53,6 @@ export function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { user, signOut } = useAuth();
-  const { restoreRevenueCatPurchases, refresh } = useEntitlements();
-  const [restoreLoading, setRestoreLoading] = useState(false);
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const displayNameFromUser = normalizeDisplayName(
@@ -123,20 +120,6 @@ export function SettingsScreen({ navigation }: Props) {
     }
   }
 
-  async function onRestorePurchases() {
-    if (restoreLoading) return;
-    try {
-      setRestoreLoading(true);
-      await restoreRevenueCatPurchases();
-      await refresh();
-      toastSuccess(t("shop.purchaseSuccess"));
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
-    } finally {
-      setRestoreLoading(false);
-    }
-  }
-
   const rows: RowItem[] = useMemo(
     (): RowItem[] => [
       {
@@ -154,15 +137,6 @@ export function SettingsScreen({ navigation }: Props) {
         onPress: () => navigation.navigate("Shop"),
       },
       {
-        id: "restore-purchases",
-        icon: "refresh-circle-outline",
-        title: t("shop.restorePurchases"),
-        subtitle: restoreLoading
-          ? t("common.loading")
-          : t("settings.restorePurchasesSubtitle"),
-        onPress: () => void onRestorePurchases(),
-      },
-      {
         id: "support",
         icon: "help-circle-outline",
         title: t("settings.supportTitle"),
@@ -177,7 +151,7 @@ export function SettingsScreen({ navigation }: Props) {
         onPress: onSignOut,
       },
     ],
-    [t, navigation, restoreLoading, theme.colors.accent],
+    [t, navigation, theme.colors.accent],
   );
 
   return (

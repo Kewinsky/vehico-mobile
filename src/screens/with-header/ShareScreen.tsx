@@ -25,7 +25,7 @@ export function ShareScreen({ navigation, route }: Props) {
       {
         key: "report",
         title: t("share.onlineReport"),
-        icon: "document-text" as const,
+        icon: "globe-outline" as const,
         onPress: () => navigation.navigate("PublicReport", { vehicleId }),
       },
       {
@@ -39,10 +39,7 @@ export function ShareScreen({ navigation, route }: Props) {
   );
 
   return (
-    <HeaderLayout
-      onBack={() => navigation.goBack()}
-      showProfileAvatar
-    >
+    <HeaderLayout onBack={() => navigation.goBack()} showProfileAvatar>
       <ContentHeader title={t("dashboard.tiles.shareTitle")} />
       <View style={{ flex: 1 }}>
         <View style={styles.row}>
