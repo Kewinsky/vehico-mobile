@@ -1130,33 +1130,10 @@ using (
 );
 
 -- ================
--- Storage cleanup on row delete (prevents orphaned files)
+-- Storage cleanup on row delete
 -- ================
--- These triggers delete the underlying storage object when metadata rows are deleted.
--- (App code also attempts deletion; this is a safety net for GDPR-style hard deletes.)
-
--- Single trigger: on photos DELETE, remove corresponding object from storage (no separate helper).
-drop function if exists public.delete_storage_object_trigger();
-create or replace function public.delete_storage_object_trigger()
-returns trigger
-language plpgsql
-security definer
-set search_path = public, storage
-as $$
-begin
-  delete from storage.objects
-  where bucket_id = old.storage_bucket
-    and name = old.storage_path;
-  return old;
-end;
-$$;
-
-revoke all on function public.delete_storage_object_trigger() from public;
-
 drop trigger if exists photos_delete_storage on public.photos;
-create trigger photos_delete_storage
-after delete on public.photos
-for each row execute function public.delete_storage_object_trigger();
+drop function if exists public.delete_storage_object_trigger();
 
 -- ================
 -- Storage policies for 'report-photos' bucket

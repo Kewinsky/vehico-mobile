@@ -229,8 +229,13 @@ export function DocumentsScreen({ route, navigation }: Props) {
           text: t("common.save"),
           onPress: async (description: string | undefined) => {
             try {
-              await updateVehicleDocument(doc.id, description || null);
-              await load();
+              const updatedDoc = await updateVehicleDocument(
+                doc.id,
+                description || null,
+              );
+              setVehicleDocs((prev) =>
+                prev.map((item) => (item.id === doc.id ? updatedDoc : item)),
+              );
               toastSuccess(t("documents.descriptionUpdated"));
             } catch (e: any) {
               toastError(e?.message ?? t("common.error"));

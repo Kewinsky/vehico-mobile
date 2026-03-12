@@ -1,4 +1,5 @@
 import { supabase } from "../supabase/client";
+import { listVehiclePhotos } from "./uploadPhoto";
 import type { Vehicle, VehicleType } from "../../types/domain";
 
 type NewVehicleInput = {
@@ -80,6 +81,23 @@ export async function updateVehicle(
 }
 
 export async function deleteVehicle(vehicleId: string): Promise<void> {
+  // Delete vehicle photo files via Storage API before removing DB rows.
+  const photos = await listVehiclePhotos(vehicleId);
+  const pathsByBucket = new Map<string, string[]>();
+  for (const photo of photos) {
+    const existing = pathsByBucket.get(photo.storage_bucket) ?? [];
+    existing.push(photo.storage_path);
+    pathsByBucket.set(photo.storage_bucket, existing);
+  }
+
+  for (const [bucket, paths] of pathsByBucket.entries()) {
+    if (paths.length === 0) continue;
+    const { error: storageError } = await supabase.storage
+      .from(bucket)
+      .remove(paths);
+    if (storageError) throw storageError;
+  }
+
   // Hard delete: cascades to related tables via FK ON DELETE CASCADE.
   const { error } = await supabase
     .from("vehicles")

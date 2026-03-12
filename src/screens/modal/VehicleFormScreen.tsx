@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
@@ -92,8 +92,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     [theme.colors.accent],
   );
   const [loading, setLoading] = useState(isEditMode);
-  const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
-  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [initialPhotos, setInitialPhotos] = useState<VehiclePhoto[]>([]);
   const [type, setType] = useState<VehicleType>("car");
   const [vin, setVin] = useState("");
   const [make, setMake] = useState("");
@@ -122,9 +121,23 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     mimeType?: string | null;
     fileName?: string | null;
   };
-  const [photoUris, setPhotoUris] = useState<PhotoFile[]>([]);
+  type DraftPhotoItem = {
+    key: string;
+    kind: "existing" | "new";
+    previewUri: string;
+    photo?: VehiclePhoto;
+    file?: PhotoFile;
+  };
+  const [draftPhotos, setDraftPhotos] = useState<DraftPhotoItem[]>([]);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const nextDraftPhotoKeyRef = useRef(0);
+
+  function createDraftPhotoKey(prefix: "existing" | "new") {
+    const key = `${prefix}-${nextDraftPhotoKeyRef.current}`;
+    nextDraftPhotoKeyRef.current += 1;
+    return key;
+  }
 
   const load = useCallback(async () => {
     if (!vehicleId) return;
@@ -152,8 +165,15 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         vehicleId,
         isPremium ? undefined : { limit: photosPerVehicleLimit },
       );
-      setPhotos(photosList);
-      setPhotoUrls(photosList.map((photo) => getVehiclePhotoUrl(photo)));
+      setInitialPhotos(photosList);
+      setDraftPhotos(
+        photosList.map((photo) => ({
+          key: createDraftPhotoKey("existing"),
+          kind: "existing" as const,
+          previewUri: getVehiclePhotoUrl(photo),
+          photo,
+        })),
+      );
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -235,7 +255,8 @@ export function VehicleFormScreen({ navigation, route }: Props) {
               const ymd = formatYmd(selectedDate);
               if (openDatePicker === "insurance") setInsuranceValidUntil(ymd);
               if (openDatePicker === "inspection") setInspectionValidUntil(ymd);
-              if (openDatePicker === "firstRegistration") setFirstRegistrationDate(ymd);
+              if (openDatePicker === "firstRegistration")
+                setFirstRegistrationDate(ymd);
             }
           }}
         />
@@ -316,7 +337,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
   }
 
   function pickSource() {
-    const photoCount = isEditMode ? photos.length : photoUris.length;
+    const photoCount = draftPhotos.length;
     const remainingSlots = 6 - photoCount;
     if (remainingSlots <= 0) {
       toastError(t("vehicleForm.maxPhotosReached"));
@@ -345,8 +366,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
   async function pickFromCamera() {
     try {
-      const remainingSlots =
-        6 - (isEditMode ? photos.length : photoUris.length);
+      const remainingSlots = 6 - draftPhotos.length;
       if (remainingSlots <= 0) {
         toastError(t("vehicleForm.maxPhotosReached"));
         return;
@@ -359,25 +379,19 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-      if (isEditMode && vehicleId) {
-        await uploadVehiclePhoto({
-          vehicleId,
-          fileUri: asset.uri,
-          mimeType: asset.mimeType ?? null,
-          fileName: asset.fileName ?? null,
-        });
-        await load();
-        toastSuccess(t("manageVehicle.photoAdded"));
-      } else {
-        setPhotoUris([
-          ...photoUris,
-          {
+      setDraftPhotos((prev) => [
+        ...prev,
+        {
+          key: createDraftPhotoKey("new"),
+          kind: "new",
+          previewUri: asset.uri,
+          file: {
             uri: asset.uri,
             mimeType: asset.mimeType ?? null,
             fileName: asset.fileName ?? null,
           },
-        ]);
-      }
+        },
+      ]);
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -387,8 +401,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
   async function pickFromGallery() {
     try {
-      const remainingSlots =
-        6 - (isEditMode ? photos.length : photoUris.length);
+      const remainingSlots = 6 - draftPhotos.length;
       if (remainingSlots <= 0) {
         toastError(t("vehicleForm.maxPhotosReached"));
         return;
@@ -407,29 +420,20 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       if (!result.assets || result.assets.length === 0) {
         throw new Error(t("attachments.noFileSelected"));
       }
-      if (isEditMode && vehicleId) {
-        const uploads = result.assets.slice(0, remainingSlots).map((asset) =>
-          uploadVehiclePhoto({
-            vehicleId,
-            fileUri: asset.uri,
-            mimeType: asset.mimeType ?? null,
-            fileName: asset.fileName ?? null,
-          }),
-        );
-        await Promise.all(uploads);
-        await load();
-        toastSuccess(t("manageVehicle.photoAdded"));
-      } else {
-        const newPhotos = result.assets
-          .slice(0, remainingSlots)
-          .map((asset) => ({
+      const newPhotos = result.assets
+        .slice(0, remainingSlots)
+        .map((asset) => ({
+          key: createDraftPhotoKey("new"),
+          kind: "new" as const,
+          previewUri: asset.uri,
+          file: {
             uri: asset.uri,
             mimeType: asset.mimeType ?? null,
             fileName: asset.fileName ?? null,
-          }))
-          .filter((photo) => !!photo.uri) as PhotoFile[];
-        setPhotoUris([...photoUris, ...newPhotos]);
-      }
+          },
+        }))
+        .filter((photo) => !!photo.previewUri);
+      setDraftPhotos((prev) => [...prev, ...newPhotos]);
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -439,8 +443,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
   async function pickFromFiles() {
     try {
-      const remainingSlots =
-        6 - (isEditMode ? photos.length : photoUris.length);
+      const remainingSlots = 6 - draftPhotos.length;
       if (remainingSlots <= 0) {
         toastError(t("vehicleForm.maxPhotosReached"));
         return;
@@ -455,30 +458,20 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       if (!result.assets || result.assets.length === 0) {
         throw new Error(t("attachments.noFileSelected"));
       }
-      if (isEditMode && vehicleId) {
-        const uploads = result.assets.slice(0, remainingSlots).map((asset) =>
-          uploadVehiclePhoto({
-            vehicleId,
-            fileUri: asset.uri,
-            mimeType: asset.mimeType ?? null,
-            fileName: asset.name ?? null,
-            maxPhotos: photosPerVehicleLimit,
-          }),
-        );
-        await Promise.all(uploads);
-        await load();
-        toastSuccess(t("manageVehicle.photoAdded"));
-      } else {
-        const newPhotos = result.assets
-          .slice(0, remainingSlots)
-          .map((asset) => ({
+      const newPhotos = result.assets
+        .slice(0, remainingSlots)
+        .map((asset) => ({
+          key: createDraftPhotoKey("new"),
+          kind: "new" as const,
+          previewUri: asset.uri,
+          file: {
             uri: asset.uri,
             mimeType: asset.mimeType ?? null,
             fileName: asset.name ?? null,
-          }))
-          .filter((photo) => !!photo.uri) as PhotoFile[];
-        setPhotoUris([...photoUris, ...newPhotos]);
-      }
+          },
+        }))
+        .filter((photo) => !!photo.previewUri);
+      setDraftPhotos((prev) => [...prev, ...newPhotos]);
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -486,36 +479,18 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     }
   }
 
-  function removePhoto(index: number) {
-    setPhotoUris(photoUris.filter((_, i) => i !== index));
+  function removeDraftPhoto(key: string) {
+    setDraftPhotos((prev) => prev.filter((photo) => photo.key !== key));
   }
 
-  type PhotoItem = {
-    key: string;
-    uri: string;
-    mimeType?: string | null;
-    fileName?: string | null;
-    index: number;
-  };
-
-  const photoItems: PhotoItem[] = useMemo(() => {
-    return photoUris.map((photo, index) => ({
-      key: photo.uri, // Use URI as unique key
-      uri: photo.uri,
-      mimeType: photo.mimeType,
-      fileName: photo.fileName,
-      index,
-    }));
-  }, [photoUris]);
-
-  const renderPhotoItem = (item: PhotoItem) => {
-    const currentIndex = photoUris.findIndex((p) => p.uri === item.uri);
+  const renderPhotoItem = (item: DraftPhotoItem) => {
+    const currentIndex = draftPhotos.findIndex((p) => p.key === item.key);
     const isMain = currentIndex === 0;
     return (
       <View style={styles.photoCard}>
         <View style={styles.photoImageContainer}>
           <Image
-            source={{ uri: item.uri }}
+            source={{ uri: item.previewUri }}
             style={styles.photoImage}
             contentFit="cover"
             transition={200}
@@ -528,80 +503,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
             </View>
           )}
           <Pressable
-            onPress={() =>
-              removePhoto(currentIndex >= 0 ? currentIndex : item.index)
-            }
-            disabled={saving || uploadingPhoto}
-            style={styles.photoDeleteButton}
-            hitSlop={5}
-          >
-            <Ionicons
-              name="close-circle"
-              size={28}
-              color={theme.colors.accent}
-            />
-          </Pressable>
-        </View>
-      </View>
-    );
-  };
-
-  type EditPhotoItem = {
-    key: string;
-    photoId: string;
-    url: string;
-    index: number;
-  };
-
-  const editPhotoItems: EditPhotoItem[] = useMemo(
-    () =>
-      photos
-        .map((photo, index) => ({
-          key: photo.id,
-          photoId: photo.id,
-          url: photoUrls[index] || "",
-          index,
-        }))
-        .filter((item) => item.url),
-    [photos, photoUrls],
-  );
-
-  const removeEditPhoto = useCallback(
-    async (photo: VehiclePhoto) => {
-      try {
-        await deleteVehiclePhoto(photo);
-        await load();
-        toastSuccess(t("manageVehicle.photoRemoved"));
-      } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
-      }
-    },
-    [load, t],
-  );
-
-  const renderEditPhotoItem = (item: EditPhotoItem) => {
-    const photo = photos.find((p) => p.id === item.photoId);
-    if (!photo) return <View style={styles.photoCard} />;
-    const currentIndex = photos.findIndex((p) => p.id === item.photoId);
-    const isMain = currentIndex === 0;
-    return (
-      <View style={styles.photoCard}>
-        <View style={styles.photoImageContainer}>
-          <Image
-            source={{ uri: item.url }}
-            style={styles.photoImage}
-            contentFit="cover"
-            transition={200}
-          />
-          {isMain && (
-            <View style={styles.photoMainBadge}>
-              <Text style={styles.photoMainText}>
-                {t("manageVehicle.mainPhoto")}
-              </Text>
-            </View>
-          )}
-          <Pressable
-            onPress={() => void removeEditPhoto(photo)}
+            onPress={() => removeDraftPhoto(item.key)}
             disabled={saving || uploadingPhoto}
             style={styles.photoDeleteButton}
             hitSlop={5}
@@ -669,6 +571,44 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
       if (isEditMode && vehicleId) {
         await updateVehicle(vehicleId, payload);
+
+        const currentExistingIds = new Set(
+          draftPhotos
+            .filter((photo) => photo.kind === "existing" && photo.photo)
+            .map((photo) => photo.photo!.id),
+        );
+        const removedPhotos = initialPhotos.filter(
+          (photo) => !currentExistingIds.has(photo.id),
+        );
+
+        for (const photo of removedPhotos) {
+          await deleteVehiclePhoto(photo);
+        }
+
+        const uploadedPhotosByKey = new Map<string, VehiclePhoto>();
+        for (const draftPhoto of draftPhotos) {
+          if (draftPhoto.kind !== "new" || !draftPhoto.file) continue;
+          const uploadedPhoto = await uploadVehiclePhoto({
+            vehicleId,
+            fileUri: draftPhoto.file.uri,
+            mimeType: draftPhoto.file.mimeType,
+            fileName: draftPhoto.file.fileName,
+            maxPhotos: photosPerVehicleLimit,
+          });
+          uploadedPhotosByKey.set(draftPhoto.key, uploadedPhoto);
+        }
+
+        const orderedPhotoIds = draftPhotos
+          .map((draftPhoto) => {
+            if (draftPhoto.kind === "existing") return draftPhoto.photo?.id ?? null;
+            return uploadedPhotosByKey.get(draftPhoto.key)?.id ?? null;
+          })
+          .filter((photoId): photoId is string => !!photoId);
+
+        if (orderedPhotoIds.length > 0) {
+          await reorderVehiclePhotos(vehicleId, orderedPhotoIds);
+        }
+
         navigation.goBack();
         return;
       }
@@ -695,14 +635,18 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       const created = await createVehicle(payload);
 
       // Upload photos if selected (add mode)
-      if (photoUris.length > 0) {
+      const newDraftPhotos = draftPhotos.filter(
+        (photo): photo is DraftPhotoItem & { kind: "new"; file: PhotoFile } =>
+          photo.kind === "new" && !!photo.file,
+      );
+      if (newDraftPhotos.length > 0) {
         try {
-          for (const photo of photoUris) {
+          for (const photo of newDraftPhotos) {
             await uploadVehiclePhoto({
               vehicleId: created.id,
-              fileUri: photo.uri,
-              mimeType: photo.mimeType,
-              fileName: photo.fileName,
+              fileUri: photo.file.uri,
+              mimeType: photo.file.mimeType,
+              fileName: photo.file.fileName,
               maxPhotos: photosPerVehicleLimit,
             });
           }
@@ -733,467 +677,18 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       loading={isEditMode && loading}
     >
       <FormScreen scrollEnabled={!isDragging} noLayout>
-      {isEditMode && loading ? (
-        <View style={styles.loadingContainer}>
-          <LoadingIndicator />
-        </View>
-      ) : (
-        <>
-          <View>
-            <View style={[styles.rowLeft, { marginBottom: theme.spacing.xs }]}>
-              <Ionicons
-                name="images-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <Text
-                style={[styles.label, { color: theme.colors.muted }]}
-                numberOfLines={1}
-              >
-                {t("vehicleForm.photos")} (
-                {isEditMode ? photos.length : photoUris.length}/6)
-              </Text>
-            </View>
-            {isEditMode
-              ? editPhotoItems.length > 0 && (
-                  <DraggableGrid
-                    numColumns={3}
-                    renderItem={renderEditPhotoItem}
-                    data={editPhotoItems}
-                    onDragStart={() => setIsDragging(true)}
-                    onDragRelease={async (data) => {
-                      setIsDragging(false);
-                      const newPhotos = data
-                        .map((item) =>
-                          photos.find(
-                            (p) => p.id === (item as EditPhotoItem).photoId,
-                          ),
-                        )
-                        .filter((p): p is VehiclePhoto => !!p);
-                      setPhotos(newPhotos);
-                      setPhotoUrls(
-                        newPhotos.map((p) => {
-                          const i = photos.findIndex((x) => x.id === p.id);
-                          return photoUrls[i] ?? "";
-                        }),
-                      );
-                      await reorderVehiclePhotos(
-                        vehicleId!,
-                        newPhotos.map((p) => p.id),
-                      );
-                    }}
-                  />
-                )
-              : photoItems.length > 0 && (
-                  <DraggableGrid
-                    numColumns={3}
-                    renderItem={renderPhotoItem}
-                    data={photoItems}
-                    onDragStart={() => setIsDragging(true)}
-                    onDragRelease={(data) => {
-                      setIsDragging(false);
-                      const newPhotoUris: PhotoFile[] = data.map((item) => ({
-                        uri: item.uri,
-                        mimeType: item.mimeType,
-                        fileName: item.fileName,
-                      }));
-                      setPhotoUris(newPhotoUris);
-                    }}
-                  />
-                )}
-            {(isEditMode ? photos.length : photoUris.length) < 6 && (
-              <Button
-                onPress={pickSource}
-                disabled={saving || uploadingPhoto}
-                variant="ghost"
-                style={{ marginTop: theme.spacing.sm / 2 }}
-              >
-                {t("vehicleForm.addPhoto")}
-              </Button>
-            )}
+        {isEditMode && loading ? (
+          <View style={styles.loadingContainer}>
+            <LoadingIndicator />
           </View>
-
-          <View style={{ height: theme.spacing.xl }} />
-
-          <SegmentTabs<VehicleType>
-            value={type}
-            options={[
-              { value: "car", label: t("vehicleForm.car") },
-              { value: "motorcycle", label: t("vehicleForm.motorcycle") },
-            ]}
-            onChange={setType}
-          />
-
-          <View style={{ height: theme.spacing.sm }} />
-
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="barcode-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("vehicleForm.vinLabel")}
-                </Text>
-              </View>
-              <TextInput
-                value={vin}
-                onChangeText={setVin}
-                autoCapitalize="characters"
-                editable={!saving}
-                placeholder={t("vehicleForm.placeholderVin")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="car-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("vehicleForm.makeLabel")}
-                </Text>
-              </View>
-              <TextInput
-                value={make}
-                onChangeText={setMake}
-                editable={!saving}
-                placeholder={t("vehicleForm.placeholderMake")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="pricetag-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("vehicleForm.modelLabel")}
-                </Text>
-              </View>
-              <TextInput
-                value={model}
-                onChangeText={setModel}
-                editable={!saving}
-                placeholder={t("vehicleForm.placeholderModel")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("vehicleForm.yearLabel")}
-                </Text>
-              </View>
-              <TextInput
-                value={year}
-                onChangeText={setYear}
-                keyboardType="number-pad"
-                maxLength={4}
-                editable={!saving}
-                placeholder={t("vehicleForm.placeholderYear")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="speedometer-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("vehicleForm.mileageLabel")} ({distanceUnit})
-                </Text>
-              </View>
-              <TextInput
-                value={mileage}
-                onChangeText={setMileage}
-                keyboardType="number-pad"
-                editable={!saving}
-                placeholder={t("vehicleForm.placeholderMileage")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <Pressable
-              onPress={() => !saving && openPicker("firstRegistration")}
-              style={({ pressed }) => [
-                styles.row,
-                pressed && { opacity: 0.75 },
-              ]}
-            >
-              <View style={styles.rowLeft}>
-                <CalendarCheck
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("vehicleForm.firstRegistrationDateLabel")}
-                </Text>
-              </View>
-              <View style={styles.rowRight}>
-                <Text
-                  style={[
-                    styles.valueText,
-                    {
-                      color: firstRegistrationDate
-                        ? theme.colors.fg
-                        : theme.colors.muted,
-                      textAlign: "right",
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {firstRegistrationDate || t("manageVehicle.selectDate")}
-                </Text>
-                {firstRegistrationDate ? (
-                  <Pressable
-                    onPress={(e) => {
-                      e?.stopPropagation?.();
-                      setFirstRegistrationDate("");
-                    }}
-                    hitSlop={10}
-                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-                  >
-                    <Ionicons
-                      name="close-circle"
-                      size={20}
-                      color={theme.colors.muted}
-                      style={{ marginLeft: theme.spacing.xs }}
-                    />
-                  </Pressable>
-                ) : null}
-              </View>
-            </Pressable>
-            {openDatePicker === "firstRegistration" ? (
-              <>
-                {renderInlineDatePicker()}
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-              </>
-            ) : (
+        ) : (
+          <>
+            <View>
               <View
-                style={[
-                  styles.divider,
-                  { backgroundColor: theme.colors.border },
-                ]}
-              />
-            )}
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <Hash
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("vehicleForm.licensePlateLabel")}
-                </Text>
-              </View>
-              <TextInput
-                value={licensePlate}
-                onChangeText={setLicensePlate}
-                editable={!saving}
-                placeholder={t("vehicleForm.placeholderLicensePlate")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </View>
-          </View>
-
-          <View style={{ height: theme.spacing.sm }} />
-
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <Pressable
-              onPress={() =>
-                showPicker<FuelType>({
-                  title: t("vehicleForm.fuelTypeLabel"),
-                  value: fuelType,
-                  options: [
-                    "petrol",
-                    "diesel",
-                    "hybrid",
-                    "electric",
-                    "lpg",
-                  ] as const,
-                  getLabel: (value) =>
-                    t(
-                      `vehicleForm.fuelType${
-                        value.charAt(0).toUpperCase() + value.slice(1)
-                      }` as
-                        | "vehicleForm.fuelTypePetrol"
-                        | "vehicleForm.fuelTypeDiesel"
-                        | "vehicleForm.fuelTypeHybrid"
-                        | "vehicleForm.fuelTypeElectric"
-                        | "vehicleForm.fuelTypeLpg",
-                    ),
-                  onChange: setFuelType,
-                  placeholderLabel: t("vehicleForm.fuelTypePlaceholder"),
-                })
-              }
-              style={({ pressed }) => [
-                styles.row,
-                pressed && { opacity: 0.75 },
-              ]}
-            >
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="water-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("vehicleForm.fuelTypeLabel")}
-                </Text>
-              </View>
-              <Text
-                style={[
-                  styles.valueText,
-                  {
-                    color: fuelType ? theme.colors.fg : theme.colors.muted,
-                    textAlign: "right",
-                  },
-                ]}
-                numberOfLines={1}
+                style={[styles.rowLeft, { marginBottom: theme.spacing.xs }]}
               >
-                {fuelType
-                  ? t(
-                      `vehicleForm.fuelType${
-                        fuelType.charAt(0).toUpperCase() + fuelType.slice(1)
-                      }` as any,
-                    )
-                  : t("vehicleForm.fuelTypePlaceholder")}
-              </Text>
-            </Pressable>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <MaterialCommunityIcons
-                  name="engine"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("vehicleForm.engineCapacityLabel")}
-                </Text>
-              </View>
-              <TextInput
-                value={engineCapacity}
-                onChangeText={setEngineCapacity}
-                keyboardType="number-pad"
-                editable={!saving}
-                placeholder={t("vehicleForm.placeholderEngineCapacity")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
                 <Ionicons
-                  name="flash-outline"
+                  name="images-outline"
                   size={20}
                   color={theme.colors.accent}
                 />
@@ -1201,282 +696,718 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   style={[styles.label, { color: theme.colors.muted }]}
                   numberOfLines={1}
                 >
-                  {t("vehicleForm.powerHpLabel")}
+                  {t("vehicleForm.photos")} (
+                  {draftPhotos.length}/6)
                 </Text>
               </View>
-              <TextInput
-                value={powerHp}
-                onChangeText={setPowerHp}
-                keyboardType="number-pad"
-                editable={!saving}
-                placeholder={t("vehicleForm.placeholderPowerHp")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </View>
-          </View>
-
-          <View style={{ height: theme.spacing.sm }} />
-
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <MaterialCommunityIcons
-                  name="car-shift-pattern"
-                  size={20}
-                  color={theme.colors.accent}
+              {draftPhotos.length > 0 && (
+                <DraggableGrid
+                  numColumns={3}
+                  renderItem={renderPhotoItem}
+                  data={draftPhotos}
+                  onDragStart={() => setIsDragging(true)}
+                  onDragRelease={(data) => {
+                    setIsDragging(false);
+                    setDraftPhotos(data as DraftPhotoItem[]);
+                  }}
                 />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
+              )}
+              {draftPhotos.length < 6 && (
+                <Button
+                  onPress={pickSource}
+                  disabled={saving || uploadingPhoto}
+                  variant="ghost"
+                  style={{ marginTop: theme.spacing.sm / 2 }}
                 >
-                  {t("vehicleForm.transmissionLabel")}
-                </Text>
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <SegmentTabs<TransmissionType>
-                  value={transmission ?? "manual"}
-                  options={[
-                    {
-                      value: "manual",
-                      label: t("vehicleForm.transmissionManual"),
-                    },
-                    {
-                      value: "automatic",
-                      label: t("vehicleForm.transmissionAutomatic"),
-                    },
-                  ]}
-                  onChange={setTransmission}
-                />
-              </View>
+                  {t("vehicleForm.addPhoto")}
+                </Button>
+              )}
             </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
+
+            <View style={{ height: theme.spacing.xl }} />
+
+            <SegmentTabs<VehicleType>
+              value={type}
+              options={[
+                { value: "car", label: t("vehicleForm.car") },
+                { value: "motorcycle", label: t("vehicleForm.motorcycle") },
+              ]}
+              onChange={setType}
             />
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <DriveTypeIcon size={20} color={theme.colors.accent} />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("vehicleForm.driveTypeLabel")}
-                </Text>
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <SegmentTabs<DriveType>
-                  value={driveType ?? "FWD"}
-                  options={[
-                    { value: "FWD", label: "FWD" },
-                    { value: "RWD", label: "RWD" },
-                    { value: "AWD", label: "AWD" },
-                  ]}
-                  onChange={setDriveType}
-                />
-              </View>
-            </View>
-          </View>
 
-          <View style={{ height: theme.spacing.sm }} />
+            <View style={{ height: theme.spacing.sm }} />
 
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <Pressable
-              onPress={() => openPicker("insurance")}
-              style={({ pressed }) => [
-                styles.row,
-                pressed && { opacity: 0.75 },
+            <View
+              style={[
+                styles.card,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
               ]}
             >
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("manageVehicle.insuranceLabel")}
-                </Text>
-              </View>
-              <View style={styles.rowRight}>
-                <Text
-                  style={[
-                    styles.valueText,
-                    {
-                      color: insuranceValidUntil
-                        ? theme.colors.fg
-                        : theme.colors.muted,
-                      textAlign: "right",
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {insuranceValidUntil || t("manageVehicle.selectDate")}
-                </Text>
-                {insuranceValidUntil ? (
-                  <Pressable
-                    onPress={(e) => {
-                      e?.stopPropagation?.();
-                      setInsuranceValidUntil("");
-                    }}
-                    hitSlop={10}
-                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="barcode-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
                   >
-                    <Ionicons
-                      name="close-circle"
-                      size={20}
-                      color={theme.colors.muted}
-                      style={{ marginLeft: theme.spacing.xs }}
-                    />
-                  </Pressable>
-                ) : null}
-              </View>
-            </Pressable>
-            {openDatePicker === "insurance" ? (
-              <>
-                {renderInlineDatePicker()}
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-              </>
-            ) : (
-              <View
-                style={[
-                  styles.divider,
-                  { backgroundColor: theme.colors.border },
-                ]}
-              />
-            )}
-            <Pressable
-              onPress={() => openPicker("inspection")}
-              style={({ pressed }) => [
-                styles.row,
-                pressed && { opacity: 0.75 },
-              ]}
-            >
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="checkmark-done-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("manageVehicle.inspectionLabel")}
-                </Text>
-              </View>
-              <View style={styles.rowRight}>
-                <Text
-                  style={[
-                    styles.valueText,
-                    {
-                      color: inspectionValidUntil
-                        ? theme.colors.fg
-                        : theme.colors.muted,
-                      textAlign: "right",
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {inspectionValidUntil || t("manageVehicle.selectDate")}
-                </Text>
-                {inspectionValidUntil ? (
-                  <Pressable
-                    onPress={(e) => {
-                      e?.stopPropagation?.();
-                      setInspectionValidUntil("");
-                    }}
-                    hitSlop={10}
-                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-                  >
-                    <Ionicons
-                      name="close-circle"
-                      size={20}
-                      color={theme.colors.muted}
-                      style={{ marginLeft: theme.spacing.xs }}
-                    />
-                  </Pressable>
-                ) : null}
-              </View>
-            </Pressable>
-            {openDatePicker === "inspection" ? renderInlineDatePicker() : null}
-          </View>
-
-          <View style={{ height: theme.spacing.sm }} />
-
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <View
-              style={{
-                paddingVertical: theme.spacing.sm,
-                paddingHorizontal: theme.spacing.md,
-              }}
-            >
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("vehicleForm.notesLabel")}
-                </Text>
-              </View>
-              <View style={{ marginTop: theme.spacing.xs }}>
-                <Textarea
-                  value={notes}
-                  onChangeText={setNotes}
+                    {t("vehicleForm.vinLabel")}
+                  </Text>
+                </View>
+                <TextInput
+                  value={vin}
+                  onChangeText={setVin}
+                  autoCapitalize="characters"
                   editable={!saving}
-                  multiline
-                  placeholder={t("vehicleForm.placeholderNotes")}
+                  placeholder={t("vehicleForm.placeholderVin")}
                   placeholderTextColor={theme.colors.muted}
                   style={[
-                    styles.inputMultiline,
-                    { color: theme.colors.fg, paddingTop: theme.spacing.xs },
+                    styles.input,
+                    { color: theme.colors.fg, textAlign: "right" },
+                  ]}
+                />
+              </View>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="car-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.makeLabel")}
+                  </Text>
+                </View>
+                <TextInput
+                  value={make}
+                  onChangeText={setMake}
+                  editable={!saving}
+                  placeholder={t("vehicleForm.placeholderMake")}
+                  placeholderTextColor={theme.colors.muted}
+                  style={[
+                    styles.input,
+                    { color: theme.colors.fg, textAlign: "right" },
+                  ]}
+                />
+              </View>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="pricetag-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.modelLabel")}
+                  </Text>
+                </View>
+                <TextInput
+                  value={model}
+                  onChangeText={setModel}
+                  editable={!saving}
+                  placeholder={t("vehicleForm.placeholderModel")}
+                  placeholderTextColor={theme.colors.muted}
+                  style={[
+                    styles.input,
+                    { color: theme.colors.fg, textAlign: "right" },
+                  ]}
+                />
+              </View>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.yearLabel")}
+                  </Text>
+                </View>
+                <TextInput
+                  value={year}
+                  onChangeText={setYear}
+                  keyboardType="number-pad"
+                  maxLength={4}
+                  editable={!saving}
+                  placeholder={t("vehicleForm.placeholderYear")}
+                  placeholderTextColor={theme.colors.muted}
+                  style={[
+                    styles.input,
+                    { color: theme.colors.fg, textAlign: "right" },
+                  ]}
+                />
+              </View>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="speedometer-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.mileageLabel")} ({distanceUnit})
+                  </Text>
+                </View>
+                <TextInput
+                  value={mileage}
+                  onChangeText={setMileage}
+                  keyboardType="number-pad"
+                  editable={!saving}
+                  placeholder={t("vehicleForm.placeholderMileage")}
+                  placeholderTextColor={theme.colors.muted}
+                  style={[
+                    styles.input,
+                    { color: theme.colors.fg, textAlign: "right" },
+                  ]}
+                />
+              </View>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <Pressable
+                onPress={() => !saving && openPicker("firstRegistration")}
+                style={({ pressed }) => [
+                  styles.row,
+                  pressed && { opacity: 0.75 },
+                ]}
+              >
+                <View style={styles.rowLeft}>
+                  <CalendarCheck size={20} color={theme.colors.accent} />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.firstRegistrationDateLabel")}
+                  </Text>
+                </View>
+                <View style={styles.rowRight}>
+                  <Text
+                    style={[
+                      styles.valueText,
+                      {
+                        color: firstRegistrationDate
+                          ? theme.colors.fg
+                          : theme.colors.muted,
+                        textAlign: "right",
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {firstRegistrationDate || t("manageVehicle.selectDate")}
+                  </Text>
+                  {firstRegistrationDate ? (
+                    <Pressable
+                      onPress={(e) => {
+                        e?.stopPropagation?.();
+                        setFirstRegistrationDate("");
+                      }}
+                      hitSlop={10}
+                      style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                    >
+                      <Ionicons
+                        name="close-circle"
+                        size={20}
+                        color={theme.colors.muted}
+                        style={{ marginLeft: theme.spacing.xs }}
+                      />
+                    </Pressable>
+                  ) : null}
+                </View>
+              </Pressable>
+              {openDatePicker === "firstRegistration" ? (
+                <>
+                  {renderInlineDatePicker()}
+                  <View
+                    style={[
+                      styles.divider,
+                      { backgroundColor: theme.colors.border },
+                    ]}
+                  />
+                </>
+              ) : (
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+              )}
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <Hash size={20} color={theme.colors.accent} />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.licensePlateLabel")}
+                  </Text>
+                </View>
+                <TextInput
+                  value={licensePlate}
+                  onChangeText={setLicensePlate}
+                  editable={!saving}
+                  placeholder={t("vehicleForm.placeholderLicensePlate")}
+                  placeholderTextColor={theme.colors.muted}
+                  style={[
+                    styles.input,
+                    { color: theme.colors.fg, textAlign: "right" },
                   ]}
                 />
               </View>
             </View>
-          </View>
-          <View style={{ height: theme.spacing.xl * 2 }} />
-        </>
-      )}
+
+            <View style={{ height: theme.spacing.sm }} />
+
+            <View
+              style={[
+                styles.card,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <Pressable
+                onPress={() =>
+                  showPicker<FuelType>({
+                    title: t("vehicleForm.fuelTypeLabel"),
+                    value: fuelType,
+                    options: [
+                      "petrol",
+                      "diesel",
+                      "hybrid",
+                      "electric",
+                      "lpg",
+                    ] as const,
+                    getLabel: (value) =>
+                      t(
+                        `vehicleForm.fuelType${
+                          value.charAt(0).toUpperCase() + value.slice(1)
+                        }` as
+                          | "vehicleForm.fuelTypePetrol"
+                          | "vehicleForm.fuelTypeDiesel"
+                          | "vehicleForm.fuelTypeHybrid"
+                          | "vehicleForm.fuelTypeElectric"
+                          | "vehicleForm.fuelTypeLpg",
+                      ),
+                    onChange: setFuelType,
+                    placeholderLabel: t("vehicleForm.fuelTypePlaceholder"),
+                  })
+                }
+                style={({ pressed }) => [
+                  styles.row,
+                  pressed && { opacity: 0.75 },
+                ]}
+              >
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="water-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.fuelTypeLabel")}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.valueText,
+                    {
+                      color: fuelType ? theme.colors.fg : theme.colors.muted,
+                      textAlign: "right",
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {fuelType
+                    ? t(
+                        `vehicleForm.fuelType${
+                          fuelType.charAt(0).toUpperCase() + fuelType.slice(1)
+                        }` as any,
+                      )
+                    : t("vehicleForm.fuelTypePlaceholder")}
+                </Text>
+              </Pressable>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <MaterialCommunityIcons
+                    name="engine"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.engineCapacityLabel")}
+                  </Text>
+                </View>
+                <TextInput
+                  value={engineCapacity}
+                  onChangeText={setEngineCapacity}
+                  keyboardType="number-pad"
+                  editable={!saving}
+                  placeholder={t("vehicleForm.placeholderEngineCapacity")}
+                  placeholderTextColor={theme.colors.muted}
+                  style={[
+                    styles.input,
+                    { color: theme.colors.fg, textAlign: "right" },
+                  ]}
+                />
+              </View>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="flash-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.powerHpLabel")}
+                  </Text>
+                </View>
+                <TextInput
+                  value={powerHp}
+                  onChangeText={setPowerHp}
+                  keyboardType="number-pad"
+                  editable={!saving}
+                  placeholder={t("vehicleForm.placeholderPowerHp")}
+                  placeholderTextColor={theme.colors.muted}
+                  style={[
+                    styles.input,
+                    { color: theme.colors.fg, textAlign: "right" },
+                  ]}
+                />
+              </View>
+            </View>
+
+            <View style={{ height: theme.spacing.sm }} />
+
+            <View
+              style={[
+                styles.card,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <MaterialCommunityIcons
+                    name="car-shift-pattern"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.transmissionLabel")}
+                  </Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <SegmentTabs<TransmissionType>
+                    value={transmission ?? "manual"}
+                    options={[
+                      {
+                        value: "manual",
+                        label: t("vehicleForm.transmissionManual"),
+                      },
+                      {
+                        value: "automatic",
+                        label: t("vehicleForm.transmissionAutomatic"),
+                      },
+                    ]}
+                    onChange={setTransmission}
+                  />
+                </View>
+              </View>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <DriveTypeIcon size={20} color={theme.colors.accent} />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.driveTypeLabel")}
+                  </Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <SegmentTabs<DriveType>
+                    value={driveType ?? "FWD"}
+                    options={[
+                      { value: "FWD", label: "FWD" },
+                      { value: "RWD", label: "RWD" },
+                      { value: "AWD", label: "AWD" },
+                    ]}
+                    onChange={setDriveType}
+                  />
+                </View>
+              </View>
+            </View>
+
+            <View style={{ height: theme.spacing.sm }} />
+
+            <View
+              style={[
+                styles.card,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <Pressable
+                onPress={() => openPicker("insurance")}
+                style={({ pressed }) => [
+                  styles.row,
+                  pressed && { opacity: 0.75 },
+                ]}
+              >
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="shield-checkmark-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("manageVehicle.insuranceLabel")}
+                  </Text>
+                </View>
+                <View style={styles.rowRight}>
+                  <Text
+                    style={[
+                      styles.valueText,
+                      {
+                        color: insuranceValidUntil
+                          ? theme.colors.fg
+                          : theme.colors.muted,
+                        textAlign: "right",
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {insuranceValidUntil || t("manageVehicle.selectDate")}
+                  </Text>
+                  {insuranceValidUntil ? (
+                    <Pressable
+                      onPress={(e) => {
+                        e?.stopPropagation?.();
+                        setInsuranceValidUntil("");
+                      }}
+                      hitSlop={10}
+                      style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                    >
+                      <Ionicons
+                        name="close-circle"
+                        size={20}
+                        color={theme.colors.muted}
+                        style={{ marginLeft: theme.spacing.xs }}
+                      />
+                    </Pressable>
+                  ) : null}
+                </View>
+              </Pressable>
+              {openDatePicker === "insurance" ? (
+                <>
+                  {renderInlineDatePicker()}
+                  <View
+                    style={[
+                      styles.divider,
+                      { backgroundColor: theme.colors.border },
+                    ]}
+                  />
+                </>
+              ) : (
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+              )}
+              <Pressable
+                onPress={() => openPicker("inspection")}
+                style={({ pressed }) => [
+                  styles.row,
+                  pressed && { opacity: 0.75 },
+                ]}
+              >
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="checkmark-done-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("manageVehicle.inspectionLabel")}
+                  </Text>
+                </View>
+                <View style={styles.rowRight}>
+                  <Text
+                    style={[
+                      styles.valueText,
+                      {
+                        color: inspectionValidUntil
+                          ? theme.colors.fg
+                          : theme.colors.muted,
+                        textAlign: "right",
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {inspectionValidUntil || t("manageVehicle.selectDate")}
+                  </Text>
+                  {inspectionValidUntil ? (
+                    <Pressable
+                      onPress={(e) => {
+                        e?.stopPropagation?.();
+                        setInspectionValidUntil("");
+                      }}
+                      hitSlop={10}
+                      style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                    >
+                      <Ionicons
+                        name="close-circle"
+                        size={20}
+                        color={theme.colors.muted}
+                        style={{ marginLeft: theme.spacing.xs }}
+                      />
+                    </Pressable>
+                  ) : null}
+                </View>
+              </Pressable>
+              {openDatePicker === "inspection"
+                ? renderInlineDatePicker()
+                : null}
+            </View>
+
+            <View style={{ height: theme.spacing.sm }} />
+
+            <View
+              style={[
+                styles.card,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <View
+                style={{
+                  paddingVertical: theme.spacing.sm,
+                  paddingHorizontal: theme.spacing.md,
+                }}
+              >
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="document-text-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("vehicleForm.notesLabel")}
+                  </Text>
+                </View>
+                <View style={{ marginTop: theme.spacing.xs }}>
+                  <Textarea
+                    value={notes}
+                    onChangeText={setNotes}
+                    editable={!saving}
+                    multiline
+                    placeholder={t("vehicleForm.placeholderNotes")}
+                    placeholderTextColor={theme.colors.muted}
+                    style={[
+                      styles.inputMultiline,
+                      { color: theme.colors.fg, paddingTop: theme.spacing.xs },
+                    ]}
+                  />
+                </View>
+              </View>
+            </View>
+            <View style={{ height: theme.spacing.xl * 2 }} />
+          </>
+        )}
       </FormScreen>
     </ModalLayout>
   );

@@ -4,7 +4,6 @@ const REPORT_PHOTOS_BUCKET = "report-photos";
 
 /**
  * Deletes all data and storage for the current user, then deletes the auth account.
- * Order: 1) report-photos storage per report, 2) vehicles (cascade: reports, service_entries, photos→images, fueling_entries, reminders, posts, tires, wheels, attachments), 3) workshops, 4) user_settings, 5) auth.deleteUser().
  */
 export async function deleteAccount(): Promise<void> {
   const {
@@ -24,6 +23,28 @@ export async function deleteAccount(): Promise<void> {
   if (vids.length === 0) {
     // No vehicles — still delete workshops, user_settings, auth
   } else {
+    const { data: vehiclePhotos, error: vehiclePhotosError } = await supabase
+      .from("photos")
+      .select("storage_bucket, storage_path")
+      .in("vehicle_id", vids);
+    if (vehiclePhotosError) throw vehiclePhotosError;
+
+    const vehiclePathsByBucket = new Map<string, string[]>();
+    for (const photo of vehiclePhotos ?? []) {
+      const bucket = photo.storage_bucket as string;
+      const existing = vehiclePathsByBucket.get(bucket) ?? [];
+      existing.push(photo.storage_path as string);
+      vehiclePathsByBucket.set(bucket, existing);
+    }
+
+    for (const [bucket, paths] of vehiclePathsByBucket.entries()) {
+      if (paths.length === 0) continue;
+      const { error: storageError } = await supabase.storage
+        .from(bucket)
+        .remove(paths);
+      if (storageError) throw storageError;
+    }
+
     const { data: reportRows, error: reportRowsError } = await supabase
       .from("reports")
       .select("id")
@@ -49,7 +70,7 @@ export async function deleteAccount(): Promise<void> {
     }
   }
 
-  // 3) Delete vehicles (cascade: reports, service_entries, photos [trigger→images], fueling_entries, reminders, posts, tires, wheels, attachments)
+  // 3) Delete vehicles (cascade: reports, service_entries, photos, fueling_entries, reminders, posts, tires, wheels, attachments)
   const { error: vehiclesError } = await supabase
     .from("vehicles")
     .delete()
@@ -73,7 +94,7 @@ export async function deleteAccount(): Promise<void> {
   // 6) Delete auth user via Edge Function (client has no deleteUser(); admin API requires service_role)
   const { error: deleteUserError } = await supabase.functions.invoke(
     "delete-account",
-    { method: "POST" }
+    { method: "POST" },
   );
   if (deleteUserError) throw deleteUserError;
 }

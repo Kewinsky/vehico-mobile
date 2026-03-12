@@ -247,6 +247,7 @@ export function RootNavigator() {
             component={VehicleFormScreen}
             options={{
               presentation: "modal",
+              gestureEnabled: false,
               headerShown: true,
               headerShadowVisible: false,
             }}
