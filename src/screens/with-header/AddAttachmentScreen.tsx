@@ -1,10 +1,4 @@
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -68,9 +62,10 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
 
   useFocusEffect(
     useCallback(() => {
-      const pending = getAndClearPendingModalResult<AddAttachmentFiltersParams>(
-        "addAttachment",
-      );
+      const pending =
+        getAndClearPendingModalResult<AddAttachmentFiltersParams>(
+          "addAttachment",
+        );
       if (pending?.sortOption) setSortOption(pending.sortOption);
     }, []),
   );
@@ -222,7 +217,13 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
 
   const headerRight = useMemo(
     () => (
-      <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: theme.spacing.sm,
+        }}
+      >
         {hasActiveFilters && (
           <HeaderButton
             onPress={resetFilters}
@@ -238,14 +239,22 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         )}
         <HeaderButton onPress={openFilters} tintColor={theme.colors.accent}>
           <Ionicons
-            name="options"
+            name="options-outline"
             size={theme.icons.headerButton}
             color={theme.colors.accent}
           />
         </HeaderButton>
       </View>
     ),
-    [openFilters, resetFilters, hasActiveFilters, theme.colors.accent, theme.spacing.sm, theme.icons.headerButton, t],
+    [
+      openFilters,
+      resetFilters,
+      hasActiveFilters,
+      theme.colors.accent,
+      theme.spacing.sm,
+      theme.icons.headerButton,
+      t,
+    ],
   );
 
   return (

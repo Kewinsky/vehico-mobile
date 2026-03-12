@@ -16,6 +16,7 @@ import {
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { ServiceEntryCategory } from "../../types/domain";
 import { setPendingModalResult } from "../../app/pendingModalResult";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Button } from "../../ui/components/common/Button";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
@@ -100,6 +101,11 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
     | "cost-desc";
   const [sortOption, setSortOption] = useState<SortOption>(
     (params.sortOption as SortOption | undefined) ?? "date-newest",
+  );
+
+  const accentBg = useMemo(
+    () => hexToRgba(theme.colors.accent, 0.15),
+    [theme.colors.accent],
   );
 
   const sortField = useMemo(() => {
@@ -475,6 +481,9 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
           </>
         ) : null}
 
+        <View
+          style={[styles.divider, { backgroundColor: theme.colors.border }]}
+        />
         <View style={styles.row}>
           <Ionicons name="cash-outline" size={20} color={theme.colors.accent} />
           <TextInput

@@ -260,18 +260,22 @@ export function RemindersScreen({ route, navigation }: Props) {
             />
           </HeaderButton>
         )}
-        <HeaderButton
-          onPress={openFilters}
-          tintColor={theme.colors.accent}
-        >
+        <HeaderButton onPress={openFilters} tintColor={theme.colors.accent}>
           <Ionicons
-            name="options"
+            name="options-outline"
             size={theme.icons.headerButton}
             color={theme.colors.accent}
           />
         </HeaderButton>
-        <HeaderButton onPress={onAddReminderPress} tintColor={theme.colors.accent}>
-          <Ionicons name="add" size={theme.icons.headerButton} color={theme.colors.accent} />
+        <HeaderButton
+          onPress={onAddReminderPress}
+          tintColor={theme.colors.accent}
+        >
+          <Ionicons
+            name="add"
+            size={theme.icons.headerButton}
+            color={theme.colors.accent}
+          />
         </HeaderButton>
       </View>
     ),

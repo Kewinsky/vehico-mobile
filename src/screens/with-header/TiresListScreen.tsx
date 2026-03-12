@@ -102,11 +102,12 @@ export function TiresListScreen({ route, navigation }: Props) {
   useEffect(() => {
     void load();
     const unsub = navigation.addListener("focus", () => {
-      const pending = getAndClearPendingModalResult<TiresListFiltersParams>(
-        "tiresList",
-      );
+      const pending =
+        getAndClearPendingModalResult<TiresListFiltersParams>("tiresList");
       if (pending) {
-        setTireTypeFilter((pending.tireTypeFilter as TireType | "all") ?? "all");
+        setTireTypeFilter(
+          (pending.tireTypeFilter as TireType | "all") ?? "all",
+        );
         setFittedFilter(pending.fittedFilter ?? "all");
         setSortOrder(pending.sortOrder ?? "az");
       }
@@ -196,21 +197,19 @@ export function TiresListScreen({ route, navigation }: Props) {
             />
           </HeaderButton>
         )}
-        <HeaderButton
-          onPress={openFilters}
-          tintColor={theme.colors.accent}
-        >
+        <HeaderButton onPress={openFilters} tintColor={theme.colors.accent}>
           <Ionicons
-            name="options"
+            name="options-outline"
             size={theme.icons.headerButton}
             color={theme.colors.accent}
           />
         </HeaderButton>
-        <HeaderButton
-          onPress={onAddTirePress}
-          tintColor={theme.colors.accent}
-        >
-          <Ionicons name="add" size={theme.icons.headerButton} color={theme.colors.accent} />
+        <HeaderButton onPress={onAddTirePress} tintColor={theme.colors.accent}>
+          <Ionicons
+            name="add"
+            size={theme.icons.headerButton}
+            color={theme.colors.accent}
+          />
         </HeaderButton>
       </View>
     ),

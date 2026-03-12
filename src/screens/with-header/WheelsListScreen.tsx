@@ -106,9 +106,8 @@ export function WheelsListScreen({ route, navigation }: Props) {
   useEffect(() => {
     void load();
     const unsub = navigation.addListener("focus", () => {
-      const pending = getAndClearPendingModalResult<WheelsListFiltersParams>(
-        "wheelsList",
-      );
+      const pending =
+        getAndClearPendingModalResult<WheelsListFiltersParams>("wheelsList");
       if (pending) {
         setFittedFilter(pending.fittedFilter ?? "all");
         setSortOrder(pending.sortOrder ?? "az");
@@ -191,21 +190,19 @@ export function WheelsListScreen({ route, navigation }: Props) {
             />
           </HeaderButton>
         )}
-        <HeaderButton
-          onPress={openFilters}
-          tintColor={theme.colors.accent}
-        >
+        <HeaderButton onPress={openFilters} tintColor={theme.colors.accent}>
           <Ionicons
-            name="options"
+            name="options-outline"
             size={theme.icons.headerButton}
             color={theme.colors.accent}
           />
         </HeaderButton>
-        <HeaderButton
-          onPress={onAddWheelPress}
-          tintColor={theme.colors.accent}
-        >
-          <Ionicons name="add" size={theme.icons.headerButton} color={theme.colors.accent} />
+        <HeaderButton onPress={onAddWheelPress} tintColor={theme.colors.accent}>
+          <Ionicons
+            name="add"
+            size={theme.icons.headerButton}
+            color={theme.colors.accent}
+          />
         </HeaderButton>
       </View>
     ),
