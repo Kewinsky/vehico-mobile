@@ -152,17 +152,13 @@ export const en = {
     featuresSectionDesc:
       "Everything you need to maintain and share your vehicle history.",
     feature1Title: "Service",
-    feature1Description:
-      "Repairs, parts and documents in one place.",
+    feature1Description: "Repairs, parts and documents in one place.",
     feature2Title: "Fuel",
-    feature2Description:
-      "Monitor fuel usage and costs.",
+    feature2Description: "Monitor fuel usage and costs.",
     feature3Title: "Reminders",
-    feature3Description:
-      "Stay on top of service and important dates.",
+    feature3Description: "Stay on top of service and important dates.",
     feature4Title: "Insights",
-    feature4Description:
-      "Track spending and ownership costs.",
+    feature4Description: "Track spending and ownership costs.",
     getStarted: "Try Vehico",
     alreadyHaveAccount: "Already have an account? ",
     terms: "Terms of Use",
@@ -1087,8 +1083,6 @@ Detailed report available at: https://report.vehico.app/report/example`,
     paymentNotImplemented: "Payments will be available soon",
     configureTitle: "What do you want to include in the report?",
     unavailableOptionsHint: "Unavailable options: {{list}}.",
-    optionTechnicalData: "Technical vehicle data",
-    optionTechnicalDataAlways: "(always included)",
     optionInsurance: "Insurance data",
     optionInspection: "Inspection data",
     optionNotes: "Notes for {{vehicleTitle}}",

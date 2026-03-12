@@ -232,6 +232,7 @@ INSERT INTO public.tires (vehicle_id, name, width_mm, aspect_ratio, diameter_inc
 -- One wheel fitted (is_currently_fitted=true)
 INSERT INTO public.wheels (vehicle_id, name, width_inch, diameter_inch, et_offset, bolt_pattern, center_bore_mm, bolt_type, weight_kg, is_currently_fitted) VALUES
 (vehicle_id, 'Aluminiowe OEM', 7, 16, 45, '5x112', 66.5, 'M14x1.5', 10.2, true),
-(vehicle_id, 'Felgi stalowe zimowe', 7, 16, 45, '5x112', 66.5, 'M14x1.5', 12.5, false);
+(vehicle_id, 'Felgi stalowe zimowe', 7, 16, 45, '5x112', 66.5, 'M14x1.5', 12.5, false),
+(vehicle_id, 'Felgi aluminiowe letnie', 7, 16, 45, '5x112', 66.5, 'M14x1.5', 10.2, false);
 
 END $$;

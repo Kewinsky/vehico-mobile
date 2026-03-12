@@ -213,13 +213,6 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
         )}
         <View>
           <CheckboxRow
-            label={t("publicReport.optionTechnicalData")}
-            checked={includeTechnicalData}
-            onPress={() => {}}
-            disabled
-            suffix={t("publicReport.optionTechnicalDataAlways")}
-          />
-          <CheckboxRow
             label={t("publicReport.optionInsurance")}
             checked={includeInsurance}
             onPress={() => setIncludeInsurance(!includeInsurance)}

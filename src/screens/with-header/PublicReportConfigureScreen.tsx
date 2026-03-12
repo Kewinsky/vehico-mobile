@@ -264,7 +264,11 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           style={styles.photoCloseButton}
           hitSlop={5}
         >
-          <Ionicons name="close-circle" size={theme.icons.headerButton} color={theme.colors.accent} />
+          <Ionicons
+            name="close-circle"
+            size={theme.icons.headerButton}
+            color={theme.colors.accent}
+          />
         </Pressable>
       </View>
     </View>
@@ -360,13 +364,6 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           </View>
         )}
         <View>
-          <CheckboxRow
-            label={t("publicReport.optionTechnicalData")}
-            checked={includeTechnicalData}
-            onPress={() => {}}
-            disabled
-            suffix={t("publicReport.optionTechnicalDataAlways")}
-          />
           <CheckboxRow
             label={t("publicReport.optionInsurance")}
             checked={includeInsurance}

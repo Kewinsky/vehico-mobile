@@ -154,17 +154,13 @@ export const pl = {
     featuresSectionDesc:
       "Wszystko, czego potrzebujesz do prowadzenia i udostępniania historii pojazdu.",
     feature1Title: "Serwis",
-    feature1Description:
-      "Naprawy, części i dokumenty w jednym miejscu.",
+    feature1Description: "Naprawy, części i dokumenty w jednym miejscu.",
     feature2Title: "Paliwo",
-    feature2Description:
-      "Kontroluj zużycie i koszty paliwa.",
+    feature2Description: "Kontroluj zużycie i koszty paliwa.",
     feature3Title: "Przypomnienia",
-    feature3Description:
-      "Pilnuj terminów serwisowych i ważnych dat.",
+    feature3Description: "Pilnuj terminów serwisowych i ważnych dat.",
     feature4Title: "Statystyki",
-    feature4Description:
-      "Sprawdzaj wydatki i koszt utrzymania pojazdu.",
+    feature4Description: "Sprawdzaj wydatki i koszt utrzymania pojazdu.",
     getStarted: "Wypróbuj Vehico",
     alreadyHaveAccount: "Masz już konto? ",
     terms: "Regulamin",
@@ -1094,8 +1090,6 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     paymentNotImplemented: "Płatności będą dostępne wkrótce",
     configureTitle: "Co chcesz zawrzeć w raporcie?",
     unavailableOptionsHint: "Niedostępne opcje: {{list}}.",
-    optionTechnicalData: "Dane techniczne pojazdu",
-    optionTechnicalDataAlways: "(zawsze zawarte)",
     optionInsurance: "Dane dotyczące ubezpieczenia",
     optionInspection: "Dane dotyczące przeglądu",
     optionNotes: "Notatki dla {{vehicleTitle}}",
