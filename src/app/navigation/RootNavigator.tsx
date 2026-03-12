@@ -2,16 +2,15 @@ import React from "react";
 import { ActivityIndicator, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-/** Opcje dla ekranów używających HeaderLayout (natywny navbar). */
 const nativeHeaderScreenOptions = {
   headerShown: true,
   headerShadowVisible: false,
 } as const;
 
 import { useAuth } from "../providers/AuthProvider";
-import { LandingScreen } from "../../screens/no-header/LandingScreen";
+import { LandingScreen } from "../../screens/landing/LandingScreen";
 import { AuthScreen } from "../../screens/modal/AuthScreen";
-import { VehiclesScreen } from "../../screens/no-header/VehiclesScreen";
+import { VehiclesScreen } from "../../screens/welcome-header/VehiclesScreen";
 import { VehicleFormScreen } from "../../screens/modal/VehicleFormScreen";
 import { VehicleDashboardScreen } from "../../screens/with-header/VehicleDashboardScreen";
 import { ServiceHistoryScreen } from "../../screens/with-header/ServiceHistoryScreen";
@@ -54,7 +53,6 @@ import { WorkshopsFiltersScreen } from "../../screens/modal/WorkshopsFiltersScre
 import { WorkshopFormScreen } from "../../screens/modal/WorkshopFormScreen";
 import { ShopScreen } from "../../screens/modal/ShopScreen";
 import { ExampleListingScreen } from "../../screens/modal/ExampleListingScreen";
-import { PlaygroundScreen } from "../../screens/no-header/PlaygroundScreen";
 import { AppearanceScreen } from "../../screens/modal/AppearanceScreen";
 import { OnboardingScreen } from "../../screens/onboarding/OnboardingScreen";
 
@@ -196,7 +194,6 @@ export type AppStackParamList = {
   WorkshopForm: { workshopId?: string };
   Shop: undefined;
   ExampleListing: undefined;
-  Playground: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -219,7 +216,7 @@ export function RootNavigator() {
       initialRouteName={
         session
           ? session.user.user_metadata?.has_completed_onboarding === true
-            ? "Onboarding"
+            ? "Vehicles"
             : "Onboarding"
           : "Landing"
       }
@@ -532,7 +529,6 @@ export function RootNavigator() {
               headerShadowVisible: false,
             }}
           />
-          <Stack.Screen name="Playground" component={PlaygroundScreen} />
         </>
       )}
     </Stack.Navigator>

@@ -11,7 +11,6 @@ export type AppLayoutProps = PropsWithChildren<{
   loading?: boolean;
   isModal?: boolean;
   background?: ReactNode;
-  /** Gdy true, nie dodawaj paddingTop (ekran używa natywnego headera). */
   useNativeHeader?: boolean;
 }>;
 

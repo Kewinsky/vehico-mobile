@@ -1,7 +1,6 @@
 export type ThemeMode = "light" | "dark";
 
 export type AppTheme = {
-  /** Icon size for native header buttons (back, settings, shop, and custom right icons). Use this for all header bar icons. */
   icons: {
     headerButton: number;
   };
@@ -22,11 +21,11 @@ export type AppTheme = {
     xl: number;
   };
   typography: {
-    largeTitle: number; // iOS-style large page title
+    largeTitle: number;
     title: number;
     body: number;
     small: number;
-    xs: number; // badge, caption
+    xs: number;
     fontWeight: {
       regular: "400";
       medium: "500";
@@ -35,13 +34,11 @@ export type AppTheme = {
     };
   };
   radius: {
-    xs: number; // checkbox, small corners
+    xs: number;
     sm: number;
     md: number;
   };
-  /** Margin below large title (breathing room) */
   titleMarginBottom: number;
-  /** Horizontal padding for screen content (title + main). Change here to adjust globally. */
   layout: {
     contentPaddingHorizontal: number;
   };
@@ -72,7 +69,7 @@ export const lightTheme: AppTheme = {
   },
   titleMarginBottom: 12,
   layout: {
-    contentPaddingHorizontal: 12, // same as spacing.sm – change here for global content inset
+    contentPaddingHorizontal: 12,
   },
   typography: {
     largeTitle: 28,
@@ -92,7 +89,7 @@ export const lightTheme: AppTheme = {
 export const darkTheme: AppTheme = {
   icons: lightTheme.icons,
   colors: {
-    bg: "#0a0a0a", // soft black (iOS 26 style)
+    bg: "#0a0a0a", // soft black
     fg: "#FFFFFF", // pure white
     muted: "#999999", // light gray
     border: "#333333", // dark gray
