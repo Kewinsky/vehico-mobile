@@ -1,14 +1,18 @@
 import { useMemo } from "react";
-import { StyleSheet, Text, View, ScrollView } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { ENV } from "../../config/env";
 import { Button } from "../../ui/components/common/Button";
 import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
-import { NoHeaderLayout } from "../../layouts";
+import { LandingLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
+import { DecorativeBackground } from "../../ui/components/branding/DecorativeBackground";
+import { BrandHero } from "../../ui/components/branding/BrandHero";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Landing">;
 
@@ -18,9 +22,10 @@ export function LandingScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   return (
-    <NoHeaderLayout
-      footer={
-        <>
+    <LandingLayout
+      background={<DecorativeBackground variant="landing" />}
+      stickyBottom={
+        <View style={styles.stickyFooter}>
           <Button onPress={() => navigation.navigate("Auth")}>
             {t("landing.getStarted")}
           </Button>
@@ -28,7 +33,7 @@ export function LandingScreen({ navigation }: Props) {
             termsUrl={`${ENV.WEB_APP_URL}/terms`}
             privacyUrl={`${ENV.WEB_APP_URL}/privacy`}
           />
-        </>
+        </View>
       }
     >
       <ScrollView
@@ -39,42 +44,39 @@ export function LandingScreen({ navigation }: Props) {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero */}
-        <View style={styles.hero}>
-          <Text style={[styles.title, { color: theme.colors.fg }]}>
-            {t("landing.title")}
-          </Text>
-          <Text style={[styles.heroLead, { color: theme.colors.muted }]}>
-            {t("landing.heroLead")}
-          </Text>
+        <View style={styles.heroShell}>
+          <BrandHero
+            title={t("landing.title")}
+            subtitle={t("landing.heroLead")}
+            brandTitle
+          />
         </View>
 
-        {/* Features */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
             {t("landing.featuresSectionTitle")}
           </Text>
           <View style={styles.featuresList}>
-            <FeatureRow
-              icon="📋"
+            <FeatureCard
+              icon="document-text-outline"
               title={t("landing.feature1Title")}
               description={t("landing.feature1Description")}
               theme={theme}
             />
-            <FeatureRow
-              icon="⛽"
+            <FeatureCard
+              icon="speedometer-outline"
               title={t("landing.feature2Title")}
               description={t("landing.feature2Description")}
               theme={theme}
             />
-            <FeatureRow
-              icon="📅"
+            <FeatureCard
+              icon="calendar-outline"
               title={t("landing.feature3Title")}
               description={t("landing.feature3Description")}
               theme={theme}
             />
-            <FeatureRow
-              icon="📊"
+            <FeatureCard
+              icon="stats-chart-outline"
               title={t("landing.feature4Title")}
               description={t("landing.feature4Description")}
               theme={theme}
@@ -82,32 +84,30 @@ export function LandingScreen({ navigation }: Props) {
           </View>
         </View>
       </ScrollView>
-    </NoHeaderLayout>
+    </LandingLayout>
   );
 }
 
-function FeatureRow({
+function FeatureCard({
   icon,
   title,
   description,
   theme,
 }: {
-  icon: string;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
   title: string;
   description: string;
   theme: any;
 }) {
-  const styles = useMemo(() => makeFeatureStyles(theme), [theme]);
+  const styles = useMemo(() => makeFeatureCardStyles(theme), [theme]);
   return (
-    <View style={styles.row}>
+    <View style={styles.card}>
       <View style={styles.iconWrap}>
-        <Text style={styles.icon}>{icon}</Text>
+        <Ionicons name={icon} size={35} color={theme.colors.accent} />
       </View>
       <View style={styles.textContainer}>
-        <Text style={[styles.title, { color: theme.colors.fg }]}>{title}</Text>
-        <Text style={[styles.description, { color: theme.colors.muted }]}>
-          {description}
-        </Text>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.description}>{description}</Text>
       </View>
     </View>
   );
@@ -124,32 +124,23 @@ const makeStyles = (theme: any) =>
     },
     scrollContent: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.xl,
-      gap: theme.spacing.xl,
+      paddingTop: theme.spacing.lg,
+      gap: theme.spacing.lg,
     },
-    hero: {
-      alignItems: "center",
-      paddingVertical: theme.spacing.lg,
+    heroShell: {
       gap: theme.spacing.md,
     },
-    logo: {
-      width: 100,
-      height: 100,
-    },
-    title: {
-      fontSize: theme.typography.largeTitle + 4,
-      fontWeight: theme.typography.fontWeight.bold,
-      letterSpacing: -0.5,
-      textAlign: "center",
-    },
-    heroLead: {
-      fontSize: theme.typography.body,
-      lineHeight: theme.typography.body + 8,
-      textAlign: "center",
-      maxWidth: 320,
+    quickPills: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      gap: theme.spacing.xs,
     },
     section: {
       gap: theme.spacing.md,
+    },
+    stickyFooter: {
+      gap: theme.spacing.sm,
     },
     sectionTitle: {
       fontSize: theme.typography.title,
@@ -160,21 +151,43 @@ const makeStyles = (theme: any) =>
     },
   });
 
-const makeFeatureStyles = (theme: any) =>
+const makeQuickPillStyles = (theme: any) =>
   StyleSheet.create({
-    row: {
+    pill: {
       flexDirection: "row",
       alignItems: "center",
+      gap: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.sm,
+      paddingVertical: theme.spacing.xs,
+      borderRadius: 999,
+      backgroundColor: hexToRgba(theme.colors.card, 0.82),
+      borderWidth: 1,
+      borderColor: hexToRgba(theme.colors.border, 0.92),
+    },
+    label: {
+      color: theme.colors.fg,
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+  });
+
+const makeFeatureCardStyles = (theme: any) =>
+  StyleSheet.create({
+    card: {
+      flexDirection: "row",
+      alignItems: "flex-start",
       gap: theme.spacing.md,
+      padding: theme.spacing.md,
+      borderRadius: theme.radius.md + 4,
+      backgroundColor: hexToRgba(theme.colors.card, 0.86),
+      borderWidth: 1,
+      borderColor: hexToRgba(theme.colors.border, 0.92),
     },
     iconWrap: {
-      width: 44,
-      height: 44,
+      width: 46,
+      height: 46,
       alignItems: "center",
       justifyContent: "center",
-    },
-    icon: {
-      fontSize: 22,
     },
     textContainer: {
       flex: 1,
@@ -183,9 +196,11 @@ const makeFeatureStyles = (theme: any) =>
     title: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.fg,
     },
     description: {
       fontSize: theme.typography.small,
       lineHeight: theme.typography.body + 4,
+      color: theme.colors.muted,
     },
   });

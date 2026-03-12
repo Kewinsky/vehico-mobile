@@ -171,6 +171,8 @@ export const en = {
   onboarding: {
     welcome: {
       title: "Welcome to Vehico",
+      heroTitle: "Welcome to Vehico!",
+      heroSubtitle: "Let's add your first vehicle. It will only take a minute.",
       subtitle:
         "Let's set up your first vehicle. It takes about a minute – you can skip optional fields.",
       getStarted: "Get started",

@@ -32,7 +32,10 @@ import {
   isNonNegativeNumber,
   isValidProductionYear,
 } from "../../utils/validation";
-import { createVehicle, listVehicles } from "../../services/vehicles/vehiclesRepo";
+import {
+  createVehicle,
+  listVehicles,
+} from "../../services/vehicles/vehiclesRepo";
 import { uploadVehiclePhoto } from "../../services/vehicles/uploadPhoto";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { supabase } from "../../services/supabase/client";
@@ -41,6 +44,7 @@ import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitle
 import { useAuth } from "../../app/providers/AuthProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { Logo } from "../../ui/components/branding/Logo";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Onboarding">;
 
@@ -349,11 +353,30 @@ export function OnboardingScreen({ navigation }: Props) {
     switch (currentStep) {
       case 0:
         return (
-          <View style={styles.step}>
-            <ContentHeader
-              title={t("onboarding.welcome.title")}
-              subtitle={t("onboarding.welcome.subtitle")}
-            />
+          <View style={[styles.step, styles.welcomeStep]}>
+            <View style={styles.welcomeIntro}>
+              <Logo width={132} height={132} />
+              <Text style={styles.welcomeBrandTitle}>
+                {t("onboarding.welcome.heroTitle")}
+              </Text>
+              <Text
+                style={[styles.welcomeBody, { color: theme.colors.muted }]}
+              >
+                {t("onboarding.welcome.heroSubtitle")}
+              </Text>
+              <Pressable
+                onPress={() => void onNext()}
+                disabled={!canGoNext}
+                hitSlop={10}
+                style={({ pressed }) => [
+                  styles.welcomeArrowButton,
+                  { backgroundColor: theme.colors.accent },
+                  pressed && { transform: [{ scale: 0.97 }] },
+                ]}
+              >
+                <Ionicons name="arrow-forward" size={24} color="#000000" />
+              </Pressable>
+            </View>
           </View>
         );
       case 1:
@@ -433,7 +456,7 @@ export function OnboardingScreen({ navigation }: Props) {
                         ? hexToRgba(theme.colors.accent, 0.12)
                         : theme.colors.card,
                   },
-                  pressed && { opacity: 0.92, transform: [{ scale: 0.985 }] },
+                  pressed && { transform: [{ scale: 0.985 }] },
                 ]}
               >
                 <MaterialCommunityIcons
@@ -477,7 +500,7 @@ export function OnboardingScreen({ navigation }: Props) {
                         ? hexToRgba(theme.colors.accent, 0.12)
                         : theme.colors.card,
                   },
-                  pressed && { opacity: 0.92, transform: [{ scale: 0.985 }] },
+                  pressed && { transform: [{ scale: 0.985 }] },
                 ]}
               >
                 <MaterialCommunityIcons
@@ -697,17 +720,51 @@ export function OnboardingScreen({ navigation }: Props) {
                   transition={200}
                 />
               </View>
-            ) : null}
+            ) : (
+              <Pressable
+                onPress={() => void pickPhotoFromGallery()}
+                disabled={saving}
+                style={({ pressed }) => [
+                  styles.photoPlaceholderCard,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.photoPlaceholderIcon,
+                    { backgroundColor: hexToRgba(theme.colors.accent, 0.14) },
+                  ]}
+                >
+                  <Ionicons
+                    name="camera-outline"
+                    size={28}
+                    color={theme.colors.accent}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.photoPlaceholderTitle,
+                    { color: theme.colors.fg },
+                  ]}
+                >
+                  {t("onboarding.vehicle.photo.addPhoto")}
+                </Text>
+              </Pressable>
+            )}
 
-            <Button
-              variant={photo ? "outlined" : "primary"}
-              onPress={() => void pickPhotoFromGallery()}
-              disabled={saving}
-            >
-              {photo
-                ? t("onboarding.vehicle.photo.changePhoto")
-                : t("onboarding.vehicle.photo.addPhoto")}
-            </Button>
+            {photo ? (
+              <Button
+                variant="outlined"
+                onPress={() => void pickPhotoFromGallery()}
+                disabled={saving}
+              >
+                {t("onboarding.vehicle.photo.changePhoto")}
+              </Button>
+            ) : null}
 
             <Pressable
               onPress={() => {
@@ -872,7 +929,8 @@ export function OnboardingScreen({ navigation }: Props) {
           style={[
             styles.topBar,
             {
-              backgroundColor: theme.colors.bg,
+              backgroundColor: "transparent",
+              borderBottomColor: "transparent",
             },
           ]}
         >
@@ -923,11 +981,12 @@ export function OnboardingScreen({ navigation }: Props) {
         </View>
       }
       footer={
+        currentStep === 0 ? null : (
         <View
           style={[
             styles.footer,
             {
-              backgroundColor: theme.colors.bg,
+              backgroundColor: "transparent",
             },
           ]}
         >
@@ -951,13 +1010,7 @@ export function OnboardingScreen({ navigation }: Props) {
               </Button>
             </View>
           ) : currentStep === 0 ? (
-            <Button
-              variant="primary"
-              onPress={() => void onNext()}
-              disabled={!canGoNext}
-            >
-              {saving ? t("common.saving") : nextLabel}
-            </Button>
+            <></>
           ) : (
             <View style={styles.footerRow}>
               <Button
@@ -979,6 +1032,7 @@ export function OnboardingScreen({ navigation }: Props) {
             </View>
           )}
         </View>
+        )
       }
     >
       <KeyboardAvoidingView
@@ -1001,6 +1055,8 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
+      paddingHorizontal: theme.spacing.sm,
+      borderBottomWidth: 1,
     },
     backBtn: {
       width: theme.spacing.xl + theme.spacing.xs,
@@ -1040,6 +1096,37 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     step: {
       width: "100%",
       flexGrow: 1,
+    },
+    welcomeStep: {
+      justifyContent: "center",
+      paddingBottom: theme.spacing.lg * 1.5,
+    },
+    welcomeIntro: {
+      alignItems: "center",
+      gap: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md,
+    },
+    welcomeBrandTitle: {
+      color: theme.colors.fg,
+      fontSize: theme.typography.largeTitle + 8,
+      fontWeight: "900",
+      fontFamily: "ChironGoRoundTC",
+      textAlign: "center",
+      letterSpacing: -0.8,
+    },
+    welcomeBody: {
+      fontSize: theme.typography.body,
+      lineHeight: theme.typography.body + 8,
+      textAlign: "center",
+      maxWidth: 320,
+    },
+    welcomeArrowButton: {
+      width: 60,
+      height: 60,
+      borderRadius: 999,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: theme.spacing.sm,
     },
     title: {
       fontSize: theme.typography.largeTitle,
@@ -1130,6 +1217,31 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       borderRadius: theme.radius.md,
       overflow: "hidden",
       marginBottom: theme.spacing.xs,
+    },
+    photoPlaceholderCard: {
+      borderWidth: 1,
+      borderRadius: theme.radius.md + 2,
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: theme.spacing.lg,
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      marginBottom: theme.spacing.xs,
+    },
+    photoPlaceholderIcon: {
+      width: 56,
+      height: 56,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    photoPlaceholderTitle: {
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+      textAlign: "center",
+    },
+    photoPlaceholderSubtitle: {
+      fontSize: theme.typography.small,
+      textAlign: "center",
     },
     photo: {
       width: "100%",
@@ -1303,8 +1415,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flex: 1,
     },
     footer: {
-      paddingTop: theme.spacing.sm,
-      paddingBottom: insets.bottom,
       gap: theme.spacing.xs,
     },
     vehicleTypeRow: {
@@ -1322,13 +1432,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       alignItems: "center",
       justifyContent: "center",
       gap: theme.spacing.xs,
-    },
-    vehicleTypeIconWrap: {
-      width: 54,
-      height: 54,
-      borderRadius: 16,
-      alignItems: "center",
-      justifyContent: "center",
     },
     vehicleTypeLabel: {
       fontSize: theme.typography.body,

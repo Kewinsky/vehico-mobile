@@ -219,7 +219,7 @@ export function RootNavigator() {
       initialRouteName={
         session
           ? session.user.user_metadata?.has_completed_onboarding === true
-            ? "Vehicles"
+            ? "Onboarding"
             : "Onboarding"
           : "Landing"
       }

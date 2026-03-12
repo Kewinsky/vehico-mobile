@@ -10,6 +10,7 @@ export type AppLayoutProps = PropsWithChildren<{
   footer?: ReactNode;
   loading?: boolean;
   isModal?: boolean;
+  background?: ReactNode;
   /** Gdy true, nie dodawaj paddingTop (ekran używa natywnego headera). */
   useNativeHeader?: boolean;
 }>;
@@ -20,6 +21,7 @@ export function AppLayout({
   footer,
   loading = false,
   isModal = false,
+  background,
   useNativeHeader = false,
 }: AppLayoutProps) {
   const insets = useSafeAreaInsets();
@@ -35,6 +37,11 @@ export function AppLayout({
         },
       ]}
     >
+      {background != null ? (
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          {background}
+        </View>
+      ) : null}
       {header}
       {loading ? (
         <LoadingView />

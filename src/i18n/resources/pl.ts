@@ -173,6 +173,8 @@ export const pl = {
   onboarding: {
     welcome: {
       title: "Witaj w Vehico",
+      heroTitle: "Witaj w Vehico!",
+      heroSubtitle: "Dodajmy Twój pierwszy pojazd, zajmie to zaledwie minutę.",
       subtitle:
         "Ustawmy Twój pierwszy pojazd. Zajmie to około minutę – opcjonalne pola możesz pominąć.",
       getStarted: "Zaczynamy",

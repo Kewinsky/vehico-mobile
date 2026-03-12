@@ -3,8 +3,10 @@ import { Linking } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as LinkingModule from "expo-linking";
+import { useFonts } from "expo-font";
 import * as Notifications from "expo-notifications";
 
+import { BRAND_FONT_FAMILY } from "../ui/components/branding/BrandHero";
 import "../i18n/i18n";
 import { RootNavigator } from "./navigation/RootNavigator";
 import { navigationRef } from "./navigationRef";
@@ -41,7 +43,7 @@ function AppContent() {
           | { reminderId?: string; vehicleId?: string }
           | undefined;
         navigateFromNotification(data ?? {});
-      }
+      },
     );
 
     Notifications.getLastNotificationResponseAsync().then((response) => {
@@ -99,7 +101,7 @@ function AppContent() {
       "url",
       ({ url }: { url: string }) => {
         handleDeepLink(url);
-      }
+      },
     );
 
     return () => {
@@ -128,6 +130,14 @@ function AppContent() {
 }
 
 export function Root() {
+  const [fontsLoaded] = useFonts({
+    [BRAND_FONT_FAMILY]: require("../../fonts/ChironGoRoundTC-ExtraBold.ttf"),
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <SafeAreaProvider>
       <AuthProvider>
