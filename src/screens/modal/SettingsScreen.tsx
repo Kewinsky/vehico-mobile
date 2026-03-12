@@ -208,50 +208,58 @@ export function SettingsScreen({ navigation }: Props) {
             },
           ]}
         >
-          {rows.map((row, index) => (
-            <Pressable
-              key={row.id}
-              onPress={row.onPress}
-              style={({ pressed }) => [
-                styles.row,
-                index < rows.length - 1 && styles.rowBorder,
-                { borderColor: theme.colors.border },
-                pressed && styles.rowPressed,
-              ]}
-            >
-              {typeof row.icon === "string" ? (
+          {rows.map((row, index) => {
+            const isSignOut = row.id === "signout";
+            const iconColor = isSignOut
+              ? theme.colors.danger
+              : theme.colors.accent;
+            const chevronColor = iconColor;
+
+            return (
+              <Pressable
+                key={row.id}
+                onPress={row.onPress}
+                style={({ pressed }) => [
+                  styles.row,
+                  index < rows.length - 1 && styles.rowBorder,
+                  { borderColor: theme.colors.border },
+                  pressed && styles.rowPressed,
+                ]}
+              >
+                {typeof row.icon === "string" ? (
+                  <Ionicons
+                    name={
+                      row.icon as React.ComponentProps<typeof Ionicons>["name"]
+                    }
+                    size={22}
+                    color={iconColor}
+                    style={styles.rowIcon}
+                  />
+                ) : (
+                  <View style={styles.rowIcon}>{row.icon}</View>
+                )}
+                <View style={styles.rowText}>
+                  <Text
+                    style={[styles.rowTitle, { color: theme.colors.fg }]}
+                    numberOfLines={1}
+                  >
+                    {row.title}
+                  </Text>
+                  <Text
+                    style={[styles.rowSubtitle, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {row.subtitle}
+                  </Text>
+                </View>
                 <Ionicons
-                  name={
-                    row.icon as React.ComponentProps<typeof Ionicons>["name"]
-                  }
-                  size={22}
-                  color={theme.colors.accent}
-                  style={styles.rowIcon}
+                  name="chevron-forward"
+                  size={20}
+                  color={chevronColor}
                 />
-              ) : (
-                <View style={styles.rowIcon}>{row.icon}</View>
-              )}
-              <View style={styles.rowText}>
-                <Text
-                  style={[styles.rowTitle, { color: theme.colors.fg }]}
-                  numberOfLines={1}
-                >
-                  {row.title}
-                </Text>
-                <Text
-                  style={[styles.rowSubtitle, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {row.subtitle}
-                </Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={theme.colors.accent}
-              />
-            </Pressable>
-          ))}
+              </Pressable>
+            );
+          })}
         </View>
 
         <View style={styles.bottomSpacer} />

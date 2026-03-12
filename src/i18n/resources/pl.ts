@@ -137,7 +137,7 @@ export const pl = {
     subtitle:
       "Śledź konserwację pojazdu, zużycie paliwa i wydatki w jednym miejscu.",
     heroLead:
-      "Twórz schludny, profesjonalny raport auta do udostępnienia. Zdjęcia, historia serwisowa, tankowania i statystyki – w jednym, czytelnym widoku.",
+      "Prowadź historię pojazdu w uporządkowany sposób. Serwis, tankowania i koszty w jednym miejscu, gotowe do udostępnienia jednym linkiem.",
     howTitle: "Jak działa Vehico?",
     howDesc:
       "W kilka minut zbierasz historię auta, a potem generujesz publiczny link do raportu.",
@@ -150,22 +150,22 @@ export const pl = {
     step3Title: "Udostępnij raport linkiem",
     step3Desc:
       "Wygeneruj publiczny raport i podeślij go komu chcesz. Bez chaosu w PDF-ach i wiadomościach.",
-    featuresSectionTitle: "Co jest w aplikacji?",
+    featuresSectionTitle: "Najważniejsze funkcje",
     featuresSectionDesc:
       "Wszystko, czego potrzebujesz do prowadzenia i udostępniania historii pojazdu.",
-    feature1Title: "Historia serwisowa",
+    feature1Title: "Serwis",
     feature1Description:
-      "Prowadź szczegółowe zapisy wszystkich napraw i konserwacji ze zdjęciami i dokumentami.",
-    feature2Title: "Śledzenie paliwa",
+      "Naprawy, części i dokumenty w jednym miejscu.",
+    feature2Title: "Paliwo",
     feature2Description:
-      "Monitoruj zużycie i koszty paliwa, aby zoptymalizować efektywność pojazdu.",
+      "Kontroluj zużycie i koszty paliwa.",
     feature3Title: "Przypomnienia",
     feature3Description:
-      "Nigdy nie przegap konserwacji dzięki przypomnieniom opartym na czasie i przebiegu.",
+      "Pilnuj terminów serwisowych i ważnych dat.",
     feature4Title: "Statystyki",
     feature4Description:
-      "Analizuj wydatki i śledź trendy dzięki szczegółowym raportom.",
-    getStarted: "Rozpocznij",
+      "Sprawdzaj wydatki i koszt utrzymania pojazdu.",
+    getStarted: "Wypróbuj Vehico",
     alreadyHaveAccount: "Masz już konto? ",
     terms: "Regulamin",
     privacy: "Polityka prywatności",

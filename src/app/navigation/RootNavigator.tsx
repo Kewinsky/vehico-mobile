@@ -228,7 +228,7 @@ export function RootNavigator() {
             name="Auth"
             component={AuthScreen}
             options={{
-              presentation: "modal",
+              presentation: "fullScreenModal",
               headerShown: true,
               headerShadowVisible: false,
             }}
@@ -246,8 +246,7 @@ export function RootNavigator() {
             name="VehicleForm"
             component={VehicleFormScreen}
             options={{
-              presentation: "modal",
-              gestureEnabled: false,
+              presentation: "fullScreenModal",
               headerShown: true,
               headerShadowVisible: false,
             }}

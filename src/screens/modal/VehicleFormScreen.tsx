@@ -131,6 +131,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
   const [draftPhotos, setDraftPhotos] = useState<DraftPhotoItem[]>([]);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isTouchingPhotoGrid, setIsTouchingPhotoGrid] = useState(false);
   const nextDraftPhotoKeyRef = useRef(0);
 
   function createDraftPhotoKey(prefix: "existing" | "new") {
@@ -676,7 +677,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       }}
       loading={isEditMode && loading}
     >
-      <FormScreen scrollEnabled={!isDragging} noLayout>
+      <FormScreen scrollEnabled={!isDragging && !isTouchingPhotoGrid} noLayout>
         {isEditMode && loading ? (
           <View style={styles.loadingContainer}>
             <LoadingIndicator />
@@ -701,16 +702,25 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                 </Text>
               </View>
               {draftPhotos.length > 0 && (
-                <DraggableGrid
-                  numColumns={3}
-                  renderItem={renderPhotoItem}
-                  data={draftPhotos}
-                  onDragStart={() => setIsDragging(true)}
-                  onDragRelease={(data) => {
-                    setIsDragging(false);
-                    setDraftPhotos(data as DraftPhotoItem[]);
-                  }}
-                />
+                <View
+                  style={styles.photoGridContainer}
+                  onTouchStart={() => setIsTouchingPhotoGrid(true)}
+                  onTouchEnd={() => setIsTouchingPhotoGrid(false)}
+                  onTouchCancel={() => setIsTouchingPhotoGrid(false)}
+                >
+                  <DraggableGrid
+                    numColumns={3}
+                    renderItem={renderPhotoItem}
+                    data={draftPhotos}
+                    style={styles.photoGrid}
+                    onDragStart={() => setIsDragging(true)}
+                    onDragRelease={(data) => {
+                      setIsDragging(false);
+                      setIsTouchingPhotoGrid(false);
+                      setDraftPhotos(data as DraftPhotoItem[]);
+                    }}
+                  />
+                </View>
               )}
               {draftPhotos.length < 6 && (
                 <Button
@@ -1483,6 +1493,13 @@ const makeStyles = (theme: any) =>
       flexDirection: "row",
       flexWrap: "wrap",
       gap: theme.spacing.sm,
+    },
+    photoGridContainer: {
+      overflow: "hidden",
+    },
+    photoGrid: {
+      flex: 0,
+      overflow: "hidden",
     },
     photoCard: {
       width:

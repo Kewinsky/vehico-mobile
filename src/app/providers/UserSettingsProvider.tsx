@@ -43,7 +43,7 @@ type UserSettingsContextValue = {
 };
 
 const UserSettingsContext = createContext<UserSettingsContextValue | null>(
-  null
+  null,
 );
 
 function storageKey(userId: string | null | undefined) {
@@ -51,7 +51,7 @@ function storageKey(userId: string | null | undefined) {
 }
 
 export function UserSettingsProvider({ children }: PropsWithChildren) {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const key = storageKey(user?.id);
 
   const [settings, setSettingsState] = useState<UserSettings | null>(null);
@@ -63,6 +63,10 @@ export function UserSettingsProvider({ children }: PropsWithChildren) {
 
     (async () => {
       try {
+        if (authLoading) {
+          return;
+        }
+
         // For non-logged-in users, always use system language
         if (!user) {
           const systemLanguage = detectSystemLanguage();
@@ -71,14 +75,18 @@ export function UserSettingsProvider({ children }: PropsWithChildren) {
             language: systemLanguage,
           };
           if (alive) setSettingsState(defaultSettings);
-          await i18n.changeLanguage(systemLanguage);
-          setIsLoading(false);
+          if (alive) {
+            await i18n.changeLanguage(systemLanguage);
+            setIsLoading(false);
+          }
           return;
         }
 
         // For logged-in users, load from storage
         const raw = await AsyncStorage.getItem(key);
-        const parsed = raw ? (JSON.parse(raw) as Record<string, unknown>) : null;
+        const parsed = raw
+          ? (JSON.parse(raw) as Record<string, unknown>)
+          : null;
 
         // Migration note:
         // Older builds stored snake_case keys (distance_unit/fuel_unit). Keep reading them
@@ -87,8 +95,12 @@ export function UserSettingsProvider({ children }: PropsWithChildren) {
           ...DEFAULT_SETTINGS,
           ...(parsed ?? {}),
           distanceUnit:
-            (parsed?.distanceUnit as UserSettings["distanceUnit"] | undefined) ??
-            (parsed?.distance_unit as UserSettings["distanceUnit"] | undefined) ??
+            (parsed?.distanceUnit as
+              | UserSettings["distanceUnit"]
+              | undefined) ??
+            (parsed?.distance_unit as
+              | UserSettings["distanceUnit"]
+              | undefined) ??
             DEFAULT_SETTINGS.distanceUnit,
           fuelUnit:
             (parsed?.fuelUnit as UserSettings["fuelUnit"] | undefined) ??
@@ -102,7 +114,9 @@ export function UserSettingsProvider({ children }: PropsWithChildren) {
 
         if (alive) setSettingsState(merged);
         // Apply language immediately when loading settings
-        await i18n.changeLanguage(merged.language);
+        if (alive) {
+          await i18n.changeLanguage(merged.language);
+        }
       } catch {
         const systemLanguage = detectSystemLanguage();
         const defaultSettings: UserSettings = {
@@ -110,7 +124,9 @@ export function UserSettingsProvider({ children }: PropsWithChildren) {
           language: systemLanguage,
         };
         if (alive) setSettingsState(defaultSettings);
-        await i18n.changeLanguage(systemLanguage);
+        if (alive) {
+          await i18n.changeLanguage(systemLanguage);
+        }
       } finally {
         if (alive) setIsLoading(false);
       }
@@ -119,7 +135,7 @@ export function UserSettingsProvider({ children }: PropsWithChildren) {
     return () => {
       alive = false;
     };
-  }, [key, user]);
+  }, [authLoading, key, user]);
 
   const api = useMemo<UserSettingsContextValue>(
     () => ({
@@ -141,7 +157,7 @@ export function UserSettingsProvider({ children }: PropsWithChildren) {
         await i18n.changeLanguage(next.language);
       },
     }),
-    [settings, isLoading, key]
+    [settings, isLoading, key],
   );
 
   return (

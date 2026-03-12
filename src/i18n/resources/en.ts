@@ -135,7 +135,7 @@ export const en = {
     subtitle:
       "Track your vehicle maintenance, fuel consumption, and expenses all in one place.",
     heroLead:
-      "Create a clean, professional vehicle report for sharing. Photos, service history, fueling and stats – in one minimal, readable view.",
+      "Keep your vehicle history organized. Service, fuel and costs in one place, ready to share with a single link.",
     howTitle: "How does Vehico work?",
     howDesc:
       "Capture your car's history in minutes, then generate a public share link.",
@@ -148,22 +148,22 @@ export const en = {
     step3Title: "Share a report link",
     step3Desc:
       "Generate a public report and send it anywhere. No messy PDFs or endless messages.",
-    featuresSectionTitle: "What's inside the app?",
+    featuresSectionTitle: "Key features",
     featuresSectionDesc:
       "Everything you need to maintain and share your vehicle history.",
-    feature1Title: "Service History",
+    feature1Title: "Service",
     feature1Description:
-      "Keep detailed records of all maintenance and repairs with photos and documents.",
-    feature2Title: "Fuel Tracking",
+      "Repairs, parts and documents in one place.",
+    feature2Title: "Fuel",
     feature2Description:
-      "Monitor fuel consumption and costs to optimize your vehicle's efficiency.",
+      "Monitor fuel usage and costs.",
     feature3Title: "Reminders",
     feature3Description:
-      "Never miss maintenance again with time and mileage-based reminders.",
-    feature4Title: "Statistics",
+      "Stay on top of service and important dates.",
+    feature4Title: "Insights",
     feature4Description:
-      "Analyze your expenses and track trends with comprehensive reports.",
-    getStarted: "Get Started",
+      "Track spending and ownership costs.",
+    getStarted: "Try Vehico",
     alreadyHaveAccount: "Already have an account? ",
     terms: "Terms of Use",
     privacy: "Privacy Policy",
