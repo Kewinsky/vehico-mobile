@@ -4,7 +4,7 @@
     "slug": "vehico",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -18,18 +18,15 @@
     },
     "ios": {
       "supportsTablet": true,
-      "icon": {
-        "light": "./assets/icon-light.png",
-        "dark": "./assets/icon-dark.png"
-      },
+      "icon": "./assets/app-icon.png",
       "bundleIdentifier": "com.ktasoftware.vehico",
       "developmentTeam": "YOUR_TEAM_ID"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff",
-        "monochromeImage": "./assets/adaptive-icon.png"
+        "foregroundImage": "./assets/app-icon.png",
+        "backgroundColor": "#000000",
+        "monochromeImage": "./assets/app-icon.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -45,7 +42,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
+          "icon": "./assets/app-icon.png",
           "color": "#FFB803"
         }
       ]
