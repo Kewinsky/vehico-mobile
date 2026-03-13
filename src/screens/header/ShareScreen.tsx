@@ -1,4 +1,5 @@
 import { StyleSheet, View } from "react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -19,6 +20,7 @@ export function ShareScreen({ navigation, route }: Props) {
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
+  const headerHeight = useHeaderHeight();
 
   const tiles = useMemo(
     () => [
@@ -40,8 +42,8 @@ export function ShareScreen({ navigation, route }: Props) {
 
   return (
     <HeaderLayout onBack={() => navigation.goBack()} showProfileAvatar>
-      <ContentHeader title={t("dashboard.tiles.shareTitle")} />
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingTop: headerHeight }}>
+        <ContentHeader title={t("dashboard.tiles.shareTitle")} />
         <View style={styles.row}>
           {tiles.map((item) => (
             <Tile

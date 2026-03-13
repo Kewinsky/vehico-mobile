@@ -9,6 +9,7 @@ import { ModalLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalButton } from "../../ui/components/layout/ModalButton";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
@@ -60,6 +61,7 @@ export function WheelsListFiltersScreen({ navigation, route }: Props) {
       }
     >
       <FormScreen noLayout>
+        <NativeHeaderScrollView>
       <View
         style={[
           styles.card,
@@ -114,6 +116,7 @@ export function WheelsListFiltersScreen({ navigation, route }: Props) {
           </View>
         </View>
       </View>
+        </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
   );

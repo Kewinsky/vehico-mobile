@@ -36,7 +36,10 @@ export function ModalLayout({
     navigation.setOptions({
       headerTitle: title,
       headerBackVisible: false,
-      headerStyle: { backgroundColor: theme.colors.bg },
+      headerTransparent: true,
+      headerStyle: {
+        backgroundColor: "transparent",
+      },
       headerTitleStyle: {
         color: theme.colors.fg,
         fontWeight: theme.typography.fontWeight.bold,

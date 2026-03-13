@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,7 +8,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useMemo, useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -19,15 +19,18 @@ import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listVehicleTires } from "../../services/tires/tiresRepo";
 import { listVehicleWheels } from "../../services/wheels/wheelsRepo";
 import {
-  getPublicPageUrl,
-  listPublicPages,
-} from "../../services/publicPages/publicPagesRepo";
+  listVehiclePhotos,
+  getVehiclePhotoUrl,
+} from "../../services/vehicles/uploadPhoto";
 import {
-  generateMarketplacePost,
-  saveMarketplacePost,
-} from "../../services/marketplace/marketplaceRepo";
+  generatePublicPageWithOptions,
+  getPublicPageUrl,
+  updatePublicReportTempPhotos,
+} from "../../services/publicPages/publicPagesRepo";
+import { uploadReportPhotos } from "../../services/publicPages/uploadReportPhoto";
 import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
@@ -35,33 +38,30 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { formatDateDisplay } from "../../utils/dateFormatting";
 
-type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceSummary">;
+type Props = NativeStackScreenProps<AppStackParamList, "PublicReportSummary">;
 
 function InfoCard({
   title,
   status,
   count,
-  value: customValue,
   theme,
   styles,
 }: {
   title: string;
   status: "included" | "notIncluded" | "noData";
   count?: number;
-  value?: string;
   theme: any;
   styles: any;
 }) {
   const { t } = useTranslation();
   const value =
     status === "included"
-      ? customValue != null
-        ? customValue
-        : count != null
-          ? t("publicReport.includedWithCount", { count })
-          : t("publicReport.included")
+      ? count != null
+        ? t("publicReport.includedWithCount", { count })
+        : t("publicReport.included")
       : "—";
-  const valueColor = value === "—" ? theme.colors.muted : theme.colors.accent;
+  const valueColor =
+    value === "—" ? theme.colors.muted : theme.colors.accent;
 
   return (
     <View style={styles.dataRow}>
@@ -71,21 +71,15 @@ function InfoCard({
   );
 }
 
-export function MarketplaceSummaryScreen({ navigation, route }: Props) {
+export function PublicReportSummaryScreen({ navigation, route }: Props) {
+  const headerHeight = useHeaderHeight();
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const {
-    vehicleId,
-    reportOptions,
-    includePrice,
-    price,
-    currency,
-    includePublicReport,
-    selectedReportId,
-  } = route.params;
+  const { vehicleId, reportOptions, selectedVehiclePhotoIds, tempPhotos } =
+    route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
@@ -97,14 +91,19 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   const [generating, setGenerating] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
+  const [vehiclePhotoUrls, setVehiclePhotoUrls] = useState<Map<string, string>>(
+    new Map(),
+  );
+
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [v, serviceEntries, fuelingEntries, tires, wheels] =
+      const [v, serviceEntries, fuelingEntries, vehiclePhotos, tires, wheels] =
         await Promise.all([
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
           listFuelingEntries(vehicleId),
+          listVehiclePhotos(vehicleId),
           listVehicleTires(vehicleId),
           listVehicleWheels(vehicleId),
         ]);
@@ -113,20 +112,28 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
       setFuelingEntriesCount(fuelingEntries.length);
       setTiresCount(tires.length);
       setWheelsCount(wheels.length);
+
+      const urlMap = new Map<string, string>();
+      vehiclePhotos
+        .filter((p) => selectedVehiclePhotoIds.includes(p.id))
+        .forEach((photo) => {
+          urlMap.set(photo.id, getVehiclePhotoUrl(photo));
+        });
+      setVehiclePhotoUrls(urlMap);
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
       setLoading(false);
     }
-  }, [vehicleId, t]);
+  }, [vehicleId, selectedVehiclePhotoIds, t]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  async function handleGeneratePost() {
+  async function handleGenerateReport() {
     if (!confirmed) {
-      toastError(t("marketplace.confirmationRequired"));
+      toastError(t("publicReport.confirmationRequired"));
       return;
     }
 
@@ -139,32 +146,25 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
     try {
       setGenerating(true);
 
-      let publicReportUrl: string | null = null;
-      if (includePublicReport && selectedReportId) {
-        const reports = await listPublicPages(vehicleId);
-        const selectedReport = reports.find((r) => r.id === selectedReportId);
-        if (selectedReport) {
-          publicReportUrl = await getPublicPageUrl(selectedReport.public_id);
-        }
+      const report = await generatePublicPageWithOptions(
+        vehicleId,
+        selectedVehiclePhotoIds,
+        [],
+        reportOptions,
+      );
+
+      if (tempPhotos.length > 0) {
+        const uploadedTempPhotos = await uploadReportPhotos({
+          reportId: report.id,
+          photos: tempPhotos,
+        });
+        await updatePublicReportTempPhotos(report.id, uploadedTempPhotos);
       }
 
-      const content = await generateMarketplacePost({
-        vehicleId,
-        reportOptions,
-        includePrice,
-        price,
-        currency,
-        includePublicReport,
-        publicReportUrl,
-      });
+      const url = await getPublicPageUrl(report.public_id);
+      const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
 
-      await saveMarketplacePost({
-        vehicleId,
-        price: includePrice ? price : null,
-        content,
-      });
-
-      toastSuccess(t("marketplace.postGenerated"));
+      toastSuccess(t("publicReport.reportGenerated"));
 
       navigation.reset({
         index: 4,
@@ -172,14 +172,15 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
           { name: "Vehicles" },
           { name: "VehicleDashboard", params: { vehicleId } },
           { name: "Share", params: { vehicleId } },
-          { name: "Marketplace", params: { vehicleId } },
+          { name: "PublicReport", params: { vehicleId } },
           {
-            name: "MarketplacePostOptions",
+            name: "PublicReportOptions",
             params: {
-              content,
-              vehicleTitle: vehicle ? `${vehicle.make} ${vehicle.model}` : "",
+              url,
+              vehicleTitle,
               vehicleId,
-              generatedAt: `${t("marketplace.generatedOn")} ${formatDateDisplay(new Date().toISOString(), i18n.language)}`,
+              reportTitle: report.title,
+              generatedAt: `${t("share.generatedOn")} ${formatDateDisplay(report.created_at, i18n.language)}`,
             },
           },
         ],
@@ -190,6 +191,18 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
       setGenerating(false);
     }
   }
+
+  const allPhotoUrls = useMemo(() => {
+    const urls: string[] = [];
+    selectedVehiclePhotoIds.forEach((id) => {
+      const url = vehiclePhotoUrls.get(id);
+      if (url) urls.push(url);
+    });
+    tempPhotos.forEach((photo) => urls.push(photo.fileUri));
+    return urls;
+  }, [selectedVehiclePhotoIds, vehiclePhotoUrls, tempPhotos]);
+
+  const photoCount = allPhotoUrls.length;
 
   const hasInsurance =
     (vehicle?.insurance_valid_until?.trim() ?? "").length > 0;
@@ -204,7 +217,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
       showProfileAvatar
       footer={
         <Button
-          onPress={handleGeneratePost}
+          onPress={handleGenerateReport}
           disabled={!confirmed || generating || !isPremium}
         >
           {generating ? (
@@ -222,11 +235,11 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                   fontWeight: theme.typography.fontWeight.bold,
                 }}
               >
-                {t("marketplace.generating")}
+                {t("publicReport.generating")}
               </Text>
             </View>
           ) : (
-            t("marketplace.generatePostButton")
+            t("publicReport.generateReportButton")
           )}
         </Button>
       }
@@ -234,11 +247,12 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
       {!loading && (
         <ScrollView
           style={styles.scrollView}
+          contentContainerStyle={{ paddingTop: headerHeight }}
           showsVerticalScrollIndicator={false}
         >
-          <ContentHeader title={t("marketplace.summaryTitle")} />
+          <ContentHeader title={t("publicReport.summaryTitle")} />
 
-          {/* Technical data */}
+          {/* Summary of technical data */}
           {reportOptions.include_technical_data && vehicle && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
@@ -246,13 +260,8 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
               </Text>
               {(() => {
                 const dash = "—";
-                const val = (
-                  v: string | number | null | undefined,
-                  fallback: string,
-                ) =>
-                  v != null && String(v).trim() !== ""
-                    ? String(v).trim()
-                    : fallback;
+                const val = (v: string | number | null | undefined, fallback: string) =>
+                  v != null && String(v).trim() !== "" ? String(v).trim() : fallback;
                 const typeVal =
                   vehicle.type === "car"
                     ? t("vehicleForm.car")
@@ -307,67 +316,32 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                 return (
                   <>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.type")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: theme.colors.accent },
-                        ]}
-                      >
+                      <Text style={styles.dataLabel}>{t("vehicleForm.type")}</Text>
+                      <Text style={[styles.dataValue, { color: theme.colors.accent }]}>
                         {typeVal}
                       </Text>
                     </View>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.makeLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(makeVal) },
-                        ]}
-                      >
+                      <Text style={styles.dataLabel}>{t("vehicleForm.makeLabel")}</Text>
+                      <Text style={[styles.dataValue, { color: valueColor(makeVal) }]}>
                         {makeVal}
                       </Text>
                     </View>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.modelLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(modelVal) },
-                        ]}
-                      >
+                      <Text style={styles.dataLabel}>{t("vehicleForm.modelLabel")}</Text>
+                      <Text style={[styles.dataValue, { color: valueColor(modelVal) }]}>
                         {modelVal}
                       </Text>
                     </View>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.yearLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(yearVal) },
-                        ]}
-                      >
+                      <Text style={styles.dataLabel}>{t("vehicleForm.yearLabel")}</Text>
+                      <Text style={[styles.dataValue, { color: valueColor(yearVal) }]}>
                         {yearVal}
                       </Text>
                     </View>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.vinLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(vinVal) },
-                        ]}
-                      >
+                      <Text style={styles.dataLabel}>{t("vehicleForm.vinLabel")}</Text>
+                      <Text style={[styles.dataValue, { color: valueColor(vinVal) }]}>
                         {vinVal}
                       </Text>
                     </View>
@@ -375,12 +349,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                       <Text style={styles.dataLabel}>
                         {t("vehicleForm.firstRegistrationDateLabel")}
                       </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(firstRegVal) },
-                        ]}
-                      >
+                      <Text style={[styles.dataValue, { color: valueColor(firstRegVal) }]}>
                         {firstRegVal}
                       </Text>
                     </View>
@@ -388,25 +357,13 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                       <Text style={styles.dataLabel}>
                         {t("vehicleForm.licensePlateLabel")}
                       </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(licenseVal) },
-                        ]}
-                      >
+                      <Text style={[styles.dataValue, { color: valueColor(licenseVal) }]}>
                         {licenseVal}
                       </Text>
                     </View>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.mileageLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(mileageVal) },
-                        ]}
-                      >
+                      <Text style={styles.dataLabel}>{t("vehicleForm.mileageLabel")}</Text>
+                      <Text style={[styles.dataValue, { color: valueColor(mileageVal) }]}>
                         {mileageVal}
                       </Text>
                     </View>
@@ -414,25 +371,13 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                       <Text style={styles.dataLabel}>
                         {t("vehicleForm.engineCapacityLabel")}
                       </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(engineVal) },
-                        ]}
-                      >
+                      <Text style={[styles.dataValue, { color: valueColor(engineVal) }]}>
                         {engineVal}
                       </Text>
                     </View>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.powerHpLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(powerVal) },
-                        ]}
-                      >
+                      <Text style={styles.dataLabel}>{t("vehicleForm.powerHpLabel")}</Text>
+                      <Text style={[styles.dataValue, { color: valueColor(powerVal) }]}>
                         {powerVal}
                       </Text>
                     </View>
@@ -440,12 +385,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                       <Text style={styles.dataLabel}>
                         {t("vehicleForm.transmissionLabel")}
                       </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(transVal) },
-                        ]}
-                      >
+                      <Text style={[styles.dataValue, { color: valueColor(transVal) }]}>
                         {transVal}
                       </Text>
                     </View>
@@ -453,12 +393,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                       <Text style={styles.dataLabel}>
                         {t("vehicleForm.driveTypeLabel")}
                       </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(driveVal) },
-                        ]}
-                      >
+                      <Text style={[styles.dataValue, { color: valueColor(driveVal) }]}>
                         {driveVal}
                       </Text>
                     </View>
@@ -466,12 +401,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                       <Text style={styles.dataLabel}>
                         {t("vehicleForm.fuelTypeLabel")}
                       </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(fuelVal) },
-                        ]}
-                      >
+                      <Text style={[styles.dataValue, { color: valueColor(fuelVal) }]}>
                         {fuelVal}
                       </Text>
                     </View>
@@ -588,24 +518,18 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
               styles={styles}
             />
             <InfoCard
-              title={t("marketplace.optionPrice")}
-              status={includePrice ? "included" : "notIncluded"}
-              value={
-                includePrice && price != null && price > 0
-                  ? `${price.toLocaleString()} ${currency}`
-                  : undefined
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("marketplace.optionPublicReport")}
+              title={t("publicReport.photos")}
               status={
-                includePublicReport
-                  ? selectedReportId
+                reportOptions.include_photos
+                  ? photoCount > 0
                     ? "included"
                     : "noData"
                   : "notIncluded"
+              }
+              count={
+                reportOptions.include_photos && photoCount > 0
+                  ? photoCount
+                  : undefined
               }
               theme={theme}
               styles={styles}
@@ -650,7 +574,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                 )}
               </View>
               <Text style={styles.checkboxLabel}>
-                {t("marketplace.confirmationCheckbox")}
+                {t("publicReport.confirmationCheckbox")}
               </Text>
             </Pressable>
           </View>

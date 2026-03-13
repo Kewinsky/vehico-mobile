@@ -1,4 +1,5 @@
 import { Alert, StyleSheet, View } from "react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -56,6 +57,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
   } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
+  const headerHeight = useHeaderHeight();
 
   // Export only what the user has access to on current tier. On Free we use the visible set from entitlements (no numeric limit).
   const isFreeVehicle = freePlanVehicleId === vehicleId;
@@ -364,8 +366,8 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
       showProfileAvatar
       showShopIcon={!isPremium}
     >
-      <ContentHeader title={t("dataPortability.title")} />
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingTop: headerHeight }}>
+        <ContentHeader title={t("dataPortability.title")} />
         <View style={styles.row}>
           {tiles.map((item) => (
             <Tile

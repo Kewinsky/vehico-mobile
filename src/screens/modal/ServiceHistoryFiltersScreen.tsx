@@ -21,6 +21,7 @@ import { Button } from "../../ui/components/common/Button";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { ModalLayout } from "../../layouts";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { Ionicons } from "@expo/vector-icons";
@@ -280,6 +281,7 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
       }
     >
       <FormScreen noLayout>
+        <NativeHeaderScrollView>
       <View
         style={[
           styles.card,
@@ -510,6 +512,7 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
           />
         </View>
       </View>
+        </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
   );

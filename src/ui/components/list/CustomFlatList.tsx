@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { FlatList, FlatListProps, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 import { useTheme } from "../../ThemeProvider";
 import { MonthYearSeparator } from "./MonthYearSeparator";
@@ -63,6 +64,7 @@ export function CustomFlatList<T>({
 }: CustomFlatListProps<T>) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
 
   const flatData = useMemo(() => {
@@ -75,7 +77,11 @@ export function CustomFlatList<T>({
   const isGrouped = groupByMonth && getMonthYearKey;
 
   const listStyle = [styles.list];
-  const contentStyle = [styles.listContent, contentContainerStyle];
+  const contentStyle = [
+    styles.listContent,
+    headerHeight > 0 ? { paddingTop: headerHeight } : null,
+    contentContainerStyle,
+  ];
 
   if (isGrouped) {
     const groupedData = flatData as CustomFlatListRow<T>[];

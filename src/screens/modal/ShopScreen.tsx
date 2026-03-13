@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 import * as WebBrowser from "expo-web-browser";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -33,6 +34,7 @@ const DEFAULT_SUBSCRIPTION: RevenueCatProductId = "lifetime";
 const LIFETIME_DISCOUNT_PERCENT = 30;
 
 export function ShopScreen({ navigation }: Props) {
+  const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const {
@@ -383,7 +385,7 @@ export function ShopScreen({ navigation }: Props) {
       }
     >
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, { paddingTop: headerHeight }]}
         showsVerticalScrollIndicator={false}
       >
         {isPremium && (

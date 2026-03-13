@@ -32,6 +32,7 @@ import {
   formatWheelDimensions,
 } from "../../services/wheels/wheelsRepo";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
+import { useHeaderHeight } from "@react-navigation/elements";
 import type {
   FuelingEntry,
   ServiceEntry,
@@ -355,6 +356,7 @@ function SimplePieChart({
 }
 
 export function StatisticsScreen({ route, navigation }: Props) {
+  const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
@@ -1366,7 +1368,10 @@ export function StatisticsScreen({ route, navigation }: Props) {
     >
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: theme.spacing.xl }}
+        contentContainerStyle={{
+          paddingTop: headerHeight,
+          paddingBottom: theme.spacing.xl,
+        }}
         showsVerticalScrollIndicator={false}
       >
         <ContentHeader

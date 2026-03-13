@@ -24,6 +24,7 @@ import {
 } from "../../services/tires/tiresRepo";
 import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -253,6 +254,7 @@ export function TireFormScreen({ navigation, route }: Props) {
       }
     >
       <FormScreen noLayout>
+        <NativeHeaderScrollView>
       <View
         style={[
           styles.card,
@@ -477,7 +479,8 @@ export function TireFormScreen({ navigation, route }: Props) {
             />
           </View>
         </View>
-      </View>
+        </View>
+        </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
   );

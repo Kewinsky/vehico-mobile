@@ -13,6 +13,7 @@ import {
   listVehicleWheels,
   formatWheelDimensions,
 } from "../../services/wheels/wheelsRepo";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { Tile } from "../../ui/components/common/Tile";
@@ -37,6 +38,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
     refresh: refreshEntitlements,
   } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const headerHeight = useHeaderHeight();
   const { vehicleId } = route.params;
   const tireOpts = useMemo(
     () =>
@@ -211,8 +213,10 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
       showProfileAvatar
       showShopIcon={!isPremium}
     >
-      <ContentHeader title={t("wheels.title")} />
-      <View style={{ flex: 1 }}>{content}</View>
+      <View style={{ flex: 1, paddingTop: headerHeight }}>
+        <ContentHeader title={t("wheels.title")} />
+        {content}
+      </View>
     </HeaderLayout>
   );
 }

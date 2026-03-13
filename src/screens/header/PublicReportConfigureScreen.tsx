@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
@@ -39,6 +40,7 @@ type PhotoItem = {
 };
 
 export function PublicReportConfigureScreen({ navigation, route }: Props) {
+  const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { isPremium } = useEntitlements();
@@ -350,6 +352,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
     >
       <ScrollView
         style={{ flex: 1 }}
+        contentContainerStyle={{ paddingTop: headerHeight }}
         showsVerticalScrollIndicator={false}
         scrollEnabled={!isDragging}
       >

@@ -23,6 +23,7 @@ import {
 } from "../../services/fuel/fuelingEntriesRepo";
 import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
@@ -247,6 +248,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       }
     >
       <FormScreen noLayout>
+        <NativeHeaderScrollView>
       <View
         style={[
           styles.card,
@@ -554,6 +556,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
           />
         </View>
       </View>
+        </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
   );

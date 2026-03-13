@@ -30,6 +30,7 @@ import {
   listVehiclePhotos,
   getVehiclePhotoUrl,
 } from "../../services/vehicles/uploadPhoto";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { HeaderLayout } from "../../layouts";
 import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
@@ -132,6 +133,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   const { settings } = useUserSettings();
   const { isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = makeStyles(theme);
+  const headerHeight = useHeaderHeight();
   const { vehicleId } = route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
 
@@ -239,6 +241,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   return (
     <HeaderLayout onBack={() => navigation.goBack()} right={headerRight}>
       <FormScreen noLayout>
+        <View style={{ height: headerHeight }} />
         <ContentHeader title={t("dashboard.tiles.manageTitle")} />
 
         {loading ? (

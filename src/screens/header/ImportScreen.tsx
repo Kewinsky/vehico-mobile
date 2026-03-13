@@ -7,6 +7,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -60,6 +61,7 @@ export function ImportScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { isPremium } = useEntitlements();
   const { vehicleId } = route.params;
+  const headerHeight = useHeaderHeight();
 
   const [csv, setCsv] = useState("");
   const [importing, setImporting] = useState(false);
@@ -200,7 +202,7 @@ export function ImportScreen({ navigation, route }: Props) {
       }
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, paddingTop: headerHeight }}>
           <ContentHeader title={t("import.title")} />
           <View
             style={[

@@ -100,8 +100,11 @@ export function WelcomeHeaderLayout({
       ),
       headerTitleAlign: "left",
       headerBackVisible: false,
+      headerTransparent: true,
       headerRight: rightContent ? () => rightContent : undefined,
-      headerStyle: { backgroundColor: theme.colors.bg },
+      headerStyle: {
+        backgroundColor: "transparent",
+      },
       headerShadowVisible: false,
     });
   }, [

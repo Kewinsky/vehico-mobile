@@ -7,6 +7,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -29,6 +30,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { url, vehicleId, reportTitle, generatedAt } = route.params;
   const { width } = useWindowDimensions();
+  const headerHeight = useHeaderHeight();
 
   const qrSize = useMemo(() => {
     const max = 260;
@@ -78,7 +80,13 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
 
   return (
     <HeaderLayout onBack={handleBack} showProfileAvatar>
-      <View style={{ flex: 1, paddingBottom: theme.spacing.xl }}>
+      <View
+        style={{
+          flex: 1,
+          paddingTop: headerHeight,
+          paddingBottom: theme.spacing.xl,
+        }}
+      >
         <ContentHeader title={layoutTitle} subtitle={generatedAt} />
         <View style={styles.qrContainer}>
           <View

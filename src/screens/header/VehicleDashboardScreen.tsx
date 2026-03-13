@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { Ionicons } from "@expo/vector-icons";
 import { Database, Fuel } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
@@ -38,6 +39,7 @@ type DashboardTile = {
 };
 
 export function VehicleDashboardScreen({ navigation, route }: Props) {
+  const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -217,6 +219,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         numColumns={2}
         keyExtractor={(t) => t.key}
         columnWrapperStyle={styles.row}
+        contentContainerStyle={{ paddingTop: headerHeight }}
         ListHeaderComponent={
           <View style={styles.listHeader}>
             <View style={styles.header}>

@@ -17,6 +17,7 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { normalizeDisplayName } from "../../utils/displayName";
 import { ModalLayout } from "../../layouts";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { supabase } from "../../services/supabase/client";
@@ -50,6 +51,7 @@ type RowItem = {
 };
 
 export function SettingsScreen({ navigation }: Props) {
+  const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { user, signOut } = useAuth();
@@ -162,7 +164,9 @@ export function SettingsScreen({ navigation }: Props) {
         label: t("common.cancel"),
       }}
     >
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={[styles.container, { paddingTop: headerHeight }]}
+      >
         <View style={styles.avatarBlock}>
           <View
             style={[

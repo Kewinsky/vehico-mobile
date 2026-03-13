@@ -44,6 +44,7 @@ import {
 } from "../../services/vehicles/uploadPhoto";
 import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
@@ -678,6 +679,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       loading={isEditMode && loading}
     >
       <FormScreen scrollEnabled={!isDragging && !isTouchingPhotoGrid} noLayout>
+        <NativeHeaderScrollView>
         {isEditMode && loading ? (
           <View style={styles.loadingContainer}>
             <LoadingIndicator />
@@ -1418,6 +1420,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
             <View style={{ height: theme.spacing.xl * 2 }} />
           </>
         )}
+        </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
   );

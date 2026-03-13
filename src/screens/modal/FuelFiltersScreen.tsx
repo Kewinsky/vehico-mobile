@@ -16,8 +16,7 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { GasStation } from "../../types/domain";
 import { setPendingModalResult } from "../../app/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
-import { FormScreen } from "../../ui/components/layout/FormScreen";
-import { ModalLayout } from "../../layouts";
+import { ModalFormScreen } from "../../ui/components/layout/ModalFormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { Ionicons } from "@expo/vector-icons";
@@ -221,17 +220,18 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
   }
 
   return (
-    <ModalLayout
+    <ModalFormScreen
       title={t("timeline.filtersTitle", { defaultValue: "Filters" })}
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
-      done={{ onPress: applyFilters, label: t("common.done") }}
+      onCancel={() => navigation.goBack()}
+      onDone={applyFilters}
+      cancelLabel={t("common.cancel")}
+      doneLabel={t("common.done")}
       footer={
         <Button variant="outlined" onPress={clearFilters}>
           {t("common.clearButton")}
         </Button>
       }
     >
-      <FormScreen noLayout>
       <View
         style={[
           styles.card,
@@ -360,9 +360,8 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
             style={[styles.input, { color: theme.colors.fg }]}
           />
         </View>
-      </View>
-      </FormScreen>
-    </ModalLayout>
+        </View>
+    </ModalFormScreen>
   );
 }
 

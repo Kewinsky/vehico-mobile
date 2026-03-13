@@ -9,6 +9,7 @@ import { setPendingModalResult } from "../../app/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
@@ -187,6 +188,7 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
       }
     >
       <FormScreen noLayout>
+        <NativeHeaderScrollView>
       <View
         style={[
           styles.card,
@@ -280,6 +282,7 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
           </>
         ) : null}
       </View>
+        </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
   );

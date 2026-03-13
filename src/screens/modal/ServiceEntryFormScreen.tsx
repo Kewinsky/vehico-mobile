@@ -41,6 +41,7 @@ import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -593,6 +594,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       }
     >
       <FormScreen noLayout>
+        <NativeHeaderScrollView>
       {!entryId ? (
         <>
           <SegmentTabs<"single" | "multi">
@@ -1206,6 +1208,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           <View style={{ height: theme.spacing.xl }} />
         </>
       )}
+        </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
   );

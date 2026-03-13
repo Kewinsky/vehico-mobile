@@ -19,7 +19,7 @@ import { listVehicleAttachments } from "../../services/attachments/attachmentsRe
 import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
-import { HeaderButton } from "@react-navigation/elements";
+import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { TimelineItem } from "../../ui/components/list/TimelineItem";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
@@ -333,59 +333,37 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   const getMonthYearKey = (row: { sortKey: string }) =>
     row.sortKey === "9999-12-31" ? "future" : row.sortKey.slice(0, 7);
 
-  const headerRight = useMemo(
-    () => (
-      <View style={styles.headerRight}>
-        {hasActiveFilters && (
-          <HeaderButton
-            onPress={resetFilters}
-            tintColor={theme.colors.accent}
-            accessibilityLabel={t("common.clearButton")}
-          >
-            <Ionicons
-              name="sync-outline"
-              size={theme.icons.headerButton}
-              color={theme.colors.accent}
-            />
-          </HeaderButton>
-        )}
-        <HeaderButton onPress={openFilters} tintColor={theme.colors.accent}>
-          <Ionicons
-            name="options-outline"
-            size={theme.icons.headerButton}
-            color={theme.colors.accent}
-          />
-        </HeaderButton>
-        <HeaderButton
-          onPress={() => navigation.navigate("ServiceEntryForm", { vehicleId })}
-          tintColor={theme.colors.accent}
-        >
-          <Ionicons
-            name="add"
-            size={theme.icons.headerButton}
-            color={theme.colors.accent}
-          />
-        </HeaderButton>
-      </View>
-    ),
-    [
-      openFilters,
-      resetFilters,
-      hasActiveFilters,
-      theme.colors.accent,
-      theme.icons.headerButton,
-      navigation,
-      vehicleId,
-      styles.headerRight,
-      t,
+  const headerActions: HeaderAction[] = useMemo(
+    () => [
+      ...(hasActiveFilters
+        ? [
+            {
+              type: "filterReset",
+              onPress: resetFilters,
+            } as HeaderAction,
+          ]
+        : []),
+      {
+        type: "filter",
+        onPress: openFilters,
+        hasActive: hasActiveFilters,
+      },
+      {
+        type: "add",
+        onPress: () =>
+          navigation.navigate("ServiceEntryForm", {
+            vehicleId,
+          }),
+      },
     ],
+    [hasActiveFilters, navigation, openFilters, resetFilters, vehicleId],
   );
 
   return (
     <HeaderLayout
       loading={loading}
       onBack={() => navigation.goBack()}
-      right={headerRight}
+      actions={headerActions}
     >
       <View style={{ flex: 1 }}>
         <CustomFlatList<TimelineRow>

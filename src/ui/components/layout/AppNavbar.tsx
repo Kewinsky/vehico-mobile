@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -11,12 +11,29 @@ import { useTheme } from "../../ThemeProvider";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import type { AppStackParamList } from "../../../app/navigation/RootNavigator";
 
+export type HeaderAction =
+  | {
+      type: "filter";
+      onPress: () => void;
+      hasActive?: boolean;
+    }
+  | {
+      type: "filterReset";
+      onPress: () => void;
+    }
+  | {
+      type: "add";
+      onPress: () => void;
+    };
+
 export type AppNavbarProps = {
   onBack?: () => void;
   right?: ReactNode;
   title?: string;
   showProfileAvatar?: boolean;
   showShopIcon?: boolean;
+  /** Common header actions (filter, add, etc.) rendered on the right side. */
+  actions?: HeaderAction[];
 };
 
 export function useNativeHeaderAsAppNavbar({
@@ -25,6 +42,7 @@ export function useNativeHeaderAsAppNavbar({
   title,
   showProfileAvatar,
   showShopIcon,
+  actions,
 }: AppNavbarProps) {
   const { theme } = useTheme();
   const { user } = useAuth();
@@ -44,6 +62,70 @@ export function useNativeHeaderAsAppNavbar({
     !hideProfileAvatar &&
     !showShopIcon &&
     showProfileAvatar;
+  const actionsContent = useMemo(() => {
+    if (!actions || actions.length === 0) return null;
+    return (
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: theme.spacing.sm,
+        }}
+      >
+        {actions.map((action, index) => {
+          if (action.type === "filter") {
+            return (
+              <HeaderButton
+                key={`action-filter-${index}`}
+                onPress={action.onPress}
+                tintColor={theme.colors.accent}
+                accessibilityLabel="Filter"
+              >
+                <Ionicons
+                  name="options-outline"
+                  size={theme.icons.headerButton}
+                  color={theme.colors.accent}
+                />
+              </HeaderButton>
+            );
+          }
+          if (action.type === "filterReset") {
+            return (
+              <HeaderButton
+                key={`action-filter-reset-${index}`}
+                onPress={action.onPress}
+                tintColor={theme.colors.accent}
+                accessibilityLabel="Reset filters"
+              >
+                <Ionicons
+                  name="sync-outline"
+                  size={theme.icons.headerButton}
+                  color={theme.colors.accent}
+                />
+              </HeaderButton>
+            );
+          }
+          if (action.type === "add") {
+            return (
+              <HeaderButton
+                key={`action-add-${index}`}
+                onPress={action.onPress}
+                tintColor={theme.colors.accent}
+                accessibilityLabel="Add"
+              >
+                <Ionicons
+                  name="add"
+                  size={theme.icons.headerButton}
+                  color={theme.colors.accent}
+                />
+              </HeaderButton>
+            );
+          }
+          return null;
+        })}
+      </View>
+    );
+  }, [actions, theme.colors.accent, theme.icons.headerButton, theme.spacing.sm]);
 
   useLayoutEffect(() => {
     const rightContent = showShopIcon ? (
@@ -61,40 +143,55 @@ export function useNativeHeaderAsAppNavbar({
         >
           <Crown size={theme.icons.headerButton} color={theme.colors.accent} />
         </HeaderButton>
-          {showProfileAvatar && user && (
-            <HeaderButton
-              onPress={() => navigation.navigate("Settings")}
-              tintColor={theme.colors.accent}
-              accessibilityLabel="Settings"
-            >
-              <Ionicons
-                name="settings-outline"
-                size={theme.icons.headerButton}
-                color={theme.colors.accent}
-              />
-            </HeaderButton>
-          )}
-          {right}
-        </View>
-      ) : right !== undefined ? (
-        right
-      ) : showInitials ? (
-        <HeaderButton
-          onPress={() => navigation.navigate("Settings")}
-          tintColor={theme.colors.accent}
-          accessibilityLabel="Settings"
+        {showProfileAvatar && user && (
+          <HeaderButton
+            onPress={() => navigation.navigate("Settings")}
+            tintColor={theme.colors.accent}
+            accessibilityLabel="Settings"
+          >
+            <Ionicons
+              name="settings-outline"
+              size={theme.icons.headerButton}
+              color={theme.colors.accent}
+            />
+          </HeaderButton>
+        )}
+        {right}
+      </View>
+    ) : right !== undefined ? (
+      right
+    ) : showInitials ? (
+      <HeaderButton
+        onPress={() => navigation.navigate("Settings")}
+        tintColor={theme.colors.accent}
+        accessibilityLabel="Settings"
+      >
+        <Ionicons
+          name="settings-outline"
+          size={theme.icons.headerButton}
+          color={theme.colors.accent}
+        />
+      </HeaderButton>
+    ) : null;
+
+    const combinedRight =
+      rightContent || actionsContent ? (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+          }}
         >
-          <Ionicons
-            name="settings-outline"
-            size={theme.icons.headerButton}
-            color={theme.colors.accent}
-          />
-        </HeaderButton>
+          {rightContent}
+          {actionsContent}
+        </View>
       ) : null;
 
     navigation.setOptions({
       headerTitle: title ?? "",
       headerBackVisible: false,
+      headerTransparent: true,
       headerLeft: onBack
         ? () => (
             <HeaderButton
@@ -110,8 +207,10 @@ export function useNativeHeaderAsAppNavbar({
             </HeaderButton>
           )
         : undefined,
-      headerRight: rightContent ? () => rightContent : undefined,
-      headerStyle: { backgroundColor: theme.colors.bg },
+      headerRight: combinedRight ? () => combinedRight : undefined,
+      headerStyle: {
+        backgroundColor: "transparent",
+      },
       headerTitleStyle: {
         color: theme.colors.fg,
         fontWeight: theme.typography.fontWeight.bold,
@@ -136,6 +235,7 @@ export function useNativeHeaderAsAppNavbar({
     user,
     showInitials,
     hideProfileAvatar,
+    actionsContent,
   ]);
 }
 
@@ -145,6 +245,7 @@ export function AppNavbar({
   title,
   showProfileAvatar,
   showShopIcon,
+  actions,
 }: AppNavbarProps) {
   const { theme } = useTheme();
   const { user } = useAuth();
@@ -165,6 +266,65 @@ export function AppNavbar({
     !hideProfileAvatar &&
     !showShopIcon &&
     showProfileAvatar;
+
+  const actionsContent = useMemo(() => {
+    if (!actions || actions.length === 0) return null;
+    return (
+      <View style={styles.rightIcons}>
+        {actions.map((action, index) => {
+          if (action.type === "filter") {
+            return (
+              <HeaderButton
+                key={`action-filter-${index}`}
+                onPress={action.onPress}
+                tintColor={theme.colors.accent}
+                accessibilityLabel="Filter"
+              >
+                <Ionicons
+                  name="options-outline"
+                  size={theme.icons.headerButton}
+                  color={theme.colors.accent}
+                />
+              </HeaderButton>
+            );
+          }
+          if (action.type === "filterReset") {
+            return (
+              <HeaderButton
+                key={`action-filter-reset-${index}`}
+                onPress={action.onPress}
+                tintColor={theme.colors.accent}
+                accessibilityLabel="Reset filters"
+              >
+                <Ionicons
+                  name="sync-outline"
+                  size={theme.icons.headerButton}
+                  color={theme.colors.accent}
+                />
+              </HeaderButton>
+            );
+          }
+          if (action.type === "add") {
+            return (
+              <HeaderButton
+                key={`action-add-${index}`}
+                onPress={action.onPress}
+                tintColor={theme.colors.accent}
+                accessibilityLabel="Add"
+              >
+                <Ionicons
+                  name="add"
+                  size={theme.icons.headerButton}
+                  color={theme.colors.accent}
+                />
+              </HeaderButton>
+            );
+          }
+          return null;
+        })}
+      </View>
+    );
+  }, [actions, styles.rightIcons, theme.colors.accent, theme.icons.headerButton]);
 
   return (
     <View style={styles.root}>
@@ -201,7 +361,10 @@ export function AppNavbar({
               tintColor={theme.colors.accent}
               accessibilityLabel="Shop"
             >
-              <Crown size={theme.icons.headerButton} color={theme.colors.accent} />
+              <Crown
+                size={theme.icons.headerButton}
+                color={theme.colors.accent}
+              />
             </HeaderButton>
             {showProfileAvatar && user && (
               <HeaderButton
@@ -217,9 +380,13 @@ export function AppNavbar({
               </HeaderButton>
             )}
             {right}
+            {actionsContent}
           </View>
-        ) : right !== undefined ? (
-          right
+        ) : right !== undefined || actionsContent ? (
+          <View style={styles.rightIcons}>
+            {right}
+            {actionsContent}
+          </View>
         ) : showInitials ? (
           <HeaderButton
             onPress={() => navigation.navigate("Settings")}

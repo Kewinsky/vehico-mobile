@@ -11,6 +11,7 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { supabase } from "../../services/supabase/client";
 import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
@@ -211,37 +212,39 @@ export function AuthScreen({ navigation }: Props) {
         cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
       >
         <FormScreen noLayout>
-        <View style={styles.magicLinkContainer}>
-          <View style={styles.iconContainer}>
-            <Text style={[styles.icon, { color: theme.colors.accent }]}>
-              ✉️
-            </Text>
-          </View>
+          <NativeHeaderScrollView>
+            <View style={styles.magicLinkContainer}>
+              <View style={styles.iconContainer}>
+                <Text style={[styles.icon, { color: theme.colors.accent }]}>
+                  ✉️
+                </Text>
+              </View>
 
-          <View style={styles.content}>
-            <Text style={[styles.title, { color: theme.colors.fg }]}>
-              {t("auth.magicLinkSentTitle")}
-            </Text>
-            <Text style={[styles.body, { color: theme.colors.muted }]}>
-              {t("auth.magicLinkSentBody", { email: sentEmail })}
-            </Text>
-            <Text style={[styles.hint, { color: theme.colors.muted }]}>
-              {t("auth.magicLinkSentHint")}
-            </Text>
-          </View>
+              <View style={styles.content}>
+                <Text style={[styles.title, { color: theme.colors.fg }]}>
+                  {t("auth.magicLinkSentTitle")}
+                </Text>
+                <Text style={[styles.body, { color: theme.colors.muted }]}>
+                  {t("auth.magicLinkSentBody", { email: sentEmail })}
+                </Text>
+                <Text style={[styles.hint, { color: theme.colors.muted }]}>
+                  {t("auth.magicLinkSentHint")}
+                </Text>
+              </View>
 
-          <Button
-            variant="ghost"
-            style={styles.magicLinkButton}
-            onPress={() => {
-              setMagicLinkSent(false);
-              setEmail("");
-              setSentEmail("");
-            }}
-          >
-            {t("auth.sendAnotherLink")}
-          </Button>
-        </View>
+              <Button
+                variant="ghost"
+                style={styles.magicLinkButton}
+                onPress={() => {
+                  setMagicLinkSent(false);
+                  setEmail("");
+                  setSentEmail("");
+                }}
+              >
+                {t("auth.sendAnotherLink")}
+              </Button>
+            </View>
+          </NativeHeaderScrollView>
         </FormScreen>
       </ModalLayout>
     );
@@ -253,148 +256,181 @@ export function AuthScreen({ navigation }: Props) {
       cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
     >
       <FormScreen noLayout>
-      {/* Magic Link Section */}
-      <View style={[styles.magicLinkSection, { marginTop: theme.spacing.md }]}>
-        <View
-          style={[
-            styles.card,
-            {
-              borderColor: theme.colors.border,
-              backgroundColor: theme.colors.card,
-            },
-          ]}
-        >
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <Text
-                style={[styles.label, { color: theme.colors.muted }]}
-                numberOfLines={1}
-              >
-                {t("auth.emailLabel")}
-              </Text>
+        <NativeHeaderScrollView>
+          {/* Magic Link Section */}
+          <View
+            style={[styles.magicLinkSection, { marginTop: theme.spacing.md }]}
+          >
+            <View
+              style={[
+                styles.card,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="mail-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("auth.emailLabel")}
+                  </Text>
+                </View>
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder={t("auth.emailPlaceholder")}
+                  placeholderTextColor={theme.colors.muted}
+                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  editable={!isSubmitting && !isSocialLoading}
+                  style={[styles.input, { color: theme.colors.fg }]}
+                />
+              </View>
             </View>
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder={t("auth.emailPlaceholder")}
-              placeholderTextColor={theme.colors.muted}
-              keyboardAppearance={mode === "dark" ? "dark" : "light"}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              editable={!isSubmitting && !isSocialLoading}
-              style={[styles.input, { color: theme.colors.fg }]}
+
+            <Button onPress={sendMagicLink} disabled={!canSubmit}>
+              {isSubmitting ? t("auth.sendingLink") : t("auth.sendMagicLink")}
+            </Button>
+          </View>
+
+          <Text style={[styles.magicLinkHint, { color: theme.colors.muted }]}>
+            {t("auth.magicLinkHint")}
+          </Text>
+
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View
+              style={[
+                styles.dividerLine,
+                { backgroundColor: theme.colors.border },
+              ]}
+            />
+            <Text
+              style={[styles.dividerText, { color: theme.colors.muted }]}
+            >
+              {t("auth.orContinueWith")}
+            </Text>
+            <View
+              style={[
+                styles.dividerLine,
+                { backgroundColor: theme.colors.border },
+              ]}
             />
           </View>
-        </View>
 
-        <Button onPress={sendMagicLink} disabled={!canSubmit}>
-          {isSubmitting ? t("auth.sendingLink") : t("auth.sendMagicLink")}
-        </Button>
-      </View>
+          {/* Social Auth Section */}
+          <View style={styles.socialSection}>
+            <View style={styles.socialButtons}>
+              <Pressable
+                onPress={signInWithFacebook}
+                disabled={!!isSocialLoading}
+                style={({ pressed }) => [
+                  styles.socialButton,
+                  {
+                    backgroundColor: theme.colors.card,
+                    borderColor: theme.colors.border,
+                    opacity:
+                      isSocialLoading === "facebook" || pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="logo-facebook"
+                  size={20}
+                  color={theme.colors.fg}
+                />
+                <Text
+                  style={[
+                    styles.socialButtonText,
+                    { color: theme.colors.fg },
+                  ]}
+                >
+                  {isSocialLoading === "facebook"
+                    ? t("common.loading")
+                    : t("auth.facebook")}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={signInWithGoogle}
+                disabled={!!isSocialLoading}
+                style={({ pressed }) => [
+                  styles.socialButton,
+                  {
+                    backgroundColor: theme.colors.card,
+                    borderColor: theme.colors.border,
+                    opacity: isSocialLoading === "google" || pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="logo-google"
+                  size={20}
+                  color={theme.colors.fg}
+                />
+                <Text
+                  style={[
+                    styles.socialButtonText,
+                    { color: theme.colors.fg },
+                  ]}
+                >
+                  {isSocialLoading === "google"
+                    ? t("common.loading")
+                    : t("auth.google")}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
 
-      <Text style={[styles.magicLinkHint, { color: theme.colors.muted }]}>
-        {t("auth.magicLinkHint")}
-      </Text>
-
-      {/* Divider */}
-      <View style={styles.divider}>
-        <View
-          style={[styles.dividerLine, { backgroundColor: theme.colors.border }]}
-        />
-        <Text style={[styles.dividerText, { color: theme.colors.muted }]}>
-          {t("auth.orContinueWith")}
-        </Text>
-        <View
-          style={[styles.dividerLine, { backgroundColor: theme.colors.border }]}
-        />
-      </View>
-
-      {/* Social Auth Section */}
-      <View style={styles.socialSection}>
-        <View style={styles.socialButtons}>
-          <Pressable
-            onPress={signInWithFacebook}
-            disabled={!!isSocialLoading}
-            style={({ pressed }) => [
-              styles.socialButton,
-              {
-                backgroundColor: theme.colors.card,
-                borderColor: theme.colors.border,
-                opacity: isSocialLoading === "facebook" || pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <Ionicons name="logo-facebook" size={20} color={theme.colors.fg} />
-            <Text style={[styles.socialButtonText, { color: theme.colors.fg }]}>
-              {isSocialLoading === "facebook"
-                ? t("common.loading")
-                : t("auth.facebook")}
+          {/* Terms & Privacy Footer */}
+          <View style={[styles.footer]}>
+            <Text style={[styles.footerText, { color: theme.colors.muted }]}>
+              {t("auth.bySigningIn")}
+              {"\n"}
+              <Text
+                style={[styles.footerLink, { color: theme.colors.accent }]}
+                onPress={() =>
+                  void WebBrowser.openBrowserAsync(`${ENV.WEB_APP_URL}/terms`)
+                }
+              >
+                {t("auth.termsOfService")}
+              </Text>{" "}
+              {t("common.and")}{" "}
+              <Text
+                style={[styles.footerLink, { color: theme.colors.accent }]}
+                onPress={() =>
+                  void WebBrowser.openBrowserAsync(
+                    `${ENV.WEB_APP_URL}/privacy`,
+                  )
+                }
+              >
+                {t("auth.privacyPolicy")}
+              </Text>
             </Text>
-          </Pressable>
-          <Pressable
-            onPress={signInWithGoogle}
-            disabled={!!isSocialLoading}
-            style={({ pressed }) => [
-              styles.socialButton,
-              {
-                backgroundColor: theme.colors.card,
-                borderColor: theme.colors.border,
-                opacity: isSocialLoading === "google" || pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <Ionicons name="logo-google" size={20} color={theme.colors.fg} />
-            <Text style={[styles.socialButtonText, { color: theme.colors.fg }]}>
-              {isSocialLoading === "google"
+          </View>
+          {/* Test account — only in development */}
+          {ENV.APP_ENV === "development" && (
+            <Button
+              onPress={signInWithTestAccount}
+              disabled={isSubmitting}
+              variant="ghost"
+            >
+              {isSubmitting
                 ? t("common.loading")
-                : t("auth.google")}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-
-      {/* Terms & Privacy Footer */}
-      <View style={[styles.footer]}>
-        <Text style={[styles.footerText, { color: theme.colors.muted }]}>
-          {t("auth.bySigningIn")}
-          {"\n"}
-          <Text
-            style={[styles.footerLink, { color: theme.colors.accent }]}
-            onPress={() =>
-              void WebBrowser.openBrowserAsync(`${ENV.WEB_APP_URL}/terms`)
-            }
-          >
-            {t("auth.termsOfService")}
-          </Text>{" "}
-          {t("common.and")}{" "}
-          <Text
-            style={[styles.footerLink, { color: theme.colors.accent }]}
-            onPress={() =>
-              void WebBrowser.openBrowserAsync(`${ENV.WEB_APP_URL}/privacy`)
-            }
-          >
-            {t("auth.privacyPolicy")}
-          </Text>
-        </Text>
-      </View>
-      {/* Test account — only in development */}
-      {ENV.APP_ENV === "development" && (
-        <Button
-          onPress={signInWithTestAccount}
-          disabled={isSubmitting}
-          variant="ghost"
-        >
-          {isSubmitting
-            ? t("common.loading")
-            : "🧪 Test Account (test@user.com)"}
-        </Button>
-      )}
+                : "🧪 Test Account (test@user.com)"}
+            </Button>
+          )}
+        </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
   );

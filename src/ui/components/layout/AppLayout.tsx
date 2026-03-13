@@ -48,7 +48,9 @@ export function AppLayout({
         <View
           style={[
             styles.content,
-            { paddingHorizontal: theme.layout.contentPaddingHorizontal },
+            {
+              paddingHorizontal: theme.layout.contentPaddingHorizontal,
+            },
           ]}
         >
           {children}

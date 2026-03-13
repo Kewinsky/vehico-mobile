@@ -1,4 +1,5 @@
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -27,6 +28,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { content, vehicleId, postTitle, generatedAt } = route.params;
+  const headerHeight = useHeaderHeight();
   const [displayLang, setDisplayLang] = useState<"pl" | "en">(
     (settings?.language as "pl" | "en") ?? "pl",
   );
@@ -60,7 +62,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
 
   return (
     <HeaderLayout onBack={handleBack} showProfileAvatar>
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingTop: headerHeight }}>
         <ContentHeader title={layoutTitle} subtitle={generatedAt} />
         <SegmentTabs<"pl" | "en">
           value={displayLang}

@@ -18,7 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { TimelineItem } from "../../ui/components/list/TimelineItem";
-import { HeaderButton } from "@react-navigation/elements";
+import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
 
@@ -87,7 +87,6 @@ export function FuelScreen({ route, navigation }: Props) {
       maxCost.trim().length > 0
     );
   }, [dateFrom, dateTo, stationFilter, minCost, maxCost]);
-
   const openFilters = useCallback(() => {
     navigation.navigate("FuelFilters", {
       vehicleId: route.params.vehicleId,
@@ -173,55 +172,33 @@ export function FuelScreen({ route, navigation }: Props) {
   const getMonthYearKey = (entry: FuelingEntry) =>
     String(entry.date).slice(0, 7);
 
-  const headerRight = useMemo(
-    () => (
-      <View style={styles.headerRight}>
-        {hasActiveFilters && (
-          <HeaderButton
-            onPress={resetFilters}
-            tintColor={theme.colors.accent}
-            accessibilityLabel={t("common.clearButton")}
-          >
-            <Ionicons
-              name="sync-outline"
-              size={theme.icons.headerButton}
-              color={theme.colors.accent}
-            />
-          </HeaderButton>
-        )}
-        <HeaderButton onPress={openFilters} tintColor={theme.colors.accent}>
-          <Ionicons
-            name="options-outline"
-            size={theme.icons.headerButton}
-            color={theme.colors.accent}
-          />
-        </HeaderButton>
-        <HeaderButton onPress={openAddEntry} tintColor={theme.colors.accent}>
-          <Ionicons
-            name="add"
-            size={theme.icons.headerButton}
-            color={theme.colors.accent}
-          />
-        </HeaderButton>
-      </View>
-    ),
-    [
-      openFilters,
-      openAddEntry,
-      resetFilters,
-      hasActiveFilters,
-      theme.colors.accent,
-      theme.icons.headerButton,
-      styles.headerRight,
-      t,
-    ],
-  );
+  const headerActions: HeaderAction[] = useMemo(() => {
+    const actions: HeaderAction[] = [];
+    if (hasActiveFilters) {
+      actions.push({
+        type: "filterReset",
+        onPress: resetFilters,
+      });
+    }
+    actions.push(
+      {
+        type: "filter",
+        onPress: openFilters,
+        hasActive: hasActiveFilters,
+      },
+      {
+        type: "add",
+        onPress: openAddEntry,
+      },
+    );
+    return actions;
+  }, [hasActiveFilters, openFilters, openAddEntry, resetFilters]);
 
   return (
     <HeaderLayout
       loading={loading}
       onBack={() => navigation.goBack()}
-      right={headerRight}
+      actions={headerActions}
     >
       <CustomFlatList<FuelingEntry>
         data={filteredFuelingList}

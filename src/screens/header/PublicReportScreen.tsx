@@ -1,22 +1,22 @@
-import { Alert, StyleSheet, View } from "react-native";
+import { View, Alert } from "react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
-import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { HeaderLayout } from "../../layouts";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Marketplace">;
+type Props = NativeStackScreenProps<AppStackParamList, "PublicReport">;
 
-export function MarketplaceScreen({ navigation, route }: Props) {
+export function PublicReportScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { vehicleId } = route.params;
   const { isPremium } = useEntitlements();
+  const headerHeight = useHeaderHeight();
 
   function onGeneratePress() {
     if (!isPremium) {
@@ -33,29 +33,26 @@ export function MarketplaceScreen({ navigation, route }: Props) {
       );
       return;
     }
-    navigation.navigate("MarketplaceConfigure", { vehicleId });
+    navigation.navigate("PublicReportConfigure", { vehicleId });
   }
 
   return (
-    <HeaderLayout
-      onBack={() => navigation.goBack()}
-      showProfileAvatar
-    >
-      <ContentHeader title={t("marketplace.screenTitle")} />
-      <View style={{ flex: 1 }}>
+    <HeaderLayout onBack={() => navigation.goBack()} showProfileAvatar>
+      <View style={{ paddingTop: headerHeight }}>
+        <ContentHeader title={t("publicReport.title")} />
         <Button onPress={onGeneratePress}>
-          {t("marketplace.generateButton")}
+          {t("publicReport.generateButton")}
         </Button>
         <View style={{ height: theme.spacing.sm }} />
         <Button
           onPress={() =>
-            navigation.navigate("MarketplacePostHistory", {
+            navigation.navigate("PublicReportHistory", {
               vehicleId,
             })
           }
           variant="ghost"
         >
-          {t("marketplace.historyButton")}
+          {t("publicReport.historyButton")}
         </Button>
       </View>
     </HeaderLayout>

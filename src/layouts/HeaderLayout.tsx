@@ -13,22 +13,12 @@ export type HeaderLayoutProps = PropsWithChildren<
   }
 >;
 
-export function HeaderLayout({
-  children,
-  loading = false,
-  footer,
-  onBack,
-  right,
-  title,
-  showProfileAvatar,
-  showShopIcon,
-}: HeaderLayoutProps) {
+export function HeaderLayout(props: HeaderLayoutProps) {
+  const { children, loading = false, footer, ...navbarProps } = props;
+
   useNativeHeaderAsAppNavbar({
-    onBack,
-    right,
-    title,
-    showProfileAvatar,
-    showShopIcon,
+    ...navbarProps,
+    title: undefined,
   });
 
   return (
