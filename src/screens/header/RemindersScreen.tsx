@@ -20,11 +20,11 @@ import {
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
-import { HeaderButton } from "@react-navigation/elements";
 import { IconButton } from "../../ui/components/common/IconButton";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { Ionicons } from "@expo/vector-icons";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
+import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Reminders">;
 
@@ -244,58 +244,34 @@ export function RemindersScreen({ route, navigation }: Props) {
     setStatusFilter("all");
   }, []);
 
-  const headerRight = useMemo(
-    () => (
-      <View style={styles.headerRight}>
-        {hasActiveFilters && (
-          <HeaderButton
-            onPress={resetFilters}
-            tintColor={theme.colors.accent}
-            accessibilityLabel={t("common.clearButton")}
-          >
-            <Ionicons
-              name="sync-outline"
-              size={theme.icons.headerButton}
-              color={theme.colors.accent}
-            />
-          </HeaderButton>
-        )}
-        <HeaderButton onPress={openFilters} tintColor={theme.colors.accent}>
-          <Ionicons
-            name="options-outline"
-            size={theme.icons.headerButton}
-            color={theme.colors.accent}
-          />
-        </HeaderButton>
-        <HeaderButton
-          onPress={onAddReminderPress}
-          tintColor={theme.colors.accent}
-        >
-          <Ionicons
-            name="add"
-            size={theme.icons.headerButton}
-            color={theme.colors.accent}
-          />
-        </HeaderButton>
-      </View>
-    ),
-    [
-      openFilters,
-      onAddReminderPress,
-      resetFilters,
-      hasActiveFilters,
-      theme.colors.accent,
-      theme.icons.headerButton,
-      styles.headerRight,
-      t,
+  const headerActions: HeaderAction[] = useMemo(
+    () => [
+      ...(hasActiveFilters
+        ? [
+            {
+              type: "filterReset",
+              onPress: resetFilters,
+            } as HeaderAction,
+          ]
+        : []),
+      {
+        type: "filter",
+        onPress: openFilters,
+        hasActive: hasActiveFilters,
+      },
+      {
+        type: "add",
+        onPress: onAddReminderPress,
+      },
     ],
+    [hasActiveFilters, onAddReminderPress, openFilters, resetFilters],
   );
 
   return (
     <HeaderLayout
       loading={loading}
       onBack={() => navigation.goBack()}
-      right={headerRight}
+      actions={headerActions}
     >
       <CustomFlatList<Reminder>
         data={filteredRemindersList}

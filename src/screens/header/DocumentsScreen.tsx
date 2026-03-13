@@ -19,7 +19,7 @@ import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
-import { HeaderButton } from "@react-navigation/elements";
+import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import type { Attachment, VehicleDocument } from "../../types/domain";
@@ -294,24 +294,21 @@ export function DocumentsScreen({ route, navigation }: Props) {
     );
   }
 
-  const headerRight = useMemo(
-    () => (
-      <HeaderButton
-        onPress={openAddPicker}
-        tintColor={theme.colors.accent}
-        disabled={uploading}
-      >
-        <Ionicons name="add" size={theme.icons.headerButton} color={theme.colors.accent} />
-      </HeaderButton>
-    ),
-    [openAddPicker, uploading, theme.colors.accent],
+  const headerActions: HeaderAction[] = useMemo(
+    () => [
+      {
+        type: "add",
+        onPress: openAddPicker,
+      },
+    ],
+    [openAddPicker],
   );
 
   return (
     <HeaderLayout
       loading={loading}
       onBack={() => navigation.goBack()}
-      right={headerRight}
+      actions={headerActions}
     >
       <ScrollView
         style={{ flex: 1 }}

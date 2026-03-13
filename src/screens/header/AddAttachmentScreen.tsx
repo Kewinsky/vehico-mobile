@@ -16,7 +16,7 @@ import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
-import { HeaderButton } from "@react-navigation/elements";
+import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
@@ -215,53 +215,30 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     });
   }, [items, query, sortOption]);
 
-  const headerRight = useMemo(
-    () => (
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: theme.spacing.sm,
-        }}
-      >
-        {hasActiveFilters && (
-          <HeaderButton
-            onPress={resetFilters}
-            tintColor={theme.colors.accent}
-            accessibilityLabel={t("common.clearButton")}
-          >
-            <Ionicons
-              name="sync-outline"
-              size={theme.icons.headerButton}
-              color={theme.colors.accent}
-            />
-          </HeaderButton>
-        )}
-        <HeaderButton onPress={openFilters} tintColor={theme.colors.accent}>
-          <Ionicons
-            name="options-outline"
-            size={theme.icons.headerButton}
-            color={theme.colors.accent}
-          />
-        </HeaderButton>
-      </View>
-    ),
-    [
-      openFilters,
-      resetFilters,
-      hasActiveFilters,
-      theme.colors.accent,
-      theme.spacing.sm,
-      theme.icons.headerButton,
-      t,
+  const headerActions: HeaderAction[] = useMemo(
+    () => [
+      ...(hasActiveFilters
+        ? [
+            {
+              type: "filterReset",
+              onPress: resetFilters,
+            } as HeaderAction,
+          ]
+        : []),
+      {
+        type: "filter",
+        onPress: openFilters,
+        hasActive: hasActiveFilters,
+      },
     ],
+    [hasActiveFilters, openFilters, resetFilters],
   );
 
   return (
     <HeaderLayout
       loading={loading}
       onBack={() => navigation.goBack()}
-      right={headerRight}
+      actions={headerActions}
     >
       <CustomFlatList<ServiceEntry>
         data={filteredItems}
