@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
@@ -51,8 +51,7 @@ import {
   getPresetDueDate,
   type ReminderPreset,
 } from "../reminderPresets";
-import { ModalButton } from "../../ui/components/layout/ModalButton";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ModalLayout } from "../../layouts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
 
@@ -83,7 +82,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const { settings } = useUserSettings();
   const { isPremium, remindersLimit, freePlanVehicleId, freePlanReminderIds } =
     useEntitlements();
-  const insets = useSafeAreaInsets();
   const styles = makeStyles(theme);
   const { vehicleId, reminderId } = route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
@@ -382,51 +380,30 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     }
   }, [recurrenceUnit, t]);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: reminderId
-        ? t("reminderForm.editTitle")
-        : t("reminderForm.addTitle"),
-      headerBackVisible: false,
-      headerTransparent: true,
-      headerStyle: {
-        backgroundColor: "transparent",
-      },
-      headerTitleStyle: {
-        color: theme.colors.fg,
-        fontWeight: theme.typography.fontWeight.bold,
-        fontSize: theme.typography.title,
-      },
-      headerShadowVisible: false,
-      headerLeft: () => (
-        <ModalButton variant="cancel" onPress={() => navigation.goBack()}>
-          {t("common.cancel")}
-        </ModalButton>
-      ),
-      headerRight: () => (
-        <ModalButton
-          variant="done"
-          onPress={onSave}
-          disabled={!canSave || saving}
-        >
-          {t("common.done")}
-        </ModalButton>
-      ),
-    });
-  }, [
-    navigation,
-    reminderId,
-    onSave,
-    canSave,
-    saving,
-    t,
-    theme.colors.fg,
-    theme.typography.fontWeight.bold,
-    theme.typography.title,
-  ]);
-
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.bg }}>
+    <ModalLayout
+      title={reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle")}
+      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      done={{
+        onPress: onSave,
+        label: t("common.done"),
+        disabled: !canSave || saving,
+      }}
+      useHorizontalContentInset={false}
+      footer={
+        <View style={styles.footerAction}>
+          {reminderId ? (
+            <Button variant="destructive" onPress={confirmDelete}>
+              {t("common.delete")}
+            </Button>
+          ) : (
+            <Button variant="outlined" onPress={clearForm} disabled={saving}>
+              {t("common.clearButton")}
+            </Button>
+          )}
+        </View>
+      }
+    >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
           {!reminderId ? (
@@ -1007,28 +984,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           </View>
         </NativeHeaderScrollView>
       </FormScreen>
-
-      <View
-        style={{
-          paddingHorizontal: theme.layout.contentPaddingHorizontal,
-          paddingTop: theme.spacing.md,
-          paddingBottom: insets.bottom,
-          borderTopColor: "transparent",
-          borderTopWidth: 0,
-          backgroundColor: "transparent",
-        }}
-      >
-        {reminderId ? (
-          <Button variant="destructive" onPress={confirmDelete}>
-            {t("common.delete")}
-          </Button>
-        ) : (
-          <Button variant="outlined" onPress={clearForm} disabled={saving}>
-            {t("common.clearButton")}
-          </Button>
-        )}
-      </View>
-    </View>
+    </ModalLayout>
   );
 }
 
@@ -1141,5 +1097,9 @@ const makeStyles = (theme: any) =>
     pickerActionText: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
+    },
+    footerAction: {
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      paddingTop: theme.spacing.md,
     },
   });

@@ -20,8 +20,11 @@ export type ModalLayoutProps = PropsWithChildren<{
   };
   loading?: boolean;
   footer?: ReactNode;
+  footerTransparent?: boolean;
+  background?: ReactNode;
   useNativeHeaderScrollView?: boolean;
   scrollEnabled?: boolean;
+  useHorizontalContentInset?: boolean;
 }>;
 
 export function ModalLayout({
@@ -31,8 +34,11 @@ export function ModalLayout({
   done,
   loading = false,
   footer,
+  footerTransparent = false,
+  background,
   useNativeHeaderScrollView = false,
   scrollEnabled,
+  useHorizontalContentInset = true,
 }: ModalLayoutProps) {
   const { theme } = useTheme();
   const navigation = useNavigation();
@@ -93,7 +99,15 @@ export function ModalLayout({
   );
 
   return (
-    <AppLayout loading={loading} isModal useNativeHeader footer={footer}>
+    <AppLayout
+      loading={loading}
+      isModal
+      useNativeHeader
+      footer={footer}
+      footerTransparent={footerTransparent}
+      background={background}
+      useHorizontalContentInset={useHorizontalContentInset}
+    >
       {content}
     </AppLayout>
   );

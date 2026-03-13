@@ -6,7 +6,6 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
-import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ExampleListing">;
 
@@ -19,8 +18,9 @@ export function ExampleListingScreen({ navigation }: Props) {
     <ModalLayout
       title={t("shop.exampleListingPage.title")}
       cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      useNativeHeaderScrollView
     >
-      <NativeHeaderScrollView contentContainerStyle={styles.container}>
+      <View style={styles.container}>
         <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
           {t("shop.exampleListingPage.subtitle")}
         </Text>
@@ -41,7 +41,7 @@ export function ExampleListingScreen({ navigation }: Props) {
           </Text>
         </View>
         <View style={styles.bottomSpacer} />
-      </NativeHeaderScrollView>
+      </View>
     </ModalLayout>
   );
 }

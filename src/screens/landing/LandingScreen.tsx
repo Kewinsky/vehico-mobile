@@ -11,8 +11,9 @@ import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
 import { LandingLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { DecorativeBackground } from "../../ui/components/branding/DecorativeBackground";
-import { BrandHero } from "../../ui/components/branding/BrandHero";
+import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
+import { PremiumHero } from "../modal/ShopScreen";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Landing">;
 
@@ -45,11 +46,15 @@ export function LandingScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.heroShell}>
-          <BrandHero
-            title={t("landing.title")}
-            subtitle={t("landing.heroLead")}
-            brandTitle
-          />
+          <PremiumHero theme={theme} />
+          <View style={styles.heroCopy}>
+            <Text style={[styles.heroTitle, { color: theme.colors.fg }]}>
+              {t("landing.title")}
+            </Text>
+            <Text style={[styles.heroSubtitle, { color: theme.colors.muted }]}>
+              {t("landing.heroLead")}
+            </Text>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -129,6 +134,25 @@ const makeStyles = (theme: any) =>
     },
     heroShell: {
       gap: theme.spacing.md,
+      alignItems: "center",
+    },
+    heroCopy: {
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      width: "100%",
+    },
+    heroTitle: {
+      fontSize: theme.typography.largeTitle + 6,
+      fontWeight: "900",
+      fontFamily: BRAND_FONT_FAMILY,
+      textAlign: "center",
+      letterSpacing: -0.7,
+    },
+    heroSubtitle: {
+      fontSize: theme.typography.body,
+      lineHeight: theme.typography.body + 8,
+      textAlign: "center",
+      maxWidth: 360,
     },
     quickPills: {
       flexDirection: "row",

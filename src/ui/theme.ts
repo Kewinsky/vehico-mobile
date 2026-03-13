@@ -37,6 +37,7 @@ export type AppTheme = {
     xs: number;
     sm: number;
     md: number;
+    lg: number;
   };
   titleMarginBottom: number;
   layout: {
@@ -66,6 +67,7 @@ export const lightTheme: AppTheme = {
     xs: 4,
     sm: 10,
     md: 17,
+    lg: 24,
   },
   titleMarginBottom: 12,
   layout: {

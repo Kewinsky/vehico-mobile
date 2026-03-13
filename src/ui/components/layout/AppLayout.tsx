@@ -8,10 +8,12 @@ import { LoadingView } from "../common/LoadingView";
 export type AppLayoutProps = PropsWithChildren<{
   header?: ReactNode;
   footer?: ReactNode;
+  footerTransparent?: boolean;
   loading?: boolean;
   isModal?: boolean;
   background?: ReactNode;
   useNativeHeader?: boolean;
+  useHorizontalContentInset?: boolean;
 }>;
 
 export function AppLayout({
@@ -22,6 +24,7 @@ export function AppLayout({
   isModal = false,
   background,
   useNativeHeader = false,
+  useHorizontalContentInset = true,
 }: AppLayoutProps) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
@@ -48,9 +51,11 @@ export function AppLayout({
         <View
           style={[
             styles.content,
-            {
-              marginHorizontal: theme.layout.contentPaddingHorizontal,
-            },
+            useHorizontalContentInset
+              ? {
+                  marginHorizontal: theme.layout.contentPaddingHorizontal,
+                }
+              : null,
           ]}
         >
           {children}
@@ -59,14 +64,20 @@ export function AppLayout({
       {footer != null ? (
         <View
           style={[
-            {
-              paddingHorizontal: theme.layout.contentPaddingHorizontal,
-              paddingTop: theme.spacing.md,
-              paddingBottom: insets.bottom,
-              borderTopColor: theme.colors.border,
-              backgroundColor: theme.colors.bg,
-              gap: theme.spacing.sm,
-            },
+            useHorizontalContentInset
+              ? {
+                  paddingHorizontal: theme.layout.contentPaddingHorizontal,
+                  paddingBottom: insets.bottom,
+                  borderTopColor: theme.colors.border,
+                  backgroundColor: theme.colors.bg,
+                  gap: theme.spacing.sm,
+                }
+              : {
+                  paddingBottom: insets.bottom,
+                  borderTopColor: theme.colors.border,
+                  backgroundColor: theme.colors.bg,
+                  gap: theme.spacing.sm,
+                },
           ]}
         >
           {footer}
