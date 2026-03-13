@@ -1,5 +1,4 @@
 import { StyleSheet, View } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { Tile } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -20,7 +20,6 @@ export function ShareScreen({ navigation, route }: Props) {
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
-  const headerHeight = useHeaderHeight();
 
   const tiles = useMemo(
     () => [
@@ -42,7 +41,7 @@ export function ShareScreen({ navigation, route }: Props) {
 
   return (
     <HeaderLayout onBack={() => navigation.goBack()} showProfileAvatar>
-      <View style={{ flex: 1, paddingTop: headerHeight }}>
+      <NativeHeaderScrollView>
         <ContentHeader title={t("dashboard.tiles.shareTitle")} />
         <View style={styles.row}>
           {tiles.map((item) => (
@@ -61,7 +60,7 @@ export function ShareScreen({ navigation, route }: Props) {
             />
           ))}
         </View>
-      </View>
+      </NativeHeaderScrollView>
     </HeaderLayout>
   );
 }

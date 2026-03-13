@@ -22,15 +22,11 @@ import { useSharedValue } from "react-native-reanimated";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { Vehicle } from "../../types/domain";
-import {
-  deleteVehicle,
-  getVehicle,
-} from "../../services/vehicles/vehiclesRepo";
+import { deleteVehicle, getVehicle } from "../../services/vehicles/vehiclesRepo";
 import {
   listVehiclePhotos,
   getVehiclePhotoUrl,
 } from "../../services/vehicles/uploadPhoto";
-import { useHeaderHeight } from "@react-navigation/elements";
 import { HeaderLayout } from "../../layouts";
 import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
@@ -40,6 +36,7 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicle">;
 
@@ -133,7 +130,6 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   const { settings } = useUserSettings();
   const { isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = makeStyles(theme);
-  const headerHeight = useHeaderHeight();
   const { vehicleId } = route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
 
@@ -233,7 +229,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
       <Ionicons
         name="ellipsis-horizontal"
         size={theme.icons.headerButton}
-        color={theme.colors.fg}
+        color={theme.colors.accent}
       />
     </HeaderButton>
   ) : null;
@@ -241,15 +237,15 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   return (
     <HeaderLayout onBack={() => navigation.goBack()} right={headerRight}>
       <FormScreen noLayout>
-        <View style={{ height: headerHeight }} />
-        <ContentHeader title={t("dashboard.tiles.manageTitle")} />
+        <NativeHeaderScrollView>
+          <ContentHeader title={t("dashboard.tiles.manageTitle")} />
 
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <LoadingIndicator />
-          </View>
-        ) : vehicle ? (
-          <>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <LoadingIndicator />
+            </View>
+          ) : vehicle ? (
+            <>
             <View style={styles.detailsCard}>
               <View style={styles.vehicleImageContainer}>
                 {photoUrls.length > 0 ? (
@@ -377,10 +373,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                             { backgroundColor: theme.colors.accent + "25" },
                           ]}
                         >
-                          <Hash
-                            size={18}
-                            color={theme.colors.accent}
-                          />
+                          <Hash size={18} color={theme.colors.accent} />
                         </View>
                         <View style={styles.detailContent}>
                           <Text style={styles.detailLabel}>
@@ -437,9 +430,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                             {t("vehicleForm.powerHpLabel")}
                           </Text>
                           <Text style={styles.detailValue}>
-                            {vehicle.power_hp
-                              ? `${vehicle.power_hp} HP`
-                              : "—"}
+                            {vehicle.power_hp ? `${vehicle.power_hp} HP` : "—"}
                           </Text>
                         </View>
                       </View>
@@ -688,8 +679,9 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                 )}
               </View>
             </Modal>
-          </>
-        ) : null}
+            </>
+          ) : null}
+        </NativeHeaderScrollView>
       </FormScreen>
     </HeaderLayout>
   );

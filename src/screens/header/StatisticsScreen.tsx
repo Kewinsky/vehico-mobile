@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -32,7 +31,6 @@ import {
   formatWheelDimensions,
 } from "../../services/wheels/wheelsRepo";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
-import { useHeaderHeight } from "@react-navigation/elements";
 import type {
   FuelingEntry,
   ServiceEntry,
@@ -48,6 +46,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { TireIcon } from "../../ui/components/icons/TireIcon";
 import { RimIcon } from "../../ui/components/icons/RimIcon";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Statistics">;
 type PeriodKey = "1m" | "3m" | "6m" | "1y" | "all";
@@ -356,7 +355,6 @@ function SimplePieChart({
 }
 
 export function StatisticsScreen({ route, navigation }: Props) {
-  const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
@@ -1366,20 +1364,15 @@ export function StatisticsScreen({ route, navigation }: Props) {
       showProfileAvatar
       showShopIcon={!isPremium}
     >
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingTop: headerHeight,
-          paddingBottom: theme.spacing.xl,
-        }}
-        showsVerticalScrollIndicator={false}
+      <NativeHeaderScrollView
+        contentContainerStyle={{ paddingBottom: theme.spacing.xl }}
       >
         <ContentHeader
           title={t("dashboard.stats.title")}
           filterPanel={filterPanelContent}
         />
         {cardContent}
-      </ScrollView>
+      </NativeHeaderScrollView>
     </HeaderLayout>
   );
 }

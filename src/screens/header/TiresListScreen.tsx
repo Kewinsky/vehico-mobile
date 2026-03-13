@@ -16,13 +16,13 @@ import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
-import { HeaderButton } from "@react-navigation/elements";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import { TimelineItem } from "../../ui/components/list/TimelineItem";
+import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 
 type Props = NativeStackScreenProps<AppStackParamList, "TiresList">;
 
@@ -181,55 +181,34 @@ export function TiresListScreen({ route, navigation }: Props) {
     setSortOrder("az");
   }, []);
 
-  const headerRight = useMemo(
-    () => (
-      <View style={styles.headerRight}>
-        {hasActiveFilters && (
-          <HeaderButton
-            onPress={resetFilters}
-            tintColor={theme.colors.accent}
-            accessibilityLabel={t("common.clearButton")}
-          >
-            <Ionicons
-              name="sync-outline"
-              size={theme.icons.headerButton}
-              color={theme.colors.accent}
-            />
-          </HeaderButton>
-        )}
-        <HeaderButton onPress={openFilters} tintColor={theme.colors.accent}>
-          <Ionicons
-            name="options-outline"
-            size={theme.icons.headerButton}
-            color={theme.colors.accent}
-          />
-        </HeaderButton>
-        <HeaderButton onPress={onAddTirePress} tintColor={theme.colors.accent}>
-          <Ionicons
-            name="add"
-            size={theme.icons.headerButton}
-            color={theme.colors.accent}
-          />
-        </HeaderButton>
-      </View>
-    ),
-    [
-      openFilters,
-      onAddTirePress,
-      resetFilters,
-      hasActiveFilters,
-      theme.colors.accent,
-      theme.icons.headerButton,
-      styles.headerRight,
-      t,
+  const headerActions: HeaderAction[] = useMemo(
+    () => [
+      ...(hasActiveFilters
+        ? [
+            {
+              type: "filterReset",
+              onPress: resetFilters,
+            } as HeaderAction,
+          ]
+        : []),
+      {
+        type: "filter",
+        onPress: openFilters,
+        hasActive: hasActiveFilters,
+      },
+      {
+        type: "add",
+        onPress: onAddTirePress,
+      },
     ],
+    [hasActiveFilters, onAddTirePress, openFilters, resetFilters],
   );
 
   return (
     <HeaderLayout
       loading={loading}
       onBack={() => navigation.goBack()}
-      right={headerRight}
+      actions={headerActions}
     >
       <View style={styles.listWrap}>
         <CustomFlatList

@@ -7,7 +7,6 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -19,6 +18,7 @@ import { createServiceEntry } from "../../services/serviceEntries/serviceEntries
 import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
@@ -61,7 +61,6 @@ export function ImportScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { isPremium } = useEntitlements();
   const { vehicleId } = route.params;
-  const headerHeight = useHeaderHeight();
 
   const [csv, setCsv] = useState("");
   const [importing, setImporting] = useState(false);
@@ -202,7 +201,7 @@ export function ImportScreen({ navigation, route }: Props) {
       }
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={{ flex: 1, paddingTop: headerHeight }}>
+        <NativeHeaderScrollView>
           <ContentHeader title={t("import.title")} />
           <View
             style={[
@@ -255,13 +254,17 @@ export function ImportScreen({ navigation, route }: Props) {
                 },
               ]}
             >
-              <Ionicons name="copy-outline" size={theme.icons.headerButton} color={theme.colors.fg} />
+              <Ionicons
+                name="copy-outline"
+                size={theme.icons.headerButton}
+                color={theme.colors.fg}
+              />
               <Text style={[styles.actionPillText, { color: theme.colors.fg }]}>
                 {t("import.copyColumnsButton")}
               </Text>
             </Pressable>
           </View>
-        </View>
+        </NativeHeaderScrollView>
       </TouchableWithoutFeedback>
     </HeaderLayout>
   );

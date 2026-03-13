@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +17,7 @@ import type { Vehicle, PublicReportSnapshot } from "../../types/domain";
 import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -27,7 +27,6 @@ import { PickerField } from "../../ui/components/common/PickerField";
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceConfigure">;
 
 export function MarketplaceConfigureScreen({ navigation, route }: Props) {
-  const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
@@ -201,11 +200,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
         <Button onPress={handleNext}>{t("marketplace.nextButton")}</Button>
       }
     >
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingTop: headerHeight }}
-        showsVerticalScrollIndicator={false}
-      >
+      <NativeHeaderScrollView>
         <ContentHeader title={t("marketplace.configureTitle")} />
         {unavailableOptions.length > 0 && (
           <View style={[styles.section, styles.hintSection]}>
@@ -369,7 +364,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
             </View>
           )}
         </View>
-      </ScrollView>
+      </NativeHeaderScrollView>
     </HeaderLayout>
   );
 }

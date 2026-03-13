@@ -1,5 +1,4 @@
 import { Alert, StyleSheet, View } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,6 +7,7 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 
@@ -18,7 +18,6 @@ export function MarketplaceScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const { vehicleId } = route.params;
   const { isPremium } = useEntitlements();
-  const headerHeight = useHeaderHeight();
 
   function onGeneratePress() {
     if (!isPremium) {
@@ -39,24 +38,25 @@ export function MarketplaceScreen({ navigation, route }: Props) {
   }
 
   return (
-    <HeaderLayout onBack={() => navigation.goBack()} showProfileAvatar>
-      <View style={{ flex: 1, paddingTop: headerHeight }}>
-        <ContentHeader title={t("marketplace.screenTitle")} />
-        <Button onPress={onGeneratePress}>
-          {t("marketplace.generateButton")}
-        </Button>
-        <View style={{ height: theme.spacing.sm }} />
-        <Button
-          onPress={() =>
-            navigation.navigate("MarketplacePostHistory", {
-              vehicleId,
-            })
-          }
-          variant="ghost"
-        >
-          {t("marketplace.historyButton")}
-        </Button>
-      </View>
-    </HeaderLayout>
+    <HeaderContentScreen
+      onBack={() => navigation.goBack()}
+      showProfileAvatar
+      title={t("marketplace.screenTitle")}
+    >
+      <Button onPress={onGeneratePress}>
+        {t("marketplace.generateButton")}
+      </Button>
+      <View style={{ height: theme.spacing.sm }} />
+      <Button
+        onPress={() =>
+          navigation.navigate("MarketplacePostHistory", {
+            vehicleId,
+          })
+        }
+        variant="ghost"
+      >
+        {t("marketplace.historyButton")}
+      </Button>
+    </HeaderContentScreen>
   );
 }

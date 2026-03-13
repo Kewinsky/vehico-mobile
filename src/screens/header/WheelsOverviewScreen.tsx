@@ -13,9 +13,7 @@ import {
   listVehicleWheels,
   formatWheelDimensions,
 } from "../../services/wheels/wheelsRepo";
-import { useHeaderHeight } from "@react-navigation/elements";
-import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { Tile } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -38,7 +36,6 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
     refresh: refreshEntitlements,
   } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const headerHeight = useHeaderHeight();
   const { vehicleId } = route.params;
   const tireOpts = useMemo(
     () =>
@@ -207,17 +204,15 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
   );
 
   return (
-    <HeaderLayout
+    <HeaderContentScreen
       loading={loading}
       onBack={() => navigation.goBack()}
       showProfileAvatar
       showShopIcon={!isPremium}
+      title={t("wheels.title")}
     >
-      <View style={{ flex: 1, paddingTop: headerHeight }}>
-        <ContentHeader title={t("wheels.title")} />
-        {content}
-      </View>
-    </HeaderLayout>
+      {content}
+    </HeaderContentScreen>
   );
 }
 

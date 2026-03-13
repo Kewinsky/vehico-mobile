@@ -1,12 +1,12 @@
 import { useMemo } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ExampleListing">;
 
@@ -14,16 +14,13 @@ export function ExampleListingScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const headerHeight = useHeaderHeight();
 
   return (
     <ModalLayout
       title={t("shop.exampleListingPage.title")}
       cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
     >
-      <ScrollView
-        contentContainerStyle={[styles.container, { paddingTop: headerHeight }]}
-      >
+      <NativeHeaderScrollView contentContainerStyle={styles.container}>
         <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
           {t("shop.exampleListingPage.subtitle")}
         </Text>
@@ -44,7 +41,7 @@ export function ExampleListingScreen({ navigation }: Props) {
           </Text>
         </View>
         <View style={styles.bottomSpacer} />
-      </ScrollView>
+      </NativeHeaderScrollView>
     </ModalLayout>
   );
 }

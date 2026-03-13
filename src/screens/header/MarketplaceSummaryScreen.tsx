@@ -26,15 +26,13 @@ import {
   generateMarketplacePost,
   saveMarketplacePost,
 } from "../../services/marketplace/marketplaceRepo";
-import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
-import { useHeaderHeight } from "@react-navigation/elements";
-import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { formatDateDisplay } from "../../utils/dateFormatting";
+import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceSummary">;
 
@@ -73,7 +71,6 @@ function InfoCard({
 }
 
 export function MarketplaceSummaryScreen({ navigation, route }: Props) {
-  const headerHeight = useHeaderHeight();
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
@@ -200,7 +197,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   const hasNotes = (vehicle?.notes?.trim() ?? "").length > 0;
 
   return (
-    <HeaderLayout
+    <HeaderContentScreen
       loading={loading}
       onBack={() => navigation.goBack()}
       showProfileAvatar
@@ -232,15 +229,10 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
           )}
         </Button>
       }
+      title={t("marketplace.summaryTitle")}
     >
       {!loading && (
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={{ paddingTop: headerHeight }}
-          showsVerticalScrollIndicator={false}
-        >
-          <ContentHeader title={t("marketplace.summaryTitle")} />
-
+        <>
           {/* Technical data */}
           {reportOptions.include_technical_data && vehicle && (
             <View style={styles.section}>
@@ -657,9 +649,9 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
               </Text>
             </Pressable>
           </View>
-        </ScrollView>
+        </>
       )}
-    </HeaderLayout>
+    </HeaderContentScreen>
   );
 }
 

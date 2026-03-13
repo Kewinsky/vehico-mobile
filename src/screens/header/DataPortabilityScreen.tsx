@@ -1,5 +1,4 @@
 import { Alert, StyleSheet, View } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -16,6 +15,7 @@ import { listVehicleTires } from "../../services/tires/tiresRepo";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { Tile } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -57,7 +57,6 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
   } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
-  const headerHeight = useHeaderHeight();
 
   // Export only what the user has access to on current tier. On Free we use the visible set from entitlements (no numeric limit).
   const isFreeVehicle = freePlanVehicleId === vehicleId;
@@ -361,33 +360,31 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
   );
 
   return (
-    <HeaderLayout
+    <HeaderContentScreen
       onBack={() => navigation.goBack()}
       showProfileAvatar
       showShopIcon={!isPremium}
+      title={t("dataPortability.title")}
     >
-      <View style={{ flex: 1, paddingTop: headerHeight }}>
-        <ContentHeader title={t("dataPortability.title")} />
-        <View style={styles.row}>
-          {tiles.map((item) => (
-            <Tile
-              key={item.key}
-              onPress={item.onPress}
-              disabled={item.disabled}
-              minHeight={130}
-              title={item.title}
-              icon={
-                <Ionicons
-                  name={item.icon}
-                  size={32}
-                  color={theme.colors.accent}
-                />
-              }
-            />
-          ))}
-        </View>
+      <View style={styles.row}>
+        {tiles.map((item) => (
+          <Tile
+            key={item.key}
+            onPress={item.onPress}
+            disabled={item.disabled}
+            minHeight={130}
+            title={item.title}
+            icon={
+              <Ionicons
+                name={item.icon}
+                size={32}
+                color={theme.colors.accent}
+              />
+            }
+          />
+        ))}
       </View>
-    </HeaderLayout>
+    </HeaderContentScreen>
   );
 }
 

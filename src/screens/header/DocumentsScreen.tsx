@@ -1,12 +1,10 @@
 import {
   Alert,
   Linking,
-  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
@@ -47,7 +45,6 @@ import { Feather } from "@expo/vector-icons";
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
 export function DocumentsScreen({ route, navigation }: Props) {
-  const headerHeight = useHeaderHeight();
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { isPremium } = useEntitlements();
@@ -310,11 +307,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       onBack={() => navigation.goBack()}
       actions={headerActions}
     >
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingTop: headerHeight }}
-      >
-        <ContentHeader title={t("dashboard.tiles.docsTitle")} />
+      <ContentHeader title={t("dashboard.tiles.docsTitle")} />
         <SearchBar
           value={query}
           onChangeText={setQuery}
@@ -455,7 +448,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
         }).length === 0 ? (
           <EmptyState body={t("documents.noAttachments")} />
         ) : null}
-      </ScrollView>
     </HeaderLayout>
   );
 }

@@ -1,14 +1,6 @@
-import {
-  Alert,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { useHeaderHeight } from "@react-navigation/elements";
 import { Ionicons } from "@expo/vector-icons";
 import { Database, Fuel } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
@@ -25,6 +17,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { WheelsIcon } from "../../ui/components/icons/WheelsIcon";
 import { DashboardFab } from "../../ui/components/common/DashboardFab";
+import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
@@ -39,7 +32,6 @@ type DashboardTile = {
 };
 
 export function VehicleDashboardScreen({ navigation, route }: Props) {
-  const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -214,13 +206,12 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       showProfileAvatar
       showShopIcon={!isPremium}
     >
-      <FlatList
+      <CustomFlatList
         data={tiles}
-        numColumns={2}
         keyExtractor={(t) => t.key}
+        numColumns={2}
         columnWrapperStyle={styles.row}
-        contentContainerStyle={{ paddingTop: headerHeight }}
-        ListHeaderComponent={
+        listHeaderComponent={
           <View style={styles.listHeader}>
             <View style={styles.header}>
               <Text style={styles.title}>
@@ -304,6 +295,5 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     row: {
       gap: theme.spacing.sm,
-      paddingBottom: theme.spacing.sm,
     },
   });

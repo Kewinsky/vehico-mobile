@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
@@ -22,6 +21,7 @@ import type { Vehicle, VehiclePhoto } from "../../types/domain";
 import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -40,7 +40,6 @@ type PhotoItem = {
 };
 
 export function PublicReportConfigureScreen({ navigation, route }: Props) {
-  const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { isPremium } = useEntitlements();
@@ -342,21 +341,16 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   );
 
   return (
-    <HeaderLayout
+    <HeaderContentScreen
       loading={loading}
       onBack={() => navigation.goBack()}
       showProfileAvatar
       footer={
         <Button onPress={handleNext}>{t("publicReport.nextButton")}</Button>
       }
+      title={t("publicReport.configureTitle")}
+      scrollEnabled={!isDragging}
     >
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingTop: headerHeight }}
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={!isDragging}
-      >
-        <ContentHeader title={t("publicReport.configureTitle")} />
         {unavailableOptions.length > 0 && (
           <View style={[styles.section, styles.hintSection]}>
             <Text style={styles.hintText}>
@@ -526,8 +520,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
             )}
           </View>
         )}
-      </ScrollView>
-    </HeaderLayout>
+    </HeaderContentScreen>
   );
 }
 

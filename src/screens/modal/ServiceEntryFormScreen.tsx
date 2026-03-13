@@ -595,262 +595,382 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-      {!entryId ? (
-        <>
-          <SegmentTabs<"single" | "multi">
-            value={mode}
-            options={[
-              { value: "single", label: t("entryForm.modeSingle") },
-              { value: "multi", label: t("entryForm.modeMulti") },
-            ]}
-            onChange={setFormMode}
-          />
-          <View style={{ height: theme.spacing.sm }} />
-        </>
-      ) : null}
+          {!entryId ? (
+            <>
+              <SegmentTabs<"single" | "multi">
+                value={mode}
+                options={[
+                  { value: "single", label: t("entryForm.modeSingle") },
+                  { value: "multi", label: t("entryForm.modeMulti") },
+                ]}
+                onChange={setFormMode}
+              />
+              <View style={{ height: theme.spacing.sm }} />
+            </>
+          ) : null}
 
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <Pressable
-          onPress={openDatePicker}
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
-        >
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="calendar-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("entryForm.serviceDate")}
-            </Text>
-          </View>
-          <Text
-            style={[
-              styles.valueText,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-            numberOfLines={1}
-          >
-            {serviceDate}
-          </Text>
-        </Pressable>
-
-        {datePickerOpen ? (
           <View
             style={[
-              styles.pickerWrap,
+              styles.card,
               {
-                borderTopColor: theme.colors.border,
+                borderColor: theme.colors.border,
                 backgroundColor: theme.colors.card,
               },
             ]}
           >
-            <DateTimePicker
-              value={datePickerDraft}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              themeVariant={
-                Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
-                  ? "dark"
-                  : "light"
-              }
-              onChange={(event, selectedDate) => {
-                if (Platform.OS === "ios") {
-                  if (selectedDate) setDatePickerDraft(selectedDate);
-                  return;
-                }
+            <Pressable
+              onPress={openDatePicker}
+              style={({ pressed }) => [
+                styles.row,
+                pressed && { opacity: 0.75 },
+              ]}
+            >
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("entryForm.serviceDate")}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.valueText,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+                numberOfLines={1}
+              >
+                {serviceDate}
+              </Text>
+            </Pressable>
 
-                setDatePickerOpen(false);
-                if ((event as any)?.type === "dismissed") return;
-                if (selectedDate) setServiceDate(formatYmd(selectedDate));
-              }}
-            />
-            {Platform.OS === "ios" ? (
-              <View style={styles.pickerActionsRow}>
-                <Pressable
-                  onPress={() => setDatePickerOpen(false)}
-                  style={({ pressed }) => [
-                    styles.pickerActionBtn,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: "transparent",
-                      opacity: pressed ? 0.8 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.pickerActionText,
-                      { color: theme.colors.muted },
-                    ]}
-                  >
-                    {t("common.cancel")}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => {
-                    setServiceDate(formatYmd(datePickerDraft));
+            {datePickerOpen ? (
+              <View
+                style={[
+                  styles.pickerWrap,
+                  {
+                    borderTopColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                ]}
+              >
+                <DateTimePicker
+                  value={datePickerDraft}
+                  mode="date"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  themeVariant={
+                    Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
+                      ? "dark"
+                      : "light"
+                  }
+                  onChange={(event, selectedDate) => {
+                    if (Platform.OS === "ios") {
+                      if (selectedDate) setDatePickerDraft(selectedDate);
+                      return;
+                    }
+
                     setDatePickerOpen(false);
+                    if ((event as any)?.type === "dismissed") return;
+                    if (selectedDate) setServiceDate(formatYmd(selectedDate));
                   }}
-                  style={({ pressed }) => [
-                    styles.pickerActionBtn,
-                    {
-                      borderColor: theme.colors.accent,
-                      backgroundColor: accentBg,
-                      opacity: pressed ? 0.8 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.pickerActionText,
-                      { color: theme.colors.accent },
-                    ]}
-                  >
-                    {t("common.done")}
-                  </Text>
-                </Pressable>
+                />
+                {Platform.OS === "ios" ? (
+                  <View style={styles.pickerActionsRow}>
+                    <Pressable
+                      onPress={() => setDatePickerOpen(false)}
+                      style={({ pressed }) => [
+                        styles.pickerActionBtn,
+                        {
+                          borderColor: theme.colors.border,
+                          backgroundColor: "transparent",
+                          opacity: pressed ? 0.8 : 1,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.pickerActionText,
+                          { color: theme.colors.muted },
+                        ]}
+                      >
+                        {t("common.cancel")}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        setServiceDate(formatYmd(datePickerDraft));
+                        setDatePickerOpen(false);
+                      }}
+                      style={({ pressed }) => [
+                        styles.pickerActionBtn,
+                        {
+                          borderColor: theme.colors.accent,
+                          backgroundColor: accentBg,
+                          opacity: pressed ? 0.8 : 1,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.pickerActionText,
+                          { color: theme.colors.accent },
+                        ]}
+                      >
+                        {t("common.done")}
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : null}
               </View>
             ) : null}
-          </View>
-        ) : null}
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <Pressable
-          onPress={() =>
-            showPicker<ServiceEntryCategory>({
-              title: t("entryForm.category"),
-              value: category,
-              options: CATEGORY_OPTIONS,
-              getLabel: (v) => t(`entryForm.categories.${v}` as any),
-              onChange: setCategory,
-              placeholderLabel: t("entryForm.categoryPlaceholder"),
-            })
-          }
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
-        >
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="pricetag-outline"
-              size={20}
-              color={theme.colors.accent}
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
+            <Pressable
+              onPress={() =>
+                showPicker<ServiceEntryCategory>({
+                  title: t("entryForm.category"),
+                  value: category,
+                  options: CATEGORY_OPTIONS,
+                  getLabel: (v) => t(`entryForm.categories.${v}` as any),
+                  onChange: setCategory,
+                  placeholderLabel: t("entryForm.categoryPlaceholder"),
+                })
+              }
+              style={({ pressed }) => [
+                styles.row,
+                pressed && { opacity: 0.75 },
+              ]}
             >
-              {t("entryForm.category")}
-            </Text>
-          </View>
-          <Text
-            style={[
-              styles.valueText,
-              {
-                color: category ? theme.colors.fg : theme.colors.muted,
-                textAlign: "right",
-              },
-            ]}
-            numberOfLines={1}
-          >
-            {category
-              ? t(`entryForm.categories.${category}` as any)
-              : t("entryForm.categoryPlaceholder")}
-          </Text>
-        </Pressable>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <Pressable
-          onPress={() =>
-            showPicker<string>({
-              title: t("entryForm.workshop"),
-              value: workshopId,
-              options: workshops.map((w) => w.id),
-              getLabel: (id) => workshops.find((w) => w.id === id)?.name ?? id,
-              onChange: setWorkshopId,
-              placeholderLabel: t("entryForm.workshopPlaceholder"),
-            })
-          }
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
-        >
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="business-outline"
-              size={20}
-              color={theme.colors.accent}
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="pricetag-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("entryForm.category")}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color: category ? theme.colors.fg : theme.colors.muted,
+                    textAlign: "right",
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {category
+                  ? t(`entryForm.categories.${category}` as any)
+                  : t("entryForm.categoryPlaceholder")}
+              </Text>
+            </Pressable>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
+            <Pressable
+              onPress={() =>
+                showPicker<string>({
+                  title: t("entryForm.workshop"),
+                  value: workshopId,
+                  options: workshops.map((w) => w.id),
+                  getLabel: (id) =>
+                    workshops.find((w) => w.id === id)?.name ?? id,
+                  onChange: setWorkshopId,
+                  placeholderLabel: t("entryForm.workshopPlaceholder"),
+                })
+              }
+              style={({ pressed }) => [
+                styles.row,
+                pressed && { opacity: 0.75 },
+              ]}
             >
-              {t("entryForm.workshop")}
-            </Text>
-          </View>
-          <Text
-            style={[
-              styles.valueText,
-              {
-                color: workshopId ? theme.colors.fg : theme.colors.muted,
-                textAlign: "right",
-              },
-            ]}
-            numberOfLines={1}
-          >
-            {workshopId
-              ? (workshops.find((w) => w.id === workshopId)?.name ?? workshopId)
-              : t("entryForm.workshopPlaceholder")}
-          </Text>
-        </Pressable>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="speedometer-outline"
-              size={20}
-              color={theme.colors.accent}
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="business-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("entryForm.workshop")}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color: workshopId ? theme.colors.fg : theme.colors.muted,
+                    textAlign: "right",
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {workshopId
+                  ? (workshops.find((w) => w.id === workshopId)?.name ??
+                    workshopId)
+                  : t("entryForm.workshopPlaceholder")}
+              </Text>
+            </Pressable>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("entryForm.mileage")} ({distanceUnit})
-            </Text>
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="speedometer-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("entryForm.mileage")} ({distanceUnit})
+                </Text>
+              </View>
+              <TextInput
+                value={mileage}
+                onChangeText={setMileage}
+                keyboardType="number-pad"
+                editable={!saving && !uploading}
+                placeholder={t("entryForm.placeholderMileage")}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
+            </View>
           </View>
-          <TextInput
-            value={mileage}
-            onChangeText={setMileage}
-            keyboardType="number-pad"
-            editable={!saving && !uploading}
-            placeholder={t("entryForm.placeholderMileage")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </View>
-      </View>
 
-      <View style={{ height: theme.spacing.sm }} />
+          <View style={{ height: theme.spacing.sm }} />
 
-      {isMulti ? (
-        <>
-          {entries.map((row, index) => (
-            <View key={index}>
+          {isMulti ? (
+            <>
+              {entries.map((row, index) => (
+                <View key={index}>
+                  <View
+                    style={[
+                      styles.card,
+                      {
+                        borderColor: theme.colors.border,
+                        backgroundColor: theme.colors.card,
+                      },
+                    ]}
+                  >
+                    <View style={styles.row}>
+                      <View style={styles.rowLeft}>
+                        <Ionicons
+                          name="document-text-outline"
+                          size={20}
+                          color={theme.colors.accent}
+                        />
+                        <Text
+                          style={[styles.label, { color: theme.colors.muted }]}
+                          numberOfLines={1}
+                        >
+                          {t("entryForm.entryTitle")}
+                        </Text>
+                      </View>
+                      <TextInput
+                        value={row.title}
+                        onChangeText={(text) =>
+                          updateEntry(index, { title: text })
+                        }
+                        editable={!saving && !uploading}
+                        placeholder={t("entryForm.placeholderTitle")}
+                        placeholderTextColor={theme.colors.muted}
+                        style={[
+                          styles.input,
+                          { color: theme.colors.fg, textAlign: "right" },
+                        ]}
+                      />
+                    </View>
+                    <View
+                      style={[
+                        styles.divider,
+                        { backgroundColor: theme.colors.border },
+                      ]}
+                    />
+                    <View style={styles.row}>
+                      <View style={styles.rowLeft}>
+                        <Ionicons
+                          name="cash-outline"
+                          size={20}
+                          color={theme.colors.accent}
+                        />
+                        <Text
+                          style={[styles.label, { color: theme.colors.muted }]}
+                          numberOfLines={1}
+                        >
+                          {t("entryForm.cost")}
+                        </Text>
+                      </View>
+                      <TextInput
+                        value={row.cost}
+                        onChangeText={(text) =>
+                          updateEntry(index, { cost: text })
+                        }
+                        keyboardType="decimal-pad"
+                        editable={!saving && !uploading}
+                        placeholder={t("entryForm.placeholderCost")}
+                        placeholderTextColor={theme.colors.muted}
+                        style={[
+                          styles.input,
+                          { color: theme.colors.fg, textAlign: "right" },
+                        ]}
+                      />
+                      {isMultipleRows && (!entryId || index > 0) ? (
+                        <Pressable
+                          onPress={() => removeEntry(index)}
+                          hitSlop={10}
+                          style={({ pressed }) => [
+                            styles.inlineTrash,
+                            pressed && { opacity: 0.75 },
+                          ]}
+                        >
+                          <Ionicons
+                            name="trash-outline"
+                            size={20}
+                            color={theme.colors.danger}
+                          />
+                        </Pressable>
+                      ) : null}
+                    </View>
+                  </View>
+                  {index < entries.length - 1 ? (
+                    <View style={{ height: theme.spacing.sm }} />
+                  ) : null}
+                </View>
+              ))}
+
+              <View style={{ height: theme.spacing.sm }} />
+              <Button
+                onPress={addEntry}
+                variant="ghost"
+                disabled={saving || uploading}
+              >
+                {t("entryForm.addAnotherEntry")}
+              </Button>
+              <Text style={[styles.noticeText, { color: theme.colors.muted }]}>
+                {t("entryForm.multiModeInfo")}
+              </Text>
+            </>
+          ) : (
+            <>
               <View
                 style={[
                   styles.card,
@@ -875,8 +995,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     </Text>
                   </View>
                   <TextInput
-                    value={row.title}
-                    onChangeText={(text) => updateEntry(index, { title: text })}
+                    value={entries[0]?.title ?? ""}
+                    onChangeText={(text) => updateEntry(0, { title: text })}
                     editable={!saving && !uploading}
                     placeholder={t("entryForm.placeholderTitle")}
                     placeholderTextColor={theme.colors.muted}
@@ -907,8 +1027,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     </Text>
                   </View>
                   <TextInput
-                    value={row.cost}
-                    onChangeText={(text) => updateEntry(index, { cost: text })}
+                    value={entries[0]?.cost ?? ""}
+                    onChangeText={(text) => updateEntry(0, { cost: text })}
                     keyboardType="decimal-pad"
                     editable={!saving && !uploading}
                     placeholder={t("entryForm.placeholderCost")}
@@ -918,296 +1038,201 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       { color: theme.colors.fg, textAlign: "right" },
                     ]}
                   />
-                  {isMultipleRows && (!entryId || index > 0) ? (
-                    <Pressable
-                      onPress={() => removeEntry(index)}
-                      hitSlop={10}
-                      style={({ pressed }) => [
-                        styles.inlineTrash,
-                        pressed && { opacity: 0.75 },
-                      ]}
-                    >
-                      <Ionicons
-                        name="trash-outline"
-                        size={20}
-                        color={theme.colors.danger}
-                      />
-                    </Pressable>
-                  ) : null}
                 </View>
               </View>
-              {index < entries.length - 1 ? (
-                <View style={{ height: theme.spacing.sm }} />
-              ) : null}
-            </View>
-          ))}
 
-          <View style={{ height: theme.spacing.sm }} />
-          <Button
-            onPress={addEntry}
-            variant="ghost"
-            disabled={saving || uploading}
-          >
-            {t("entryForm.addAnotherEntry")}
-          </Button>
-          <Text style={[styles.noticeText, { color: theme.colors.muted }]}>
-            {t("entryForm.multiModeInfo")}
-          </Text>
-        </>
-      ) : (
-        <>
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("entryForm.entryTitle")}
-                </Text>
-              </View>
-              <TextInput
-                value={entries[0]?.title ?? ""}
-                onChangeText={(text) => updateEntry(0, { title: text })}
-                editable={!saving && !uploading}
-                placeholder={t("entryForm.placeholderTitle")}
-                placeholderTextColor={theme.colors.muted}
+              <View style={{ height: theme.spacing.sm }} />
+              <View
                 style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
+                  styles.card,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
                 ]}
-              />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="cash-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
+              >
+                <View
+                  style={{
+                    paddingVertical: theme.spacing.sm,
+                    paddingHorizontal: theme.spacing.md,
+                  }}
                 >
-                  {t("entryForm.cost")}
-                </Text>
-              </View>
-              <TextInput
-                value={entries[0]?.cost ?? ""}
-                onChangeText={(text) => updateEntry(0, { cost: text })}
-                keyboardType="decimal-pad"
-                editable={!saving && !uploading}
-                placeholder={t("entryForm.placeholderCost")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </View>
-          </View>
-
-          <View style={{ height: theme.spacing.sm }} />
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <View
-              style={{
-                paddingVertical: theme.spacing.sm,
-                paddingHorizontal: theme.spacing.md,
-              }}
-            >
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="create-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("entryForm.description")}
-                </Text>
-              </View>
-              <Textarea
-                value={description}
-                onChangeText={setDescription}
-                editable={!saving && !uploading}
-                multiline
-                placeholder={t("entryForm.placeholderDescription")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.inputMultiline,
-                  { color: theme.colors.fg, paddingTop: theme.spacing.xs },
-                ]}
-              />
-            </View>
-          </View>
-
-          <View style={{ height: theme.spacing.xl }} />
-          <View style={styles.sectionHeader}>
-            <Text style={styles.h2}>
-              {t("attachments.titleWithCount", {
-                count: entryId ? attachments.length : pendingFiles.length,
-              })}
-            </Text>
-          </View>
-          <View style={{ height: theme.spacing.sm }} />
-          <Button
-            onPress={pickAttachment}
-            variant="ghost"
-            disabled={saving || uploading}
-          >
-            {t("entryForm.addAttachment")}
-          </Button>
-          <View style={{ height: theme.spacing.sm }} />
-
-          {entryId ? (
-            <FlatList
-              data={attachments}
-              keyExtractor={(a) => a.id}
-              scrollEnabled={false}
-              ItemSeparatorComponent={() => (
-                <View style={{ height: theme.spacing.sm }} />
-              )}
-              renderItem={({ item }) => (
-                <ListRowWithActions
-                  title={
-                    item.display_name?.trim() ||
-                    t("attachments.attachmentLabel")
-                  }
-                  subtitle={(() => {
-                    const fileName = getFileNameFromItem(item);
-                    const ext =
-                      fileName.split(".").pop()?.toUpperCase() || "FILE";
-                    const date = new Date(item.created_at);
-                    const formattedDate = date.toLocaleDateString(
-                      i18n.language === "pl" ? "pl-PL" : "en-US",
-                      {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      },
-                    );
-                    return `${t("documents.added")} ${formattedDate} · ${ext}`;
-                  })()}
-                  onPress={() => void openAttachment(item)}
-                  trailing={
-                    <View
-                      style={{ flexDirection: "row", gap: theme.spacing.xs }}
+                  <View style={styles.rowLeft}>
+                    <Ionicons
+                      name="create-outline"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
+                    <Text
+                      style={[styles.label, { color: theme.colors.muted }]}
+                      numberOfLines={1}
                     >
-                      <IconButton
-                        onPress={() => handleEditAttachmentName(item)}
-                        variant="ghost"
-                      >
-                        <Ionicons
-                          name="create-outline"
-                          size={24}
-                          color={theme.colors.accent}
-                        />
-                      </IconButton>
-                      <IconButton
-                        onPress={() => confirmDeleteAttachment(item)}
-                        variant="danger"
-                      >
-                        <Ionicons
-                          name="trash-outline"
-                          size={24}
-                          color={theme.colors.danger}
-                        />
-                      </IconButton>
-                    </View>
-                  }
-                />
-              )}
-              ListEmptyComponent={
-                attachmentsLoading ? (
-                  <View style={styles.loadingContainer}>
-                    <LoadingIndicator />
+                      {t("entryForm.description")}
+                    </Text>
                   </View>
-                ) : !uploading && attachments.length === 0 ? (
-                  <Text style={styles.muted}>
-                    {t("entryForm.attachmentsEmpty")}
-                  </Text>
-                ) : null
-              }
-            />
-          ) : (
-            <FlatList
-              showsVerticalScrollIndicator={false}
-              data={pendingFiles}
-              keyExtractor={(_, index) => `pending-${index}`}
-              scrollEnabled={false}
-              ItemSeparatorComponent={() => (
-                <View style={{ height: theme.spacing.sm }} />
-              )}
-              renderItem={({ item, index }) => (
-                <ListRowWithActions
-                  title={
-                    item.fileName?.trim() || t("attachments.attachmentLabel")
-                  }
-                  trailing={
-                    <View
-                      style={{ flexDirection: "row", gap: theme.spacing.xs }}
-                    >
-                      <IconButton
-                        onPress={() =>
-                          handleEditPendingFileName(index, item.fileName)
-                        }
-                        variant="ghost"
-                      >
-                        <Ionicons
-                          name="create-outline"
-                          size={24}
-                          color={theme.colors.accent}
-                        />
-                      </IconButton>
-                      <IconButton
-                        onPress={() => {
-                          setPendingFiles((prev) =>
-                            prev.filter((_, i) => i !== index),
-                          );
-                        }}
-                        variant="danger"
-                      >
-                        <Ionicons
-                          name="trash-outline"
-                          size={24}
-                          color={theme.colors.danger}
-                        />
-                      </IconButton>
-                    </View>
+                  <Textarea
+                    value={description}
+                    onChangeText={setDescription}
+                    editable={!saving && !uploading}
+                    multiline
+                    placeholder={t("entryForm.placeholderDescription")}
+                    placeholderTextColor={theme.colors.muted}
+                    style={[
+                      styles.inputMultiline,
+                      { color: theme.colors.fg, paddingTop: theme.spacing.xs },
+                    ]}
+                  />
+                </View>
+              </View>
+
+              <View style={{ height: theme.spacing.xl }} />
+              <View style={styles.sectionHeader}>
+                <Text style={styles.h2}>
+                  {t("attachments.titleWithCount", {
+                    count: entryId ? attachments.length : pendingFiles.length,
+                  })}
+                </Text>
+              </View>
+              <View style={{ height: theme.spacing.sm }} />
+              <Button
+                onPress={pickAttachment}
+                variant="ghost"
+                disabled={saving || uploading}
+              >
+                {t("entryForm.addAttachment")}
+              </Button>
+              <View style={{ height: theme.spacing.sm }} />
+
+              {entryId ? (
+                <FlatList
+                  data={attachments}
+                  keyExtractor={(a) => a.id}
+                  scrollEnabled={false}
+                  ItemSeparatorComponent={() => (
+                    <View style={{ height: theme.spacing.sm }} />
+                  )}
+                  renderItem={({ item }) => (
+                    <ListRowWithActions
+                      title={
+                        item.display_name?.trim() ||
+                        t("attachments.attachmentLabel")
+                      }
+                      subtitle={(() => {
+                        const fileName = getFileNameFromItem(item);
+                        const ext =
+                          fileName.split(".").pop()?.toUpperCase() || "FILE";
+                        const date = new Date(item.created_at);
+                        const formattedDate = date.toLocaleDateString(
+                          i18n.language === "pl" ? "pl-PL" : "en-US",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          },
+                        );
+                        return `${t("documents.added")} ${formattedDate} · ${ext}`;
+                      })()}
+                      onPress={() => void openAttachment(item)}
+                      trailing={
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            gap: theme.spacing.xs,
+                          }}
+                        >
+                          <IconButton
+                            onPress={() => handleEditAttachmentName(item)}
+                            variant="ghost"
+                          >
+                            <Ionicons
+                              name="create-outline"
+                              size={24}
+                              color={theme.colors.accent}
+                            />
+                          </IconButton>
+                          <IconButton
+                            onPress={() => confirmDeleteAttachment(item)}
+                            variant="danger"
+                          >
+                            <Ionicons
+                              name="trash-outline"
+                              size={24}
+                              color={theme.colors.danger}
+                            />
+                          </IconButton>
+                        </View>
+                      }
+                    />
+                  )}
+                  ListEmptyComponent={
+                    attachmentsLoading ? (
+                      <View style={styles.loadingContainer}>
+                        <LoadingIndicator />
+                      </View>
+                    ) : !uploading && attachments.length === 0 ? (
+                      <Text style={styles.muted}>
+                        {t("entryForm.attachmentsEmpty")}
+                      </Text>
+                    ) : null
                   }
                 />
+              ) : (
+                <FlatList
+                  showsVerticalScrollIndicator={false}
+                  data={pendingFiles}
+                  keyExtractor={(_, index) => `pending-${index}`}
+                  scrollEnabled={false}
+                  ItemSeparatorComponent={() => (
+                    <View style={{ height: theme.spacing.sm }} />
+                  )}
+                  renderItem={({ item, index }) => (
+                    <ListRowWithActions
+                      title={
+                        item.fileName?.trim() ||
+                        t("attachments.attachmentLabel")
+                      }
+                      trailing={
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            gap: theme.spacing.xs,
+                          }}
+                        >
+                          <IconButton
+                            onPress={() =>
+                              handleEditPendingFileName(index, item.fileName)
+                            }
+                            variant="ghost"
+                          >
+                            <Ionicons
+                              name="create-outline"
+                              size={24}
+                              color={theme.colors.accent}
+                            />
+                          </IconButton>
+                          <IconButton
+                            onPress={() => {
+                              setPendingFiles((prev) =>
+                                prev.filter((_, i) => i !== index),
+                              );
+                            }}
+                            variant="danger"
+                          >
+                            <Ionicons
+                              name="trash-outline"
+                              size={24}
+                              color={theme.colors.danger}
+                            />
+                          </IconButton>
+                        </View>
+                      }
+                    />
+                  )}
+                />
               )}
-            />
+              <View style={{ height: theme.spacing.xl }} />
+            </>
           )}
-          <View style={{ height: theme.spacing.xl }} />
-        </>
-      )}
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>

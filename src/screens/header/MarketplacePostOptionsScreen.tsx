@@ -1,5 +1,4 @@
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,6 +10,7 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { resolveMarketplacePostContent } from "../../services/marketplace/marketplaceRepo";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { Button } from "../../ui/components/common/Button";
 import { useTheme } from "../../ui/ThemeProvider";
@@ -28,7 +28,6 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { content, vehicleId, postTitle, generatedAt } = route.params;
-  const headerHeight = useHeaderHeight();
   const [displayLang, setDisplayLang] = useState<"pl" | "en">(
     (settings?.language as "pl" | "en") ?? "pl",
   );
@@ -62,7 +61,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
 
   return (
     <HeaderLayout onBack={handleBack} showProfileAvatar>
-      <View style={{ flex: 1, paddingTop: headerHeight }}>
+      <NativeHeaderScrollView>
         <ContentHeader title={layoutTitle} subtitle={generatedAt} />
         <SegmentTabs<"pl" | "en">
           value={displayLang}
@@ -93,7 +92,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
         <Button onPress={handleCopyContent}>
           {t("marketplace.copyToClipboard")}
         </Button>
-      </View>
+      </NativeHeaderScrollView>
     </HeaderLayout>
   );
 }

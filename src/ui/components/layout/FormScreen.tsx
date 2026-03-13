@@ -62,32 +62,32 @@ export function FormScreen({
 
   const inner = (
     <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-      >
-        <FormScreenScrollRefContext.Provider value={effectiveScrollRef}>
-          <View style={{ flex: 1 }}>
-            <ScrollView
-              ref={effectiveScrollRef}
-              scrollEnabled={scrollEnabled}
-              showsVerticalScrollIndicator={false}
-              nestedScrollEnabled={false}
-              contentContainerStyle={{
-                flexGrow: 1,
-                paddingBottom: theme.spacing.lg + keyboardHeight / 2,
-              }}
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+    >
+      <FormScreenScrollRefContext.Provider value={effectiveScrollRef}>
+        <View style={{ flex: 1 }}>
+          <ScrollView
+            ref={effectiveScrollRef}
+            scrollEnabled={scrollEnabled}
+            nestedScrollEnabled={false}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingBottom: theme.spacing.lg + keyboardHeight / 2,
+            }}
+          >
+            <TouchableWithoutFeedback
+              onPress={Keyboard.dismiss}
+              accessible={false}
             >
-              <TouchableWithoutFeedback
-                onPress={Keyboard.dismiss}
-                accessible={false}
-              >
-                <View style={{ flexGrow: 1, flexShrink: 0 }}>{children}</View>
-              </TouchableWithoutFeedback>
-            </ScrollView>
-          </View>
-        </FormScreenScrollRefContext.Provider>
-      </KeyboardAvoidingView>
+              <View style={{ flexGrow: 1, flexShrink: 0 }}>{children}</View>
+            </TouchableWithoutFeedback>
+          </ScrollView>
+        </View>
+      </FormScreenScrollRefContext.Provider>
+    </KeyboardAvoidingView>
   );
 
   if (noLayout) return inner;

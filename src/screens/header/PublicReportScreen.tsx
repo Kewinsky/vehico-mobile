@@ -1,5 +1,4 @@
 import { View, Alert } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -8,6 +7,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReport">;
 
@@ -16,7 +16,6 @@ export function PublicReportScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const { vehicleId } = route.params;
   const { isPremium } = useEntitlements();
-  const headerHeight = useHeaderHeight();
 
   function onGeneratePress() {
     if (!isPremium) {
@@ -38,7 +37,7 @@ export function PublicReportScreen({ navigation, route }: Props) {
 
   return (
     <HeaderLayout onBack={() => navigation.goBack()} showProfileAvatar>
-      <View style={{ paddingTop: headerHeight }}>
+      <NativeHeaderScrollView>
         <ContentHeader title={t("publicReport.title")} />
         <Button onPress={onGeneratePress}>
           {t("publicReport.generateButton")}
@@ -54,7 +53,7 @@ export function PublicReportScreen({ navigation, route }: Props) {
         >
           {t("publicReport.historyButton")}
         </Button>
-      </View>
+      </NativeHeaderScrollView>
     </HeaderLayout>
   );
 }

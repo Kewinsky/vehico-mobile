@@ -5,6 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { AppLayout } from "../ui/components/layout/AppLayout";
 import { ModalButton } from "../ui/components/layout/ModalButton";
 import { useTheme } from "../ui/ThemeProvider";
+import { NativeHeaderScrollView } from "../ui/components/layout/NativeHeaderScrollView";
 
 export type ModalLayoutProps = PropsWithChildren<{
   title?: string;
@@ -19,6 +20,8 @@ export type ModalLayoutProps = PropsWithChildren<{
   };
   loading?: boolean;
   footer?: ReactNode;
+  useNativeHeaderScrollView?: boolean;
+  scrollEnabled?: boolean;
 }>;
 
 export function ModalLayout({
@@ -28,6 +31,8 @@ export function ModalLayout({
   done,
   loading = false,
   footer,
+  useNativeHeaderScrollView = false,
+  scrollEnabled,
 }: ModalLayoutProps) {
   const { theme } = useTheme();
   const navigation = useNavigation();
@@ -79,9 +84,17 @@ export function ModalLayout({
     theme.typography.title,
   ]);
 
+  const content = useNativeHeaderScrollView ? (
+    <NativeHeaderScrollView scrollEnabled={scrollEnabled}>
+      {children}
+    </NativeHeaderScrollView>
+  ) : (
+    children
+  );
+
   return (
     <AppLayout loading={loading} isModal useNativeHeader footer={footer}>
-      {children}
+      {content}
     </AppLayout>
   );
 }

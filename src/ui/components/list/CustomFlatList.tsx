@@ -120,7 +120,7 @@ export function CustomFlatList<T>({
           )}
           style={listStyle}
           contentContainerStyle={contentStyle}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator
           ListEmptyComponent={ListEmptyComponent}
           {...groupedRest}
         />
@@ -141,7 +141,7 @@ export function CustomFlatList<T>({
       )}
       style={style ?? listStyle}
       contentContainerStyle={contentStyle}
-      showsVerticalScrollIndicator={false}
+      showsVerticalScrollIndicator
       ListEmptyComponent={ListEmptyComponent}
       {...rest}
     />
@@ -151,8 +151,13 @@ export function CustomFlatList<T>({
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
     listWrap: { flex: 1 },
-    list: { flex: 1 },
+    list: {
+      flex: 1,
+      // Extend list to screen edges and handle padding in contentContainerStyle
+      marginHorizontal: -theme.layout.contentPaddingHorizontal,
+    },
     listContent: {
       paddingBottom: insets.bottom,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
   });

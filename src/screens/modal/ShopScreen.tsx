@@ -1,13 +1,5 @@
 import React, { useMemo, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -34,7 +26,6 @@ const DEFAULT_SUBSCRIPTION: RevenueCatProductId = "lifetime";
 const LIFETIME_DISCOUNT_PERCENT = 30;
 
 export function ShopScreen({ navigation }: Props) {
-  const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const {
@@ -105,28 +96,6 @@ export function ShopScreen({ navigation }: Props) {
     } finally {
       setActionLoading(null);
     }
-  }
-
-  function getProductName(productId: RevenueCatProductId): string {
-    switch (productId) {
-      case "monthly":
-        return t("shop.subCards.monthly");
-      case "yearly":
-        return t("shop.subCards.yearly");
-      case "lifetime":
-        return t("shop.subCards.lifetime");
-      default:
-        return productId;
-    }
-  }
-
-  function getProductDescription(productId: RevenueCatProductId): string {
-    const fallbackMap: Record<RevenueCatProductId, string> = {
-      monthly: t("shop.products.premium_monthly.description"),
-      yearly: t("shop.products.premium_yearly.description"),
-      lifetime: t("shop.products.lifetime.description"),
-    };
-    return revenueCatProducts[productId]?.description ?? fallbackMap[productId];
   }
 
   function startPurchase(productId: RevenueCatProductId) {
@@ -354,6 +323,7 @@ export function ShopScreen({ navigation }: Props) {
     <ModalLayout
       title={t("shop.title")}
       cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      useNativeHeaderScrollView
       footer={
         <>
           <View style={styles.footerButtons}>
@@ -384,10 +354,7 @@ export function ShopScreen({ navigation }: Props) {
         </>
       }
     >
-      <ScrollView
-        contentContainerStyle={[styles.container, { paddingTop: headerHeight }]}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.container}>
         {isPremium && (
           <Card style={styles.premiumBadge}>
             <Ionicons name="star" size={24} color={theme.colors.accent} />
@@ -438,7 +405,7 @@ export function ShopScreen({ navigation }: Props) {
           />
           <PriceCard productId={subs.right} label={t("shop.subCards.yearly")} />
         </View>
-      </ScrollView>
+      </View>
     </ModalLayout>
   );
 }

@@ -14,7 +14,6 @@ import type { TFunction } from "i18next";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { ModalLayout } from "../../layouts";
-import { useHeaderHeight } from "@react-navigation/elements";
 import type { UserSettings } from "../../app/providers/UserSettingsProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useTheme } from "../../ui/ThemeProvider";
@@ -96,7 +95,6 @@ function buildCardConfig(t: TFunction): Array<{
 }
 
 export function AppearanceScreen({ navigation }: Props) {
-  const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings, setSettings } = useUserSettings();
@@ -126,11 +124,10 @@ export function AppearanceScreen({ navigation }: Props) {
       title={t("settings.appearanceButton")}
       cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
       loading={!settings}
+      useNativeHeaderScrollView
     >
       {settings && (
-        <ScrollView
-          contentContainerStyle={[styles.container, { paddingTop: headerHeight }]}
-        >
+        <View style={styles.container}>
           {cardConfig.map(({ cardLabelKey, items }) => (
             <View
               key={cardLabelKey}
@@ -215,7 +212,7 @@ export function AppearanceScreen({ navigation }: Props) {
           ))}
 
           <View style={styles.bottomSpacer} />
-        </ScrollView>
+        </View>
       )}
     </ModalLayout>
   );

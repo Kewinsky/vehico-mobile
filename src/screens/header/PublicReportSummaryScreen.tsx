@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  ScrollView,
   Pressable,
   ActivityIndicator,
 } from "react-native";
@@ -28,15 +27,13 @@ import {
   updatePublicReportTempPhotos,
 } from "../../services/publicPages/publicPagesRepo";
 import { uploadReportPhotos } from "../../services/publicPages/uploadReportPhoto";
-import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
-import { useHeaderHeight } from "@react-navigation/elements";
-import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { formatDateDisplay } from "../../utils/dateFormatting";
+import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportSummary">;
 
@@ -60,8 +57,7 @@ function InfoCard({
         ? t("publicReport.includedWithCount", { count })
         : t("publicReport.included")
       : "—";
-  const valueColor =
-    value === "—" ? theme.colors.muted : theme.colors.accent;
+  const valueColor = value === "—" ? theme.colors.muted : theme.colors.accent;
 
   return (
     <View style={styles.dataRow}>
@@ -72,7 +68,6 @@ function InfoCard({
 }
 
 export function PublicReportSummaryScreen({ navigation, route }: Props) {
-  const headerHeight = useHeaderHeight();
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
@@ -211,7 +206,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const hasNotes = (vehicle?.notes?.trim() ?? "").length > 0;
 
   return (
-    <HeaderLayout
+    <HeaderContentScreen
       loading={loading}
       onBack={() => navigation.goBack()}
       showProfileAvatar
@@ -243,15 +238,10 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
           )}
         </Button>
       }
+      title={t("publicReport.summaryTitle")}
     >
       {!loading && (
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={{ paddingTop: headerHeight }}
-          showsVerticalScrollIndicator={false}
-        >
-          <ContentHeader title={t("publicReport.summaryTitle")} />
-
+        <>
           {/* Summary of technical data */}
           {reportOptions.include_technical_data && vehicle && (
             <View style={styles.section}>
@@ -260,8 +250,13 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
               </Text>
               {(() => {
                 const dash = "—";
-                const val = (v: string | number | null | undefined, fallback: string) =>
-                  v != null && String(v).trim() !== "" ? String(v).trim() : fallback;
+                const val = (
+                  v: string | number | null | undefined,
+                  fallback: string,
+                ) =>
+                  v != null && String(v).trim() !== ""
+                    ? String(v).trim()
+                    : fallback;
                 const typeVal =
                   vehicle.type === "car"
                     ? t("vehicleForm.car")
@@ -316,32 +311,67 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                 return (
                   <>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>{t("vehicleForm.type")}</Text>
-                      <Text style={[styles.dataValue, { color: theme.colors.accent }]}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.type")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: theme.colors.accent },
+                        ]}
+                      >
                         {typeVal}
                       </Text>
                     </View>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>{t("vehicleForm.makeLabel")}</Text>
-                      <Text style={[styles.dataValue, { color: valueColor(makeVal) }]}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.makeLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(makeVal) },
+                        ]}
+                      >
                         {makeVal}
                       </Text>
                     </View>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>{t("vehicleForm.modelLabel")}</Text>
-                      <Text style={[styles.dataValue, { color: valueColor(modelVal) }]}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.modelLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(modelVal) },
+                        ]}
+                      >
                         {modelVal}
                       </Text>
                     </View>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>{t("vehicleForm.yearLabel")}</Text>
-                      <Text style={[styles.dataValue, { color: valueColor(yearVal) }]}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.yearLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(yearVal) },
+                        ]}
+                      >
                         {yearVal}
                       </Text>
                     </View>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>{t("vehicleForm.vinLabel")}</Text>
-                      <Text style={[styles.dataValue, { color: valueColor(vinVal) }]}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.vinLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(vinVal) },
+                        ]}
+                      >
                         {vinVal}
                       </Text>
                     </View>
@@ -349,7 +379,12 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                       <Text style={styles.dataLabel}>
                         {t("vehicleForm.firstRegistrationDateLabel")}
                       </Text>
-                      <Text style={[styles.dataValue, { color: valueColor(firstRegVal) }]}>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(firstRegVal) },
+                        ]}
+                      >
                         {firstRegVal}
                       </Text>
                     </View>
@@ -357,13 +392,25 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                       <Text style={styles.dataLabel}>
                         {t("vehicleForm.licensePlateLabel")}
                       </Text>
-                      <Text style={[styles.dataValue, { color: valueColor(licenseVal) }]}>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(licenseVal) },
+                        ]}
+                      >
                         {licenseVal}
                       </Text>
                     </View>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>{t("vehicleForm.mileageLabel")}</Text>
-                      <Text style={[styles.dataValue, { color: valueColor(mileageVal) }]}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.mileageLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(mileageVal) },
+                        ]}
+                      >
                         {mileageVal}
                       </Text>
                     </View>
@@ -371,13 +418,25 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                       <Text style={styles.dataLabel}>
                         {t("vehicleForm.engineCapacityLabel")}
                       </Text>
-                      <Text style={[styles.dataValue, { color: valueColor(engineVal) }]}>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(engineVal) },
+                        ]}
+                      >
                         {engineVal}
                       </Text>
                     </View>
                     <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>{t("vehicleForm.powerHpLabel")}</Text>
-                      <Text style={[styles.dataValue, { color: valueColor(powerVal) }]}>
+                      <Text style={styles.dataLabel}>
+                        {t("vehicleForm.powerHpLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(powerVal) },
+                        ]}
+                      >
                         {powerVal}
                       </Text>
                     </View>
@@ -385,7 +444,12 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                       <Text style={styles.dataLabel}>
                         {t("vehicleForm.transmissionLabel")}
                       </Text>
-                      <Text style={[styles.dataValue, { color: valueColor(transVal) }]}>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(transVal) },
+                        ]}
+                      >
                         {transVal}
                       </Text>
                     </View>
@@ -393,7 +457,12 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                       <Text style={styles.dataLabel}>
                         {t("vehicleForm.driveTypeLabel")}
                       </Text>
-                      <Text style={[styles.dataValue, { color: valueColor(driveVal) }]}>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(driveVal) },
+                        ]}
+                      >
                         {driveVal}
                       </Text>
                     </View>
@@ -401,7 +470,12 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                       <Text style={styles.dataLabel}>
                         {t("vehicleForm.fuelTypeLabel")}
                       </Text>
-                      <Text style={[styles.dataValue, { color: valueColor(fuelVal) }]}>
+                      <Text
+                        style={[
+                          styles.dataValue,
+                          { color: valueColor(fuelVal) },
+                        ]}
+                      >
                         {fuelVal}
                       </Text>
                     </View>
@@ -578,9 +652,9 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
               </Text>
             </Pressable>
           </View>
-        </ScrollView>
+        </>
       )}
-    </HeaderLayout>
+    </HeaderContentScreen>
   );
 }
 

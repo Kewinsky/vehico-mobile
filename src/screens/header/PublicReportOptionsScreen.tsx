@@ -1,13 +1,11 @@
 import {
   Linking,
   Platform,
-  ScrollView,
   Share,
   StyleSheet,
   useWindowDimensions,
   View,
 } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,6 +15,7 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -30,7 +29,6 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { url, vehicleId, reportTitle, generatedAt } = route.params;
   const { width } = useWindowDimensions();
-  const headerHeight = useHeaderHeight();
 
   const qrSize = useMemo(() => {
     const max = 260;
@@ -80,42 +78,42 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
 
   return (
     <HeaderLayout onBack={handleBack} showProfileAvatar>
-      <View
-        style={{
-          flex: 1,
-          paddingTop: headerHeight,
-          paddingBottom: theme.spacing.xl,
-        }}
-      >
-        <ContentHeader title={layoutTitle} subtitle={generatedAt} />
-        <View style={styles.qrContainer}>
-          <View
-            style={[
-              styles.qrWrapper,
-              {
-                backgroundColor: theme.colors.card,
-                borderColor: theme.colors.border,
-              },
-            ]}
-          >
-            <QRCode
-              value={url}
-              size={qrSize}
-              color={mode === "dark" ? "#ffffff" : "#000000"}
-              backgroundColor={theme.colors.card}
-            />
+      <NativeHeaderScrollView>
+        <View
+          style={{
+            paddingBottom: theme.spacing.xl,
+          }}
+        >
+          <ContentHeader title={layoutTitle} subtitle={generatedAt} />
+          <View style={styles.qrContainer}>
+            <View
+              style={[
+                styles.qrWrapper,
+                {
+                  backgroundColor: theme.colors.card,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+            >
+              <QRCode
+                value={url}
+                size={qrSize}
+                color={mode === "dark" ? "#ffffff" : "#000000"}
+                backgroundColor={theme.colors.card}
+              />
+            </View>
+          </View>
+
+          <View style={styles.actions}>
+            <Button onPress={handleOpenInBrowser}>
+              {t("share.openInBrowser")}
+            </Button>
+            <Button onPress={handleShare} variant="outlined">
+              {t("share.title")}
+            </Button>
           </View>
         </View>
-
-        <View style={styles.actions}>
-          <Button onPress={handleOpenInBrowser}>
-            {t("share.openInBrowser")}
-          </Button>
-          <Button onPress={handleShare} variant="outlined">
-            {t("share.title")}
-          </Button>
-        </View>
-      </View>
+      </NativeHeaderScrollView>
     </HeaderLayout>
   );
 }

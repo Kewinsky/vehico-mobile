@@ -49,7 +49,7 @@ export function AppLayout({
           style={[
             styles.content,
             {
-              paddingHorizontal: theme.layout.contentPaddingHorizontal,
+              marginHorizontal: theme.layout.contentPaddingHorizontal,
             },
           ]}
         >
