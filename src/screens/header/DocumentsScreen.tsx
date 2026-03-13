@@ -13,8 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { SearchBar } from "../../ui/components/common/SearchBar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
@@ -302,12 +301,12 @@ export function DocumentsScreen({ route, navigation }: Props) {
   );
 
   return (
-    <HeaderLayout
+    <HeaderContentScreen
       loading={loading}
       onBack={() => navigation.goBack()}
       actions={headerActions}
+      title={t("dashboard.tiles.docsTitle")}
     >
-      <ContentHeader title={t("dashboard.tiles.docsTitle")} />
         <SearchBar
           value={query}
           onChangeText={setQuery}
@@ -448,7 +447,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
         }).length === 0 ? (
           <EmptyState body={t("documents.noAttachments")} />
         ) : null}
-    </HeaderLayout>
+    </HeaderContentScreen>
   );
 }
 
