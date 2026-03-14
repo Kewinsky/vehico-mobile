@@ -242,6 +242,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
     items.length >= 2 &&
     (showFreePlanPicker || route.params?.showVehiclePicker === true);
   const hasShownPickerRef = useRef(false);
+  const hasAutoSelectedSingleVehicleRef = useRef(false);
 
   const sortedItems = useMemo(() => {
     if (!visibleVehicleId) return items;
@@ -327,6 +328,30 @@ export function VehiclesScreen({ navigation, route }: Props) {
     onFocusReload: () => load({ showLoading: false }),
     deferFocusReload: true,
   });
+
+  useEffect(() => {
+    if (
+      entitlementsLoading ||
+      isPremium ||
+      freePlanVehicleId ||
+      items.length !== 1
+    ) {
+      hasAutoSelectedSingleVehicleRef.current = false;
+      return;
+    }
+    if (hasAutoSelectedSingleVehicleRef.current) return;
+    hasAutoSelectedSingleVehicleRef.current = true;
+    void setFreePlanVehicleId(items[0].id).catch((error) => {
+      hasAutoSelectedSingleVehicleRef.current = false;
+      console.error("Failed to auto-select free plan vehicle:", error);
+    });
+  }, [
+    entitlementsLoading,
+    isPremium,
+    freePlanVehicleId,
+    items,
+    setFreePlanVehicleId,
+  ]);
 
   useEffect(() => {
     if (!shouldShowPicker) {

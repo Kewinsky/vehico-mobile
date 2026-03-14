@@ -49,7 +49,9 @@ export function PremiumDowngradeHandler() {
 
     const route = currentRouteName();
     if (route === "Vehicles") {
-      // User is already on VehiclesScreen → picker will show there automatically
+      // Downgrade now seeds a fallback free-plan vehicle in DB, so force the
+      // picker explicitly when user already sits on Vehicles.
+      redirectToVehiclesAndShowPicker();
       return;
     }
 

@@ -111,6 +111,99 @@ type EntitlementsUpdate = {
   reminders_limit: number;
 };
 
+type SupabaseClient = ReturnType<typeof createClient>;
+
+type FreePlanSelections = {
+  freePlanVehicleId: string | null;
+  freePlanWorkshopIds: string[];
+  freePlanReminderIds: string[];
+  freePlanTireId: string | null;
+  freePlanWheelId: string | null;
+};
+
+async function buildFreePlanSelections(
+  supabase: SupabaseClient,
+  userId: string,
+  preferredVehicleId: string | null,
+): Promise<FreePlanSelections> {
+  const { data: workshopRows, error: workshopError } = await supabase
+    .from("workshops")
+    .select("id")
+    .eq("owner_id", userId)
+    .order("created_at", { ascending: true })
+    .limit(FREE_LIMITS.workshops_limit);
+  if (workshopError) throw workshopError;
+
+  let freePlanVehicleId = preferredVehicleId;
+  if (freePlanVehicleId) {
+    const { data: preferredVehicleRows, error: preferredVehicleError } =
+      await supabase
+        .from("vehicles")
+        .select("id")
+        .eq("id", freePlanVehicleId)
+        .eq("owner_id", userId)
+        .limit(1);
+    if (preferredVehicleError) throw preferredVehicleError;
+    freePlanVehicleId = preferredVehicleRows?.[0]?.id ?? null;
+  }
+
+  if (!freePlanVehicleId) {
+    const { data: vehicleRows, error: vehicleError } = await supabase
+      .from("vehicles")
+      .select("id")
+      .eq("owner_id", userId)
+      .order("created_at", { ascending: true })
+      .limit(1);
+    if (vehicleError) throw vehicleError;
+    freePlanVehicleId = vehicleRows?.[0]?.id ?? null;
+  }
+
+  if (!freePlanVehicleId) {
+    return {
+      freePlanVehicleId: null,
+      freePlanWorkshopIds: (workshopRows ?? []).map((row: { id: string }) => row.id),
+      freePlanReminderIds: [],
+      freePlanTireId: null,
+      freePlanWheelId: null,
+    };
+  }
+
+  const [reminderResult, tireResult, wheelResult] = await Promise.all([
+    supabase
+      .from("reminders")
+      .select("id")
+      .eq("vehicle_id", freePlanVehicleId)
+      .order("created_at", { ascending: true })
+      .limit(FREE_LIMITS.reminders_limit),
+    supabase
+      .from("tires")
+      .select("id")
+      .eq("vehicle_id", freePlanVehicleId)
+      .order("created_at", { ascending: true })
+      .limit(1),
+    supabase
+      .from("wheels")
+      .select("id")
+      .eq("vehicle_id", freePlanVehicleId)
+      .order("created_at", { ascending: true })
+      .limit(1),
+  ]);
+
+  if (reminderResult.error) throw reminderResult.error;
+  if (tireResult.error) throw tireResult.error;
+  if (wheelResult.error) throw wheelResult.error;
+
+  return {
+    freePlanVehicleId,
+    freePlanWorkshopIds: (workshopRows ?? []).map((row: { id: string }) => row.id),
+    freePlanReminderIds: (reminderResult.data ?? []).map(
+      (row: { id: string }) => row.id,
+    ),
+    freePlanTireId: tireResult.data?.[0]?.id ?? null,
+    freePlanWheelId: wheelResult.data?.[0]?.id ?? null,
+  };
+}
+
 /** Build entitlements update from event type and payload. */
 function getEntitlementsUpdate(
   event: RevenueCatWebhookEvent
@@ -305,6 +398,21 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
   const now = new Date().toISOString();
+  const {
+    data: currentEntitlements,
+    error: currentEntitlementsError,
+  } = await supabase
+    .from("entitlements")
+    .select("free_plan_vehicle_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (currentEntitlementsError) {
+    console.error("Failed to load current entitlements:", currentEntitlementsError);
+    return new Response(
+      JSON.stringify({ error: "Failed to load current entitlements" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
 
   const dbUpdate: Record<string, unknown> = {
     plan: update.plan,
@@ -319,14 +427,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
     updated_at: now,
   };
   if (update.plan === "free") {
+    const freePlanSelections = await buildFreePlanSelections(
+      supabase,
+      userId,
+      currentEntitlements?.free_plan_vehicle_id ?? null,
+    );
     dbUpdate.downgraded_at = now;
-    const { data: workshopRows } = await supabase
-      .from("workshops")
-      .select("id")
-      .eq("owner_id", userId)
-      .order("created_at", { ascending: true })
-      .limit(3);
-    dbUpdate.free_plan_workshop_ids = (workshopRows ?? []).map((r: { id: string }) => r.id);
+    dbUpdate.free_plan_vehicle_id = freePlanSelections.freePlanVehicleId;
+    dbUpdate.free_plan_workshop_ids = freePlanSelections.freePlanWorkshopIds;
+    dbUpdate.free_plan_reminder_ids = freePlanSelections.freePlanReminderIds;
+    dbUpdate.free_plan_tire_id = freePlanSelections.freePlanTireId;
+    dbUpdate.free_plan_wheel_id = freePlanSelections.freePlanWheelId;
   } else {
     dbUpdate.free_plan_vehicle_id = null;
     dbUpdate.downgraded_at = null;

@@ -1205,11 +1205,11 @@ create table if not exists public.entitlements (
   reminders_limit integer not null default 5 check (reminders_limit > 0), -- 5 przypomnień per vehicle dla free, unlimited dla premium
   premium_until timestamptz, -- null for free/lifetime, set for premium subscription
   product_id text, -- monthly, yearly, or lifetime when premium; null when free
-  free_plan_vehicle_id uuid references public.vehicles(id) on delete set null, -- vehicle visible on free; set only on picker Save; cleared when premium
+  free_plan_vehicle_id uuid references public.vehicles(id) on delete set null, -- vehicle visible on free; auto-seeded on downgrade and changeable from picker; cleared when premium
   downgraded_at timestamptz, -- when user downgraded to free; used for 90-day retention cleanup
   -- Free plan: fixed set of visible IDs (oldest by created_at at downgrade); no auto-reveal on delete
   free_plan_workshop_ids uuid[] default '{}', -- up to 3; populated when plan goes free
-  free_plan_reminder_ids uuid[] default '{}', -- up to 5 for free_plan_vehicle_id; populated when user sets free_plan_vehicle_id
+  free_plan_reminder_ids uuid[] default '{}', -- up to 5 for free_plan_vehicle_id; seeded on downgrade and when free_plan_vehicle_id changes
   free_plan_tire_id uuid references public.tires(id) on delete set null, -- 1 set for free vehicle
   free_plan_wheel_id uuid references public.wheels(id) on delete set null, -- 1 set for free vehicle
   created_at timestamptz not null default now(),
@@ -1277,7 +1277,7 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- RPC: set free plan vehicle and populate reminder/tire/wheel IDs (oldest by created_at)
+-- RPC: set free plan vehicle and populate reminder/tire/wheel IDs for that vehicle (oldest by created_at)
 drop function if exists public.set_free_plan_vehicle(uuid);
 create or replace function public.set_free_plan_vehicle(p_vehicle_id uuid)
 returns void
