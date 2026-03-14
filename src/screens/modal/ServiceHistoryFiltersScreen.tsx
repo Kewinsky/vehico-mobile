@@ -113,12 +113,28 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
     if (field === "cost") return "cost" as const;
     return "date" as const;
   }, [sortOption]);
+  const dateSortOption =
+    sortOption === "date-oldest" ? "date-oldest" : "date-newest";
+  const titleSortOption = sortOption === "title-za" ? "title-za" : "title-az";
+  const costSortOption = sortOption === "cost-desc" ? "cost-desc" : "cost-asc";
 
   function setSortField(next: "date" | "title" | "cost") {
     if (next === sortField) return;
     if (next === "date") setSortOption("date-newest");
     if (next === "title") setSortOption("title-az");
     if (next === "cost") setSortOption("cost-asc");
+  }
+
+  function setDateSortOption(next: "date-newest" | "date-oldest") {
+    setSortOption(next);
+  }
+
+  function setTitleSortOption(next: "title-az" | "title-za") {
+    setSortOption(next);
+  }
+
+  function setCostSortOption(next: "cost-asc" | "cost-desc") {
+    setSortOption(next);
   }
 
   function clearFilters() {
@@ -376,7 +392,7 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
           <View style={styles.segmentWrap}>
             {sortField === "date" ? (
               <SegmentTabs<"date-newest" | "date-oldest">
-                value={sortOption}
+                value={dateSortOption}
                 options={[
                   {
                     value: "date-newest",
@@ -387,22 +403,22 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
                     label: t("timeline.sortOrderOldest"),
                   },
                 ]}
-                onChange={setSortOption}
+                onChange={setDateSortOption}
                 size="sm"
               />
             ) : sortField === "title" ? (
               <SegmentTabs<"title-az" | "title-za">
-                value={sortOption}
+                value={titleSortOption}
                 options={[
                   { value: "title-az", label: t("timeline.sortOrderAz") },
                   { value: "title-za", label: t("timeline.sortOrderZa") },
                 ]}
-                onChange={setSortOption}
+                onChange={setTitleSortOption}
                 size="sm"
               />
             ) : (
               <SegmentTabs<"cost-asc" | "cost-desc">
-                value={sortOption}
+                value={costSortOption}
                 options={[
                   {
                     value: "cost-asc",
@@ -413,7 +429,7 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
                     label: t("timeline.sortOrderAmountDesc"),
                   },
                 ]}
-                onChange={setSortOption}
+                onChange={setCostSortOption}
                 size="sm"
               />
             )}

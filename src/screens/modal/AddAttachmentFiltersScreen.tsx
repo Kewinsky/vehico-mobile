@@ -35,11 +35,21 @@ export function AddAttachmentFiltersScreen({ navigation, route }: Props) {
     const [field] = sortOption.split("-") as [string, string];
     return field === "title" ? ("title" as const) : ("date" as const);
   }, [sortOption]);
+  const dateSortOption = sortOption === "date-oldest" ? "date-oldest" : "date-newest";
+  const titleSortOption = sortOption === "title-za" ? "title-za" : "title-az";
 
   function setSortField(next: "date" | "title") {
     if (next === sortField) return;
     if (next === "date") setSortOption("date-newest");
     if (next === "title") setSortOption("title-az");
+  }
+
+  function setDateSortOption(next: "date-newest" | "date-oldest") {
+    setSortOption(next);
+  }
+
+  function setTitleSortOption(next: "title-az" | "title-za") {
+    setSortOption(next);
   }
 
   function clearFilters() {
@@ -104,7 +114,7 @@ export function AddAttachmentFiltersScreen({ navigation, route }: Props) {
           <View style={styles.segmentWrap}>
             {sortField === "date" ? (
               <SegmentTabs<"date-newest" | "date-oldest">
-                value={sortOption}
+                value={dateSortOption}
                 options={[
                   {
                     value: "date-newest",
@@ -115,17 +125,17 @@ export function AddAttachmentFiltersScreen({ navigation, route }: Props) {
                     label: t("timeline.sortOrderOldest"),
                   },
                 ]}
-                onChange={setSortOption}
+                onChange={setDateSortOption}
                 size="sm"
               />
             ) : (
               <SegmentTabs<"title-az" | "title-za">
-                value={sortOption}
+                value={titleSortOption}
                 options={[
                   { value: "title-az", label: t("timeline.sortOrderAz") },
                   { value: "title-za", label: t("timeline.sortOrderZa") },
                 ]}
-                onChange={setSortOption}
+                onChange={setTitleSortOption}
                 size="sm"
               />
             )}

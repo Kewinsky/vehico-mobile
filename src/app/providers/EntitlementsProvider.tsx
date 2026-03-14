@@ -549,6 +549,12 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
 
     (async () => {
       try {
+        if (!REVENUECAT_PUBLIC_API_KEY) {
+          console.warn(
+            "RevenueCat is disabled because EXPO_PUBLIC_REVENUECAT_API_KEY is not set.",
+          );
+          return;
+        }
         const isConfigured = await Purchases.isConfigured();
         if (!isConfigured) {
           await Purchases.setLogLevel(
