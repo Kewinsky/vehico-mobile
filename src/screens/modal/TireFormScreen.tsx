@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { AntDesign, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { TireType } from "../../types/domain";
@@ -355,8 +355,8 @@ export function TireFormScreen({ navigation, route }: Props) {
         />
         <View style={styles.row}>
           <View style={styles.rowLeft}>
-            <Ionicons
-              name="resize-outline"
+            <MaterialCommunityIcons
+              name="diameter-variant"
               size={20}
               color={theme.colors.accent}
             />
