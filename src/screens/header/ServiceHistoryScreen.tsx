@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -12,7 +12,6 @@ import type {
   TimelineItem as TimelineRow,
 } from "../../types/domain";
 import type { ServiceHistoryFiltersParams } from "../modal/ServiceHistoryFiltersScreen";
-import { getAndClearPendingModalResult } from "../../app/pendingModalResult";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { listReminders } from "../../services/reminders/remindersRepo";
 import { listVehicleAttachments } from "../../services/attachments/attachmentsRepo";
@@ -24,6 +23,7 @@ import { TimelineItem } from "../../ui/components/list/TimelineItem";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
 import { EmptyState } from "../../ui/components/common/EmptyState";
@@ -36,8 +36,13 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
-  const { isPremium, remindersLimit, freePlanVehicleId, freePlanReminderIds } =
-    useEntitlements();
+  const {
+    isPremium,
+    remindersLimit,
+    freePlanVehicleId,
+    freePlanReminderIds,
+    refresh: refreshEntitlements,
+  } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
   const [items, setItems] = useState<ServiceEntry[]>([]);
@@ -116,36 +121,32 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     ],
   );
 
-  useEffect(() => {
-    void load();
-    const unsub = navigation.addListener("focus", () => {
-      const pending =
-        getAndClearPendingModalResult<ServiceHistoryFiltersParams>(
-          "serviceHistory",
-        );
-      if (pending) {
-        setCategoryFilter(
-          (pending.categoryFilter as "all" | ServiceEntryCategory) ?? "all",
-        );
-        setDateFrom(pending.dateFrom ?? "");
-        setDateTo(pending.dateTo ?? "");
-        setMinCost(pending.minCost ?? "");
-        setMaxCost(pending.maxCost ?? "");
-        setShowReminders(pending.showReminders ?? false);
-        setSortOption(
-          (pending.sortOption as
-            | "date-newest"
-            | "date-oldest"
-            | "title-az"
-            | "title-za"
-            | "cost-asc"
-            | "cost-desc") ?? "date-newest",
-        );
-      }
-      void load({ showLoading: false });
-    });
-    return unsub;
-  }, [navigation, load]);
+  useScreenFocusReload<ServiceHistoryFiltersParams>({
+    initialLoad: () => load(),
+    beforeFocusReload: refreshEntitlements,
+    onFocusReload: () => load({ showLoading: false }),
+    pendingModalKey: "serviceHistory",
+    applyPendingModalResult: (pending) => {
+      setCategoryFilter(
+        (pending.categoryFilter as "all" | ServiceEntryCategory) ?? "all",
+      );
+      setDateFrom(pending.dateFrom ?? "");
+      setDateTo(pending.dateTo ?? "");
+      setMinCost(pending.minCost ?? "");
+      setMaxCost(pending.maxCost ?? "");
+      setShowReminders(pending.showReminders ?? false);
+      setSortOption(
+        (pending.sortOption as
+          | "date-newest"
+          | "date-oldest"
+          | "title-az"
+          | "title-za"
+          | "cost-asc"
+          | "cost-desc") ?? "date-newest",
+      );
+    },
+    deferFocusReload: true,
+  });
 
   const hasActiveFilters = useMemo(() => {
     return (

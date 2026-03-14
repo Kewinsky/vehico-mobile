@@ -1,7 +1,6 @@
-import { useIsFocused } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Pressable,
@@ -47,6 +46,7 @@ import { toastError } from "../../ui/toast/toast";
 import { TireIcon } from "../../ui/components/icons/TireIcon";
 import { RimIcon } from "../../ui/components/icons/RimIcon";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
+import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Statistics">;
 type PeriodKey = "1m" | "3m" | "6m" | "1y" | "all";
@@ -358,7 +358,6 @@ export function StatisticsScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
-  const isFocused = useIsFocused();
   const { width: windowWidth } = useWindowDimensions();
   const vehicleId = route.params.vehicleId;
   const {
@@ -368,6 +367,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
     freePlanVehicleId,
     freePlanTireId,
     freePlanWheelId,
+    refresh: refreshEntitlements,
   } = useEntitlements();
   const tireOpts = useMemo(
     () =>
@@ -423,12 +423,11 @@ export function StatisticsScreen({ route, navigation }: Props) {
       ? t("dashboard.stats.units.liter")
       : t("dashboard.stats.units.gallon");
 
-  useEffect(() => {
-    if (!isFocused) return;
-    let alive = true;
-    setLoading(true);
-    (async () => {
+  const load = useCallback(
+    async (opts?: { showLoading?: boolean }) => {
+      const showLoading = opts?.showLoading !== false;
       try {
+        if (showLoading) setLoading(true);
         const [v, s, f, tiresData, wheelsData] = await Promise.all([
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
@@ -436,7 +435,6 @@ export function StatisticsScreen({ route, navigation }: Props) {
           listVehicleTires(vehicleId, tireOpts),
           listVehicleWheels(vehicleId, wheelOpts),
         ]);
-        if (!alive) return;
         setVehicle(v);
         setService(s);
         setFueling(f);
@@ -445,13 +443,18 @@ export function StatisticsScreen({ route, navigation }: Props) {
       } catch (err: any) {
         toastError(err?.message ?? t("common.error"));
       } finally {
-        if (alive) setLoading(false);
+        if (showLoading) setLoading(false);
       }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [isFocused, vehicleId, t, tireOpts, wheelOpts]);
+    },
+    [vehicleId, t, tireOpts, wheelOpts],
+  );
+
+  useScreenFocusReload({
+    initialLoad: () => load(),
+    beforeFocusReload: refreshEntitlements,
+    onFocusReload: () => load({ showLoading: false }),
+    deferFocusReload: true,
+  });
 
   const periodOptions: { key: PeriodKey; label: string }[] = [
     { key: "1m", label: t("dashboard.stats.periods.1m") },

@@ -1,11 +1,11 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { FuelFiltersParams } from "../modal/FuelFiltersScreen";
-import { getAndClearPendingModalResult } from "../../app/pendingModalResult";
+import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
@@ -62,21 +62,18 @@ export function FuelScreen({ route, navigation }: Props) {
     [route.params.vehicleId, t],
   );
 
-  useEffect(() => {
-    void load();
-    const unsub = navigation.addListener("focus", () => {
-      const pending = getAndClearPendingModalResult<FuelFiltersParams>("fuel");
-      if (pending) {
-        setDateFrom(pending.dateFrom ?? "");
-        setDateTo(pending.dateTo ?? "");
-        setStationFilter((pending.stationFilter as GasStation) ?? null);
-        setMinCost(pending.minCost ?? "");
-        setMaxCost(pending.maxCost ?? "");
-      }
-      void load({ showLoading: false });
-    });
-    return unsub;
-  }, [navigation, load]);
+  useScreenFocusReload<FuelFiltersParams>({
+    initialLoad: () => load(),
+    onFocusReload: () => load({ showLoading: false }),
+    pendingModalKey: "fuel",
+    applyPendingModalResult: (pending) => {
+      setDateFrom(pending.dateFrom ?? "");
+      setDateTo(pending.dateTo ?? "");
+      setStationFilter((pending.stationFilter as GasStation) ?? null);
+      setMinCost(pending.minCost ?? "");
+      setMaxCost(pending.maxCost ?? "");
+    },
+  });
 
   const hasActiveFilters = useMemo(() => {
     return (

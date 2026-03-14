@@ -1,6 +1,5 @@
 import {
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -31,6 +30,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { toastError } from "../../ui/toast/toast";
 import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
@@ -76,13 +76,10 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
     }
   }, [workshopId, t]);
 
-  useEffect(() => {
-    void load();
-    const unsub = workshopId
-      ? navigation.addListener("focus", () => void load())
-      : () => {};
-    return unsub;
-  }, [navigation, load, workshopId]);
+  useScreenFocusReload({
+    initialLoad: load,
+    onFocusReload: workshopId ? load : undefined,
+  });
 
   const canSave = useMemo(() => {
     return name.trim().length > 0 && workshopType != null;

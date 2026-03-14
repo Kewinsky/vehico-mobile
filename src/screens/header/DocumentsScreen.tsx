@@ -9,7 +9,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -19,6 +19,7 @@ import { EmptyState } from "../../ui/components/common/EmptyState";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import type { Attachment, VehicleDocument } from "../../types/domain";
 import {
   deleteAttachment,
@@ -74,15 +75,10 @@ export function DocumentsScreen({ route, navigation }: Props) {
     [route.params.vehicleId, t],
   );
 
-  useEffect(() => {
-    // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
-    void load();
-    const unsub = navigation.addListener(
-      "focus",
-      () => void load({ showLoading: false }),
-    );
-    return unsub;
-  }, [navigation, load]);
+  useScreenFocusReload({
+    initialLoad: () => load(),
+    onFocusReload: () => load({ showLoading: false }),
+  });
 
   function openVehicleDocument(doc: VehicleDocument) {
     try {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -17,6 +17,7 @@ import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScr
 import { Tile } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { toastError } from "../../ui/toast/toast";
 import { RimIcon } from "../../ui/components/icons/RimIcon";
 import { TireIcon } from "../../ui/components/icons/TireIcon";
@@ -92,18 +93,12 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
     [vehicleId, t, tireOpts, wheelOpts],
   );
 
-  const loadRef = useRef(load);
-  loadRef.current = load;
-
-  useEffect(() => {
-    void load();
-    const unsub = navigation.addListener("focus", () => {
-      void refreshEntitlements().then(() => {
-        setTimeout(() => loadRef.current?.({ showLoading: false }), 0);
-      });
-    });
-    return unsub;
-  }, [navigation, load, refreshEntitlements]);
+  useScreenFocusReload({
+    initialLoad: () => load(),
+    beforeFocusReload: refreshEntitlements,
+    onFocusReload: () => load({ showLoading: false }),
+    deferFocusReload: true,
+  });
 
   const fittedTires = useMemo(
     () => tires.filter((x) => x.is_currently_fitted).slice(0, 2),

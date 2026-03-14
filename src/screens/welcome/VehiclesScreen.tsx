@@ -24,6 +24,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { normalizeDisplayName } from "../../utils/displayName";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { WelcomeHeaderLayout } from "../../layouts";
@@ -223,6 +224,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
     setFreePlanVehicleId,
     daysUntilHiddenDataDeletion,
     isLoading: entitlementsLoading,
+    refresh: refreshEntitlements,
   } = useEntitlements();
   const distanceUnit = settings?.distanceUnit ?? "km";
 
@@ -319,15 +321,12 @@ export function VehiclesScreen({ navigation, route }: Props) {
     [t, isPremium, photosPerVehicleLimit],
   );
 
-  useEffect(() => {
-    // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
-    void load();
-    const unsub = navigation.addListener(
-      "focus",
-      () => void load({ showLoading: false }),
-    );
-    return unsub;
-  }, [navigation, load]);
+  useScreenFocusReload({
+    initialLoad: () => load(),
+    beforeFocusReload: refreshEntitlements,
+    onFocusReload: () => load({ showLoading: false }),
+    deferFocusReload: true,
+  });
 
   useEffect(() => {
     if (!shouldShowPicker) {

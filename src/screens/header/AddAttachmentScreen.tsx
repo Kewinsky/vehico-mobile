@@ -1,7 +1,6 @@
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useFocusEffect } from "@react-navigation/native";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
@@ -9,7 +8,7 @@ import * as DocumentPicker from "expo-document-picker";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { AddAttachmentFiltersParams } from "../modal/AddAttachmentFiltersScreen";
 import type { ServiceEntry } from "../../types/domain";
-import { getAndClearPendingModalResult } from "../../app/pendingModalResult";
+import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { uploadAttachment } from "../../services/attachments/attachmentsRepo";
 import { HeaderLayout } from "../../layouts";
@@ -56,19 +55,13 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     [vehicleId, t],
   );
 
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  useFocusEffect(
-    useCallback(() => {
-      const pending =
-        getAndClearPendingModalResult<AddAttachmentFiltersParams>(
-          "addAttachment",
-        );
-      if (pending?.sortOption) setSortOption(pending.sortOption);
-    }, []),
-  );
+  useScreenFocusReload<AddAttachmentFiltersParams>({
+    initialLoad: () => load(),
+    pendingModalKey: "addAttachment",
+    applyPendingModalResult: (pending) => {
+      if (pending.sortOption) setSortOption(pending.sortOption);
+    },
+  });
 
   const hasActiveFilters = sortOption !== "date-newest";
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -8,7 +8,7 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { WorkshopsFiltersParams } from "../modal/WorkshopsFiltersScreen";
 import type { Workshop, WorkshopType } from "../../types/domain";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
-import { getAndClearPendingModalResult } from "../../app/pendingModalResult";
+import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
@@ -28,7 +28,7 @@ export function WorkshopsScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const [items, setItems] = useState<Workshop[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<WorkshopType | "all">("all");
   const [sortOrder, setSortOrder] = useState<"az" | "za">("az");
@@ -57,26 +57,17 @@ export function WorkshopsScreen({ navigation }: Props) {
     [t, isPremium, freePlanWorkshopIds],
   );
 
-  const loadRef = useRef(load);
-  loadRef.current = load;
-  const refreshEntitlementsRef = useRef(refreshEntitlements);
-  refreshEntitlementsRef.current = refreshEntitlements;
-
-  useEffect(() => {
-    void load({ showLoading: false });
-    const unsub = navigation.addListener("focus", () => {
-      const pending =
-        getAndClearPendingModalResult<WorkshopsFiltersParams>("workshops");
-      if (pending) {
-        setTypeFilter(pending.typeFilter ?? "all");
-        setSortOrder(pending.sortOrder ?? "az");
-      }
-      void refreshEntitlementsRef.current?.().then(() => {
-        setTimeout(() => loadRef.current?.({ showLoading: false }), 0);
-      });
-    });
-    return unsub;
-  }, [navigation, load]);
+  useScreenFocusReload<WorkshopsFiltersParams>({
+    initialLoad: () => load(),
+    beforeFocusReload: refreshEntitlements,
+    onFocusReload: () => load({ showLoading: false }),
+    pendingModalKey: "workshops",
+    applyPendingModalResult: (pending) => {
+      setTypeFilter(pending.typeFilter ?? "all");
+      setSortOrder(pending.sortOrder ?? "az");
+    },
+    deferFocusReload: true,
+  });
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

@@ -1,13 +1,13 @@
 import { Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { VehicleTire, TireType } from "../../types/domain";
 import type { TiresListFiltersParams } from "../modal/TiresListFiltersScreen";
-import { getAndClearPendingModalResult } from "../../app/pendingModalResult";
+import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import {
   listVehicleTires,
   formatTireDimensions,
@@ -96,27 +96,18 @@ export function TiresListScreen({ route, navigation }: Props) {
     [vehicleId, t, tireOptions],
   );
 
-  const loadRef = useRef(load);
-  loadRef.current = load;
-
-  useEffect(() => {
-    void load();
-    const unsub = navigation.addListener("focus", () => {
-      const pending =
-        getAndClearPendingModalResult<TiresListFiltersParams>("tiresList");
-      if (pending) {
-        setTireTypeFilter(
-          (pending.tireTypeFilter as TireType | "all") ?? "all",
-        );
-        setFittedFilter(pending.fittedFilter ?? "all");
-        setSortOrder(pending.sortOrder ?? "az");
-      }
-      void refreshEntitlements().then(() => {
-        setTimeout(() => loadRef.current?.({ showLoading: false }), 0);
-      });
-    });
-    return unsub;
-  }, [navigation, load, refreshEntitlements]);
+  useScreenFocusReload<TiresListFiltersParams>({
+    initialLoad: () => load(),
+    beforeFocusReload: refreshEntitlements,
+    onFocusReload: () => load({ showLoading: false }),
+    pendingModalKey: "tiresList",
+    applyPendingModalResult: (pending) => {
+      setTireTypeFilter((pending.tireTypeFilter as TireType | "all") ?? "all");
+      setFittedFilter(pending.fittedFilter ?? "all");
+      setSortOrder(pending.sortOrder ?? "az");
+    },
+    deferFocusReload: true,
+  });
 
   const hasActiveFilters =
     tireTypeFilter !== "all" || fittedFilter !== "all" || sortOrder !== "az";

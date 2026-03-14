@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -33,6 +33,7 @@ import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -128,7 +129,11 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
-  const { isPremium, photosPerVehicleLimit } = useEntitlements();
+  const {
+    isPremium,
+    photosPerVehicleLimit,
+    refresh: refreshEntitlements,
+  } = useEntitlements();
   const styles = makeStyles(theme);
   const { vehicleId } = route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
@@ -165,15 +170,12 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
     [vehicleId, t, isPremium, photosPerVehicleLimit],
   );
 
-  useEffect(() => {
-    // Run once on mount (avoids getting stuck in loading=true if focus event doesn't fire)
-    void load();
-    const unsub = navigation.addListener(
-      "focus",
-      () => void load({ showLoading: false }),
-    );
-    return unsub;
-  }, [navigation, load]);
+  useScreenFocusReload({
+    initialLoad: () => load(),
+    beforeFocusReload: refreshEntitlements,
+    onFocusReload: () => load({ showLoading: false }),
+    deferFocusReload: true,
+  });
 
   async function onCopyVin() {
     if (vehicle?.vin) {

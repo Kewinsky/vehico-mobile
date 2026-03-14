@@ -1,11 +1,11 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { RemindersFiltersParams } from "../modal/RemindersFiltersScreen";
-import { getAndClearPendingModalResult } from "../../app/pendingModalResult";
+import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
@@ -35,7 +35,7 @@ export function RemindersScreen({ route, navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const [items, setItems] = useState<Reminder[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [query, setQuery] = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -88,27 +88,18 @@ export function RemindersScreen({ route, navigation }: Props) {
     ],
   );
 
-  const loadRef = useRef(load);
-  loadRef.current = load;
-  const refreshEntitlementsRef = useRef(refreshEntitlements);
-  refreshEntitlementsRef.current = refreshEntitlements;
-
-  useEffect(() => {
-    void load({ showLoading: false });
-    const unsub = navigation.addListener("focus", () => {
-      const pending =
-        getAndClearPendingModalResult<RemindersFiltersParams>("reminders");
-      if (pending) {
-        setDateFrom(pending.dateFrom ?? "");
-        setDateTo(pending.dateTo ?? "");
-        setStatusFilter(pending.statusFilter ?? "all");
-      }
-      void refreshEntitlementsRef.current?.().then(() => {
-        setTimeout(() => loadRef.current?.({ showLoading: false }), 0);
-      });
-    });
-    return unsub;
-  }, [navigation, load]);
+  useScreenFocusReload<RemindersFiltersParams>({
+    initialLoad: () => load(),
+    beforeFocusReload: refreshEntitlements,
+    onFocusReload: () => load({ showLoading: false }),
+    pendingModalKey: "reminders",
+    applyPendingModalResult: (pending) => {
+      setDateFrom(pending.dateFrom ?? "");
+      setDateTo(pending.dateTo ?? "");
+      setStatusFilter(pending.statusFilter ?? "all");
+    },
+    deferFocusReload: true,
+  });
 
   async function performToggle(reminder: Reminder) {
     try {

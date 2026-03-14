@@ -3,7 +3,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { Database, Fuel } from "lucide-react-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 
@@ -18,6 +18,7 @@ import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { WheelsIcon } from "../../ui/components/icons/WheelsIcon";
 import { DashboardFab } from "../../ui/components/common/DashboardFab";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
+import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
@@ -63,15 +64,11 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     [vehicleId, t],
   );
 
-  useEffect(() => {
-    void load();
-    const unsub = navigation.addListener("focus", () => {
-      void load({ showLoading: false });
-      // Keep entitlements fresh so FAB reminder limit check uses current freePlanReminderIds
-      void refreshEntitlements();
-    });
-    return unsub;
-  }, [navigation, load, refreshEntitlements]);
+  useScreenFocusReload({
+    initialLoad: () => load(),
+    beforeFocusReload: refreshEntitlements,
+    onFocusReload: () => load({ showLoading: false }),
+  });
 
   async function onCopyVin() {
     if (vehicle?.vin) {
