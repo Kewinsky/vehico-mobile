@@ -1,10 +1,4 @@
-import {
-  Alert,
-  Linking,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Linking, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
@@ -15,6 +9,7 @@ import { Ionicons } from "@expo/vector-icons";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { SearchBar } from "../../ui/components/common/SearchBar";
+import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { useTheme } from "../../ui/ThemeProvider";
@@ -54,6 +49,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [query, setQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"documents" | "attachments">(
+    "documents",
+  );
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -303,62 +301,118 @@ export function DocumentsScreen({ route, navigation }: Props) {
       actions={headerActions}
       title={t("dashboard.tiles.docsTitle")}
     >
-        <SearchBar
-          value={query}
-          onChangeText={setQuery}
-          placeholder={t("common.search", { defaultValue: "Search" })}
-        />
-        <Text
-          style={[
-            styles.section,
+      <SearchBar
+        value={query}
+        onChangeText={setQuery}
+        placeholder={t("common.search", { defaultValue: "Search" })}
+      />
+      <View style={styles.tabsWrap}>
+        <SegmentTabs<"documents" | "attachments">
+          value={activeTab}
+          options={[
+            { value: "documents", label: t("documents.vehicleDocuments") },
             {
-              color: theme.colors.fg,
-              marginBottom: theme.spacing.xs,
-              marginTop: theme.spacing.md,
+              value: "attachments",
+              label: t("documents.serviceAttachments"),
             },
           ]}
-        >
-          {t("documents.vehicleDocumentsWithCount", {
-            count: vehicleDocs.length,
-          })}
-        </Text>
-        {vehicleDocs
-          .filter((d) => {
+          onChange={setActiveTab}
+        />
+      </View>
+
+      {activeTab === "documents" ? (
+        <>
+          {vehicleDocs
+            .filter((d) => {
+              const q = query.trim().toLowerCase();
+              if (!q.length) return true;
+              const description = d.description || "";
+              return description.toLowerCase().includes(q);
+            })
+            .map((item) => (
+              <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
+                <ListRowWithActions
+                  title={item.description || t("documents.documentLabel")}
+                  subtitle={(() => {
+                    const fileName = getFileNameFromItem(item);
+                    const ext =
+                      fileName.split(".").pop()?.toUpperCase() || "FILE";
+                    const date = new Date(item.created_at);
+                    const formattedDate = date.toLocaleDateString(
+                      i18n.language === "pl" ? "pl-PL" : "en-US",
+                      { day: "2-digit", month: "2-digit", year: "numeric" },
+                    );
+                    return `${t("documents.added")} ${formattedDate} · ${ext}`;
+                  })()}
+                  onPress={() => void openVehicleDocument(item)}
+                  trailing={
+                    <>
+                      <IconButton
+                        onPress={() => editDocumentDescription(item)}
+                        variant="ghost"
+                      >
+                        <Feather
+                          name="edit"
+                          size={24}
+                          color={theme.colors.accent}
+                        />
+                      </IconButton>
+                      <IconButton
+                        onPress={() => confirmDeleteVehicleDoc(item)}
+                        variant="danger"
+                      >
+                        <Ionicons
+                          name="trash-outline"
+                          size={24}
+                          color={theme.colors.danger}
+                        />
+                      </IconButton>
+                    </>
+                  }
+                />
+              </View>
+            ))}
+          {vehicleDocs.filter((d) => {
             const q = query.trim().toLowerCase();
             if (!q.length) return true;
             const description = d.description || "";
             return description.toLowerCase().includes(q);
-          })
-          .map((item) => (
-            <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
-              <ListRowWithActions
-                title={item.description || t("documents.documentLabel")}
-                subtitle={(() => {
-                  const fileName = getFileNameFromItem(item);
-                  const ext =
-                    fileName.split(".").pop()?.toUpperCase() || "FILE";
-                  const date = new Date(item.created_at);
-                  const formattedDate = date.toLocaleDateString(
-                    i18n.language === "pl" ? "pl-PL" : "en-US",
-                    { day: "2-digit", month: "2-digit", year: "numeric" },
-                  );
-                  return `${t("documents.added")} ${formattedDate} · ${ext}`;
-                })()}
-                onPress={() => void openVehicleDocument(item)}
-                trailing={
-                  <>
+          }).length === 0 ? (
+            <EmptyState body={t("documents.noVehicleDocuments")} />
+          ) : null}
+        </>
+      ) : (
+        <>
+          {attachments
+            .filter((a) => {
+              const q = query.trim().toLowerCase();
+              if (!q.length) return true;
+              const title = a.serviceEntryTitle || "";
+              return title.toLowerCase().includes(q);
+            })
+            .map((item) => (
+              <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
+                <ListRowWithActions
+                  title={
+                    item.serviceEntryTitle
+                      ? item.serviceEntryTitle
+                      : t("documents.attachmentLabel")
+                  }
+                  subtitle={(() => {
+                    const fileName = getFileNameFromItem(item);
+                    const ext =
+                      fileName.split(".").pop()?.toUpperCase() || "FILE";
+                    const date = new Date(item.created_at);
+                    const formattedDate = date.toLocaleDateString(
+                      i18n.language === "pl" ? "pl-PL" : "en-US",
+                      { day: "2-digit", month: "2-digit", year: "numeric" },
+                    );
+                    return `${t("documents.added")} ${formattedDate} · ${ext}`;
+                  })()}
+                  onPress={() => void openAttachment(item)}
+                  trailing={
                     <IconButton
-                      onPress={() => editDocumentDescription(item)}
-                      variant="ghost"
-                    >
-                      <Feather
-                        name="edit"
-                        size={24}
-                        color={theme.colors.accent}
-                      />
-                    </IconButton>
-                    <IconButton
-                      onPress={() => confirmDeleteVehicleDoc(item)}
+                      onPress={() => confirmDeleteAttachment(item)}
                       variant="danger"
                     >
                       <Ionicons
@@ -367,82 +421,20 @@ export function DocumentsScreen({ route, navigation }: Props) {
                         color={theme.colors.danger}
                       />
                     </IconButton>
-                  </>
-                }
-              />
-            </View>
-          ))}
-        {vehicleDocs.filter((d) => {
-          const q = query.trim().toLowerCase();
-          if (!q.length) return true;
-          const description = d.description || "";
-          return description.toLowerCase().includes(q);
-        }).length === 0 ? (
-          <EmptyState body={t("documents.noVehicleDocuments")} />
-        ) : null}
-
-        <View style={{ height: theme.spacing.xl }} />
-
-        <Text
-          style={[
-            styles.section,
-            { color: theme.colors.fg, marginBottom: theme.spacing.xs },
-          ]}
-        >
-          {t("documents.serviceAttachmentsWithCount", {
-            count: attachments.length,
-          })}
-        </Text>
-        {attachments
-          .filter((a) => {
+                  }
+                />
+              </View>
+            ))}
+          {attachments.filter((a) => {
             const q = query.trim().toLowerCase();
             if (!q.length) return true;
             const title = a.serviceEntryTitle || "";
             return title.toLowerCase().includes(q);
-          })
-          .map((item) => (
-            <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
-              <ListRowWithActions
-                title={
-                  item.serviceEntryTitle
-                    ? item.serviceEntryTitle
-                    : t("documents.attachmentLabel")
-                }
-                subtitle={(() => {
-                  const fileName = getFileNameFromItem(item);
-                  const ext =
-                    fileName.split(".").pop()?.toUpperCase() || "FILE";
-                  const date = new Date(item.created_at);
-                  const formattedDate = date.toLocaleDateString(
-                    i18n.language === "pl" ? "pl-PL" : "en-US",
-                    { day: "2-digit", month: "2-digit", year: "numeric" },
-                  );
-                  return `${t("documents.added")} ${formattedDate} · ${ext}`;
-                })()}
-                onPress={() => void openAttachment(item)}
-                trailing={
-                  <IconButton
-                    onPress={() => confirmDeleteAttachment(item)}
-                    variant="danger"
-                  >
-                    <Ionicons
-                      name="trash-outline"
-                      size={24}
-                      color={theme.colors.danger}
-                    />
-                  </IconButton>
-                }
-              />
-            </View>
-          ))}
-        {attachments.filter((a) => {
-          const q = query.trim().toLowerCase();
-          if (!q.length) return true;
-          const title = a.serviceEntryTitle || "";
-          return title.toLowerCase().includes(q);
-        }).length === 0 ? (
-          <EmptyState body={t("documents.noAttachments")} />
-        ) : null}
+          }).length === 0 ? (
+            <EmptyState body={t("documents.noAttachments")} />
+          ) : null}
+        </>
+      )}
     </HeaderContentScreen>
   );
 }
@@ -455,6 +447,9 @@ const makeStyles = (theme: any) =>
     section: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
+    },
+    tabsWrap: {
+      marginBottom: theme.spacing.sm,
     },
     card: {
       borderWidth: 1,
