@@ -45,7 +45,7 @@ const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "repair",
   "inspection",
   "upgrade",
-  "oil_engine",
+  "oil_change",
   "other",
 ];
 

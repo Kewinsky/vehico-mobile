@@ -148,7 +148,7 @@ export function ImportScreen({ navigation, route }: Props) {
                         "repair",
                         "inspection",
                         "upgrade",
-                        "oil_engine",
+                        "oil_change",
                         "other",
                       ] as const
                     ).includes(e.category as any)

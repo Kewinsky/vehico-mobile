@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -14,6 +16,7 @@ import Svg, {
   Line as SvgLine,
   Path,
   Polyline,
+  Rect,
   Text as SvgText,
 } from "react-native-svg";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -43,14 +46,99 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
-import { TireIcon } from "../../ui/components/icons/TireIcon";
 import { RimIcon } from "../../ui/components/icons/RimIcon";
+import { TireIcon } from "../../ui/components/icons/TireIcon";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import type { AppTheme } from "../../ui/theme";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Statistics">;
+
+function StatTile({
+  icon,
+  iconComponent,
+  label,
+  valueMain,
+  valueSuffix,
+  theme,
+  styles,
+  fullWidth,
+  onPress,
+  accessibilityHint,
+}: {
+  icon?: keyof typeof Ionicons.glyphMap;
+  iconComponent?: ReactNode;
+  label: string;
+  valueMain: string;
+  valueSuffix?: string;
+  theme: AppTheme;
+  styles: ReturnType<typeof makeStyles>;
+  fullWidth?: boolean;
+  onPress?: () => void;
+  /** Hint for screen readers when tile is pressable (e.g. "Tap to switch between date and mileage"). */
+  accessibilityHint?: string;
+}) {
+  const tileContent = (
+    <>
+      <View style={styles.tileTitleRow}>
+        {iconComponent ?? (
+          <Ionicons name={icon!} size={24} color={theme.colors.accent} />
+        )}
+        <Text style={[styles.tileLabel, { color: theme.colors.accent }]}>
+          {label}
+        </Text>
+      </View>
+      <View style={styles.tileValueRow}>
+        <Text
+          style={[styles.tileValueMain, { color: theme.colors.fg }]}
+          numberOfLines={1}
+        >
+          {valueMain}
+        </Text>
+        {valueSuffix != null && valueSuffix !== "" ? (
+          <Text
+            style={[styles.tileValueSuffix, { color: theme.colors.muted }]}
+            numberOfLines={1}
+          >
+            {" "}
+            {valueSuffix}
+          </Text>
+        ) : null}
+        {onPress ? (
+          <Ionicons
+            name="swap-horizontal"
+            size={18}
+            color={theme.colors.muted}
+            style={styles.tilePressableIcon}
+          />
+        ) : null}
+      </View>
+    </>
+  );
+  const tileStyle = [
+    styles.tile,
+    fullWidth && styles.tileFullWidth,
+    {
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.card,
+    },
+  ];
+  if (onPress) {
+    return (
+      <Pressable
+        style={({ pressed }) => [...tileStyle, pressed && { opacity: 0.7 }]}
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint={accessibilityHint}
+      >
+        {tileContent}
+      </Pressable>
+    );
+  }
+  return <View style={tileStyle}>{tileContent}</View>;
+}
 type PeriodKey = "1m" | "3m" | "6m" | "1y" | "all";
-type StatsTabKey = "metrics" | "charts" | "other";
 type XY = { x: string; y: number };
 
 function monthKey(d: Date) {
@@ -146,6 +234,38 @@ function fmtNumber(amount: number, digits = 1) {
   if (!Number.isFinite(amount)) return "—";
   return amount.toFixed(digits);
 }
+/** Format month count for display: integer without decimal (e.g. "2" not "2.0"). */
+function fmtMonths(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  return Number.isInteger(value) ? value.toString() : value.toFixed(1);
+}
+/** Format chart Y axis number without decimals when integer (e.g. 100 not 100.0). */
+function fmtChartNumber(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  if (Number.isInteger(value)) return Math.round(value).toString();
+  return value >= 10 ? Math.round(value).toString() : value.toFixed(1);
+}
+/** Format chart Y axis label: values >= 1000 as "1k", "2k", "1.5k"; below 1000 as number. */
+function formatChartYAxisLabel(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  if (value >= 1000) {
+    const k = value / 1000;
+    return Number.isInteger(k) ? `${k}k` : `${k.toFixed(1)}k`;
+  }
+  if (Number.isInteger(value)) return Math.round(value).toString();
+  return value >= 10 ? Math.round(value).toString() : value.toFixed(1);
+}
+/** Format month key "2025-01" to short month name "Jan." / "Sty." for chart X axis. */
+function formatChartMonthKey(key: string, locale: string): string {
+  const m = /^(\d{4})-(\d{2})$/.exec(key);
+  if (!m) return key.replace("-", "/");
+  const month = parseInt(m[2], 10) - 1;
+  const short = new Intl.DateTimeFormat(locale, { month: "short" }).format(
+    new Date(2000, month, 1),
+  );
+  const withDot = short.endsWith(".") ? short : `${short}.`;
+  return withDot.charAt(0).toUpperCase() + withDot.slice(1);
+}
 function polarToCartesian(cx: number, cy: number, r: number, angleRad: number) {
   return {
     x: cx + r * Math.cos(angleRad),
@@ -174,99 +294,94 @@ function donutSlicePath(
   ].join(" ");
 }
 
-type LineChartYFormat = "currency" | "number";
-function SimpleLineChart({
-  data,
-  width,
-  height,
-  stroke,
-  grid,
-  textColor,
-  currency,
-  yFormat = "currency",
-  yUnit = "",
-}: {
-  data: XY[];
-  width: number;
-  height: number;
-  stroke: string;
-  grid: string;
-  textColor: string;
-  currency: string;
-  yFormat?: LineChartYFormat;
-  yUnit?: string;
-}) {
-  const paddingLeft = Math.max(65, Math.min(75, width * 0.15));
-  const paddingRight = 20;
-  const paddingTop = 10;
-  const paddingBottom = 35;
-  const w = width;
-  const h = height;
-  const maxY = Math.max(1, ...data.map((d) => clampNonNeg(d.y)));
+const CHART_AXIS_FONT_SIZE = 13;
+const CHART_LINE_HEIGHT = 260;
+const CHART_BAR_HEIGHT = 260;
+const CHART_Y_AXIS_WIDTH = 44;
+const CHART_PLOT_PADDING_LEFT = 8;
+const CHART_PLOT_PADDING_RIGHT = 16;
+const CHART_PLOT_PADDING_TOP = 16;
+const CHART_PLOT_PADDING_BOTTOM = 44;
+const CHART_LINE_START_INSET = 14;
+const CHART_ITEM_MIN_WIDTH = 72;
+const CHART_MIN_EXTRA_WIDTH = 60;
+type ChartYTick = { value: number; y: number };
+
+function getChartScale(values: number[], height: number) {
+  const maxY = Math.max(1, ...values.map((value) => clampNonNeg(value)));
   const niceMaxY = niceMaxValue(maxY);
-  const plotW = w - paddingLeft - paddingRight;
-  const plotH = h - paddingTop - paddingBottom;
-  const points = data.map((d, i) => {
-    const x =
-      paddingLeft +
-      (data.length === 1 ? plotW / 2 : (i / (data.length - 1)) * plotW);
-    const y = paddingTop + (1 - clampNonNeg(d.y) / niceMaxY) * plotH;
-    return { x, y, label: d.x, value: d.y };
-  });
+  const plotH = height - CHART_PLOT_PADDING_TOP - CHART_PLOT_PADDING_BOTTOM;
   const tickValues = generateNiceTicks(maxY);
-  const yTicks = tickValues.map((value) => {
-    const y = paddingTop + (1 - value / niceMaxY) * plotH;
-    return { value, y };
-  });
-  const xTicks: Array<{ x: number; label: string; index: number }> = [];
-  if (data.length > 0) {
-    if (data.length <= 5) {
-      points.forEach((p, i) => {
-        xTicks.push({ x: p.x, label: p.label.replace("-", "/"), index: i });
-      });
-    } else {
-      xTicks.push({
-        x: points[0].x,
-        label: points[0].label.replace("-", "/"),
-        index: 0,
-      });
-      const mid = Math.floor(data.length / 2);
-      xTicks.push({
-        x: points[mid].x,
-        label: points[mid].label.replace("-", "/"),
-        index: mid,
-      });
-      xTicks.push({
-        x: points[points.length - 1].x,
-        label: points[points.length - 1].label.replace("-", "/"),
-        index: points.length - 1,
-      });
-    }
+  const yTicks: ChartYTick[] = tickValues.map((value) => ({
+    value,
+    y: CHART_PLOT_PADDING_TOP + (1 - value / niceMaxY) * plotH,
+  }));
+  return { maxY, niceMaxY, plotH, yTicks };
+}
+
+function getMileageChartScale(centerValue: number, height: number) {
+  const safeCenterValue = clampNonNeg(centerValue);
+  const step = safeCenterValue >= 1000 ? 10_000 : 10;
+  let centerTick = Math.round(safeCenterValue / step) * step;
+  let tickValues = [-2, -1, 0, 1, 2].map(
+    (offset) => centerTick + offset * step,
+  );
+  while (tickValues[0] < step) {
+    tickValues = tickValues.map((value) => value + step);
+    centerTick += step;
   }
-  const formatYLabel = (value: number) =>
-    yFormat === "currency"
-      ? fmtMoneyRounded(value, currency)
-      : `${fmtNumber(value, 1)}${yUnit ? ` ${yUnit}` : ""}`;
+  const minY = tickValues[0]!;
+  const maxY = tickValues[tickValues.length - 1]!;
+  const plotH = height - CHART_PLOT_PADDING_TOP - CHART_PLOT_PADDING_BOTTOM;
+  const yTicks: ChartYTick[] = tickValues.map((value) => ({
+    value,
+    y:
+      CHART_PLOT_PADDING_TOP +
+      (1 - (value - minY) / Math.max(1, maxY - minY)) * plotH,
+  }));
+  return { minY, maxY, yTicks };
+}
+
+function getScrollableChartWidth(
+  itemCount: number,
+  minWidth: number,
+  itemWidth = CHART_ITEM_MIN_WIDTH,
+) {
+  return Math.max(
+    minWidth,
+    Math.max(itemCount, 1) * itemWidth + CHART_MIN_EXTRA_WIDTH,
+  );
+}
+
+function ChartYAxis({
+  height,
+  yTicks,
+  textColor,
+  grid,
+  formatYLabel,
+}: {
+  height: number;
+  yTicks: ChartYTick[];
+  textColor: string;
+  grid: string;
+  formatYLabel: (value: number) => string;
+}) {
   return (
-    <Svg width={w} height={h}>
-      {yTicks.map((tick, i) => (
-        <SvgLine
-          key={`grid-y-${i}`}
-          x1={paddingLeft}
-          y1={tick.y}
-          x2={paddingLeft + plotW}
-          y2={tick.y}
-          stroke={grid}
-          strokeWidth={1}
-          strokeDasharray="2,2"
-        />
-      ))}
+    <Svg width={CHART_Y_AXIS_WIDTH} height={height}>
+      <SvgLine
+        x1={CHART_Y_AXIS_WIDTH - 1}
+        y1={CHART_PLOT_PADDING_TOP}
+        x2={CHART_Y_AXIS_WIDTH - 1}
+        y2={height - CHART_PLOT_PADDING_BOTTOM}
+        stroke={grid}
+        strokeWidth={1}
+      />
       {yTicks.map((tick, i) => (
         <SvgText
-          key={`y-label-${i}`}
-          x={paddingLeft - 10}
-          y={tick.y + 4}
-          fontSize={9}
+          key={`y-axis-label-${i}`}
+          x={CHART_Y_AXIS_WIDTH - 12}
+          y={tick.y + 5}
+          fontSize={CHART_AXIS_FONT_SIZE}
           fill={textColor}
           textAnchor="end"
           alignmentBaseline="middle"
@@ -274,12 +389,180 @@ function SimpleLineChart({
           {formatYLabel(tick.value)}
         </SvgText>
       ))}
+    </Svg>
+  );
+}
+
+function SimpleBarChart({
+  data,
+  width,
+  height,
+  niceMaxY,
+  yTicks,
+  fill,
+  grid,
+  textColor,
+  formatXLabel,
+}: {
+  data: XY[];
+  width: number;
+  height: number;
+  niceMaxY: number;
+  yTicks: ChartYTick[];
+  fill: string;
+  grid: string;
+  textColor: string;
+  formatXLabel?: (key: string) => string;
+}) {
+  const w = width;
+  const h = height;
+  const plotW = w - CHART_PLOT_PADDING_LEFT - CHART_PLOT_PADDING_RIGHT;
+  const plotH = h - CHART_PLOT_PADDING_TOP - CHART_PLOT_PADDING_BOTTOM;
+  const barCount = data.length || 1;
+  const minBarGap = 6;
+  const maxBarWidth = 48;
+  const totalBarWidth = barCount * maxBarWidth + (barCount - 1) * minBarGap;
+  let barGap = minBarGap;
+  let barWidth = maxBarWidth;
+  let startX = CHART_PLOT_PADDING_LEFT;
+  if (barCount === 1) {
+    startX = CHART_PLOT_PADDING_LEFT + (plotW - barWidth) / 2;
+  } else if (totalBarWidth <= plotW) {
+    barGap = (plotW - barCount * barWidth) / (barCount - 1);
+  } else {
+    barWidth = Math.max(6, (plotW - (barCount - 1) * barGap) / barCount);
+  }
+  const bars = data.map((d, i) => {
+    const barX = startX + i * (barWidth + barGap);
+    const barHeight = (clampNonNeg(d.y) / niceMaxY) * plotH;
+    const barY = CHART_PLOT_PADDING_TOP + plotH - barHeight;
+    return {
+      x: barX,
+      y: barY,
+      width: barWidth,
+      height: barHeight,
+      label: formatXLabel ? formatXLabel(d.x) : d.x.replace("-", "/"),
+      value: d.y,
+    };
+  });
+  const xTicks = bars.map((b, i) => ({
+    x: b.x + b.width / 2,
+    label: b.label,
+    index: i,
+  }));
+  return (
+    <Svg width={w} height={h}>
+      {yTicks.map((tick, i) => (
+        <SvgLine
+          key={`grid-y-${i}`}
+          x1={0}
+          y1={tick.y}
+          x2={w}
+          y2={tick.y}
+          stroke={grid}
+          strokeWidth={1}
+          strokeDasharray="2,2"
+        />
+      ))}
+      {bars.map((bar, i) => (
+        <Rect
+          key={`bar-${i}`}
+          x={bar.x}
+          y={bar.y}
+          width={bar.width}
+          height={bar.height}
+          fill={fill}
+          rx={2}
+        />
+      ))}
       {xTicks.map((tick, i) => (
         <SvgText
           key={`x-label-${i}`}
           x={tick.x}
-          y={paddingTop + plotH + 20}
-          fontSize={9}
+          y={CHART_PLOT_PADDING_TOP + plotH + 26}
+          fontSize={CHART_AXIS_FONT_SIZE}
+          fill={textColor}
+          textAnchor="middle"
+          alignmentBaseline="hanging"
+        >
+          {tick.label}
+        </SvgText>
+      ))}
+    </Svg>
+  );
+}
+
+function SimpleLineChart({
+  data,
+  width,
+  height,
+  minY,
+  maxY,
+  yTicks,
+  stroke,
+  grid,
+  textColor,
+  formatXLabel,
+}: {
+  data: XY[];
+  width: number;
+  height: number;
+  minY: number;
+  maxY: number;
+  yTicks: ChartYTick[];
+  stroke: string;
+  grid: string;
+  textColor: string;
+  formatXLabel?: (key: string) => string;
+}) {
+  const w = width;
+  const h = height;
+  const plotW = w - CHART_PLOT_PADDING_LEFT - CHART_PLOT_PADDING_RIGHT;
+  const plotH = h - CHART_PLOT_PADDING_TOP - CHART_PLOT_PADDING_BOTTOM;
+  const lineStartX = CHART_PLOT_PADDING_LEFT + CHART_LINE_START_INSET;
+  const lineEndX = w - CHART_PLOT_PADDING_RIGHT;
+  const linePlotW = Math.max(0, lineEndX - lineStartX);
+  const yRange = Math.max(1, maxY - minY);
+  const points = data.map((d, i) => {
+    const x =
+      data.length === 1
+        ? lineStartX + linePlotW / 2
+        : lineStartX + (i / (data.length - 1)) * linePlotW;
+    const normalizedY = Math.min(
+      1,
+      Math.max(0, (clampNonNeg(d.y) - minY) / yRange),
+    );
+    const y = CHART_PLOT_PADDING_TOP + (1 - normalizedY) * plotH;
+    return { x, y, label: d.x, value: d.y };
+  });
+  const toXLabel = (key: string) =>
+    formatXLabel ? formatXLabel(key) : key.replace("-", "/");
+  const xTicks: Array<{ x: number; label: string; index: number }> = [];
+  if (data.length > 0) {
+    points.forEach((p, i) => {
+      xTicks.push({ x: p.x, label: toXLabel(p.label), index: i });
+    });
+  }
+  return (
+    <Svg width={w} height={h}>
+      {yTicks.map((tick, i) => (
+        <SvgLine
+          key={`grid-y-${i}`}
+          x1={0}
+          y1={tick.y}
+          x2={w}
+          y2={tick.y}
+          stroke={grid}
+          strokeWidth={1}
+          strokeDasharray="2,2"
+        />
+      ))}
+      {xTicks.map((tick, i) => (
+        <SvgText
+          key={`x-label-${i}`}
+          x={tick.x}
+          y={CHART_PLOT_PADDING_TOP + plotH + 26}
+          fontSize={CHART_AXIS_FONT_SIZE}
           fill={textColor}
           textAnchor="middle"
           alignmentBaseline="hanging"
@@ -292,16 +575,16 @@ function SimpleLineChart({
           points={points.map((p) => `${p.x},${p.y}`).join(" ")}
           fill="none"
           stroke={stroke}
-          strokeWidth={2.5}
+          strokeWidth={3}
         />
       ) : null}
       {points.length > 0 ? (
         <>
-          <Circle cx={points[0].x} cy={points[0].y} r={3} fill={stroke} />
+          <Circle cx={points[0].x} cy={points[0].y} r={4} fill={stroke} />
           <Circle
             cx={points[points.length - 1].x}
             cy={points[points.length - 1].y}
-            r={3}
+            r={4}
             fill={stroke}
           />
         </>
@@ -355,7 +638,10 @@ function SimplePieChart({
 }
 
 export function StatisticsScreen({ route, navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const chartLocale = i18n.language === "pl" ? "pl" : "en";
+  const formatChartMonth = (key: string) =>
+    formatChartMonthKey(key, chartLocale);
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const { width: windowWidth } = useWindowDimensions();
@@ -401,7 +687,10 @@ export function StatisticsScreen({ route, navigation }: Props) {
   );
 
   const [period, setPeriod] = useState<PeriodKey>("3m");
-  const [tab, setTab] = useState<StatsTabKey>("metrics");
+  const [legendShowPercent, setLegendShowPercent] = useState(true);
+  const [oilLastChangeShowDate, setOilLastChangeShowDate] = useState(true);
+  const [oilAvgIntervalShowMonths, setOilAvgIntervalShowMonths] =
+    useState(true);
   const [loading, setLoading] = useState(true);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [service, setService] = useState<ServiceEntry[]>([]);
@@ -462,11 +751,6 @@ export function StatisticsScreen({ route, navigation }: Props) {
     { key: "6m", label: t("dashboard.stats.periods.6m") },
     { key: "1y", label: t("dashboard.stats.periods.1y") },
     { key: "all", label: t("dashboard.stats.periods.all") },
-  ];
-  const tabOptions: { key: StatsTabKey; label: string }[] = [
-    { key: "metrics", label: t("dashboard.stats.tabs.metrics") },
-    { key: "charts", label: t("dashboard.stats.tabs.charts") },
-    { key: "other", label: t("dashboard.stats.tabs.other") },
   ];
 
   const fittedTires = useMemo(() => {
@@ -653,11 +937,14 @@ export function StatisticsScreen({ route, navigation }: Props) {
 
   const monthlyDistanceSeries = useMemo(() => {
     const byMonth: Record<string, number> = {};
+    let totalFromFueling = 0;
     for (const f of filtered.fueling) {
       const d = parseDateLoose(f.date);
       if (!d) continue;
       const k = monthKey(d);
-      byMonth[k] = (byMonth[k] ?? 0) + Number(f.distance ?? 0);
+      const dist = Number(f.distance ?? 0);
+      byMonth[k] = (byMonth[k] ?? 0) + dist;
+      totalFromFueling += dist;
     }
     const keysWithData = Object.keys(byMonth).sort();
     const monthKeys =
@@ -669,12 +956,20 @@ export function StatisticsScreen({ route, navigation }: Props) {
             monthRange.startMonthStr!,
             monthRange.currentMonthStr,
           );
-    return monthKeys.map((k) => ({ x: k, y: byMonth[k] ?? 0 }));
-  }, [filtered.fueling, period, monthRange]);
+    // Actual odometer over time: baseline = current vehicle mileage − total from fueling; then add cumulative per month
+    const currentMileage = vehicle?.mileage ?? null;
+    const baseline =
+      currentMileage != null ? currentMileage - totalFromFueling : 0;
+    let runningTotal = 0;
+    return monthKeys.map((k) => {
+      runningTotal += byMonth[k] ?? 0;
+      return { x: k, y: baseline + runningTotal };
+    });
+  }, [filtered.fueling, period, monthRange, vehicle?.mileage]);
 
   const lastOilChange = useMemo(() => {
     const oilEntries = service
-      .filter((e) => (e.category ?? "other") === "oil_engine")
+      .filter((e) => (e.category ?? "other") === "oil_change")
       .sort(
         (a, b) =>
           new Date(b.service_date).getTime() -
@@ -685,7 +980,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
 
   const oilIntervals = useMemo(() => {
     const oilEntries = service
-      .filter((e) => (e.category ?? "other") === "oil_engine")
+      .filter((e) => (e.category ?? "other") === "oil_change")
       .sort(
         (a, b) =>
           new Date(a.service_date).getTime() -
@@ -738,14 +1033,36 @@ export function StatisticsScreen({ route, navigation }: Props) {
     ? `${fmtNumber(oilIntervals.avgKm, 0)} ${distanceUnit}`
     : "—";
   const oilIntervalAvgMonthsLabel = Number.isFinite(oilIntervals.avgMonths)
-    ? `${fmtNumber(oilIntervals.avgMonths, 1)} ${t("dashboard.stats.months")}`
+    ? `${fmtMonths(oilIntervals.avgMonths)} ${t("dashboard.stats.months")}`
     : "—";
   const insuranceValidUntilLabel = vehicle?.insurance_valid_until ?? "—";
   const inspectionValidUntilLabel = vehicle?.inspection_valid_until ?? "—";
 
-  const chartWidth = Math.max(
+  const chartViewportWidth = Math.max(
     280,
     windowWidth - theme.layout.contentPaddingHorizontal * 2,
+  );
+  const chartScrollViewportWidth = Math.max(
+    0,
+    chartViewportWidth - CHART_Y_AXIS_WIDTH,
+  );
+  const barChartWidth = getScrollableChartWidth(
+    monthlySeries.data.length,
+    chartScrollViewportWidth,
+  );
+  const lineChartWidth = getScrollableChartWidth(
+    monthlyDistanceSeries.length,
+    chartScrollViewportWidth,
+  );
+  const barChartScale = getChartScale(
+    monthlySeries.data.map((item) => item.y),
+    CHART_BAR_HEIGHT,
+  );
+  const lineChartScale = getMileageChartScale(
+    vehicle?.mileage ??
+      monthlyDistanceSeries[monthlyDistanceSeries.length - 1]?.y ??
+      0,
+    CHART_LINE_HEIGHT,
   );
   const palette = useMemo(
     () => [theme.colors.accent, "#10B981", "#3B82F6", "#A78BFA", "#EF4444"],
@@ -773,590 +1090,391 @@ export function StatisticsScreen({ route, navigation }: Props) {
         onChange={setPeriod}
         size="sm"
       />
-      <SegmentTabs<StatsTabKey>
-        value={tab}
-        options={tabOptions.map((x) => ({ value: x.key, label: x.label }))}
-        onChange={setTab}
-      />
     </View>
   );
 
+  const totalMain =
+    totals.total > 0
+      ? totals.total >= 10
+        ? Math.round(totals.total).toString()
+        : totals.total.toFixed(1)
+      : "0";
+  const fuelMain =
+    totals.fuelCost > 0
+      ? totals.fuelCost >= 10
+        ? Math.round(totals.fuelCost).toString()
+        : totals.fuelCost.toFixed(1)
+      : "—";
+  const serviceMain =
+    totals.serviceCost > 0
+      ? totals.serviceCost >= 10
+        ? Math.round(totals.serviceCost).toString()
+        : totals.serviceCost.toFixed(1)
+      : "—";
+
   const cardContent = (
     <View>
-      {tab === "metrics" ? (
-        <View style={styles.section}>
-          <View
-            style={[
-              styles.heroCard,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <Text style={[styles.heroLabel, { color: theme.colors.muted }]}>
-              {t("dashboard.stats.metrics.totalExpenses")}
-            </Text>
-            <Text style={[styles.heroValue, { color: theme.colors.fg }]}>
-              {fmtMoney(totals.total, currency)}
-            </Text>
-            <Text style={[styles.heroMeta, { color: theme.colors.muted }]}>
-              {t("dashboard.stats.categories.fuel")}:{" "}
-              {fmtMoneyRounded(totals.fuelCost, currency)} ·{" "}
-              {t("dashboard.tiles.serviceTitle")}:{" "}
-              {fmtMoneyRounded(totals.serviceCost, currency)}
-            </Text>
-          </View>
-
-          <View style={styles.tilesRow}>
-            <View
-              style={[
-                styles.tile,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <Ionicons
-                name="cash-outline"
-                size={22}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.tileLabel, { color: theme.colors.muted }]}>
-                {t("dashboard.stats.metrics.avgMonthlyFuelCost")}
-              </Text>
-              <Text
-                style={[styles.tileValue, { color: theme.colors.fg }]}
-                numberOfLines={1}
-              >
-                {Number.isFinite(monthlySeries.avgMonthlyFuelCost)
-                  ? fmtMoney(monthlySeries.avgMonthlyFuelCost, currency)
-                  : "—"}
-              </Text>
-            </View>
-            <View
-              style={[
-                styles.tile,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <Ionicons
-                name="speedometer-outline"
-                size={22}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.tileLabel, { color: theme.colors.muted }]}>
-                {t("dashboard.stats.metrics.avgFuelConsumption")}
-              </Text>
-              <Text
-                style={[styles.tileValue, { color: theme.colors.fg }]}
-                numberOfLines={1}
-              >
-                {Number.isFinite(totals.avgConsumptionPer100)
-                  ? `${fmtNumber(totals.avgConsumptionPer100, 1)} ${fuelUnitLabel}/100 ${distanceUnit}`
-                  : "—"}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.tilesRow}>
-            <View
-              style={[
-                styles.tile,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <Ionicons
-                name="calculator-outline"
-                size={22}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.tileLabel, { color: theme.colors.muted }]}>
-                {t("dashboard.stats.metrics.costPer100")}
-              </Text>
-              <Text
-                style={[styles.tileValue, { color: theme.colors.fg }]}
-                numberOfLines={1}
-              >
-                {Number.isFinite(totals.costPer100)
-                  ? `${fmtNumber(totals.costPer100, 2)} ${currency}/100 ${distanceUnit}`
-                  : "—"}
-              </Text>
-            </View>
-            <View
-              style={[
-                styles.tile,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <Ionicons
-                name="pricetag-outline"
-                size={22}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.tileLabel, { color: theme.colors.muted }]}>
-                {t("dashboard.stats.metrics.avgCostPerLiter", {
-                  unit: fuelUnitLabelSingular,
-                })}
-              </Text>
-              <Text
-                style={[styles.tileValue, { color: theme.colors.fg }]}
-                numberOfLines={1}
-              >
-                {Number.isFinite(totals.avgCostPerLiter)
-                  ? fmtMoney(totals.avgCostPerLiter, currency)
-                  : "—"}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.tilesRow}>
-            <View
-              style={[
-                styles.tile,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <Ionicons
-                name="map-outline"
-                size={22}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.tileLabel, { color: theme.colors.muted }]}>
-                {t("dashboard.stats.metrics.totalDistance")}
-              </Text>
-              <Text
-                style={[styles.tileValue, { color: theme.colors.fg }]}
-                numberOfLines={1}
-              >
-                {totals.totalDistance > 0
-                  ? `${fmtNumber(totals.totalDistance, 0)} ${distanceUnit}`
-                  : "—"}
-              </Text>
-            </View>
-            <View
-              style={[
-                styles.tile,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <Ionicons
-                name="location-outline"
-                size={22}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.tileLabel, { color: theme.colors.muted }]}>
-                {t("dashboard.stats.metrics.favoriteStation")}
-              </Text>
-              <Text
-                style={[styles.tileValue, { color: theme.colors.fg }]}
-                numberOfLines={1}
-              >
-                {favoriteStation
-                  ? t(`fuelingForm.stations.${favoriteStation}`)
-                  : "—"}
-              </Text>
-            </View>
-          </View>
+      <View style={styles.section}>
+        <StatTile
+          theme={theme}
+          styles={styles}
+          icon="wallet-outline"
+          label={t("dashboard.stats.metrics.totalExpenses")}
+          valueMain={totalMain}
+          valueSuffix={currency}
+          fullWidth
+        />
+        <View style={styles.tilesRow}>
+          <StatTile
+            theme={theme}
+            styles={styles}
+            icon="water-outline"
+            label={t("dashboard.stats.categories.fuel")}
+            valueMain={fuelMain}
+            valueSuffix={fuelMain !== "—" ? currency : undefined}
+          />
+          <StatTile
+            theme={theme}
+            styles={styles}
+            icon="construct-outline"
+            label={t("dashboard.tiles.serviceTitle")}
+            valueMain={serviceMain}
+            valueSuffix={serviceMain !== "—" ? currency : undefined}
+          />
         </View>
-      ) : null}
+      </View>
 
-      {tab === "charts" ? (
-        <>
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t("dashboard.stats.charts.expensesOverTime")}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+          {t("dashboard.stats.tabs.metrics")}
+        </Text>
+        <View style={styles.tilesRow}>
+          <StatTile
+            theme={theme}
+            styles={styles}
+            icon="speedometer-outline"
+            label={t("dashboard.stats.metrics.avgFuelConsumption")}
+            valueMain={
+              Number.isFinite(totals.avgConsumptionPer100)
+                ? fmtNumber(totals.avgConsumptionPer100, 1)
+                : "—"
+            }
+            valueSuffix={
+              Number.isFinite(totals.avgConsumptionPer100)
+                ? `${fuelUnitLabel}/100 ${distanceUnit}`
+                : undefined
+            }
+          />
+          <StatTile
+            theme={theme}
+            styles={styles}
+            icon="calculator-outline"
+            label={t("dashboard.stats.metrics.costPer100")}
+            valueMain={
+              Number.isFinite(totals.costPer100)
+                ? fmtNumber(totals.costPer100, 2)
+                : "—"
+            }
+            valueSuffix={
+              Number.isFinite(totals.costPer100)
+                ? `${currency}/100 ${distanceUnit}`
+                : undefined
+            }
+          />
+        </View>
+        <View style={styles.tilesRow}>
+          <StatTile
+            theme={theme}
+            styles={styles}
+            icon="map-outline"
+            label={t("dashboard.stats.metrics.totalDistance")}
+            valueMain={
+              totals.totalDistance > 0
+                ? fmtNumber(totals.totalDistance, 0)
+                : "—"
+            }
+            valueSuffix={totals.totalDistance > 0 ? distanceUnit : undefined}
+          />
+          <StatTile
+            theme={theme}
+            styles={styles}
+            icon="location-outline"
+            label={t("dashboard.stats.metrics.favoriteStation")}
+            valueMain={
+              favoriteStation
+                ? t(`fuelingForm.stations.${favoriteStation}`)
+                : "—"
+            }
+          />
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+          {t("dashboard.stats.charts.expensesOverTime")}
+        </Text>
+        <View style={styles.chartContainer} key={`bar-chart-${period}`}>
+          {monthlySeries.data.length === 0 ? (
+            <Text style={[styles.empty, { color: theme.colors.muted }]}>
+              {t("dashboard.stats.empty")}
             </Text>
-            <View
-              style={[
-                styles.chartWrap,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-              key={`line-chart-${period}`}
-            >
-              <SimpleLineChart
-                data={monthlySeries.data}
-                width={chartWidth}
-                height={220}
-                stroke={theme.colors.accent}
-                grid={theme.colors.border}
+          ) : (
+            <View style={styles.chartFrame}>
+              <ChartYAxis
+                height={CHART_BAR_HEIGHT}
+                yTicks={barChartScale.yTicks}
                 textColor={theme.colors.muted}
-                currency={currency}
-              />
-              {monthlySeries.data.length === 0 ? (
-                <View pointerEvents="none" style={styles.chartEmptyOverlay}>
-                  <Text style={[styles.empty, { color: theme.colors.muted }]}>
-                    {t("dashboard.stats.empty")}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t("dashboard.stats.charts.distanceOverTime")}
-            </Text>
-            <View
-              style={[
-                styles.chartWrap,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-              key={`distance-chart-${period}`}
-            >
-              <SimpleLineChart
-                data={monthlyDistanceSeries}
-                width={chartWidth}
-                height={220}
-                stroke={theme.colors.accent}
                 grid={theme.colors.border}
-                textColor={theme.colors.muted}
-                currency={currency}
-                yFormat="number"
-                yUnit={distanceUnit}
+                formatYLabel={formatChartYAxisLabel}
               />
-              {monthlyDistanceSeries.length === 0 ? (
-                <View pointerEvents="none" style={styles.chartEmptyOverlay}>
-                  <Text style={[styles.empty, { color: theme.colors.muted }]}>
-                    {t("dashboard.stats.empty")}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t("dashboard.stats.charts.expensesByCategory")}
-            </Text>
-            <View key={`pie-chart-${period}`}>
-              <View
-                style={[
-                  styles.chartWrap,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
+              <ScrollView
+                horizontal
+                bounces={false}
+                showsHorizontalScrollIndicator={false}
+                style={styles.chartScroll}
+                contentContainerStyle={[
+                  styles.chartScrollContent,
+                  { minWidth: chartScrollViewportWidth },
                 ]}
               >
-                <SimplePieChart
-                  data={categorySeries.map((c) => ({
-                    label: c.label,
-                    value: c.value,
-                  }))}
-                  size={Math.min(chartWidth - 40, isNarrow ? 200 : 240)}
-                  colors={categorySeries.map((c) => c.color)}
+                <SimpleBarChart
+                  data={monthlySeries.data}
+                  width={barChartWidth}
+                  height={CHART_BAR_HEIGHT}
+                  niceMaxY={barChartScale.niceMaxY}
+                  yTicks={barChartScale.yTicks}
+                  fill={theme.colors.accent}
+                  grid={theme.colors.border}
+                  textColor={theme.colors.muted}
+                  formatXLabel={formatChartMonth}
                 />
-                {categorySeries.length === 0 ? (
-                  <View pointerEvents="none" style={styles.chartEmptyOverlay}>
-                    <Text style={[styles.empty, { color: theme.colors.muted }]}>
-                      {t("dashboard.stats.empty")}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-              {categorySeries.length > 0 ? (
-                <View style={styles.legend}>
-                  {categorySeries.map((c) => (
-                    <View key={c.key} style={styles.legendRow}>
-                      <View
-                        style={[styles.legendDot, { backgroundColor: c.color }]}
-                      />
-                      <View style={{ flex: 1 }}>
-                        <Text
-                          style={[
-                            styles.legendLabel,
-                            { color: theme.colors.fg },
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {c.label}
-                        </Text>
-                      </View>
-                      <View style={styles.legendValueWrap}>
-                        <Text
-                          style={[
-                            styles.legendMoney,
-                            { color: theme.colors.fg },
-                          ]}
-                        >
-                          {fmtMoney(c.value, currency)}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.legendPct,
-                            { color: theme.colors.muted },
-                          ]}
-                        >
-                          {fmtPct(
-                            totalByCategory > 0
-                              ? (c.value / totalByCategory) * 100
-                              : Number.NaN,
-                          )}
-                        </Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              ) : null}
+              </ScrollView>
             </View>
-          </View>
-        </>
-      ) : null}
+          )}
+        </View>
+      </View>
 
-      {tab === "other" ? (
-        <>
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t("dashboard.stats.oilChange")}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+          {t("dashboard.stats.charts.distanceOverTime")}
+        </Text>
+        <View style={styles.chartContainer} key={`distance-chart-${period}`}>
+          {monthlyDistanceSeries.length === 0 ? (
+            <Text style={[styles.empty, { color: theme.colors.muted }]}>
+              {t("dashboard.stats.empty")}
             </Text>
-            <View
-              style={[
-                styles.infoCard,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.infoRow}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={18}
-                  color={theme.colors.muted}
-                />
-                <Text
-                  style={[styles.infoRowLabel, { color: theme.colors.muted }]}
-                >
-                  {t("dashboard.stats.lastOilChangeDate")}
-                </Text>
-                <Text style={[styles.infoRowValue, { color: theme.colors.fg }]}>
-                  {lastOilChangeDateLabel}
-                </Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Ionicons
-                  name="speedometer-outline"
-                  size={18}
-                  color={theme.colors.muted}
-                />
-                <Text
-                  style={[styles.infoRowLabel, { color: theme.colors.muted }]}
-                >
-                  {t("dashboard.stats.lastOilChangeMileage")}
-                </Text>
-                <Text style={[styles.infoRowValue, { color: theme.colors.fg }]}>
-                  {lastOilChangeMileageLabel}
-                </Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Ionicons
-                  name="repeat-outline"
-                  size={18}
-                  color={theme.colors.muted}
-                />
-                <Text
-                  style={[styles.infoRowLabel, { color: theme.colors.muted }]}
-                >
-                  {t("dashboard.stats.oilIntervalAvg", { unit: distanceUnit })}
-                </Text>
-                <Text style={[styles.infoRowValue, { color: theme.colors.fg }]}>
-                  {oilIntervalAvgKmLabel}
-                </Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Ionicons
-                  name="time-outline"
-                  size={18}
-                  color={theme.colors.muted}
-                />
-                <Text
-                  style={[styles.infoRowLabel, { color: theme.colors.muted }]}
-                >
-                  {t("dashboard.stats.oilIntervalAvgMonths")}
-                </Text>
-                <Text style={[styles.infoRowValue, { color: theme.colors.fg }]}>
-                  {oilIntervalAvgMonthsLabel}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t("dashboard.stats.insuranceAndInspection")}
-            </Text>
-            <View
-              style={[
-                styles.infoCard,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.infoRow}>
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={18}
-                  color={theme.colors.muted}
-                />
-                <Text
-                  style={[styles.infoRowLabel, { color: theme.colors.muted }]}
-                >
-                  {t("dashboard.stats.insuranceValidUntil")}
-                </Text>
-                <Text style={[styles.infoRowValue, { color: theme.colors.fg }]}>
-                  {insuranceValidUntilLabel}
-                </Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Ionicons
-                  name="checkmark-done-outline"
-                  size={18}
-                  color={theme.colors.muted}
-                />
-                <Text
-                  style={[styles.infoRowLabel, { color: theme.colors.muted }]}
-                >
-                  {t("dashboard.stats.inspectionValidUntil")}
-                </Text>
-                <Text style={[styles.infoRowValue, { color: theme.colors.fg }]}>
-                  {inspectionValidUntilLabel}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t("dashboard.stats.fittedWheelsAndTires")}
-            </Text>
-            <View
-              style={[
-                styles.wheelCard,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.wheelSection}>
-                <View style={styles.infoRow}>
-                  <TireIcon size={18} color={theme.colors.muted} />
-                  <Text
-                    style={[styles.infoRowLabel, { color: theme.colors.muted }]}
-                  >
-                    {t("dashboard.stats.currentTire")}
-                  </Text>
-                </View>
-                {fittedTires.length === 0 ? (
-                  <View style={styles.fittedSetRow}>
-                    <Text
-                      style={[
-                        styles.fittedSetText,
-                        { color: theme.colors.muted },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      —
-                    </Text>
-                  </View>
-                ) : (
-                  fittedTires.map((tire) => (
-                    <View key={tire.id} style={styles.fittedSetRow}>
-                      <Text
-                        style={[
-                          styles.fittedSetText,
-                          { color: theme.colors.fg },
-                        ]}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {`${formatTireDimensions(
-                          tire.width_mm,
-                          tire.aspect_ratio,
-                          tire.diameter_inch,
-                        )} · ${(tire.name ?? "").trim() || "—"}`}
-                      </Text>
-                    </View>
-                  ))
-                )}
-              </View>
-              <View
-                style={[
-                  styles.divider,
-                  { backgroundColor: theme.colors.border },
-                ]}
+          ) : (
+            <View style={styles.chartFrame}>
+              <ChartYAxis
+                height={CHART_LINE_HEIGHT}
+                yTicks={lineChartScale.yTicks}
+                textColor={theme.colors.muted}
+                grid={theme.colors.border}
+                formatYLabel={formatChartYAxisLabel}
               />
-
-              <View style={styles.wheelSection}>
-                <View style={styles.infoRow}>
-                  <RimIcon size={18} color={theme.colors.muted} />
-                  <Text
-                    style={[styles.infoRowLabel, { color: theme.colors.muted }]}
-                  >
-                    {t("dashboard.stats.currentWheel")}
-                  </Text>
-                </View>
-                {fittedWheels.length === 0 ? (
-                  <View style={styles.fittedSetRow}>
-                    <Text
-                      style={[
-                        styles.fittedSetText,
-                        { color: theme.colors.muted },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      —
-                    </Text>
-                  </View>
-                ) : (
-                  fittedWheels.map((wheel) => (
-                    <View key={wheel.id} style={styles.fittedSetRow}>
-                      <Text
-                        style={[
-                          styles.fittedSetText,
-                          { color: theme.colors.fg },
-                        ]}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {`${formatWheelDimensions(
-                          wheel.width_inch,
-                          wheel.diameter_inch,
-                        )} · ${(wheel.name ?? "").trim() || "—"}`}
-                      </Text>
-                    </View>
-                  ))
-                )}
-              </View>
+              <ScrollView
+                horizontal
+                bounces={false}
+                showsHorizontalScrollIndicator={false}
+                style={styles.chartScroll}
+                contentContainerStyle={[
+                  styles.chartScrollContent,
+                  { minWidth: chartScrollViewportWidth },
+                ]}
+              >
+                <SimpleLineChart
+                  data={monthlyDistanceSeries}
+                  width={lineChartWidth}
+                  height={CHART_LINE_HEIGHT}
+                  minY={lineChartScale.minY}
+                  maxY={lineChartScale.maxY}
+                  yTicks={lineChartScale.yTicks}
+                  stroke={theme.colors.accent}
+                  grid={theme.colors.border}
+                  textColor={theme.colors.muted}
+                  formatXLabel={formatChartMonth}
+                />
+              </ScrollView>
             </View>
+          )}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+          {t("dashboard.stats.charts.expensesByCategory")}
+        </Text>
+        <View style={styles.chartContainer} key={`pie-chart-${period}`}>
+          {categorySeries.length === 0 ? (
+            <Text style={[styles.empty, { color: theme.colors.muted }]}>
+              {t("dashboard.stats.empty")}
+            </Text>
+          ) : (
+            <View style={styles.pieChartWrap}>
+              <SimplePieChart
+                data={categorySeries.map((c) => ({
+                  label: c.label,
+                  value: c.value,
+                }))}
+                size={Math.min(chartViewportWidth - 48, isNarrow ? 220 : 260)}
+                colors={categorySeries.map((c) => c.color)}
+              />
+            </View>
+          )}
+        </View>
+        {categorySeries.length > 0 ? (
+          <View style={styles.legend}>
+            {categorySeries.map((c) => {
+              const pct =
+                totalByCategory > 0
+                  ? (c.value / totalByCategory) * 100
+                  : Number.NaN;
+              return (
+                <Pressable
+                  key={c.key}
+                  style={({ pressed }) => [
+                    styles.legendRow,
+                    pressed && styles.legendRowPressed,
+                  ]}
+                  onPress={() => setLegendShowPercent((prev) => !prev)}
+                >
+                  <View
+                    style={[styles.legendDot, { backgroundColor: c.color }]}
+                  />
+                  <Text
+                    style={[styles.legendLabel, { color: theme.colors.fg }]}
+                    numberOfLines={2}
+                  >
+                    {c.label}
+                  </Text>
+                  <View style={styles.legendValueWrap}>
+                    {legendShowPercent ? (
+                      <Text style={styles.legendValue}>{fmtPct(pct)}</Text>
+                    ) : (
+                      <Text style={styles.legendValue}>
+                        {fmtMoney(c.value, currency)}
+                      </Text>
+                    )}
+                  </View>
+                </Pressable>
+              );
+            })}
           </View>
-        </>
-      ) : null}
+        ) : null}
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+          {t("dashboard.stats.oilChange")}
+        </Text>
+        <View style={styles.tilesRow}>
+          <StatTile
+            theme={theme}
+            styles={styles}
+            icon="calendar-outline"
+            label={t("dashboard.stats.lastChange")}
+            valueMain={
+              oilLastChangeShowDate
+                ? lastOilChangeDateLabel
+                : lastOilChange?.mileage != null
+                  ? fmtNumber(lastOilChange.mileage, 0)
+                  : "—"
+            }
+            valueSuffix={
+              !oilLastChangeShowDate && lastOilChange?.mileage != null
+                ? distanceUnit
+                : undefined
+            }
+            onPress={() => setOilLastChangeShowDate((p) => !p)}
+            accessibilityHint={t("dashboard.stats.tapToSwitchUnit")}
+          />
+          <StatTile
+            theme={theme}
+            styles={styles}
+            icon="repeat-outline"
+            label={t("dashboard.stats.avgInterval")}
+            valueMain={
+              oilAvgIntervalShowMonths
+                ? Number.isFinite(oilIntervals.avgMonths)
+                  ? fmtMonths(oilIntervals.avgMonths)
+                  : "—"
+                : Number.isFinite(oilIntervals.avgKm)
+                  ? fmtNumber(oilIntervals.avgKm, 0)
+                  : "—"
+            }
+            valueSuffix={
+              oilAvgIntervalShowMonths
+                ? Number.isFinite(oilIntervals.avgMonths)
+                  ? t("dashboard.stats.months")
+                  : undefined
+                : Number.isFinite(oilIntervals.avgKm)
+                  ? distanceUnit
+                  : undefined
+            }
+            onPress={() => setOilAvgIntervalShowMonths((p) => !p)}
+            accessibilityHint={t("dashboard.stats.tapToSwitchUnit")}
+          />
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+          {t("dashboard.stats.insuranceAndInspection")}
+        </Text>
+        <View style={styles.tilesRow}>
+          <StatTile
+            theme={theme}
+            styles={styles}
+            icon="shield-checkmark-outline"
+            label={t("dashboard.stats.insurance")}
+            valueMain={insuranceValidUntilLabel}
+          />
+          <StatTile
+            theme={theme}
+            styles={styles}
+            icon="checkmark-done-outline"
+            label={t("dashboard.stats.inspection")}
+            valueMain={inspectionValidUntilLabel}
+          />
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+          {t("dashboard.stats.wheels")}
+        </Text>
+        <StatTile
+          theme={theme}
+          styles={styles}
+          iconComponent={<TireIcon size={24} color={theme.colors.accent} />}
+          label={t("dashboard.stats.currentTire")}
+          valueMain={
+            fittedTires.length > 0
+              ? `${formatTireDimensions(
+                  fittedTires[0].width_mm,
+                  fittedTires[0].aspect_ratio,
+                  fittedTires[0].diameter_inch,
+                )} · ${(fittedTires[0].name ?? "").trim() || "—"}`
+              : "—"
+          }
+          fullWidth
+        />
+        <StatTile
+          theme={theme}
+          styles={styles}
+          iconComponent={<RimIcon size={24} color={theme.colors.accent} />}
+          label={t("dashboard.stats.currentWheel")}
+          valueMain={
+            fittedWheels.length > 0
+              ? `${formatWheelDimensions(
+                  fittedWheels[0].width_inch,
+                  fittedWheels[0].diameter_inch,
+                )} · ${(fittedWheels[0].name ?? "").trim() || "—"}`
+              : "—"
+          }
+          fullWidth
+        />
+      </View>
     </View>
   );
 
@@ -1383,7 +1501,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     panelWrap: {
-      gap: theme.spacing.xs,
+      gap: theme.spacing.sm,
     },
     loading: {
       alignItems: "center",
@@ -1394,131 +1512,119 @@ const makeStyles = (theme: any) =>
       borderWidth: 1,
       borderRadius: theme.radius.md,
       padding: theme.spacing.lg,
-      gap: theme.spacing.xs,
+      gap: theme.spacing.sm,
     },
     heroLabel: {
       fontWeight: theme.typography.fontWeight.bold,
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
     },
     heroValue: {
       fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.largeTitle,
     },
     heroMeta: {
-      fontWeight: theme.typography.fontWeight.bold,
+      fontWeight: theme.typography.fontWeight.medium,
       fontSize: theme.typography.small,
     },
-    tilesRow: { flexDirection: "row", gap: theme.spacing.xs },
+    tilesRow: { flexDirection: "row", gap: theme.spacing.sm },
     tile: {
       flex: 1,
       borderWidth: 1,
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
+      justifyContent: "space-between",
+    },
+    tileFullWidth: {
+      flex: undefined,
+      width: "100%",
+    },
+    tileTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
       gap: theme.spacing.xs,
+      paddingBottom: theme.spacing.xs,
     },
     tileLabel: {
+      fontWeight: theme.typography.fontWeight.regular,
+      fontSize: theme.typography.body,
+      flex: 1,
+    },
+    tileValueRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "baseline",
+    },
+    tilePressableIcon: {
+      marginLeft: theme.spacing.xs,
+    },
+    tileValueMain: {
       fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.title,
+    },
+    tileValueSuffix: {
+      fontWeight: theme.typography.fontWeight.regular,
       fontSize: theme.typography.small,
     },
-    tileValue: {
-      fontWeight: theme.typography.fontWeight.bold,
-      fontSize: theme.typography.body,
+    section: {
+      marginBottom: theme.spacing.xl,
+      gap: theme.spacing.sm,
     },
-    section: { paddingBottom: theme.spacing.md, gap: theme.spacing.xs },
     sectionTitle: {
       fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.title,
     },
-    empty: { fontSize: theme.typography.small },
-    chartWrap: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
-      alignItems: "center",
-      justifyContent: "center",
-      position: "relative",
+    empty: { fontSize: theme.typography.body },
+    chartContainer: {
+      width: "100%",
     },
-    chartEmptyOverlay: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+    chartFrame: {
+      width: "100%",
+      flexDirection: "row",
+      alignItems: "flex-start",
+    },
+    chartScroll: {
+      flex: 1,
+    },
+    chartScrollContent: {
+      alignItems: "flex-start",
+      justifyContent: "flex-start",
+    },
+    pieChartWrap: {
+      width: "100%",
       alignItems: "center",
       justifyContent: "center",
-      paddingHorizontal: theme.spacing.md,
     },
     legend: {
-      gap: theme.spacing.sm,
-      paddingTop: theme.spacing.sm,
+      gap: theme.spacing.md,
+      paddingTop: theme.spacing.lg,
       width: "100%",
     },
     legendRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: theme.spacing.sm,
+      gap: theme.spacing.md,
+    },
+    legendRowPressed: {
+      opacity: 0.7,
     },
     legendDot: {
-      width: theme.spacing.sm - 2,
-      height: theme.spacing.sm - 2,
+      width: 14,
+      height: 14,
       borderRadius: 999,
     },
     legendLabel: {
       fontWeight: theme.typography.fontWeight.bold,
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
+      flex: 1,
     },
     legendValueWrap: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
+      flexDirection: "column",
+      alignItems: "flex-end",
+      gap: 2,
     },
-    legendMoney: {
-      fontWeight: theme.typography.fontWeight.bold,
-      fontSize: theme.typography.small,
-    },
-    legendPct: {
-      fontWeight: theme.typography.fontWeight.bold,
-      fontSize: theme.typography.small,
-    },
-    infoCard: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
-      gap: theme.spacing.sm,
-    },
-    infoRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-    },
-    infoRowLabel: {
+    legendValue: {
       fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.body,
-      flex: 1,
-      minWidth: 0,
-    },
-    infoRowValue: {
-      fontWeight: theme.typography.fontWeight.bold,
-      fontSize: theme.typography.body,
-      textAlign: "right",
-    },
-    wheelCard: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-    },
-    wheelSection: {
-      padding: theme.spacing.md,
-      gap: theme.spacing.sm,
-    },
-    divider: { height: 1, width: "100%" },
-    fittedSetRow: {
-      flexDirection: "row",
-      gap: theme.spacing.sm,
-    },
-    fittedSetText: {
-      flex: 1,
-      minWidth: 0,
-      fontWeight: theme.typography.fontWeight.bold,
-      fontSize: theme.typography.body,
+      color: theme.colors.muted,
     },
   });

@@ -98,7 +98,7 @@ export type ServiceEntryCategory =
   | "repair"
   | "inspection"
   | "upgrade"
-  | "oil_engine"
+  | "oil_change"
   | "other";
 
 export type AttachmentType = "receipt" | "invoice" | "photo";
