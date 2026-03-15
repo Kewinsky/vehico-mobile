@@ -376,6 +376,7 @@ export const pl = {
       inspection: "Przegląd",
       upgrade: "Ulepszenie",
       oil_engine: "Olej",
+      oil_change: "Wymiana oleju",
       other: "Inne",
     },
     ocrDisclaimer: "Dane z OCR mogą być niedokładne. Sprawdź je uważnie.",

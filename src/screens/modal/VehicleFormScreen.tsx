@@ -658,7 +658,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         }
       }
 
-      navigation.replace("Vehicles");
+      navigation.goBack();
     } catch (e: any) {
       if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) return;
       toastError(e?.message ?? t("common.error"));

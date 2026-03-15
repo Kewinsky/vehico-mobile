@@ -112,7 +112,7 @@ create table if not exists public.fueling_entries (
   fuel_amount numeric not null,
   fuel_cost numeric not null,
   fuel_type text check (fuel_type is null or fuel_type in ('95', '98', '100', 'on', 'lpg')),
-  gas_station text,
+  gas_station text check (gas_station is null or gas_station in ('orlen', 'bp', 'shell', 'circle_k', 'mol', 'moya', 'other')),
   created_at timestamptz not null default now()
 );
 
