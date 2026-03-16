@@ -27,7 +27,6 @@ export function LandingLayout({
       style={[
         styles.root,
         {
-          paddingTop: insets.top - theme.spacing.sm,
           backgroundColor: theme.colors.bg,
         },
       ]}

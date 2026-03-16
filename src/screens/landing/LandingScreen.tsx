@@ -12,7 +12,6 @@ import { LandingLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { DecorativeBackground } from "../../ui/components/branding/DecorativeBackground";
 import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { PremiumHero } from "../modal/ShopScreen";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Landing">;
@@ -133,6 +132,7 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.lg,
     },
     heroShell: {
+      paddingTop: theme.spacing.xl,
       gap: theme.spacing.md,
       alignItems: "center",
     },
