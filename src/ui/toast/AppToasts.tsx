@@ -18,21 +18,39 @@ export function AppToasts() {
         <BaseToast
           {...props}
           style={[props.style, borderStyle]}
-          icon={<Ionicons name="checkmark-circle" size={22} color={theme.colors.accent} />}
+          icon={
+            <Ionicons
+              name="checkmark-circle"
+              size={22}
+              color={theme.colors.accent}
+            />
+          }
         />
       ),
       error: (props: any) => (
         <BaseToast
           {...props}
           style={[props.style, borderStyle]}
-          icon={<Ionicons name="close-circle" size={22} color={theme.colors.danger} />}
+          icon={
+            <Ionicons
+              name="close-circle"
+              size={22}
+              color={theme.colors.danger}
+            />
+          }
         />
       ),
       info: (props: any) => (
         <BaseToast
           {...props}
           style={[props.style, borderStyle]}
-          icon={<Ionicons name="information-circle" size={22} color={theme.colors.accent} />}
+          icon={
+            <Ionicons
+              name="information-circle"
+              size={22}
+              color={theme.colors.accent}
+            />
+          }
         />
       ),
       warn: (props: any) => (
@@ -46,7 +64,13 @@ export function AppToasts() {
         <BaseToast
           {...props}
           style={[props.style, borderStyle]}
-          icon={<Ionicons name="notifications" size={22} color={theme.colors.muted} />}
+          icon={
+            <Ionicons
+              name="notifications"
+              size={22}
+              color={theme.colors.muted}
+            />
+          }
         />
       ),
     };
@@ -54,7 +78,6 @@ export function AppToasts() {
 
   return (
     <ToastManager
-      // UX: do not block interaction with the app.
       useModal={false}
       position="bottom"
       theme={mode === "dark" ? "dark" : "light"}
