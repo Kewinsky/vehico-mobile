@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
-  Platform,
   Pressable,
   StyleSheet,
   Switch,
@@ -52,7 +50,8 @@ import {
   type ReminderPreset,
 } from "../reminderPresets";
 import { ModalLayout } from "../../layouts";
-import { CardDivider } from "../../ui/components/common/Card";
+import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
 
@@ -470,8 +469,8 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           ) : null}
 
           {/* Section 1: Title */}
-          <View style={[styles.card]}>
-            <View style={styles.row}>
+          <Card style={styles.card}>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="document-text-outline"
@@ -497,14 +496,14 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                 ]}
                 autoCorrect={false}
               />
-            </View>
-          </View>
+            </CardRow>
+          </Card>
 
           <View style={{ height: theme.spacing.sm }} />
 
           {/* Section 2: Date reminder */}
-          <View style={[styles.card]}>
-            <View style={[styles.row, { justifyContent: "space-between" }]}>
+          <Card style={styles.card}>
+            <CardRow style={{ justifyContent: "space-between" }}>
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="calendar-outline"
@@ -527,124 +526,51 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                 }}
                 thumbColor="#fff"
               />
-            </View>
-
+            </CardRow>
             {dateEnabled && (
               <>
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
                 <Pressable
                   onPress={openDatePicker}
                   disabled={saving}
                   style={({ pressed }) => [
-                    styles.row,
-                    pressed && !saving ? { opacity: 0.85 } : null,
+                    { opacity: pressed && !saving ? 0.85 : 1 },
                   ]}
                 >
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("reminderForm.dueDateLabel")}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.valueText,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  >
-                    {dueDate}
-                  </Text>
+                  <CardRow>
+                    <Text
+                      style={[styles.label, { color: theme.colors.muted }]}
+                      numberOfLines={1}
+                    >
+                      {t("reminderForm.dueDateLabel")}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.valueText,
+                        { color: theme.colors.fg, textAlign: "right" },
+                      ]}
+                    >
+                      {dueDate}
+                    </Text>
+                  </CardRow>
                 </Pressable>
 
+                {datePickerOpen && <CardDivider />}
+
                 {datePickerOpen && (
-                  <View
-                    style={[
-                      styles.pickerWrap,
-                      { borderTopColor: theme.colors.border },
-                    ]}
-                  >
-                    <DateTimePicker
-                      value={datePickerDraft}
-                      mode="date"
-                      display={Platform.OS === "ios" ? "spinner" : "default"}
-                      themeVariant={
-                        Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
-                          ? "dark"
-                          : "light"
-                      }
-                      onChange={(event, selected) => {
-                        if (Platform.OS === "ios") {
-                          if (selected) setDatePickerDraft(selected);
-                          return;
-                        }
-                        setDatePickerOpen(false);
-                        if ((event as { type?: string })?.type === "dismissed")
-                          return;
-                        if (selected) setDueDate(formatYmd(selected));
-                      }}
-                    />
-                    {Platform.OS === "ios" ? (
-                      <View style={styles.pickerActionsRow}>
-                        <Pressable
-                          onPress={() => setDatePickerOpen(false)}
-                          style={({ pressed }) => [
-                            styles.pickerActionBtn,
-                            {
-                              borderColor: theme.colors.border,
-                              backgroundColor: "transparent",
-                              opacity: pressed ? 0.8 : 1,
-                            },
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.pickerActionText,
-                              { color: theme.colors.muted },
-                            ]}
-                          >
-                            {t("common.cancel")}
-                          </Text>
-                        </Pressable>
-                        <Pressable
-                          onPress={() => {
-                            setDueDate(formatYmd(datePickerDraft));
-                            setDatePickerOpen(false);
-                          }}
-                          style={({ pressed }) => [
-                            styles.pickerActionBtn,
-                            {
-                              borderColor: theme.colors.accent,
-                              backgroundColor: accentBg,
-                              opacity: pressed ? 0.8 : 1,
-                            },
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.pickerActionText,
-                              { color: theme.colors.accent },
-                            ]}
-                          >
-                            {t("common.done")}
-                          </Text>
-                        </Pressable>
-                      </View>
-                    ) : null}
-                  </View>
+                  <InlineDatePicker
+                    value={datePickerDraft}
+                    onChangeDraft={setDatePickerDraft}
+                    onCancel={() => setDatePickerOpen(false)}
+                    onConfirm={(picked) => {
+                      setDueDate(formatYmd(picked));
+                      setDatePickerOpen(false);
+                    }}
+                  />
                 )}
 
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-                <View style={styles.row}>
+                <CardDivider />
+
+                <CardRow>
                   <Text
                     style={[styles.label, { color: theme.colors.muted }]}
                     numberOfLines={1}
@@ -663,15 +589,9 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                       { color: theme.colors.fg, textAlign: "right" },
                     ]}
                   />
-                </View>
-
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
-                <View style={[styles.row, { justifyContent: "space-between" }]}>
+                </CardRow>
+                <CardDivider />
+                <CardRow style={{ justifyContent: "space-between" }}>
                   <View style={styles.rowLeft}>
                     <Ionicons
                       name="repeat-outline"
@@ -694,102 +614,99 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                     }}
                     thumbColor="#fff"
                   />
-                </View>
-
+                </CardRow>
+                {dateRepeats && <CardDivider />}
                 {dateRepeats && (
-                  <>
-                    <CardDivider />
-                    <View style={styles.row}>
-                      <View style={styles.rowLeft}>
+                  <CardRow>
+                    <View style={styles.rowLeft}>
+                      <Text
+                        style={[styles.label, { color: theme.colors.muted }]}
+                        numberOfLines={1}
+                      >
+                        {t("reminderForm.every")}
+                      </Text>
+                    </View>
+                    <View style={styles.rowRight}>
+                      <TextInput
+                        value={recurrenceValue}
+                        onChangeText={setRecurrenceValue}
+                        placeholder="6"
+                        placeholderTextColor={theme.colors.muted}
+                        keyboardType="number-pad"
+                        editable={!saving}
+                        style={[
+                          styles.input,
+                          {
+                            color: theme.colors.fg,
+                            textAlign: "right",
+                            flex: 0,
+                            minWidth: 48,
+                            maxWidth: 56,
+                          },
+                        ]}
+                      />
+                      <Pressable
+                        onPress={() => {
+                          const unitLabels: Record<
+                            ReminderRecurrenceUnit,
+                            string
+                          > = {
+                            days: t("reminderForm.intervalDays"),
+                            weeks: t("reminderForm.intervalWeeks"),
+                            months: t("reminderForm.intervalMonths"),
+                            years: t("reminderForm.intervalYears"),
+                          };
+                          Alert.alert(
+                            t("reminderForm.every"),
+                            "",
+                            [
+                              { text: t("common.cancel"), style: "cancel" },
+                              ...RECURRENCE_UNITS.map((u) => ({
+                                text: unitLabels[u.value],
+                                onPress: () => setRecurrenceUnit(u.value),
+                              })),
+                            ],
+                            { cancelable: true },
+                          );
+                        }}
+                        style={({ pressed }) => [
+                          {
+                            backgroundColor: theme.colors.accent,
+                            paddingVertical: 6,
+                            paddingHorizontal: theme.spacing.sm,
+                            borderRadius: 9999,
+                            marginLeft: theme.spacing.sm,
+                          },
+                          pressed && { opacity: 0.85 },
+                        ]}
+                      >
                         <Text
-                          style={[styles.label, { color: theme.colors.muted }]}
+                          style={[
+                            styles.valueText,
+                            {
+                              color: "#000000",
+                              textAlign: "center",
+                              fontWeight: theme.typography.fontWeight.bold,
+                              fontSize: theme.typography.small,
+                            },
+                          ]}
                           numberOfLines={1}
                         >
-                          {t("reminderForm.every")}
+                          {recurrenceUnitLabel}
                         </Text>
-                      </View>
-                      <View style={styles.rowRight}>
-                        <TextInput
-                          value={recurrenceValue}
-                          onChangeText={setRecurrenceValue}
-                          placeholder="6"
-                          placeholderTextColor={theme.colors.muted}
-                          keyboardType="number-pad"
-                          editable={!saving}
-                          style={[
-                            styles.input,
-                            {
-                              color: theme.colors.fg,
-                              textAlign: "right",
-                              flex: 0,
-                              minWidth: 48,
-                              maxWidth: 56,
-                            },
-                          ]}
-                        />
-                        <Pressable
-                          onPress={() => {
-                            const unitLabels: Record<
-                              ReminderRecurrenceUnit,
-                              string
-                            > = {
-                              days: t("reminderForm.intervalDays"),
-                              weeks: t("reminderForm.intervalWeeks"),
-                              months: t("reminderForm.intervalMonths"),
-                              years: t("reminderForm.intervalYears"),
-                            };
-                            Alert.alert(
-                              t("reminderForm.every"),
-                              "",
-                              [
-                                { text: t("common.cancel"), style: "cancel" },
-                                ...RECURRENCE_UNITS.map((u) => ({
-                                  text: unitLabels[u.value],
-                                  onPress: () => setRecurrenceUnit(u.value),
-                                })),
-                              ],
-                              { cancelable: true },
-                            );
-                          }}
-                          style={({ pressed }) => [
-                            {
-                              backgroundColor: theme.colors.accent,
-                              paddingVertical: 6,
-                              paddingHorizontal: theme.spacing.sm,
-                              borderRadius: 9999,
-                              marginLeft: theme.spacing.sm,
-                            },
-                            pressed && { opacity: 0.85 },
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.valueText,
-                              {
-                                color: "#000000",
-                                textAlign: "center",
-                                fontWeight: theme.typography.fontWeight.bold,
-                                fontSize: theme.typography.small,
-                              },
-                            ]}
-                            numberOfLines={1}
-                          >
-                            {recurrenceUnitLabel}
-                          </Text>
-                        </Pressable>
-                      </View>
+                      </Pressable>
                     </View>
-                  </>
+                  </CardRow>
                 )}
               </>
             )}
-          </View>
+          </Card>
 
           <View style={{ height: theme.spacing.sm }} />
 
           {/* Section 3: Mileage reminder */}
-          <View style={[styles.card]}>
-            <View style={[styles.row, { justifyContent: "space-between" }]}>
+          <Card style={styles.card}>
+            <CardRow style={{ justifyContent: "space-between" }}>
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="speedometer-outline"
@@ -812,12 +729,10 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                 }}
                 thumbColor="#fff"
               />
-            </View>
-
+            </CardRow>
             {mileageEnabled && (
               <>
-                <CardDivider />
-                <View style={styles.row}>
+                <CardRow>
                   <Text
                     style={[styles.label, { color: theme.colors.muted }]}
                     numberOfLines={1}
@@ -836,9 +751,9 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                       { color: theme.colors.fg, textAlign: "right" },
                     ]}
                   />
-                </View>
+                </CardRow>
                 <CardDivider />
-                <View style={[styles.row, { justifyContent: "space-between" }]}>
+                <CardRow style={{ justifyContent: "space-between" }}>
                   <View style={styles.rowLeft}>
                     <Ionicons
                       name="repeat-outline"
@@ -861,48 +776,38 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                     }}
                     thumbColor="#fff"
                   />
-                </View>
+                </CardRow>
+                {mileageRepeats && <CardDivider />}
                 {mileageRepeats && (
-                  <>
-                    <CardDivider />
-                    <View style={styles.row}>
-                      <Text
-                        style={[styles.label, { color: theme.colors.muted }]}
-                        numberOfLines={1}
-                      >
-                        {t("reminderForm.everyKm")}
-                      </Text>
-                      <TextInput
-                        value={recurrenceKm}
-                        onChangeText={setRecurrenceKm}
-                        placeholder={t("reminderForm.placeholderEveryKm")}
-                        placeholderTextColor={theme.colors.muted}
-                        keyboardType="number-pad"
-                        editable={!saving}
-                        style={[
-                          styles.input,
-                          { color: theme.colors.fg, textAlign: "right" },
-                        ]}
-                      />
-                    </View>
-                  </>
+                  <CardRow>
+                    <Text
+                      style={[styles.label, { color: theme.colors.muted }]}
+                      numberOfLines={1}
+                    >
+                      {t("reminderForm.everyKm")}
+                    </Text>
+                    <TextInput
+                      value={recurrenceKm}
+                      onChangeText={setRecurrenceKm}
+                      placeholder={t("reminderForm.placeholderEveryKm")}
+                      placeholderTextColor={theme.colors.muted}
+                      keyboardType="number-pad"
+                      editable={!saving}
+                      style={[
+                        styles.input,
+                        { color: theme.colors.fg, textAlign: "right" },
+                      ]}
+                    />
+                  </CardRow>
                 )}
               </>
             )}
-          </View>
+          </Card>
 
           <View style={{ height: theme.spacing.sm }} />
 
           {/* Section 4: Notes */}
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
+          <Card style={styles.card}>
             <View
               style={{
                 paddingVertical: theme.spacing.md,
@@ -936,7 +841,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                 ]}
               />
             </View>
-          </View>
+          </Card>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -981,17 +886,7 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.small,
     },
     card: {
-      borderRadius: theme.radius.md,
-      backgroundColor: theme.colors.card,
-      overflow: "hidden",
       marginHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
     },
     rowLeft: {
       flexDirection: "row",
@@ -1026,28 +921,6 @@ const makeStyles = (theme: any) =>
       flex: 1,
       minWidth: 0,
       fontSize: theme.typography.body,
-    },
-    pickerWrap: {
-      borderTopWidth: 1,
-      paddingTop: theme.spacing.xs,
-      paddingBottom: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-    },
-    pickerActionsRow: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: theme.spacing.sm,
-      paddingTop: theme.spacing.sm,
-    },
-    pickerActionBtn: {
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.md,
-      borderRadius: 9999,
-      borderWidth: 1,
-    },
-    pickerActionText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
     },
     footerAction: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,

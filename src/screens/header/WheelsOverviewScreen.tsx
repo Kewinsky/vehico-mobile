@@ -15,7 +15,7 @@ import {
 } from "../../services/wheels/wheelsRepo";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { Tile } from "../../ui/components/common/Tile";
-import { CardDivider } from "../../ui/components/common/Card";
+import { Card, CardRow } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
@@ -132,8 +132,8 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
       <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
         {t("wheels.currentlyFitted")}
       </Text>
-      <View style={[styles.card]}>
-        <View style={styles.currentRow}>
+      <Card>
+        <CardRow>
           <TireIcon size={24} color={theme.colors.accent} />
           <View style={styles.currentRowText}>
             {fittedTires.length === 0 ? (
@@ -158,10 +158,9 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
               </View>
             )}
           </View>
-        </View>
+        </CardRow>
 
-        <CardDivider />
-        <View style={styles.currentRow}>
+        <CardRow>
           <RimIcon size={24} color={theme.colors.accent} />
           <View style={styles.currentRowText}>
             {fittedWheels.length === 0 ? (
@@ -185,8 +184,8 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
               </View>
             )}
           </View>
-        </View>
-      </View>
+        </CardRow>
+      </Card>
     </>
   );
 

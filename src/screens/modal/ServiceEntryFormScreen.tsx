@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   Alert,
   FlatList,
   Linking,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -43,7 +41,7 @@ import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
-import { CardDivider } from "../../ui/components/common/Card";
+import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
@@ -52,6 +50,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Textarea } from "../../ui/components/common/Textarea";
+import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
@@ -599,6 +598,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           {!entryId ? (
             <>
               <SegmentTabs<"single" | "multi">
+                variant="secondary"
                 value={mode}
                 options={[
                   { value: "single", label: t("entryForm.modeSingle") },
@@ -610,118 +610,49 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             </>
           ) : null}
 
-          <View style={styles.card}>
+          <Card>
             <Pressable
               onPress={openDatePicker}
-              style={({ pressed }) => [
-                styles.row,
-                pressed && { opacity: 0.75 },
-              ]}
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
+              <CardRow>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("entryForm.serviceDate")}
+                  </Text>
+                </View>
                 <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
+                  style={[
+                    styles.valueText,
+                    { color: theme.colors.fg, textAlign: "right" },
+                  ]}
                   numberOfLines={1}
                 >
-                  {t("entryForm.serviceDate")}
+                  {serviceDate}
                 </Text>
-              </View>
-              <Text
-                style={[
-                  styles.valueText,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-                numberOfLines={1}
-              >
-                {serviceDate}
-              </Text>
+              </CardRow>
             </Pressable>
 
             {datePickerOpen ? (
-              <View
-                style={[
-                  styles.pickerWrap,
-                  {
-                    borderTopColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <DateTimePicker
-                  value={datePickerDraft}
-                  mode="date"
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
-                  themeVariant={
-                    Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
-                      ? "dark"
-                      : "light"
-                  }
-                  onChange={(event, selectedDate) => {
-                    if (Platform.OS === "ios") {
-                      if (selectedDate) setDatePickerDraft(selectedDate);
-                      return;
-                    }
-
-                    setDatePickerOpen(false);
-                    if ((event as any)?.type === "dismissed") return;
-                    if (selectedDate) setServiceDate(formatYmd(selectedDate));
-                  }}
-                />
-                {Platform.OS === "ios" ? (
-                  <View style={styles.pickerActionsRow}>
-                    <Pressable
-                      onPress={() => setDatePickerOpen(false)}
-                      style={({ pressed }) => [
-                        styles.pickerActionBtn,
-                        {
-                          borderColor: theme.colors.border,
-                          backgroundColor: "transparent",
-                          opacity: pressed ? 0.8 : 1,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.pickerActionText,
-                          { color: theme.colors.muted },
-                        ]}
-                      >
-                        {t("common.cancel")}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => {
-                        setServiceDate(formatYmd(datePickerDraft));
-                        setDatePickerOpen(false);
-                      }}
-                      style={({ pressed }) => [
-                        styles.pickerActionBtn,
-                        {
-                          borderColor: theme.colors.accent,
-                          backgroundColor: accentBg,
-                          opacity: pressed ? 0.8 : 1,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.pickerActionText,
-                          { color: theme.colors.accent },
-                        ]}
-                      >
-                        {t("common.done")}
-                      </Text>
-                    </Pressable>
-                  </View>
-                ) : null}
-              </View>
+              <InlineDatePicker
+                value={datePickerDraft}
+                onChangeDraft={setDatePickerDraft}
+                onCancel={() => setDatePickerOpen(false)}
+                onConfirm={(picked) => {
+                  setServiceDate(formatYmd(picked));
+                  setDatePickerOpen(false);
+                }}
+              />
             ) : null}
-            <CardDivider />
+
             <Pressable
               onPress={() =>
                 showPicker<ServiceEntryCategory>({
@@ -733,40 +664,39 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   placeholderLabel: t("entryForm.categoryPlaceholder"),
                 })
               }
-              style={({ pressed }) => [
-                styles.row,
-                pressed && { opacity: 0.75 },
-              ]}
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="pricetag-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
+              <CardRow>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="pricetag-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("entryForm.category")}
+                  </Text>
+                </View>
                 <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
+                  style={[
+                    styles.valueText,
+                    {
+                      color: category ? theme.colors.fg : theme.colors.muted,
+                      textAlign: "right",
+                    },
+                  ]}
                   numberOfLines={1}
                 >
-                  {t("entryForm.category")}
+                  {category
+                    ? t(`entryForm.categories.${category}` as any)
+                    : t("entryForm.categoryPlaceholder")}
                 </Text>
-              </View>
-              <Text
-                style={[
-                  styles.valueText,
-                  {
-                    color: category ? theme.colors.fg : theme.colors.muted,
-                    textAlign: "right",
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {category
-                  ? t(`entryForm.categories.${category}` as any)
-                  : t("entryForm.categoryPlaceholder")}
-              </Text>
+              </CardRow>
             </Pressable>
-            <CardDivider />
+
             <Pressable
               onPress={() =>
                 showPicker<string>({
@@ -779,42 +709,41 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   placeholderLabel: t("entryForm.workshopPlaceholder"),
                 })
               }
-              style={({ pressed }) => [
-                styles.row,
-                pressed && { opacity: 0.75 },
-              ]}
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="business-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
+              <CardRow>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="business-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("entryForm.workshop")}
+                  </Text>
+                </View>
                 <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
+                  style={[
+                    styles.valueText,
+                    {
+                      color: workshopId ? theme.colors.fg : theme.colors.muted,
+                      textAlign: "right",
+                    },
+                  ]}
                   numberOfLines={1}
                 >
-                  {t("entryForm.workshop")}
+                  {workshopId
+                    ? (workshops.find((w) => w.id === workshopId)?.name ??
+                      workshopId)
+                    : t("entryForm.workshopPlaceholder")}
                 </Text>
-              </View>
-              <Text
-                style={[
-                  styles.valueText,
-                  {
-                    color: workshopId ? theme.colors.fg : theme.colors.muted,
-                    textAlign: "right",
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {workshopId
-                  ? (workshops.find((w) => w.id === workshopId)?.name ??
-                    workshopId)
-                  : t("entryForm.workshopPlaceholder")}
-              </Text>
+              </CardRow>
             </Pressable>
-            <CardDivider />
-            <View style={styles.row}>
+
+            <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="speedometer-outline"
@@ -840,8 +769,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-          </View>
+            </CardRow>
+          </Card>
 
           <View style={{ height: theme.spacing.sm }} />
 
@@ -849,16 +778,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             <>
               {entries.map((row, index) => (
                 <View key={index}>
-                  <View
-                    style={[
-                      styles.card,
-                      {
-                        borderColor: theme.colors.border,
-                        backgroundColor: theme.colors.card,
-                      },
-                    ]}
-                  >
-                    <View style={styles.row}>
+                  <Card>
+                    <CardRow>
                       <View style={styles.rowLeft}>
                         <Ionicons
                           name="document-text-outline"
@@ -885,9 +806,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                           { color: theme.colors.fg, textAlign: "right" },
                         ]}
                       />
-                    </View>
-                    <CardDivider />
-                    <View style={styles.row}>
+                    </CardRow>
+                    <CardRow>
                       <View style={styles.rowLeft}>
                         <Ionicons
                           name="cash-outline"
@@ -931,8 +851,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                           />
                         </Pressable>
                       ) : null}
-                    </View>
-                  </View>
+                    </CardRow>
+                  </Card>
                   {index < entries.length - 1 ? (
                     <View style={{ height: theme.spacing.sm }} />
                   ) : null}
@@ -953,16 +873,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             </>
           ) : (
             <>
-              <View
-                style={[
-                  styles.card,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <View style={styles.row}>
+              <Card>
+                <CardRow>
                   <View style={styles.rowLeft}>
                     <Ionicons
                       name="document-text-outline"
@@ -987,9 +899,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       { color: theme.colors.fg, textAlign: "right" },
                     ]}
                   />
-                </View>
-              <CardDivider />
-                <View style={styles.row}>
+                </CardRow>
+                <CardRow>
                   <View style={styles.rowLeft}>
                     <Ionicons
                       name="cash-outline"
@@ -1015,19 +926,11 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       { color: theme.colors.fg, textAlign: "right" },
                     ]}
                   />
-                </View>
-              </View>
+                </CardRow>
+              </Card>
 
               <View style={{ height: theme.spacing.sm }} />
-              <View
-                style={[
-                  styles.card,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
+              <Card>
                 <View
                   style={{
                     paddingVertical: theme.spacing.md,
@@ -1060,7 +963,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     ]}
                   />
                 </View>
-              </View>
+              </Card>
 
               <View style={{ height: theme.spacing.xl }} />
               <View style={styles.sectionHeader}>
@@ -1240,15 +1143,6 @@ const makeStyles = (theme: any) =>
       lineHeight: theme.typography.body + 2,
       color: theme.colors.muted,
     },
-    card: { borderRadius: theme.radius.md, overflow: "hidden" },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: theme.colors.card,
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
-    },
     rowLeft: {
       flexDirection: "row",
       alignItems: "center",
@@ -1282,28 +1176,6 @@ const makeStyles = (theme: any) =>
       flex: 1,
       minWidth: 0,
       fontSize: theme.typography.body,
-    },
-    pickerWrap: {
-      borderTopWidth: 1,
-      paddingTop: theme.spacing.xs,
-      paddingBottom: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-    },
-    pickerActionsRow: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: theme.spacing.sm,
-      paddingTop: theme.spacing.sm,
-    },
-    pickerActionBtn: {
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.md,
-      borderRadius: 9999,
-      borderWidth: 1,
-    },
-    pickerActionText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
     },
     inlineTrash: { paddingLeft: theme.spacing.sm / 2, paddingVertical: 2 },
     cardRow: {

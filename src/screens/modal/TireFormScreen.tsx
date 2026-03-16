@@ -260,8 +260,8 @@ export function TireFormScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-          <Card style={styles.card}>
-            <View style={styles.row}>
+          <Card>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="pricetag-outline"
@@ -286,9 +286,8 @@ export function TireFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <CardDivider />
-            <View style={styles.row}>
+            </CardRow>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <AntDesign
                   name="column-width"
@@ -314,9 +313,8 @@ export function TireFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <CardDivider />
-            <View style={styles.row}>
+            </CardRow>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <AntDesign
                   name="column-height"
@@ -342,9 +340,8 @@ export function TireFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <CardDivider />
-            <View style={styles.row}>
+            </CardRow>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <MaterialCommunityIcons
                   name="diameter-variant"
@@ -370,8 +367,7 @@ export function TireFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <CardDivider />
+            </CardRow>
             <Pressable
               onPress={() =>
                 showPicker<TireType>({
@@ -383,37 +379,35 @@ export function TireFormScreen({ navigation, route }: Props) {
                   placeholderLabel: t("tireForm.placeholderTireType"),
                 })
               }
-              style={({ pressed }) => [
-                styles.row,
-                pressed && { opacity: 0.75 },
-              ]}
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              <View style={styles.rowLeft}>
-                <SunSnowIcon size={20} color={theme.colors.accent} />
+              <CardRow>
+                <View style={styles.rowLeft}>
+                  <SunSnowIcon size={20} color={theme.colors.accent} />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("tireForm.tireType")}
+                  </Text>
+                </View>
                 <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
+                  style={[
+                    styles.valueText,
+                    {
+                      color: tireType ? theme.colors.fg : theme.colors.muted,
+                      textAlign: "right",
+                    },
+                  ]}
                   numberOfLines={1}
                 >
-                  {t("tireForm.tireType")}
+                  {tireType
+                    ? t(`tireForm.types.${tireType}`)
+                    : t("tireForm.placeholderTireType")}
                 </Text>
-              </View>
-              <Text
-                style={[
-                  styles.valueText,
-                  {
-                    color: tireType ? theme.colors.fg : theme.colors.muted,
-                    textAlign: "right",
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {tireType
-                  ? t(`tireForm.types.${tireType}`)
-                  : t("tireForm.placeholderTireType")}
-              </Text>
+              </CardRow>
             </Pressable>
-            <CardDivider />
-            <View style={styles.row}>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="calendar-outline"
@@ -439,8 +433,7 @@ export function TireFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <CardDivider />
+            </CardRow>
             <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons
@@ -480,18 +473,6 @@ function makeStyles(theme: any) {
       fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
-    },
-    card: {
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-      backgroundColor: theme.colors.card,
-    },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
     },
     rowLeft: {
       flexDirection: "row",

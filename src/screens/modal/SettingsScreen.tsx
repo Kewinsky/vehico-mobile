@@ -195,7 +195,7 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
 
         <Card>
-          {rows.map((row, index) => {
+          {rows.map((row) => {
             const isSignOut = row.id === "signout";
             const iconColor = isSignOut
               ? theme.colors.danger
@@ -248,7 +248,6 @@ export function SettingsScreen({ navigation }: Props) {
                     color={chevronColor}
                   />
                 </Pressable>
-                {index < rows.length - 1 && <CardDivider />}
               </View>
             );
           })}

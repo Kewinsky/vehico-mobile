@@ -128,9 +128,6 @@ export function WorkshopsFiltersScreen({ navigation, route }: Props) {
               </CardRow>
             </Pressable>
 
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
             <CardRow>
               <Ionicons
                 name="swap-vertical-outline"
@@ -158,10 +155,6 @@ export function WorkshopsFiltersScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    divider: {
-      height: 1,
-      marginHorizontal: 0,
-    },
     valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
     segmentWrap: {
       flex: 1,

@@ -35,6 +35,7 @@ import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
+import { Card, CardRow } from "../../ui/components/common/Card";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
@@ -232,16 +233,8 @@ export function WheelFormScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <View style={styles.row}>
+          <Card>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="pricetag-outline"
@@ -266,11 +259,8 @@ export function WheelFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
+            </CardRow>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <AntDesign
                   name="column-width"
@@ -296,11 +286,8 @@ export function WheelFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
+            </CardRow>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <MaterialCommunityIcons
                   name="diameter-variant"
@@ -326,11 +313,8 @@ export function WheelFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
+            </CardRow>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <EtOffsetIcon size={20} color={theme.colors.accent} />
                 <Text
@@ -352,11 +336,8 @@ export function WheelFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
+            </CardRow>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <BoltPatternIcon size={20} color={theme.colors.accent} />
                 <Text
@@ -377,11 +358,8 @@ export function WheelFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
+            </CardRow>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="radio-button-on-outline"
@@ -407,11 +385,8 @@ export function WheelFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
+            </CardRow>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <BoltTypeIcon size={20} color={theme.colors.accent} />
                 <Text
@@ -432,11 +407,8 @@ export function WheelFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
+            </CardRow>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <Weight size={20} color={theme.colors.accent} />
                 <Text
@@ -458,11 +430,8 @@ export function WheelFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
+            </CardRow>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="checkmark-circle-outline"
@@ -484,8 +453,8 @@ export function WheelFormScreen({ navigation, route }: Props) {
                   thumbColor="#fff"
                 />
               </View>
-            </View>
-          </View>
+            </CardRow>
+          </Card>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -498,14 +467,6 @@ function makeStyles(theme: any) {
       fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
-    },
-    card: { borderWidth: 1, borderRadius: theme.radius.md, overflow: "hidden" },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
     },
     rowLeft: {
       flexDirection: "row",

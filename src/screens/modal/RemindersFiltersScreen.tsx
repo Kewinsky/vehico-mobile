@@ -1,8 +1,7 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { setPendingModalResult } from "../../app/pendingModalResult";
@@ -15,6 +14,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 
 export type RemindersFiltersParams = {
   dateFrom: string;
@@ -77,96 +77,6 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
     setOpenDatePicker(kind);
   }
 
-  function cancelPicker() {
-    setOpenDatePicker(null);
-  }
-
-  function confirmPicker() {
-    if (!openDatePicker) return;
-    const ymd = formatYmd(datePickerDraft);
-    if (openDatePicker === "from") setDateFrom(ymd);
-    if (openDatePicker === "to") setDateTo(ymd);
-    setOpenDatePicker(null);
-  }
-
-  function renderInlineDatePicker() {
-    return (
-      <View
-        style={[
-          styles.pickerWrap,
-          {
-            borderTopColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <DateTimePicker
-          value={datePickerDraft}
-          mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          themeVariant={
-            Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
-              ? "dark"
-              : "light"
-          }
-          onChange={(event, selectedDate) => {
-            if (Platform.OS === "ios") {
-              if (selectedDate) setDatePickerDraft(selectedDate);
-              return;
-            }
-            setOpenDatePicker(null);
-            if ((event as any)?.type === "dismissed") return;
-            if (!selectedDate) return;
-            const ymd = formatYmd(selectedDate);
-            if (openDatePicker === "from") setDateFrom(ymd);
-            if (openDatePicker === "to") setDateTo(ymd);
-          }}
-        />
-        {Platform.OS === "ios" ? (
-          <View style={styles.pickerActionsRow}>
-            <Pressable
-              onPress={cancelPicker}
-              style={({ pressed }) => [
-                styles.pickerActionBtn,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: "transparent",
-                  opacity: pressed ? 0.8 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[styles.pickerActionText, { color: theme.colors.muted }]}
-              >
-                {t("common.cancel")}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={confirmPicker}
-              style={({ pressed }) => [
-                styles.pickerActionBtn,
-                {
-                  borderColor: theme.colors.accent,
-                  backgroundColor: accentBg,
-                  opacity: pressed ? 0.8 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.pickerActionText,
-                  { color: theme.colors.accent },
-                ]}
-              >
-                {t("common.done")}
-              </Text>
-            </Pressable>
-          </View>
-        ) : null}
-      </View>
-    );
-  }
-
   function applyFilters() {
     const applied: RemindersFiltersParams = {
       dateFrom,
@@ -214,7 +124,6 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
               </View>
             </CardRow>
 
-            <CardDivider />
             <Pressable
               onPress={() => openPicker("from")}
               style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
@@ -236,13 +145,17 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
               </CardRow>
             </Pressable>
             {openDatePicker === "from" ? (
-              <>
-                {renderInlineDatePicker()}
-                <CardDivider />
-              </>
-            ) : (
-              <CardDivider />
-            )}
+              <InlineDatePicker
+                value={datePickerDraft}
+                onChangeDraft={setDatePickerDraft}
+                onCancel={() => setOpenDatePicker(null)}
+                onConfirm={(picked) => {
+                  const ymd = formatYmd(picked);
+                  setDateFrom(ymd);
+                  setOpenDatePicker(null);
+                }}
+              />
+            ) : null}
 
             <Pressable
               onPress={() => openPicker("to")}
@@ -265,10 +178,16 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
               </CardRow>
             </Pressable>
             {openDatePicker === "to" ? (
-              <>
-                {renderInlineDatePicker()}
-                <CardDivider />
-              </>
+              <InlineDatePicker
+                value={datePickerDraft}
+                onChangeDraft={setDatePickerDraft}
+                onCancel={() => setOpenDatePicker(null)}
+                onConfirm={(picked) => {
+                  const ymd = formatYmd(picked);
+                  setDateTo(ymd);
+                  setOpenDatePicker(null);
+                }}
+              />
             ) : null}
           </Card>
         </NativeHeaderScrollView>

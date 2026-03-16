@@ -174,9 +174,6 @@ export function ShopScreen({ navigation }: Props) {
     },
   ];
 
-  const selectedPlanLabel = getPlanLabel(selectedId, t);
-  const selectedPlanMeta = getPlanMeta(selectedId, t);
-
   function FeatureRow({
     icon,
     text,
@@ -205,15 +202,7 @@ export function ShopScreen({ navigation }: Props) {
       }
     }
     return (
-      <Card
-        style={[
-          styles.featureCard,
-          {
-            backgroundColor: hexToRgba(theme.colors.card, 0.84),
-            borderColor: hexToRgba(theme.colors.border, 0.9),
-          },
-        ]}
-      >
+      <Card style={styles.featureCard}>
         <View
           style={[
             styles.featureIconWrap,
@@ -490,36 +479,6 @@ export function PremiumHero({ theme }: { theme: AppTheme }) {
   );
 }
 
-function getPlanLabel(
-  productId: RevenueCatProductId,
-  t: ReturnType<typeof useTranslation>["t"],
-) {
-  switch (productId) {
-    case "monthly":
-      return t("shop.subCards.monthly");
-    case "yearly":
-      return t("shop.subCards.yearly");
-    case "lifetime":
-    default:
-      return t("shop.subCards.lifetime");
-  }
-}
-
-function getPlanMeta(
-  productId: RevenueCatProductId,
-  t: ReturnType<typeof useTranslation>["t"],
-) {
-  switch (productId) {
-    case "monthly":
-      return t("shop.perMonth");
-    case "yearly":
-      return t("shop.perYear");
-    case "lifetime":
-    default:
-      return t("shop.oneTime");
-  }
-}
-
 const stylesStatic = StyleSheet.create({
   logoStage: {
     width: 216,
@@ -543,23 +502,10 @@ const stylesStatic = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
   },
-  heroPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  heroPillLabel: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
 });
 
 function makeStyles(theme: AppTheme) {
-  const { colors, spacing, typography, radius } = theme;
+  const { spacing, typography, radius } = theme;
   return StyleSheet.create({
     container: {
       flexGrow: 1,
@@ -568,40 +514,8 @@ function makeStyles(theme: AppTheme) {
       paddingHorizontal: spacing.md,
       gap: spacing.md,
     },
-    premiumBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.sm,
-      borderWidth: 1,
-      borderRadius: radius.md + 2,
-    },
-    premiumBadgeCopy: {
-      flex: 1,
-      minWidth: 0,
-    },
-    premiumText: {
-      fontSize: typography.body,
-      fontWeight: typography.fontWeight.bold,
-      color: colors.fg,
-    },
-    premiumSubtext: {
-      marginTop: 2,
-      fontSize: typography.small,
-      fontWeight: typography.fontWeight.medium,
-    },
     heroSection: {
       gap: spacing.sm,
-    },
-    heroCard: {
-      borderWidth: 1,
-      borderRadius: radius.md + 8,
-      paddingHorizontal: spacing.md,
-      paddingTop: spacing.lg,
-      paddingBottom: spacing.md,
-      gap: spacing.md,
-      overflow: "hidden",
     },
     heroCopy: {
       alignItems: "center",
@@ -619,34 +533,14 @@ function makeStyles(theme: AppTheme) {
       textAlign: "center",
       maxWidth: 360,
     },
-    heroPills: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      justifyContent: "center",
-      gap: spacing.xs,
-    },
-    sectionHeader: {
-      paddingHorizontal: spacing.xs / 2,
-    },
-    sectionTitle: {
-      fontSize: typography.title,
-      fontWeight: typography.fontWeight.bold,
-    },
-    sectionSubtitle: {
-      fontSize: typography.small,
-      lineHeight: typography.body + 2,
-    },
     featuresGrid: {
       gap: spacing.sm,
     },
     featureCard: {
       flexDirection: "row",
       alignItems: "center",
-      gap: spacing.md,
       padding: spacing.md,
-      borderRadius: radius.md + 4,
-      borderWidth: 1,
-      minHeight: 92,
+      borderRadius: radius.lg,
     },
     featureIconWrap: {
       width: 42,
@@ -657,9 +551,7 @@ function makeStyles(theme: AppTheme) {
     },
     featureTextWrap: {
       flex: 1,
-      minWidth: 0,
       gap: spacing.xs / 2,
-      justifyContent: "center",
     },
     featureText: {
       fontSize: typography.body,
@@ -680,11 +572,10 @@ function makeStyles(theme: AppTheme) {
     tierCard: {
       borderRadius: radius.md + 12,
       borderWidth: 1,
-      paddingVertical: spacing.sm,
+      paddingVertical: spacing.md,
       alignItems: "center",
       justifyContent: "center",
       gap: 2,
-      minHeight: 112,
     },
     tierTopRow: {
       alignItems: "center",
@@ -714,36 +605,8 @@ function makeStyles(theme: AppTheme) {
       borderTopLeftRadius: radius.lg,
       borderTopRightRadius: radius.lg,
     },
-    footerSummaryRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm,
-    },
-    footerSummaryIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 999,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    footerSummaryCopy: {
-      flex: 1,
-      minWidth: 0,
-      gap: 2,
-    },
-    footerSummaryTitle: {
-      fontSize: typography.body,
-      fontWeight: typography.fontWeight.bold,
-    },
-    footerSummarySubtitle: {
-      fontSize: typography.small,
-      lineHeight: typography.body + 2,
-    },
     footerButtons: {
       gap: spacing.sm,
-    },
-    bottomSpacer: {
-      height: spacing.xl * 3,
     },
   });
 }

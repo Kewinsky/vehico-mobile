@@ -7,16 +7,21 @@ import { useTheme } from "../../ThemeProvider";
 
 type CardProps = ViewProps & {
   style?: ViewStyle | ViewStyle[];
-  withDividers?: boolean;
+  withoutDividers?: boolean;
   children?: ReactNode;
 };
 
-export function Card({ style, withDividers = false, children, ...rest }: CardProps) {
+export function Card({
+  style,
+  withoutDividers = false,
+  children,
+  ...rest
+}: CardProps) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-   const content =
-    !withDividers || !children
+  const content =
+    withoutDividers || !children
       ? children
       : (() => {
           const items = Children.toArray(children);

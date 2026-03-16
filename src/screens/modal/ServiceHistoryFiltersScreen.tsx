@@ -1,10 +1,8 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
-  Platform,
   Pressable,
   StyleSheet,
   Switch,
@@ -23,7 +21,8 @@ import { ModalFormScreen } from "../../ui/components/layout/ModalFormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { Ionicons } from "@expo/vector-icons";
-import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { Card, CardRow } from "../../ui/components/common/Card";
+import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 
 export type ServiceHistoryFiltersParams = {
   categoryFilter: "all" | ServiceEntryCategory;
@@ -157,96 +156,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
     setOpenDatePicker(kind);
   }
 
-  function cancelPicker() {
-    setOpenDatePicker(null);
-  }
-
-  function confirmPicker() {
-    if (!openDatePicker) return;
-    const ymd = formatYmd(datePickerDraft);
-    if (openDatePicker === "from") setDateFrom(ymd);
-    if (openDatePicker === "to") setDateTo(ymd);
-    setOpenDatePicker(null);
-  }
-
-  function renderInlineDatePicker() {
-    return (
-      <View
-        style={[
-          styles.pickerWrap,
-          {
-            borderTopColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <DateTimePicker
-          value={datePickerDraft}
-          mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          themeVariant={
-            Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
-              ? "dark"
-              : "light"
-          }
-          onChange={(event, selectedDate) => {
-            if (Platform.OS === "ios") {
-              if (selectedDate) setDatePickerDraft(selectedDate);
-              return;
-            }
-            setOpenDatePicker(null);
-            if ((event as any)?.type === "dismissed") return;
-            if (!selectedDate) return;
-            const ymd = formatYmd(selectedDate);
-            if (openDatePicker === "from") setDateFrom(ymd);
-            if (openDatePicker === "to") setDateTo(ymd);
-          }}
-        />
-        {Platform.OS === "ios" ? (
-          <View style={styles.pickerActionsRow}>
-            <Pressable
-              onPress={cancelPicker}
-              style={({ pressed }) => [
-                styles.pickerActionBtn,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: "transparent",
-                  opacity: pressed ? 0.8 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[styles.pickerActionText, { color: theme.colors.muted }]}
-              >
-                {t("common.cancel")}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={confirmPicker}
-              style={({ pressed }) => [
-                styles.pickerActionBtn,
-                {
-                  borderColor: theme.colors.accent,
-                  backgroundColor: accentBg,
-                  opacity: pressed ? 0.8 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.pickerActionText,
-                  { color: theme.colors.accent },
-                ]}
-              >
-                {t("common.done")}
-              </Text>
-            </Pressable>
-          </View>
-        ) : null}
-      </View>
-    );
-  }
-
   function showCategoryPicker() {
     const buttons: Array<{
       text: string;
@@ -314,11 +223,8 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
               false: theme.colors.border,
               true: theme.colors.accent,
             }}
-            thumbColor={Platform.OS === "android" ? "#ffffff" : undefined}
           />
         </CardRow>
-
-        <CardDivider />
         <Pressable
           onPress={showCategoryPicker}
           style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
@@ -349,8 +255,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
             />
           </CardRow>
         </Pressable>
-
-        <CardDivider />
         <CardRow>
           <Ionicons
             name="swap-vertical-outline"
@@ -370,8 +274,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
             />
           </View>
         </CardRow>
-
-        <CardDivider />
         <CardRow>
           <Ionicons
             name="options-outline"
@@ -424,8 +326,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
             )}
           </View>
         </CardRow>
-
-        <CardDivider />
         <Pressable
           onPress={() => openPicker("from")}
           style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
@@ -447,13 +347,17 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
           </CardRow>
         </Pressable>
         {openDatePicker === "from" ? (
-          <>
-            {renderInlineDatePicker()}
-            <CardDivider />
-          </>
-        ) : (
-          <CardDivider />
-        )}
+          <InlineDatePicker
+            value={datePickerDraft}
+            onChangeDraft={setDatePickerDraft}
+            onCancel={() => setOpenDatePicker(null)}
+            onConfirm={(picked) => {
+              const ymd = formatYmd(picked);
+              setDateFrom(ymd);
+              setOpenDatePicker(null);
+            }}
+          />
+        ) : null}
 
         <Pressable
           onPress={() => openPicker("to")}
@@ -476,13 +380,17 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
           </CardRow>
         </Pressable>
         {openDatePicker === "to" ? (
-          <>
-            {renderInlineDatePicker()}
-            <CardDivider />
-          </>
+          <InlineDatePicker
+            value={datePickerDraft}
+            onChangeDraft={setDatePickerDraft}
+            onCancel={() => setOpenDatePicker(null)}
+            onConfirm={(picked) => {
+              const ymd = formatYmd(picked);
+              setDateTo(ymd);
+              setOpenDatePicker(null);
+            }}
+          />
         ) : null}
-
-        <CardDivider />
         <CardRow>
           <Ionicons name="cash-outline" size={20} color={theme.colors.accent} />
           <TextInput
@@ -494,7 +402,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
             style={[styles.input, { color: theme.colors.fg }]}
           />
         </CardRow>
-        <CardDivider />
         <CardRow>
           <Ionicons name="cash-outline" size={20} color={theme.colors.accent} />
           <TextInput
@@ -523,27 +430,5 @@ const makeStyles = (theme: any) =>
     segmentWrap: {
       flex: 1,
       minWidth: 0,
-    },
-    pickerWrap: {
-      borderTopWidth: 1,
-      paddingTop: theme.spacing.xs,
-      paddingBottom: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-    },
-    pickerActionsRow: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: theme.spacing.sm,
-      paddingTop: theme.spacing.sm,
-    },
-    pickerActionBtn: {
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.md,
-      borderRadius: 9999,
-      borderWidth: 1,
-    },
-    pickerActionText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
     },
   });

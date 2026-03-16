@@ -10,9 +10,9 @@ import { Button } from "../../ui/components/common/Button";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
-import { ModalButton } from "../../ui/components/layout/ModalButton";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
+import { Card, CardRow } from "../../ui/components/common/Card";
 
 export type WheelsListFiltersParams = {
   fittedFilter: "all" | "fitted" | "not_fitted";
@@ -62,8 +62,8 @@ export function WheelsListFiltersScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-          <View style={[styles.card]}>
-            <View style={styles.row}>
+          <Card>
+            <CardRow>
               <Ionicons
                 name="checkmark-circle-outline"
                 size={20}
@@ -86,12 +86,8 @@ export function WheelsListFiltersScreen({ navigation, route }: Props) {
                   size="sm"
                 />
               </View>
-            </View>
-
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
+            </CardRow>
+            <CardRow>
               <Ionicons
                 name="swap-vertical-outline"
                 size={20}
@@ -108,8 +104,8 @@ export function WheelsListFiltersScreen({ navigation, route }: Props) {
                   size="sm"
                 />
               </View>
-            </View>
-          </View>
+            </CardRow>
+          </Card>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -118,18 +114,6 @@ export function WheelsListFiltersScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    card: {
-      backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
-    },
     segmentWrap: {
       flex: 1,
       minWidth: 0,

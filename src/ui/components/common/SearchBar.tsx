@@ -74,7 +74,6 @@ const makeStyles = (theme: { spacing: any; radius: any; typography: any }) =>
       alignItems: "center",
       height: 36,
       borderRadius: theme.radius.md,
-      borderWidth: 1,
       paddingLeft: theme.spacing.sm,
     },
     searchIcon: {

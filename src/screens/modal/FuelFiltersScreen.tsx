@@ -1,10 +1,8 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -17,11 +15,11 @@ import type { GasStation } from "../../types/domain";
 import { setPendingModalResult } from "../../app/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
 import { ModalFormScreen } from "../../ui/components/layout/ModalFormScreen";
-import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { Card, CardRow } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { Ionicons } from "@expo/vector-icons";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
+import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 
 const GAS_STATION_OPTIONS: readonly GasStation[] = [
   "orlen",
@@ -65,10 +63,6 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
 
   const params = route.params;
   const currency = settings?.currency ?? "PLN";
@@ -100,96 +94,6 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
       parseYmd(current.trim().length === 10 ? current : formatYmd(new Date())),
     );
     setOpenDatePicker(kind);
-  }
-
-  function cancelPicker() {
-    setOpenDatePicker(null);
-  }
-
-  function confirmPicker() {
-    if (!openDatePicker) return;
-    const ymd = formatYmd(datePickerDraft);
-    if (openDatePicker === "from") setDateFrom(ymd);
-    if (openDatePicker === "to") setDateTo(ymd);
-    setOpenDatePicker(null);
-  }
-
-  function renderInlineDatePicker() {
-    return (
-      <View
-        style={[
-          styles.pickerWrap,
-          {
-            borderTopColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <DateTimePicker
-          value={datePickerDraft}
-          mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          themeVariant={
-            Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
-              ? "dark"
-              : "light"
-          }
-          onChange={(event, selectedDate) => {
-            if (Platform.OS === "ios") {
-              if (selectedDate) setDatePickerDraft(selectedDate);
-              return;
-            }
-            setOpenDatePicker(null);
-            if ((event as any)?.type === "dismissed") return;
-            if (!selectedDate) return;
-            const ymd = formatYmd(selectedDate);
-            if (openDatePicker === "from") setDateFrom(ymd);
-            if (openDatePicker === "to") setDateTo(ymd);
-          }}
-        />
-        {Platform.OS === "ios" ? (
-          <View style={styles.pickerActionsRow}>
-            <Pressable
-              onPress={cancelPicker}
-              style={({ pressed }) => [
-                styles.pickerActionBtn,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: "transparent",
-                  opacity: pressed ? 0.8 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[styles.pickerActionText, { color: theme.colors.muted }]}
-              >
-                {t("common.cancel")}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={confirmPicker}
-              style={({ pressed }) => [
-                styles.pickerActionBtn,
-                {
-                  borderColor: theme.colors.accent,
-                  backgroundColor: accentBg,
-                  opacity: pressed ? 0.8 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.pickerActionText,
-                  { color: theme.colors.accent },
-                ]}
-              >
-                {t("common.done")}
-              </Text>
-            </Pressable>
-          </View>
-        ) : null}
-      </View>
-    );
   }
 
   function showStationPicker() {
@@ -249,7 +153,9 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
                 styles.valueText,
                 {
                   color:
-                    stationFilter != null ? theme.colors.fg : theme.colors.muted,
+                    stationFilter != null
+                      ? theme.colors.fg
+                      : theme.colors.muted,
                 },
               ]}
             >
@@ -265,7 +171,6 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
           </CardRow>
         </Pressable>
 
-        <CardDivider />
         <Pressable
           onPress={() => openPicker("from")}
           style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
@@ -287,13 +192,17 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
           </CardRow>
         </Pressable>
         {openDatePicker === "from" ? (
-          <>
-            {renderInlineDatePicker()}
-            <CardDivider />
-          </>
-        ) : (
-          <CardDivider />
-        )}
+          <InlineDatePicker
+            value={datePickerDraft}
+            onChangeDraft={setDatePickerDraft}
+            onCancel={() => setOpenDatePicker(null)}
+            onConfirm={(picked) => {
+              const ymd = formatYmd(picked);
+              setDateFrom(ymd);
+              setOpenDatePicker(null);
+            }}
+          />
+        ) : null}
 
         <Pressable
           onPress={() => openPicker("to")}
@@ -316,13 +225,17 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
           </CardRow>
         </Pressable>
         {openDatePicker === "to" ? (
-          <>
-            {renderInlineDatePicker()}
-            <CardDivider />
-          </>
-        ) : (
-          <CardDivider />
-        )}
+          <InlineDatePicker
+            value={datePickerDraft}
+            onChangeDraft={setDatePickerDraft}
+            onCancel={() => setOpenDatePicker(null)}
+            onConfirm={(picked) => {
+              const ymd = formatYmd(picked);
+              setDateTo(ymd);
+              setOpenDatePicker(null);
+            }}
+          />
+        ) : null}
 
         <CardRow>
           <Ionicons name="cash-outline" size={20} color={theme.colors.accent} />
@@ -335,7 +248,6 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
             style={[styles.input, { color: theme.colors.fg }]}
           />
         </CardRow>
-        <CardDivider />
         <CardRow>
           <Ionicons name="cash-outline" size={20} color={theme.colors.accent} />
           <TextInput
@@ -360,26 +272,5 @@ const makeStyles = (theme: any) =>
       minWidth: 0,
       fontSize: theme.typography.body,
       paddingVertical: 0,
-    },
-    pickerWrap: {
-      borderTopWidth: 1,
-      paddingTop: theme.spacing.xs,
-      paddingBottom: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-    },
-    pickerActionsRow: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: theme.spacing.sm,
-      paddingTop: theme.spacing.sm,
-    },
-    pickerActionBtn: {
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.md,
-      borderRadius: 9999,
-    },
-    pickerActionText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
     },
   });

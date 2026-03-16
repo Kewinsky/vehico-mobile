@@ -25,6 +25,7 @@ import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
+import { Card, CardRow } from "../../ui/components/common/Card";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { toastError } from "../../ui/toast/toast";
@@ -207,8 +208,8 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-          <View style={[styles.card]}>
-            <View style={styles.row}>
+          <Card>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="business-outline"
@@ -233,10 +234,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
+            </CardRow>
             <Pressable
               onPress={() =>
                 showPicker<WorkshopType>({
@@ -248,43 +246,41 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
                   placeholderLabel: t("workshopForm.selectType"),
                 })
               }
-              style={({ pressed }) => [
-                styles.row,
-                pressed && { opacity: 0.75 },
-              ]}
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="pricetag-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
+              <CardRow>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="pricetag-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("workshopForm.workshopType")}
+                  </Text>
+                </View>
                 <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
+                  style={[
+                    styles.valueText,
+                    {
+                      color: workshopType
+                        ? theme.colors.fg
+                        : theme.colors.muted,
+                      textAlign: "right",
+                    },
+                  ]}
                   numberOfLines={1}
                 >
-                  {t("workshopForm.workshopType")}
+                  {workshopType
+                    ? t(`workshopForm.types.${workshopType}`)
+                    : t("workshopForm.selectType")}
                 </Text>
-              </View>
-              <Text
-                style={[
-                  styles.valueText,
-                  {
-                    color: workshopType ? theme.colors.fg : theme.colors.muted,
-                    textAlign: "right",
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {workshopType
-                  ? t(`workshopForm.types.${workshopType}`)
-                  : t("workshopForm.selectType")}
-              </Text>
+              </CardRow>
             </Pressable>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="call-outline"
@@ -310,11 +306,8 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-            <View style={styles.row}>
+            </CardRow>
+            <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="location-outline"
@@ -339,8 +332,8 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
                   { color: theme.colors.fg, textAlign: "right" },
                 ]}
               />
-            </View>
-          </View>
+            </CardRow>
+          </Card>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -354,18 +347,6 @@ function makeStyles(theme: any) {
       marginVertical: theme.spacing.md,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
-    },
-    card: {
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-      backgroundColor: theme.colors.card,
-    },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
     },
     rowLeft: {
       flexDirection: "row",

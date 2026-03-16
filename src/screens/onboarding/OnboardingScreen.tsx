@@ -45,7 +45,7 @@ import { useAuth } from "../../app/providers/AuthProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { Logo } from "../../ui/components/branding/Logo";
-import { CardDivider } from "../../ui/components/common/Card";
+import { Card, CardRow } from "../../ui/components/common/Card";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Onboarding">;
 
@@ -382,16 +382,14 @@ export function OnboardingScreen({ navigation }: Props) {
         return (
           <View style={styles.step}>
             <ContentHeader title={t("onboarding.name.title")} />
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
+            <Card
+              style={{
+                borderRadius: theme.radius.md,
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              }}
             >
-              <View style={styles.row}>
+              <CardRow>
                 <View style={styles.rowLeft}>
                   <Ionicons
                     name="person-outline"
@@ -417,8 +415,8 @@ export function OnboardingScreen({ navigation }: Props) {
                   returnKeyType="done"
                   style={[styles.input, { color: theme.colors.fg }]}
                 />
-              </View>
-            </View>
+              </CardRow>
+            </Card>
             {(() => {
               const n = name.trim();
               const showRequired = showValidation && n.length === 0;
@@ -533,16 +531,8 @@ export function OnboardingScreen({ navigation }: Props) {
         return (
           <View style={styles.step}>
             <ContentHeader title={t("onboarding.vehicle.makeModel.title")} />
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.row}>
+            <Card>
+              <CardRow>
                 <View style={styles.rowLeft}>
                   <Ionicons
                     name="pricetag-outline"
@@ -566,9 +556,8 @@ export function OnboardingScreen({ navigation }: Props) {
                   autoCapitalize="words"
                   style={[styles.input, { color: theme.colors.fg }]}
                 />
-              </View>
-              <CardDivider />
-              <View style={styles.row}>
+              </CardRow>
+              <CardRow>
                 <View style={styles.rowLeft}>
                   <Ionicons
                     name="layers-outline"
@@ -592,9 +581,8 @@ export function OnboardingScreen({ navigation }: Props) {
                   autoCapitalize="words"
                   style={[styles.input, { color: theme.colors.fg }]}
                 />
-              </View>
-              <CardDivider />
-              <View style={styles.row}>
+              </CardRow>
+              <CardRow>
                 <View style={styles.rowLeft}>
                   <Ionicons
                     name="calendar-outline"
@@ -619,9 +607,8 @@ export function OnboardingScreen({ navigation }: Props) {
                   maxLength={4}
                   style={[styles.input, { color: theme.colors.fg }]}
                 />
-              </View>
-              <CardDivider />
-              <View style={styles.row}>
+              </CardRow>
+              <CardRow>
                 <View style={styles.rowLeft}>
                   <Ionicons
                     name="speedometer-outline"
@@ -645,8 +632,8 @@ export function OnboardingScreen({ navigation }: Props) {
                   editable={!saving}
                   style={[styles.input, { color: theme.colors.fg }]}
                 />
-              </View>
-            </View>
+              </CardRow>
+            </Card>
             {(() => {
               const makeInvalid =
                 make.trim().length > 0 && make.trim().length < 2;
@@ -820,7 +807,7 @@ export function OnboardingScreen({ navigation }: Props) {
                   {[make.trim(), model.trim()].filter(Boolean).join(" ") || "—"}
                 </Text>
               </View>
-              <CardDivider />
+
               <View style={styles.detailsContent}>
                 <View style={styles.detailsGrid}>
                   <View style={styles.detailsRow}>
@@ -1116,18 +1103,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontSize: theme.typography.body,
       lineHeight: theme.typography.body + 4,
       marginBottom: theme.spacing.xs,
-    },
-    card: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
     },
     rowLeft: {
       flexDirection: "row",

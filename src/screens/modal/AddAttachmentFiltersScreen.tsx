@@ -75,7 +75,7 @@ export function AddAttachmentFiltersScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-          <Card withDividers>
+          <Card>
             <CardRow>
               <Ionicons
                 name="swap-vertical-outline"

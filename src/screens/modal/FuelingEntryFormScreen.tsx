@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -30,7 +28,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
+import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 
 const FUEL_TYPE_OPTIONS: readonly FuelGrade[] = [
   "95",
@@ -94,10 +92,6 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const [fuelType, setFuelType] = useState<FuelGrade | null>(null);
   const [gasStation, setGasStation] = useState<GasStation | null>(null);
   const [saving, setSaving] = useState(false);
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
 
   function openDatePicker() {
     setDatePickerDraft(parseYmd(date));
@@ -282,87 +276,17 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
             </Pressable>
 
             {datePickerOpen ? (
-              <View
-                style={[
-                  styles.pickerWrap,
-                  {
-                    borderTopColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
-                <DateTimePicker
-                  value={datePickerDraft}
-                  mode="date"
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
-                  themeVariant={
-                    Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
-                      ? "dark"
-                      : "light"
-                  }
-                  onChange={(event, selectedDate) => {
-                    if (Platform.OS === "ios") {
-                      if (selectedDate) setDatePickerDraft(selectedDate);
-                      return;
-                    }
-
-                    setDatePickerOpen(false);
-                    if ((event as any)?.type === "dismissed") return;
-                    if (selectedDate) setDate(formatYmd(selectedDate));
-                  }}
-                />
-
-                {Platform.OS === "ios" ? (
-                  <View style={styles.pickerActionsRow}>
-                    <Pressable
-                      onPress={() => setDatePickerOpen(false)}
-                      style={({ pressed }) => [
-                        styles.pickerActionBtn,
-                        {
-                          borderColor: theme.colors.border,
-                          backgroundColor: "transparent",
-                          opacity: pressed ? 0.8 : 1,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.pickerActionText,
-                          { color: theme.colors.muted },
-                        ]}
-                      >
-                        {t("common.cancel")}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => {
-                        setDate(formatYmd(datePickerDraft));
-                        setDatePickerOpen(false);
-                      }}
-                      style={({ pressed }) => [
-                        styles.pickerActionBtn,
-                        {
-                          borderColor: theme.colors.accent,
-                          backgroundColor: accentBg,
-                          opacity: pressed ? 0.8 : 1,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.pickerActionText,
-                          { color: theme.colors.accent },
-                        ]}
-                      >
-                        {t("common.done")}
-                      </Text>
-                    </Pressable>
-                  </View>
-                ) : null}
-              </View>
+              <InlineDatePicker
+                value={datePickerDraft}
+                onChangeDraft={setDatePickerDraft}
+                onCancel={() => setDatePickerOpen(false)}
+                onConfirm={(picked) => {
+                  setDate(formatYmd(picked));
+                  setDatePickerOpen(false);
+                }}
+              />
             ) : null}
 
-            <CardDivider />
             <Pressable
               onPress={() =>
                 showPicker<FuelGrade>({
@@ -406,7 +330,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
                 </Text>
               </CardRow>
             </Pressable>
-            <CardDivider />
+
             <Pressable
               onPress={() =>
                 showPicker<GasStation>({
@@ -482,7 +406,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
                 ]}
               />
             </CardRow>
-            <CardDivider />
+
             <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons
@@ -510,7 +434,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
                 ]}
               />
             </CardRow>
-            <CardDivider />
+
             <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons
@@ -575,27 +499,5 @@ const makeStyles = (theme: any) =>
       flex: 1,
       minWidth: 0,
       fontSize: theme.typography.body,
-    },
-    pickerWrap: {
-      borderTopWidth: 1,
-      paddingTop: theme.spacing.xs,
-      paddingBottom: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-    },
-    pickerActionsRow: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: theme.spacing.sm,
-      paddingTop: theme.spacing.sm,
-    },
-    pickerActionBtn: {
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.md,
-      borderRadius: 9999,
-      borderWidth: 1,
-    },
-    pickerActionText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
     },
   });
