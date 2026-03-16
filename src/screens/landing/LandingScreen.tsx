@@ -183,7 +183,7 @@ const makeFeatureCardStyles = (theme: any) =>
       gap: theme.spacing.md,
       padding: theme.spacing.md,
       borderRadius: theme.radius.md + 4,
-      backgroundColor: hexToRgba(theme.colors.card, 0.86),
+      backgroundColor: theme.colors.card,
     },
     iconWrap: {
       width: 46,
