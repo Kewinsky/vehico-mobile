@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import type { ReactNode } from "react";
 
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
@@ -9,7 +10,7 @@ export type TimelineItemProps = {
   subtitle?: string;
   badge?: string;
   badgeVariant?: "accent" | "muted";
-  /** When provided, the row is wrapped in a Pressable (e.g. for navigation). */
+  icon?: ReactNode;
   onPress?: () => void;
 };
 
@@ -18,6 +19,7 @@ export function TimelineItem({
   subtitle,
   badge,
   badgeVariant = "accent",
+  icon,
   onPress,
 }: TimelineItemProps) {
   const { theme } = useTheme();
@@ -27,6 +29,7 @@ export function TimelineItem({
   const content = (
     <View style={styles.card}>
       <View style={styles.content}>
+        {icon ? <View style={styles.iconContainer}>{icon}</View> : null}
         <View style={styles.main}>
           <View style={styles.titleRow}>
             <View style={styles.titleWrap}>
@@ -104,6 +107,12 @@ const makeStyles = (theme: AppTheme) =>
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
+    },
+    iconContainer: {
+      width: 40,
+      height: 40,
+      alignItems: "center",
+      justifyContent: "center",
     },
     main: {
       flex: 1,

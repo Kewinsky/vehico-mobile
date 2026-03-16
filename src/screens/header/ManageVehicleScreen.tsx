@@ -726,11 +726,11 @@ const makeStyles = (theme: any) =>
     },
     detailsGrid: {
       paddingTop: theme.spacing.md,
-      gap: theme.spacing.sm,
+      gap: theme.spacing.xl,
     },
     detailsRow: {
       flexDirection: "row",
-      gap: theme.spacing.md,
+      gap: theme.spacing.xs,
       alignItems: "flex-start",
     },
     detailsColumn: {

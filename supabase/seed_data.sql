@@ -13,6 +13,9 @@ DECLARE
   w_detailer uuid;
   w_audio uuid;
   w_tires uuid;
+  w_electrician uuid;
+  w_bodywork uuid;
+  w_car_wash uuid;
 BEGIN
   -- Get owner_id from vehicle (workshops are per user)
   SELECT owner_id INTO v_owner_id FROM public.vehicles WHERE id = vehicle_id;
@@ -37,8 +40,20 @@ INSERT INTO public.workshops (owner_id, name, workshop_type, phone_number, addre
 RETURNING id INTO w_audio;
 
 INSERT INTO public.workshops (owner_id, name, workshop_type, phone_number, address) VALUES
-(v_owner_id, 'Tires & Wheels Max', 'mechanic', '+1 555 444 7788', '321 Tire Lane, New York, NY 10004')
+(v_owner_id, 'Tires & Wheels Max', 'car_wash', '+1 555 444 7788', '321 Tire Lane, New York, NY 10004')
 RETURNING id INTO w_tires;
+
+INSERT INTO public.workshops (owner_id, name, workshop_type, phone_number, address) VALUES
+(v_owner_id, 'Auto Electrics Expert', 'electrician', '+1 555 777 1122', '12 Volt St, New York, NY 10005')
+RETURNING id INTO w_electrician;
+
+INSERT INTO public.workshops (owner_id, name, workshop_type, phone_number, address) VALUES
+(v_owner_id, 'Body & Paint Studio', 'bodywork', '+1 555 888 3344', '98 Panel Rd, New York, NY 10006')
+RETURNING id INTO w_bodywork;
+
+INSERT INTO public.workshops (owner_id, name, workshop_type, phone_number, address) VALUES
+(v_owner_id, 'Sparkle Wash Station', 'car_wash', '+1 555 999 5566', '55 Foam Ave, New York, NY 10007')
+RETURNING id INTO w_car_wash;
 
 -- ================
 -- SERVICE ENTRIES

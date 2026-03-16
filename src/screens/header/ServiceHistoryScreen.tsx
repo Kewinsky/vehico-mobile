@@ -25,7 +25,8 @@ import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { toastError } from "../../ui/toast/toast";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { SERVICE_CATEGORY_COLORS } from "../../ui/theme/serviceCategoryColors";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { formatDateDisplay } from "../../utils/dateFormatting";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
@@ -191,6 +192,44 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     setShowReminders(false);
     setSortOption("date-newest");
   }, []);
+
+  const renderServiceIcon = useCallback(
+    (cat: ServiceEntryCategory) => {
+      const color = SERVICE_CATEGORY_COLORS[cat];
+      switch (cat) {
+        case "maintenance":
+          return (
+            <MaterialCommunityIcons name="tools" size={22} color={color} />
+          );
+        case "repair":
+          return (
+            <MaterialCommunityIcons
+              name="wrench-outline"
+              size={22}
+              color={color}
+            />
+          );
+        case "inspection":
+          return <Ionicons name="search-outline" size={22} color={color} />;
+        case "upgrade":
+          return (
+            <Ionicons name="trending-up-outline" size={22} color={color} />
+          );
+        case "oil_change":
+          return <MaterialCommunityIcons name="oil" size={22} color={color} />;
+        case "other":
+        default:
+          return (
+            <Ionicons
+              name="information-circle-outline"
+              size={22}
+              color={color}
+            />
+          );
+      }
+    },
+    [theme.colors.muted],
+  );
 
   const timelineRows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -417,8 +456,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
             return (
               <TimelineItem
                 title={e.title}
-                badge={t(`entryForm.categories.${cat}` as any)}
-                badgeVariant="accent"
+                icon={renderServiceIcon(cat)}
                 subtitle={[
                   e.service_date
                     ? formatDateDisplay(e.service_date, i18n.language)

@@ -41,6 +41,7 @@ import type {
   VehicleTire,
   VehicleWheel,
 } from "../../types/domain";
+import { SERVICE_CATEGORY_COLORS } from "../../ui/theme/serviceCategoryColors";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
@@ -1064,17 +1065,16 @@ export function StatisticsScreen({ route, navigation }: Props) {
       0,
     CHART_LINE_HEIGHT,
   );
-  const palette = useMemo(
-    () => [theme.colors.accent, "#10B981", "#3B82F6", "#A78BFA", "#EF4444"],
-    [theme.colors.accent],
-  );
   const categorySeries = useMemo(
     () =>
       expensesByCategory.map((x, idx) => ({
         ...x,
-        color: palette[idx % palette.length],
+        color:
+          x.key in SERVICE_CATEGORY_COLORS
+            ? SERVICE_CATEGORY_COLORS[x.key as keyof typeof SERVICE_CATEGORY_COLORS]
+            : theme.colors.accent,
       })),
-    [expensesByCategory, palette],
+    [expensesByCategory, theme.colors.accent],
   );
   const totalByCategory = useMemo(
     () => categorySeries.reduce((s, x) => s + clampNonNeg(x.value), 0),
@@ -1098,7 +1098,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
       ? totals.total >= 10
         ? Math.round(totals.total).toString()
         : totals.total.toFixed(1)
-      : "0";
+      : "—";
   const fuelMain =
     totals.fuelCost > 0
       ? totals.fuelCost >= 10
@@ -1121,7 +1121,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
           icon="wallet-outline"
           label={t("dashboard.stats.metrics.totalExpenses")}
           valueMain={totalMain}
-          valueSuffix={currency}
+          valueSuffix={totalMain !== "—" ? currency : undefined}
           fullWidth
         />
         <View style={styles.tilesRow}>

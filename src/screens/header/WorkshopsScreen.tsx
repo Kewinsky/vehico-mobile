@@ -124,6 +124,36 @@ export function WorkshopsScreen({ navigation }: Props) {
     setSortOrder("az");
   }, []);
 
+  const renderWorkshopIcon = useCallback(
+    (type: WorkshopType | null | undefined) => {
+      switch (type) {
+        case "mechanic":
+          return (
+            <Ionicons name="construct-outline" size={22} color="#ef4444" />
+          );
+        case "electrician":
+          return <Ionicons name="flash-outline" size={22} color="#f59e0b" />;
+        case "detailer":
+          return <Ionicons name="water-outline" size={22} color="#3b82f6" />;
+        case "bodywork":
+          return (
+            <Ionicons name="color-palette-outline" size={22} color="#22c55e" />
+          );
+        case "car_wash":
+          return <Ionicons name="rainy-outline" size={22} color="#0ea5e9" />;
+        default:
+          return (
+            <Ionicons
+              name="storefront-outline"
+              size={22}
+              color={theme.colors.muted}
+            />
+          );
+      }
+    },
+    [theme.colors.muted],
+  );
+
   const headerActions: HeaderAction[] = useMemo(
     () => [
       ...(hasActiveFilters
@@ -170,6 +200,7 @@ export function WorkshopsScreen({ navigation }: Props) {
           <TimelineItem
             title={item.name}
             subtitle={item.address ?? undefined}
+            icon={renderWorkshopIcon(item.workshop_type)}
             onPress={() =>
               navigation.navigate("WorkshopForm", { workshopId: item.id })
             }
