@@ -25,6 +25,7 @@ import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
+import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -249,313 +250,295 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <Pressable
-          onPress={openDatePicker}
-          style={({ pressed }) => [styles.row, { opacity: pressed ? 0.75 : 1 }]}
-        >
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="calendar-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
+          <Card>
+            <Pressable
+              onPress={openDatePicker}
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              {t("fuelingForm.date")}
-            </Text>
-          </View>
-          <Text
-            style={[
-              styles.valueText,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-            numberOfLines={1}
-          >
-            {date}
-          </Text>
-        </Pressable>
-
-        {datePickerOpen ? (
-          <View
-            style={[
-              styles.pickerWrap,
-              {
-                borderTopColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <DateTimePicker
-              value={datePickerDraft}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              themeVariant={
-                Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
-                  ? "dark"
-                  : "light"
-              }
-              onChange={(event, selectedDate) => {
-                if (Platform.OS === "ios") {
-                  if (selectedDate) setDatePickerDraft(selectedDate);
-                  return;
-                }
-
-                setDatePickerOpen(false);
-                if ((event as any)?.type === "dismissed") return;
-                if (selectedDate) setDate(formatYmd(selectedDate));
-              }}
-            />
-
-            {Platform.OS === "ios" ? (
-              <View style={styles.pickerActionsRow}>
-                <Pressable
-                  onPress={() => setDatePickerOpen(false)}
-                  style={({ pressed }) => [
-                    styles.pickerActionBtn,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: "transparent",
-                      opacity: pressed ? 0.8 : 1,
-                    },
-                  ]}
-                >
+              <CardRow>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
                   <Text
-                    style={[
-                      styles.pickerActionText,
-                      { color: theme.colors.muted },
-                    ]}
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
                   >
-                    {t("common.cancel")}
+                    {t("fuelingForm.date")}
                   </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => {
-                    setDate(formatYmd(datePickerDraft));
+                </View>
+                <Text
+                  style={[
+                    styles.valueText,
+                    { color: theme.colors.fg, textAlign: "right" },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {date}
+                </Text>
+              </CardRow>
+            </Pressable>
+
+            {datePickerOpen ? (
+              <View
+                style={[
+                  styles.pickerWrap,
+                  {
+                    borderTopColor: theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                  },
+                ]}
+              >
+                <DateTimePicker
+                  value={datePickerDraft}
+                  mode="date"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  themeVariant={
+                    Platform.OS === "ios" && theme.colors.fg === "#FFFFFF"
+                      ? "dark"
+                      : "light"
+                  }
+                  onChange={(event, selectedDate) => {
+                    if (Platform.OS === "ios") {
+                      if (selectedDate) setDatePickerDraft(selectedDate);
+                      return;
+                    }
+
                     setDatePickerOpen(false);
+                    if ((event as any)?.type === "dismissed") return;
+                    if (selectedDate) setDate(formatYmd(selectedDate));
                   }}
-                  style={({ pressed }) => [
-                    styles.pickerActionBtn,
-                    {
-                      borderColor: theme.colors.accent,
-                      backgroundColor: accentBg,
-                      opacity: pressed ? 0.8 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.pickerActionText,
-                      { color: theme.colors.accent },
-                    ]}
-                  >
-                    {t("common.done")}
-                  </Text>
-                </Pressable>
+                />
+
+                {Platform.OS === "ios" ? (
+                  <View style={styles.pickerActionsRow}>
+                    <Pressable
+                      onPress={() => setDatePickerOpen(false)}
+                      style={({ pressed }) => [
+                        styles.pickerActionBtn,
+                        {
+                          borderColor: theme.colors.border,
+                          backgroundColor: "transparent",
+                          opacity: pressed ? 0.8 : 1,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.pickerActionText,
+                          { color: theme.colors.muted },
+                        ]}
+                      >
+                        {t("common.cancel")}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        setDate(formatYmd(datePickerDraft));
+                        setDatePickerOpen(false);
+                      }}
+                      style={({ pressed }) => [
+                        styles.pickerActionBtn,
+                        {
+                          borderColor: theme.colors.accent,
+                          backgroundColor: accentBg,
+                          opacity: pressed ? 0.8 : 1,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.pickerActionText,
+                          { color: theme.colors.accent },
+                        ]}
+                      >
+                        {t("common.done")}
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : null}
               </View>
             ) : null}
-          </View>
-        ) : null}
 
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <Pressable
-          onPress={() =>
-            showPicker<FuelGrade>({
-              title: t("fuelingForm.fuelType"),
-              value: fuelType,
-              options: FUEL_TYPE_OPTIONS,
-              getLabel: (v) => t(`fuelingForm.fuelTypes.${v}`),
-              onChange: setFuelType,
-              placeholderLabel: t("fuelingForm.fuelPlaceholder"),
-            })
-          }
-          style={({ pressed }) => [styles.row, { opacity: pressed ? 0.75 : 1 }]}
-        >
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="options-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
+            <CardDivider />
+            <Pressable
+              onPress={() =>
+                showPicker<FuelGrade>({
+                  title: t("fuelingForm.fuelType"),
+                  value: fuelType,
+                  options: FUEL_TYPE_OPTIONS,
+                  getLabel: (v) => t(`fuelingForm.fuelTypes.${v}`),
+                  onChange: setFuelType,
+                  placeholderLabel: t("fuelingForm.fuelPlaceholder"),
+                })
+              }
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              {t("fuelingForm.fuelType")}
-            </Text>
-          </View>
-          <Text
-            style={[
-              styles.valueText,
-              {
-                color: fuelType ? theme.colors.fg : theme.colors.muted,
-                textAlign: "right",
-              },
-            ]}
-            numberOfLines={1}
-          >
-            {fuelType
-              ? t(`fuelingForm.fuelTypes.${fuelType}`)
-              : t("fuelingForm.fuelPlaceholder")}
-          </Text>
-        </Pressable>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <Pressable
-          onPress={() =>
-            showPicker<GasStation>({
-              title: t("fuelingForm.gasStation"),
-              value: gasStation,
-              options: GAS_STATION_OPTIONS,
-              getLabel: (v) => t(`fuelingForm.stations.${v}`),
-              onChange: setGasStation,
-              placeholderLabel: t("fuelingForm.gasStationPlaceholder"),
-            })
-          }
-          style={({ pressed }) => [styles.row, { opacity: pressed ? 0.75 : 1 }]}
-        >
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="location-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
+              <CardRow>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="options-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("fuelingForm.fuelType")}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.valueText,
+                    {
+                      color: fuelType ? theme.colors.fg : theme.colors.muted,
+                      textAlign: "right",
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {fuelType
+                    ? t(`fuelingForm.fuelTypes.${fuelType}`)
+                    : t("fuelingForm.fuelPlaceholder")}
+                </Text>
+              </CardRow>
+            </Pressable>
+            <CardDivider />
+            <Pressable
+              onPress={() =>
+                showPicker<GasStation>({
+                  title: t("fuelingForm.gasStation"),
+                  value: gasStation,
+                  options: GAS_STATION_OPTIONS,
+                  getLabel: (v) => t(`fuelingForm.stations.${v}`),
+                  onChange: setGasStation,
+                  placeholderLabel: t("fuelingForm.gasStationPlaceholder"),
+                })
+              }
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              {t("fuelingForm.gasStation")}
-            </Text>
-          </View>
-          <Text
-            style={[
-              styles.valueText,
-              {
-                color: gasStation ? theme.colors.fg : theme.colors.muted,
-                textAlign: "right",
-              },
-            ]}
-            numberOfLines={1}
-          >
-            {gasStation
-              ? t(`fuelingForm.stations.${gasStation}`)
-              : t("fuelingForm.gasStationPlaceholder")}
-          </Text>
-        </Pressable>
-      </View>
+              <CardRow>
+                <View style={styles.rowLeft}>
+                  <Ionicons
+                    name="location-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("fuelingForm.gasStation")}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.valueText,
+                    {
+                      color: gasStation ? theme.colors.fg : theme.colors.muted,
+                      textAlign: "right",
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {gasStation
+                    ? t(`fuelingForm.stations.${gasStation}`)
+                    : t("fuelingForm.gasStationPlaceholder")}
+                </Text>
+              </CardRow>
+            </Pressable>
+          </Card>
 
-      <View style={{ height: theme.spacing.sm }} />
+          <View style={{ height: theme.spacing.sm }} />
 
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="speedometer-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("fuelingForm.distance", { unit: distanceUnit })}
-            </Text>
-          </View>
-          <TextInput
-            value={distance}
-            onChangeText={setDistance}
-            keyboardType="decimal-pad"
-            editable={!saving}
-            placeholder={t("fuelingForm.placeholderDistance")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="water-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("fuelingForm.fuelAmount", { unit: fuelUnitLabel })}
-            </Text>
-          </View>
-          <TextInput
-            value={fuelAmount}
-            onChangeText={setFuelAmount}
-            keyboardType="decimal-pad"
-            editable={!saving}
-            placeholder={t("fuelingForm.placeholderFuelAmount")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="card-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("fuelingForm.cost")}
-            </Text>
-          </View>
-          <TextInput
-            value={fuelCost}
-            onChangeText={setFuelCost}
-            keyboardType="decimal-pad"
-            editable={!saving}
-            placeholder={t("fuelingForm.placeholderCost")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </View>
-      </View>
+          <Card>
+            <CardRow>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="speedometer-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("fuelingForm.distance", { unit: distanceUnit })}
+                </Text>
+              </View>
+              <TextInput
+                value={distance}
+                onChangeText={setDistance}
+                keyboardType="decimal-pad"
+                editable={!saving}
+                placeholder={t("fuelingForm.placeholderDistance")}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
+            </CardRow>
+            <CardDivider />
+            <CardRow>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="water-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("fuelingForm.fuelAmount", { unit: fuelUnitLabel })}
+                </Text>
+              </View>
+              <TextInput
+                value={fuelAmount}
+                onChangeText={setFuelAmount}
+                keyboardType="decimal-pad"
+                editable={!saving}
+                placeholder={t("fuelingForm.placeholderFuelAmount")}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
+            </CardRow>
+            <CardDivider />
+            <CardRow>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="card-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("fuelingForm.cost")}
+                </Text>
+              </View>
+              <TextInput
+                value={fuelCost}
+                onChangeText={setFuelCost}
+                keyboardType="decimal-pad"
+                editable={!saving}
+                placeholder={t("fuelingForm.placeholderCost")}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
+            </CardRow>
+          </Card>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -564,18 +547,6 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    card: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-    },
     rowLeft: {
       flexDirection: "row",
       alignItems: "center",
@@ -590,7 +561,6 @@ const makeStyles = (theme: any) =>
       justifyContent: "flex-end",
       alignItems: "center",
     },
-    divider: { height: 1, width: "100%" },
     input: {
       flex: 1,
       minWidth: 0,

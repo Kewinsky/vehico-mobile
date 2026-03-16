@@ -175,7 +175,6 @@ const makeStyles = (theme: any) =>
     listWrap: { flex: 1 },
     list: { flex: 1 },
     reportCard: {
-      borderWidth: 1,
       borderRadius: theme.radius.md,
       padding: theme.spacing.sm,
     },

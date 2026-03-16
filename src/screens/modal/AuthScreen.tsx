@@ -16,6 +16,7 @@ import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { ENV } from "../../config/env";
+import { Card, CardRow } from "../../ui/components/common/Card";
 
 // Complete the auth session for better UX
 WebBrowser.maybeCompleteAuthSession();
@@ -127,7 +128,6 @@ export function AuthScreen({ navigation }: Props) {
     if (!sessionData.session) {
       throw new Error("Session was not created");
     }
-
   }
 
   async function signInWithOAuth(provider: "google" | "facebook") {
@@ -196,7 +196,6 @@ export function AuthScreen({ navigation }: Props) {
       });
 
       if (error) throw error;
-
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -209,7 +208,10 @@ export function AuthScreen({ navigation }: Props) {
     return (
       <ModalLayout
         title={t("auth.magicLinkSentTitle")}
-        cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+        cancel={{
+          onPress: () => navigation.goBack(),
+          label: t("common.cancel"),
+        }}
       >
         <FormScreen noLayout>
           <NativeHeaderScrollView>
@@ -261,16 +263,8 @@ export function AuthScreen({ navigation }: Props) {
           <View
             style={[styles.magicLinkSection, { marginTop: theme.spacing.md }]}
           >
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.row}>
+            <Card>
+              <CardRow>
                 <View style={styles.rowLeft}>
                   <Ionicons
                     name="mail-outline"
@@ -296,8 +290,8 @@ export function AuthScreen({ navigation }: Props) {
                   editable={!isSubmitting && !isSocialLoading}
                   style={[styles.input, { color: theme.colors.fg }]}
                 />
-              </View>
-            </View>
+              </CardRow>
+            </Card>
 
             <Button onPress={sendMagicLink} disabled={!canSubmit}>
               {isSubmitting ? t("auth.sendingLink") : t("auth.sendMagicLink")}
@@ -316,9 +310,7 @@ export function AuthScreen({ navigation }: Props) {
                 { backgroundColor: theme.colors.border },
               ]}
             />
-            <Text
-              style={[styles.dividerText, { color: theme.colors.muted }]}
-            >
+            <Text style={[styles.dividerText, { color: theme.colors.muted }]}>
               {t("auth.orContinueWith")}
             </Text>
             <View
@@ -351,10 +343,7 @@ export function AuthScreen({ navigation }: Props) {
                   color={theme.colors.fg}
                 />
                 <Text
-                  style={[
-                    styles.socialButtonText,
-                    { color: theme.colors.fg },
-                  ]}
+                  style={[styles.socialButtonText, { color: theme.colors.fg }]}
                 >
                   {isSocialLoading === "facebook"
                     ? t("common.loading")
@@ -379,10 +368,7 @@ export function AuthScreen({ navigation }: Props) {
                   color={theme.colors.fg}
                 />
                 <Text
-                  style={[
-                    styles.socialButtonText,
-                    { color: theme.colors.fg },
-                  ]}
+                  style={[styles.socialButtonText, { color: theme.colors.fg }]}
                 >
                   {isSocialLoading === "google"
                     ? t("common.loading")
@@ -409,9 +395,7 @@ export function AuthScreen({ navigation }: Props) {
               <Text
                 style={[styles.footerLink, { color: theme.colors.accent }]}
                 onPress={() =>
-                  void WebBrowser.openBrowserAsync(
-                    `${ENV.WEB_APP_URL}/privacy`,
-                  )
+                  void WebBrowser.openBrowserAsync(`${ENV.WEB_APP_URL}/privacy`)
                 }
               >
                 {t("auth.privacyPolicy")}
@@ -442,18 +426,6 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,
       marginVertical: theme.spacing.md,
-    },
-    card: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
     },
     rowLeft: {
       flexDirection: "row",

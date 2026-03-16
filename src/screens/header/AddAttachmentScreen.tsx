@@ -254,15 +254,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
             disabled={uploading}
             style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
           >
-            <View
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
+            <View style={styles.card}>
               <Text style={styles.cardTitle}>{item.title}</Text>
               <Text style={styles.cardMeta}>
                 {String(item.service_date).slice(0, 10)}
@@ -281,9 +273,9 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     card: {
-      borderWidth: 1,
       borderRadius: theme.radius.md,
       padding: theme.spacing.sm,
+      backgroundColor: theme.colors.card,
     },
     cardTitle: {
       color: theme.colors.fg,

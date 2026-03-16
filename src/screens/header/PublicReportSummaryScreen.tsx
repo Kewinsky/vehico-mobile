@@ -613,15 +613,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
           {/* Entitlements info */}
           {!isPremium && (
             <View style={styles.section}>
-              <View
-                style={[
-                  styles.limitInfo,
-                  {
-                    backgroundColor: theme.colors.card,
-                    borderColor: theme.colors.border,
-                  },
-                ]}
-              >
+              <View style={[styles.limitInfo]}>
                 <Ionicons
                   name="information-circle"
                   size={20}
@@ -678,8 +670,6 @@ const makeStyles = (theme: any) =>
     section: {
       marginBottom: theme.spacing.lg,
       backgroundColor: theme.colors.card,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
     },
@@ -714,14 +704,11 @@ const makeStyles = (theme: any) =>
       width: theme.spacing.lg,
       height: theme.spacing.lg,
       borderRadius: theme.radius.xs,
-      borderWidth: 2,
-      borderColor: theme.colors.border,
       alignItems: "center",
       justifyContent: "center",
     },
     checkboxChecked: {
       backgroundColor: theme.colors.accent,
-      borderColor: theme.colors.accent,
     },
     checkboxLabel: {
       flex: 1,
@@ -735,7 +722,7 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
       padding: theme.spacing.md,
       borderRadius: theme.radius.md,
-      borderWidth: 1,
+      backgroundColor: theme.colors.card,
     },
     limitText: {
       fontSize: theme.typography.small,

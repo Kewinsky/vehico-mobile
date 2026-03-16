@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, TextInput, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -6,7 +6,6 @@ import * as Clipboard from "expo-clipboard";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { resolveMarketplacePostContent } from "../../services/marketplace/marketplaceRepo";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -25,7 +24,6 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
-  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { content, vehicleId, postTitle, generatedAt } = route.params;
   const [displayLang, setDisplayLang] = useState<"pl" | "en">(
@@ -38,7 +36,6 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
   );
 
   const handleBack = () => {
-    // Try to go back first, if not possible, replace with Marketplace screen
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
@@ -100,8 +97,6 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     contentContainer: {
-      borderWidth: 1,
-      borderColor: theme.colors.border,
       borderRadius: theme.radius.md,
       backgroundColor: theme.colors.card,
       minHeight: 300,

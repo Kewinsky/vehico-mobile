@@ -664,8 +664,6 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     card: {
-      borderWidth: 1,
-      borderColor: theme.colors.border,
       backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
       padding: theme.spacing.sm,

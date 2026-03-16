@@ -119,10 +119,7 @@ function StatTile({
   const tileStyle = [
     styles.tile,
     fullWidth && styles.tileFullWidth,
-    {
-      borderColor: theme.colors.border,
-      backgroundColor: theme.colors.card,
-    },
+    { backgroundColor: theme.colors.card },
   ];
   if (onPress) {
     return (
@@ -1071,7 +1068,9 @@ export function StatisticsScreen({ route, navigation }: Props) {
         ...x,
         color:
           x.key in SERVICE_CATEGORY_COLORS
-            ? SERVICE_CATEGORY_COLORS[x.key as keyof typeof SERVICE_CATEGORY_COLORS]
+            ? SERVICE_CATEGORY_COLORS[
+                x.key as keyof typeof SERVICE_CATEGORY_COLORS
+              ]
             : theme.colors.accent,
       })),
     [expensesByCategory, theme.colors.accent],
@@ -1089,6 +1088,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
         options={periodOptions.map((p) => ({ value: p.key, label: p.label }))}
         onChange={setPeriod}
         size="sm"
+        variant="secondary"
       />
     </View>
   );
@@ -1509,7 +1509,7 @@ const makeStyles = (theme: any) =>
       paddingVertical: theme.spacing.xl,
     },
     heroCard: {
-      borderWidth: 1,
+      backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
       padding: theme.spacing.lg,
       gap: theme.spacing.sm,
@@ -1529,7 +1529,6 @@ const makeStyles = (theme: any) =>
     tilesRow: { flexDirection: "row", gap: theme.spacing.sm },
     tile: {
       flex: 1,
-      borderWidth: 1,
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
       justifyContent: "space-between",

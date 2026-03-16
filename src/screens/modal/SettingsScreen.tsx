@@ -1,12 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Linking from "expo-linking";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -20,6 +13,7 @@ import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { supabase } from "../../services/supabase/client";
+import { Card, CardDivider } from "../../ui/components/common/Card";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Settings">;
 
@@ -200,15 +194,7 @@ export function SettingsScreen({ navigation }: Props) {
           </Pressable>
         </View>
 
-        <View
-          style={[
-            styles.list,
-            {
-              backgroundColor: theme.colors.card,
-              borderColor: theme.colors.border,
-            },
-          ]}
-        >
+        <Card>
           {rows.map((row, index) => {
             const isSignOut = row.id === "signout";
             const iconColor = isSignOut
@@ -217,53 +203,56 @@ export function SettingsScreen({ navigation }: Props) {
             const chevronColor = iconColor;
 
             return (
-              <Pressable
-                key={row.id}
-                onPress={row.onPress}
-                style={({ pressed }) => [
-                  styles.row,
-                  index < rows.length - 1 && styles.rowBorder,
-                  { borderColor: theme.colors.border },
-                  pressed && styles.rowPressed,
-                ]}
-              >
-                {typeof row.icon === "string" ? (
+              <View key={row.id}>
+                <Pressable
+                  onPress={row.onPress}
+                  style={({ pressed }) => [
+                    styles.row,
+                    pressed && styles.rowPressed,
+                  ]}
+                >
+                  {typeof row.icon === "string" ? (
+                    <Ionicons
+                      name={
+                        row.icon as React.ComponentProps<
+                          typeof Ionicons
+                        >["name"]
+                      }
+                      size={22}
+                      color={iconColor}
+                      style={styles.rowIcon}
+                    />
+                  ) : (
+                    <View style={styles.rowIcon}>{row.icon}</View>
+                  )}
+                  <View style={styles.rowText}>
+                    <Text
+                      style={[styles.rowTitle, { color: theme.colors.fg }]}
+                      numberOfLines={1}
+                    >
+                      {row.title}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.rowSubtitle,
+                        { color: theme.colors.muted },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {row.subtitle}
+                    </Text>
+                  </View>
                   <Ionicons
-                    name={
-                      row.icon as React.ComponentProps<typeof Ionicons>["name"]
-                    }
-                    size={22}
-                    color={iconColor}
-                    style={styles.rowIcon}
+                    name="chevron-forward"
+                    size={20}
+                    color={chevronColor}
                   />
-                ) : (
-                  <View style={styles.rowIcon}>{row.icon}</View>
-                )}
-                <View style={styles.rowText}>
-                  <Text
-                    style={[styles.rowTitle, { color: theme.colors.fg }]}
-                    numberOfLines={1}
-                  >
-                    {row.title}
-                  </Text>
-                  <Text
-                    style={[styles.rowSubtitle, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {row.subtitle}
-                  </Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={chevronColor}
-                />
-              </Pressable>
+                </Pressable>
+                {index < rows.length - 1 && <CardDivider />}
+              </View>
             );
           })}
-        </View>
-
-        <View style={styles.bottomSpacer} />
+        </Card>
       </View>
     </ModalLayout>
   );
@@ -309,19 +298,11 @@ const makeStyles = (theme: any) =>
     pencilIcon: {
       marginLeft: 2,
     },
-    list: {
-      borderRadius: theme.radius.md,
-      borderWidth: 1,
-      overflow: "hidden",
-    },
     row: {
       flexDirection: "row",
       alignItems: "center",
       paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
-    },
-    rowBorder: {
-      borderBottomWidth: 1,
     },
     rowPressed: {
       opacity: 0.7,
@@ -340,8 +321,5 @@ const makeStyles = (theme: any) =>
     rowSubtitle: {
       fontSize: theme.typography.small,
       marginTop: 2,
-    },
-    bottomSpacer: {
-      height: theme.spacing.lg,
     },
   });

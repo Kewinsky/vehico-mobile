@@ -61,8 +61,6 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     tile: {
       flex: 1,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
       backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,

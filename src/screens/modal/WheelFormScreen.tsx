@@ -504,7 +504,7 @@ function makeStyles(theme: any) {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
     },
     rowLeft: {
@@ -521,7 +521,6 @@ function makeStyles(theme: any) {
       justifyContent: "flex-end",
       alignItems: "center",
     },
-    divider: { height: 1, width: "100%" },
     input: {
       flex: 1,
       minWidth: 0,

@@ -257,9 +257,11 @@ export function ImportScreen({ navigation, route }: Props) {
               <Ionicons
                 name="copy-outline"
                 size={theme.icons.headerButton}
-                color={theme.colors.fg}
+                color={theme.colors.accent}
               />
-              <Text style={[styles.actionPillText, { color: theme.colors.fg }]}>
+              <Text
+                style={[styles.actionPillText, { color: theme.colors.accent }]}
+              >
                 {t("import.copyColumnsButton")}
               </Text>
             </Pressable>
@@ -285,19 +287,17 @@ const makeStyles = (theme: any) =>
       paddingVertical: theme.spacing.xs,
       paddingHorizontal: theme.spacing.md,
       borderRadius: 9999,
-      borderWidth: 1,
     },
     actionPillText: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
     },
     card: {
-      borderWidth: 1,
       borderRadius: theme.radius.md,
       overflow: "hidden",
     },
     cardInner: {
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
     },
     rowLeft: {

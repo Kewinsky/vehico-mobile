@@ -57,30 +57,16 @@ export function ListRowWithActions({
   );
 
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          borderColor: theme.colors.border,
-          backgroundColor: theme.colors.card,
-        },
-        dimmed && styles.cardDimmed,
-      ]}
-    >
+    <View style={[styles.card, dimmed && styles.cardDimmed]}>
       <View style={styles.row}>
         {onPress ? (
-          <Pressable
-            style={{ flex: 1, minWidth: 0 }}
-            onPress={onPress}
-          >
+          <Pressable style={{ flex: 1, minWidth: 0 }} onPress={onPress}>
             {mainContent}
           </Pressable>
         ) : (
           <View style={styles.mainWrap}>{mainContent}</View>
         )}
-        {trailing ? (
-          <View style={styles.trailing}>{trailing}</View>
-        ) : null}
+        {trailing ? <View style={styles.trailing}>{trailing}</View> : null}
       </View>
     </View>
   );
@@ -89,9 +75,9 @@ export function ListRowWithActions({
 const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     card: {
-      borderWidth: 1,
       borderRadius: theme.radius.md,
       padding: theme.spacing.sm,
+      backgroundColor: theme.colors.card,
     },
     cardDimmed: {
       opacity: 0.6,

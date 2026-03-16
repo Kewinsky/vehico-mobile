@@ -52,6 +52,7 @@ import {
   type ReminderPreset,
 } from "../reminderPresets";
 import { ModalLayout } from "../../layouts";
+import { CardDivider } from "../../ui/components/common/Card";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
 
@@ -382,7 +383,9 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
   return (
     <ModalLayout
-      title={reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle")}
+      title={
+        reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle")
+      }
       cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
       done={{
         onPress: onSave,
@@ -430,10 +433,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                       onPress={() => applyPreset(preset)}
                       style={({ pressed }) => [
                         styles.presetChip,
-                        {
-                          borderColor: theme.colors.border,
-                          backgroundColor: theme.colors.card,
-                        },
                         pressed && { opacity: 0.85 },
                       ]}
                     >
@@ -471,15 +470,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           ) : null}
 
           {/* Section 1: Title */}
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
+          <View style={[styles.card]}>
             <View style={styles.row}>
               <View style={styles.rowLeft}>
                 <Ionicons
@@ -512,15 +503,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           <View style={{ height: theme.spacing.sm }} />
 
           {/* Section 2: Date reminder */}
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
+          <View style={[styles.card]}>
             <View style={[styles.row, { justifyContent: "space-between" }]}>
               <View style={styles.rowLeft}>
                 <Ionicons
@@ -715,12 +698,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
                 {dateRepeats && (
                   <>
-                    <View
-                      style={[
-                        styles.divider,
-                        { backgroundColor: theme.colors.border },
-                      ]}
-                    />
+                    <CardDivider />
                     <View style={styles.row}>
                       <View style={styles.rowLeft}>
                         <Text
@@ -810,15 +788,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           <View style={{ height: theme.spacing.sm }} />
 
           {/* Section 3: Mileage reminder */}
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
+          <View style={[styles.card]}>
             <View style={[styles.row, { justifyContent: "space-between" }]}>
               <View style={styles.rowLeft}>
                 <Ionicons
@@ -846,12 +816,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
             {mileageEnabled && (
               <>
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
+                <CardDivider />
                 <View style={styles.row}>
                   <Text
                     style={[styles.label, { color: theme.colors.muted }]}
@@ -872,12 +837,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                     ]}
                   />
                 </View>
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
+                <CardDivider />
                 <View style={[styles.row, { justifyContent: "space-between" }]}>
                   <View style={styles.rowLeft}>
                     <Ionicons
@@ -904,12 +864,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                 </View>
                 {mileageRepeats && (
                   <>
-                    <View
-                      style={[
-                        styles.divider,
-                        { backgroundColor: theme.colors.border },
-                      ]}
-                    />
+                    <CardDivider />
                     <View style={styles.row}>
                       <Text
                         style={[styles.label, { color: theme.colors.muted }]}
@@ -950,7 +905,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           >
             <View
               style={{
-                paddingVertical: theme.spacing.sm,
+                paddingVertical: theme.spacing.md,
                 paddingHorizontal: theme.spacing.md,
               }}
             >
@@ -1010,10 +965,10 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     presetChip: {
-      borderWidth: 1,
       borderRadius: theme.radius.md,
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
+      backgroundColor: theme.colors.card,
     },
     presetChipTitle: {
       fontSize: theme.typography.body,
@@ -1026,8 +981,8 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.small,
     },
     card: {
-      borderWidth: 1,
       borderRadius: theme.radius.md,
+      backgroundColor: theme.colors.card,
       overflow: "hidden",
       marginHorizontal: theme.layout.contentPaddingHorizontal,
     },
@@ -1035,7 +990,7 @@ const makeStyles = (theme: any) =>
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
     },
     rowLeft: {
@@ -1071,10 +1026,6 @@ const makeStyles = (theme: any) =>
       flex: 1,
       minWidth: 0,
       fontSize: theme.typography.body,
-    },
-    divider: {
-      height: 1,
-      width: "100%",
     },
     pickerWrap: {
       borderTopWidth: 1,

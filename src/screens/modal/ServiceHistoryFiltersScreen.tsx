@@ -23,6 +23,7 @@ import { ModalFormScreen } from "../../ui/components/layout/ModalFormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { Ionicons } from "@expo/vector-icons";
+import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 
 export type ServiceHistoryFiltersParams = {
   categoryFilter: "all" | ServiceEntryCategory;
@@ -296,16 +297,8 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
         </Button>
       }
     >
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <View style={styles.row}>
+      <Card>
+        <CardRow>
           <Ionicons
             name="notifications-outline"
             size={20}
@@ -323,44 +316,42 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
             }}
             thumbColor={Platform.OS === "android" ? "#ffffff" : undefined}
           />
-        </View>
+        </CardRow>
 
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
+        <CardDivider />
         <Pressable
           onPress={showCategoryPicker}
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
+          style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
         >
-          <Ionicons
-            name="pricetag-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <Text
-            style={[
-              styles.valueText,
-              {
-                color:
-                  categoryFilter === "all"
-                    ? theme.colors.muted
-                    : theme.colors.fg,
-              },
-            ]}
-          >
-            {categoryLabel}
-          </Text>
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={theme.colors.accent}
-          />
+          <CardRow>
+            <Ionicons
+              name="pricetag-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[
+                styles.valueText,
+                {
+                  color:
+                    categoryFilter === "all"
+                      ? theme.colors.muted
+                      : theme.colors.fg,
+                },
+              ]}
+            >
+              {categoryLabel}
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={theme.colors.accent}
+            />
+          </CardRow>
         </Pressable>
 
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
+        <CardDivider />
+        <CardRow>
           <Ionicons
             name="swap-vertical-outline"
             size={20}
@@ -378,12 +369,10 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
               size="sm"
             />
           </View>
-        </View>
+        </CardRow>
 
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
+        <CardDivider />
+        <CardRow>
           <Ionicons
             name="options-outline"
             size={20}
@@ -434,73 +423,67 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
               />
             )}
           </View>
-        </View>
+        </CardRow>
 
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
+        <CardDivider />
         <Pressable
           onPress={() => openPicker("from")}
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
+          style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
         >
-          <Ionicons
-            name="calendar-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <Text
-            style={[
-              styles.valueText,
-              { color: dateFrom ? theme.colors.fg : theme.colors.muted },
-            ]}
-          >
-            {dateFrom || t("timeline.filterFrom")}
-          </Text>
+          <CardRow>
+            <Ionicons
+              name="calendar-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[
+                styles.valueText,
+                { color: dateFrom ? theme.colors.fg : theme.colors.muted },
+              ]}
+            >
+              {dateFrom || t("timeline.filterFrom")}
+            </Text>
+          </CardRow>
         </Pressable>
         {openDatePicker === "from" ? (
           <>
             {renderInlineDatePicker()}
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
+            <CardDivider />
           </>
         ) : (
-          <View
-            style={[styles.divider, { backgroundColor: theme.colors.border }]}
-          />
+          <CardDivider />
         )}
 
         <Pressable
           onPress={() => openPicker("to")}
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
+          style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
         >
-          <Ionicons
-            name="calendar-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <Text
-            style={[
-              styles.valueText,
-              { color: dateTo ? theme.colors.fg : theme.colors.muted },
-            ]}
-          >
-            {dateTo || t("timeline.filterTo")}
-          </Text>
+          <CardRow>
+            <Ionicons
+              name="calendar-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text
+              style={[
+                styles.valueText,
+                { color: dateTo ? theme.colors.fg : theme.colors.muted },
+              ]}
+            >
+              {dateTo || t("timeline.filterTo")}
+            </Text>
+          </CardRow>
         </Pressable>
         {openDatePicker === "to" ? (
           <>
             {renderInlineDatePicker()}
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
+            <CardDivider />
           </>
         ) : null}
 
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
+        <CardDivider />
+        <CardRow>
           <Ionicons name="cash-outline" size={20} color={theme.colors.accent} />
           <TextInput
             value={minCost}
@@ -510,11 +493,9 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
           />
-        </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
+        </CardRow>
+        <CardDivider />
+        <CardRow>
           <Ionicons name="cash-outline" size={20} color={theme.colors.accent} />
           <TextInput
             value={maxCost}
@@ -524,27 +505,14 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
             placeholderTextColor={theme.colors.muted}
             style={[styles.input, { color: theme.colors.fg }]}
           />
-        </View>
-        </View>
+        </CardRow>
+      </Card>
     </ModalFormScreen>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    card: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-    },
-    divider: { height: 1, width: "100%" },
     valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
     input: {
       flex: 1,

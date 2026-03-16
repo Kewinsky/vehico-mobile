@@ -1,8 +1,4 @@
-import {
-  useCallback,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -189,9 +185,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   return (
     <ModalLayout
       title={
-        workshopId
-          ? t("workshopForm.editTitle")
-          : t("workshopForm.addTitle")
+        workshopId ? t("workshopForm.editTitle") : t("workshopForm.addTitle")
       }
       cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
       done={{
@@ -213,145 +207,140 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="business-outline"
-              size={20}
-              color={theme.colors.accent}
+          <View style={[styles.card]}>
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="business-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("workshopForm.name")}
+                </Text>
+              </View>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                editable={!saving}
+                placeholder={t("workshopForm.placeholderName")}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
+            </View>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
+            <Pressable
+              onPress={() =>
+                showPicker<WorkshopType>({
+                  title: t("workshopForm.workshopType"),
+                  value: workshopType,
+                  options: WORKSHOP_TYPES,
+                  getLabel: (v) => t(`workshopForm.types.${v}`),
+                  onChange: setWorkshopType,
+                  placeholderLabel: t("workshopForm.selectType"),
+                })
+              }
+              style={({ pressed }) => [
+                styles.row,
+                pressed && { opacity: 0.75 },
+              ]}
             >
-              {t("workshopForm.name")}
-            </Text>
-          </View>
-          <TextInput
-            value={name}
-            onChangeText={setName}
-            editable={!saving}
-            placeholder={t("workshopForm.placeholderName")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <Pressable
-          onPress={() =>
-            showPicker<WorkshopType>({
-              title: t("workshopForm.workshopType"),
-              value: workshopType,
-              options: WORKSHOP_TYPES,
-              getLabel: (v) => t(`workshopForm.types.${v}`),
-              onChange: setWorkshopType,
-              placeholderLabel: t("workshopForm.selectType"),
-            })
-          }
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
-        >
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="pricetag-outline"
-              size={20}
-              color={theme.colors.accent}
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="pricetag-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("workshopForm.workshopType")}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color: workshopType ? theme.colors.fg : theme.colors.muted,
+                    textAlign: "right",
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {workshopType
+                  ? t(`workshopForm.types.${workshopType}`)
+                  : t("workshopForm.selectType")}
+              </Text>
+            </Pressable>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("workshopForm.workshopType")}
-            </Text>
-          </View>
-          <Text
-            style={[
-              styles.valueText,
-              {
-                color: workshopType ? theme.colors.fg : theme.colors.muted,
-                textAlign: "right",
-              },
-            ]}
-            numberOfLines={1}
-          >
-            {workshopType
-              ? t(`workshopForm.types.${workshopType}`)
-              : t("workshopForm.selectType")}
-          </Text>
-        </Pressable>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="call-outline"
-              size={20}
-              color={theme.colors.accent}
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="call-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("workshopForm.phoneNumber")}
+                </Text>
+              </View>
+              <TextInput
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+                keyboardType="phone-pad"
+                editable={!saving}
+                placeholder={t("workshopForm.placeholderPhone")}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
+            </View>
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("workshopForm.phoneNumber")}
-            </Text>
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="location-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("workshopForm.address")}
+                </Text>
+              </View>
+              <TextInput
+                value={address}
+                onChangeText={setAddress}
+                editable={!saving}
+                placeholder={t("workshopForm.placeholderAddress")}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
+            </View>
           </View>
-          <TextInput
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            keyboardType="phone-pad"
-            editable={!saving}
-            placeholder={t("workshopForm.placeholderPhone")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="location-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("workshopForm.address")}
-            </Text>
-          </View>
-          <TextInput
-            value={address}
-            onChangeText={setAddress}
-            editable={!saving}
-            placeholder={t("workshopForm.placeholderAddress")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </View>
-        </View>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -366,12 +355,16 @@ function makeStyles(theme: any) {
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
-    card: { borderWidth: 1, borderRadius: theme.radius.md, overflow: "hidden" },
+    card: {
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+      backgroundColor: theme.colors.card,
+    },
     row: {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
     },
     rowLeft: {
@@ -388,7 +381,6 @@ function makeStyles(theme: any) {
       justifyContent: "flex-end",
       alignItems: "center",
     },
-    divider: { height: 1, width: "100%" },
     input: {
       flex: 1,
       minWidth: 0,

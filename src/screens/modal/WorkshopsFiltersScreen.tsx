@@ -13,6 +13,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
+import { Card, CardRow } from "../../ui/components/common/Card";
 
 export type WorkshopsFiltersParams = {
   typeFilter: WorkshopType | "all";
@@ -92,67 +93,63 @@ export function WorkshopsFiltersScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <Pressable
-          onPress={showTypePicker}
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
-        >
-          <Ionicons
-            name="pricetag-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <Text
-            style={[
-              styles.valueText,
-              {
-                color:
-                  typeFilter === "all" ? theme.colors.muted : theme.colors.fg,
-              },
-            ]}
-            numberOfLines={1}
-          >
-            {typeFilter === "all"
-              ? t("workshops.filterByType")
-              : getWorkshopTypeLabel(typeFilter)}
-          </Text>
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={theme.colors.accent}
-          />
-        </Pressable>
+          <Card>
+            <Pressable
+              onPress={showTypePicker}
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+            >
+              <CardRow>
+                <Ionicons
+                  name="pricetag-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[
+                    styles.valueText,
+                    {
+                      color:
+                        typeFilter === "all"
+                          ? theme.colors.muted
+                          : theme.colors.fg,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {typeFilter === "all"
+                    ? t("workshops.filterByType")
+                    : getWorkshopTypeLabel(typeFilter)}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+              </CardRow>
+            </Pressable>
 
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <Ionicons
-            name="swap-vertical-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <View style={styles.segmentWrap}>
-            <SegmentTabs<"az" | "za">
-              value={sortOrder}
-              options={[
-                { value: "az", label: t("workshops.sortAz") },
-                { value: "za", label: t("workshops.sortZa") },
-              ]}
-              onChange={setSortOrder}
-              size="sm"
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
-          </View>
-        </View>
-      </View>
+            <CardRow>
+              <Ionicons
+                name="swap-vertical-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <View style={styles.segmentWrap}>
+                <SegmentTabs<"az" | "za">
+                  value={sortOrder}
+                  options={[
+                    { value: "az", label: t("workshops.sortAz") },
+                    { value: "za", label: t("workshops.sortZa") },
+                  ]}
+                  onChange={setSortOrder}
+                  size="sm"
+                />
+              </View>
+            </CardRow>
+          </Card>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -161,19 +158,10 @@ export function WorkshopsFiltersScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    card: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
+    divider: {
+      height: 1,
+      marginHorizontal: 0,
     },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-    },
-    divider: { height: 1, width: "100%" },
     valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
     segmentWrap: {
       flex: 1,

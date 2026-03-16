@@ -380,8 +380,6 @@ const makeStyles = (theme: any) =>
     section: { marginBottom: theme.spacing.md },
     hintSection: {
       backgroundColor: theme.colors.card,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
     },
@@ -397,7 +395,6 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.sm,
     },
     priceCard: {
-      borderWidth: 1,
       borderRadius: theme.radius.md,
       overflow: "hidden",
       marginBottom: theme.spacing.sm,
@@ -406,7 +403,7 @@ const makeStyles = (theme: any) =>
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
     },
     priceRowLeft: {

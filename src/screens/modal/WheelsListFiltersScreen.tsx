@@ -62,60 +62,54 @@ export function WheelsListFiltersScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <View style={styles.row}>
-          <Ionicons
-            name="checkmark-circle-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <View style={styles.segmentWrap}>
-            <SegmentTabs<"all" | "fitted" | "not_fitted">
-              value={fittedFilter}
-              options={[
-                { value: "all", label: t("common.all") },
-                { value: "fitted", label: t("wheels.currentlyFitted") },
-                {
-                  value: "not_fitted",
-                  label: t("wheels.notFitted", { defaultValue: "Not fitted" }),
-                },
-              ]}
-              onChange={setFittedFilter}
-              size="sm"
-            />
-          </View>
-        </View>
+          <View style={[styles.card]}>
+            <View style={styles.row}>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <View style={styles.segmentWrap}>
+                <SegmentTabs<"all" | "fitted" | "not_fitted">
+                  value={fittedFilter}
+                  options={[
+                    { value: "all", label: t("common.all") },
+                    { value: "fitted", label: t("wheels.currentlyFitted") },
+                    {
+                      value: "not_fitted",
+                      label: t("wheels.notFitted", {
+                        defaultValue: "Not fitted",
+                      }),
+                    },
+                  ]}
+                  onChange={setFittedFilter}
+                  size="sm"
+                />
+              </View>
+            </View>
 
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <Ionicons
-            name="swap-vertical-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <View style={styles.segmentWrap}>
-            <SegmentTabs<"az" | "za">
-              value={sortOrder}
-              options={[
-                { value: "az", label: t("workshops.sortAz") },
-                { value: "za", label: t("workshops.sortZa") },
-              ]}
-              onChange={setSortOrder}
-              size="sm"
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
+            <View style={styles.row}>
+              <Ionicons
+                name="swap-vertical-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <View style={styles.segmentWrap}>
+                <SegmentTabs<"az" | "za">
+                  value={sortOrder}
+                  options={[
+                    { value: "az", label: t("workshops.sortAz") },
+                    { value: "za", label: t("workshops.sortZa") },
+                  ]}
+                  onChange={setSortOrder}
+                  size="sm"
+                />
+              </View>
+            </View>
           </View>
-        </View>
-      </View>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -125,7 +119,7 @@ export function WheelsListFiltersScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     card: {
-      borderWidth: 1,
+      backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
       overflow: "hidden",
     },
@@ -133,10 +127,9 @@ const makeStyles = (theme: any) =>
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
     },
-    divider: { height: 1, width: "100%" },
     segmentWrap: {
       flex: 1,
       minWidth: 0,

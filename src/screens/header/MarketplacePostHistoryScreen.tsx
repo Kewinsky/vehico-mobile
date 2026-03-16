@@ -178,7 +178,6 @@ const makeStyles = (theme: any) =>
       paddingBottom: theme.spacing.md,
     },
     postCard: {
-      borderWidth: 1,
       borderRadius: theme.radius.md,
       padding: theme.spacing.sm,
     },

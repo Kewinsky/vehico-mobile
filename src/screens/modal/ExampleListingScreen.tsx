@@ -24,15 +24,7 @@ export function ExampleListingScreen({ navigation }: Props) {
         <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
           {t("shop.exampleListingPage.subtitle")}
         </Text>
-        <View
-          style={[
-            styles.bodyWrap,
-            {
-              backgroundColor: theme.colors.border + "40",
-              borderColor: theme.colors.border,
-            },
-          ]}
-        >
+        <View style={[styles.bodyWrap]}>
           <Text
             style={[styles.body, { color: theme.colors.fg }]}
             selectable={false}
@@ -66,7 +58,7 @@ const makeStyles = (theme: any) =>
     bodyWrap: {
       padding: theme.spacing.md,
       borderRadius: theme.radius.md,
-      borderWidth: 1,
+      backgroundColor: theme.colors.card,
     },
     body: {
       fontSize: theme.typography.small,

@@ -14,6 +14,7 @@ import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
+import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 
 export type RemindersFiltersParams = {
   dateFrom: string;
@@ -189,99 +190,87 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <View style={styles.row}>
-          <Ionicons
-            name="checkmark-circle-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <View style={styles.segmentWrap}>
-            <SegmentTabs<"all" | "active" | "done">
-              value={statusFilter}
-              options={[
-                { value: "all", label: t("reminders.filterAll") },
-                {
-                  value: "active",
-                  label: t("reminderDetail.status.active"),
-                },
-                { value: "done", label: t("reminderDetail.status.done") },
-              ]}
-              onChange={setStatusFilter}
-              size="sm"
-            />
-          </View>
-        </View>
+          <Card>
+            <CardRow>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <View style={styles.segmentWrap}>
+                <SegmentTabs<"all" | "active" | "done">
+                  value={statusFilter}
+                  options={[
+                    { value: "all", label: t("reminders.filterAll") },
+                    {
+                      value: "active",
+                      label: t("reminderDetail.status.active"),
+                    },
+                    { value: "done", label: t("reminderDetail.status.done") },
+                  ]}
+                  onChange={setStatusFilter}
+                  size="sm"
+                />
+              </View>
+            </CardRow>
 
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <Pressable
-          onPress={() => openPicker("from")}
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
-        >
-          <Ionicons
-            name="calendar-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <Text
-            style={[
-              styles.valueText,
-              { color: dateFrom ? theme.colors.fg : theme.colors.muted },
-            ]}
-          >
-            {dateFrom || t("timeline.filterFrom")}
-          </Text>
-        </Pressable>
-        {openDatePicker === "from" ? (
-          <>
-            {renderInlineDatePicker()}
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-          </>
-        ) : (
-          <View
-            style={[styles.divider, { backgroundColor: theme.colors.border }]}
-          />
-        )}
+            <CardDivider />
+            <Pressable
+              onPress={() => openPicker("from")}
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+            >
+              <CardRow>
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[
+                    styles.valueText,
+                    { color: dateFrom ? theme.colors.fg : theme.colors.muted },
+                  ]}
+                >
+                  {dateFrom || t("timeline.filterFrom")}
+                </Text>
+              </CardRow>
+            </Pressable>
+            {openDatePicker === "from" ? (
+              <>
+                {renderInlineDatePicker()}
+                <CardDivider />
+              </>
+            ) : (
+              <CardDivider />
+            )}
 
-        <Pressable
-          onPress={() => openPicker("to")}
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
-        >
-          <Ionicons
-            name="calendar-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <Text
-            style={[
-              styles.valueText,
-              { color: dateTo ? theme.colors.fg : theme.colors.muted },
-            ]}
-          >
-            {dateTo || t("timeline.filterTo")}
-          </Text>
-        </Pressable>
-        {openDatePicker === "to" ? (
-          <>
-            {renderInlineDatePicker()}
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
-          </>
-        ) : null}
-      </View>
+            <Pressable
+              onPress={() => openPicker("to")}
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+            >
+              <CardRow>
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[
+                    styles.valueText,
+                    { color: dateTo ? theme.colors.fg : theme.colors.muted },
+                  ]}
+                >
+                  {dateTo || t("timeline.filterTo")}
+                </Text>
+              </CardRow>
+            </Pressable>
+            {openDatePicker === "to" ? (
+              <>
+                {renderInlineDatePicker()}
+                <CardDivider />
+              </>
+            ) : null}
+          </Card>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -290,23 +279,10 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    card: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-    },
     segmentWrap: {
       flex: 1,
       minWidth: 0,
     },
-    divider: { height: 1, width: "100%" },
     valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
     pickerWrap: {
       borderTopWidth: 1,

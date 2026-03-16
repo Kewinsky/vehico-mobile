@@ -317,6 +317,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
             },
           ]}
           onChange={setActiveTab}
+          variant="secondary"
         />
       </View>
 
@@ -452,9 +453,9 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.sm,
     },
     card: {
-      borderWidth: 1,
       borderRadius: theme.radius.md,
       padding: theme.spacing.sm,
+      backgroundColor: theme.colors.card,
     },
     cardRow: {
       flexDirection: "row",

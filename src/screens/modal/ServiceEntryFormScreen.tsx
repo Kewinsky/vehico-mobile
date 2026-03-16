@@ -43,6 +43,7 @@ import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
+import { CardDivider } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
@@ -609,15 +610,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             </>
           ) : null}
 
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
+          <View style={styles.card}>
             <Pressable
               onPress={openDatePicker}
               style={({ pressed }) => [
@@ -728,9 +721,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 ) : null}
               </View>
             ) : null}
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
+            <CardDivider />
             <Pressable
               onPress={() =>
                 showPicker<ServiceEntryCategory>({
@@ -775,9 +766,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   : t("entryForm.categoryPlaceholder")}
               </Text>
             </Pressable>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
+            <CardDivider />
             <Pressable
               onPress={() =>
                 showPicker<string>({
@@ -824,9 +813,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   : t("entryForm.workshopPlaceholder")}
               </Text>
             </Pressable>
-            <View
-              style={[styles.divider, { backgroundColor: theme.colors.border }]}
-            />
+            <CardDivider />
             <View style={styles.row}>
               <View style={styles.rowLeft}>
                 <Ionicons
@@ -899,12 +886,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                         ]}
                       />
                     </View>
-                    <View
-                      style={[
-                        styles.divider,
-                        { backgroundColor: theme.colors.border },
-                      ]}
-                    />
+                    <CardDivider />
                     <View style={styles.row}>
                       <View style={styles.rowLeft}>
                         <Ionicons
@@ -1006,12 +988,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     ]}
                   />
                 </View>
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: theme.colors.border },
-                  ]}
-                />
+              <CardDivider />
                 <View style={styles.row}>
                   <View style={styles.rowLeft}>
                     <Ionicons
@@ -1053,7 +1030,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               >
                 <View
                   style={{
-                    paddingVertical: theme.spacing.sm,
+                    paddingVertical: theme.spacing.md,
                     paddingHorizontal: theme.spacing.md,
                   }}
                 >
@@ -1263,12 +1240,13 @@ const makeStyles = (theme: any) =>
       lineHeight: theme.typography.body + 2,
       color: theme.colors.muted,
     },
-    card: { borderWidth: 1, borderRadius: theme.radius.md, overflow: "hidden" },
+    card: { borderRadius: theme.radius.md, overflow: "hidden" },
     row: {
       flexDirection: "row",
       alignItems: "center",
+      backgroundColor: theme.colors.card,
       gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
     },
     rowLeft: {
@@ -1286,7 +1264,6 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
     },
     rowMultiline: { alignItems: "flex-start" },
-    divider: { height: 1, width: "100%" },
     input: {
       flex: 1,
       minWidth: 0,
@@ -1344,8 +1321,8 @@ const makeStyles = (theme: any) =>
       color: theme.colors.muted,
     },
     attachmentCard: {
-      borderWidth: 1,
       borderRadius: theme.radius.md,
+      backgroundColor: theme.colors.card,
       padding: theme.spacing.md,
     },
     loadingContainer: {

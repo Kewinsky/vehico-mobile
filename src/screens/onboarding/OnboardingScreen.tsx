@@ -45,6 +45,7 @@ import { useAuth } from "../../app/providers/AuthProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { Logo } from "../../ui/components/branding/Logo";
+import { CardDivider } from "../../ui/components/common/Card";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Onboarding">;
 
@@ -359,9 +360,7 @@ export function OnboardingScreen({ navigation }: Props) {
               <Text style={styles.welcomeBrandTitle}>
                 {t("onboarding.welcome.heroTitle")}
               </Text>
-              <Text
-                style={[styles.welcomeBody, { color: theme.colors.muted }]}
-              >
+              <Text style={[styles.welcomeBody, { color: theme.colors.muted }]}>
                 {t("onboarding.welcome.heroSubtitle")}
               </Text>
               <Pressable
@@ -568,12 +567,7 @@ export function OnboardingScreen({ navigation }: Props) {
                   style={[styles.input, { color: theme.colors.fg }]}
                 />
               </View>
-              <View
-                style={[
-                  styles.divider,
-                  { backgroundColor: theme.colors.border },
-                ]}
-              />
+              <CardDivider />
               <View style={styles.row}>
                 <View style={styles.rowLeft}>
                   <Ionicons
@@ -599,12 +593,7 @@ export function OnboardingScreen({ navigation }: Props) {
                   style={[styles.input, { color: theme.colors.fg }]}
                 />
               </View>
-              <View
-                style={[
-                  styles.divider,
-                  { backgroundColor: theme.colors.border },
-                ]}
-              />
+              <CardDivider />
               <View style={styles.row}>
                 <View style={styles.rowLeft}>
                   <Ionicons
@@ -631,12 +620,7 @@ export function OnboardingScreen({ navigation }: Props) {
                   style={[styles.input, { color: theme.colors.fg }]}
                 />
               </View>
-              <View
-                style={[
-                  styles.divider,
-                  { backgroundColor: theme.colors.border },
-                ]}
-              />
+              <CardDivider />
               <View style={styles.row}>
                 <View style={styles.rowLeft}>
                   <Ionicons
@@ -836,12 +820,7 @@ export function OnboardingScreen({ navigation }: Props) {
                   {[make.trim(), model.trim()].filter(Boolean).join(" ") || "—"}
                 </Text>
               </View>
-              <View
-                style={[
-                  styles.divider,
-                  { backgroundColor: theme.colors.border },
-                ]}
-              />
+              <CardDivider />
               <View style={styles.detailsContent}>
                 <View style={styles.detailsGrid}>
                   <View style={styles.detailsRow}>
@@ -982,56 +961,56 @@ export function OnboardingScreen({ navigation }: Props) {
       }
       footer={
         currentStep === 0 ? null : (
-        <View
-          style={[
-            styles.footer,
-            {
-              backgroundColor: "transparent",
-            },
-          ]}
-        >
-          {currentStep === LAST_STEP_INDEX ? (
-            <View style={styles.footerRow}>
-              <Button
-                variant="outlined"
-                onPress={onBack}
-                disabled={!canGoBack}
-                style={{ flex: 1, width: "auto" }}
-              >
-                {t("common.back")}
-              </Button>
-              <Button
-                variant="primary"
-                onPress={onFinish}
-                disabled={saving}
-                style={{ flex: 1, width: "auto" }}
-              >
-                {saving ? t("common.saving") : t("onboarding.complete.cta")}
-              </Button>
-            </View>
-          ) : currentStep === 0 ? (
-            <></>
-          ) : (
-            <View style={styles.footerRow}>
-              <Button
-                variant="outlined"
-                onPress={onBack}
-                disabled={!canGoBack}
-                style={{ flex: 1, width: "auto" }}
-              >
-                {t("common.back")}
-              </Button>
-              <Button
-                variant="primary"
-                onPress={() => void onNext()}
-                disabled={!canGoNext}
-                style={{ flex: 1, width: "auto" }}
-              >
-                {saving ? t("common.saving") : nextLabel}
-              </Button>
-            </View>
-          )}
-        </View>
+          <View
+            style={[
+              styles.footer,
+              {
+                backgroundColor: "transparent",
+              },
+            ]}
+          >
+            {currentStep === LAST_STEP_INDEX ? (
+              <View style={styles.footerRow}>
+                <Button
+                  variant="outlined"
+                  onPress={onBack}
+                  disabled={!canGoBack}
+                  style={{ flex: 1, width: "auto" }}
+                >
+                  {t("common.back")}
+                </Button>
+                <Button
+                  variant="primary"
+                  onPress={onFinish}
+                  disabled={saving}
+                  style={{ flex: 1, width: "auto" }}
+                >
+                  {saving ? t("common.saving") : t("onboarding.complete.cta")}
+                </Button>
+              </View>
+            ) : currentStep === 0 ? (
+              <></>
+            ) : (
+              <View style={styles.footerRow}>
+                <Button
+                  variant="outlined"
+                  onPress={onBack}
+                  disabled={!canGoBack}
+                  style={{ flex: 1, width: "auto" }}
+                >
+                  {t("common.back")}
+                </Button>
+                <Button
+                  variant="primary"
+                  onPress={() => void onNext()}
+                  disabled={!canGoNext}
+                  style={{ flex: 1, width: "auto" }}
+                >
+                  {saving ? t("common.saving") : nextLabel}
+                </Button>
+              </View>
+            )}
+          </View>
         )
       }
     >
@@ -1147,7 +1126,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
     },
     rowLeft: {
@@ -1349,9 +1328,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     vinText: {
       fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.bold,
-    },
-    divider: {
-      height: 1,
     },
     detailsGrid: {
       gap: theme.spacing.sm,

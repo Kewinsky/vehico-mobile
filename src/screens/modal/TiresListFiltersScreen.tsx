@@ -13,6 +13,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
+import { Card, CardRow } from "../../ui/components/common/Card";
 
 export type TiresListFiltersParams = {
   tireTypeFilter: TireType | "all";
@@ -101,94 +102,90 @@ export function TiresListFiltersScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <Pressable
-          onPress={showTireTypePicker}
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
-        >
-          <Ionicons
-            name="pricetag-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <Text
-            style={[
-              styles.valueText,
-              {
-                color:
-                  tireTypeFilter === "all"
-                    ? theme.colors.muted
-                    : theme.colors.fg,
-              },
-            ]}
-          >
-            {tireTypeFilter === "all"
-              ? t("common.all")
-              : t(`tireForm.types.${tireTypeFilter}`)}
-          </Text>
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={theme.colors.accent}
-          />
-        </Pressable>
+          <Card>
+            <Pressable
+              onPress={showTireTypePicker}
+              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+            >
+              <CardRow>
+                <Ionicons
+                  name="pricetag-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[
+                    styles.valueText,
+                    {
+                      color:
+                        tireTypeFilter === "all"
+                          ? theme.colors.muted
+                          : theme.colors.fg,
+                    },
+                  ]}
+                >
+                  {tireTypeFilter === "all"
+                    ? t("common.all")
+                    : t(`tireForm.types.${tireTypeFilter}`)}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+              </CardRow>
+            </Pressable>
 
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <Ionicons
-            name="checkmark-circle-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <View style={styles.segmentWrap}>
-            <SegmentTabs<"all" | "fitted" | "not_fitted">
-              value={fittedFilter}
-              options={[
-                { value: "all", label: t("common.all") },
-                { value: "fitted", label: t("wheels.currentlyFitted") },
-                {
-                  value: "not_fitted",
-                  label: t("wheels.notFitted", { defaultValue: "Not fitted" }),
-                },
-              ]}
-              onChange={setFittedFilter}
-              size="sm"
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
-          </View>
-        </View>
+            <CardRow>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <View style={styles.segmentWrap}>
+                <SegmentTabs<"all" | "fitted" | "not_fitted">
+                  value={fittedFilter}
+                  options={[
+                    { value: "all", label: t("common.all") },
+                    { value: "fitted", label: t("wheels.currentlyFitted") },
+                    {
+                      value: "not_fitted",
+                      label: t("wheels.notFitted", {
+                        defaultValue: "Not fitted",
+                      }),
+                    },
+                  ]}
+                  onChange={setFittedFilter}
+                  size="sm"
+                />
+              </View>
+            </CardRow>
 
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <Ionicons
-            name="swap-vertical-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <View style={styles.segmentWrap}>
-            <SegmentTabs<"az" | "za">
-              value={sortOrder}
-              options={[
-                { value: "az", label: t("workshops.sortAz") },
-                { value: "za", label: t("workshops.sortZa") },
-              ]}
-              onChange={setSortOrder}
-              size="sm"
+            <View
+              style={[styles.divider, { backgroundColor: theme.colors.border }]}
             />
-          </View>
-        </View>
-      </View>
+            <CardRow>
+              <Ionicons
+                name="swap-vertical-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <View style={styles.segmentWrap}>
+                <SegmentTabs<"az" | "za">
+                  value={sortOrder}
+                  options={[
+                    { value: "az", label: t("workshops.sortAz") },
+                    { value: "za", label: t("workshops.sortZa") },
+                  ]}
+                  onChange={setSortOrder}
+                  size="sm"
+                />
+              </View>
+            </CardRow>
+          </Card>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -197,19 +194,10 @@ export function TiresListFiltersScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    card: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
+    divider: {
+      height: 1,
+      marginHorizontal: 0,
     },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-    },
-    divider: { height: 1, width: "100%" },
     valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
     segmentWrap: {
       flex: 1,

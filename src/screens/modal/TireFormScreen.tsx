@@ -10,7 +10,11 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { AntDesign, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  AntDesign,
+  Ionicons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { TireType } from "../../types/domain";
@@ -26,6 +30,7 @@ import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
+import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -255,231 +260,214 @@ export function TireFormScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="pricetag-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
+          <Card style={styles.card}>
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="pricetag-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("tireForm.name")}
+                </Text>
+              </View>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                editable={!saving}
+                placeholder={t("tireForm.placeholderName")}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
+            </View>
+            <CardDivider />
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <AntDesign
+                  name="column-width"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("tireForm.width")}
+                </Text>
+              </View>
+              <TextInput
+                value={width}
+                onChangeText={setWidth}
+                keyboardType="number-pad"
+                editable={!saving}
+                placeholder={t("tireForm.placeholderWidth")}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
+            </View>
+            <CardDivider />
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <AntDesign
+                  name="column-height"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("tireForm.profile")}
+                </Text>
+              </View>
+              <TextInput
+                value={profile}
+                onChangeText={setProfile}
+                keyboardType="number-pad"
+                editable={!saving}
+                placeholder={t("tireForm.placeholderProfile")}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
+            </View>
+            <CardDivider />
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <MaterialCommunityIcons
+                  name="diameter-variant"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("tireForm.diameter")}
+                </Text>
+              </View>
+              <TextInput
+                value={diameter}
+                onChangeText={setDiameter}
+                keyboardType="number-pad"
+                editable={!saving}
+                placeholder={t("tireForm.placeholderDiameter")}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
+            </View>
+            <CardDivider />
+            <Pressable
+              onPress={() =>
+                showPicker<TireType>({
+                  title: t("tireForm.tireType"),
+                  value: tireType,
+                  options: TIRE_TYPES,
+                  getLabel: (v) => t(`tireForm.types.${v}`),
+                  onChange: setTireType,
+                  placeholderLabel: t("tireForm.placeholderTireType"),
+                })
+              }
+              style={({ pressed }) => [
+                styles.row,
+                pressed && { opacity: 0.75 },
+              ]}
             >
-              {t("tireForm.name")}
-            </Text>
-          </View>
-          <TextInput
-            value={name}
-            onChangeText={setName}
-            editable={!saving}
-            placeholder={t("tireForm.placeholderName")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <AntDesign
-              name="column-width"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("tireForm.width")}
-            </Text>
-          </View>
-          <TextInput
-            value={width}
-            onChangeText={setWidth}
-            keyboardType="number-pad"
-            editable={!saving}
-            placeholder={t("tireForm.placeholderWidth")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <AntDesign
-              name="column-height"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("tireForm.profile")}
-            </Text>
-          </View>
-          <TextInput
-            value={profile}
-            onChangeText={setProfile}
-            keyboardType="number-pad"
-            editable={!saving}
-            placeholder={t("tireForm.placeholderProfile")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <MaterialCommunityIcons
-              name="diameter-variant"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("tireForm.diameter")}
-            </Text>
-          </View>
-          <TextInput
-            value={diameter}
-            onChangeText={setDiameter}
-            keyboardType="number-pad"
-            editable={!saving}
-            placeholder={t("tireForm.placeholderDiameter")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <Pressable
-          onPress={() =>
-            showPicker<TireType>({
-              title: t("tireForm.tireType"),
-              value: tireType,
-              options: TIRE_TYPES,
-              getLabel: (v) => t(`tireForm.types.${v}`),
-              onChange: setTireType,
-              placeholderLabel: t("tireForm.placeholderTireType"),
-            })
-          }
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
-        >
-          <View style={styles.rowLeft}>
-            <SunSnowIcon size={20} color={theme.colors.accent} />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("tireForm.tireType")}
-            </Text>
-          </View>
-          <Text
-            style={[
-              styles.valueText,
-              {
-                color: tireType ? theme.colors.fg : theme.colors.muted,
-                textAlign: "right",
-              },
-            ]}
-            numberOfLines={1}
-          >
-            {tireType
-              ? t(`tireForm.types.${tireType}`)
-              : t("tireForm.placeholderTireType")}
-          </Text>
-        </Pressable>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="calendar-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("tireForm.dot")}
-            </Text>
-          </View>
-          <TextInput
-            value={dot}
-            onChangeText={setDot}
-            keyboardType="number-pad"
-            editable={!saving}
-            placeholder={t("tireForm.placeholderDot")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text
-              style={[styles.label, { color: theme.colors.muted }]}
-              numberOfLines={1}
-            >
-              {t("tireForm.isCurrentlyFitted")}
-            </Text>
-          </View>
-          <View style={styles.rowRight}>
-            <Switch
-              value={isCurrentlyFitted}
-              onValueChange={setIsCurrentlyFitted}
-              trackColor={{
-                false: theme.colors.border,
-                true: theme.colors.accent,
-              }}
-              thumbColor="#fff"
-            />
-          </View>
-        </View>
-        </View>
+              <View style={styles.rowLeft}>
+                <SunSnowIcon size={20} color={theme.colors.accent} />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("tireForm.tireType")}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color: tireType ? theme.colors.fg : theme.colors.muted,
+                    textAlign: "right",
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {tireType
+                  ? t(`tireForm.types.${tireType}`)
+                  : t("tireForm.placeholderTireType")}
+              </Text>
+            </Pressable>
+            <CardDivider />
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("tireForm.dot")}
+                </Text>
+              </View>
+              <TextInput
+                value={dot}
+                onChangeText={setDot}
+                keyboardType="number-pad"
+                editable={!saving}
+                placeholder={t("tireForm.placeholderDot")}
+                placeholderTextColor={theme.colors.muted}
+                style={[
+                  styles.input,
+                  { color: theme.colors.fg, textAlign: "right" },
+                ]}
+              />
+            </View>
+            <CardDivider />
+            <CardRow>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text
+                  style={[styles.label, { color: theme.colors.muted }]}
+                  numberOfLines={1}
+                >
+                  {t("tireForm.isCurrentlyFitted")}
+                </Text>
+              </View>
+              <View style={styles.rowRight}>
+                <Switch
+                  value={isCurrentlyFitted}
+                  onValueChange={setIsCurrentlyFitted}
+                  trackColor={{
+                    false: theme.colors.border,
+                    true: theme.colors.accent,
+                  }}
+                  thumbColor="#fff"
+                />
+              </View>
+            </CardRow>
+          </Card>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -493,12 +481,16 @@ function makeStyles(theme: any) {
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
     },
-    card: { borderWidth: 1, borderRadius: theme.radius.md, overflow: "hidden" },
+    card: {
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+      backgroundColor: theme.colors.card,
+    },
     row: {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
     },
     rowLeft: {
@@ -515,7 +507,6 @@ function makeStyles(theme: any) {
       justifyContent: "flex-end",
       alignItems: "center",
     },
-    divider: { height: 1, width: "100%" },
     input: {
       flex: 1,
       minWidth: 0,

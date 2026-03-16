@@ -10,9 +10,9 @@ import { Button } from "../../ui/components/common/Button";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
-import { ModalButton } from "../../ui/components/layout/ModalButton";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
+import { Card, CardRow } from "../../ui/components/common/Card";
 
 export type AddAttachmentFiltersParams = {
   sortOption: "date-newest" | "date-oldest" | "title-az" | "title-za";
@@ -35,7 +35,8 @@ export function AddAttachmentFiltersScreen({ navigation, route }: Props) {
     const [field] = sortOption.split("-") as [string, string];
     return field === "title" ? ("title" as const) : ("date" as const);
   }, [sortOption]);
-  const dateSortOption = sortOption === "date-oldest" ? "date-oldest" : "date-newest";
+  const dateSortOption =
+    sortOption === "date-oldest" ? "date-oldest" : "date-newest";
   const titleSortOption = sortOption === "title-za" ? "title-za" : "title-az";
 
   function setSortField(next: "date" | "title") {
@@ -74,74 +75,62 @@ export function AddAttachmentFiltersScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
-        <View style={styles.row}>
-          <Ionicons
-            name="swap-vertical-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <View style={styles.segmentWrap}>
-            <SegmentTabs<"date" | "title">
-              value={sortField}
-              options={[
-                { value: "date", label: t("timeline.sortFieldDate") },
-                { value: "title", label: t("timeline.sortFieldTitle") },
-              ]}
-              onChange={setSortField}
-              size="sm"
-            />
-          </View>
-        </View>
-
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
-        <View style={styles.row}>
-          <Ionicons
-            name="options-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <View style={styles.segmentWrap}>
-            {sortField === "date" ? (
-              <SegmentTabs<"date-newest" | "date-oldest">
-                value={dateSortOption}
-                options={[
-                  {
-                    value: "date-newest",
-                    label: t("timeline.sortOrderNewest"),
-                  },
-                  {
-                    value: "date-oldest",
-                    label: t("timeline.sortOrderOldest"),
-                  },
-                ]}
-                onChange={setDateSortOption}
-                size="sm"
+          <Card withDividers>
+            <CardRow>
+              <Ionicons
+                name="swap-vertical-outline"
+                size={20}
+                color={theme.colors.accent}
               />
-            ) : (
-              <SegmentTabs<"title-az" | "title-za">
-                value={titleSortOption}
-                options={[
-                  { value: "title-az", label: t("timeline.sortOrderAz") },
-                  { value: "title-za", label: t("timeline.sortOrderZa") },
-                ]}
-                onChange={setTitleSortOption}
-                size="sm"
+              <View style={styles.segmentWrap}>
+                <SegmentTabs<"date" | "title">
+                  value={sortField}
+                  options={[
+                    { value: "date", label: t("timeline.sortFieldDate") },
+                    { value: "title", label: t("timeline.sortFieldTitle") },
+                  ]}
+                  onChange={setSortField}
+                  size="sm"
+                />
+              </View>
+            </CardRow>
+            <CardRow>
+              <Ionicons
+                name="options-outline"
+                size={20}
+                color={theme.colors.accent}
               />
-            )}
-          </View>
-        </View>
-      </View>
+              <View style={styles.segmentWrap}>
+                {sortField === "date" ? (
+                  <SegmentTabs<"date-newest" | "date-oldest">
+                    value={dateSortOption}
+                    options={[
+                      {
+                        value: "date-newest",
+                        label: t("timeline.sortOrderNewest"),
+                      },
+                      {
+                        value: "date-oldest",
+                        label: t("timeline.sortOrderOldest"),
+                      },
+                    ]}
+                    onChange={setDateSortOption}
+                    size="sm"
+                  />
+                ) : (
+                  <SegmentTabs<"title-az" | "title-za">
+                    value={titleSortOption}
+                    options={[
+                      { value: "title-az", label: t("timeline.sortOrderAz") },
+                      { value: "title-za", label: t("timeline.sortOrderZa") },
+                    ]}
+                    onChange={setTitleSortOption}
+                    size="sm"
+                  />
+                )}
+              </View>
+            </CardRow>
+          </Card>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -150,19 +139,6 @@ export function AddAttachmentFiltersScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    card: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-    },
-    divider: { height: 1, width: "100%" },
     segmentWrap: {
       flex: 1,
       minWidth: 0,

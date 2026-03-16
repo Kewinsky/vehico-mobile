@@ -52,7 +52,7 @@ export const lightTheme: AppTheme = {
     fg: "#000000", // pure black
     muted: "#666666", // gray
     border: "#E5E5E5", // light gray
-    card: "#FFFFFF",
+    card: "#F5F5F5", // slightly lighter than bg in light mode
     accent: "#FFB803", // orange/yellow
     danger: "#EF4444", // red-500
   },
@@ -91,11 +91,11 @@ export const lightTheme: AppTheme = {
 export const darkTheme: AppTheme = {
   icons: lightTheme.icons,
   colors: {
-    bg: "#0a0a0a", // soft black
+    bg: "#000000", // pure black
     fg: "#FFFFFF", // pure white
     muted: "#999999", // light gray
     border: "#333333", // dark gray
-    card: "#000000", // pure black
+    card: "#151515", // slightly lighter than bg in dark mode
     accent: "#FFB803", // orange/yellow
     danger: "#EF4444", // red-500
   },

@@ -1,11 +1,4 @@
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
@@ -18,7 +11,7 @@ import type { UserSettings } from "../../app/providers/UserSettingsProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
+import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Appearance">;
 
@@ -99,10 +92,6 @@ export function AppearanceScreen({ navigation }: Props) {
   const { theme, mode } = useTheme();
   const { settings, setSettings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
   const cardConfig = useMemo(() => buildCardConfig(t), [t]);
 
   async function pick<K extends keyof UserSettings>(
@@ -129,16 +118,7 @@ export function AppearanceScreen({ navigation }: Props) {
       {settings && (
         <View style={styles.container}>
           {cardConfig.map(({ cardLabelKey, items }) => (
-            <View
-              key={cardLabelKey}
-              style={[
-                styles.card,
-                {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
-                },
-              ]}
-            >
+            <View key={cardLabelKey} style={[styles.card]}>
               <Text style={[styles.cardTitle, { color: theme.colors.fg }]}>
                 {t(cardLabelKey)}
               </Text>
@@ -162,49 +142,12 @@ export function AppearanceScreen({ navigation }: Props) {
                         {t(labelKey)}
                       </Text>
                     </View>
-                    <View
-                      style={[
-                        styles.tabsWrap,
-                        {
-                          borderColor: theme.colors.border,
-                          backgroundColor: theme.colors.bg,
-                        },
-                      ]}
-                    >
-                      {options.map((opt) => {
-                        const selected = value === opt.value;
-                        return (
-                          <Pressable
-                            key={String(opt.value)}
-                            onPress={() => void pick(key, opt.value)}
-                            style={({ pressed }) => [
-                              styles.tab,
-                              selected && styles.tabSelected,
-                              {
-                                borderColor: theme.colors.accent,
-                                backgroundColor: selected
-                                  ? accentBg
-                                  : "transparent",
-                                opacity: pressed ? 0.85 : 1,
-                              },
-                            ]}
-                          >
-                            <Text
-                              style={[
-                                styles.tabText,
-                                {
-                                  color: selected
-                                    ? theme.colors.accent
-                                    : theme.colors.muted,
-                                },
-                              ]}
-                            >
-                              {opt.label}
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
+                    <SegmentTabs
+                      value={value as any}
+                      options={options as any}
+                      onChange={(next) => void pick(key as any, next as any)}
+                      size="md"
+                    />
                   </View>
                 );
               })}
@@ -237,9 +180,9 @@ const makeStyles = (theme: any) =>
     },
     card: {
       borderRadius: theme.radius.md,
-      borderWidth: 1,
       padding: theme.spacing.md,
       marginBottom: theme.spacing.md,
+      backgroundColor: theme.colors.card,
     },
     cardTitle: {
       fontSize: theme.typography.title,
@@ -247,7 +190,7 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.sm,
     },
     row: {
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.md,
     },
     sectionTitleRow: {
       flexDirection: "row",
@@ -257,26 +200,6 @@ const makeStyles = (theme: any) =>
     },
     sectionLabel: {
       fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    tabsWrap: {
-      flexDirection: "row",
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      padding: 2,
-    },
-    tab: {
-      flex: 1,
-      borderRadius: theme.radius.md - 2,
-      paddingVertical: theme.spacing.xs - 2,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    tabSelected: {
-      borderWidth: 1,
-    },
-    tabText: {
-      fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.bold,
     },
     bottomSpacer: {

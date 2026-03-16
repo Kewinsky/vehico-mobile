@@ -175,26 +175,6 @@ const makeStyles = (theme: any) =>
     },
   });
 
-const makeQuickPillStyles = (theme: any) =>
-  StyleSheet.create({
-    pill: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.sm,
-      paddingVertical: theme.spacing.xs,
-      borderRadius: 999,
-      backgroundColor: hexToRgba(theme.colors.card, 0.82),
-      borderWidth: 1,
-      borderColor: hexToRgba(theme.colors.border, 0.92),
-    },
-    label: {
-      color: theme.colors.fg,
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-  });
-
 const makeFeatureCardStyles = (theme: any) =>
   StyleSheet.create({
     card: {
@@ -204,8 +184,6 @@ const makeFeatureCardStyles = (theme: any) =>
       padding: theme.spacing.md,
       borderRadius: theme.radius.md + 4,
       backgroundColor: hexToRgba(theme.colors.card, 0.86),
-      borderWidth: 1,
-      borderColor: hexToRgba(theme.colors.border, 0.92),
     },
     iconWrap: {
       width: 46,

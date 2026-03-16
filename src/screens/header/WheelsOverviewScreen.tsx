@@ -15,6 +15,7 @@ import {
 } from "../../services/wheels/wheelsRepo";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { Tile } from "../../ui/components/common/Tile";
+import { CardDivider } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
@@ -131,15 +132,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
       <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
         {t("wheels.currentlyFitted")}
       </Text>
-      <View
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.card,
-          },
-        ]}
-      >
+      <View style={[styles.card]}>
         <View style={styles.currentRow}>
           <TireIcon size={24} color={theme.colors.accent} />
           <View style={styles.currentRowText}>
@@ -166,9 +159,8 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
             )}
           </View>
         </View>
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.border }]}
-        />
+
+        <CardDivider />
         <View style={styles.currentRow}>
           <RimIcon size={24} color={theme.colors.accent} />
           <View style={styles.currentRowText}>
@@ -220,8 +212,8 @@ function makeStyles(theme: any) {
     },
     card: {
       borderRadius: theme.radius.md,
-      borderWidth: 1,
       overflow: "hidden",
+      backgroundColor: theme.colors.card,
     },
     cardLabel: {
       fontSize: theme.typography.small,
@@ -234,11 +226,10 @@ function makeStyles(theme: any) {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
     },
     currentRowText: { flex: 1, minWidth: 0 },
-    divider: { height: 1, width: "100%" },
     row: {
       flexDirection: "row",
       gap: theme.spacing.sm,

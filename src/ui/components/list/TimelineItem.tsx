@@ -97,8 +97,6 @@ const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     card: {
       flex: 1,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
       borderRadius: theme.radius.md,
       padding: theme.spacing.sm,
       backgroundColor: theme.colors.card,

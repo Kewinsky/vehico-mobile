@@ -14,28 +14,27 @@ type Props<T extends string> = {
   options: Array<Option<T>>;
   onChange: (next: T) => void;
   size?: "sm" | "md";
+  variant?: Variant;
 };
+
+type Variant = "default" | "secondary";
 
 export function SegmentTabs<T extends string>({
   value,
   options,
   onChange,
   size = "md",
+  variant = "default",
 }: Props<T>) {
   const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const styles = useMemo(() => makeStyles(theme, variant), [theme, variant]);
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
   );
 
   return (
-    <View
-      style={[
-        styles.wrap,
-        { borderColor: theme.colors.border, backgroundColor: theme.colors.bg },
-      ]}
-    >
+    <View style={[styles.wrap]}>
       {options.map((opt) => {
         const selected = value === opt.value;
         return (
@@ -68,16 +67,17 @@ export function SegmentTabs<T extends string>({
   );
 }
 
-const makeStyles = (theme: any) =>
+const makeStyles = (theme: any, variant: Variant) =>
   StyleSheet.create({
     wrap: {
       alignSelf: "stretch",
       width: "100%",
       minWidth: 0,
       flexDirection: "row",
-      borderWidth: 1,
       borderRadius: theme.radius.md,
-      padding: 2,
+      padding: 3,
+      backgroundColor:
+        variant === "secondary" ? theme.colors.card : theme.colors.bg,
     },
     tab: {
       flex: 1,
