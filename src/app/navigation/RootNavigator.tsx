@@ -217,14 +217,23 @@ export function RootNavigator() {
       initialRouteName={
         session
           ? session.user.user_metadata?.has_completed_onboarding === true
-            ? "Vehicles"
+            ? "Onboarding"
             : "Onboarding"
           : "Landing"
       }
     >
       {!session ? (
         <>
-          <Stack.Screen name="Landing" component={LandingScreen} />
+          <Stack.Screen
+            name="Landing"
+            component={LandingScreen}
+            options={{
+              headerShown: true,
+              title: "",
+              headerShadowVisible: false,
+              headerTransparent: true,
+            }}
+          />
           <Stack.Screen
             name="Auth"
             component={AuthScreen}

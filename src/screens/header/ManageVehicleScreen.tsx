@@ -707,7 +707,7 @@ const makeStyles = (theme: any) =>
       fontSize: theme.spacing.xl * 2,
     },
     detailsTitle: {
-      fontSize: theme.typography.title,
+      fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
       marginBottom: theme.spacing.xs,
