@@ -202,14 +202,14 @@ export function ShopScreen({ navigation }: Props) {
       }
     }
     return (
-      <Card style={styles.featureCard}>
+      <View style={styles.featureCard}>
         <View
           style={[
             styles.featureIconWrap,
             { backgroundColor: hexToRgba(theme.colors.accent, 0.14) },
           ]}
         >
-          <Ionicons name={icon} size={22} color={theme.colors.accent} />
+          <Ionicons name={icon} size={26} color={theme.colors.accent} />
         </View>
         <View style={styles.featureTextWrap}>
           <Text style={[styles.featureText, { color: theme.colors.fg }]}>
@@ -229,7 +229,7 @@ export function ShopScreen({ navigation }: Props) {
             </Pressable>
           ) : null}
         </View>
-      </Card>
+      </View>
     );
   }
 
@@ -537,6 +537,7 @@ function makeStyles(theme: AppTheme) {
       gap: spacing.sm,
     },
     featureCard: {
+      backgroundColor: theme.colors.card,
       flexDirection: "row",
       alignItems: "center",
       padding: spacing.md,
@@ -548,6 +549,7 @@ function makeStyles(theme: AppTheme) {
       borderRadius: 999,
       alignItems: "center",
       justifyContent: "center",
+      marginRight: spacing.md,
     },
     featureTextWrap: {
       flex: 1,
