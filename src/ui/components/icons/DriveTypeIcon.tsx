@@ -1,13 +1,22 @@
+import type { StyleProp, ViewStyle } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-type Props = { size?: number; color?: string };
+type Props = {
+  size?: number;
+  color?: string;
+  style?: StyleProp<ViewStyle>;
+};
 
 /**
  * Drive type icon (top-down car with axles/wheels). Use for FWD/RWD/AWD.
  */
-export function DriveTypeIcon({ size = 24, color = "#FFB803" }: Props) {
+export function DriveTypeIcon({
+  size = 24,
+  color = "#FFB803",
+  style,
+}: Props) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
       <Path
         fill={color}
         d="M2 1.75H4V0.25H2V1.75ZM4.25 2V7H5.75V2H4.25ZM4 7.25H2V8.75H4V7.25ZM1.75 7V2H0.25V7H1.75ZM2 7.25C1.86193 7.25 1.75 7.13807 1.75 7H0.25C0.25 7.9665 1.0335 8.75 2 8.75V7.25ZM4.25 7C4.25 7.13807 4.13807 7.25 4 7.25V8.75C4.9665 8.75 5.75 7.9665 5.75 7H4.25ZM4 1.75C4.13807 1.75 4.25 1.86193 4.25 2H5.75C5.75 1.0335 4.9665 0.25 4 0.25V1.75ZM2 0.25C1.0335 0.25 0.25 1.0335 0.25 2H1.75C1.75 1.86193 1.86193 1.75 2 1.75V0.25Z"

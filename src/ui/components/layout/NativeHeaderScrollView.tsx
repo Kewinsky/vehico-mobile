@@ -9,14 +9,17 @@ export type NativeHeaderScrollViewProps = ScrollViewProps;
 export function NativeHeaderScrollView({
   contentContainerStyle,
   style,
+  paddingHorizontal = true,
   ...rest
-}: NativeHeaderScrollViewProps) {
+}: NativeHeaderScrollViewProps & { paddingHorizontal?: boolean }) {
   const headerHeight = useHeaderHeight();
   const { theme } = useTheme();
 
   const baseContentStyle = {
     paddingTop: headerHeight,
-    paddingHorizontal: theme.layout.contentPaddingHorizontal,
+    paddingHorizontal: paddingHorizontal
+      ? theme.layout.contentPaddingHorizontal
+      : 0,
   };
 
   const mergedContentStyle =
@@ -31,7 +34,9 @@ export function NativeHeaderScrollView({
       style={[
         {
           flex: 1,
-          marginHorizontal: -theme.layout.contentPaddingHorizontal,
+          marginHorizontal: paddingHorizontal
+            ? -theme.layout.contentPaddingHorizontal
+            : 0,
         },
         style,
       ]}

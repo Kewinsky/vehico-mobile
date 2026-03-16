@@ -141,7 +141,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
         ]}
       >
         <View style={styles.currentRow}>
-          <TireIcon size={24} color={theme.colors.muted} />
+          <TireIcon size={24} color={theme.colors.accent} />
           <View style={styles.currentRowText}>
             {fittedTires.length === 0 ? (
               <Text style={[styles.cardValue, { color: theme.colors.muted }]}>
@@ -170,7 +170,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
           style={[styles.divider, { backgroundColor: theme.colors.border }]}
         />
         <View style={styles.currentRow}>
-          <RimIcon size={24} color={theme.colors.muted} />
+          <RimIcon size={24} color={theme.colors.accent} />
           <View style={styles.currentRowText}>
             {fittedWheels.length === 0 ? (
               <Text style={[styles.cardValue, { color: theme.colors.muted }]}>

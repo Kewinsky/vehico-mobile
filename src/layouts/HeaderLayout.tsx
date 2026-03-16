@@ -10,11 +10,18 @@ export type HeaderLayoutProps = PropsWithChildren<
   AppNavbarProps & {
     loading?: boolean;
     footer?: ReactNode;
+    paddingHorizontal?: boolean;
   }
 >;
 
 export function HeaderLayout(props: HeaderLayoutProps) {
-  const { children, loading = false, footer, ...navbarProps } = props;
+  const {
+    children,
+    loading = false,
+    footer,
+    paddingHorizontal = true,
+    ...navbarProps
+  } = props;
 
   useNativeHeaderAsAppNavbar({
     ...navbarProps,
@@ -22,7 +29,12 @@ export function HeaderLayout(props: HeaderLayoutProps) {
   });
 
   return (
-    <AppLayout loading={loading} useNativeHeader footer={footer}>
+    <AppLayout
+      loading={loading}
+      useNativeHeader
+      footer={footer}
+      useHorizontalContentInset={paddingHorizontal}
+    >
       {children}
     </AppLayout>
   );
