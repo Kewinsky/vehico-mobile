@@ -430,7 +430,7 @@ export const pl = {
         avgMonthlyFuelCost: "Paliwo/mies.",
         avgFuelConsumption: "Spalanie",
         costPer100: "Koszt paliwa",
-        totalDistance: "Przebieg",
+        totalDistance: "Dystans",
         totalFuel: "Paliwo w okresie",
         favoriteStation: "Ulubiona stacja",
         avgCostPerLiter: "Śr. cena za 1 {{unit}}",
