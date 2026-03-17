@@ -182,14 +182,9 @@ function clampNonNeg(n: number) {
 }
 function fmtMoney(amount: number, currency: string) {
   const v = clampNonNeg(amount);
-  return `${v.toFixed(2)} ${currency}`;
+  return `${v.toFixed(0)} ${currency}`;
 }
-function fmtMoneyRounded(amount: number, currency: string) {
-  const v = clampNonNeg(amount);
-  if (v === 0) return `0 ${currency}`;
-  if (v >= 10) return `${Math.round(v)} ${currency}`;
-  return `${v.toFixed(1)} ${currency}`;
-}
+
 function niceMaxValue(max: number): number {
   if (max <= 0) return 100;
   const magnitude = Math.pow(10, Math.floor(Math.log10(max)));
@@ -1321,8 +1316,16 @@ export function StatisticsScreen({ route, navigation }: Props) {
           )}
         </View>
         {categorySeries.length > 0 ? (
-          <View
-            style={[styles.legendCard, { backgroundColor: theme.colors.card }]}
+          <Pressable
+            style={({ pressed }) => [
+              styles.legendCard,
+              { backgroundColor: theme.colors.card },
+              pressed && styles.legendCardPressed,
+            ]}
+            onPress={() => setLegendShowPercent((prev) => !prev)}
+            accessibilityRole="button"
+            accessibilityLabel={t("dashboard.stats.charts.expensesByCategory")}
+            accessibilityHint={t("dashboard.stats.tapToSwitchUnit")}
           >
             <View style={styles.legend}>
               {categorySeries.map((c) => {
@@ -1331,14 +1334,7 @@ export function StatisticsScreen({ route, navigation }: Props) {
                     ? (c.value / totalByCategory) * 100
                     : Number.NaN;
                 return (
-                  <Pressable
-                    key={c.key}
-                    style={({ pressed }) => [
-                      styles.legendRow,
-                      pressed && styles.legendRowPressed,
-                    ]}
-                    onPress={() => setLegendShowPercent((prev) => !prev)}
-                  >
+                  <View key={c.key} style={styles.legendRow}>
                     <View
                       style={[styles.legendDot, { backgroundColor: c.color }]}
                     />
@@ -1357,11 +1353,11 @@ export function StatisticsScreen({ route, navigation }: Props) {
                         </Text>
                       )}
                     </View>
-                  </Pressable>
+                  </View>
                 );
               })}
             </View>
-          </View>
+          </Pressable>
         ) : null}
       </View>
 
@@ -1601,6 +1597,9 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
     },
+    legendCardPressed: {
+      opacity: 0.85,
+    },
     legendRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -1627,6 +1626,6 @@ const makeStyles = (theme: any) =>
     legendValue: {
       fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.body,
-      color: theme.colors.muted,
+      color: theme.colors.fg,
     },
   });
