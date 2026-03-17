@@ -466,7 +466,7 @@ export const pl = {
       inspection: "Przegląd",
       inspectionValidUntil: "Przegląd ważny do",
       fittedWheelsAndTires: "Założone felgi i opony",
-      wheels: "Felgi",
+      wheels: "Koła",
       currentTire: "Opona",
       currentWheel: "Felga",
     },

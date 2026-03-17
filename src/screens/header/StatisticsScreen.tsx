@@ -82,9 +82,11 @@ function StatTile({
   const tileContent = (
     <>
       <View style={styles.tileTitleRow}>
-        {iconComponent ?? (
-          <Ionicons name={icon!} size={24} color={theme.colors.accent} />
-        )}
+        {iconComponent ? (
+          iconComponent
+        ) : icon ? (
+          <Ionicons name={icon} size={24} color={theme.colors.accent} />
+        ) : null}
         <Text style={[styles.tileLabel, { color: theme.colors.accent }]}>
           {label}
         </Text>
@@ -1152,7 +1154,6 @@ export function StatisticsScreen({ route, navigation }: Props) {
           <StatTile
             theme={theme}
             styles={styles}
-            icon="speedometer-outline"
             label={t("dashboard.stats.metrics.avgFuelConsumption")}
             valueMain={
               Number.isFinite(totals.avgConsumptionPer100)
@@ -1168,7 +1169,6 @@ export function StatisticsScreen({ route, navigation }: Props) {
           <StatTile
             theme={theme}
             styles={styles}
-            icon="calculator-outline"
             label={t("dashboard.stats.metrics.costPer100")}
             valueMain={
               Number.isFinite(totals.costPer100)
@@ -1186,7 +1186,6 @@ export function StatisticsScreen({ route, navigation }: Props) {
           <StatTile
             theme={theme}
             styles={styles}
-            icon="map-outline"
             label={t("dashboard.stats.metrics.totalDistance")}
             valueMain={
               totals.totalDistance > 0
@@ -1198,7 +1197,6 @@ export function StatisticsScreen({ route, navigation }: Props) {
           <StatTile
             theme={theme}
             styles={styles}
-            icon="location-outline"
             label={t("dashboard.stats.metrics.favoriteStation")}
             valueMain={
               favoriteStation
@@ -1323,42 +1321,46 @@ export function StatisticsScreen({ route, navigation }: Props) {
           )}
         </View>
         {categorySeries.length > 0 ? (
-          <View style={styles.legend}>
-            {categorySeries.map((c) => {
-              const pct =
-                totalByCategory > 0
-                  ? (c.value / totalByCategory) * 100
-                  : Number.NaN;
-              return (
-                <Pressable
-                  key={c.key}
-                  style={({ pressed }) => [
-                    styles.legendRow,
-                    pressed && styles.legendRowPressed,
-                  ]}
-                  onPress={() => setLegendShowPercent((prev) => !prev)}
-                >
-                  <View
-                    style={[styles.legendDot, { backgroundColor: c.color }]}
-                  />
-                  <Text
-                    style={[styles.legendLabel, { color: theme.colors.fg }]}
-                    numberOfLines={2}
+          <View
+            style={[styles.legendCard, { backgroundColor: theme.colors.card }]}
+          >
+            <View style={styles.legend}>
+              {categorySeries.map((c) => {
+                const pct =
+                  totalByCategory > 0
+                    ? (c.value / totalByCategory) * 100
+                    : Number.NaN;
+                return (
+                  <Pressable
+                    key={c.key}
+                    style={({ pressed }) => [
+                      styles.legendRow,
+                      pressed && styles.legendRowPressed,
+                    ]}
+                    onPress={() => setLegendShowPercent((prev) => !prev)}
                   >
-                    {c.label}
-                  </Text>
-                  <View style={styles.legendValueWrap}>
-                    {legendShowPercent ? (
-                      <Text style={styles.legendValue}>{fmtPct(pct)}</Text>
-                    ) : (
-                      <Text style={styles.legendValue}>
-                        {fmtMoney(c.value, currency)}
-                      </Text>
-                    )}
-                  </View>
-                </Pressable>
-              );
-            })}
+                    <View
+                      style={[styles.legendDot, { backgroundColor: c.color }]}
+                    />
+                    <Text
+                      style={[styles.legendLabel, { color: theme.colors.fg }]}
+                      numberOfLines={2}
+                    >
+                      {c.label}
+                    </Text>
+                    <View style={styles.legendValueWrap}>
+                      {legendShowPercent ? (
+                        <Text style={styles.legendValue}>{fmtPct(pct)}</Text>
+                      ) : (
+                        <Text style={styles.legendValue}>
+                          {fmtMoney(c.value, currency)}
+                        </Text>
+                      )}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
         ) : null}
       </View>
@@ -1371,7 +1373,6 @@ export function StatisticsScreen({ route, navigation }: Props) {
           <StatTile
             theme={theme}
             styles={styles}
-            icon="calendar-outline"
             label={t("dashboard.stats.lastChange")}
             valueMain={
               oilLastChangeShowDate
@@ -1391,7 +1392,6 @@ export function StatisticsScreen({ route, navigation }: Props) {
           <StatTile
             theme={theme}
             styles={styles}
-            icon="repeat-outline"
             label={t("dashboard.stats.avgInterval")}
             valueMain={
               oilAvgIntervalShowMonths
@@ -1595,8 +1595,11 @@ const makeStyles = (theme: any) =>
     },
     legend: {
       gap: theme.spacing.md,
-      paddingTop: theme.spacing.lg,
       width: "100%",
+    },
+    legendCard: {
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
     },
     legendRow: {
       flexDirection: "row",
