@@ -12,7 +12,7 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { Vehicle } from "../../types/domain";
 import { listVehicles } from "../../services/vehicles/vehiclesRepo";
 import {
-  listVehiclePhotos,
+  listVehiclePhotosForVehicles,
   getVehiclePhotoUrl,
 } from "../../services/vehicles/uploadPhoto";
 import { Alert } from "react-native";
@@ -288,27 +288,17 @@ export function VehiclesScreen({ navigation, route }: Props) {
         const data = await listVehicles();
         setItems(data);
 
-        // Load all photos for each vehicle
-        const urlsMap = new Map<string, string[]>();
-        await Promise.all(
-          data.map(async (vehicle) => {
-            try {
-              const photos = await listVehiclePhotos(
-                vehicle.id,
-                isPremium ? undefined : { limit: photosPerVehicleLimit },
-              );
-              const urls = photos.map((photo) => getVehiclePhotoUrl(photo));
-              if (urls.length > 0) {
-                urlsMap.set(vehicle.id, urls);
-              }
-            } catch (error) {
-              console.error(
-                `Failed to load photos for vehicle ${vehicle.id}:`,
-                error,
-              );
-            }
-          }),
+        // Load photos for all vehicles in a single query to avoid N+1 requests.
+        const photosByVehicle = await listVehiclePhotosForVehicles(
+          data.map((v) => v.id),
+          isPremium ? undefined : { limit: photosPerVehicleLimit },
         );
+        const urlsMap = new Map<string, string[]>();
+        for (const vehicle of data) {
+          const photos = photosByVehicle.get(vehicle.id) ?? [];
+          const urls = photos.map((photo) => getVehiclePhotoUrl(photo));
+          if (urls.length > 0) urlsMap.set(vehicle.id, urls);
+        }
         setPhotoUrlsMap(urlsMap);
       } catch (e: any) {
         toastError(e?.message ?? t("common.error"));

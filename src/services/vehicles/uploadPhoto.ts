@@ -31,6 +31,36 @@ export async function listVehiclePhotos(
 }
 
 /**
+ * Lists photos for multiple vehicles in a single request, grouped by vehicle_id.
+ * This avoids N+1 queries when rendering a vehicle list with thumbnails.
+ */
+export async function listVehiclePhotosForVehicles(
+  vehicleIds: string[],
+  options?: ListVehiclePhotosOptions,
+): Promise<Map<string, VehiclePhoto[]>> {
+  const map = new Map<string, VehiclePhoto[]>();
+  if (vehicleIds.length === 0) return map;
+
+  const { data, error } = await supabase
+    .from("photos")
+    .select("*")
+    .in("vehicle_id", vehicleIds)
+    .order("vehicle_id", { ascending: true })
+    .order("display_order", { ascending: true });
+
+  if (error) throw error;
+
+  for (const row of (data ?? []) as VehiclePhoto[]) {
+    const bucket = map.get(row.vehicle_id) ?? [];
+    if (options?.limit != null && bucket.length >= options.limit) continue;
+    bucket.push(row);
+    map.set(row.vehicle_id, bucket);
+  }
+
+  return map;
+}
+
+/**
  * Uploads a photo for a vehicle and returns the VehiclePhoto
  * The photo is stored in: {vehicleId}/{timestamp}-{randomId}.jpg
  * Maximum photos per vehicle is determined by user's plan (default: 6 for free, 40 for premium)

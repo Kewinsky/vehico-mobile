@@ -20,7 +20,11 @@
       "supportsTablet": true,
       "icon": "./assets/app-icon.png",
       "bundleIdentifier": "com.ktasoftware.vehico",
-      "developmentTeam": "YOUR_TEAM_ID"
+      "infoPlist": {
+        "NSCameraUsageDescription": "Vehico needs camera access to capture and upload vehicle photos and attachments.",
+        "NSPhotoLibraryUsageDescription": "Vehico needs photo library access to select and upload vehicle photos and attachments.",
+        "NSPhotoLibraryAddUsageDescription": "Vehico may save exported images to your photo library when you choose to do so."
+      }
     },
     "android": {
       "adaptiveIcon": {
