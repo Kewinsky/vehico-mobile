@@ -991,7 +991,7 @@ Detailed report available at: https://report.vehico.app/report/example`,
     removeAttachmentBody: "This will delete the file from storage.",
   },
   dataPortability: {
-    title: "Export / Import",
+    title: "Data",
     subtitle: "Backup and restore your vehicle data.",
     exportButton: "Export Data",
     importButton: "Import Data",

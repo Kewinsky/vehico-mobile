@@ -996,7 +996,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     removeAttachmentBody: "Plik zostanie usunięty z pamięci.",
   },
   dataPortability: {
-    title: "Eksport / Import",
+    title: "Dane",
     subtitle: "Kopia zapasowa i przywracanie danych pojazdu.",
     exportButton: "Eksportuj dane",
     importButton: "Importuj dane",

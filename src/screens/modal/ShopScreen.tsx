@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Animated,
   Easing,
@@ -27,7 +28,6 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import type { RevenueCatProductId } from "../../services/payments/revenuecat";
 import { ENV } from "../../config/env";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
 import { DecorativeBackground } from "../../ui/components/branding/DecorativeBackground";
 import { Logo } from "../../ui/components/branding/Logo";
@@ -288,7 +288,7 @@ export function ShopScreen({ navigation }: Props) {
           </Text>
           <View style={styles.tierPriceRow}>
             {purchasing === productId ? (
-              <LoadingIndicator size="small" />
+              <ActivityIndicator size="small" color={theme.colors.accent} />
             ) : (
               <Text
                 style={[
@@ -570,11 +570,16 @@ function makeStyles(theme: AppTheme) {
     },
     tierPressable: {
       flex: 1,
+      aspectRatio: 1,
+      minWidth: 0,
     },
     tierCard: {
+      flex: 1,
+      width: "100%",
       borderRadius: radius.md + 12,
       borderWidth: 1,
-      paddingVertical: spacing.md,
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.xs,
       alignItems: "center",
       justifyContent: "center",
       gap: 2,

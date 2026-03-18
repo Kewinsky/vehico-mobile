@@ -32,9 +32,7 @@ const WORKSHOP_ICON_BACKGROUND: Record<WorkshopType, string> = {
   other: "rgba(107,114,128,0.1)",
 };
 
-function workshopIconBackground(
-  type: WorkshopType | null | undefined,
-): string {
+function workshopIconBackground(type: WorkshopType | null | undefined): string {
   if (!type) return WORKSHOP_ICON_BACKGROUND.other;
   return WORKSHOP_ICON_BACKGROUND[type] ?? WORKSHOP_ICON_BACKGROUND.other;
 }
@@ -151,13 +149,13 @@ export function WorkshopsScreen({ navigation }: Props) {
         case "electrician":
           return <Ionicons name="flash-outline" size={22} color="#f59e0b" />;
         case "detailer":
-          return <Ionicons name="water-outline" size={22} color="#3b82f6" />;
+          return <Ionicons name="sparkles-outline" size={22} color="#3b82f6" />;
         case "bodywork":
           return (
             <Ionicons name="color-palette-outline" size={22} color="#22c55e" />
           );
         case "car_wash":
-          return <Ionicons name="rainy-outline" size={22} color="#0ea5e9" />;
+          return <Ionicons name="water-outline" size={22} color="#0ea5e9" />;
         default:
           return (
             <Ionicons
