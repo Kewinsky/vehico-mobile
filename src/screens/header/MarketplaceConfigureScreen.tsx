@@ -185,7 +185,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
             ? theme.colors.muted
             : checked
               ? theme.colors.accent
-              : theme.colors.fg
+              : theme.colors.muted
         }
       />
     </Pressable>

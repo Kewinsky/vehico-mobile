@@ -629,13 +629,13 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
               onPress={() => setConfirmed(!confirmed)}
               style={styles.checkboxRow}
             >
-              <View
-                style={[styles.checkbox, confirmed && styles.checkboxChecked]}
-              >
-                {confirmed && (
-                  <Ionicons name="checkmark" size={16} color="#000000" />
-                )}
-              </View>
+              <Ionicons
+                name={confirmed ? "checkbox" : "square-outline"}
+                size={26}
+                color={
+                  confirmed ? theme.colors.accent : theme.colors.muted
+                }
+              />
               <Text style={styles.checkboxLabel}>
                 {t("marketplace.confirmationCheckbox")}
               </Text>
@@ -696,16 +696,6 @@ const makeStyles = (theme: any) =>
       flexDirection: "row",
       alignItems: "flex-start",
       gap: theme.spacing.sm,
-    },
-    checkbox: {
-      width: theme.spacing.lg,
-      height: theme.spacing.lg,
-      borderRadius: theme.radius.xs,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    checkboxChecked: {
-      backgroundColor: theme.colors.accent,
     },
     checkboxLabel: {
       flex: 1,

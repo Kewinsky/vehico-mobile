@@ -26,7 +26,10 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { SERVICE_CATEGORY_COLORS } from "../../ui/theme/serviceCategoryColors";
+import {
+  SERVICE_CATEGORY_COLORS,
+  SERVICE_CATEGORY_ICON_BACKGROUND,
+} from "../../ui/theme/serviceCategoryColors";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { formatDateDisplay } from "../../utils/dateFormatting";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
@@ -457,6 +460,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
               <TimelineItem
                 title={e.title}
                 icon={renderServiceIcon(cat)}
+                iconBackgroundColor={SERVICE_CATEGORY_ICON_BACKGROUND[cat]}
                 subtitle={[
                   e.service_date
                     ? formatDateDisplay(e.service_date, i18n.language)

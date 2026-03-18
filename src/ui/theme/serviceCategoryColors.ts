@@ -13,3 +13,17 @@ export const SERVICE_CATEGORY_COLORS: Record<
   other: "#6b7280", // muted gray
   fuel: "#FFB803", // accent
 };
+
+/** Pastel icon backgrounds (aligned with web report timeline9 / report-colors). */
+export const SERVICE_CATEGORY_ICON_BACKGROUND: Record<
+  ServiceEntryCategory | "fuel",
+  string
+> = {
+  oil_change: "rgba(132,204,22,0.1)",
+  maintenance: "rgba(59,130,246,0.1)",
+  repair: "rgba(239,68,68,0.1)",
+  inspection: "rgba(20,184,166,0.1)",
+  upgrade: "rgba(236,72,153,0.1)",
+  fuel: "rgba(255,184,3,0.1)",
+  other: "rgba(107,114,128,0.1)",
+};

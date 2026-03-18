@@ -334,7 +334,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
             ? theme.colors.muted
             : checked
               ? theme.colors.accent
-              : theme.colors.fg
+              : theme.colors.muted
         }
       />
     </Pressable>
@@ -478,11 +478,9 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
                       <View style={styles.vehiclePhotoCheckbox}>
                         <Ionicons
                           name={
-                            isSelected
-                              ? "checkmark-circle"
-                              : "checkmark-circle-outline"
+                            isSelected ? "checkbox" : "checkbox-outline"
                           }
-                          size={28}
+                          size={26}
                           color={
                             isSelected
                               ? theme.colors.accent

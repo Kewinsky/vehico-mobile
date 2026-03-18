@@ -11,6 +11,8 @@ export type TimelineItemProps = {
   badge?: string;
   badgeVariant?: "accent" | "muted";
   icon?: ReactNode;
+  /** Pastel tile behind icon (same idea as web timeline9). Defaults to neutral gray when icon is set. */
+  iconBackgroundColor?: string;
   onPress?: () => void;
 };
 
@@ -20,6 +22,7 @@ export function TimelineItem({
   badge,
   badgeVariant = "accent",
   icon,
+  iconBackgroundColor,
   onPress,
 }: TimelineItemProps) {
   const { theme } = useTheme();
@@ -29,7 +32,19 @@ export function TimelineItem({
   const content = (
     <View style={styles.card}>
       <View style={styles.content}>
-        {icon ? <View style={styles.iconContainer}>{icon}</View> : null}
+        {icon ? (
+          <View
+            style={[
+              styles.iconContainer,
+              {
+                backgroundColor:
+                  iconBackgroundColor ?? "rgba(107,114,128,0.1)",
+              },
+            ]}
+          >
+            {icon}
+          </View>
+        ) : null}
         <View style={styles.main}>
           <View style={styles.titleRow}>
             <View style={styles.titleWrap}>
@@ -107,8 +122,9 @@ const makeStyles = (theme: AppTheme) =>
       gap: theme.spacing.sm,
     },
     iconContainer: {
-      width: 40,
-      height: 40,
+      width: 48,
+      height: 48,
+      borderRadius: 12,
       alignItems: "center",
       justifyContent: "center",
     },

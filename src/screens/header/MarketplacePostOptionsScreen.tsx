@@ -61,6 +61,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
       <NativeHeaderScrollView>
         <ContentHeader title={layoutTitle} subtitle={generatedAt} />
         <SegmentTabs<"pl" | "en">
+          variant="secondary"
           value={displayLang}
           options={[
             { value: "pl", label: t("marketplace.languagePl") },

@@ -22,6 +22,23 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Workshops">;
 
+/** Pastel backgrounds aligned with icon accent colors (same pattern as service timeline). */
+const WORKSHOP_ICON_BACKGROUND: Record<WorkshopType, string> = {
+  mechanic: "rgba(239,68,68,0.1)",
+  electrician: "rgba(245,158,11,0.1)",
+  detailer: "rgba(59,130,246,0.1)",
+  bodywork: "rgba(34,197,94,0.1)",
+  car_wash: "rgba(14,165,233,0.1)",
+  other: "rgba(107,114,128,0.1)",
+};
+
+function workshopIconBackground(
+  type: WorkshopType | null | undefined,
+): string {
+  if (!type) return WORKSHOP_ICON_BACKGROUND.other;
+  return WORKSHOP_ICON_BACKGROUND[type] ?? WORKSHOP_ICON_BACKGROUND.other;
+}
+
 export function WorkshopsScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -201,6 +218,7 @@ export function WorkshopsScreen({ navigation }: Props) {
             title={item.name}
             subtitle={item.address ?? undefined}
             icon={renderWorkshopIcon(item.workshop_type)}
+            iconBackgroundColor={workshopIconBackground(item.workshop_type)}
             onPress={() =>
               navigation.navigate("WorkshopForm", { workshopId: item.id })
             }
