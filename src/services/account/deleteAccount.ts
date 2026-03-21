@@ -1,3 +1,5 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { supabase } from "../supabase/client";
 
 const REPORT_PHOTOS_BUCKET = "report-photos";
@@ -21,7 +23,7 @@ export async function deleteAccount(): Promise<void> {
     .eq("owner_id", uid);
   const vids = (vehicleIds ?? []).map((r) => r.id);
   if (vids.length === 0) {
-    // No vehicles — still delete workshops, user_settings, auth
+    // No vehicles — still delete workshops, clear local prefs, auth
   } else {
     const { data: vehiclePhotos, error: vehiclePhotosError } = await supabase
       .from("photos")
@@ -84,12 +86,8 @@ export async function deleteAccount(): Promise<void> {
     .eq("owner_id", uid);
   if (workshopsError) throw workshopsError;
 
-  // 5) Delete user_settings
-  const { error: settingsError } = await supabase
-    .from("user_settings")
-    .delete()
-    .eq("user_id", uid);
-  if (settingsError) throw settingsError;
+  // 5) Appearance/units/language live in AsyncStorage only (see UserSettingsProvider), not in Postgres
+  await AsyncStorage.removeItem(`vehico:user-settings:${uid}`);
 
   // 6) Delete auth user via Edge Function (client has no deleteUser(); admin API requires service_role)
   const { error: deleteUserError } = await supabase.functions.invoke(

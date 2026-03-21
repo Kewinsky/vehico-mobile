@@ -30,7 +30,7 @@ export async function generatePublicPageWithOptions(
   reportOptions: ReportOptions,
 ): Promise<PublicReportSnapshot> {
   const { data, error } = await supabase.rpc(
-    "create_report_snapshot_with_options",
+    "create_report_snapshot",
     {
       p_vehicle_id: vehicleId,
       p_selected_vehicle_photo_ids:

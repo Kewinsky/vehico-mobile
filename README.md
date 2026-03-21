@@ -36,22 +36,26 @@ A React Native mobile application for tracking vehicle maintenance, fuel consump
 ## Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd vehico
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp env.example .env.local
    ```
-   
+
    Edit `.env.local` and add your Supabase credentials:
+
    ```env
    EXPO_PUBLIC_APP_ENV=development
    EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
@@ -65,11 +69,13 @@ A React Native mobile application for tracking vehicle maintenance, fuel consump
    - Set up Row Level Security (RLS) policies (included in schema)
 
 5. **Start the development server**
+
    ```bash
    npm start
    ```
-   
+
    Or run on specific platform:
+
    ```bash
    npm run ios      # iOS
    npm run android  # Android
@@ -130,6 +136,7 @@ vehico/
 ### App Configuration
 
 Edit `app.json` to customize:
+
 - App name and slug
 - Bundle identifier / package name
 - Icons and splash screens
@@ -146,8 +153,8 @@ The application uses Supabase (PostgreSQL) with the following main tables:
 - `reminders` - Maintenance reminders
 - `attachments` - File attachments
 - `photos` - Vehicle photos
-- `user_settings` - User preferences
-- `public_pages` - Public sharing links
+- User preferences (appearance, units, language) — **AsyncStorage** on device (`UserSettingsProvider`), not a Postgres table
+- `reports` — public report snapshots (linked from the app; web reads via `get_public_report_by_id`)
 
 See `supabase/schema.sql` for the complete schema with RLS policies.
 
@@ -156,11 +163,13 @@ See `supabase/schema.sql` for the complete schema with RLS policies.
 ### iOS
 
 1. **Generate native code**
+
    ```bash
    npx expo prebuild --clean
    ```
 
 2. **Build with EAS (recommended)**
+
    ```bash
    eas build --platform ios
    ```
@@ -176,11 +185,13 @@ See `supabase/schema.sql` for the complete schema with RLS policies.
 ### Android
 
 1. **Generate native code**
+
    ```bash
    npx expo prebuild --clean
    ```
 
 2. **Build with EAS (recommended)**
+
    ```bash
    eas build --platform android
    ```
@@ -193,12 +204,14 @@ See `supabase/schema.sql` for the complete schema with RLS policies.
 ## Features in Detail
 
 ### Vehicle Management
+
 - Add vehicles with detailed information (make, model, year, VIN, etc.)
 - Upload profile photos
 - Edit and delete vehicles
 - Support for cars and motorcycles
 
 ### Service History
+
 - Chronological timeline of service entries
 - Categories: Maintenance, Repair, Inspection, Upgrade, Other
 - Attach documents and photos
@@ -206,24 +219,28 @@ See `supabase/schema.sql` for the complete schema with RLS policies.
 - Search functionality
 
 ### Fuel Tracking
+
 - Record fuel consumption with distance, amount, and cost
 - Automatic calculation of fuel efficiency
 - Filter by date and cost range
 - Monthly/yearly statistics
 
 ### Reminders
+
 - Time-based reminders (due date)
 - Mileage-based reminders (due at specific mileage)
 - Mark as done/active
 - Filter and search
 
 ### Documents
+
 - Upload vehicle photos
 - Attach documents to service entries
 - Support for images and files
 - Delete with confirmation
 
 ### Settings
+
 - Currency selection (PLN, EUR)
 - Distance unit (km, miles)
 - Fuel unit (liters, gallons)
@@ -233,12 +250,14 @@ See `supabase/schema.sql` for the complete schema with RLS policies.
 ## Development
 
 ### Code Style
+
 - TypeScript strict mode
 - Functional components with hooks
 - Custom hooks for data fetching
 - Context API for global state
 
 ### Adding New Features
+
 1. Add types to `src/types/domain.ts`
 2. Create repository in `src/services/`
 3. Add screen in `src/screens/`
@@ -250,14 +269,17 @@ See `supabase/schema.sql` for the complete schema with RLS policies.
 ### Common Issues
 
 **"Could not find the table" error**
+
 - Make sure you've run the SQL schema in Supabase
 - Check that RLS policies are set up correctly
 
 **Icons not showing in production build**
+
 - Run `npx expo prebuild --clean` after changing icons
 - Icons only appear in production builds, not in Expo Go
 
 **Keyboard covering input fields**
+
 - The app uses `FormScreen` component with keyboard handling
 - For custom screens, wrap content in `KeyboardAvoidingView`
 
