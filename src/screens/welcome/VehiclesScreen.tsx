@@ -10,6 +10,7 @@ import { useSharedValue } from "react-native-reanimated";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { Vehicle } from "../../types/domain";
+import { purgeOrphanLocalVehicleData } from "../../services/localStorage/purgeOrphanLocalVehicleData";
 import { listVehicles } from "../../services/vehicles/vehiclesRepo";
 import {
   listVehiclePhotosForVehicles,
@@ -287,6 +288,10 @@ export function VehiclesScreen({ navigation, route }: Props) {
         }
         const data = await listVehicles();
         setItems(data);
+
+        void purgeOrphanLocalVehicleData(data.map((v) => v.id)).catch((err) => {
+          console.warn("purgeOrphanLocalVehicleData failed", err);
+        });
 
         // Load photos for all vehicles in a single query to avoid N+1 requests.
         const photosByVehicle = await listVehiclePhotosForVehicles(

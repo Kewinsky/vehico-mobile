@@ -107,6 +107,14 @@ export async function listAllLocalAttachmentsByVehicle(
   return rows;
 }
 
+/** All attachment rows (for orphan purge vs server). */
+export async function listAllLocalAttachmentRows(): Promise<LocalAttachmentRow[]> {
+  const db = await getDb();
+  return db.getAllAsync<LocalAttachmentRow>(
+    `SELECT * FROM local_attachments ORDER BY created_at DESC`,
+  );
+}
+
 export async function updateLocalAttachmentDisplayName(
   id: string,
   displayName: string | null,
@@ -172,6 +180,16 @@ export async function listLocalVehicleDocuments(
     { $id: vehicleId },
   );
   return rows;
+}
+
+/** All local vehicle document rows (for orphan purge vs server). */
+export async function listAllLocalVehicleDocumentRows(): Promise<
+  LocalVehicleDocumentRow[]
+> {
+  const db = await getDb();
+  return db.getAllAsync<LocalVehicleDocumentRow>(
+    `SELECT * FROM local_vehicle_documents ORDER BY created_at DESC`,
+  );
 }
 
 export async function updateLocalVehicleDocumentDescription(
