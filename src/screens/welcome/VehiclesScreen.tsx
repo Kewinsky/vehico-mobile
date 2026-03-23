@@ -258,16 +258,21 @@ export function VehiclesScreen({ navigation, route }: Props) {
     user?.user_metadata?.full_name as string | undefined,
   );
   const firstName = getFirstName(normalizedName);
-  const timeOfDay = getTimeOfDay();
-  const greetingKey =
-    timeOfDay === "morning"
-      ? "vehicles.greetingMorning"
-      : timeOfDay === "afternoon"
-        ? "vehicles.greetingAfternoon"
-        : "vehicles.greetingEvening";
+  const headerGreeting = useMemo(() => {
+    // 7 short greetings shown in the header (random per focus entry).
+    const greetings = [
+      "Hi",
+      "Hello",
+      "Hey",
+      "Welcome",
+      "Good to see you",
+      "Let's go",
+    ];
+    return greetings[Math.floor(Math.random() * greetings.length)] ?? "Hi";
+  }, [isFocused]);
   const headerTitle = firstName
-    ? t(greetingKey, { name: firstName })
-    : t("vehicles.title");
+    ? `${headerGreeting}, ${firstName}!`
+    : `${headerGreeting}!`;
 
   // Convert mileage from km to miles if needed
   const formatMileage = (mileage: number | null | undefined): string => {

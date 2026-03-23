@@ -1291,9 +1291,11 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontSize: theme.spacing.xl * 2,
     },
     detailsContent: {
-      padding: theme.spacing.md,
+      paddingBottom: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md,
     },
     detailsTitle: {
+      paddingTop: theme.spacing.md,
       fontSize: theme.typography.title,
       fontWeight: theme.typography.fontWeight.bold,
     },
