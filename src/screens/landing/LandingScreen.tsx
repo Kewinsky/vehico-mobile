@@ -27,7 +27,7 @@ export function LandingScreen({ navigation }: Props) {
       stickyBottom={
         <View style={styles.stickyFooter}>
           <Button onPress={() => navigation.navigate("Auth")}>
-            {t("landing.getStarted")}
+            Get Started
           </Button>
           <LegalLinksRow
             termsUrl={`${ENV.WEB_APP_URL}/terms`}
@@ -179,7 +179,7 @@ const makeFeatureCardStyles = (theme: any) =>
   StyleSheet.create({
     card: {
       flexDirection: "row",
-      alignItems: "flex-start",
+      alignItems: "center",
       gap: theme.spacing.md,
       padding: theme.spacing.md,
       borderRadius: theme.radius.md + 4,
