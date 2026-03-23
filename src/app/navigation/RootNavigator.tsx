@@ -59,7 +59,7 @@ import { OnboardingScreen } from "../../screens/onboarding/OnboardingScreen";
 
 export type AppStackParamList = {
   Landing: undefined;
-  Auth: undefined;
+  Auth: { magicLinkError?: "expired" } | undefined;
   EmailConfirmation: { email?: string };
   Onboarding: undefined;
   Vehicles: { showVehiclePicker?: boolean } | undefined;

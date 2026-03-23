@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Linking } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -22,6 +22,8 @@ import { supabase } from "../services/supabase/client";
 
 function AppContent() {
   const { theme } = useTheme();
+  const isApplyingMagicLinkRef = useRef(false);
+  const processedMagicLinksRef = useRef<Set<string>>(new Set());
 
   // Handle tap on local notification (reminder) — navigate to ReminderForm (edit)
   useEffect(() => {
@@ -76,8 +78,56 @@ function AppContent() {
 
   // Handle deep linking for magic link authentication
   useEffect(() => {
+    const parseMagicLinkError = (url: string): null | "expired" => {
+      // Supabase can put errors in fragment (#...) or query (?...)
+      const hashIndex = url.indexOf("#");
+      const fragment = hashIndex >= 0 ? url.substring(hashIndex + 1) : "";
+      const queryIndex = url.indexOf("?");
+      const query = queryIndex >= 0 ? url.substring(queryIndex + 1) : "";
+      const params = new URLSearchParams(fragment || query);
+
+      const error = params.get("error") ?? "";
+      const errorCode = params.get("error_code") ?? "";
+      const errorDesc = params.get("error_description") ?? "";
+      const haystack = `${error} ${errorCode} ${errorDesc}`.toLowerCase();
+
+      if (!haystack) return null;
+      if (haystack.includes("expired")) return "expired";
+      if (haystack.includes("invalid") && haystack.includes("token"))
+        return "expired";
+      return "expired";
+    };
+
+    const openAuthErrorModal = (error: "expired") => {
+      const navigate = () =>
+        navigationRef.navigate("Auth", { magicLinkError: error });
+
+      if (navigationRef.isReady()) {
+        navigate();
+        return;
+      }
+
+      const startedAt = Date.now();
+      const id = setInterval(() => {
+        if (navigationRef.isReady()) {
+          clearInterval(id);
+          navigate();
+          return;
+        }
+        if (Date.now() - startedAt > 5000) {
+          clearInterval(id);
+        }
+      }, 100);
+    };
+
     const handleDeepLink = async (url: string | null) => {
       if (!url || !url.includes("auth/magic-link")) return;
+
+      const nextError = parseMagicLinkError(url);
+      if (nextError) {
+        openAuthErrorModal(nextError);
+        return;
+      }
 
       const hashIndex = url.indexOf("#");
       if (hashIndex === -1) return;
@@ -88,12 +138,30 @@ function AppContent() {
       const refreshToken = params.get("refresh_token");
 
       if (accessToken && refreshToken) {
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-        if (error) {
-          console.warn("Magic link setSession failed:", error.message);
+        const magicLinkKey = `${accessToken.slice(0, 16)}:${refreshToken.slice(0, 16)}`;
+
+        if (processedMagicLinksRef.current.has(magicLinkKey)) return;
+        if (isApplyingMagicLinkRef.current) return;
+
+        isApplyingMagicLinkRef.current = true;
+        try {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (error) {
+            console.warn("Magic link setSession failed:", error.message);
+          } else {
+            processedMagicLinksRef.current.add(magicLinkKey);
+            // Keep memory bounded for long app sessions.
+            if (processedMagicLinksRef.current.size > 20) {
+              const firstKey = processedMagicLinksRef.current.values().next()
+                .value as string | undefined;
+              if (firstKey) processedMagicLinksRef.current.delete(firstKey);
+            }
+          }
+        } finally {
+          isApplyingMagicLinkRef.current = false;
         }
       }
     };

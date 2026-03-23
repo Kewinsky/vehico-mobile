@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -32,7 +31,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 type Props = NativeStackScreenProps<AppStackParamList, "Auth">;
 
-export function AuthScreen({ navigation }: Props) {
+export function AuthScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -43,46 +42,18 @@ export function AuthScreen({ navigation }: Props) {
   const [sentEmail, setSentEmail] = useState("");
   const [magicLinkError, setMagicLinkError] = useState<null | "expired">(null);
 
-  useEffect(() => {
-    const parseMagicLinkError = (url: string): null | "expired" => {
-      // Supabase usually puts tokens + errors in the URL fragment after '#'.
-      const hashIndex = url.indexOf("#");
-      const fragment = hashIndex >= 0 ? url.substring(hashIndex + 1) : "";
-      const queryIndex = url.indexOf("?");
-      const query = queryIndex >= 0 ? url.substring(queryIndex + 1) : "";
-
-      const params = new URLSearchParams(fragment || query);
-
-      const error = params.get("error") ?? "";
-      const errorCode = params.get("error_code") ?? "";
-      const errorDesc = params.get("error_description") ?? "";
-      const haystack = `${error} ${errorCode} ${errorDesc}`.toLowerCase();
-
-      if (!haystack) return null;
-      if (haystack.includes("expired")) return "expired";
-      if (haystack.includes("invalid") && haystack.includes("token"))
-        return "expired";
-      return "expired";
-    };
-
-    const handle = (url: string | null) => {
-      if (!url || !url.includes("auth/magic-link")) return;
-      const nextError = parseMagicLinkError(url);
-      if (nextError) setMagicLinkError(nextError);
-    };
-
-    void Linking.getInitialURL().then((url) => handle(url));
-    const sub = Linking.addEventListener("url", ({ url }) => handle(url));
-    return () => sub.remove();
-  }, []);
-
   // Reset inputs when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       setEmail("");
       setMagicLinkSent(false);
       setSentEmail("");
-    }, []),
+      setMagicLinkError(null);
+      if (route.params?.magicLinkError) {
+        setMagicLinkError(route.params.magicLinkError);
+        navigation.setParams({ magicLinkError: undefined });
+      }
+    }, [navigation, route.params?.magicLinkError]),
   );
 
   const emailTrimmed = useMemo(() => email.trim(), [email]);
