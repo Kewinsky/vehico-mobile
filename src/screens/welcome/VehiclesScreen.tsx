@@ -193,12 +193,22 @@ function getFirstName(fullName: string | null | undefined): string {
   return parts[0] ?? "";
 }
 
-/** Returns "morning" | "afternoon" | "evening" based on current hour (local time). */
-function getTimeOfDay(): "morning" | "afternoon" | "evening" {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return "morning";
-  if (hour >= 12 && hour < 18) return "afternoon";
-  return "evening";
+function getDailyGreeting(seedInput: string): string {
+  const greetings = [
+    "Hi",
+    "Hello",
+    "Hey",
+    "Welcome",
+    "Good to see you",
+    "Let's go",
+    "Ready?",
+  ];
+  let hash = 0;
+  for (let i = 0; i < seedInput.length; i += 1) {
+    hash = (hash * 31 + seedInput.charCodeAt(i)) | 0;
+  }
+  const idx = Math.abs(hash) % greetings.length;
+  return greetings[idx] ?? "Hi";
 }
 
 export function VehiclesScreen({ navigation, route }: Props) {
@@ -259,17 +269,11 @@ export function VehiclesScreen({ navigation, route }: Props) {
   );
   const firstName = getFirstName(normalizedName);
   const headerGreeting = useMemo(() => {
-    // 7 short greetings shown in the header (random per focus entry).
-    const greetings = [
-      "Hi",
-      "Hello",
-      "Hey",
-      "Welcome",
-      "Good to see you",
-      "Let's go",
-    ];
-    return greetings[Math.floor(Math.random() * greetings.length)] ?? "Hi";
-  }, [isFocused]);
+    // Stable per day for a given user (changes once daily).
+    const today = new Date().toISOString().slice(0, 10);
+    const userSeed = user?.id ?? "anonymous";
+    return getDailyGreeting(`${userSeed}:${today}`);
+  }, [user?.id]);
   const headerTitle = firstName
     ? `${headerGreeting}, ${firstName}!`
     : `${headerGreeting}!`;
