@@ -1,5 +1,12 @@
-import React, { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
@@ -32,6 +39,40 @@ export function AuthScreen({ navigation }: Props) {
   const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [sentEmail, setSentEmail] = useState("");
+  const [magicLinkError, setMagicLinkError] = useState<null | "expired">(null);
+
+  useEffect(() => {
+    const parseMagicLinkError = (url: string): null | "expired" => {
+      // Supabase usually puts tokens + errors in the URL fragment after '#'.
+      const hashIndex = url.indexOf("#");
+      const fragment = hashIndex >= 0 ? url.substring(hashIndex + 1) : "";
+      const queryIndex = url.indexOf("?");
+      const query = queryIndex >= 0 ? url.substring(queryIndex + 1) : "";
+
+      const params = new URLSearchParams(fragment || query);
+
+      const error = params.get("error") ?? "";
+      const errorCode = params.get("error_code") ?? "";
+      const errorDesc = params.get("error_description") ?? "";
+      const haystack = `${error} ${errorCode} ${errorDesc}`.toLowerCase();
+
+      if (!haystack) return null;
+      if (haystack.includes("expired")) return "expired";
+      if (haystack.includes("invalid") && haystack.includes("token"))
+        return "expired";
+      return "expired";
+    };
+
+    const handle = (url: string | null) => {
+      if (!url || !url.includes("auth/magic-link")) return;
+      const nextError = parseMagicLinkError(url);
+      if (nextError) setMagicLinkError(nextError);
+    };
+
+    void Linking.getInitialURL().then((url) => handle(url));
+    const sub = Linking.addEventListener("url", ({ url }) => handle(url));
+    return () => sub.remove();
+  }, []);
 
   // Reset inputs when screen comes into focus
   useFocusEffect(
@@ -201,6 +242,43 @@ export function AuthScreen({ navigation }: Props) {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (magicLinkError === "expired") {
+    return (
+      <ModalLayout>
+        <FormScreen noLayout scrollEnabled={false}>
+          <View style={styles.magicLinkContainer}>
+            <View style={styles.iconContainer}>
+              <Ionicons
+                name="time-outline"
+                size={56}
+                color={theme.colors.accent}
+              />
+            </View>
+
+            <View style={styles.content}>
+              <Text style={[styles.title, { color: theme.colors.fg }]}>
+                {t("auth.magicLinkExpiredTitle")}
+              </Text>
+              <Text style={[styles.body, { color: theme.colors.muted }]}>
+                {t("auth.magicLinkExpiredBody")}
+              </Text>
+            </View>
+
+            <Button
+              style={styles.magicLinkButton}
+              onPress={() => {
+                setMagicLinkError(null);
+                navigation.goBack();
+              }}
+            >
+              {t("common.back")}
+            </Button>
+          </View>
+        </FormScreen>
+      </ModalLayout>
+    );
   }
 
   // Show magic link sent confirmation

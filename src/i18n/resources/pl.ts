@@ -117,6 +117,9 @@ export const pl = {
       "Nie znaleziono konta z tym adresem e-mail. Najpierw się zarejestruj.",
     magicLinkHint:
       "Wyślemy Ci bezpieczny link do logowania. Hasło nie jest wymagane.",
+    magicLinkExpiredTitle: "Link magiczny wygasł",
+    magicLinkExpiredBody:
+      "Poproś o nowy link magiczny, aby się zalogować.",
     bySigningIn: "Logując się, akceptujesz nasz",
     termsOfService: "Regulamin",
     rateLimitExceeded: "Zbyt wiele prób przy logowaniu",

@@ -115,6 +115,8 @@ export const en = {
     userNotFound: "No account found with this email. Please sign up first.",
     magicLinkHint:
       "We'll send you a secure link to sign in. No password required.",
+    magicLinkExpiredTitle: "Magic link expired",
+    magicLinkExpiredBody: "Please request a new magic link to sign in.",
     bySigningIn: "By signing in, you agree to our",
     termsOfService: "Terms of Service",
     rateLimitExceeded: "Too many sign-in attempts",

@@ -88,10 +88,13 @@ function AppContent() {
       const refreshToken = params.get("refresh_token");
 
       if (accessToken && refreshToken) {
-        await supabase.auth.setSession({
+        const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
+        if (error) {
+          console.warn("Magic link setSession failed:", error.message);
+        }
       }
     };
 
