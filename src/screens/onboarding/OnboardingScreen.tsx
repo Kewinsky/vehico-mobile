@@ -549,7 +549,11 @@ export function OnboardingScreen({ navigation }: Props) {
                 <TextInput
                   value={make}
                   onChangeText={setMake}
-                  placeholder={t("vehicleForm.placeholderMake")}
+                  placeholder={
+                    vehicleType === "motorcycle"
+                      ? t("vehicleForm.placeholderMakeMotorcycle")
+                      : t("vehicleForm.placeholderMake")
+                  }
                   placeholderTextColor={theme.colors.muted}
                   keyboardAppearance={mode === "dark" ? "dark" : "light"}
                   editable={!saving}
@@ -574,7 +578,11 @@ export function OnboardingScreen({ navigation }: Props) {
                 <TextInput
                   value={model}
                   onChangeText={setModel}
-                  placeholder={t("vehicleForm.placeholderModel")}
+                  placeholder={
+                    vehicleType === "motorcycle"
+                      ? t("vehicleForm.placeholderModelMotorcycle")
+                      : t("vehicleForm.placeholderModel")
+                  }
                   placeholderTextColor={theme.colors.muted}
                   keyboardAppearance={mode === "dark" ? "dark" : "light"}
                   editable={!saving}
@@ -599,7 +607,11 @@ export function OnboardingScreen({ navigation }: Props) {
                 <TextInput
                   value={year}
                   onChangeText={setYear}
-                  placeholder={t("vehicleForm.placeholderYear")}
+                  placeholder={
+                    vehicleType === "motorcycle"
+                      ? t("vehicleForm.placeholderYearMotorcycle")
+                      : t("vehicleForm.placeholderYear")
+                  }
                   placeholderTextColor={theme.colors.muted}
                   keyboardAppearance={mode === "dark" ? "dark" : "light"}
                   editable={!saving}
@@ -625,7 +637,11 @@ export function OnboardingScreen({ navigation }: Props) {
                 <TextInput
                   value={mileage}
                   onChangeText={setMileage}
-                  placeholder={t("vehicleForm.placeholderMileage")}
+                  placeholder={
+                    vehicleType === "motorcycle"
+                      ? t("vehicleForm.placeholderMileageMotorcycle")
+                      : t("vehicleForm.placeholderMileage")
+                  }
                   placeholderTextColor={theme.colors.muted}
                   keyboardAppearance={mode === "dark" ? "dark" : "light"}
                   keyboardType="number-pad"

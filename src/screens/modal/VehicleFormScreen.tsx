@@ -674,7 +674,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     onChangeText={setVin}
                     autoCapitalize="characters"
                     editable={!saving}
-                    placeholder={t("vehicleForm.placeholderVin")}
+                    placeholder={
+                      type === "motorcycle"
+                        ? t("vehicleForm.placeholderVinMotorcycle")
+                        : t("vehicleForm.placeholderVin")
+                    }
                     placeholderTextColor={theme.colors.muted}
                     style={[
                       styles.input,
@@ -701,7 +705,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     value={make}
                     onChangeText={setMake}
                     editable={!saving}
-                    placeholder={t("vehicleForm.placeholderMake")}
+                    placeholder={
+                      type === "motorcycle"
+                        ? t("vehicleForm.placeholderMakeMotorcycle")
+                        : t("vehicleForm.placeholderMake")
+                    }
                     placeholderTextColor={theme.colors.muted}
                     style={[
                       styles.input,
@@ -728,7 +736,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     value={model}
                     onChangeText={setModel}
                     editable={!saving}
-                    placeholder={t("vehicleForm.placeholderModel")}
+                    placeholder={
+                      type === "motorcycle"
+                        ? t("vehicleForm.placeholderModelMotorcycle")
+                        : t("vehicleForm.placeholderModel")
+                    }
                     placeholderTextColor={theme.colors.muted}
                     style={[
                       styles.input,
@@ -757,7 +769,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     keyboardType="number-pad"
                     maxLength={4}
                     editable={!saving}
-                    placeholder={t("vehicleForm.placeholderYear")}
+                    placeholder={
+                      type === "motorcycle"
+                        ? t("vehicleForm.placeholderYearMotorcycle")
+                        : t("vehicleForm.placeholderYear")
+                    }
                     placeholderTextColor={theme.colors.muted}
                     style={[
                       styles.input,
@@ -785,7 +801,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     onChangeText={setMileage}
                     keyboardType="number-pad"
                     editable={!saving}
-                    placeholder={t("vehicleForm.placeholderMileage")}
+                    placeholder={
+                      type === "motorcycle"
+                        ? t("vehicleForm.placeholderMileageMotorcycle")
+                        : t("vehicleForm.placeholderMileage")
+                    }
                     placeholderTextColor={theme.colors.muted}
                     style={[
                       styles.input,
@@ -970,7 +990,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     onChangeText={setEngineCapacity}
                     keyboardType="number-pad"
                     editable={!saving}
-                    placeholder={t("vehicleForm.placeholderEngineCapacity")}
+                    placeholder={
+                      type === "motorcycle"
+                        ? t("vehicleForm.placeholderEngineCapacityMotorcycle")
+                        : t("vehicleForm.placeholderEngineCapacity")
+                    }
                     placeholderTextColor={theme.colors.muted}
                     style={[
                       styles.input,
@@ -998,7 +1022,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     onChangeText={setPowerHp}
                     keyboardType="number-pad"
                     editable={!saving}
-                    placeholder={t("vehicleForm.placeholderPowerHp")}
+                    placeholder={
+                      type === "motorcycle"
+                        ? t("vehicleForm.placeholderPowerHpMotorcycle")
+                        : t("vehicleForm.placeholderPowerHp")
+                    }
                     placeholderTextColor={theme.colors.muted}
                     style={[
                       styles.input,
@@ -1234,7 +1262,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       onChangeText={setNotes}
                       editable={!saving}
                       multiline
-                      placeholder={t("vehicleForm.placeholderNotes")}
+                      placeholder={
+                        type === "motorcycle"
+                          ? t("vehicleForm.placeholderNotesMotorcycle")
+                          : t("vehicleForm.placeholderNotes")
+                      }
                       placeholderTextColor={theme.colors.muted}
                       style={[
                         styles.inputMultiline,
