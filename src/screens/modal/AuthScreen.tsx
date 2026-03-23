@@ -205,48 +205,56 @@ export function AuthScreen({ navigation }: Props) {
 
   // Show magic link sent confirmation
   if (magicLinkSent) {
+    const email = sentEmail.trim();
+    const magicLinkBody = t("auth.magicLinkSentBody", { email });
+    const emailIdx = email.length ? magicLinkBody.indexOf(email) : -1;
+
     return (
       <ModalLayout
-        title={t("auth.magicLinkSentTitle")}
         cancel={{
           onPress: () => navigation.goBack(),
           label: t("common.cancel"),
         }}
       >
-        <FormScreen noLayout>
-          <NativeHeaderScrollView>
-            <View style={styles.magicLinkContainer}>
-              <View style={styles.iconContainer}>
-                <Text style={[styles.icon, { color: theme.colors.accent }]}>
-                  ✉️
-                </Text>
-              </View>
-
-              <View style={styles.content}>
-                <Text style={[styles.title, { color: theme.colors.fg }]}>
-                  {t("auth.magicLinkSentTitle")}
-                </Text>
-                <Text style={[styles.body, { color: theme.colors.muted }]}>
-                  {t("auth.magicLinkSentBody", { email: sentEmail })}
-                </Text>
-                <Text style={[styles.hint, { color: theme.colors.muted }]}>
-                  {t("auth.magicLinkSentHint")}
-                </Text>
-              </View>
-
-              <Button
-                variant="ghost"
-                style={styles.magicLinkButton}
-                onPress={() => {
-                  setMagicLinkSent(false);
-                  setEmail("");
-                  setSentEmail("");
-                }}
-              >
-                {t("auth.sendAnotherLink")}
-              </Button>
+        <FormScreen noLayout scrollEnabled={false}>
+          <View style={styles.magicLinkContainer}>
+            <View style={styles.iconContainer}>
+              <Ionicons
+                name="mail-outline"
+                size={56}
+                color={theme.colors.accent}
+              />
             </View>
-          </NativeHeaderScrollView>
+
+            <View style={styles.content}>
+              <Text style={[styles.title, { color: theme.colors.fg }]}>
+                {t("auth.magicLinkSentTitle")}
+              </Text>
+
+              <Text style={[styles.body, { color: theme.colors.muted }]}>
+                {emailIdx >= 0 ? (
+                  <>
+                    {magicLinkBody.slice(0, emailIdx)}
+                    <Text style={styles.bodyEmail}>{email}</Text>
+                    {magicLinkBody.slice(emailIdx + email.length)}
+                  </>
+                ) : (
+                  magicLinkBody
+                )}
+              </Text>
+            </View>
+
+            <Button
+              style={styles.magicLinkButton}
+              onPress={() => {
+                setMagicLinkSent(false);
+                setEmail("");
+                setSentEmail("");
+              }}
+            >
+              {t("auth.sendAnotherLink")}
+            </Button>
+          </View>
         </FormScreen>
       </ModalLayout>
     );
@@ -502,6 +510,7 @@ const makeStyles = (theme: any) =>
     },
     magicLinkContainer: {
       flex: 1,
+      width: "100%",
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: theme.spacing.lg,
@@ -518,7 +527,7 @@ const makeStyles = (theme: any) =>
       width: "100%",
     },
     magicLinkButton: {
-      marginTop: theme.spacing.xl,
+      marginTop: theme.spacing.md,
     },
     title: {
       fontSize: theme.typography.title,
@@ -529,6 +538,9 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
       textAlign: "center",
       lineHeight: theme.typography.body + 6,
+    },
+    bodyEmail: {
+      fontWeight: theme.typography.fontWeight.bold,
     },
     hint: {
       fontSize: theme.typography.small,
