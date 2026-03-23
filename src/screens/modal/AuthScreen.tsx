@@ -24,6 +24,8 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { ENV } from "../../config/env";
 import { Card, CardRow } from "../../ui/components/common/Card";
+import { Logo } from "../../ui/components/branding/Logo";
+import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
 
 // Complete the auth session for better UX
 WebBrowser.maybeCompleteAuthSession();
@@ -340,14 +342,26 @@ export function AuthScreen({ navigation }: Props) {
 
   return (
     <ModalLayout
-      title={t("auth.title")}
       cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
+          <View style={styles.brandHeader}>
+            <Logo width={72} height={72} />
+            <Text style={styles.brandMotto}>
+              <Text style={{ color: theme.colors.fg }}>
+                {t("auth.brandMottoLine1")}
+              </Text>
+              {"\n"}
+              <Text style={{ color: theme.colors.accent }}>
+                {t("auth.brandMottoLine2")}
+              </Text>
+            </Text>
+          </View>
+
           {/* Magic Link Section */}
           <View
-            style={[styles.magicLinkSection, { marginTop: theme.spacing.md }]}
+            style={[styles.magicLinkSection, { marginTop: theme.spacing.lg }]}
           >
             <Card>
               <CardRow>
@@ -380,13 +394,9 @@ export function AuthScreen({ navigation }: Props) {
             </Card>
 
             <Button onPress={sendMagicLink} disabled={!canSubmit}>
-              {isSubmitting ? t("auth.sendingLink") : t("auth.sendMagicLink")}
+              {isSubmitting ? t("auth.sendingLink") : t("common.continue")}
             </Button>
           </View>
-
-          <Text style={[styles.magicLinkHint, { color: theme.colors.muted }]}>
-            {t("auth.magicLinkHint")}
-          </Text>
 
           {/* Divider */}
           <View style={styles.divider}>
@@ -463,37 +473,13 @@ export function AuthScreen({ navigation }: Props) {
               </Pressable>
             </View>
           </View>
-
-          {/* Terms & Privacy Footer */}
-          <View style={[styles.footer]}>
-            <Text style={[styles.footerText, { color: theme.colors.muted }]}>
-              {t("auth.bySigningIn")}
-              {"\n"}
-              <Text
-                style={[styles.footerLink, { color: theme.colors.accent }]}
-                onPress={() =>
-                  void WebBrowser.openBrowserAsync(`${ENV.WEB_APP_URL}/terms`)
-                }
-              >
-                {t("auth.termsOfService")}
-              </Text>{" "}
-              {t("common.and")}{" "}
-              <Text
-                style={[styles.footerLink, { color: theme.colors.accent }]}
-                onPress={() =>
-                  void WebBrowser.openBrowserAsync(`${ENV.WEB_APP_URL}/privacy`)
-                }
-              >
-                {t("auth.privacyPolicy")}
-              </Text>
-            </Text>
-          </View>
           {/* Test account — only in development */}
           {ENV.APP_ENV === "development" && (
             <Button
               onPress={signInWithTestAccount}
               disabled={isSubmitting}
               variant="ghost"
+              style={[{ marginTop: theme.spacing.md }]}
             >
               {isSubmitting
                 ? t("common.loading")
@@ -532,7 +518,7 @@ const makeStyles = (theme: any) =>
       textAlign: "right",
     },
     socialSection: {
-      gap: theme.spacing.sm,
+      gap: theme.spacing.md,
     },
     socialButtons: {
       flexDirection: "row",
@@ -556,7 +542,7 @@ const makeStyles = (theme: any) =>
     divider: {
       flexDirection: "row",
       alignItems: "center",
-      marginVertical: theme.spacing.md,
+      marginVertical: theme.spacing.lg,
       gap: theme.spacing.sm,
     },
     dividerLine: {
@@ -568,23 +554,21 @@ const makeStyles = (theme: any) =>
       fontWeight: theme.typography.fontWeight.bold,
     },
     magicLinkSection: {
+      gap: theme.spacing.md,
+    },
+    brandHeader: {
+      alignItems: "center",
       gap: theme.spacing.sm,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      marginTop: theme.spacing.lg,
+      marginBottom: theme.spacing.xl,
     },
-    magicLinkHint: {
-      fontSize: theme.typography.small,
+    brandMotto: {
+      fontSize: theme.typography.largeTitle,
+      fontWeight: theme.typography.fontWeight.bold,
+      fontFamily: BRAND_FONT_FAMILY,
       textAlign: "center",
-      marginTop: theme.spacing.sm,
-    },
-    footer: {
-      paddingTop: theme.spacing.md,
-    },
-    footerText: {
-      fontSize: theme.typography.small,
-      textAlign: "center",
-      lineHeight: theme.typography.body + 2,
-    },
-    footerLink: {
-      textDecorationLine: "underline",
+      lineHeight: theme.typography.largeTitle + 6,
     },
     magicLinkContainer: {
       flex: 1,
@@ -619,11 +603,5 @@ const makeStyles = (theme: any) =>
     },
     bodyEmail: {
       fontWeight: theme.typography.fontWeight.bold,
-    },
-    hint: {
-      fontSize: theme.typography.small,
-      textAlign: "center",
-      marginTop: theme.spacing.sm,
-      lineHeight: theme.typography.body + 2,
     },
   });

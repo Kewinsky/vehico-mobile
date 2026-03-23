@@ -85,6 +85,10 @@ export const pl = {
     signUpTitle: "Utwórz konto",
     subtitle: "Zaloguj się do swojego konta.",
     signUpSubtitle: "Utwórz nowe konto, aby rozpocząć.",
+    brandMotto: "Keep the facts. Share the value.",
+    brandMottoLine1: "Keep the facts",
+    brandMottoLine2: "Share the value",
+    brandMottoSub: "Bezpieczne logowanie bez hasła — linkiem magicznym.",
     emailLabel: "E-mail",
     emailPlaceholder: "ty@przyklad.com",
     signIn: "Zaloguj się",
@@ -118,8 +122,7 @@ export const pl = {
     magicLinkHint:
       "Wyślemy Ci bezpieczny link do logowania. Hasło nie jest wymagane.",
     magicLinkExpiredTitle: "Link magiczny wygasł",
-    magicLinkExpiredBody:
-      "Poproś o nowy link magiczny, aby się zalogować.",
+    magicLinkExpiredBody: "Poproś o nowy link magiczny, aby się zalogować.",
     bySigningIn: "Logując się, akceptujesz nasz",
     termsOfService: "Regulamin",
     rateLimitExceeded: "Zbyt wiele prób przy logowaniu",
