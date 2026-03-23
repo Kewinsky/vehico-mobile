@@ -30,6 +30,7 @@ import {
   SERVICE_CATEGORY_COLORS,
   SERVICE_CATEGORY_ICON_BACKGROUND,
 } from "../../ui/theme/serviceCategoryColors";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { formatDateDisplay } from "../../utils/dateFormatting";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
@@ -443,6 +444,14 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
               return (
                 <TimelineItem
                   title={r.title ?? t("reminders.title")}
+                  icon={
+                    <Ionicons
+                      name="notifications-outline"
+                      size={22}
+                      color={theme.colors.accent}
+                    />
+                  }
+                  iconBackgroundColor={hexToRgba(theme.colors.accent, 0.15)}
                   subtitle={dueText}
                   onPress={() =>
                     navigation.navigate("ReminderForm", {
