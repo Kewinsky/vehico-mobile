@@ -231,14 +231,46 @@ export function AuthScreen({ navigation }: Props) {
   }
 
   async function signInWithTestAccount() {
+    return signInWithTestCredentials({
+      email: "test@user.com",
+      password: "testuser",
+    });
+  }
+
+  async function signInWithEmptyDataTestAccount() {
+    return signInWithTestCredentials({
+      email: "test-empty@user.com",
+      password: "testuser",
+    });
+  }
+
+  async function signInWithOnboardingResetTestAccount() {
+    return signInWithTestCredentials({
+      email: "test-onboarding@user.com",
+      password: "testuser",
+      forceOnboardingFalse: true,
+    });
+  }
+
+  async function signInWithTestCredentials(input: {
+    email: string;
+    password: string;
+    forceOnboardingFalse?: boolean;
+  }) {
     try {
       setIsSubmitting(true);
       const { error } = await supabase.auth.signInWithPassword({
-        email: "test@user.com",
-        password: "testuser",
+        email: input.email,
+        password: input.password,
       });
 
       if (error) throw error;
+      if (input.forceOnboardingFalse) {
+        const { error: updateError } = await supabase.auth.updateUser({
+          data: { has_completed_onboarding: false },
+        });
+        if (updateError) throw updateError;
+      }
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -475,16 +507,32 @@ export function AuthScreen({ navigation }: Props) {
           </View>
           {/* Test account — only in development */}
           {ENV.APP_ENV === "development" && (
-            <Button
-              onPress={signInWithTestAccount}
-              disabled={isSubmitting}
-              variant="ghost"
-              style={[{ marginTop: theme.spacing.md }]}
-            >
-              {isSubmitting
-                ? t("common.loading")
-                : "🧪 Test Account (test@user.com)"}
-            </Button>
+            <>
+              <Button
+                onPress={signInWithTestAccount}
+                disabled={isSubmitting}
+                variant="ghost"
+                style={[{ marginTop: theme.spacing.md }]}
+              >
+                {isSubmitting ? t("common.loading") : "👤 Test User"}
+              </Button>
+              <Button
+                onPress={signInWithEmptyDataTestAccount}
+                disabled={isSubmitting}
+                variant="ghost"
+                style={[{ marginTop: theme.spacing.xs }]}
+              >
+                {isSubmitting ? t("common.loading") : "🗂️ Empty Data User"}
+              </Button>
+              <Button
+                onPress={signInWithOnboardingResetTestAccount}
+                disabled={isSubmitting}
+                variant="ghost"
+                style={[{ marginTop: theme.spacing.xs }]}
+              >
+                {isSubmitting ? t("common.loading") : "🔁 Onboarding User"}
+              </Button>
+            </>
           )}
         </NativeHeaderScrollView>
       </FormScreen>
