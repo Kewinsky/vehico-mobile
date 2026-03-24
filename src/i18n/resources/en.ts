@@ -452,7 +452,7 @@ export const en = {
       },
       charts: {
         expensesOverTime: "Expenses over time",
-        distanceOverTime: "Mileage over time",
+        distanceOverTime: "Monthly distance",
         expensesByCategory: "Expenses by category",
       },
       categories: {

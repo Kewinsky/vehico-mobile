@@ -456,7 +456,7 @@ export const pl = {
       },
       charts: {
         expensesOverTime: "Wydatki w czasie",
-        distanceOverTime: "Przebieg w czasie",
+        distanceOverTime: "Dystans wg miesięcy",
         expensesByCategory: "Wydatki wg kategorii",
       },
       categories: {

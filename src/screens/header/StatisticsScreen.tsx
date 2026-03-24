@@ -323,29 +323,6 @@ function getChartScale(values: number[], height: number) {
   return { maxY, niceMaxY, plotH, yTicks };
 }
 
-function getMileageChartScale(centerValue: number, height: number) {
-  const safeCenterValue = clampNonNeg(centerValue);
-  const step = safeCenterValue >= 1000 ? 10_000 : 10;
-  let centerTick = Math.round(safeCenterValue / step) * step;
-  let tickValues = [-2, -1, 0, 1, 2].map(
-    (offset) => centerTick + offset * step,
-  );
-  while (tickValues[0] < step) {
-    tickValues = tickValues.map((value) => value + step);
-    centerTick += step;
-  }
-  const minY = tickValues[0]!;
-  const maxY = tickValues[tickValues.length - 1]!;
-  const plotH = height - CHART_PLOT_PADDING_TOP - CHART_PLOT_PADDING_BOTTOM;
-  const yTicks: ChartYTick[] = tickValues.map((value) => ({
-    value,
-    y:
-      CHART_PLOT_PADDING_TOP +
-      (1 - (value - minY) / Math.max(1, maxY - minY)) * plotH,
-  }));
-  return { minY, maxY, yTicks };
-}
-
 function getScrollableChartWidth(
   itemCount: number,
   minWidth: number,
@@ -942,14 +919,12 @@ export function StatisticsScreen(props: Props) {
 
   const monthlyDistanceSeries = useMemo(() => {
     const byMonth: Record<string, number> = {};
-    let totalFromFueling = 0;
     for (const f of filtered.fueling) {
       const d = parseDateLoose(f.date);
       if (!d) continue;
       const k = monthKey(d);
       const dist = Number(f.distance ?? 0);
       byMonth[k] = (byMonth[k] ?? 0) + dist;
-      totalFromFueling += dist;
     }
     const keysWithData = Object.keys(byMonth).sort();
     const monthKeys =
@@ -961,16 +936,8 @@ export function StatisticsScreen(props: Props) {
             monthRange.startMonthStr!,
             monthRange.currentMonthStr,
           );
-    // Actual odometer over time: baseline = current vehicle mileage − total from fueling; then add cumulative per month
-    const currentMileage = vehicle?.mileage ?? null;
-    const baseline =
-      currentMileage != null ? currentMileage - totalFromFueling : 0;
-    let runningTotal = 0;
-    return monthKeys.map((k) => {
-      runningTotal += byMonth[k] ?? 0;
-      return { x: k, y: baseline + runningTotal };
-    });
-  }, [filtered.fueling, period, monthRange, vehicle?.mileage]);
+    return monthKeys.map((k) => ({ x: k, y: byMonth[k] ?? 0 }));
+  }, [filtered.fueling, period, monthRange]);
 
   const lastOilChange = useMemo(() => {
     const oilEntries = service
@@ -1063,10 +1030,8 @@ export function StatisticsScreen(props: Props) {
     monthlySeries.data.map((item) => item.y),
     CHART_BAR_HEIGHT,
   );
-  const lineChartScale = getMileageChartScale(
-    vehicle?.mileage ??
-      monthlyDistanceSeries[monthlyDistanceSeries.length - 1]?.y ??
-      0,
+  const lineChartScale = getChartScale(
+    monthlyDistanceSeries.map((item) => item.y),
     CHART_LINE_HEIGHT,
   );
   const categorySeries = useMemo(
@@ -1289,8 +1254,8 @@ export function StatisticsScreen(props: Props) {
                   data={monthlyDistanceSeries}
                   width={lineChartWidth}
                   height={CHART_LINE_HEIGHT}
-                  minY={lineChartScale.minY}
-                  maxY={lineChartScale.maxY}
+                  minY={0}
+                  maxY={lineChartScale.niceMaxY}
                   yTicks={lineChartScale.yTicks}
                   stroke={theme.colors.accent}
                   grid={theme.colors.border}
