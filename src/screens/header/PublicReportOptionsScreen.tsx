@@ -17,16 +17,16 @@ import { Button } from "../../ui/components/common/Button";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
+import { Logo } from "../../ui/components/branding/Logo";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportOptions">;
 
 export function PublicReportOptionsScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
-  const { isPremium } = useEntitlements();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const styles = useMemo(() => makeStyles(theme), [theme, mode]);
   const { url, vehicleId, reportTitle, generatedAt } = route.params;
   const { width } = useWindowDimensions();
 
@@ -40,6 +40,11 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
       2;
     return Math.max(min, Math.min(max, Math.floor(available)));
   }, [width, theme.layout.contentPaddingHorizontal, theme.spacing.md]);
+
+  const qrLogoSize = useMemo(
+    () => Math.round(Math.min(40, Math.max(28, qrSize * 0.15))),
+    [qrSize],
+  );
 
   const handleBack = () => {
     // Try to go back first, if not possible, replace with PublicReport screen
@@ -88,19 +93,43 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
           <View style={styles.qrContainer}>
             <View
               style={[
-                styles.qrWrapper,
                 {
                   backgroundColor: theme.colors.card,
-                  borderColor: theme.colors.border,
+                  borderColor: hexToRgba(
+                    theme.colors.accent,
+                    mode === "dark" ? 0.32 : 0.2,
+                  ),
+                  shadowColor: hexToRgba(theme.colors.accent, 0.45),
                 },
               ]}
             >
-              <QRCode
-                value={url}
-                size={qrSize}
-                color={mode === "dark" ? "#ffffff" : "#000000"}
-                backgroundColor={theme.colors.card}
-              />
+              <View style={[styles.qrInner, { width: qrSize, height: qrSize }]}>
+                <QRCode
+                  value={url}
+                  size={qrSize}
+                  color={mode === "dark" ? "#ffffff" : "#000000"}
+                  backgroundColor={theme.colors.bg}
+                  ecl="H"
+                />
+                <View
+                  style={styles.qrLogoOverlay}
+                  pointerEvents="none"
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                >
+                  <View
+                    style={[
+                      styles.qrLogoBadge,
+                      {
+                        backgroundColor: theme.colors.card,
+                        borderColor: hexToRgba(theme.colors.accent, 0.28),
+                      },
+                    ]}
+                  >
+                    <Logo width={qrLogoSize} height={qrLogoSize} />
+                  </View>
+                </View>
+              </View>
             </View>
           </View>
 
@@ -125,9 +154,19 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
       marginBottom: theme.spacing.md,
     },
-    qrWrapper: {
-      padding: theme.spacing.md,
-      borderRadius: theme.radius.md,
+    qrInner: {
+      position: "relative",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    qrLogoOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    qrLogoBadge: {
+      borderRadius: 999,
+      padding: theme.spacing.xs,
       alignItems: "center",
       justifyContent: "center",
     },
