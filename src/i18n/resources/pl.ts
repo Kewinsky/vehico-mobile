@@ -339,6 +339,7 @@ export const pl = {
     noServiceEntries: "Brak wpisów serwisowych.",
     searchPlaceholder: "Szukaj w historii serwisowej…",
     filters: "Filtry",
+    filtersTitle: "Filtry",
     reset: "Resetuj",
     filterCategory: "Kategoria",
     filterFrom: "Od",

@@ -89,7 +89,7 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
 
   return (
     <ModalLayout
-      title={t("timeline.filtersTitle", { defaultValue: "Filters" })}
+      title={t("timeline.filtersTitle")}
       cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
       done={{ onPress: applyFilters, label: t("common.done") }}
       footer={

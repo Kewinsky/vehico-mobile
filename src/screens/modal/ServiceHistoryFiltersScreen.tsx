@@ -195,7 +195,7 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
 
   return (
     <ModalFormScreen
-      title={t("timeline.filtersTitle", { defaultValue: "Filters" })}
+      title={t("timeline.filtersTitle")}
       onCancel={() => navigation.goBack()}
       onDone={applyFilters}
       cancelLabel={t("common.cancel")}

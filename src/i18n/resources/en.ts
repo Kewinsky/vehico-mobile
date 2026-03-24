@@ -335,6 +335,7 @@ export const en = {
     noServiceEntries: "No service entries yet.",
     searchPlaceholder: "Search service history…",
     filters: "Filters",
+    filtersTitle: "Filters",
     reset: "Reset",
     filterCategory: "Category",
     filterFrom: "From",
