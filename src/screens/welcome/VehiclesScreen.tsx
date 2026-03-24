@@ -201,7 +201,6 @@ function getDailyGreeting(seedInput: string): string {
     "Welcome",
     "Good to see you",
     "Let's go",
-    "Ready?",
   ];
   let hash = 0;
   for (let i = 0; i < seedInput.length; i += 1) {
