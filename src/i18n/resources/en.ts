@@ -902,6 +902,8 @@ Detailed report available at: https://report.vehico.app/report/example`,
   workshopForm: {
     addTitle: "Add workshop",
     editTitle: "Edit workshop",
+    copyAddress: "Copy address",
+    addressCopied: "Copied",
     name: "Name",
     workshopType: "Type",
     selectType: "Select workshop type",

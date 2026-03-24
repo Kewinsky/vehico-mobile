@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from "react";
-import { Platform, Pressable, StyleSheet, Text } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../../ThemeProvider";
 
@@ -37,20 +37,24 @@ export function Button({
         style,
       ]}
     >
-      <Text
-        style={[
-          styles.text,
-          variant === "primary"
-            ? styles.textPrimary
-            : variant === "destructive"
-              ? styles.textDestructive
-              : variant === "outlined"
-                ? styles.textOutlined
-                : styles.textGhost,
-        ]}
-      >
-        {children}
-      </Text>
+      {typeof children === "string" || typeof children === "number" ? (
+        <Text
+          style={[
+            styles.text,
+            variant === "primary"
+              ? styles.textPrimary
+              : variant === "destructive"
+                ? styles.textDestructive
+                : variant === "outlined"
+                  ? styles.textOutlined
+                  : styles.textGhost,
+          ]}
+        >
+          {children}
+        </Text>
+      ) : (
+        <View style={styles.contentRow}>{children}</View>
+      )}
     </Pressable>
   );
 }
@@ -117,5 +121,13 @@ const makeStyles = (theme: any) =>
     },
     pressed: {
       transform: [{ scale: 0.99 }],
+    },
+    contentRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: theme.spacing.xs,
+      flexShrink: 1,
+      maxWidth: "100%",
     },
   });

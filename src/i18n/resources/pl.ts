@@ -907,6 +907,8 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
   workshopForm: {
     addTitle: "Dodaj warsztat",
     editTitle: "Edytuj warsztat",
+    copyAddress: "Kopiuj adres",
+    addressCopied: "Skopiowano",
     name: "Nazwa",
     workshopType: "Typ",
     selectType: "Wybierz typ warsztatu",

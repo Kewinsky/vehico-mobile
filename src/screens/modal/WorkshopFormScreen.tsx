@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
+  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -28,7 +29,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
-import { toastError } from "../../ui/toast/toast";
+import * as Clipboard from "expo-clipboard";
 import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
@@ -59,6 +60,18 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
+  const [addressJustCopied, setAddressJustCopied] = useState(false);
+  const addressCopyResetRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  useEffect(() => {
+    return () => {
+      if (addressCopyResetRef.current != null) {
+        clearTimeout(addressCopyResetRef.current);
+      }
+    };
+  }, []);
 
   const load = useCallback(async () => {
     if (!workshopId) return;
@@ -69,7 +82,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       setPhoneNumber(w.phone_number ?? "");
       setAddress(w.address ?? "");
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      Alert.alert(t("common.error"), e?.message ?? t("common.error"));
     }
   }, [workshopId, t]);
 
@@ -113,6 +126,34 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
     Alert.alert(opts.title, "", buttons, { cancelable: true });
   }
 
+  const phoneTrimmed = phoneNumber.trim();
+  const addressTrimmed = address.trim();
+  const canCall = phoneTrimmed.length > 0;
+  const canCopyAddress = addressTrimmed.length > 0;
+
+  async function placeCall() {
+    if (!canCall) return;
+    const telHref = `tel:${phoneTrimmed.replace(/[^\d+#*;,.]/g, "")}`;
+    const canOpen = await Linking.canOpenURL(telHref);
+    if (canOpen) {
+      await Linking.openURL(telHref);
+    }
+  }
+
+  async function copyAddress() {
+    if (!canCopyAddress) return;
+    if (addressCopyResetRef.current != null) {
+      clearTimeout(addressCopyResetRef.current);
+      addressCopyResetRef.current = null;
+    }
+    await Clipboard.setStringAsync(addressTrimmed);
+    setAddressJustCopied(true);
+    addressCopyResetRef.current = setTimeout(() => {
+      setAddressJustCopied(false);
+      addressCopyResetRef.current = null;
+    }, 2000);
+  }
+
   function confirmDelete() {
     if (!workshopId) return;
     Alert.alert(t("workshops.deleteTitle"), t("workshops.deleteBody"), [
@@ -125,7 +166,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
             await deleteWorkshop(workshopId);
             navigation.goBack();
           } catch (e: any) {
-            toastError(e?.message ?? t("common.error"));
+            Alert.alert(t("common.error"), e?.message ?? t("common.error"));
           }
         },
       },
@@ -177,7 +218,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       navigation.goBack();
     } catch (e: any) {
       if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) return;
-      toastError(e?.message ?? t("common.error"));
+      Alert.alert(t("common.error"), e?.message ?? t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -196,9 +237,71 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       }}
       footer={
         workshopId ? (
-          <Button variant="destructive" onPress={confirmDelete}>
-            {t("common.delete")}
-          </Button>
+          <View style={{ gap: theme.spacing.sm }}>
+            <View
+              style={{
+                flexDirection: "row",
+                gap: theme.spacing.sm,
+              }}
+            >
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Button
+                  variant="outlined"
+                  onPress={placeCall}
+                  disabled={!canCall || saving}
+                >
+                  <Ionicons
+                    name="call-outline"
+                    size={20}
+                    color={theme.colors.accent}
+                  />
+                  <Text style={styles.footerOutlinedLabel} numberOfLines={1}>
+                    {t("workshops.call")}
+                  </Text>
+                </Button>
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Button
+                  variant="outlined"
+                  onPress={copyAddress}
+                  disabled={!canCopyAddress || saving}
+                >
+                  {addressJustCopied ? (
+                    <>
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <Text
+                        style={styles.footerOutlinedLabel}
+                        numberOfLines={1}
+                      >
+                        {t("workshopForm.addressCopied")}
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Ionicons
+                        name="copy-outline"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <Text
+                        style={styles.footerOutlinedLabel}
+                        numberOfLines={1}
+                      >
+                        {t("workshopForm.copyAddress")}
+                      </Text>
+                    </>
+                  )}
+                </Button>
+              </View>
+            </View>
+            <Button variant="destructive" onPress={confirmDelete}>
+              {t("common.delete")}
+            </Button>
+          </View>
         ) : (
           <Button variant="outlined" onPress={clearForm} disabled={saving}>
             {t("common.clearButton")}
@@ -371,6 +474,13 @@ function makeStyles(theme: any) {
     label: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
+    },
+    footerOutlinedLabel: {
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+      letterSpacing: 0.2,
+      color: theme.colors.accent,
+      flexShrink: 1,
     },
     valueText: {
       flex: 1,
