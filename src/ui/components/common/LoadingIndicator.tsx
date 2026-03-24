@@ -14,7 +14,7 @@ export function LoadingIndicator({ size = "small" }: LoadingIndicatorProps) {
   return (
     <View style={styles.container}>
       <ActivityIndicator size={size} color={theme.colors.accent} />
-      <Text style={styles.text}>{t("common.loading")}</Text>
+      {/* <Text style={styles.text}>{t("common.loading")}</Text> */}
     </View>
   );
 }
