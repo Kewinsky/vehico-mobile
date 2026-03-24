@@ -60,6 +60,10 @@ type EmbeddedProps = {
 };
 type Props = ScreenProps | EmbeddedProps;
 
+function isEmbeddedProps(props: Props): props is EmbeddedProps {
+  return "embedded" in props && props.embedded === true;
+}
+
 function StatTile({
   icon,
   iconComponent,
@@ -645,7 +649,7 @@ export function StatisticsScreen(props: Props) {
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const { width: windowWidth } = useWindowDimensions();
-  const embedded = "embedded" in props && props.embedded === true;
+  const embedded = isEmbeddedProps(props);
   const vehicleId = embedded ? props.vehicleId : props.route.params.vehicleId;
   const {
     isPremium,
@@ -1482,7 +1486,10 @@ export function StatisticsScreen(props: Props) {
 
   if (embedded) {
     return (
-      <View style={{ paddingBottom: theme.spacing.xl }}>{cardContent}</View>
+      <View style={{ paddingBottom: theme.spacing.xl }}>
+        {filterPanelContent}
+        {cardContent}
+      </View>
     );
   }
 
@@ -1509,7 +1516,7 @@ export function StatisticsScreen(props: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     panelWrap: {
-      gap: theme.spacing.sm,
+      paddingBottom: theme.spacing.sm,
     },
     loading: {
       alignItems: "center",
