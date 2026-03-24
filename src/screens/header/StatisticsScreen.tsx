@@ -53,7 +53,12 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import type { AppTheme } from "../../ui/theme";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Statistics">;
+type ScreenProps = NativeStackScreenProps<AppStackParamList, "Statistics">;
+type EmbeddedProps = {
+  vehicleId: string;
+  embedded: true;
+};
+type Props = ScreenProps | EmbeddedProps;
 
 function StatTile({
   icon,
@@ -632,7 +637,7 @@ function SimplePieChart({
   );
 }
 
-export function StatisticsScreen({ route, navigation }: Props) {
+export function StatisticsScreen(props: Props) {
   const { t, i18n } = useTranslation();
   const chartLocale = i18n.language === "pl" ? "pl" : "en";
   const formatChartMonth = (key: string) =>
@@ -640,7 +645,8 @@ export function StatisticsScreen({ route, navigation }: Props) {
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const { width: windowWidth } = useWindowDimensions();
-  const vehicleId = route.params.vehicleId;
+  const embedded = "embedded" in props && props.embedded === true;
+  const vehicleId = embedded ? props.vehicleId : props.route.params.vehicleId;
   const {
     isPremium,
     tiresPerVehicleLimit,
@@ -1474,10 +1480,16 @@ export function StatisticsScreen({ route, navigation }: Props) {
     </View>
   );
 
+  if (embedded) {
+    return (
+      <View style={{ paddingBottom: theme.spacing.xl }}>{cardContent}</View>
+    );
+  }
+
   return (
     <HeaderLayout
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => props.navigation.goBack()}
       showProfileAvatar
       showShopIcon={!isPremium}
     >
