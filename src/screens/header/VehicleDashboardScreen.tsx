@@ -1,4 +1,10 @@
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   Alert,
   Dimensions,
@@ -19,7 +25,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import { Image } from "expo-image";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
-import { useSharedValue } from "react-native-reanimated";
+import Animated, {
+  interpolateColor,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  type SharedValue,
+} from "react-native-reanimated";
 import { MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -63,6 +76,36 @@ type VehicleCarouselProps = {
   theme: any;
   onPhotoPress?: (index: number) => void;
 };
+
+type PagerDotProps = {
+  pageIndex: number;
+  onPress: () => void;
+  progress: SharedValue<number>;
+  theme: any;
+};
+
+function PagerDot({ pageIndex, onPress, progress, theme }: PagerDotProps) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: 8 + 12 * Math.max(0, 1 - Math.abs(progress.value - pageIndex)),
+    opacity: 0.7 + 0.3 * Math.max(0, 1 - Math.abs(progress.value - pageIndex)),
+    backgroundColor: interpolateColor(
+      Math.max(0, 1 - Math.abs(progress.value - pageIndex)),
+      [0, 1],
+      [theme.colors.border, theme.colors.accent],
+    ),
+    transform: [
+      {
+        scale: 1 + 0.08 * Math.max(0, 1 - Math.abs(progress.value - pageIndex)),
+      },
+    ],
+  }));
+
+  return (
+    <Pressable onPress={onPress} hitSlop={8}>
+      <Animated.View style={[stylesInline.pagerDot, animatedStyle]} />
+    </Pressable>
+  );
+}
 
 function VehicleCarousel({
   photoUrls,
@@ -183,10 +226,13 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [fullScreenIndex, setFullScreenIndex] = useState<number | null>(null);
-  const [activePage, setActivePage] = useState(0);
+  const [activePage, setActivePage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollOffsetYRef = useRef(0);
   const pagerRef = useRef<FlatList<number>>(null);
   const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
+  const pagerProgress = useSharedValue(1);
   const detailIconSize = 28;
   const distanceUnit = settings?.distanceUnit ?? "km";
   const vehicleImageHeight = Math.min(Math.max(windowHeight * 0.34, 280), 360);
@@ -615,6 +661,18 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     t,
   ]);
 
+  useEffect(() => {
+    if (activePage <= 1 && scrollOffsetYRef.current > 4) {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    }
+  }, [activePage]);
+
+  const handlePagerScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      pagerProgress.value = event.contentOffset.x / windowWidth;
+    },
+  });
+
   return (
     <HeaderLayout
       loading={loading}
@@ -624,7 +682,12 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       paddingHorizontal={false}
     >
       <ScrollView
+        ref={scrollViewRef}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={(event) => {
+          scrollOffsetYRef.current = event.nativeEvent.contentOffset.y;
+        }}
         contentContainerStyle={styles.scrollContent}
       >
         <View
@@ -649,13 +712,21 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           )}
         </View>
 
-        <FlatList
+        <Animated.FlatList
           ref={pagerRef}
           data={pageData}
+          initialScrollIndex={1}
           horizontal
           pagingEnabled
+          scrollEventThrottle={16}
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => `page-${item}`}
+          getItemLayout={(_, index) => ({
+            length: windowWidth,
+            offset: windowWidth * index,
+            index,
+          })}
+          onScroll={handlePagerScroll}
           onMomentumScrollEnd={(event) => {
             const index = Math.round(
               event.nativeEvent.contentOffset.x / windowWidth,
@@ -664,11 +735,14 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           }}
           renderItem={({ index }) => pages[index]}
         />
+      </ScrollView>
 
+      <View style={styles.pagerDotsContainer} pointerEvents="box-none">
         <View style={styles.pagerDots}>
           {pageData.map((pageIndex) => (
-            <Pressable
+            <PagerDot
               key={`dot-${pageIndex}`}
+              pageIndex={pageIndex}
               onPress={() => {
                 pagerRef.current?.scrollToIndex({
                   index: pageIndex,
@@ -676,14 +750,12 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                 });
                 setActivePage(pageIndex);
               }}
-              style={[
-                styles.pagerDot,
-                pageIndex === activePage && styles.pagerDotActive,
-              ]}
+              progress={pagerProgress}
+              theme={theme}
             />
           ))}
         </View>
-      </ScrollView>
+      </View>
 
       <Modal
         visible={fullScreenIndex !== null}
@@ -776,8 +848,8 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     scrollContent: {
       paddingBottom: Math.max(
-        theme.spacing.xl,
-        insets.bottom + theme.spacing.md,
+        theme.spacing.xl * 3,
+        insets.bottom + theme.spacing.xl * 2,
       ),
     },
     vehicleImageContainer: {
@@ -867,21 +939,27 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontSize: theme.typography.title,
       fontWeight: theme.typography.fontWeight.bold,
     },
+    pagerDotsContainer: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: insets.bottom,
+      alignItems: "center",
+      zIndex: 20,
+      pointerEvents: "box-none",
+    },
     pagerDots: {
       flexDirection: "row",
       justifyContent: "center",
+      alignItems: "center",
       gap: theme.spacing.xs,
-      marginTop: theme.spacing.md,
-    },
-    pagerDot: {
-      width: 8,
-      height: 8,
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: theme.spacing.sm,
       borderRadius: 999,
-      backgroundColor: theme.colors.border,
-    },
-    pagerDotActive: {
-      backgroundColor: theme.colors.accent,
-      width: 20,
+      backgroundColor: `${theme.colors.card}E6`,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      elevation: 4,
     },
     fullScreenOverlay: {
       flex: 1,
@@ -916,6 +994,11 @@ const stylesInline = {
     backgroundColor: theme.colors.accent,
     borderRadius: 50,
   }),
+  pagerDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 999,
+  },
   expandButton: (theme: any) => ({
     position: "absolute" as const,
     bottom: theme.spacing.md,
