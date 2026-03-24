@@ -84,63 +84,57 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
   return (
     <HeaderLayout onBack={handleBack} showProfileAvatar>
       <NativeHeaderScrollView>
-        <View
-          style={{
-            paddingBottom: theme.spacing.xl,
-          }}
-        >
-          <ContentHeader title={layoutTitle} subtitle={generatedAt} />
-          <View style={styles.qrContainer}>
-            <View
-              style={[
-                {
-                  backgroundColor: theme.colors.card,
-                  borderColor: hexToRgba(
-                    theme.colors.accent,
-                    mode === "dark" ? 0.32 : 0.2,
-                  ),
-                  shadowColor: hexToRgba(theme.colors.accent, 0.45),
-                },
-              ]}
-            >
-              <View style={[styles.qrInner, { width: qrSize, height: qrSize }]}>
-                <QRCode
-                  value={url}
-                  size={qrSize}
-                  color={mode === "dark" ? "#ffffff" : "#000000"}
-                  backgroundColor={theme.colors.bg}
-                  ecl="H"
-                />
+        <ContentHeader title={layoutTitle} subtitle={generatedAt} />
+        <View style={styles.qrContainer}>
+          <View
+            style={[
+              {
+                backgroundColor: theme.colors.card,
+                borderColor: hexToRgba(
+                  theme.colors.accent,
+                  mode === "dark" ? 0.32 : 0.2,
+                ),
+                shadowColor: hexToRgba(theme.colors.accent, 0.45),
+              },
+            ]}
+          >
+            <View style={[styles.qrInner, { width: qrSize, height: qrSize }]}>
+              <QRCode
+                value={url}
+                size={qrSize}
+                color={mode === "dark" ? "#ffffff" : "#000000"}
+                backgroundColor={theme.colors.bg}
+                ecl="H"
+              />
+              <View
+                style={styles.qrLogoOverlay}
+                pointerEvents="none"
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+              >
                 <View
-                  style={styles.qrLogoOverlay}
-                  pointerEvents="none"
-                  accessibilityElementsHidden
-                  importantForAccessibility="no-hide-descendants"
+                  style={[
+                    styles.qrLogoBadge,
+                    {
+                      backgroundColor: theme.colors.card,
+                      borderColor: hexToRgba(theme.colors.accent, 0.28),
+                    },
+                  ]}
                 >
-                  <View
-                    style={[
-                      styles.qrLogoBadge,
-                      {
-                        backgroundColor: theme.colors.card,
-                        borderColor: hexToRgba(theme.colors.accent, 0.28),
-                      },
-                    ]}
-                  >
-                    <Logo width={qrLogoSize} height={qrLogoSize} />
-                  </View>
+                  <Logo width={qrLogoSize} height={qrLogoSize} />
                 </View>
               </View>
             </View>
           </View>
+        </View>
 
-          <View style={styles.actions}>
-            <Button onPress={handleOpenInBrowser}>
-              {t("share.openInBrowser")}
-            </Button>
-            <Button onPress={handleShare} variant="outlined">
-              {t("share.title")}
-            </Button>
-          </View>
+        <View style={styles.actions}>
+          <Button onPress={handleOpenInBrowser}>
+            {t("share.openInBrowser")}
+          </Button>
+          <Button onPress={handleShare} variant="outlined">
+            {t("share.title")}
+          </Button>
         </View>
       </NativeHeaderScrollView>
     </HeaderLayout>
