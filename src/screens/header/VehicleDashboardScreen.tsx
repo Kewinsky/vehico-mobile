@@ -426,7 +426,18 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               />
             }
             label={t("vehicleForm.transmissionLabel")}
-            value={vehicle?.transmission ?? "—"}
+            value={
+              vehicle?.transmission
+                ? t(
+                    `vehicleForm.transmission${
+                      vehicle.transmission.charAt(0).toUpperCase() +
+                      vehicle.transmission.slice(1)
+                    }` as
+                      | "vehicleForm.transmissionManual"
+                      | "vehicleForm.transmissionAutomatic",
+                  )
+                : "—"
+            }
           />
           <DetailItem
             icon={
