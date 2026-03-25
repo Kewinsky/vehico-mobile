@@ -1179,51 +1179,6 @@ export function StatisticsScreen(props: Props) {
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-          {t("dashboard.stats.charts.expensesOverTime")}
-        </Text>
-        <View style={styles.chartContainer} key={`bar-chart-${period}`}>
-          {monthlySeries.data.length === 0 ? (
-            <Text style={[styles.empty, { color: theme.colors.muted }]}>
-              {t("dashboard.stats.empty")}
-            </Text>
-          ) : (
-            <View style={styles.chartFrame}>
-              <ChartYAxis
-                height={CHART_BAR_HEIGHT}
-                yTicks={barChartScale.yTicks}
-                textColor={theme.colors.muted}
-                grid={theme.colors.border}
-                formatYLabel={formatChartYAxisLabel}
-              />
-              <ScrollView
-                horizontal
-                bounces={false}
-                showsHorizontalScrollIndicator={false}
-                style={styles.chartScroll}
-                contentContainerStyle={[
-                  styles.chartScrollContent,
-                  { minWidth: chartScrollViewportWidth },
-                ]}
-              >
-                <SimpleBarChart
-                  data={monthlySeries.data}
-                  width={barChartWidth}
-                  height={CHART_BAR_HEIGHT}
-                  niceMaxY={barChartScale.niceMaxY}
-                  yTicks={barChartScale.yTicks}
-                  fill={theme.colors.accent}
-                  grid={theme.colors.border}
-                  textColor={theme.colors.muted}
-                  formatXLabel={formatChartMonth}
-                />
-              </ScrollView>
-            </View>
-          )}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
           {t("dashboard.stats.charts.distanceOverTime")}
         </Text>
         <View style={styles.chartContainer} key={`distance-chart-${period}`}>
@@ -1268,6 +1223,50 @@ export function StatisticsScreen(props: Props) {
         </View>
       </View>
 
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+          {t("dashboard.stats.charts.expensesOverTime")}
+        </Text>
+        <View style={styles.chartContainer} key={`bar-chart-${period}`}>
+          {monthlySeries.data.length === 0 ? (
+            <Text style={[styles.empty, { color: theme.colors.muted }]}>
+              {t("dashboard.stats.empty")}
+            </Text>
+          ) : (
+            <View style={styles.chartFrame}>
+              <ChartYAxis
+                height={CHART_BAR_HEIGHT}
+                yTicks={barChartScale.yTicks}
+                textColor={theme.colors.muted}
+                grid={theme.colors.border}
+                formatYLabel={formatChartYAxisLabel}
+              />
+              <ScrollView
+                horizontal
+                bounces={false}
+                showsHorizontalScrollIndicator={false}
+                style={styles.chartScroll}
+                contentContainerStyle={[
+                  styles.chartScrollContent,
+                  { minWidth: chartScrollViewportWidth },
+                ]}
+              >
+                <SimpleBarChart
+                  data={monthlySeries.data}
+                  width={barChartWidth}
+                  height={CHART_BAR_HEIGHT}
+                  niceMaxY={barChartScale.niceMaxY}
+                  yTicks={barChartScale.yTicks}
+                  fill={theme.colors.accent}
+                  grid={theme.colors.border}
+                  textColor={theme.colors.muted}
+                  formatXLabel={formatChartMonth}
+                />
+              </ScrollView>
+            </View>
+          )}
+        </View>
+      </View>
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
           {t("dashboard.stats.charts.expensesByCategory")}
