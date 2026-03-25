@@ -419,6 +419,10 @@ export const en = {
   },
   dashboard: {
     backToVehicles: "Back to vehicles",
+    mileageUpdated: {
+      lastUpdated: "Mileage last updated {{relative}}.",
+      cta: "Update odometer",
+    },
     stats: {
       title: "Statistics",
       empty: "No data for this period.",

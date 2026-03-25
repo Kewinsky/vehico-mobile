@@ -423,6 +423,10 @@ export const pl = {
   },
   dashboard: {
     backToVehicles: "Wróć do pojazdów",
+    mileageUpdated: {
+      lastUpdated: "Ostatnia aktualizacja przebiegu {{relative}}.",
+      cta: "Zaktualizuj przebieg",
+    },
     stats: {
       title: "Statystyki",
       empty: "Brak danych dla tego okresu.",

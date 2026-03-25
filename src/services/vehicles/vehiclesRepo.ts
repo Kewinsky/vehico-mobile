@@ -9,6 +9,7 @@ type NewVehicleInput = {
   model: string;
   production_year: number;
   mileage?: number | null;
+  mileage_updated_at?: string | null;
   first_registration_date?: string | null;
   license_plate?: string | null;
   engine_capacity?: number | null;
@@ -21,7 +22,7 @@ type NewVehicleInput = {
   inspection_valid_until?: string | null;
 };
 
-type UpdateVehicleInput = Partial<NewVehicleInput>;
+export type UpdateVehicleInput = Partial<NewVehicleInput>;
 
 export async function listVehicles(): Promise<Vehicle[]> {
   const { data, error } = await supabase

@@ -32,6 +32,7 @@ import {
   getVehicle,
   listVehicles,
   updateVehicle,
+  type UpdateVehicleInput,
 } from "../../services/vehicles/vehiclesRepo";
 import {
   deleteVehiclePhoto,
@@ -134,6 +135,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [isTouchingPhotoGrid, setIsTouchingPhotoGrid] = useState(false);
   const nextDraftPhotoKeyRef = useRef(0);
+  const initialMileageRef = useRef<number | null | undefined>(undefined);
 
   function createDraftPhotoKey(prefix: "existing" | "new") {
     const key = `${prefix}-${nextDraftPhotoKeyRef.current}`;
@@ -152,6 +154,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       setModel(v.model);
       setYear(String(v.production_year));
       setMileage(v.mileage ? String(v.mileage) : "");
+      initialMileageRef.current = v.mileage;
       setFirstRegistrationDate(v.first_registration_date ?? "");
       setLicensePlate(v.license_plate ?? "");
       setEngineCapacity(v.engine_capacity ? String(v.engine_capacity) : "");
@@ -476,7 +479,16 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       };
 
       if (isEditMode && vehicleId) {
-        await updateVehicle(vehicleId, payload);
+        const patch: UpdateVehicleInput = { ...payload };
+        const newMileage = patch.mileage ?? null;
+        if (
+          initialMileageRef.current !== undefined &&
+          newMileage !== initialMileageRef.current
+        ) {
+          patch.mileage_updated_at =
+            newMileage != null ? formatYmd(new Date()) : null;
+        }
+        await updateVehicle(vehicleId, patch);
 
         const currentExistingIds = new Set(
           draftPhotos

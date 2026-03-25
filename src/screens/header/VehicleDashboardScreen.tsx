@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -20,7 +21,13 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HeaderButton } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { Database, Fuel, Hash, CalendarCheck } from "lucide-react-native";
+import {
+  Clock,
+  Database,
+  Fuel,
+  Hash,
+  CalendarCheck,
+} from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import { Image } from "expo-image";
@@ -48,6 +55,8 @@ import {
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
+import { Button } from "../../ui/components/common/Button";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Tile as TileCard } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
@@ -56,6 +65,10 @@ import { DashboardFab } from "../../ui/components/common/DashboardFab";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
 import { StatisticsScreen } from "./StatisticsScreen";
+import {
+  daysSinceYmd,
+  formatRelativeTimePast,
+} from "../../utils/formatRelativeTimePast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
@@ -209,8 +222,10 @@ function DetailItem({ icon, label, value }: DetailItemProps) {
   );
 }
 
+const MILEAGE_STALE_MIN_DAYS = 90;
+
 export function VehicleDashboardScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const insets = useSafeAreaInsets();
@@ -236,6 +251,13 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const detailIconSize = 28;
   const distanceUnit = settings?.distanceUnit ?? "km";
   const vehicleImageHeight = Math.min(Math.max(windowHeight * 0.34, 280), 360);
+  const mileageStaleYmd = useMemo(() => {
+    if (vehicle?.mileage == null) return null;
+    const ts = vehicle.mileage_updated_at;
+    if (ts == null || ts === "") return null;
+    if (daysSinceYmd(ts) < MILEAGE_STALE_MIN_DAYS) return null;
+    return ts;
+  }, [vehicle?.mileage, vehicle?.mileage_updated_at]);
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -571,8 +593,38 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     </View>
   );
 
+  const mileageStaleTitle =
+    mileageStaleYmd == null
+      ? null
+      : t("dashboard.mileageUpdated.lastUpdated", {
+          relative: formatRelativeTimePast(mileageStaleYmd, i18n.language),
+        });
+
   const buttonsPage = (
     <View style={[styles.page, { width: windowWidth }]}>
+      {mileageStaleYmd ? (
+        <View
+          style={[
+            styles.mileageStaleCard,
+            { backgroundColor: hexToRgba(theme.colors.accent, 0.14) },
+          ]}
+          accessibilityLabel={mileageStaleTitle ?? undefined}
+        >
+          <View style={styles.mileageStaleCardTop}>
+            <Clock size={26} color={theme.colors.accent} strokeWidth={2} />
+            <Text
+              style={[styles.mileageStaleCardTitle, { color: theme.colors.fg }]}
+            >
+              {mileageStaleTitle}
+            </Text>
+          </View>
+          <Button
+            onPress={() => navigation.navigate("VehicleForm", { vehicleId })}
+          >
+            {t("dashboard.mileageUpdated.cta")}
+          </Button>
+        </View>
+      ) : null}
       <View style={styles.tilesWrap}>
         {tiles.map((item) => (
           <View key={item.key} style={styles.tileWrapper}>
@@ -886,6 +938,23 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flexDirection: "row",
       gap: theme.spacing.xs,
       alignItems: "flex-start",
+    },
+    mileageStaleCard: {
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
+      gap: theme.spacing.md,
+      marginBottom: theme.spacing.sm,
+    },
+    mileageStaleCardTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.md,
+    },
+    mileageStaleCardTitle: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.medium,
     },
     detailItem: {
       flex: 1,

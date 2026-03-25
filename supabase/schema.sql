@@ -21,6 +21,7 @@ create table public.vehicles (
   model text not null,
   production_year integer not null,
   mileage integer, -- current mileage in km
+  mileage_updated_at date, -- calendar day when mileage was last set
   first_registration_date date, -- first registration date
   license_plate text, -- license plate number
   engine_capacity integer, -- in cm³
@@ -1556,6 +1557,7 @@ begin
     model,
     production_year,
     mileage,
+    mileage_updated_at,
     first_registration_date,
     license_plate,
     engine_capacity,
@@ -1574,6 +1576,7 @@ begin
     p_model,
     p_production_year,
     p_mileage,
+    case when p_mileage is not null then current_date else null end,
     p_first_registration_date,
     p_license_plate,
     p_engine_capacity,
