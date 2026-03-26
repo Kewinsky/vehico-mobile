@@ -64,8 +64,6 @@ export const en = {
     photoLimitReachedTitle: "Photo Limit Reached",
     photoLimitReachedBody:
       "You have reached the limit of {{limit}} photos per vehicle. Upgrade to Premium for up to 40 photos.",
-    reportLimitReachedTitle: "Report Limit Reached",
-    listingLimitReachedTitle: "Listing Limit Reached",
     limitReachedTitle: "Limit Reached",
     limitReachedBody:
       "You have reached the limit for this feature. Upgrade to Premium for more.",
@@ -73,11 +71,6 @@ export const en = {
     premiumRequiredBody:
       "This feature is available only with an active Premium plan.",
     upgradeToPremium: "Upgrade to Premium",
-    reportsRemaining: "Reports remaining: {{count}}",
-    listingsRemaining: "Listings remaining: {{count}}",
-    noReportsRemaining: "No reports remaining. Upgrade to Premium to continue.",
-    noListingsRemaining:
-      "No listings remaining. Upgrade to Premium to continue.",
   },
   auth: {
     title: "Sign in",

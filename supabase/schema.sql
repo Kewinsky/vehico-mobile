@@ -1002,7 +1002,6 @@ as $$
 declare
   v_snapshot public.reports;
   v_snapshot_data jsonb;
-  v_snapshot_count integer;
   v_can_generate jsonb;
   v_photo_count integer;
 begin
@@ -1038,23 +1037,6 @@ begin
         );
       end if;
     end;
-  end if;
-
-  -- Check snapshot limit (3 per vehicle) - remove oldest if exceeded
-  select count(*) into v_snapshot_count
-  from public.reports
-  where vehicle_id = p_vehicle_id;
-
-  if v_snapshot_count >= 3 then
-    -- Delete oldest snapshot
-    delete from public.reports
-    where id = (
-      select id
-      from public.reports
-      where vehicle_id = p_vehicle_id
-      order by created_at asc
-      limit 1
-    );
   end if;
 
   -- Generate snapshot with options

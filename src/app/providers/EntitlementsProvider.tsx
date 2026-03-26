@@ -36,8 +36,6 @@ export type EntitlementPlan = "free" | "premium" | "lifetime";
 
 export type Entitlements = {
   plan: EntitlementPlan;
-  reports_remaining: number;
-  listings_remaining: number;
   vehicles_limit: number;
   photos_per_vehicle_limit: number;
   tires_per_vehicle_limit: number;
@@ -97,11 +95,7 @@ type EntitlementsContextValue = {
   isLoading: boolean;
   refresh: () => Promise<void>;
   // Computed helpers
-  canGenerateReport: boolean;
-  canGenerateListing: boolean;
   isPremium: boolean;
-  reportsRemaining: number;
-  listingsRemaining: number;
   vehiclesLimit: number;
   photosPerVehicleLimit: number;
   tiresPerVehicleLimit: number;
@@ -151,8 +145,6 @@ const EntitlementsContext = createContext<EntitlementsContextValue | null>(
 
 const DEFAULT_ENTITLEMENTS: Entitlements = {
   plan: "free",
-  reports_remaining: 0,
-  listings_remaining: 0,
   vehicles_limit: 1,
   photos_per_vehicle_limit: 6,
   tires_per_vehicle_limit: 1,
@@ -185,8 +177,6 @@ async function fetchEntitlements(): Promise<Entitlements> {
 
   return {
     plan: (data.plan as EntitlementPlan) ?? "free",
-    reports_remaining: data.reports_remaining ?? 0,
-    listings_remaining: data.listings_remaining ?? 0,
     vehicles_limit: data.vehicles_limit ?? 1,
     photos_per_vehicle_limit: data.photos_per_vehicle_limit ?? 6,
     tires_per_vehicle_limit: data.tires_per_vehicle_limit ?? 1,
@@ -649,13 +639,9 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
   const computed = useMemo(() => {
     if (!entitlements) {
       return {
-        canGenerateReport: false,
-        canGenerateListing: false,
         isPremium: false,
         isRevenueCatPremium: false,
         premiumEntitlement: null,
-        reportsRemaining: 0,
-        listingsRemaining: 0,
         vehiclesLimit: 1,
         photosPerVehicleLimit: 6,
         tiresPerVehicleLimit: 1,
@@ -706,9 +692,6 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
 
     const premiumEntitlement = getPremiumEntitlement(revenueCatCustomerInfo);
 
-    const canGenerateReport = isPremium;
-    const canGenerateListing = isPremium;
-
     const currentPlanProductId: RevenueCatProductId | null = isPremium
       ? ((entitlements.product_id &&
         isRevenueCatProductId(entitlements.product_id)
@@ -730,13 +713,9 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
     }
 
     return {
-      canGenerateReport,
-      canGenerateListing,
       isPremium,
       isRevenueCatPremium: premiumEntitlement?.isActive === true,
       premiumEntitlement,
-      reportsRemaining: entitlements.reports_remaining,
-      listingsRemaining: entitlements.listings_remaining,
       vehiclesLimit: isPremium
         ? PREMIUM_UNLIMITED
         : entitlements.vehicles_limit,
