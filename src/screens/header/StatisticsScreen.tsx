@@ -1329,7 +1329,9 @@ export function StatisticsScreen(props: Props) {
                 ? fmtNumber(totals.avgCostPerLiter, 2)
                 : "—"
             }
-            valueSuffix={Number.isFinite(totals.avgCostPerLiter) ? currency : undefined}
+            valueSuffix={
+              Number.isFinite(totals.avgCostPerLiter) ? currency : undefined
+            }
           />
         </View>
         <View style={styles.tilesRow}>
@@ -1342,13 +1344,17 @@ export function StatisticsScreen(props: Props) {
                 : t("dashboard.stats.lastRefuel")
             }
             valueMain={lastRefuelAmountMain}
-            valueSuffix={Number.isFinite(lastRefuelAmount) ? fuelUnitLabel : undefined}
+            valueSuffix={
+              Number.isFinite(lastRefuelAmount) ? fuelUnitLabel : undefined
+            }
           />
           <StatTile
             theme={theme}
             styles={styles}
             label={t("dashboard.stats.metrics.totalDistance")}
-            valueMain={fuelStatsDistance != null ? fmtNumber(fuelStatsDistance, 0) : "—"}
+            valueMain={
+              fuelStatsDistance != null ? fmtNumber(fuelStatsDistance, 0) : "—"
+            }
             valueSuffix={fuelStatsDistance != null ? distanceUnit : undefined}
           />
         </View>
@@ -1634,67 +1640,6 @@ export function StatisticsScreen(props: Props) {
             </View>
           </View>
         ) : null}
-      </View>
-
-      {/* Insurance and inspection validity dates overview. */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-          {t("dashboard.stats.insuranceAndInspection")}
-        </Text>
-        <View style={styles.tilesRow}>
-          <StatTile
-            theme={theme}
-            styles={styles}
-            icon="shield-checkmark-outline"
-            label={t("dashboard.stats.insurance")}
-            valueMain={insuranceValidUntilLabel}
-          />
-          <StatTile
-            theme={theme}
-            styles={styles}
-            icon="checkmark-done-outline"
-            label={t("dashboard.stats.inspection")}
-            valueMain={inspectionValidUntilLabel}
-          />
-        </View>
-      </View>
-
-      {/* Currently fitted tire and wheel configuration snapshot. */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-          {t("dashboard.stats.wheels")}
-        </Text>
-        <StatTile
-          theme={theme}
-          styles={styles}
-          iconComponent={<TireIcon size={24} color={theme.colors.accent} />}
-          label={t("dashboard.stats.currentTire")}
-          valueMain={
-            fittedTires.length > 0
-              ? `${formatTireDimensions(
-                  fittedTires[0].width_mm,
-                  fittedTires[0].aspect_ratio,
-                  fittedTires[0].diameter_inch,
-                )} · ${(fittedTires[0].name ?? "").trim() || "—"}`
-              : "—"
-          }
-          fullWidth
-        />
-        <StatTile
-          theme={theme}
-          styles={styles}
-          iconComponent={<RimIcon size={24} color={theme.colors.accent} />}
-          label={t("dashboard.stats.currentWheel")}
-          valueMain={
-            fittedWheels.length > 0
-              ? `${formatWheelDimensions(
-                  fittedWheels[0].width_inch,
-                  fittedWheels[0].diameter_inch,
-                )} · ${(fittedWheels[0].name ?? "").trim() || "—"}`
-              : "—"
-          }
-          fullWidth
-        />
       </View>
     </View>
   );
