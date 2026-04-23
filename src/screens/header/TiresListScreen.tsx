@@ -21,7 +21,7 @@ import { toastError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
-import { TimelineItem } from "../../ui/components/list/TimelineItem";
+import { TiresItem } from "../../ui/components/list/TiresItem";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 
 type Props = NativeStackScreenProps<AppStackParamList, "TiresList">;
@@ -216,7 +216,7 @@ export function TiresListScreen({ route, navigation }: Props) {
           }
           keyExtractor={(item: VehicleTire) => item.id}
           renderItem={({ item }) => (
-            <TimelineItem
+            <TiresItem
               title={item.name}
               subtitle={tireSubtitle(item, t)}
               badge={

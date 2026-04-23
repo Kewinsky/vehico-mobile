@@ -1,11 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { ReactNode } from "react";
+import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
-import { Ionicons } from "@expo/vector-icons";
 
-export type TimelineItemProps = {
+export type TiresItemProps = {
   title: string;
   subtitle?: string;
   badge?: string;
@@ -15,7 +15,7 @@ export type TimelineItemProps = {
   onPress?: () => void;
 };
 
-export function TimelineItem({
+export function TiresItem({
   title,
   subtitle,
   badge,
@@ -23,7 +23,7 @@ export function TimelineItem({
   icon,
   iconBackgroundColor,
   onPress,
-}: TimelineItemProps) {
+}: TiresItemProps) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
   const isMutedBadge = badgeVariant === "muted";
@@ -62,15 +62,15 @@ export function TimelineItem({
                   isMutedBadge ? styles.badgeMuted : styles.badgeAccent,
                 ]}
               >
-              <Text
-                style={[
-                  styles.badgeText,
-                  isMutedBadge ? styles.badgeTextMuted : null,
-                ]}
-              >
-                {badge}
-              </Text>
-            </View>
+                <Text
+                  style={[
+                    styles.badgeText,
+                    isMutedBadge ? styles.badgeTextMuted : null,
+                  ]}
+                >
+                  {badge}
+                </Text>
+              </View>
             )}
           </View>
           {!!subtitle && (

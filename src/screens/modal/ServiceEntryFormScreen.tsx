@@ -52,6 +52,7 @@ import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Textarea } from "../../ui/components/common/Textarea";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
+import { NotebookPen } from "lucide-react-native";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "maintenance",
@@ -864,6 +865,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 onPress={addEntry}
                 variant="ghost"
                 disabled={saving || uploading}
+                style={{ borderWidth: 0 }}
               >
                 {t("entryForm.addAnotherEntry")}
               </Button>
@@ -978,6 +980,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 onPress={pickAttachment}
                 variant="ghost"
                 disabled={saving || uploading}
+                style={{ borderWidth: 0 }}
               >
                 {t("entryForm.addAttachment")}
               </Button>

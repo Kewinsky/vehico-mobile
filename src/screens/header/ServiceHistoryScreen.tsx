@@ -19,7 +19,6 @@ import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
-import { TimelineItem } from "../../ui/components/list/TimelineItem";
 import { ServiceItem } from "../../ui/components/list/ServiceItem";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
@@ -425,22 +424,15 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           renderItem={({ item: rowItem }) => {
             if (rowItem.kind === "reminder") {
               const r = rowItem.reminder;
-              const dueText = [
-                r.due_date
-                  ? t("reminders.dueTime", { date: r.due_date })
-                  : null,
-                r.due_mileage != null
-                  ? t("reminders.dueMileage", {
-                      mileage: String(r.due_mileage),
-                      unit: distanceUnit,
-                    })
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" · ");
               return (
-                <TimelineItem
+                <ServiceItem
                   title={r.title ?? t("reminders.title")}
+                  date={r.due_date}
+                  mileage={r.due_mileage}
+                  distanceUnit={distanceUnit}
+                  workshopName={null}
+                  cost={null}
+                  currency={currency}
                   icon={
                     <Ionicons
                       name="notifications-outline"
@@ -449,7 +441,6 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
                     />
                   }
                   iconBackgroundColor={hexToRgba(theme.colors.accent, 0.15)}
-                  subtitle={dueText}
                   onPress={() =>
                     navigation.navigate("ReminderForm", {
                       vehicleId,
