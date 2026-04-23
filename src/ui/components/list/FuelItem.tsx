@@ -104,7 +104,7 @@ const makeStyles = (theme: AppTheme) =>
       minWidth: 0,
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
-      color: "#0B0B0B",
+      color: theme.colors.fg,
     },
     costText: {
       fontSize: theme.typography.body,

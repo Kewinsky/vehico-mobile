@@ -426,7 +426,7 @@ export const pl = {
       viewAll: "Pokaż wszystko",
       fuelStats: "Statystyki paliwa",
       recentService: "Ostatnie serwisy",
-      lastRefuel: "Ostatnie tankowanie",
+      lastRefuel: "Ost. tankow.",
       daysAgo: "{{days}}d temu",
       avgCostPerUnit: "Śr. cena / {{unit}}",
       tabs: {
