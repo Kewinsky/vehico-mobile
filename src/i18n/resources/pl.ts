@@ -481,6 +481,7 @@ export const pl = {
       statusOptimal: "Optymalny",
       statusDueSoon: "Wkrótce",
       statusOverdue: "Po terminie",
+      dueInDaysShort: "Za {{days}}d",
       lastServiceShort: "Ostatni serwis",
       estNextShort: "Szac. następny",
       months: "mies.",

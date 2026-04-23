@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Alert,
-  FlatList,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Feather } from "@expo/vector-icons";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { MarketplacePost } from "../../types/domain";
@@ -23,8 +22,6 @@ import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { IconButton } from "../../ui/components/common/IconButton";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 
@@ -40,7 +37,6 @@ type Props = NativeStackScreenProps<
 export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
@@ -128,6 +124,19 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
     });
   }
 
+  function renderRightActions(item: MarketplacePost) {
+    return (
+      <View style={styles.swipeActionsWrap}>
+        <Pressable
+          onPress={() => handleEditTitle(item)}
+          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
+        >
+          <Feather name="edit" size={22} color="#000000" />
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
     <HeaderLayout
       loading={loading}
@@ -147,19 +156,16 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
             <EmptyState body={t("marketplace.noSavedPosts")} />
           }
           renderItem={({ item }) => (
-            <ListRowWithActions
-              title={item.title || t("marketplace.defaultTitle")}
-              subtitle={`${t("marketplace.generatedOn")} ${formatDateDisplay(item.created_at, i18n.language)}`}
-              onPress={() => handlePostPress(item)}
-              trailing={
-                <IconButton
-                  onPress={() => handleEditTitle(item)}
-                  variant="ghost"
-                >
-                  <Feather name="edit" size={24} color={theme.colors.accent} />
-                </IconButton>
-              }
-            />
+            <Swipeable
+              renderRightActions={() => renderRightActions(item)}
+              rightThreshold={32}
+            >
+              <ListRowWithActions
+                title={item.title || t("marketplace.defaultTitle")}
+                subtitle={`${t("marketplace.generatedOn")} ${formatDateDisplay(item.created_at, i18n.language)}`}
+                onPress={() => handlePostPress(item)}
+              />
+            </Swipeable>
           )}
           ItemSeparatorComponent={() => (
             <View style={{ height: theme.spacing.sm }} />
@@ -193,5 +199,17 @@ const makeStyles = (theme: any) =>
     },
     postDate: {
       fontSize: theme.typography.small,
+    },
+    swipeActionsWrap: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      marginLeft: theme.spacing.xs,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+    },
+    swipeActionBtn: {
+      width: 72,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });

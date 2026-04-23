@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Alert,
-  FlatList,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Feather } from "@expo/vector-icons";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { PublicReportSnapshot } from "../../types/domain";
@@ -24,8 +23,6 @@ import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { IconButton } from "../../ui/components/common/IconButton";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { formatDateDisplay } from "../../utils/dateFormatting";
@@ -37,7 +34,6 @@ type Props = NativeStackScreenProps<AppStackParamList, "PublicReportHistory">;
 export function PublicReportHistoryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
@@ -130,6 +126,19 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
     }
   }
 
+  function renderRightActions(item: PublicReportSnapshot) {
+    return (
+      <View style={styles.swipeActionsWrap}>
+        <Pressable
+          onPress={() => handleEditTitle(item)}
+          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
+        >
+          <Feather name="edit" size={22} color="#000000" />
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
     <HeaderLayout
       loading={loading}
@@ -147,19 +156,16 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
           onRefresh={handleRefresh}
           ListEmptyComponent={<EmptyState body={t("share.noReports")} />}
           renderItem={({ item }) => (
-            <ListRowWithActions
-              title={item.title || t("publicReport.defaultTitle")}
-              subtitle={`${t("share.generatedOn")} ${formatDateDisplay(item.created_at, i18n.language)}`}
-              onPress={() => handleReportPress(item)}
-              trailing={
-                <IconButton
-                  onPress={() => handleEditTitle(item)}
-                  variant="ghost"
-                >
-                  <Feather name="edit" size={24} color={theme.colors.accent} />
-                </IconButton>
-              }
-            />
+            <Swipeable
+              renderRightActions={() => renderRightActions(item)}
+              rightThreshold={32}
+            >
+              <ListRowWithActions
+                title={item.title || t("publicReport.defaultTitle")}
+                subtitle={`${t("share.generatedOn")} ${formatDateDisplay(item.created_at, i18n.language)}`}
+                onPress={() => handleReportPress(item)}
+              />
+            </Swipeable>
           )}
           ItemSeparatorComponent={() => (
             <View style={{ height: theme.spacing.sm }} />
@@ -190,5 +196,17 @@ const makeStyles = (theme: any) =>
     },
     reportDate: {
       fontSize: theme.typography.small,
+    },
+    swipeActionsWrap: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      marginLeft: theme.spacing.xs,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+    },
+    swipeActionBtn: {
+      width: 72,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });

@@ -10,6 +10,7 @@ import {
   Alert,
   Dimensions,
   FlatList,
+  Linking,
   Modal,
   Pressable,
   ScrollView,
@@ -40,10 +41,14 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from "react-native-reanimated";
-import { MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
+import {
+  MaterialCommunityIcons,
+  FontAwesome5,
+  MaterialIcons,
+} from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import type { Vehicle, VehicleTire, VehicleWheel } from "../../types/domain";
+import type { Reminder, Vehicle, VehicleTire, VehicleWheel } from "../../types/domain";
 import {
   deleteVehicle,
   getVehicle,
@@ -53,6 +58,10 @@ import {
   getVehiclePhotoUrl,
 } from "../../services/vehicles/uploadPhoto";
 import {
+  getPublicPageUrl,
+  listPublicPages,
+} from "../../services/publicPages/publicPagesRepo";
+import {
   formatTireDimensions,
   listVehicleTires,
 } from "../../services/tires/tiresRepo";
@@ -60,6 +69,7 @@ import {
   formatWheelDimensions,
   listVehicleWheels,
 } from "../../services/wheels/wheelsRepo";
+import { listReminders } from "../../services/reminders/remindersRepo";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
@@ -74,6 +84,7 @@ import { RimIcon } from "../../ui/components/icons/RimIcon";
 import { DashboardFab } from "../../ui/components/common/DashboardFab";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
+import { ReminderItem } from "../../ui/components/list/ReminderItem";
 import { StatisticsScreen } from "./StatisticsScreen";
 import {
   daysSinceYmd,
@@ -223,8 +234,12 @@ type DashboardStatTileProps = {
   iconComponent?: ReactNode;
   label: string;
   valueMain: string;
+  valueMainColor?: string;
   valueSuffix?: string;
   fullWidth?: boolean;
+  backgroundColor?: string;
+  labelColor?: string;
+  iconColor?: string;
 };
 
 function DetailItem({ icon, label, value }: DetailItemProps) {
@@ -246,8 +261,12 @@ function DashboardStatTile({
   iconComponent,
   label,
   valueMain,
+  valueMainColor,
   valueSuffix,
   fullWidth,
+  backgroundColor,
+  labelColor,
+  iconColor,
 }: DashboardStatTileProps) {
   const { theme } = useTheme();
   const styles = makeStyles(theme, { bottom: 0 });
@@ -256,19 +275,19 @@ function DashboardStatTile({
       style={[
         styles.dashboardStatTile,
         fullWidth && styles.dashboardStatTileFullWidth,
-        { backgroundColor: theme.colors.card },
+        { backgroundColor: backgroundColor ?? theme.colors.card },
       ]}
     >
       <View style={styles.dashboardStatTileTitleRow}>
         {iconComponent ? (
           iconComponent
         ) : icon ? (
-          <Ionicons name={icon} size={20} color={theme.colors.accent} />
+          <Ionicons name={icon} size={20} color={iconColor ?? theme.colors.accent} />
         ) : null}
         <Text
           style={[
             styles.dashboardStatTileLabel,
-            { color: theme.colors.accent },
+            { color: labelColor ?? theme.colors.accent },
           ]}
         >
           {label}
@@ -278,7 +297,7 @@ function DashboardStatTile({
         <Text
           style={[
             styles.dashboardStatTileValueMain,
-            { color: theme.colors.fg },
+            { color: valueMainColor ?? theme.colors.fg },
           ]}
         >
           {valueMain}
@@ -301,6 +320,112 @@ function DashboardStatTile({
 
 const MILEAGE_STALE_MIN_DAYS = 90;
 
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function getReminderProgressPercent(
+  reminder: Reminder,
+  currentMileage: number | null | undefined,
+  now: Date,
+): number {
+  let dateProgress: number | null = null;
+  let dateRemainingFraction: number | null = null;
+  if (reminder.due_date) {
+    const due = new Date(reminder.due_date);
+    const created = reminder.created_at ? new Date(reminder.created_at) : null;
+    const hasValidCreated = created != null && !Number.isNaN(created.getTime());
+    const createdMs = hasValidCreated ? created.getTime() : now.getTime();
+    const startMs = createdMs < due.getTime() ? createdMs : now.getTime();
+    const totalMs = Math.max(1, due.getTime() - startMs);
+    const remainingMs = due.getTime() - now.getTime();
+    const coveredMs = totalMs - Math.max(0, remainingMs);
+    dateProgress = clamp(coveredMs / totalMs, 0, 1);
+    dateRemainingFraction = clamp(Math.max(0, remainingMs) / totalMs, 0, 1);
+  }
+
+  let mileageProgress: number | null = null;
+  let mileageRemainingFraction: number | null = null;
+  if (reminder.due_mileage != null && currentMileage != null) {
+    const startMileage = reminder.recurrence_anchor_mileage ?? 0;
+    const totalDistance = Math.max(1, reminder.due_mileage - startMileage);
+    const coveredDistance = currentMileage - startMileage;
+    mileageProgress = clamp(coveredDistance / totalDistance, 0, 1);
+    const mileageRemaining = Math.max(0, reminder.due_mileage - currentMileage);
+    mileageRemainingFraction = clamp(mileageRemaining / totalDistance, 0, 1);
+  }
+
+  const useDateForProgress =
+    dateRemainingFraction != null &&
+    (mileageRemainingFraction == null ||
+      dateRemainingFraction <= mileageRemainingFraction);
+  const progress = useDateForProgress
+    ? (dateProgress ?? mileageProgress ?? 0)
+    : (mileageProgress ?? dateProgress ?? 0);
+
+  return Math.round(clamp(progress, 0, 1) * 100);
+}
+
+function isReminderOverdue(
+  reminder: Reminder,
+  currentMileage: number | null | undefined,
+): boolean {
+  const today = new Date().toISOString().slice(0, 10);
+  const dateOverdue =
+    reminder.due_date != null && String(reminder.due_date).slice(0, 10) < today;
+  const mileageOverdue =
+    reminder.due_mileage != null &&
+    currentMileage != null &&
+    currentMileage >= reminder.due_mileage;
+  return dateOverdue || mileageOverdue;
+}
+
+function parseYmd(dateYmd: string): Date | null {
+  if (!dateYmd) return null;
+  const date = new Date(`${dateYmd}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatTermsDate(dateYmd: string | null | undefined): string {
+  if (!dateYmd) return "—";
+  const date = parseYmd(dateYmd);
+  if (!date) return "—";
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+function getDaysUntilDate(dateYmd: string | null | undefined): number | null {
+  if (!dateYmd) return null;
+  const date = parseYmd(dateYmd);
+  if (!date) return null;
+  const now = new Date();
+  const todayMidday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    12,
+    0,
+    0,
+    0,
+  );
+  return Math.ceil((date.getTime() - todayMidday.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function formatTermsValue(
+  dateYmd: string | null | undefined,
+  daysUntil: number | null,
+  translate: (key: string, options?: Record<string, unknown>) => string,
+): string {
+  if (!dateYmd) return "—";
+  if (daysUntil == null) return formatTermsDate(dateYmd);
+  if (daysUntil < 0) return translate("dashboard.stats.statusOverdue");
+  if (daysUntil <= 30) return translate("dashboard.stats.dueInDaysShort", { days: daysUntil });
+  return formatTermsDate(dateYmd);
+}
+
 export function VehicleDashboardScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
@@ -318,6 +443,8 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [tires, setTires] = useState<VehicleTire[]>([]);
   const [wheels, setWheels] = useState<VehicleWheel[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [publicReportUrl, setPublicReportUrl] = useState<string | null>(null);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [fullScreenIndex, setFullScreenIndex] = useState<number | null>(null);
   const [activePage, setActivePage] = useState(1);
@@ -345,29 +472,80 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     () => wheels.find((item) => item.is_currently_fitted) ?? null,
     [wheels],
   );
+  const upcomingReminders = useMemo(() => {
+    const now = new Date();
+    const currentMileage = vehicle?.mileage ?? null;
+    return reminders
+      .filter(
+        (reminder) =>
+          reminder.status !== "done" && !isReminderOverdue(reminder, currentMileage),
+      )
+      .sort((a, b) => {
+        const aProgress = getReminderProgressPercent(a, currentMileage, now);
+        const bProgress = getReminderProgressPercent(b, currentMileage, now);
+        if (aProgress !== bProgress) return bProgress - aProgress;
+        const dateA = a.due_date ? String(a.due_date).slice(0, 10) : "9999-12-31";
+        const dateB = b.due_date ? String(b.due_date).slice(0, 10) : "9999-12-31";
+        return dateA.localeCompare(dateB);
+      })
+      .slice(0, 3);
+  }, [reminders, vehicle?.mileage]);
+  const activeRemindersCount = useMemo(
+    () => reminders.filter((reminder) => reminder.status !== "done").length,
+    [reminders],
+  );
+  const insuranceDaysUntil = useMemo(
+    () => getDaysUntilDate(vehicle?.insurance_valid_until),
+    [vehicle?.insurance_valid_until],
+  );
+  const inspectionDaysUntil = useMemo(
+    () => getDaysUntilDate(vehicle?.inspection_valid_until),
+    [vehicle?.inspection_valid_until],
+  );
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
-        const [v, photos, tiresData, wheelsData] = await Promise.all([
+        const reminderOptions = isPremium
+          ? undefined
+          : freePlanVehicleId === vehicleId
+            ? { freePlanReminderIds }
+            : { limit: remindersLimit };
+        const [v, photos, tiresData, wheelsData, reports, remindersData] =
+          await Promise.all([
           getVehicle(vehicleId),
           listVehiclePhotos(vehicleId),
           listVehicleTires(vehicleId),
           listVehicleWheels(vehicleId),
+          isPremium ? listPublicPages(vehicleId) : Promise.resolve([]),
+          listReminders(vehicleId, reminderOptions),
         ]);
         setVehicle(v);
         setPhotoUrls(photos.map((photo) => getVehiclePhotoUrl(photo)));
         setTires(tiresData);
         setWheels(wheelsData);
+        setReminders(remindersData);
+        const latestReport = reports[0];
+        const reportUrl = latestReport?.public_id
+          ? await getPublicPageUrl(latestReport.public_id)
+          : null;
+        setPublicReportUrl(reportUrl);
       } catch (e: any) {
         toastError(e?.message ?? t("common.error"));
       } finally {
         if (showLoading) setLoading(false);
       }
     },
-    [vehicleId, t],
+    [
+      vehicleId,
+      t,
+      isPremium,
+      freePlanVehicleId,
+      freePlanReminderIds,
+      remindersLimit,
+    ],
   );
 
   useScreenFocusReload({
@@ -494,15 +672,32 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
   const technicalDataPage = (
     <View style={[styles.page, { width: windowWidth }]}>
-      <Text style={styles.title}>
-        {vehicle ? `${vehicle.make} ${vehicle.model}` : ""}
-      </Text>
-      {vehicle?.vin && (
-        <Pressable onPress={onCopyVin} style={styles.vinRow} hitSlop={10}>
-          <Text style={styles.vinText}>{vehicle.vin}</Text>
-          <Ionicons name="copy-outline" size={16} color={theme.colors.muted} />
-        </Pressable>
-      )}
+      <View style={styles.vehicleHeaderRow}>
+        <View style={styles.vehicleHeaderText}>
+          <Text style={styles.title}>
+            {vehicle ? `${vehicle.make} ${vehicle.model}` : ""}
+          </Text>
+          {vehicle?.vin && (
+            <Pressable onPress={onCopyVin} style={styles.vinRow} hitSlop={10}>
+              <Text style={styles.vinText}>{vehicle.vin}</Text>
+              <Ionicons
+                name="copy-outline"
+                size={16}
+                color={theme.colors.muted}
+              />
+            </Pressable>
+          )}
+        </View>
+        {isPremium && publicReportUrl ? (
+          <Pressable
+            onPress={() => Linking.openURL(publicReportUrl)}
+            style={styles.publicPageCircleButton}
+            hitSlop={10}
+          >
+            <MaterialIcons name="public" size={24} color="#000" />
+          </Pressable>
+        ) : null}
+      </View>
       <View style={styles.panelSections}>
         <View style={styles.sectionBlock}>
           <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
@@ -653,6 +848,49 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           </View>
         </View>
         <View style={styles.sectionBlock}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+              {t("reminders.tabUpcoming", { defaultValue: "Upcoming" })}
+            </Text>
+            <Pressable
+              onPress={() => navigation.navigate("Reminders", { vehicleId })}
+              hitSlop={8}
+            >
+              <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
+                {t("dashboard.stats.viewAll")}
+              </Text>
+            </Pressable>
+          </View>
+          {upcomingReminders.length > 0 ? (
+            <View style={styles.upcomingRemindersList}>
+              {upcomingReminders.map((reminder) => (
+                <ReminderItem
+                  key={reminder.id}
+                  title={reminder.title ?? ""}
+                  createdAt={reminder.created_at}
+                  dueDate={reminder.due_date}
+                  dueMileage={reminder.due_mileage}
+                  currentMileage={vehicle?.mileage ?? null}
+                  anchorMileage={reminder.recurrence_anchor_mileage}
+                  distanceUnit={distanceUnit}
+                  remainingDistanceLabel={t("reminders.remainingDistance")}
+                  estimatedTimeLabel={t("reminders.estimatedTime")}
+                  onPress={() =>
+                    navigation.navigate("ReminderForm", {
+                      vehicleId,
+                      reminderId: reminder.id,
+                    })
+                  }
+                />
+              ))}
+            </View>
+          ) : (
+            <Text style={[styles.pageSubTitle, { color: theme.colors.muted }]}>
+              {t("reminders.noItems")}
+            </Text>
+          )}
+        </View>
+        <View style={styles.sectionBlock}>
           <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
             {t("dashboard.stats.insuranceAndInspection")}
           </Text>
@@ -660,12 +898,60 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             <DashboardStatTile
               icon="shield-checkmark-outline"
               label={t("dashboard.stats.insurance")}
-              valueMain={vehicle?.insurance_valid_until ?? "—"}
+              valueMain={formatTermsValue(
+                vehicle?.insurance_valid_until,
+                insuranceDaysUntil,
+                t,
+              )}
+              valueMainColor={
+                insuranceDaysUntil != null && insuranceDaysUntil < 0
+                  ? theme.colors.danger
+                  : undefined
+              }
+              backgroundColor={
+                insuranceDaysUntil != null && insuranceDaysUntil <= 30
+                  ? hexToRgba(theme.colors.danger, 0.18)
+                  : undefined
+              }
+              labelColor={
+                insuranceDaysUntil != null && insuranceDaysUntil <= 30
+                  ? theme.colors.danger
+                  : undefined
+              }
+              iconColor={
+                insuranceDaysUntil != null && insuranceDaysUntil <= 30
+                  ? theme.colors.danger
+                  : undefined
+              }
             />
             <DashboardStatTile
               icon="checkmark-done-outline"
               label={t("dashboard.stats.inspection")}
-              valueMain={vehicle?.inspection_valid_until ?? "—"}
+              valueMain={formatTermsValue(
+                vehicle?.inspection_valid_until,
+                inspectionDaysUntil,
+                t,
+              )}
+              valueMainColor={
+                inspectionDaysUntil != null && inspectionDaysUntil < 0
+                  ? theme.colors.danger
+                  : undefined
+              }
+              backgroundColor={
+                inspectionDaysUntil != null && inspectionDaysUntil <= 30
+                  ? hexToRgba(theme.colors.danger, 0.18)
+                  : undefined
+              }
+              labelColor={
+                inspectionDaysUntil != null && inspectionDaysUntil <= 30
+                  ? theme.colors.danger
+                  : undefined
+              }
+              iconColor={
+                inspectionDaysUntil != null && inspectionDaysUntil <= 30
+                  ? theme.colors.danger
+                  : undefined
+              }
             />
           </View>
         </View>
@@ -703,18 +989,20 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           />
         </View>
 
-        <View style={styles.sectionBlock}>
-          <Text style={[styles.infoCardTitle, { color: theme.colors.fg }]}>
-            {t("manageVehicle.notesLabel")}
-          </Text>
-          <View
-            style={[styles.infoCard, { backgroundColor: theme.colors.card }]}
-          >
-            <Text style={[styles.notesText, { color: theme.colors.fg }]}>
-              {vehicle?.notes?.trim() ? vehicle.notes.trim() : "—"}
+        {vehicle?.notes?.trim() ? (
+          <View style={styles.sectionBlock}>
+            <Text style={[styles.infoCardTitle, { color: theme.colors.fg }]}>
+              {t("manageVehicle.notesLabel")}
             </Text>
+            <View
+              style={[styles.infoCard, { backgroundColor: theme.colors.card }]}
+            >
+              <Text style={[styles.notesText, { color: theme.colors.fg }]}>
+                {vehicle.notes.trim()}
+              </Text>
+            </View>
           </View>
-        </View>
+        ) : null}
       </View>
     </View>
   );
@@ -765,6 +1053,21 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   <Database size={32} color={theme.colors.accent} />
                 ) : item.key === "wheels" ? (
                   <WheelsIcon size={48} color={theme.colors.accent} />
+                ) : item.key === "reminders" ? (
+                  <View style={styles.reminderTileIconWrap}>
+                    <Ionicons
+                      name={item.icon}
+                      size={32}
+                      color={theme.colors.accent}
+                    />
+                    {activeRemindersCount > 0 ? (
+                      <View style={styles.reminderBadge}>
+                        <Text style={styles.reminderBadgeText}>
+                          {activeRemindersCount > 99 ? "99+" : activeRemindersCount}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
                 ) : (
                   <Ionicons
                     name={item.icon}
@@ -789,17 +1092,30 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const pages = [technicalDataPage, buttonsPage, statsPage];
 
   const headerRight = (
-    <HeaderButton
-      onPress={openActions}
-      tintColor={theme.colors.fg}
-      accessibilityLabel={undefined}
-    >
-      <Ionicons
-        name="ellipsis-horizontal"
-        size={theme.icons.headerButton}
-        color={theme.colors.accent}
-      />
-    </HeaderButton>
+    <View style={styles.headerRightActions}>
+      <HeaderButton
+        onPress={openActions}
+        tintColor={theme.colors.fg}
+        accessibilityLabel={undefined}
+      >
+        <Ionicons
+          name="ellipsis-horizontal"
+          size={theme.icons.headerButton}
+          color={theme.colors.accent}
+        />
+      </HeaderButton>
+      <HeaderButton
+        onPress={() => navigation.navigate("Settings")}
+        tintColor={theme.colors.fg}
+        accessibilityLabel={undefined}
+      >
+        <Ionicons
+          name="settings-outline"
+          size={theme.icons.headerButton}
+          color={theme.colors.accent}
+        />
+      </HeaderButton>
+    </View>
   );
 
   const handleAddService = useCallback(() => {
@@ -1012,6 +1328,16 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,
     },
+    vehicleHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: theme.spacing.sm,
+    },
+    vehicleHeaderText: {
+      flex: 1,
+      minWidth: 0,
+    },
     vinRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -1023,6 +1349,15 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       color: theme.colors.muted,
       fontWeight: theme.typography.fontWeight.bold,
       paddingRight: theme.spacing.xs,
+    },
+    publicPageCircleButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.colors.accent,
+      marginBottom: theme.spacing.md,
     },
     scrollContent: {
       paddingBottom: Math.max(
@@ -1071,6 +1406,19 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     sectionBlock: {
       gap: theme.spacing.sm,
     },
+    sectionHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: theme.spacing.sm,
+    },
+    viewAllLink: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    upcomingRemindersList: {
+      gap: theme.spacing.sm,
+    },
     termsTilesRow: {
       flexDirection: "row",
       gap: 12,
@@ -1100,6 +1448,27 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.md,
+    },
+    reminderTileIconWrap: {
+      position: "relative",
+    },
+    reminderBadge: {
+      position: "absolute",
+      top: -8,
+      right: -14,
+      minWidth: 18,
+      height: 18,
+      borderRadius: 9,
+      paddingHorizontal: 5,
+      backgroundColor: theme.colors.danger,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    reminderBadgeText: {
+      color: "#FFFFFF",
+      fontSize: theme.typography.xs,
+      fontWeight: theme.typography.fontWeight.bold,
+      lineHeight: 14,
     },
     mileageStaleCardTitle: {
       flex: 1,
@@ -1216,6 +1585,11 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       borderRadius: 999,
       backgroundColor: `${theme.colors.card}E6`,
       elevation: 4,
+    },
+    headerRightActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
     },
     fullScreenOverlay: {
       flex: 1,

@@ -27,14 +27,8 @@ import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
-import {
-  listVehicleTires,
-  formatTireDimensions,
-} from "../../services/tires/tiresRepo";
-import {
-  listVehicleWheels,
-  formatWheelDimensions,
-} from "../../services/wheels/wheelsRepo";
+import { listVehicleTires } from "../../services/tires/tiresRepo";
+import { listVehicleWheels } from "../../services/wheels/wheelsRepo";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import type {
   FuelingEntry,
@@ -52,8 +46,6 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
-import { RimIcon } from "../../ui/components/icons/RimIcon";
-import { TireIcon } from "../../ui/components/icons/TireIcon";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import type { AppTheme } from "../../ui/theme";
@@ -1222,6 +1214,21 @@ export function StatisticsScreen(props: Props) {
         : totals.serviceCost.toFixed(1)
       : "—";
 
+  const oilLifeStatusText = oilLife
+    ? `${oilLife.progressPercent}% ${
+        oilLife.isOverdue
+          ? t("dashboard.stats.statusOverdue")
+          : oilLife.isDueSoon
+            ? t("dashboard.stats.statusDueSoon")
+            : t("dashboard.stats.statusOptimal")
+      }`.toUpperCase()
+    : "";
+  const oilLifeProgressPercent = oilLife
+    ? Math.max(0, Math.min(100, oilLife.progressPercent))
+    : 0;
+  const oilLifeOverlayTextWidthPercent =
+    oilLifeProgressPercent > 0 ? 100 / (oilLifeProgressPercent / 100) : 100;
+
   const cardContent = (
     <View>
       {/* Cost summary split by fuel and service categories. */}
@@ -1230,7 +1237,6 @@ export function StatisticsScreen(props: Props) {
           <StatTile
             theme={theme}
             styles={styles}
-            icon="water-outline"
             label={t("dashboard.stats.categories.fuel")}
             valueMain={fuelMain}
             valueSuffix={fuelMain !== "—" ? currency : undefined}
@@ -1238,7 +1244,6 @@ export function StatisticsScreen(props: Props) {
           <StatTile
             theme={theme}
             styles={styles}
-            icon="construct-outline"
             label={t("dashboard.tiles.serviceTitle")}
             valueMain={serviceMain}
             valueSuffix={serviceMain !== "—" ? currency : undefined}
@@ -1617,7 +1622,7 @@ export function StatisticsScreen(props: Props) {
                 style={[
                   styles.oilLifeProgressFill,
                   {
-                    width: `${oilLife.progressPercent}%`,
+                    width: `${oilLifeProgressPercent}%`,
                     backgroundColor: oilLife.isOverdue
                       ? theme.colors.danger
                       : oilLife.isDueSoon
@@ -1626,17 +1631,39 @@ export function StatisticsScreen(props: Props) {
                   },
                 ]}
               />
-              <Text
-                style={[styles.oilLifeProgressText, { color: theme.colors.fg }]}
+              <View
+                pointerEvents="none"
+                style={styles.oilLifeProgressTextLayer}
               >
-                {`${oilLife.progressPercent}% ${
-                  oilLife.isOverdue
-                    ? t("dashboard.stats.statusOverdue")
-                    : oilLife.isDueSoon
-                      ? t("dashboard.stats.statusDueSoon")
-                      : t("dashboard.stats.statusOptimal")
-                }`.toUpperCase()}
-              </Text>
+                <Text
+                  style={[
+                    styles.oilLifeProgressText,
+                    { color: theme.colors.fg },
+                  ]}
+                >
+                  {oilLifeStatusText}
+                </Text>
+              </View>
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.oilLifeProgressTextOverlay,
+                  { width: `${oilLifeProgressPercent}%` },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.oilLifeProgressTextOverlayInner,
+                    { width: `${oilLifeOverlayTextWidthPercent}%` },
+                  ]}
+                >
+                  <Text
+                    style={[styles.oilLifeProgressText, { color: "#000000" }]}
+                  >
+                    {oilLifeStatusText}
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
         ) : null}
@@ -1772,10 +1799,8 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.xs / 2,
     },
     oilLifeLabel: {
-      fontSize: theme.typography.small,
+      fontSize: theme.typography.body,
       color: theme.colors.accent,
-      textTransform: "uppercase",
-      letterSpacing: 0.4,
     },
     oilLifeMainValue: {
       fontSize: theme.typography.title,
@@ -1783,7 +1808,7 @@ const makeStyles = (theme: any) =>
     },
     oilLifeProgressTrack: {
       height: 44,
-      borderRadius: 12,
+      borderRadius: 22,
       overflow: "hidden",
       backgroundColor: theme.colors.bg,
       borderWidth: 1,
@@ -1802,7 +1827,25 @@ const makeStyles = (theme: any) =>
       textAlign: "center",
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
-      textTransform: "uppercase",
+    },
+    oilLifeProgressTextLayer: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      justifyContent: "center",
+    },
+    oilLifeProgressTextOverlay: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      bottom: 0,
+      overflow: "hidden",
+      justifyContent: "center",
+    },
+    oilLifeProgressTextOverlayInner: {
+      justifyContent: "center",
     },
     recentServiceList: {
       gap: theme.spacing.sm,

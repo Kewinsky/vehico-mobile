@@ -52,7 +52,7 @@ import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Textarea } from "../../ui/components/common/Textarea";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
-import { NotebookPen } from "lucide-react-native";
+import { NotebookPen, Trash2 } from "lucide-react-native";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "maintenance",
@@ -845,11 +845,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                             pressed && { opacity: 0.75 },
                           ]}
                         >
-                          <Ionicons
-                            name="trash-outline"
-                            size={20}
-                            color={theme.colors.danger}
-                          />
+                          <Trash2 size={20} color={theme.colors.danger} />
                         </Pressable>
                       ) : null}
                     </CardRow>
@@ -865,7 +861,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 onPress={addEntry}
                 variant="ghost"
                 disabled={saving || uploading}
-                style={{ borderWidth: 0 }}
               >
                 {t("entryForm.addAnotherEntry")}
               </Button>
@@ -980,7 +975,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 onPress={pickAttachment}
                 variant="ghost"
                 disabled={saving || uploading}
-                style={{ borderWidth: 0 }}
               >
                 {t("entryForm.addAttachment")}
               </Button>
@@ -1037,11 +1031,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                             onPress={() => confirmDeleteAttachment(item)}
                             variant="danger"
                           >
-                            <Ionicons
-                              name="trash-outline"
-                              size={24}
-                              color={theme.colors.danger}
-                            />
+                            <Trash2 size={24} color={theme.colors.danger} />
                           </IconButton>
                         </View>
                       }
@@ -1101,11 +1091,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                             }}
                             variant="danger"
                           >
-                            <Ionicons
-                              name="trash-outline"
-                              size={24}
-                              color={theme.colors.danger}
-                            />
+                            <Trash2 size={24} color={theme.colors.danger} />
                           </IconButton>
                         </View>
                       }

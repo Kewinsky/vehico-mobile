@@ -1,11 +1,18 @@
-import { Alert, Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { useCallback, useMemo, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
 import Swipeable from "react-native-gesture-handler/Swipeable";
+import { Trash2 } from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
@@ -299,15 +306,21 @@ export function DocumentsScreen({ route, navigation }: Props) {
       <View style={styles.swipeActionsWrap}>
         <Pressable
           onPress={() => void editDocumentDescription(item)}
-          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
+          style={[
+            styles.swipeActionBtn,
+            { backgroundColor: theme.colors.accent },
+          ]}
         >
           <Feather name="edit" size={22} color="#000000" />
         </Pressable>
         <Pressable
           onPress={() => confirmDeleteVehicleDoc(item)}
-          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+          style={[
+            styles.swipeActionBtn,
+            { backgroundColor: theme.colors.danger },
+          ]}
         >
-          <Ionicons name="trash-outline" size={22} color="#FFFFFF" />
+          <Trash2 size={22} color="#000000" />
         </Pressable>
       </View>
     );
@@ -318,9 +331,12 @@ export function DocumentsScreen({ route, navigation }: Props) {
       <View style={styles.swipeActionsWrap}>
         <Pressable
           onPress={() => confirmDeleteAttachment(item)}
-          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+          style={[
+            styles.swipeActionBtn,
+            { backgroundColor: theme.colors.danger },
+          ]}
         >
-          <Ionicons name="trash-outline" size={22} color="#FFFFFF" />
+          <Trash2 size={22} color="#000000" />
         </Pressable>
       </View>
     );

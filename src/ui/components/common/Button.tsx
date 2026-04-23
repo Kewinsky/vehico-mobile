@@ -82,6 +82,7 @@ const makeStyles = (theme: any) =>
     ghost: {
       backgroundColor: theme.colors.card,
       borderColor: theme.colors.border,
+      borderWidth: 0,
     },
     outlined: {
       backgroundColor: "transparent",

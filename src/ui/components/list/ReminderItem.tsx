@@ -1,4 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
+import { Trash2, Undo2 } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
@@ -14,7 +17,10 @@ type ReminderItemProps = {
   remainingDistanceLabel: string;
   estimatedTimeLabel: string;
   dimmed?: boolean;
+  done?: boolean;
   onPress?: () => void;
+  onToggleDone?: () => void;
+  onDelete?: () => void;
 };
 
 function clamp(value: number, min: number, max: number) {
@@ -32,7 +38,10 @@ export function ReminderItem({
   remainingDistanceLabel,
   estimatedTimeLabel,
   dimmed = false,
+  done = false,
   onPress,
+  onToggleDone,
+  onDelete,
 }: ReminderItemProps) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
@@ -133,15 +142,54 @@ export function ReminderItem({
     </View>
   );
 
-  if (onPress) {
-    return (
-      <Pressable onPress={onPress} style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}>
-        {content}
-      </Pressable>
-    );
-  }
+  const baseContent = onPress ? (
+    <Pressable onPress={onPress} style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}>
+      {content}
+    </Pressable>
+  ) : (
+    content
+  );
 
-  return content;
+  if (!onToggleDone && !onDelete) return baseContent;
+
+  return (
+    <Swipeable
+      rightThreshold={32}
+      renderRightActions={() => (
+        <View style={styles.swipeActionsWrap}>
+          {onToggleDone ? (
+            <Pressable
+              onPress={onToggleDone}
+              style={[
+                styles.swipeActionBtn,
+                {
+                  backgroundColor: done
+                    ? theme.colors.muted
+                    : theme.colors.accent,
+                },
+              ]}
+            >
+              {done ? (
+                <Undo2 size={22} color="#000000" />
+              ) : (
+                <Ionicons name="checkmark" size={24} color="#000000" />
+              )}
+            </Pressable>
+          ) : null}
+          {onDelete ? (
+            <Pressable
+              onPress={onDelete}
+              style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+            >
+              <Trash2 size={20} color="#000000" />
+            </Pressable>
+          ) : null}
+        </View>
+      )}
+    >
+      {baseContent}
+    </Swipeable>
+  );
 }
 
 const makeStyles = (theme: AppTheme) =>
@@ -208,5 +256,17 @@ const makeStyles = (theme: AppTheme) =>
     metaText: {
       fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.medium,
+    },
+    swipeActionsWrap: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      marginLeft: theme.spacing.xs,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+    },
+    swipeActionBtn: {
+      width: 72,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });

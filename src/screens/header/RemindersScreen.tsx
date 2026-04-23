@@ -11,7 +11,11 @@ import { SearchBar } from "../../ui/components/common/SearchBar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import type { Reminder, Vehicle } from "../../types/domain";
-import { listReminders } from "../../services/reminders/remindersRepo";
+import {
+  deleteReminder,
+  listReminders,
+  updateReminder,
+} from "../../services/reminders/remindersRepo";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -204,6 +208,34 @@ export function RemindersScreen({ route, navigation }: Props) {
     });
   }
 
+  async function handleToggleDone(reminder: Reminder) {
+    try {
+      const nextStatus = reminder.status === "done" ? "active" : "done";
+      const saved = await updateReminder(reminder.id, { status: nextStatus });
+      setItems((prev) => prev.map((item) => (item.id === reminder.id ? saved : item)));
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    }
+  }
+
+  function handleDeleteReminder(reminder: Reminder) {
+    Alert.alert(t("reminders.deleteTitle"), t("reminders.deleteBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteReminder(reminder.id);
+            setItems((prev) => prev.filter((item) => item.id !== reminder.id));
+          } catch (e: any) {
+            toastError(e?.message ?? t("common.error"));
+          }
+        },
+      },
+    ]);
+  }
+
   const headerActions: HeaderAction[] = useMemo(
     () => [
       {
@@ -273,6 +305,9 @@ export function RemindersScreen({ route, navigation }: Props) {
                   reminderId: reminder.id,
                 })
               }
+              onToggleDone={() => void handleToggleDone(reminder)}
+              onDelete={() => handleDeleteReminder(reminder)}
+              done={isDone}
               dimmed={isDone}
             />
           );
