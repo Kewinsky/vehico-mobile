@@ -44,13 +44,11 @@ export function TiresItem({ tire, onPress }: TiresItemProps) {
             </View>
             {tire.is_currently_fitted && (
               <View
-                style={[
-                  styles.badgeWrap,
-                  styles.badge,
-                  styles.badgeAccent,
-                ]}
+                style={[styles.badgeWrap, styles.badge, styles.badgeAccent]}
               >
-                <Text style={styles.badgeText}>{t("wheels.currentlyFitted")}</Text>
+                <Text style={styles.badgeText}>
+                  {t("wheels.currentlyFitted")}
+                </Text>
               </View>
             )}
           </View>
@@ -62,11 +60,6 @@ export function TiresItem({ tire, onPress }: TiresItemProps) {
             {subtitle}
           </Text>
         </View>
-        <Ionicons
-          name="chevron-forward"
-          size={22}
-          color={theme.colors.accent}
-        />
       </View>
     </View>
   );

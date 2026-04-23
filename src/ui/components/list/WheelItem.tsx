@@ -94,12 +94,6 @@ export function WheelItem({ wheel, onPress }: WheelItemProps) {
             {summary}
           </Text>
         </View>
-        <Ionicons
-          name="chevron-forward"
-          size={22}
-          color={theme.colors.accent}
-          style={styles.chevron}
-        />
       </View>
 
       <Pressable

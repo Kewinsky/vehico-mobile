@@ -34,7 +34,8 @@ export function FuelItem({
         year: "numeric",
       }).format(new Date(date))
     : "—";
-  const details = [formattedDate, stationLabel].filter(Boolean).join(" · ") || "—";
+  const details =
+    [formattedDate, stationLabel].filter(Boolean).join(" · ") || "—";
   const amountWithType = fuelTypeLabel
     ? `${Number(amount).toFixed(1)} ${fuelUnitLabel} (${fuelTypeLabel})`
     : `${Number(amount).toFixed(1)} ${fuelUnitLabel}`;
@@ -42,15 +43,15 @@ export function FuelItem({
   const content = (
     <View style={styles.card}>
       <View style={styles.topRow}>
-        <Text style={[styles.details, { color: theme.colors.fg }]} numberOfLines={1}>
+        <Text
+          style={[styles.details, { color: theme.colors.fg }]}
+          numberOfLines={1}
+        >
           {details}
         </Text>
-        <Ionicons name="chevron-forward" size={22} color={theme.colors.accent} />
       </View>
       <View style={styles.bottomRow}>
-        <Text style={styles.amountText}>
-          {amountWithType}
-        </Text>
+        <Text style={styles.amountText}>{amountWithType}</Text>
         <Text style={[styles.costText, { color: theme.colors.accent }]}>
           {Number(cost).toFixed(2)} {currency}
         </Text>
@@ -60,7 +61,10 @@ export function FuelItem({
 
   if (onPress) {
     return (
-      <Pressable onPress={onPress} style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+      >
         {content}
       </Pressable>
     );

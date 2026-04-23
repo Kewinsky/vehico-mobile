@@ -142,12 +142,6 @@ export function WorkshopItem({
             </Text>
           )}
         </View>
-
-        <Ionicons
-          name="chevron-forward"
-          size={22}
-          color={theme.colors.accent}
-        />
       </View>
 
       {(canCall || canNavigate) && (

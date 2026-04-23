@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Linking } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as LinkingModule from "expo-linking";
 import { useFonts } from "expo-font";
@@ -210,18 +211,20 @@ export function Root() {
   }
 
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <UserSettingsProvider>
-          <EntitlementsProvider>
-            <ThemeProvider>
-              <ErrorBoundary>
-                <AppContent />
-              </ErrorBoundary>
-            </ThemeProvider>
-          </EntitlementsProvider>
-        </UserSettingsProvider>
-      </AuthProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <UserSettingsProvider>
+            <EntitlementsProvider>
+              <ThemeProvider>
+                <ErrorBoundary>
+                  <AppContent />
+                </ErrorBoundary>
+              </ThemeProvider>
+            </EntitlementsProvider>
+          </UserSettingsProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

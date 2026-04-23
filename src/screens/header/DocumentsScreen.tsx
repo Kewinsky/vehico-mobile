@@ -1,10 +1,11 @@
-import { Alert, Linking, StyleSheet, Text, View } from "react-native";
+import { Alert, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { useCallback, useMemo, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
@@ -34,7 +35,6 @@ import {
 } from "../../services/vehicleDocuments/vehicleDocumentsRepo";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { IconButton } from "../../ui/components/common/IconButton";
 import { Feather } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
@@ -294,6 +294,38 @@ export function DocumentsScreen({ route, navigation }: Props) {
     [openAddPicker],
   );
 
+  function renderDocumentRightActions(item: VehicleDocument) {
+    return (
+      <View style={styles.swipeActionsWrap}>
+        <Pressable
+          onPress={() => void editDocumentDescription(item)}
+          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
+        >
+          <Feather name="edit" size={22} color="#000000" />
+        </Pressable>
+        <Pressable
+          onPress={() => confirmDeleteVehicleDoc(item)}
+          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+        >
+          <Ionicons name="trash-outline" size={22} color="#FFFFFF" />
+        </Pressable>
+      </View>
+    );
+  }
+
+  function renderAttachmentRightActions(item: Attachment) {
+    return (
+      <View style={styles.swipeActionsWrap}>
+        <Pressable
+          onPress={() => confirmDeleteAttachment(item)}
+          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+        >
+          <Ionicons name="trash-outline" size={22} color="#FFFFFF" />
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
     <HeaderContentScreen
       loading={loading}
@@ -332,45 +364,26 @@ export function DocumentsScreen({ route, navigation }: Props) {
             })
             .map((item) => (
               <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
-                <ListRowWithActions
-                  title={item.description || t("documents.documentLabel")}
-                  subtitle={(() => {
-                    const fileName = getFileNameFromItem(item);
-                    const ext =
-                      fileName.split(".").pop()?.toUpperCase() || "FILE";
-                    const date = new Date(item.created_at);
-                    const formattedDate = date.toLocaleDateString(
-                      i18n.language === "pl" ? "pl-PL" : "en-US",
-                      { day: "2-digit", month: "2-digit", year: "numeric" },
-                    );
-                    return `${t("documents.added")} ${formattedDate} · ${ext}`;
-                  })()}
-                  onPress={() => void openVehicleDocument(item)}
-                  trailing={
-                    <>
-                      <IconButton
-                        onPress={() => editDocumentDescription(item)}
-                        variant="ghost"
-                      >
-                        <Feather
-                          name="edit"
-                          size={24}
-                          color={theme.colors.accent}
-                        />
-                      </IconButton>
-                      <IconButton
-                        onPress={() => confirmDeleteVehicleDoc(item)}
-                        variant="danger"
-                      >
-                        <Ionicons
-                          name="trash-outline"
-                          size={24}
-                          color={theme.colors.danger}
-                        />
-                      </IconButton>
-                    </>
-                  }
-                />
+                <Swipeable
+                  renderRightActions={() => renderDocumentRightActions(item)}
+                  rightThreshold={32}
+                >
+                  <ListRowWithActions
+                    title={item.description || t("documents.documentLabel")}
+                    subtitle={(() => {
+                      const fileName = getFileNameFromItem(item);
+                      const ext =
+                        fileName.split(".").pop()?.toUpperCase() || "FILE";
+                      const date = new Date(item.created_at);
+                      const formattedDate = date.toLocaleDateString(
+                        i18n.language === "pl" ? "pl-PL" : "en-US",
+                        { day: "2-digit", month: "2-digit", year: "numeric" },
+                      );
+                      return `${t("documents.added")} ${formattedDate} · ${ext}`;
+                    })()}
+                    onPress={() => void openVehicleDocument(item)}
+                  />
+                </Swipeable>
               </View>
             ))}
           {vehicleDocs.filter((d) => {
@@ -393,37 +406,30 @@ export function DocumentsScreen({ route, navigation }: Props) {
             })
             .map((item) => (
               <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
-                <ListRowWithActions
-                  title={
-                    item.serviceEntryTitle
-                      ? item.serviceEntryTitle
-                      : t("documents.attachmentLabel")
-                  }
-                  subtitle={(() => {
-                    const fileName = getFileNameFromItem(item);
-                    const ext =
-                      fileName.split(".").pop()?.toUpperCase() || "FILE";
-                    const date = new Date(item.created_at);
-                    const formattedDate = date.toLocaleDateString(
-                      i18n.language === "pl" ? "pl-PL" : "en-US",
-                      { day: "2-digit", month: "2-digit", year: "numeric" },
-                    );
-                    return `${t("documents.added")} ${formattedDate} · ${ext}`;
-                  })()}
-                  onPress={() => void openAttachment(item)}
-                  trailing={
-                    <IconButton
-                      onPress={() => confirmDeleteAttachment(item)}
-                      variant="danger"
-                    >
-                      <Ionicons
-                        name="trash-outline"
-                        size={24}
-                        color={theme.colors.danger}
-                      />
-                    </IconButton>
-                  }
-                />
+                <Swipeable
+                  renderRightActions={() => renderAttachmentRightActions(item)}
+                  rightThreshold={32}
+                >
+                  <ListRowWithActions
+                    title={
+                      item.serviceEntryTitle
+                        ? item.serviceEntryTitle
+                        : t("documents.attachmentLabel")
+                    }
+                    subtitle={(() => {
+                      const fileName = getFileNameFromItem(item);
+                      const ext =
+                        fileName.split(".").pop()?.toUpperCase() || "FILE";
+                      const date = new Date(item.created_at);
+                      const formattedDate = date.toLocaleDateString(
+                        i18n.language === "pl" ? "pl-PL" : "en-US",
+                        { day: "2-digit", month: "2-digit", year: "numeric" },
+                      );
+                      return `${t("documents.added")} ${formattedDate} · ${ext}`;
+                    })()}
+                    onPress={() => void openAttachment(item)}
+                  />
+                </Swipeable>
               </View>
             ))}
           {attachments.filter((a) => {
@@ -474,6 +480,18 @@ const makeStyles = (theme: any) =>
       width: theme.spacing.xl + theme.spacing.sm,
       height: theme.spacing.xl + theme.spacing.sm,
       borderRadius: theme.radius.sm,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    swipeActionsWrap: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      marginLeft: theme.spacing.xs,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+    },
+    swipeActionBtn: {
+      width: 72,
       alignItems: "center",
       justifyContent: "center",
     },

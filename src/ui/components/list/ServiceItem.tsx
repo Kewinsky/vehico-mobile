@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -77,26 +76,21 @@ export function ServiceItem({
           </Text>
         </View>
 
-        <Ionicons
-          name="chevron-forward"
-          size={22}
-          color={theme.colors.accent}
-        />
+        <Text style={[styles.costValue, { color: theme.colors.accent }]}>
+          {costText}
+        </Text>
       </View>
 
-      <View style={styles.bottomRow}>
-        {hasWorkshop ? (
+      {hasWorkshop ? (
+        <View style={styles.bottomRow}>
           <Text
             style={[styles.rowValue, { color: theme.colors.fg }]}
             numberOfLines={1}
           >
             {workshopText}
           </Text>
-        ) : null}
-        <Text style={[styles.costValue, { color: theme.colors.accent }]}>
-          {costText}
-        </Text>
-      </View>
+        </View>
+      ) : null}
     </View>
   );
 
@@ -127,7 +121,6 @@ const makeStyles = (theme: AppTheme) =>
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
-      marginBottom: theme.spacing.xs / 2,
     },
     iconContainer: {
       width: 44,
