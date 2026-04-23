@@ -415,6 +415,7 @@ export const pl = {
   },
   dashboard: {
     backToVehicles: "Wróć do pojazdów",
+    specification: "Specyfikacja",
     mileageUpdated: {
       lastUpdated: "Ostatnia aktualizacja przebiegu {{relative}}.",
       cta: "Zaktualizuj przebieg",

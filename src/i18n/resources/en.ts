@@ -412,6 +412,7 @@ export const en = {
   },
   dashboard: {
     backToVehicles: "Back to vehicles",
+    specification: "Specification",
     mileageUpdated: {
       lastUpdated: "Mileage last updated {{relative}}.",
       cta: "Update odometer",

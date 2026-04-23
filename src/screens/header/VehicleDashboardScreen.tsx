@@ -43,7 +43,7 @@ import Animated, {
 import { MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import type { Vehicle } from "../../types/domain";
+import type { Vehicle, VehicleTire, VehicleWheel } from "../../types/domain";
 import {
   deleteVehicle,
   getVehicle,
@@ -52,6 +52,14 @@ import {
   listVehiclePhotos,
   getVehiclePhotoUrl,
 } from "../../services/vehicles/uploadPhoto";
+import {
+  formatTireDimensions,
+  listVehicleTires,
+} from "../../services/tires/tiresRepo";
+import {
+  formatWheelDimensions,
+  listVehicleWheels,
+} from "../../services/wheels/wheelsRepo";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
@@ -61,6 +69,8 @@ import { Tile as TileCard } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { WheelsIcon } from "../../ui/components/icons/WheelsIcon";
+import { TireIcon } from "../../ui/components/icons/TireIcon";
+import { RimIcon } from "../../ui/components/icons/RimIcon";
 import { DashboardFab } from "../../ui/components/common/DashboardFab";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
@@ -208,6 +218,15 @@ type DetailItemProps = {
   value: ReactNode;
 };
 
+type DashboardStatTileProps = {
+  icon?: keyof typeof Ionicons.glyphMap;
+  iconComponent?: ReactNode;
+  label: string;
+  valueMain: string;
+  valueSuffix?: string;
+  fullWidth?: boolean;
+};
+
 function DetailItem({ icon, label, value }: DetailItemProps) {
   const { theme } = useTheme();
   const styles = makeStyles(theme, { bottom: 0 });
@@ -217,6 +236,64 @@ function DetailItem({ icon, label, value }: DetailItemProps) {
       <View style={styles.detailContent}>
         <Text style={styles.detailLabel}>{label}</Text>
         <Text style={styles.detailValue}>{value}</Text>
+      </View>
+    </View>
+  );
+}
+
+function DashboardStatTile({
+  icon,
+  iconComponent,
+  label,
+  valueMain,
+  valueSuffix,
+  fullWidth,
+}: DashboardStatTileProps) {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme, { bottom: 0 });
+  return (
+    <View
+      style={[
+        styles.dashboardStatTile,
+        fullWidth && styles.dashboardStatTileFullWidth,
+        { backgroundColor: theme.colors.card },
+      ]}
+    >
+      <View style={styles.dashboardStatTileTitleRow}>
+        {iconComponent ? (
+          iconComponent
+        ) : icon ? (
+          <Ionicons name={icon} size={20} color={theme.colors.accent} />
+        ) : null}
+        <Text
+          style={[
+            styles.dashboardStatTileLabel,
+            { color: theme.colors.accent },
+          ]}
+        >
+          {label}
+        </Text>
+      </View>
+      <View style={styles.dashboardStatTileValueRow}>
+        <Text
+          style={[
+            styles.dashboardStatTileValueMain,
+            { color: theme.colors.fg },
+          ]}
+        >
+          {valueMain}
+        </Text>
+        {valueSuffix ? (
+          <Text
+            style={[
+              styles.dashboardStatTileValueSuffix,
+              { color: theme.colors.muted },
+            ]}
+          >
+            {" "}
+            {valueSuffix}
+          </Text>
+        ) : null}
       </View>
     </View>
   );
@@ -239,6 +316,8 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     refresh: refreshEntitlements,
   } = useEntitlements();
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [tires, setTires] = useState<VehicleTire[]>([]);
+  const [wheels, setWheels] = useState<VehicleWheel[]>([]);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [fullScreenIndex, setFullScreenIndex] = useState<number | null>(null);
   const [activePage, setActivePage] = useState(1);
@@ -258,18 +337,30 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     if (daysSinceYmd(ts) < MILEAGE_STALE_MIN_DAYS) return null;
     return ts;
   }, [vehicle?.mileage, vehicle?.mileage_updated_at]);
+  const fittedTire = useMemo(
+    () => tires.find((item) => item.is_currently_fitted) ?? null,
+    [tires],
+  );
+  const fittedWheel = useMemo(
+    () => wheels.find((item) => item.is_currently_fitted) ?? null,
+    [wheels],
+  );
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
-        const [v, photos] = await Promise.all([
+        const [v, photos, tiresData, wheelsData] = await Promise.all([
           getVehicle(vehicleId),
           listVehiclePhotos(vehicleId),
+          listVehicleTires(vehicleId),
+          listVehicleWheels(vehicleId),
         ]);
         setVehicle(v);
         setPhotoUrls(photos.map((photo) => getVehiclePhotoUrl(photo)));
+        setTires(tiresData);
+        setWheels(wheelsData);
       } catch (e: any) {
         toastError(e?.message ?? t("common.error"));
       } finally {
@@ -412,183 +503,218 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           <Ionicons name="copy-outline" size={16} color={theme.colors.muted} />
         </Pressable>
       )}
-      <View style={styles.detailsGrid}>
-        <View style={styles.detailsRow}>
-          <DetailItem
-            icon={
-              <Ionicons
-                name="calendar-outline"
-                size={detailIconSize}
-                color={theme.colors.accent}
-              />
-            }
-            label={t("vehicleForm.yearLabel")}
-            value={vehicle ? String(vehicle.production_year) : "—"}
-          />
-          <DetailItem
-            icon={
-              <Ionicons
-                name="speedometer-outline"
-                size={detailIconSize}
-                color={theme.colors.accent}
-              />
-            }
-            label={t("vehicleForm.mileageLabel")}
-            value={
-              vehicle?.mileage
-                ? `${vehicle.mileage.toLocaleString()} ${distanceUnit}`
-                : "—"
-            }
-          />
-        </View>
-        <View style={styles.detailsRow}>
-          <DetailItem
-            icon={
-              <CalendarCheck
-                size={detailIconSize}
-                color={theme.colors.accent}
-              />
-            }
-            label={t("vehicleForm.firstRegistrationDateLabel")}
-            value={vehicle?.first_registration_date ?? "—"}
-          />
-          <DetailItem
-            icon={<Hash size={detailIconSize} color={theme.colors.accent} />}
-            label={t("vehicleForm.licensePlateLabel")}
-            value={vehicle?.license_plate ?? "—"}
-          />
-        </View>
-        <View style={styles.detailsRow}>
-          <DetailItem
-            icon={
-              <MaterialCommunityIcons
-                name="engine"
-                size={detailIconSize}
-                color={theme.colors.accent}
-              />
-            }
-            label={t("vehicleForm.engineCapacityLabel")}
-            value={
-              vehicle?.engine_capacity ? `${vehicle.engine_capacity} cm³` : "—"
-            }
-          />
-          <DetailItem
-            icon={
-              <Ionicons
-                name="flash-outline"
-                size={detailIconSize}
-                color={theme.colors.accent}
-              />
-            }
-            label={t("vehicleForm.powerHpLabel")}
-            value={vehicle?.power_hp ? `${vehicle.power_hp} HP` : "—"}
-          />
-        </View>
-        <View style={styles.detailsRow}>
-          <DetailItem
-            icon={
-              <MaterialCommunityIcons
-                name="car-shift-pattern"
-                size={detailIconSize}
-                color={theme.colors.accent}
-              />
-            }
-            label={t("vehicleForm.transmissionLabel")}
-            value={
-              vehicle?.transmission
-                ? t(
-                    `vehicleForm.transmission${
-                      vehicle.transmission.charAt(0).toUpperCase() +
-                      vehicle.transmission.slice(1)
-                    }` as
-                      | "vehicleForm.transmissionManual"
-                      | "vehicleForm.transmissionAutomatic",
-                  )
-                : "—"
-            }
-          />
-          <DetailItem
-            icon={
-              <DriveTypeIcon
-                size={detailIconSize}
-                color={theme.colors.accent}
-              />
-            }
-            label={t("vehicleForm.driveTypeLabel")}
-            value={vehicle?.drive_type || "—"}
-          />
-        </View>
-        <View style={styles.detailsRow}>
-          <DetailItem
-            icon={
-              <Ionicons
-                name="water-outline"
-                size={detailIconSize}
-                color={theme.colors.accent}
-              />
-            }
-            label={t("vehicleForm.fuelTypeLabel")}
-            value={
-              vehicle?.fuel_type
-                ? t(
-                    `vehicleForm.fuelType${
-                      vehicle.fuel_type.charAt(0).toUpperCase() +
-                      vehicle.fuel_type.slice(1)
-                    }` as
-                      | "vehicleForm.fuelTypePetrol"
-                      | "vehicleForm.fuelTypeDiesel"
-                      | "vehicleForm.fuelTypeHybrid"
-                      | "vehicleForm.fuelTypeElectric"
-                      | "vehicleForm.fuelTypeLpg",
-                  )
-                : "—"
-            }
-          />
-          <DetailItem
-            icon={
-              <Ionicons
-                name="document-text-outline"
-                size={detailIconSize}
-                color={theme.colors.accent}
-              />
-            }
-            label={t("manageVehicle.notesLabel")}
-            value={
-              vehicle?.notes
-                ? vehicle.notes.length > 30
-                  ? `${vehicle.notes.substring(0, 30)}...`
-                  : vehicle.notes
-                : "—"
-            }
-          />
-        </View>
-        {(vehicle?.insurance_valid_until != null ||
-          vehicle?.inspection_valid_until != null) && (
-          <View style={styles.detailsRow}>
-            <DetailItem
-              icon={
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={detailIconSize}
-                  color={theme.colors.accent}
+      <View style={styles.panelSections}>
+        <View style={styles.sectionBlock}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+            {t("dashboard.specification")}
+          </Text>
+          <View
+            style={[styles.infoCard, { backgroundColor: theme.colors.card }]}
+          >
+            <View style={styles.detailsGrid}>
+              <View style={styles.detailsRow}>
+                <DetailItem
+                  icon={
+                    <Ionicons
+                      name="calendar-outline"
+                      size={detailIconSize}
+                      color={theme.colors.accent}
+                    />
+                  }
+                  label={t("vehicleForm.yearLabel")}
+                  value={vehicle ? String(vehicle.production_year) : "—"}
                 />
-              }
-              label={t("manageVehicle.insuranceLabel")}
-              value={vehicle?.insurance_valid_until ?? "—"}
+                <DetailItem
+                  icon={
+                    <Ionicons
+                      name="speedometer-outline"
+                      size={detailIconSize}
+                      color={theme.colors.accent}
+                    />
+                  }
+                  label={t("vehicleForm.mileageLabel")}
+                  value={
+                    vehicle?.mileage
+                      ? `${vehicle.mileage.toLocaleString()} ${distanceUnit}`
+                      : "—"
+                  }
+                />
+              </View>
+              <View style={styles.detailsRow}>
+                <DetailItem
+                  icon={
+                    <CalendarCheck
+                      size={detailIconSize}
+                      color={theme.colors.accent}
+                    />
+                  }
+                  label={t("vehicleForm.firstRegistrationDateLabel")}
+                  value={vehicle?.first_registration_date ?? "—"}
+                />
+                <DetailItem
+                  icon={
+                    <Hash size={detailIconSize} color={theme.colors.accent} />
+                  }
+                  label={t("vehicleForm.licensePlateLabel")}
+                  value={vehicle?.license_plate ?? "—"}
+                />
+              </View>
+              <View style={styles.detailsRow}>
+                <DetailItem
+                  icon={
+                    <MaterialCommunityIcons
+                      name="engine"
+                      size={detailIconSize}
+                      color={theme.colors.accent}
+                    />
+                  }
+                  label={t("vehicleForm.engineCapacityLabel")}
+                  value={
+                    vehicle?.engine_capacity
+                      ? `${vehicle.engine_capacity} cm³`
+                      : "—"
+                  }
+                />
+                <DetailItem
+                  icon={
+                    <Ionicons
+                      name="flash-outline"
+                      size={detailIconSize}
+                      color={theme.colors.accent}
+                    />
+                  }
+                  label={t("vehicleForm.powerHpLabel")}
+                  value={vehicle?.power_hp ? `${vehicle.power_hp} HP` : "—"}
+                />
+              </View>
+              <View style={styles.detailsRow}>
+                <DetailItem
+                  icon={
+                    <MaterialCommunityIcons
+                      name="car-shift-pattern"
+                      size={detailIconSize}
+                      color={theme.colors.accent}
+                    />
+                  }
+                  label={t("vehicleForm.transmissionLabel")}
+                  value={
+                    vehicle?.transmission
+                      ? t(
+                          `vehicleForm.transmission${
+                            vehicle.transmission.charAt(0).toUpperCase() +
+                            vehicle.transmission.slice(1)
+                          }` as
+                            | "vehicleForm.transmissionManual"
+                            | "vehicleForm.transmissionAutomatic",
+                        )
+                      : "—"
+                  }
+                />
+                <DetailItem
+                  icon={
+                    <DriveTypeIcon
+                      size={detailIconSize}
+                      color={theme.colors.accent}
+                    />
+                  }
+                  label={t("vehicleForm.driveTypeLabel")}
+                  value={vehicle?.drive_type || "—"}
+                />
+              </View>
+              <View style={styles.detailsRow}>
+                <DetailItem
+                  icon={
+                    <Ionicons
+                      name="water-outline"
+                      size={detailIconSize}
+                      color={theme.colors.accent}
+                    />
+                  }
+                  label={t("vehicleForm.fuelTypeLabel")}
+                  value={
+                    vehicle?.fuel_type
+                      ? t(
+                          `vehicleForm.fuelType${
+                            vehicle.fuel_type.charAt(0).toUpperCase() +
+                            vehicle.fuel_type.slice(1)
+                          }` as
+                            | "vehicleForm.fuelTypePetrol"
+                            | "vehicleForm.fuelTypeDiesel"
+                            | "vehicleForm.fuelTypeHybrid"
+                            | "vehicleForm.fuelTypeElectric"
+                            | "vehicleForm.fuelTypeLpg",
+                        )
+                      : "—"
+                  }
+                />
+                <View style={styles.detailItem} />
+              </View>
+            </View>
+          </View>
+        </View>
+        <View style={styles.sectionBlock}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+            {t("dashboard.stats.insuranceAndInspection")}
+          </Text>
+          <View style={styles.termsTilesRow}>
+            <DashboardStatTile
+              icon="shield-checkmark-outline"
+              label={t("dashboard.stats.insurance")}
+              valueMain={vehicle?.insurance_valid_until ?? "—"}
             />
-            <DetailItem
-              icon={
-                <Ionicons
-                  name="checkmark-done-outline"
-                  size={detailIconSize}
-                  color={theme.colors.accent}
-                />
-              }
-              label={t("manageVehicle.inspectionLabel")}
-              value={vehicle?.inspection_valid_until ?? "—"}
+            <DashboardStatTile
+              icon="checkmark-done-outline"
+              label={t("dashboard.stats.inspection")}
+              valueMain={vehicle?.inspection_valid_until ?? "—"}
             />
           </View>
-        )}
+        </View>
+
+        <View style={styles.sectionBlock}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+            {t("dashboard.stats.wheels")}
+          </Text>
+          <DashboardStatTile
+            iconComponent={<TireIcon size={24} color={theme.colors.accent} />}
+            label={t("dashboard.stats.currentTire")}
+            valueMain={
+              fittedTire
+                ? `${formatTireDimensions(
+                    fittedTire.width_mm,
+                    fittedTire.aspect_ratio,
+                    fittedTire.diameter_inch,
+                  )} · ${(fittedTire.name ?? "").trim() || "—"}`
+                : "—"
+            }
+            fullWidth
+          />
+          <DashboardStatTile
+            iconComponent={<RimIcon size={24} color={theme.colors.accent} />}
+            label={t("dashboard.stats.currentWheel")}
+            valueMain={
+              fittedWheel
+                ? `${formatWheelDimensions(
+                    fittedWheel.width_inch,
+                    fittedWheel.diameter_inch,
+                  )} · ${(fittedWheel.name ?? "").trim() || "—"}`
+                : "—"
+            }
+            fullWidth
+          />
+        </View>
+
+        <View style={styles.sectionBlock}>
+          <Text style={[styles.infoCardTitle, { color: theme.colors.fg }]}>
+            {t("manageVehicle.notesLabel")}
+          </Text>
+          <View
+            style={[styles.infoCard, { backgroundColor: theme.colors.card }]}
+          >
+            <Text style={[styles.notesText, { color: theme.colors.fg }]}>
+              {vehicle?.notes?.trim() ? vehicle.notes.trim() : "—"}
+            </Text>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -889,8 +1015,8 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     vinRow: {
       flexDirection: "row",
       alignItems: "center",
-      paddingTop: theme.spacing.xs,
-      paddingBottom: theme.spacing.lg,
+      // paddingTop: theme.spacing.xs,
+      paddingBottom: theme.spacing.md,
     },
     vinText: {
       fontSize: theme.typography.small,
@@ -927,12 +1053,37 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontSize: theme.typography.title,
       fontWeight: theme.typography.fontWeight.bold,
     },
+    sectionTitle: {
+      color: theme.colors.fg,
+      fontSize: theme.typography.title,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
     pageSubTitle: {
       color: theme.colors.muted,
       fontSize: theme.typography.small,
     },
     detailsGrid: {
       gap: theme.spacing.lg,
+    },
+    panelSections: {
+      gap: theme.spacing.md,
+    },
+    sectionBlock: {
+      gap: theme.spacing.sm,
+    },
+    termsTilesRow: {
+      flexDirection: "row",
+      gap: 12,
+      alignItems: "flex-start",
+    },
+    infoCard: {
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
+      gap: theme.spacing.md,
+    },
+    infoCardTitle: {
+      fontSize: theme.typography.title,
+      fontWeight: theme.typography.fontWeight.bold,
     },
     detailsRow: {
       flexDirection: "row",
@@ -978,6 +1129,44 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
+    },
+    notesText: {
+      fontSize: theme.typography.body,
+      lineHeight: theme.typography.body + 6,
+    },
+    dashboardStatTile: {
+      flex: 1,
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
+      justifyContent: "space-between",
+    },
+    dashboardStatTileFullWidth: {
+      flex: undefined,
+      width: "100%",
+    },
+    dashboardStatTileTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      paddingBottom: theme.spacing.xs,
+    },
+    dashboardStatTileLabel: {
+      fontWeight: theme.typography.fontWeight.regular,
+      fontSize: theme.typography.body,
+      flex: 1,
+    },
+    dashboardStatTileValueRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "baseline",
+    },
+    dashboardStatTileValueMain: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.title,
+    },
+    dashboardStatTileValueSuffix: {
+      fontWeight: theme.typography.fontWeight.regular,
+      fontSize: theme.typography.small,
     },
     tilesWrap: {
       flexDirection: "row",
