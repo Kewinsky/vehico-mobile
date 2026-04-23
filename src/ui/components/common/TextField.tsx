@@ -57,8 +57,6 @@ const makeStyles = (theme: any) =>
       color: theme.colors.muted,
     },
     wrap: {
-      borderWidth: 1,
-      borderColor: theme.colors.border,
       borderRadius: theme.radius.md,
       backgroundColor: theme.colors.card,
     },

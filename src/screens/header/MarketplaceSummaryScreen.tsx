@@ -41,6 +41,7 @@ function InfoCard({
   status,
   count,
   value: customValue,
+  isLast = false,
   theme,
   styles,
 }: {
@@ -48,6 +49,7 @@ function InfoCard({
   status: "included" | "notIncluded" | "noData";
   count?: number;
   value?: string;
+  isLast?: boolean;
   theme: any;
   styles: any;
 }) {
@@ -63,7 +65,7 @@ function InfoCard({
   const valueColor = value === "—" ? theme.colors.muted : theme.colors.accent;
 
   return (
-    <View style={styles.dataRow}>
+    <View style={[styles.dataRow, isLast && styles.dataRowLast]}>
       <Text style={styles.dataLabel}>{title}</Text>
       <Text style={[styles.dataValue, { color: valueColor }]}>{value}</Text>
     </View>
@@ -126,6 +128,10 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   async function handleGeneratePost() {
     if (!confirmed) {
       toastError(t("marketplace.confirmationRequired"));
+      return;
+    }
+    if (includePrice && (price == null || !Number.isFinite(price) || price <= 0)) {
+      toastError(t("marketplace.priceRequired"));
       return;
     }
 
@@ -239,6 +245,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
               <Text style={styles.sectionTitle}>
                 {t("publicReport.technicalData")}
               </Text>
+              <View style={styles.sectionCard}>
               {(() => {
                 const dash = "—";
                 const val = (
@@ -457,7 +464,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                         {driveVal}
                       </Text>
                     </View>
-                    <View style={styles.dataRow}>
+                    <View style={[styles.dataRow, styles.dataRowLast]}>
                       <Text style={styles.dataLabel}>
                         {t("vehicleForm.fuelTypeLabel")}
                       </Text>
@@ -473,6 +480,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                   </>
                 );
               })()}
+              </View>
             </View>
           )}
 
@@ -481,6 +489,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
             <Text style={styles.sectionTitle}>
               {t("publicReport.includedData")}
             </Text>
+            <View style={styles.sectionCard}>
             <InfoCard
               title={t("publicReport.insurance")}
               status={
@@ -604,13 +613,15 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
               }
               theme={theme}
               styles={styles}
+              isLast
             />
+            </View>
           </View>
 
           {/* Entitlements info */}
           {!isPremium && (
             <View style={styles.section}>
-              <View style={[styles.limitInfo]}>
+              <View style={[styles.sectionCard, styles.limitInfo]}>
                 <Ionicons
                   name="information-circle"
                   size={20}
@@ -625,21 +636,23 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
 
           {/* Confirmation Checkbox */}
           <View style={styles.section}>
-            <Pressable
-              onPress={() => setConfirmed(!confirmed)}
-              style={styles.checkboxRow}
-            >
-              <Ionicons
-                name={confirmed ? "checkbox" : "square-outline"}
-                size={26}
-                color={
-                  confirmed ? theme.colors.accent : theme.colors.muted
-                }
-              />
-              <Text style={styles.checkboxLabel}>
-                {t("marketplace.confirmationCheckbox")}
-              </Text>
-            </Pressable>
+            <View style={styles.sectionCard}>
+              <Pressable
+                onPress={() => setConfirmed(!confirmed)}
+                style={styles.checkboxRow}
+              >
+                <Ionicons
+                  name={confirmed ? "checkbox" : "square-outline"}
+                  size={26}
+                  color={
+                    confirmed ? theme.colors.accent : theme.colors.muted
+                  }
+                />
+                <Text style={styles.checkboxLabel}>
+                  {t("marketplace.confirmationCheckbox")}
+                </Text>
+              </Pressable>
+            </View>
           </View>
         </>
       )}
@@ -666,14 +679,17 @@ const makeStyles = (theme: any) =>
     },
     section: {
       marginBottom: theme.spacing.lg,
+    },
+    sectionCard: {
       backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
     },
     sectionTitle: {
-      fontSize: theme.typography.body,
+      fontSize: theme.typography.title,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
+      marginBottom: theme.spacing.sm,
     },
     dataRow: {
       flexDirection: "row",
@@ -682,6 +698,9 @@ const makeStyles = (theme: any) =>
       paddingVertical: theme.spacing.xs,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
+    },
+    dataRowLast: {
+      borderBottomWidth: 0,
     },
     dataLabel: {
       fontSize: theme.typography.body,

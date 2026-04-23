@@ -11,6 +11,7 @@ type Props = {
   onPress: () => void;
   minHeight?: number;
   style?: StyleProp<ViewStyle>;
+  titleColor?: string;
   titleNumberOfLines?: number;
   disabled?: boolean;
   hitSlop?: Insets;
@@ -24,6 +25,7 @@ export function Tile({
   onPress,
   minHeight,
   style,
+  titleColor,
   titleNumberOfLines = 2,
   disabled,
   hitSlop,
@@ -50,7 +52,10 @@ export function Tile({
       ]}
     >
       {icon}
-      <Text numberOfLines={titleNumberOfLines} style={styles.tileTitle}>
+      <Text
+        numberOfLines={titleNumberOfLines}
+        style={[styles.tileTitle, titleColor ? { color: titleColor } : null]}
+      >
         {title}
       </Text>
     </Pressable>

@@ -126,6 +126,10 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   ]);
 
   function handleNext() {
+    if (includePrice && !price.trim().length) {
+      toastError(t("marketplace.priceRequired"));
+      return;
+    }
     const priceNum = price.trim().length ? Number(price) : null;
     if (includePrice && price.trim().length && !Number.isFinite(priceNum)) {
       toastError(t("marketplace.invalidPrice"));
@@ -344,7 +348,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                   options={publicReports.map((r) => r.id) as readonly string[]}
                   getLabel={(value) => {
                     const report = publicReports.find((r) => r.id === value);
-                    if (!report) return t("marketplace.noReport");
+                    if (!report) return t("marketplace.selectReport");
                     const date = formatDateDisplay(
                       report.created_at,
                       i18n.language,
@@ -354,7 +358,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                     );
                   }}
                   onChange={(value) => setSelectedReportId(value)}
-                  placeholder={t("marketplace.noReport")}
+                  placeholder={t("marketplace.selectReport")}
                 />
               ) : (
                 <Text style={styles.noReportsText}>

@@ -5,10 +5,16 @@ import {
   View,
   Pressable,
   ActivityIndicator,
+  FlatList,
+  Modal,
+  Dimensions,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import Carousel from "react-native-reanimated-carousel";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
@@ -41,12 +47,14 @@ function InfoCard({
   title,
   status,
   count,
+  isLast = false,
   theme,
   styles,
 }: {
   title: string;
   status: "included" | "notIncluded" | "noData";
   count?: number;
+  isLast?: boolean;
   theme: any;
   styles: any;
 }) {
@@ -60,7 +68,7 @@ function InfoCard({
   const valueColor = value === "—" ? theme.colors.muted : theme.colors.accent;
 
   return (
-    <View style={styles.dataRow}>
+    <View style={[styles.dataRow, isLast && styles.dataRowLast]}>
       <Text style={styles.dataLabel}>{title}</Text>
       <Text style={[styles.dataValue, { color: valueColor }]}>{value}</Text>
     </View>
@@ -70,6 +78,7 @@ function InfoCard({
 export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const { settings } = useUserSettings();
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -85,6 +94,10 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const [fullScreenIndex, setFullScreenIndex] = useState<number | null>(null);
+  const [photosCarouselWidth, setPhotosCarouselWidth] = useState(0);
+  const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
 
   const [vehiclePhotoUrls, setVehiclePhotoUrls] = useState<Map<string, string>>(
     new Map(),
@@ -242,246 +255,304 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
     >
       {!loading && (
         <>
+          {reportOptions.include_photos && photoCount > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {`${t("publicReport.photos")} (${photoIndex + 1}/${photoCount})`}
+              </Text>
+              <Pressable
+                style={styles.photosWrap}
+                onPress={() => setFullScreenIndex(photoIndex)}
+                onLayout={(event) =>
+                  setPhotosCarouselWidth(event.nativeEvent.layout.width)
+                }
+              >
+                <Carousel
+                  loop={true}
+                  snapEnabled={true}
+                  pagingEnabled={true}
+                  data={allPhotoUrls}
+                  width={photosCarouselWidth || windowWidth}
+                  height={220}
+                  onConfigurePanGesture={(pan) => {
+                    pan.activeOffsetX([-12, 12]).failOffsetY([-15, 15]);
+                  }}
+                  onProgressChange={(_, absoluteProgress) => {
+                    const rounded = Math.round(absoluteProgress);
+                    const normalized =
+                      ((rounded % photoCount) + photoCount) % photoCount;
+                    setPhotoIndex(normalized);
+                  }}
+                  renderItem={({ item: url }) => (
+                    <View style={styles.photoSlide}>
+                      <Image
+                        source={{ uri: url }}
+                        style={styles.photoImage}
+                        contentFit="cover"
+                        transition={200}
+                      />
+                    </View>
+                  )}
+                />
+                {photoCount > 1 && (
+                  <Pressable
+                    style={styles.expandButton}
+                    onPress={() => setFullScreenIndex(photoIndex)}
+                    hitSlop={8}
+                  >
+                    <FontAwesome5
+                      name="expand"
+                      size={16}
+                      color={theme.colors.accent}
+                    />
+                  </Pressable>
+                )}
+              </Pressable>
+            </View>
+          )}
+
           {/* Summary of technical data */}
           {reportOptions.include_technical_data && vehicle && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
                 {t("publicReport.technicalData")}
               </Text>
-              {(() => {
-                const dash = "—";
-                const val = (
-                  v: string | number | null | undefined,
-                  fallback: string,
-                ) =>
-                  v != null && String(v).trim() !== ""
-                    ? String(v).trim()
-                    : fallback;
-                const typeVal =
-                  vehicle.type === "car"
-                    ? t("vehicleForm.car")
-                    : t("vehicleForm.motorcycle");
-                const makeVal = val(vehicle.make, dash);
-                const modelVal = val(vehicle.model, dash);
-                const yearVal =
-                  vehicle.production_year != null
-                    ? String(vehicle.production_year)
-                    : dash;
-                const vinVal = val(vehicle.vin, dash);
-                const firstRegVal = vehicle.first_registration_date
-                  ? formatDateDisplay(
-                      vehicle.first_registration_date,
-                      i18n.language,
-                    )
-                  : dash;
-                const licenseVal = val(vehicle.license_plate, dash);
-                const mileageVal =
-                  vehicle.mileage != null
-                    ? `${vehicle.mileage.toLocaleString()} ${distanceUnit}`
-                    : dash;
-                const engineVal =
-                  vehicle.engine_capacity != null
-                    ? `${vehicle.engine_capacity} cm³`
-                    : dash;
-                const powerVal =
-                  vehicle.power_hp != null ? `${vehicle.power_hp} HP` : dash;
-                const transVal =
-                  vehicle.transmission != null
-                    ? vehicle.transmission === "manual"
-                      ? t("vehicleForm.transmissionManual")
-                      : t("vehicleForm.transmissionAutomatic")
-                    : dash;
-                const driveVal = vehicle.drive_type ?? dash;
-                const fuelVal =
-                  vehicle.fuel_type != null
-                    ? t(
-                        `vehicleForm.fuelType${
-                          vehicle.fuel_type.charAt(0).toUpperCase() +
-                          vehicle.fuel_type.slice(1)
-                        }` as
-                          | "vehicleForm.fuelTypePetrol"
-                          | "vehicleForm.fuelTypeDiesel"
-                          | "vehicleForm.fuelTypeHybrid"
-                          | "vehicleForm.fuelTypeElectric"
-                          | "vehicleForm.fuelTypeLpg",
+              <View style={styles.sectionCard}>
+                {(() => {
+                  const dash = "—";
+                  const val = (
+                    v: string | number | null | undefined,
+                    fallback: string,
+                  ) =>
+                    v != null && String(v).trim() !== ""
+                      ? String(v).trim()
+                      : fallback;
+                  const typeVal =
+                    vehicle.type === "car"
+                      ? t("vehicleForm.car")
+                      : t("vehicleForm.motorcycle");
+                  const makeVal = val(vehicle.make, dash);
+                  const modelVal = val(vehicle.model, dash);
+                  const yearVal =
+                    vehicle.production_year != null
+                      ? String(vehicle.production_year)
+                      : dash;
+                  const vinVal = val(vehicle.vin, dash);
+                  const firstRegVal = vehicle.first_registration_date
+                    ? formatDateDisplay(
+                        vehicle.first_registration_date,
+                        i18n.language,
                       )
                     : dash;
-                const valueColor = (v: string) =>
-                  v === dash ? theme.colors.muted : theme.colors.accent;
-                return (
-                  <>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.type")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: theme.colors.accent },
-                        ]}
-                      >
-                        {typeVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.makeLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(makeVal) },
-                        ]}
-                      >
-                        {makeVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.modelLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(modelVal) },
-                        ]}
-                      >
-                        {modelVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.yearLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(yearVal) },
-                        ]}
-                      >
-                        {yearVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.vinLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(vinVal) },
-                        ]}
-                      >
-                        {vinVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.firstRegistrationDateLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(firstRegVal) },
-                        ]}
-                      >
-                        {firstRegVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.licensePlateLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(licenseVal) },
-                        ]}
-                      >
-                        {licenseVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.mileageLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(mileageVal) },
-                        ]}
-                      >
-                        {mileageVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.engineCapacityLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(engineVal) },
-                        ]}
-                      >
-                        {engineVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.powerHpLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(powerVal) },
-                        ]}
-                      >
-                        {powerVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.transmissionLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(transVal) },
-                        ]}
-                      >
-                        {transVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.driveTypeLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(driveVal) },
-                        ]}
-                      >
-                        {driveVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.fuelTypeLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(fuelVal) },
-                        ]}
-                      >
-                        {fuelVal}
-                      </Text>
-                    </View>
-                  </>
-                );
-              })()}
+                  const licenseVal = val(vehicle.license_plate, dash);
+                  const mileageVal =
+                    vehicle.mileage != null
+                      ? `${vehicle.mileage.toLocaleString()} ${distanceUnit}`
+                      : dash;
+                  const engineVal =
+                    vehicle.engine_capacity != null
+                      ? `${vehicle.engine_capacity} cm³`
+                      : dash;
+                  const powerVal =
+                    vehicle.power_hp != null ? `${vehicle.power_hp} HP` : dash;
+                  const transVal =
+                    vehicle.transmission != null
+                      ? vehicle.transmission === "manual"
+                        ? t("vehicleForm.transmissionManual")
+                        : t("vehicleForm.transmissionAutomatic")
+                      : dash;
+                  const driveVal = vehicle.drive_type ?? dash;
+                  const fuelVal =
+                    vehicle.fuel_type != null
+                      ? t(
+                          `vehicleForm.fuelType${
+                            vehicle.fuel_type.charAt(0).toUpperCase() +
+                            vehicle.fuel_type.slice(1)
+                          }` as
+                            | "vehicleForm.fuelTypePetrol"
+                            | "vehicleForm.fuelTypeDiesel"
+                            | "vehicleForm.fuelTypeHybrid"
+                            | "vehicleForm.fuelTypeElectric"
+                            | "vehicleForm.fuelTypeLpg",
+                        )
+                      : dash;
+                  const valueColor = (v: string) =>
+                    v === dash ? theme.colors.muted : theme.colors.accent;
+                  return (
+                    <>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.type")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: theme.colors.accent },
+                          ]}
+                        >
+                          {typeVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.makeLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(makeVal) },
+                          ]}
+                        >
+                          {makeVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.modelLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(modelVal) },
+                          ]}
+                        >
+                          {modelVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.yearLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(yearVal) },
+                          ]}
+                        >
+                          {yearVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.vinLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(vinVal) },
+                          ]}
+                        >
+                          {vinVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.firstRegistrationDateLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(firstRegVal) },
+                          ]}
+                        >
+                          {firstRegVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.licensePlateLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(licenseVal) },
+                          ]}
+                        >
+                          {licenseVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.mileageLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(mileageVal) },
+                          ]}
+                        >
+                          {mileageVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.engineCapacityLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(engineVal) },
+                          ]}
+                        >
+                          {engineVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.powerHpLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(powerVal) },
+                          ]}
+                        >
+                          {powerVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.transmissionLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(transVal) },
+                          ]}
+                        >
+                          {transVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.driveTypeLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(driveVal) },
+                          ]}
+                        >
+                          {driveVal}
+                        </Text>
+                      </View>
+                      <View style={[styles.dataRow, styles.dataRowLast]}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.fuelTypeLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(fuelVal) },
+                          ]}
+                        >
+                          {fuelVal}
+                        </Text>
+                      </View>
+                    </>
+                  );
+                })()}
+              </View>
             </View>
           )}
 
@@ -490,130 +561,134 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
             <Text style={styles.sectionTitle}>
               {t("publicReport.includedData")}
             </Text>
-            <InfoCard
-              title={t("publicReport.insurance")}
-              status={
-                reportOptions.include_insurance
-                  ? hasInsurance
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.inspection")}
-              status={
-                reportOptions.include_inspection
-                  ? hasInspection
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.notes")}
-              status={
-                reportOptions.include_notes
-                  ? hasNotes
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.wheels")}
-              status={
-                reportOptions.include_wheels
-                  ? wheelsCount > 0
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.tires")}
-              status={
-                reportOptions.include_tires
-                  ? tiresCount > 0
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.serviceHistory")}
-              status={
-                reportOptions.include_service_history
-                  ? serviceEntriesCount > 0
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              count={
-                reportOptions.include_service_history && serviceEntriesCount > 0
-                  ? serviceEntriesCount
-                  : undefined
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.serviceStats")}
-              status={
-                reportOptions.include_service_stats
-                  ? serviceEntriesCount > 0
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.fuelingStats")}
-              status={
-                reportOptions.include_fueling_stats
-                  ? fuelingEntriesCount > 0
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.photos")}
-              status={
-                reportOptions.include_photos
-                  ? photoCount > 0
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              count={
-                reportOptions.include_photos && photoCount > 0
-                  ? photoCount
-                  : undefined
-              }
-              theme={theme}
-              styles={styles}
-            />
+            <View style={styles.sectionCard}>
+              <InfoCard
+                title={t("publicReport.insurance")}
+                status={
+                  reportOptions.include_insurance
+                    ? hasInsurance
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.inspection")}
+                status={
+                  reportOptions.include_inspection
+                    ? hasInspection
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.notes")}
+                status={
+                  reportOptions.include_notes
+                    ? hasNotes
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.wheels")}
+                status={
+                  reportOptions.include_wheels
+                    ? wheelsCount > 0
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.tires")}
+                status={
+                  reportOptions.include_tires
+                    ? tiresCount > 0
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.serviceHistory")}
+                status={
+                  reportOptions.include_service_history
+                    ? serviceEntriesCount > 0
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                count={
+                  reportOptions.include_service_history &&
+                  serviceEntriesCount > 0
+                    ? serviceEntriesCount
+                    : undefined
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.serviceStats")}
+                status={
+                  reportOptions.include_service_stats
+                    ? serviceEntriesCount > 0
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.fuelingStats")}
+                status={
+                  reportOptions.include_fueling_stats
+                    ? fuelingEntriesCount > 0
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.photos")}
+                status={
+                  reportOptions.include_photos
+                    ? photoCount > 0
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                count={
+                  reportOptions.include_photos && photoCount > 0
+                    ? photoCount
+                    : undefined
+                }
+                theme={theme}
+                styles={styles}
+                isLast
+              />
+            </View>
           </View>
 
           {/* Entitlements info */}
           {!isPremium && (
             <View style={styles.section}>
-              <View style={[styles.limitInfo]}>
+              <View style={[styles.sectionCard, styles.limitInfo]}>
                 <Ionicons
                   name="information-circle"
                   size={20}
@@ -628,24 +703,68 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
 
           {/* Confirmation Checkbox */}
           <View style={styles.section}>
-            <Pressable
-              onPress={() => setConfirmed(!confirmed)}
-              style={styles.checkboxRow}
-            >
-              <Ionicons
-                name={confirmed ? "checkbox" : "square-outline"}
-                size={26}
-                color={
-                  confirmed ? theme.colors.accent : theme.colors.muted
-                }
-              />
-              <Text style={styles.checkboxLabel}>
-                {t("publicReport.confirmationCheckbox")}
-              </Text>
-            </Pressable>
+            <View style={styles.sectionCard}>
+              <Pressable
+                onPress={() => setConfirmed(!confirmed)}
+                style={styles.checkboxRow}
+              >
+                <Ionicons
+                  name={confirmed ? "checkbox" : "square-outline"}
+                  size={26}
+                  color={confirmed ? theme.colors.accent : theme.colors.muted}
+                />
+                <Text style={styles.checkboxLabel}>
+                  {t("publicReport.confirmationCheckbox")}
+                </Text>
+              </Pressable>
+            </View>
           </View>
         </>
       )}
+      <Modal
+        visible={fullScreenIndex !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFullScreenIndex(null)}
+      >
+        <View style={styles.fullScreenOverlay}>
+          <Pressable
+            style={[styles.fullScreenClose, { top: insets.top + 8 }]}
+            onPress={() => setFullScreenIndex(null)}
+            hitSlop={12}
+          >
+            <Ionicons
+              name="close"
+              size={28}
+              color="#FFFFFF"
+            />
+          </Pressable>
+          {fullScreenIndex !== null && allPhotoUrls.length > 0 && (
+            <FlatList
+              data={allPhotoUrls}
+              horizontal
+              pagingEnabled
+              initialScrollIndex={fullScreenIndex}
+              getItemLayout={(_, index) => ({
+                length: windowWidth,
+                offset: windowWidth * index,
+                index,
+              })}
+              keyExtractor={(url, idx) => `${url}-${idx}`}
+              renderItem={({ item: url }) => (
+                <View style={{ width: windowWidth, height: windowHeight }}>
+                  <Image
+                    source={{ uri: url }}
+                    style={{ width: "100%", height: "100%" }}
+                    contentFit="contain"
+                  />
+                </View>
+              )}
+              showsHorizontalScrollIndicator={false}
+            />
+          )}
+        </View>
+      </Modal>
     </HeaderContentScreen>
   );
 }
@@ -669,14 +788,63 @@ const makeStyles = (theme: any) =>
     },
     section: {
       marginBottom: theme.spacing.lg,
+    },
+    sectionCard: {
       backgroundColor: theme.colors.card,
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
     },
     sectionTitle: {
-      fontSize: theme.typography.body,
+      fontSize: theme.typography.title,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
+      marginBottom: theme.spacing.sm,
+    },
+    photosWrap: {
+      width: "100%",
+      position: "relative",
+      height: 220,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+      backgroundColor: theme.colors.card,
+    },
+    photoSlide: {
+      width: "100%",
+      height: "100%",
+      overflow: "hidden",
+      backgroundColor: theme.colors.bg,
+    },
+    photoImage: {
+      width: "100%",
+      height: "100%",
+    },
+    expandButton: {
+      position: "absolute",
+      bottom: theme.spacing.md,
+      right: theme.spacing.md,
+      zIndex: 10,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(0,0,0,0.5)",
+    },
+    fullScreenOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.95)",
+      justifyContent: "center",
+    },
+    fullScreenClose: {
+      position: "absolute",
+      right: theme.spacing.md,
+      zIndex: 10,
+      width: theme.spacing.xl + theme.spacing.lg,
+      height: theme.spacing.xl + theme.spacing.lg,
+      borderRadius: (theme.spacing.xl + theme.spacing.lg) / 2,
+      backgroundColor: "rgba(0,0,0,0.4)",
+      alignItems: "center",
+      justifyContent: "center",
     },
     dataRow: {
       flexDirection: "row",
@@ -685,6 +853,9 @@ const makeStyles = (theme: any) =>
       paddingVertical: theme.spacing.xs,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
+    },
+    dataRowLast: {
+      borderBottomWidth: 0,
     },
     dataLabel: {
       fontSize: theme.typography.body,

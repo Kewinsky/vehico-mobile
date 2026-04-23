@@ -48,7 +48,12 @@ import {
 } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import type { Reminder, Vehicle, VehicleTire, VehicleWheel } from "../../types/domain";
+import type {
+  Reminder,
+  Vehicle,
+  VehicleTire,
+  VehicleWheel,
+} from "../../types/domain";
 import {
   deleteVehicle,
   getVehicle,
@@ -233,7 +238,7 @@ type DashboardStatTileProps = {
   icon?: keyof typeof Ionicons.glyphMap;
   iconComponent?: ReactNode;
   label: string;
-  valueMain: string;
+  valueMain: ReactNode;
   valueMainColor?: string;
   valueSuffix?: string;
   fullWidth?: boolean;
@@ -282,7 +287,11 @@ function DashboardStatTile({
         {iconComponent ? (
           iconComponent
         ) : icon ? (
-          <Ionicons name={icon} size={20} color={iconColor ?? theme.colors.accent} />
+          <Ionicons
+            name={icon}
+            size={20}
+            color={iconColor ?? theme.colors.accent}
+          />
         ) : null}
         <Text
           style={[
@@ -294,14 +303,18 @@ function DashboardStatTile({
         </Text>
       </View>
       <View style={styles.dashboardStatTileValueRow}>
-        <Text
-          style={[
-            styles.dashboardStatTileValueMain,
-            { color: valueMainColor ?? theme.colors.fg },
-          ]}
-        >
-          {valueMain}
-        </Text>
+        {typeof valueMain === "string" || typeof valueMain === "number" ? (
+          <Text
+            style={[
+              styles.dashboardStatTileValueMain,
+              { color: valueMainColor ?? theme.colors.fg },
+            ]}
+          >
+            {valueMain}
+          </Text>
+        ) : (
+          valueMain
+        )}
         {valueSuffix ? (
           <Text
             style={[
@@ -411,7 +424,9 @@ function getDaysUntilDate(dateYmd: string | null | undefined): number | null {
     0,
     0,
   );
-  return Math.ceil((date.getTime() - todayMidday.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.ceil(
+    (date.getTime() - todayMidday.getTime()) / (1000 * 60 * 60 * 24),
+  );
 }
 
 function formatTermsValue(
@@ -422,7 +437,8 @@ function formatTermsValue(
   if (!dateYmd) return "—";
   if (daysUntil == null) return formatTermsDate(dateYmd);
   if (daysUntil < 0) return translate("dashboard.stats.statusOverdue");
-  if (daysUntil <= 30) return translate("dashboard.stats.dueInDaysShort", { days: daysUntil });
+  if (daysUntil <= 30)
+    return translate("dashboard.stats.dueInDaysShort", { days: daysUntil });
   return formatTermsDate(dateYmd);
 }
 
@@ -464,28 +480,53 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     if (daysSinceYmd(ts) < MILEAGE_STALE_MIN_DAYS) return null;
     return ts;
   }, [vehicle?.mileage, vehicle?.mileage_updated_at]);
-  const fittedTire = useMemo(
-    () => tires.find((item) => item.is_currently_fitted) ?? null,
+  const fittedTires = useMemo(
+    () => tires.filter((item) => item.is_currently_fitted),
     [tires],
   );
-  const fittedWheel = useMemo(
-    () => wheels.find((item) => item.is_currently_fitted) ?? null,
+  const fittedWheels = useMemo(
+    () => wheels.filter((item) => item.is_currently_fitted),
     [wheels],
   );
+  const fittedTiresLines = useMemo(() => {
+    if (fittedTires.length === 0) return ["—"];
+    return fittedTires.map(
+      (item) =>
+        `${formatTireDimensions(
+          item.width_mm,
+          item.aspect_ratio,
+          item.diameter_inch,
+        )} · ${(item.name ?? "").trim() || "—"}`,
+    );
+  }, [fittedTires]);
+  const fittedWheelsLines = useMemo(() => {
+    if (fittedWheels.length === 0) return ["—"];
+    return fittedWheels.map(
+      (item) =>
+        `${formatWheelDimensions(item.width_inch, item.diameter_inch)} · ${
+          (item.name ?? "").trim() || "—"
+        }`,
+    );
+  }, [fittedWheels]);
   const upcomingReminders = useMemo(() => {
     const now = new Date();
     const currentMileage = vehicle?.mileage ?? null;
     return reminders
       .filter(
         (reminder) =>
-          reminder.status !== "done" && !isReminderOverdue(reminder, currentMileage),
+          reminder.status !== "done" &&
+          !isReminderOverdue(reminder, currentMileage),
       )
       .sort((a, b) => {
         const aProgress = getReminderProgressPercent(a, currentMileage, now);
         const bProgress = getReminderProgressPercent(b, currentMileage, now);
         if (aProgress !== bProgress) return bProgress - aProgress;
-        const dateA = a.due_date ? String(a.due_date).slice(0, 10) : "9999-12-31";
-        const dateB = b.due_date ? String(b.due_date).slice(0, 10) : "9999-12-31";
+        const dateA = a.due_date
+          ? String(a.due_date).slice(0, 10)
+          : "9999-12-31";
+        const dateB = b.due_date
+          ? String(b.due_date).slice(0, 10)
+          : "9999-12-31";
         return dateA.localeCompare(dateB);
       })
       .slice(0, 3);
@@ -515,13 +556,13 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             : { limit: remindersLimit };
         const [v, photos, tiresData, wheelsData, reports, remindersData] =
           await Promise.all([
-          getVehicle(vehicleId),
-          listVehiclePhotos(vehicleId),
-          listVehicleTires(vehicleId),
-          listVehicleWheels(vehicleId),
-          isPremium ? listPublicPages(vehicleId) : Promise.resolve([]),
-          listReminders(vehicleId, reminderOptions),
-        ]);
+            getVehicle(vehicleId),
+            listVehiclePhotos(vehicleId),
+            listVehicleTires(vehicleId),
+            listVehicleWheels(vehicleId),
+            isPremium ? listPublicPages(vehicleId) : Promise.resolve([]),
+            listReminders(vehicleId, reminderOptions),
+          ]);
         setVehicle(v);
         setPhotoUrls(photos.map((photo) => getVehiclePhotoUrl(photo)));
         setTires(tiresData);
@@ -856,7 +897,9 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               onPress={() => navigation.navigate("Reminders", { vehicleId })}
               hitSlop={8}
             >
-              <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
+              <Text
+                style={[styles.viewAllLink, { color: theme.colors.accent }]}
+              >
                 {t("dashboard.stats.viewAll")}
               </Text>
             </Pressable>
@@ -964,13 +1007,19 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             iconComponent={<TireIcon size={24} color={theme.colors.accent} />}
             label={t("dashboard.stats.currentTire")}
             valueMain={
-              fittedTire
-                ? `${formatTireDimensions(
-                    fittedTire.width_mm,
-                    fittedTire.aspect_ratio,
-                    fittedTire.diameter_inch,
-                  )} · ${(fittedTire.name ?? "").trim() || "—"}`
-                : "—"
+              <View style={styles.fittedSetsList}>
+                {fittedTiresLines.map((line, idx) => (
+                  <Text
+                    key={`fitted-tire-${idx}`}
+                    style={[
+                      styles.dashboardStatTileValueMain,
+                      { color: theme.colors.fg },
+                    ]}
+                  >
+                    {line}
+                  </Text>
+                ))}
+              </View>
             }
             fullWidth
           />
@@ -978,12 +1027,19 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             iconComponent={<RimIcon size={24} color={theme.colors.accent} />}
             label={t("dashboard.stats.currentWheel")}
             valueMain={
-              fittedWheel
-                ? `${formatWheelDimensions(
-                    fittedWheel.width_inch,
-                    fittedWheel.diameter_inch,
-                  )} · ${(fittedWheel.name ?? "").trim() || "—"}`
-                : "—"
+              <View style={styles.fittedSetsList}>
+                {fittedWheelsLines.map((line, idx) => (
+                  <Text
+                    key={`fitted-wheel-${idx}`}
+                    style={[
+                      styles.dashboardStatTileValueMain,
+                      { color: theme.colors.fg },
+                    ]}
+                  >
+                    {line}
+                  </Text>
+                ))}
+              </View>
             }
             fullWidth
           />
@@ -1063,7 +1119,9 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                     {activeRemindersCount > 0 ? (
                       <View style={styles.reminderBadge}>
                         <Text style={styles.reminderBadgeText}>
-                          {activeRemindersCount > 99 ? "99+" : activeRemindersCount}
+                          {activeRemindersCount > 99
+                            ? "99+"
+                            : activeRemindersCount}
                         </Text>
                       </View>
                     ) : null}
@@ -1270,7 +1328,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           >
             <Ionicons
               name="close"
-              size={theme.icons.headerButton}
+              size={28}
               color="#FFFFFF"
             />
           </Pressable>
@@ -1533,6 +1591,10 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.title,
     },
+    fittedSetsList: {
+      flex: 1,
+      gap: theme.spacing.xs,
+    },
     dashboardStatTileValueSuffix: {
       fontWeight: theme.typography.fontWeight.regular,
       fontSize: theme.typography.small,
@@ -1600,9 +1662,9 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       position: "absolute",
       right: theme.spacing.md,
       zIndex: 10,
-      width: theme.spacing.xl + theme.spacing.sm,
-      height: theme.spacing.xl + theme.spacing.sm,
-      borderRadius: (theme.spacing.xl + theme.spacing.sm) / 2,
+      width: theme.spacing.xl + theme.spacing.lg,
+      height: theme.spacing.xl + theme.spacing.lg,
+      borderRadius: (theme.spacing.xl + theme.spacing.lg) / 2,
       backgroundColor: "rgba(0,0,0,0.4)",
       alignItems: "center",
       justifyContent: "center",
