@@ -8,7 +8,6 @@ import type { FuelFiltersParams } from "../modal/FuelFiltersScreen";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
-import { SearchBar } from "../../ui/components/common/SearchBar";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import type { FuelingEntry, GasStation } from "../../types/domain";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
@@ -26,7 +25,6 @@ export function FuelScreen({ route, navigation }: Props) {
 
   const [fueling, setFueling] = useState<FuelingEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState("");
 
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -120,23 +118,6 @@ export function FuelScreen({ route, navigation }: Props) {
     const to = dateTo.trim().length === 10 ? dateTo.trim() : null;
 
     const filtered = fueling.filter((f) => {
-      const q = query.trim().toLowerCase();
-      if (q.length) {
-        const stationLabel = f.gas_station
-          ? t(`fuelingForm.stations.${f.gas_station}`).toLowerCase()
-          : "";
-        const fuelTypeLabel = f.fuel_type
-          ? t(`fuelingForm.fuelTypes.${f.fuel_type}`).toLowerCase()
-          : "";
-        const hay = `${String(f.date).slice(
-          0,
-          10,
-        )}\n${stationLabel}\n${fuelTypeLabel}\n${f.fuel_cost ?? ""}\n${
-          f.fuel_amount ?? ""
-        }\n${f.distance ?? ""}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-
       const d = String(f.date).slice(0, 10);
       if (from && d < from) return false;
       if (to && d > to) return false;
@@ -160,7 +141,7 @@ export function FuelScreen({ route, navigation }: Props) {
       return dateB.localeCompare(dateA);
     });
     return sorted;
-  }, [fueling, query, dateFrom, dateTo, stationFilter, minCost, maxCost, t]);
+  }, [fueling, dateFrom, dateTo, stationFilter, minCost, maxCost]);
 
   const getMonthYearKey = (entry: FuelingEntry) =>
     String(entry.date).slice(0, 7);
@@ -198,11 +179,6 @@ export function FuelScreen({ route, navigation }: Props) {
         listHeaderComponent={
           <>
             <ContentHeader title={t("dashboard.tiles.fuelTitle")} />
-            <SearchBar
-              value={query}
-              onChangeText={setQuery}
-              placeholder={t("common.search", { defaultValue: "Search" })}
-            />
           </>
         }
         groupByMonth

@@ -53,7 +53,6 @@ export function TiresListScreen({ route, navigation }: Props) {
 
   const [tires, setTires] = useState<VehicleTire[]>([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState("");
   const [tireTypeFilter, setTireTypeFilter] = useState<TireType | "all">("all");
   const [fittedFilter, setFittedFilter] = useState<
     "all" | "fitted" | "not_fitted"
@@ -98,14 +97,6 @@ export function TiresListScreen({ route, navigation }: Props) {
 
   const filteredTires = useMemo(() => {
     let list = tires;
-    const q = query.trim().toLowerCase();
-    if (q.length) {
-      list = list.filter(
-        (tire) =>
-          (tire.name ?? "").toLowerCase().includes(q) ||
-          (tire.dot ?? "").toLowerCase().includes(q),
-      );
-    }
     if (tireTypeFilter !== "all") {
       list = list.filter((tire) => tire.tire_type === tireTypeFilter);
     }
@@ -121,7 +112,7 @@ export function TiresListScreen({ route, navigation }: Props) {
       return sortOrder === "az" ? cmp : -cmp;
     });
     return sorted;
-  }, [tires, query, tireTypeFilter, fittedFilter, sortOrder]);
+  }, [tires, tireTypeFilter, fittedFilter, sortOrder]);
 
   function onAddTirePress() {
     if (!isPremium && tires.length >= tiresPerVehicleLimit) {
@@ -189,14 +180,7 @@ export function TiresListScreen({ route, navigation }: Props) {
         <CustomFlatList
           data={filteredTires}
           listHeaderComponent={
-            <>
-              <ContentHeader title={t("wheels.tiresSection")} />
-              <SearchBar
-                value={query}
-                onChangeText={setQuery}
-                placeholder={t("common.search", { defaultValue: "Search" })}
-              />
-            </>
+            <ContentHeader title={t("wheels.tiresSection")} />
           }
           keyExtractor={(item: VehicleTire) => item.id}
           renderItem={({ item }) => (

@@ -12,7 +12,6 @@ import {
 } from "../../services/wheels/wheelsRepo";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
-import { SearchBar } from "../../ui/components/common/SearchBar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -55,7 +54,6 @@ export function WheelsListScreen({ route, navigation }: Props) {
 
   const [wheels, setWheels] = useState<VehicleWheel[]>([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState("");
   const [fittedFilter, setFittedFilter] = useState<
     "all" | "fitted" | "not_fitted"
   >("all");
@@ -97,12 +95,6 @@ export function WheelsListScreen({ route, navigation }: Props) {
 
   const filteredWheels = useMemo(() => {
     let list = wheels;
-    const q = query.trim().toLowerCase();
-    if (q.length) {
-      list = list.filter((wheel) =>
-        (wheel.name ?? "").toLowerCase().includes(q),
-      );
-    }
     if (fittedFilter === "fitted") {
       list = list.filter((w) => w.is_currently_fitted);
     } else if (fittedFilter === "not_fitted") {
@@ -115,7 +107,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
       return sortOrder === "az" ? cmp : -cmp;
     });
     return sorted;
-  }, [wheels, query, fittedFilter, sortOrder]);
+  }, [wheels, fittedFilter, sortOrder]);
 
   function onAddWheelPress() {
     if (!isPremium && wheels.length >= wheelsPerVehicleLimit) {
@@ -183,11 +175,6 @@ export function WheelsListScreen({ route, navigation }: Props) {
           listHeaderComponent={
             <>
               <ContentHeader title={t("wheels.rimsSection")} />
-              <SearchBar
-                value={query}
-                onChangeText={setQuery}
-                placeholder={t("common.search", { defaultValue: "Search" })}
-              />
             </>
           }
           keyExtractor={(item) => item.id}
