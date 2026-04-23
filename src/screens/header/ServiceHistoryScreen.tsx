@@ -5,15 +5,12 @@ import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type {
-  Reminder,
   ServiceEntry,
   ServiceEntryCategory,
-  TimelineItem as TimelineRow,
   Workshop,
 } from "../../types/domain";
 import type { ServiceHistoryFiltersParams } from "../modal/ServiceHistoryFiltersScreen";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
-import { listReminders } from "../../services/reminders/remindersRepo";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -22,7 +19,6 @@ import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { ServiceItem } from "../../ui/components/list/ServiceItem";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -30,7 +26,6 @@ import {
   SERVICE_CATEGORY_COLORS,
   SERVICE_CATEGORY_ICON_BACKGROUND,
 } from "../../ui/theme/serviceCategoryColors";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 
@@ -40,16 +35,8 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
-  const {
-    isPremium,
-    remindersLimit,
-    freePlanVehicleId,
-    freePlanReminderIds,
-    refresh: refreshEntitlements,
-  } = useEntitlements();
   const { vehicleId } = route.params;
   const [items, setItems] = useState<ServiceEntry[]>([]);
-  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [workshopsById, setWorkshopsById] = useState<Record<string, Workshop>>(
     {},
   );
@@ -66,7 +53,6 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   const [dateTo, setDateTo] = useState("");
   const [minCost, setMinCost] = useState("");
   const [maxCost, setMaxCost] = useState("");
-  const [showReminders, setShowReminders] = useState(false);
   const [sortOption, setSortOption] = useState<
     | "date-newest"
     | "date-oldest"
@@ -83,18 +69,11 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           if (opts?.refreshing) setRefreshing(true);
           else setLoading(true);
         }
-        const reminderOpts = isPremium
-          ? undefined
-          : freePlanVehicleId === vehicleId
-            ? { freePlanReminderIds }
-            : { limit: remindersLimit };
-        const [data, rs, workshops] = await Promise.all([
+        const [data, workshops] = await Promise.all([
           listServiceEntries(vehicleId),
-          listReminders(vehicleId, reminderOpts),
           listWorkshops(),
         ]);
         setItems(data);
-        setReminders(rs);
         const workshopMap = workshops.reduce<Record<string, Workshop>>(
           (acc, workshop) => {
             acc[workshop.id] = workshop;
@@ -112,19 +91,11 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
         }
       }
     },
-    [
-      vehicleId,
-      t,
-      isPremium,
-      remindersLimit,
-      freePlanVehicleId,
-      freePlanReminderIds,
-    ],
+    [vehicleId, t],
   );
 
   useScreenFocusReload<ServiceHistoryFiltersParams>({
     initialLoad: () => load(),
-    beforeFocusReload: refreshEntitlements,
     onFocusReload: () => load({ showLoading: false }),
     pendingModalKey: "serviceHistory",
     applyPendingModalResult: (pending) => {
@@ -135,7 +106,6 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
       setDateTo(pending.dateTo ?? "");
       setMinCost(pending.minCost ?? "");
       setMaxCost(pending.maxCost ?? "");
-      setShowReminders(pending.showReminders ?? false);
       setSortOption(
         (pending.sortOption as
           | "date-newest"
@@ -155,10 +125,9 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
       dateFrom.trim().length > 0 ||
       dateTo.trim().length > 0 ||
       minCost.trim().length > 0 ||
-      maxCost.trim().length > 0 ||
-      showReminders
+      maxCost.trim().length > 0
     );
-  }, [categoryFilter, dateFrom, dateTo, minCost, maxCost, showReminders]);
+  }, [categoryFilter, dateFrom, dateTo, minCost, maxCost]);
 
   const openFilters = useCallback(() => {
     navigation.navigate("ServiceHistoryFilters", {
@@ -168,7 +137,6 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
       dateTo,
       minCost,
       maxCost,
-      showReminders,
       sortOption,
     });
   }, [
@@ -179,7 +147,6 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     dateTo,
     minCost,
     maxCost,
-    showReminders,
     sortOption,
   ]);
 
@@ -189,7 +156,6 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     setDateTo("");
     setMinCost("");
     setMaxCost("");
-    setShowReminders(false);
     setSortOption("date-newest");
   }, []);
 
@@ -267,31 +233,6 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
         entry: e,
       }));
 
-    const reminderRows = showReminders
-      ? reminders
-          .filter((r) => {
-            if (r.status !== "active") return false;
-            const sortKey = r.due_date
-              ? String(r.due_date).slice(0, 10)
-              : "9999-12-31";
-            if (from && r.due_date && sortKey < from) return false;
-            if (to && r.due_date && sortKey > to) return false;
-            if (q.length) {
-              const hay = `${r.title ?? ""}\n${r.notes ?? ""}`.toLowerCase();
-              if (!hay.includes(q)) return false;
-            }
-            return true;
-          })
-          .map((r) => ({
-            kind: "reminder" as const,
-            id: r.id,
-            sortKey: r.due_date
-              ? String(r.due_date).slice(0, 10)
-              : "9999-12-31",
-            reminder: r,
-          }))
-      : [];
-
     // Sort service rows based on sortOption
     const [sortBy, sortOrder] = sortOption.split("-") as [string, string];
     const sortedServiceRows = [...serviceRows].sort((a, b) => {
@@ -327,51 +268,20 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
       return b.sortKey.localeCompare(a.sortKey);
     });
 
-    // Reminders are always sorted by date (newest first)
-    const sortedReminderRows = [...reminderRows].sort((a, b) =>
-      a.sortKey === b.sortKey ? 0 : a.sortKey < b.sortKey ? 1 : -1,
-    );
-
-    // Combine: if sorting by date, mix reminders with service entries
-    // If sorting by title/cost, show service entries first, then reminders
-    let allRows: Array<(typeof serviceRows)[0] | (typeof reminderRows)[0]>;
-
-    if (sortBy === "date") {
-      // Mix reminders and service entries, sort by date
-      const mixed: Array<(typeof serviceRows)[0] | (typeof reminderRows)[0]> = [
-        ...sortedReminderRows,
-        ...sortedServiceRows,
-      ];
-      allRows = mixed.sort((a, b) => {
-        if (a.sortKey === b.sortKey) return 0;
-        if (sortOrder === "newest") {
-          return a.sortKey < b.sortKey ? 1 : -1;
-        } else {
-          return a.sortKey > b.sortKey ? 1 : -1;
-        }
-      });
-    } else {
-      // Sort by title/cost: service entries first, then reminders
-      allRows = [...sortedServiceRows, ...sortedReminderRows];
-    }
-
-    return allRows;
+    return sortedServiceRows;
   }, [
     items,
-    reminders,
     query,
     categoryFilter,
     dateFrom,
     dateTo,
     minCost,
     maxCost,
-    showReminders,
     sortOption,
   ]);
 
   const sortByDate = sortOption.startsWith("date");
-  const getMonthYearKey = (row: { sortKey: string }) =>
-    row.sortKey === "9999-12-31" ? "future" : row.sortKey.slice(0, 7);
+  const getMonthYearKey = (row: { sortKey: string }) => row.sortKey.slice(0, 7);
 
   const headerActions: HeaderAction[] = useMemo(
     () => [
@@ -406,7 +316,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
       actions={headerActions}
     >
       <View style={{ flex: 1 }}>
-        <CustomFlatList<TimelineRow>
+        <CustomFlatList<(typeof timelineRows)[number]>
           data={timelineRows}
           listHeaderComponent={
             <>
@@ -422,35 +332,6 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           getMonthYearKey={getMonthYearKey}
           keyExtractor={(e) => `${e.kind}:${e.id}`}
           renderItem={({ item: rowItem }) => {
-            if (rowItem.kind === "reminder") {
-              const r = rowItem.reminder;
-              return (
-                <ServiceItem
-                  title={r.title ?? t("reminders.title")}
-                  date={r.due_date}
-                  mileage={r.due_mileage}
-                  distanceUnit={distanceUnit}
-                  workshopName={null}
-                  cost={null}
-                  currency={currency}
-                  icon={
-                    <Ionicons
-                      name="notifications-outline"
-                      size={22}
-                      color={theme.colors.accent}
-                    />
-                  }
-                  iconBackgroundColor={hexToRgba(theme.colors.accent, 0.15)}
-                  onPress={() =>
-                    navigation.navigate("ReminderForm", {
-                      vehicleId,
-                      reminderId: r.id,
-                    })
-                  }
-                />
-              );
-            }
-
             const e = rowItem.entry;
             const cat = (e.category ?? "other") as ServiceEntryCategory;
             return (

@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Feather } from "@expo/vector-icons";
+import { Pencil } from "lucide-react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -133,7 +133,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
           onPress={() => handleEditTitle(item)}
           style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
         >
-          <Feather name="edit" size={22} color="#000000" />
+          <Pencil size={22} color="#000000" />
         </Pressable>
       </View>
     );

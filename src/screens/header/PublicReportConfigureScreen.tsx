@@ -477,9 +477,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
                       />
                       <View style={styles.vehiclePhotoCheckbox}>
                         <Ionicons
-                          name={
-                            isSelected ? "checkbox" : "checkbox-outline"
-                          }
+                          name={isSelected ? "checkbox" : "checkbox-outline"}
                           size={26}
                           color={
                             isSelected

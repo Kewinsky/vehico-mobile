@@ -41,8 +41,6 @@ export function ServiceItem({
     : "—";
   const mileageText =
     mileage != null ? `${mileage.toLocaleString()} ${distanceUnit}` : "—";
-  const workshopText = workshopName?.trim() ?? "";
-  const hasWorkshop = workshopText.length > 0;
   const costText = cost != null ? `${cost.toLocaleString()} ${currency}` : "—";
 
   const content = (
@@ -80,17 +78,6 @@ export function ServiceItem({
           {costText}
         </Text>
       </View>
-
-      {hasWorkshop ? (
-        <View style={styles.bottomRow}>
-          <Text
-            style={[styles.rowValue, { color: theme.colors.fg }]}
-            numberOfLines={1}
-          >
-            {workshopText}
-          </Text>
-        </View>
-      ) : null}
     </View>
   );
 

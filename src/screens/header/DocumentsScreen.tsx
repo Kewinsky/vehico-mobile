@@ -12,7 +12,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { useCallback, useMemo, useState } from "react";
 import Swipeable from "react-native-gesture-handler/Swipeable";
-import { Trash2 } from "lucide-react-native";
+import { Pencil, Trash2 } from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
@@ -42,7 +42,6 @@ import {
 } from "../../services/vehicleDocuments/vehicleDocumentsRepo";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { Feather } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
@@ -311,7 +310,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
             { backgroundColor: theme.colors.accent },
           ]}
         >
-          <Feather name="edit" size={22} color="#000000" />
+          <Pencil size={22} color="#000000" />
         </Pressable>
         <Pressable
           onPress={() => confirmDeleteVehicleDoc(item)}

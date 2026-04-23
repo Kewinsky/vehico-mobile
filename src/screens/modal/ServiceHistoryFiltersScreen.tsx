@@ -5,7 +5,6 @@ import {
   Alert,
   Pressable,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   View,
@@ -30,7 +29,6 @@ export type ServiceHistoryFiltersParams = {
   dateTo: string;
   minCost: string;
   maxCost: string;
-  showReminders: boolean;
   sortOption:
     | "date-newest"
     | "date-oldest"
@@ -88,9 +86,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
   const [datePickerDraft, setDatePickerDraft] = useState<Date>(new Date());
   const [minCost, setMinCost] = useState(params.minCost ?? "");
   const [maxCost, setMaxCost] = useState(params.maxCost ?? "");
-  const [showReminders, setShowReminders] = useState(
-    params.showReminders ?? false,
-  );
   type SortOption =
     | "date-newest"
     | "date-oldest"
@@ -143,7 +138,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
     setDateTo("");
     setMinCost("");
     setMaxCost("");
-    setShowReminders(false);
     setSortOption("date-newest");
     setOpenDatePicker(null);
   }
@@ -186,7 +180,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
       dateTo,
       minCost,
       maxCost,
-      showReminders,
       sortOption,
     };
     setPendingModalResult("serviceHistory", applied);
@@ -207,24 +200,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
       }
     >
       <Card>
-        <CardRow>
-          <Ionicons
-            name="notifications-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <Text style={[styles.valueText, { color: theme.colors.fg }]}>
-            {t("timeline.showReminders")}
-          </Text>
-          <Switch
-            value={showReminders}
-            onValueChange={setShowReminders}
-            trackColor={{
-              false: theme.colors.border,
-              true: theme.colors.accent,
-            }}
-          />
-        </CardRow>
         <Pressable
           onPress={showCategoryPicker}
           style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}

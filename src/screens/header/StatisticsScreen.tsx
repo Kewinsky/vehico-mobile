@@ -1221,7 +1221,7 @@ export function StatisticsScreen(props: Props) {
           : oilLife.isDueSoon
             ? t("dashboard.stats.statusDueSoon")
             : t("dashboard.stats.statusOptimal")
-      }`.toUpperCase()
+      }`
     : "";
   const oilLifeProgressPercent = oilLife
     ? Math.max(0, Math.min(100, oilLife.progressPercent))

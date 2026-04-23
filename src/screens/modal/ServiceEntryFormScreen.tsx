@@ -45,14 +45,14 @@ import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
-import { IconButton } from "../../ui/components/common/IconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Textarea } from "../../ui/components/common/Textarea";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
-import { NotebookPen, Trash2 } from "lucide-react-native";
+import { Pencil, Trash2 } from "lucide-react-native";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "maintenance",
@@ -282,6 +282,49 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       ],
       "plain-text",
       currentFileName?.trim() || "",
+    );
+  }
+
+  function renderAttachmentRightActions(item: Attachment) {
+    return (
+      <View style={styles.swipeActionsWrap}>
+        <Pressable
+          onPress={() => handleEditAttachmentName(item)}
+          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
+        >
+          <Pencil size={20} color="#000000" />
+        </Pressable>
+        <Pressable
+          onPress={() => confirmDeleteAttachment(item)}
+          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+        >
+          <Trash2 size={20} color="#000000" />
+        </Pressable>
+      </View>
+    );
+  }
+
+  function renderPendingAttachmentRightActions(
+    index: number,
+    item: { uri: string; mimeType?: string | null; fileName?: string | null },
+  ) {
+    return (
+      <View style={styles.swipeActionsWrap}>
+        <Pressable
+          onPress={() => handleEditPendingFileName(index, item.fileName)}
+          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
+        >
+          <Pencil size={20} color="#000000" />
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+          }}
+          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+        >
+          <Trash2 size={20} color="#000000" />
+        </Pressable>
+      </View>
     );
   }
 
@@ -989,53 +1032,33 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     <View style={{ height: theme.spacing.sm }} />
                   )}
                   renderItem={({ item }) => (
-                    <ListRowWithActions
-                      title={
-                        item.display_name?.trim() ||
-                        t("attachments.attachmentLabel")
-                      }
-                      subtitle={(() => {
-                        const fileName = getFileNameFromItem(item);
-                        const ext =
-                          fileName.split(".").pop()?.toUpperCase() || "FILE";
-                        const date = new Date(item.created_at);
-                        const formattedDate = date.toLocaleDateString(
-                          i18n.language === "pl" ? "pl-PL" : "en-US",
-                          {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          },
-                        );
-                        return `${t("documents.added")} ${formattedDate} · ${ext}`;
-                      })()}
-                      onPress={() => void openAttachment(item)}
-                      trailing={
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            gap: theme.spacing.xs,
-                          }}
-                        >
-                          <IconButton
-                            onPress={() => handleEditAttachmentName(item)}
-                            variant="ghost"
-                          >
-                            <Ionicons
-                              name="create-outline"
-                              size={24}
-                              color={theme.colors.accent}
-                            />
-                          </IconButton>
-                          <IconButton
-                            onPress={() => confirmDeleteAttachment(item)}
-                            variant="danger"
-                          >
-                            <Trash2 size={24} color={theme.colors.danger} />
-                          </IconButton>
-                        </View>
-                      }
-                    />
+                    <Swipeable
+                      renderRightActions={() => renderAttachmentRightActions(item)}
+                      rightThreshold={32}
+                    >
+                      <ListRowWithActions
+                        title={
+                          item.display_name?.trim() ||
+                          t("attachments.attachmentLabel")
+                        }
+                        subtitle={(() => {
+                          const fileName = getFileNameFromItem(item);
+                          const ext =
+                            fileName.split(".").pop()?.toUpperCase() || "FILE";
+                          const date = new Date(item.created_at);
+                          const formattedDate = date.toLocaleDateString(
+                            i18n.language === "pl" ? "pl-PL" : "en-US",
+                            {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                            },
+                          );
+                          return `${t("documents.added")} ${formattedDate} · ${ext}`;
+                        })()}
+                        onPress={() => void openAttachment(item)}
+                      />
+                    </Swipeable>
                   )}
                   ListEmptyComponent={
                     attachmentsLoading ? (
@@ -1059,43 +1082,19 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     <View style={{ height: theme.spacing.sm }} />
                   )}
                   renderItem={({ item, index }) => (
-                    <ListRowWithActions
-                      title={
-                        item.fileName?.trim() ||
-                        t("attachments.attachmentLabel")
+                    <Swipeable
+                      renderRightActions={() =>
+                        renderPendingAttachmentRightActions(index, item)
                       }
-                      trailing={
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            gap: theme.spacing.xs,
-                          }}
-                        >
-                          <IconButton
-                            onPress={() =>
-                              handleEditPendingFileName(index, item.fileName)
-                            }
-                            variant="ghost"
-                          >
-                            <Ionicons
-                              name="create-outline"
-                              size={24}
-                              color={theme.colors.accent}
-                            />
-                          </IconButton>
-                          <IconButton
-                            onPress={() => {
-                              setPendingFiles((prev) =>
-                                prev.filter((_, i) => i !== index),
-                              );
-                            }}
-                            variant="danger"
-                          >
-                            <Trash2 size={24} color={theme.colors.danger} />
-                          </IconButton>
-                        </View>
-                      }
-                    />
+                      rightThreshold={32}
+                    >
+                      <ListRowWithActions
+                        title={
+                          item.fileName?.trim() ||
+                          t("attachments.attachmentLabel")
+                        }
+                      />
+                    </Swipeable>
                   )}
                 />
               )}
@@ -1167,6 +1166,18 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
     },
     inlineTrash: { paddingLeft: theme.spacing.sm / 2, paddingVertical: 2 },
+    swipeActionsWrap: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      marginLeft: theme.spacing.xs,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+    },
+    swipeActionBtn: {
+      width: 72,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     cardRow: {
       flexDirection: "row",
       alignItems: "center",

@@ -181,11 +181,7 @@ export function WorkshopItem({
               },
             ]}
           >
-            <Ionicons
-              name="call-outline"
-              size={18}
-              color={theme.colors.muted}
-            />
+            <Ionicons name="call-outline" size={18} color="#000000" />
           </Pressable>
         </View>
       )}
@@ -269,8 +265,6 @@ const makeStyles = (theme: AppTheme) =>
       borderRadius: theme.radius.lg,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: theme.colors.card,
-      borderWidth: 1,
-      borderColor: theme.colors.muted,
+      backgroundColor: theme.colors.accent,
     },
   });

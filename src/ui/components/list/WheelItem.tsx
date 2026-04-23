@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Weight } from "lucide-react-native";
-import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import type { VehicleWheel } from "../../../types/domain";
@@ -20,6 +20,15 @@ export function WheelItem({ wheel, onPress }: WheelItemProps) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
   const [expanded, setExpanded] = useState(false);
+  const chevronAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(chevronAnim, {
+      toValue: expanded ? 1 : 0,
+      duration: 180,
+      useNativeDriver: true,
+    }).start();
+  }, [expanded, chevronAnim]);
 
   const summary = useMemo(() => {
     const parts = [
@@ -94,23 +103,35 @@ export function WheelItem({ wheel, onPress }: WheelItemProps) {
             {summary}
           </Text>
         </View>
+        <Pressable
+          onPress={(event) => {
+            event.stopPropagation();
+            setExpanded((prev) => !prev);
+          }}
+          style={({ pressed }) => [
+            styles.toggleButton,
+            {
+              backgroundColor: theme.colors.accent,
+              opacity: pressed ? 0.85 : 1,
+            },
+          ]}
+        >
+          <Animated.View
+            style={{
+              transform: [
+                {
+                  rotate: chevronAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ["0deg", "180deg"],
+                  }),
+                },
+              ],
+            }}
+          >
+            <Ionicons name="chevron-down" size={18} color="#000000" />
+          </Animated.View>
+        </Pressable>
       </View>
-
-      <Pressable
-        onPress={(event) => {
-          event.stopPropagation();
-          setExpanded((prev) => !prev);
-        }}
-        style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
-      >
-        <View style={styles.moreRow}>
-          <Text style={[styles.moreButtonText, { color: theme.colors.accent }]}>
-            {expanded
-              ? t("wheels.lessDetails", { defaultValue: "Less" })
-              : t("wheels.moreDetails", { defaultValue: "More" })}
-          </Text>
-        </View>
-      </Pressable>
 
       {expanded ? (
         <View style={styles.detailsWrap}>
@@ -197,19 +218,12 @@ const makeStyles = (theme: AppTheme) =>
       fontSize: theme.typography.small,
       lineHeight: theme.typography.body + 2,
     },
-    chevron: {
-      alignSelf: "center",
-    },
-    moreRow: {
-      alignSelf: "flex-start",
-      flexDirection: "row",
+    toggleButton: {
+      width: 28,
+      height: 28,
+      borderRadius: theme.radius.md,
       alignItems: "center",
-      gap: theme.spacing.xs / 2,
-      marginTop: theme.spacing.xs / 2,
-    },
-    moreButtonText: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.medium,
+      justifyContent: "center",
     },
     detailsWrap: {
       marginTop: theme.spacing.xs,
