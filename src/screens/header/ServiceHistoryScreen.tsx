@@ -1,8 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n/i18n";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type {
@@ -10,16 +9,18 @@ import type {
   ServiceEntry,
   ServiceEntryCategory,
   TimelineItem as TimelineRow,
+  Workshop,
 } from "../../types/domain";
 import type { ServiceHistoryFiltersParams } from "../modal/ServiceHistoryFiltersScreen";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { listReminders } from "../../services/reminders/remindersRepo";
-import { listVehicleAttachments } from "../../services/attachments/attachmentsRepo";
+import { listWorkshops } from "../../services/workshops/workshopsRepo";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { TimelineItem } from "../../ui/components/list/TimelineItem";
+import { ServiceItem } from "../../ui/components/list/ServiceItem";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -32,7 +33,6 @@ import {
 } from "../../ui/theme/serviceCategoryColors";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { EmptyState } from "../../ui/components/common/EmptyState";
-import { formatDateDisplay } from "../../utils/dateFormatting";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceHistory">;
@@ -48,13 +48,12 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     freePlanReminderIds,
     refresh: refreshEntitlements,
   } = useEntitlements();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [attachmentsCount, setAttachmentsCount] = useState<
-    Record<string, number>
-  >({});
+  const [workshopsById, setWorkshopsById] = useState<Record<string, Workshop>>(
+    {},
+  );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const distanceUnit = settings?.distanceUnit ?? "km";
@@ -90,23 +89,21 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           : freePlanVehicleId === vehicleId
             ? { freePlanReminderIds }
             : { limit: remindersLimit };
-        const [data, rs, attachments] = await Promise.all([
+        const [data, rs, workshops] = await Promise.all([
           listServiceEntries(vehicleId),
           listReminders(vehicleId, reminderOpts),
-          listVehicleAttachments(vehicleId),
+          listWorkshops(),
         ]);
         setItems(data);
         setReminders(rs);
-
-        // Count attachments per service entry
-        const countMap: Record<string, number> = {};
-        for (const entry of data) {
-          const entryAttachments = attachments.filter(
-            (att) => att.service_entry_id === entry.id,
-          );
-          countMap[entry.id] = entryAttachments.length;
-        }
-        setAttachmentsCount(countMap);
+        const workshopMap = workshops.reduce<Record<string, Workshop>>(
+          (acc, workshop) => {
+            acc[workshop.id] = workshop;
+            return acc;
+          },
+          {},
+        );
+        setWorkshopsById(workshopMap);
       } catch (e: any) {
         toastError(e?.message ?? t("common.error"));
       } finally {
@@ -466,28 +463,16 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
             const e = rowItem.entry;
             const cat = (e.category ?? "other") as ServiceEntryCategory;
             return (
-              <TimelineItem
+              <ServiceItem
                 title={e.title}
                 icon={renderServiceIcon(cat)}
                 iconBackgroundColor={SERVICE_CATEGORY_ICON_BACKGROUND[cat]}
-                subtitle={[
-                  e.service_date
-                    ? formatDateDisplay(e.service_date, i18n.language)
-                    : null,
-                  e.mileage
-                    ? `${e.mileage.toLocaleString()} ${distanceUnit}`
-                    : null,
-                  e.cost != null ? `${e.cost} ${currency}` : null,
-                  attachmentsCount[e.id] > 0
-                    ? `${attachmentsCount[e.id]} ${
-                        attachmentsCount[e.id] === 1
-                          ? t("attachments.attachmentLabel")
-                          : t("attachments.title").toLowerCase()
-                      }`
-                    : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
+                date={e.service_date}
+                mileage={e.mileage}
+                distanceUnit={distanceUnit}
+                workshopName={e.workshop_id ? workshopsById[e.workshop_id]?.name : null}
+                cost={e.cost}
+                currency={currency}
                 onPress={() =>
                   navigation.navigate("ServiceEntryForm", {
                     entryId: e.id,
@@ -507,12 +492,3 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     </HeaderLayout>
   );
 }
-
-const makeStyles = (theme: any) =>
-  StyleSheet.create({
-    headerRight: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-    },
-  });

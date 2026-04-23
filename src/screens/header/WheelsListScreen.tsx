@@ -2,7 +2,6 @@ import { Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useCallback, useMemo, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { VehicleWheel } from "../../types/domain";
@@ -10,7 +9,6 @@ import type { WheelsListFiltersParams } from "../modal/WheelsListFiltersScreen";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import {
   listVehicleWheels,
-  formatWheelDimensions,
 } from "../../services/wheels/wheelsRepo";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -21,27 +19,10 @@ import { toastError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
-import { TimelineItem } from "../../ui/components/list/TimelineItem";
+import { WheelItem } from "../../ui/components/list/WheelItem";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WheelsList">;
-
-function wheelSubtitle(
-  wheel: VehicleWheel,
-  t: (key: string) => string,
-): string {
-  const dims = formatWheelDimensions(wheel.width_inch, wheel.diameter_inch);
-  const parts: string[] = [dims];
-  if (wheel.et_offset != null) parts.push(`ET${wheel.et_offset}`);
-  if (wheel.bolt_pattern?.trim()) parts.push(wheel.bolt_pattern.trim());
-  if (wheel.center_bore_mm != null) {
-    const abbr = t("wheels.centerBoreAbbr");
-    parts.push(`${abbr} ${wheel.center_bore_mm}mm`);
-  }
-  if (wheel.bolt_type?.trim()) parts.push(wheel.bolt_type.trim());
-  if (wheel.weight_kg != null) parts.push(`${wheel.weight_kg} kg`);
-  return parts.join(" · ");
-}
 
 export function WheelsListScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
@@ -211,15 +192,8 @@ export function WheelsListScreen({ route, navigation }: Props) {
           }
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <TimelineItem
-              title={item.name}
-              subtitle={wheelSubtitle(item, t)}
-              badge={
-                item.is_currently_fitted
-                  ? t("wheels.currentlyFitted")
-                  : undefined
-              }
-              badgeVariant="accent"
+            <WheelItem
+              wheel={item}
               onPress={() =>
                 navigation.navigate("WheelForm", {
                   vehicleId,

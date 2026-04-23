@@ -22,7 +22,6 @@ import { FuelScreen } from "../../screens/header/FuelScreen";
 import { FuelFiltersScreen } from "../../screens/modal/FuelFiltersScreen";
 import { FuelingEntryFormScreen } from "../../screens/modal/FuelingEntryFormScreen";
 import { RemindersScreen } from "../../screens/header/RemindersScreen";
-import { RemindersFiltersScreen } from "../../screens/modal/RemindersFiltersScreen";
 import { ReminderFormScreen } from "../../screens/modal/ReminderFormScreen";
 import { ServiceEntryFormScreen } from "../../screens/modal/ServiceEntryFormScreen";
 import { SettingsScreen } from "../../screens/modal/SettingsScreen";
@@ -335,15 +334,6 @@ export function RootNavigator() {
             name="Reminders"
             component={RemindersScreen}
             options={nativeHeaderScreenOptions}
-          />
-          <Stack.Screen
-            name="RemindersFilters"
-            component={RemindersFiltersScreen}
-            options={{
-              presentation: "modal",
-              headerShown: true,
-              headerShadowVisible: false,
-            }}
           />
           <Stack.Screen
             name="ReminderForm"

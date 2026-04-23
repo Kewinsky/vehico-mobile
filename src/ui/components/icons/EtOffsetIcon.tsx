@@ -41,14 +41,34 @@ export function EtOffsetIcon({
       />
       <Rect x="3" y="11" width="1" height="1" fill={color} />
       <Circle cx="4" cy="12" r="1" fill={dotColor} />
-      <Rect x="3" y="8" width="1" height="1" transform="rotate(-90 3 8)" fill={color} />
+      <Rect
+        x="3"
+        y="8"
+        width="1"
+        height="1"
+        transform="rotate(-90 3 8)"
+        fill={color}
+      />
       <Circle cx="4" cy="7" r="1" transform="rotate(-90 4 7)" fill={dotColor} />
       <Path
         d="M3 17H8.5C9.32843 17 10 17.6716 10 18.5V18.5C10 19.3284 9.32843 20 8.5 20H3V17Z"
         fill={color}
       />
-      <Rect x="3" y="17" width="1" height="1" transform="rotate(-90 3 17)" fill={color} />
-      <Circle cx="4" cy="16" r="1" transform="rotate(-90 4 16)" fill={dotColor} />
+      <Rect
+        x="3"
+        y="17"
+        width="1"
+        height="1"
+        transform="rotate(-90 3 17)"
+        fill={color}
+      />
+      <Circle
+        cx="4"
+        cy="16"
+        r="1"
+        transform="rotate(-90 4 16)"
+        fill={dotColor}
+      />
       <Rect x="11" y="0" width="13" height="3" rx="1.5" fill={color} />
       <Path
         d="M16 3H19V18.5C19 19.3284 18.3284 20 17.5 20V20C16.6716 20 16 19.3284 16 18.5V3Z"
@@ -56,7 +76,12 @@ export function EtOffsetIcon({
       />
       <Rect x="19" y="3" width="1" height="1" fill={color} />
       <Circle cx="20" cy="4" r="1" fill={dotColor} />
-      <Rect width="1" height="1" transform="matrix(-1 0 0 1 16 3)" fill={color} />
+      <Rect
+        width="1"
+        height="1"
+        transform="matrix(-1 0 0 1 16 3)"
+        fill={color}
+      />
       <Circle
         cx="1"
         cy="1"

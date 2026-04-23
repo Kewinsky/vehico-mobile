@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useCallback, useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { FuelFiltersParams } from "../modal/FuelFiltersScreen";
@@ -9,24 +9,20 @@ import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
-import { useTheme } from "../../ui/ThemeProvider";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import type { FuelingEntry, GasStation } from "../../types/domain";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
-import { Ionicons } from "@expo/vector-icons";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import { EmptyState } from "../../ui/components/common/EmptyState";
-import { TimelineItem } from "../../ui/components/list/TimelineItem";
+import { FuelItem } from "../../ui/components/list/FuelItem";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
 
 export function FuelScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
   const { settings } = useUserSettings();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const [fueling, setFueling] = useState<FuelingEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -213,17 +209,18 @@ export function FuelScreen({ route, navigation }: Props) {
         getMonthYearKey={getMonthYearKey}
         keyExtractor={(item) => item.id}
         renderItem={({ item: entry }) => (
-          <TimelineItem
-            title={`${entry.date}${
-              entry.fuel_type
-                ? ` · ${t(`fuelingForm.fuelTypes.${entry.fuel_type}`)}`
-                : ""
-            }${
-              entry.gas_station
-                ? ` · ${t(`fuelingForm.stations.${entry.gas_station}`)}`
-                : ""
-            }`}
-            subtitle={`${Number(entry.distance).toFixed(1)} ${distanceUnit} · ${Number(entry.fuel_amount).toFixed(1)} ${fuelUnitLabel} · ${Number(entry.fuel_cost).toFixed(2)} ${currency}`}
+          <FuelItem
+            date={String(entry.date).slice(0, 10)}
+            fuelTypeLabel={
+              entry.fuel_type ? t(`fuelingForm.fuelTypes.${entry.fuel_type}`) : null
+            }
+            stationLabel={
+              entry.gas_station ? t(`fuelingForm.stations.${entry.gas_station}`) : null
+            }
+            amount={Number(entry.fuel_amount)}
+            fuelUnitLabel={fuelUnitLabel}
+            cost={Number(entry.fuel_cost)}
+            currency={currency}
             onPress={() =>
               navigation.navigate("FuelingEntryForm", {
                 vehicleId: route.params.vehicleId,
@@ -237,12 +234,3 @@ export function FuelScreen({ route, navigation }: Props) {
     </HeaderLayout>
   );
 }
-
-const makeStyles = (theme: any) =>
-  StyleSheet.create({
-    headerRight: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-    },
-  });

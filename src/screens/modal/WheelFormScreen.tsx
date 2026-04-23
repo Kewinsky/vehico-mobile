@@ -316,7 +316,11 @@ export function WheelFormScreen({ navigation, route }: Props) {
             </CardRow>
             <CardRow>
               <View style={styles.rowLeft}>
-                <EtOffsetIcon size={20} color={theme.colors.accent} />
+                <EtOffsetIcon
+                  size={20}
+                  color={theme.colors.accent}
+                  dotColor={theme.colors.bg}
+                />
                 <Text
                   style={[styles.label, { color: theme.colors.muted }]}
                   numberOfLines={1}

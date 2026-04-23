@@ -11,7 +11,6 @@ export type TimelineItemProps = {
   badge?: string;
   badgeVariant?: "accent" | "muted";
   icon?: ReactNode;
-  /** Pastel tile behind icon (same idea as web timeline9). Defaults to neutral gray when icon is set. */
   iconBackgroundColor?: string;
   onPress?: () => void;
 };
@@ -37,8 +36,7 @@ export function TimelineItem({
             style={[
               styles.iconContainer,
               {
-                backgroundColor:
-                  iconBackgroundColor ?? "rgba(107,114,128,0.1)",
+                backgroundColor: iconBackgroundColor ?? "rgba(107,114,128,0.1)",
               },
             ]}
           >
@@ -64,15 +62,15 @@ export function TimelineItem({
                   isMutedBadge ? styles.badgeMuted : styles.badgeAccent,
                 ]}
               >
-                <Text
-                  style={[
-                    styles.badgeText,
-                    isMutedBadge ? styles.badgeTextMuted : null,
-                  ]}
-                >
-                  {badge}
-                </Text>
-              </View>
+              <Text
+                style={[
+                  styles.badgeText,
+                  isMutedBadge ? styles.badgeTextMuted : null,
+                ]}
+              >
+                {badge}
+              </Text>
+            </View>
             )}
           </View>
           {!!subtitle && (

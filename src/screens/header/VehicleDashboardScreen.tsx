@@ -1026,8 +1026,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingVertical: theme.spacing.sm,
       borderRadius: 999,
       backgroundColor: `${theme.colors.card}E6`,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
       elevation: 4,
     },
     fullScreenOverlay: {

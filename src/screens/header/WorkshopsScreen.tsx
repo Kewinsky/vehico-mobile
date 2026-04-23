@@ -1,8 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { WorkshopsFiltersParams } from "../modal/WorkshopsFiltersScreen";
@@ -15,32 +14,14 @@ import { SearchBar } from "../../ui/components/common/SearchBar";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
-import { TimelineItem } from "../../ui/components/list/TimelineItem";
-import { useTheme } from "../../ui/ThemeProvider";
+import { WorkshopItem } from "../../ui/components/list/WorkshopItem";
 import { toastError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Workshops">;
 
-/** Pastel backgrounds aligned with icon accent colors (same pattern as service timeline). */
-const WORKSHOP_ICON_BACKGROUND: Record<WorkshopType, string> = {
-  mechanic: "rgba(239,68,68,0.1)",
-  electrician: "rgba(245,158,11,0.1)",
-  detailer: "rgba(59,130,246,0.1)",
-  bodywork: "rgba(34,197,94,0.1)",
-  car_wash: "rgba(14,165,233,0.1)",
-  other: "rgba(107,114,128,0.1)",
-};
-
-function workshopIconBackground(type: WorkshopType | null | undefined): string {
-  if (!type) return WORKSHOP_ICON_BACKGROUND.other;
-  return WORKSHOP_ICON_BACKGROUND[type] ?? WORKSHOP_ICON_BACKGROUND.other;
-}
-
 export function WorkshopsScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const [items, setItems] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,36 +120,6 @@ export function WorkshopsScreen({ navigation }: Props) {
     setSortOrder("az");
   }, []);
 
-  const renderWorkshopIcon = useCallback(
-    (type: WorkshopType | null | undefined) => {
-      switch (type) {
-        case "mechanic":
-          return (
-            <Ionicons name="construct-outline" size={22} color="#ef4444" />
-          );
-        case "electrician":
-          return <Ionicons name="flash-outline" size={22} color="#f59e0b" />;
-        case "detailer":
-          return <Ionicons name="sparkles-outline" size={22} color="#3b82f6" />;
-        case "bodywork":
-          return (
-            <Ionicons name="color-palette-outline" size={22} color="#22c55e" />
-          );
-        case "car_wash":
-          return <Ionicons name="water-outline" size={22} color="#0ea5e9" />;
-        default:
-          return (
-            <Ionicons
-              name="storefront-outline"
-              size={22}
-              color={theme.colors.muted}
-            />
-          );
-      }
-    },
-    [theme.colors.muted],
-  );
-
   const headerActions: HeaderAction[] = useMemo(
     () => [
       ...(hasActiveFilters
@@ -212,11 +163,10 @@ export function WorkshopsScreen({ navigation }: Props) {
         }
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TimelineItem
-            title={item.name}
-            subtitle={item.address ?? undefined}
-            icon={renderWorkshopIcon(item.workshop_type)}
-            iconBackgroundColor={workshopIconBackground(item.workshop_type)}
+          <WorkshopItem
+            workshop={item}
+            callLabel={t("workshops.call")}
+            navigateLabel={t("workshops.navigate")}
             onPress={() =>
               navigation.navigate("WorkshopForm", { workshopId: item.id })
             }
@@ -226,14 +176,4 @@ export function WorkshopsScreen({ navigation }: Props) {
       />
     </HeaderLayout>
   );
-}
-
-function makeStyles(theme: any) {
-  return StyleSheet.create({
-    headerRight: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-    },
-  });
 }

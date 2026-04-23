@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
-  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -29,9 +28,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
-import * as Clipboard from "expo-clipboard";
 import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WorkshopForm">;
 
@@ -50,28 +47,12 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   const { isPremium, workshopsLimit, freePlanWorkshopIds } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { workshopId } = route.params ?? {};
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
 
   const [name, setName] = useState("");
   const [workshopType, setWorkshopType] = useState<WorkshopType | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
-  const [addressJustCopied, setAddressJustCopied] = useState(false);
-  const addressCopyResetRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-
-  useEffect(() => {
-    return () => {
-      if (addressCopyResetRef.current != null) {
-        clearTimeout(addressCopyResetRef.current);
-      }
-    };
-  }, []);
 
   const load = useCallback(async () => {
     if (!workshopId) return;
@@ -124,34 +105,6 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
     });
 
     Alert.alert(opts.title, "", buttons, { cancelable: true });
-  }
-
-  const phoneTrimmed = phoneNumber.trim();
-  const addressTrimmed = address.trim();
-  const canCall = phoneTrimmed.length > 0;
-  const canCopyAddress = addressTrimmed.length > 0;
-
-  async function placeCall() {
-    if (!canCall) return;
-    const telHref = `tel:${phoneTrimmed.replace(/[^\d+#*;,.]/g, "")}`;
-    const canOpen = await Linking.canOpenURL(telHref);
-    if (canOpen) {
-      await Linking.openURL(telHref);
-    }
-  }
-
-  async function copyAddress() {
-    if (!canCopyAddress) return;
-    if (addressCopyResetRef.current != null) {
-      clearTimeout(addressCopyResetRef.current);
-      addressCopyResetRef.current = null;
-    }
-    await Clipboard.setStringAsync(addressTrimmed);
-    setAddressJustCopied(true);
-    addressCopyResetRef.current = setTimeout(() => {
-      setAddressJustCopied(false);
-      addressCopyResetRef.current = null;
-    }, 2000);
   }
 
   function confirmDelete() {
@@ -238,66 +191,6 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       footer={
         workshopId ? (
           <View style={{ gap: theme.spacing.sm }}>
-            <View
-              style={{
-                flexDirection: "row",
-                gap: theme.spacing.sm,
-              }}
-            >
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Button
-                  variant="outlined"
-                  onPress={placeCall}
-                  disabled={!canCall || saving}
-                >
-                  <Ionicons
-                    name="call-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text style={styles.footerOutlinedLabel} numberOfLines={1}>
-                    {t("workshops.call")}
-                  </Text>
-                </Button>
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Button
-                  variant="outlined"
-                  onPress={copyAddress}
-                  disabled={!canCopyAddress || saving}
-                >
-                  {addressJustCopied ? (
-                    <>
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={20}
-                        color={theme.colors.accent}
-                      />
-                      <Text
-                        style={styles.footerOutlinedLabel}
-                        numberOfLines={1}
-                      >
-                        {t("workshopForm.addressCopied")}
-                      </Text>
-                    </>
-                  ) : (
-                    <>
-                      <Ionicons
-                        name="copy-outline"
-                        size={20}
-                        color={theme.colors.accent}
-                      />
-                      <Text
-                        style={styles.footerOutlinedLabel}
-                        numberOfLines={1}
-                      >
-                        {t("workshopForm.copyAddress")}
-                      </Text>
-                    </>
-                  )}
-                </Button>
-              </View>
-            </View>
             <Button variant="destructive" onPress={confirmDelete}>
               {t("common.delete")}
             </Button>
@@ -474,13 +367,6 @@ function makeStyles(theme: any) {
     label: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
-    },
-    footerOutlinedLabel: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-      letterSpacing: 0.2,
-      color: theme.colors.accent,
-      flexShrink: 1,
     },
     valueText: {
       flex: 1,
