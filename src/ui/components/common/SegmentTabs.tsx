@@ -1,5 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useMemo } from "react";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useTheme } from "../../ThemeProvider";
 import { hexToRgba } from "./ChoiceChip";
@@ -32,9 +32,45 @@ export function SegmentTabs<T extends string>({
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
   );
+  const [containerWidth, setContainerWidth] = useState(0);
+  const selectedIndex = Math.max(
+    0,
+    options.findIndex((opt) => opt.value === value),
+  );
+  const animatedIndex = useRef(new Animated.Value(selectedIndex)).current;
+
+  useEffect(() => {
+    Animated.timing(animatedIndex, {
+      toValue: selectedIndex,
+      duration: 220,
+      useNativeDriver: true,
+    }).start();
+  }, [animatedIndex, selectedIndex]);
+
+  const wrapPadding = 3;
+  const innerWidth = Math.max(0, containerWidth - wrapPadding * 2);
+  const tabWidth = options.length > 0 ? innerWidth / options.length : 0;
+  const translateX = Animated.multiply(animatedIndex, tabWidth);
 
   return (
-    <View style={[styles.wrap]}>
+    <View style={[styles.wrap]} onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}>
+      {tabWidth > 0 ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.thumb,
+            {
+              width: tabWidth,
+              transform: [{ translateX }],
+              borderColor: theme.colors.accent,
+              backgroundColor: accentBg,
+              left: wrapPadding,
+              top: wrapPadding,
+              bottom: wrapPadding,
+            },
+          ]}
+        />
+      ) : null}
       {options.map((opt) => {
         const selected = value === opt.value;
         return (
@@ -43,10 +79,7 @@ export function SegmentTabs<T extends string>({
             onPress={() => onChange(opt.value)}
             style={({ pressed }) => [
               styles.tab,
-              selected && styles.tabSelected,
               {
-                borderColor: theme.colors.accent,
-                backgroundColor: selected ? accentBg : "transparent",
                 opacity: pressed ? 0.85 : 1,
               },
             ]}
@@ -85,8 +118,11 @@ const makeStyles = (theme: any, variant: Variant) =>
       paddingVertical: theme.spacing.xs - 2,
       alignItems: "center",
       justifyContent: "center",
+      zIndex: 1,
     },
-    tabSelected: {
+    thumb: {
+      position: "absolute",
+      borderRadius: theme.radius.md - 2,
       borderWidth: 1,
     },
     textMd: {
