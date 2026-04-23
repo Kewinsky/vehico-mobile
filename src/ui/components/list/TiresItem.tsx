@@ -1,48 +1,36 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import type { ReactNode } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
+import type { VehicleTire } from "../../../types/domain";
+import { formatTireDimensions } from "../../../services/tires/tiresRepo";
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
 
 export type TiresItemProps = {
-  title: string;
-  subtitle?: string;
-  badge?: string;
-  badgeVariant?: "accent" | "muted";
-  icon?: ReactNode;
-  iconBackgroundColor?: string;
+  tire: VehicleTire;
   onPress?: () => void;
 };
 
-export function TiresItem({
-  title,
-  subtitle,
-  badge,
-  badgeVariant = "accent",
-  icon,
-  iconBackgroundColor,
-  onPress,
-}: TiresItemProps) {
+export function TiresItem({ tire, onPress }: TiresItemProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = makeStyles(theme);
-  const isMutedBadge = badgeVariant === "muted";
+  const subtitle = (() => {
+    const dims = formatTireDimensions(
+      tire.width_mm,
+      tire.aspect_ratio,
+      tire.diameter_inch,
+    );
+    const typeLabel = t(`tireForm.types.${tire.tire_type}`);
+    const parts = [dims, typeLabel];
+    if (tire.dot?.trim()) parts.push(`DOT ${tire.dot.trim()}`);
+    return parts.join(" · ");
+  })();
 
   const content = (
     <View style={styles.card}>
       <View style={styles.content}>
-        {icon ? (
-          <View
-            style={[
-              styles.iconContainer,
-              {
-                backgroundColor: iconBackgroundColor ?? "rgba(107,114,128,0.1)",
-              },
-            ]}
-          >
-            {icon}
-          </View>
-        ) : null}
         <View style={styles.main}>
           <View style={styles.titleRow}>
             <View style={styles.titleWrap}>
@@ -51,37 +39,28 @@ export function TiresItem({
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {title}
+                {tire.name}
               </Text>
             </View>
-            {badge && (
+            {tire.is_currently_fitted && (
               <View
                 style={[
                   styles.badgeWrap,
                   styles.badge,
-                  isMutedBadge ? styles.badgeMuted : styles.badgeAccent,
+                  styles.badgeAccent,
                 ]}
               >
-                <Text
-                  style={[
-                    styles.badgeText,
-                    isMutedBadge ? styles.badgeTextMuted : null,
-                  ]}
-                >
-                  {badge}
-                </Text>
+                <Text style={styles.badgeText}>{t("wheels.currentlyFitted")}</Text>
               </View>
             )}
           </View>
-          {!!subtitle && (
-            <Text
-              style={[styles.subtitle, { color: theme.colors.muted }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {subtitle}
-            </Text>
-          )}
+          <Text
+            style={[styles.subtitle, { color: theme.colors.muted }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {subtitle}
+          </Text>
         </View>
         <Ionicons
           name="chevron-forward"
@@ -119,13 +98,6 @@ const makeStyles = (theme: AppTheme) =>
       alignItems: "center",
       gap: theme.spacing.sm,
     },
-    iconContainer: {
-      width: 48,
-      height: 48,
-      borderRadius: 12,
-      alignItems: "center",
-      justifyContent: "center",
-    },
     main: {
       flex: 1,
       minWidth: 0,
@@ -140,18 +112,11 @@ const makeStyles = (theme: AppTheme) =>
       borderColor: theme.colors.accent,
       backgroundColor: theme.colors.accent,
     },
-    badgeMuted: {
-      borderColor: theme.colors.muted,
-      backgroundColor: theme.colors.muted,
-    },
     badgeText: {
       fontSize: theme.typography.xs,
       fontWeight: theme.typography.fontWeight.bold,
       color: "#000000",
       letterSpacing: 0.3,
-    },
-    badgeTextMuted: {
-      color: "#000000",
     },
     title: {
       fontSize: theme.typography.body,
