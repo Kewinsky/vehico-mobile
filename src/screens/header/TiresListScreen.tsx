@@ -10,7 +10,6 @@ import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { listVehicleTires } from "../../services/tires/tiresRepo";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
-import { SearchBar } from "../../ui/components/common/SearchBar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";

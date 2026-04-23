@@ -1,8 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useCallback, useMemo, useState } from "react";
-import { View } from "react-native";
-
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { FuelFiltersParams } from "../modal/FuelFiltersScreen";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
@@ -33,7 +31,6 @@ export function FuelScreen({ route, navigation }: Props) {
   const [maxCost, setMaxCost] = useState("");
 
   const currency = settings?.currency ?? "PLN";
-  const distanceUnit = settings?.distanceUnit ?? "km";
   const fuelUnit = settings?.fuelUnit ?? "liters";
   const fuelUnitLabel =
     fuelUnit === "liters"
@@ -188,10 +185,14 @@ export function FuelScreen({ route, navigation }: Props) {
           <FuelItem
             date={String(entry.date).slice(0, 10)}
             fuelTypeLabel={
-              entry.fuel_type ? t(`fuelingForm.fuelTypes.${entry.fuel_type}`) : null
+              entry.fuel_type
+                ? t(`fuelingForm.fuelTypes.${entry.fuel_type}`)
+                : null
             }
             stationLabel={
-              entry.gas_station ? t(`fuelingForm.stations.${entry.gas_station}`) : null
+              entry.gas_station
+                ? t(`fuelingForm.stations.${entry.gas_station}`)
+                : null
             }
             amount={Number(entry.fuel_amount)}
             fuelUnitLabel={fuelUnitLabel}

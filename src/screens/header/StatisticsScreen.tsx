@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
 import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,6 +26,7 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
+import { listWorkshops } from "../../services/workshops/workshopsRepo";
 import {
   listVehicleTires,
   formatTireDimensions,
@@ -40,8 +43,10 @@ import type {
   Vehicle,
   VehicleTire,
   VehicleWheel,
+  Workshop,
 } from "../../types/domain";
 import { SERVICE_CATEGORY_COLORS } from "../../ui/theme/serviceCategoryColors";
+import { SERVICE_CATEGORY_ICON_BACKGROUND } from "../../ui/theme/serviceCategoryColors";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
@@ -52,6 +57,7 @@ import { TireIcon } from "../../ui/components/icons/TireIcon";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import type { AppTheme } from "../../ui/theme";
+import { ServiceItem } from "../../ui/components/list/ServiceItem";
 
 type ScreenProps = NativeStackScreenProps<AppStackParamList, "Statistics">;
 type EmbeddedProps = {
@@ -309,6 +315,8 @@ const CHART_PLOT_PADDING_BOTTOM = 44;
 const CHART_LINE_START_INSET = 14;
 const CHART_ITEM_MIN_WIDTH = 72;
 const CHART_MIN_EXTRA_WIDTH = 60;
+const OIL_CHANGE_INTERVAL_KM = 10_000;
+const OIL_CHANGE_INTERVAL_DAYS = 365;
 type ChartYTick = { value: number; y: number };
 
 function getChartScale(values: number[], height: number) {
@@ -628,6 +636,8 @@ export function StatisticsScreen(props: Props) {
   const { width: windowWidth } = useWindowDimensions();
   const embedded = isEmbeddedProps(props);
   const vehicleId = embedded ? props.vehicleId : props.route.params.vehicleId;
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const {
     isPremium,
     tiresPerVehicleLimit,
@@ -679,6 +689,9 @@ export function StatisticsScreen(props: Props) {
   const [fueling, setFueling] = useState<FuelingEntry[]>([]);
   const [tires, setTires] = useState<VehicleTire[]>([]);
   const [wheels, setWheels] = useState<VehicleWheel[]>([]);
+  const [workshopsById, setWorkshopsById] = useState<Record<string, Workshop>>(
+    {},
+  );
 
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
@@ -689,28 +702,34 @@ export function StatisticsScreen(props: Props) {
     fuelUnit === "liters"
       ? t("dashboard.stats.units.liters")
       : t("dashboard.stats.units.gallons");
-  const fuelUnitLabelSingular =
-    fuelUnit === "liters"
-      ? t("dashboard.stats.units.liter")
-      : t("dashboard.stats.units.gallon");
+  const fuelUnitShort = fuelUnit === "liters" ? "L" : "gal";
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
-        const [v, s, f, tiresData, wheelsData] = await Promise.all([
+        const [v, s, f, tiresData, wheelsData, workshops] = await Promise.all([
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
           listFuelingEntries(vehicleId),
           listVehicleTires(vehicleId, tireOpts),
           listVehicleWheels(vehicleId, wheelOpts),
+          listWorkshops(),
         ]);
         setVehicle(v);
         setService(s);
         setFueling(f);
         setTires(tiresData);
         setWheels(wheelsData);
+        const workshopMap = workshops.reduce<Record<string, Workshop>>(
+          (acc, workshop) => {
+            acc[workshop.id] = workshop;
+            return acc;
+          },
+          {},
+        );
+        setWorkshopsById(workshopMap);
       } catch (err: any) {
         toastError(err?.message ?? t("common.error"));
       } finally {
@@ -887,34 +906,24 @@ export function StatisticsScreen(props: Props) {
             monthRange.currentMonthStr,
           );
     const data = monthKeys.map((k) => ({ x: k, y: byMonth[k] ?? 0 }));
-    const monthsWithFuel = new Set<string>();
-    for (const f of filtered.fueling) {
-      const d = parseDateLoose(f.date);
-      if (!d) continue;
-      monthsWithFuel.add(monthKey(d));
-    }
-    const avgMonthlyFuelCost =
-      monthsWithFuel.size > 0
-        ? totals.fuelCost / monthsWithFuel.size
-        : Number.NaN;
-    return { data, avgMonthlyFuelCost };
-  }, [filtered.service, filtered.fueling, totals.fuelCost, period, monthRange]);
+    return { data };
+  }, [filtered.service, filtered.fueling, period, monthRange]);
 
-  const favoriteStation = useMemo(() => {
-    const countByStation: Record<string, number> = {};
-    for (const f of filtered.fueling) {
-      const key = f.gas_station ?? "other";
-      countByStation[key] = (countByStation[key] ?? 0) + 1;
-    }
-    let best: string | null = null;
-    let bestCount = 0;
-    for (const [key, count] of Object.entries(countByStation)) {
-      if (count > bestCount) {
-        bestCount = count;
-        best = key;
-      }
-    }
-    return best;
+  const recentServiceEntries = useMemo(() => {
+    return [...service]
+      .sort(
+        (a, b) =>
+          new Date(b.service_date).getTime() -
+          new Date(a.service_date).getTime(),
+      )
+      .slice(0, 3);
+  }, [service]);
+
+  const lastFueling = useMemo(() => {
+    if (filtered.fueling.length === 0) return null;
+    return [...filtered.fueling].sort((a, b) =>
+      String(b.date).localeCompare(String(a.date)),
+    )[0];
   }, [filtered.fueling]);
 
   const monthlyDistanceSeries = useMemo(() => {
@@ -1007,8 +1016,137 @@ export function StatisticsScreen(props: Props) {
   const oilIntervalAvgMonthsLabel = Number.isFinite(oilIntervals.avgMonths)
     ? `${fmtMonths(oilIntervals.avgMonths)} ${t("dashboard.stats.months")}`
     : "—";
+  const oilLife = useMemo(() => {
+    if (!lastOilChange?.service_date) return null;
+    const lastDate = parseDateLoose(lastOilChange.service_date);
+    if (!lastDate) return null;
+
+    const today = new Date();
+    const dueDate = new Date(lastDate.getTime());
+    dueDate.setDate(dueDate.getDate() + OIL_CHANGE_INTERVAL_DAYS);
+
+    const elapsedDays = Math.max(
+      0,
+      (today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    const dateRatio = elapsedDays / OIL_CHANGE_INTERVAL_DAYS;
+
+    const lastMileage = lastOilChange.mileage;
+    const currentMileage = vehicle?.mileage;
+    const dueMileage =
+      lastMileage != null ? lastMileage + OIL_CHANGE_INTERVAL_KM : null;
+    const mileageRatio =
+      lastMileage != null && currentMileage != null
+        ? Math.max(0, currentMileage - lastMileage) / OIL_CHANGE_INTERVAL_KM
+        : Number.NaN;
+
+    const ratios = [dateRatio, mileageRatio].filter((x) => Number.isFinite(x));
+    if (ratios.length === 0) return null;
+
+    const rawRatio = Math.max(...ratios);
+    const progressRatio = Math.max(0, Math.min(1, rawRatio));
+    const progressPercent = Math.round(progressRatio * 100);
+    const isOverdue = rawRatio >= 1;
+    const isDueSoon = !isOverdue && rawRatio >= 0.85;
+
+    const remainingDays = Math.max(
+      0,
+      Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)),
+    );
+    const remainingKm =
+      dueMileage != null && currentMileage != null
+        ? Math.max(0, Math.round(dueMileage - currentMileage))
+        : null;
+
+    return {
+      progressPercent,
+      progressRatio,
+      remainingDays,
+      remainingKm,
+      dueDateLabel: dueDate.toISOString().slice(0, 10),
+      dueMileage,
+      isOverdue,
+      isDueSoon,
+    };
+  }, [lastOilChange?.service_date, lastOilChange?.mileage, vehicle?.mileage]);
   const insuranceValidUntilLabel = vehicle?.insurance_valid_until ?? "—";
   const inspectionValidUntilLabel = vehicle?.inspection_valid_until ?? "—";
+  const fuelStatsDistance =
+    totals.totalDistance > 0 ? totals.totalDistance : null;
+  const lastRefuelAmount = Number(lastFueling?.fuel_amount ?? Number.NaN);
+  const lastRefuelAmountMain = Number.isFinite(lastRefuelAmount)
+    ? String(Math.round(lastRefuelAmount))
+    : "—";
+  const daysSinceLastRefuel = useMemo(() => {
+    if (!lastFueling?.date) return null;
+    const parsed = parseDateLoose(lastFueling.date);
+    if (!parsed) return null;
+    const today = new Date();
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    const fuelDateStart = new Date(
+      parsed.getFullYear(),
+      parsed.getMonth(),
+      parsed.getDate(),
+    );
+    const diff = Math.floor(
+      (todayStart.getTime() - fuelDateStart.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    return Math.max(0, diff);
+  }, [lastFueling?.date]);
+  const lastRefuelHint =
+    daysSinceLastRefuel != null
+      ? t("dashboard.stats.daysAgo", { days: daysSinceLastRefuel })
+      : null;
+
+  const renderServiceIcon = useCallback(
+    (cat: ServiceEntryCategory) => {
+      const color = SERVICE_CATEGORY_COLORS[cat];
+      switch (cat) {
+        case "maintenance":
+          return <Ionicons name="build-outline" size={22} color={color} />;
+        case "repair":
+          return <Ionicons name="construct-outline" size={22} color={color} />;
+        case "inspection":
+          return <Ionicons name="search-outline" size={22} color={color} />;
+        case "upgrade":
+          return (
+            <Ionicons name="trending-up-outline" size={22} color={color} />
+          );
+        case "oil_change":
+          return <Ionicons name="water-outline" size={22} color={color} />;
+        case "other":
+        default:
+          return (
+            <Ionicons
+              name="information-circle-outline"
+              size={22}
+              color={color}
+            />
+          );
+      }
+    },
+    [theme.colors.muted],
+  );
+
+  const navigateToServiceHistory = useCallback(() => {
+    if (embedded) {
+      navigation.navigate("ServiceHistory", { vehicleId });
+      return;
+    }
+    props.navigation.navigate("ServiceHistory", { vehicleId });
+  }, [embedded, navigation, props, vehicleId]);
+
+  const navigateToFuel = useCallback(() => {
+    if (embedded) {
+      navigation.navigate("Fuel", { vehicleId });
+      return;
+    }
+    props.navigation.navigate("Fuel", { vehicleId });
+  }, [embedded, navigation, props, vehicleId]);
 
   const chartViewportWidth = Math.max(
     280,
@@ -1086,16 +1224,8 @@ export function StatisticsScreen(props: Props) {
 
   const cardContent = (
     <View>
+      {/* Cost summary split by fuel and service categories. */}
       <View style={styles.section}>
-        <StatTile
-          theme={theme}
-          styles={styles}
-          icon="wallet-outline"
-          label={t("dashboard.stats.metrics.totalExpenses")}
-          valueMain={totalMain}
-          valueSuffix={totalMain !== "—" ? currency : undefined}
-          fullWidth
-        />
         <View style={styles.tilesRow}>
           <StatTile
             theme={theme}
@@ -1116,10 +1246,64 @@ export function StatisticsScreen(props: Props) {
         </View>
       </View>
 
+      {/* Bar chart showing monthly expenses trend for selected period. */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-          {t("dashboard.stats.tabs.metrics")}
+          {t("dashboard.stats.charts.expensesOverTime")}
         </Text>
+        <View style={styles.chartContainer} key={`bar-chart-${period}`}>
+          {monthlySeries.data.length === 0 ? (
+            <Text style={[styles.empty, { color: theme.colors.muted }]}>
+              {t("dashboard.stats.empty")}
+            </Text>
+          ) : (
+            <View style={styles.chartFrame}>
+              <ChartYAxis
+                height={CHART_BAR_HEIGHT}
+                yTicks={barChartScale.yTicks}
+                textColor={theme.colors.muted}
+                grid={theme.colors.border}
+                formatYLabel={formatChartYAxisLabel}
+              />
+              <ScrollView
+                horizontal
+                bounces={false}
+                showsHorizontalScrollIndicator={false}
+                style={styles.chartScroll}
+                contentContainerStyle={[
+                  styles.chartScrollContent,
+                  { minWidth: chartScrollViewportWidth },
+                ]}
+              >
+                <SimpleBarChart
+                  data={monthlySeries.data}
+                  width={barChartWidth}
+                  height={CHART_BAR_HEIGHT}
+                  niceMaxY={barChartScale.niceMaxY}
+                  yTicks={barChartScale.yTicks}
+                  fill={theme.colors.accent}
+                  grid={theme.colors.border}
+                  textColor={theme.colors.muted}
+                  formatXLabel={formatChartMonth}
+                />
+              </ScrollView>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Fuel-focused quick stats card with direct link to full fuel history. */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+            {t("dashboard.stats.fuelStats")}
+          </Text>
+          <Pressable onPress={navigateToFuel} hitSlop={8}>
+            <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
+              {t("dashboard.stats.viewAll")}
+            </Text>
+          </Pressable>
+        </View>
         <View style={styles.tilesRow}>
           <StatTile
             theme={theme}
@@ -1132,51 +1316,45 @@ export function StatisticsScreen(props: Props) {
             }
             valueSuffix={
               Number.isFinite(totals.avgConsumptionPer100)
-                ? `${fuelUnitLabel}/100 ${distanceUnit}`
+                ? `${fuelUnitShort}/100${distanceUnit}`
                 : undefined
             }
           />
           <StatTile
             theme={theme}
             styles={styles}
-            label={t("dashboard.stats.metrics.costPer100")}
+            label={t("dashboard.stats.avgCostPerUnit", { unit: fuelUnitShort })}
             valueMain={
-              Number.isFinite(totals.costPer100)
-                ? fmtNumber(totals.costPer100, 2)
+              Number.isFinite(totals.avgCostPerLiter)
+                ? fmtNumber(totals.avgCostPerLiter, 2)
                 : "—"
             }
-            valueSuffix={
-              Number.isFinite(totals.costPer100)
-                ? `${currency}/100 ${distanceUnit}`
-                : undefined
-            }
+            valueSuffix={Number.isFinite(totals.avgCostPerLiter) ? currency : undefined}
           />
         </View>
         <View style={styles.tilesRow}>
           <StatTile
             theme={theme}
             styles={styles}
-            label={t("dashboard.stats.metrics.totalDistance")}
-            valueMain={
-              totals.totalDistance > 0
-                ? fmtNumber(totals.totalDistance, 0)
-                : "—"
+            label={
+              lastRefuelHint
+                ? `${t("dashboard.stats.lastRefuel")} (${lastRefuelHint})`
+                : t("dashboard.stats.lastRefuel")
             }
-            valueSuffix={totals.totalDistance > 0 ? distanceUnit : undefined}
+            valueMain={lastRefuelAmountMain}
+            valueSuffix={Number.isFinite(lastRefuelAmount) ? fuelUnitLabel : undefined}
           />
           <StatTile
             theme={theme}
             styles={styles}
-            label={t("dashboard.stats.metrics.favoriteStation")}
-            valueMain={
-              favoriteStation
-                ? t(`fuelingForm.stations.${favoriteStation}`)
-                : "—"
-            }
+            label={t("dashboard.stats.metrics.totalDistance")}
+            valueMain={fuelStatsDistance != null ? fmtNumber(fuelStatsDistance, 0) : "—"}
+            valueSuffix={fuelStatsDistance != null ? distanceUnit : undefined}
           />
         </View>
       </View>
 
+      {/* Line chart showing monthly driven distance for selected period. */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
           {t("dashboard.stats.charts.distanceOverTime")}
@@ -1223,50 +1401,63 @@ export function StatisticsScreen(props: Props) {
         </View>
       </View>
 
+      {/* Latest three service entries preview with navigation to service history. */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-          {t("dashboard.stats.charts.expensesOverTime")}
-        </Text>
-        <View style={styles.chartContainer} key={`bar-chart-${period}`}>
-          {monthlySeries.data.length === 0 ? (
-            <Text style={[styles.empty, { color: theme.colors.muted }]}>
-              {t("dashboard.stats.empty")}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+            {t("dashboard.stats.recentService")}
+          </Text>
+          <Pressable onPress={navigateToServiceHistory} hitSlop={8}>
+            <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
+              {t("dashboard.stats.viewAll")}
             </Text>
-          ) : (
-            <View style={styles.chartFrame}>
-              <ChartYAxis
-                height={CHART_BAR_HEIGHT}
-                yTicks={barChartScale.yTicks}
-                textColor={theme.colors.muted}
-                grid={theme.colors.border}
-                formatYLabel={formatChartYAxisLabel}
-              />
-              <ScrollView
-                horizontal
-                bounces={false}
-                showsHorizontalScrollIndicator={false}
-                style={styles.chartScroll}
-                contentContainerStyle={[
-                  styles.chartScrollContent,
-                  { minWidth: chartScrollViewportWidth },
-                ]}
-              >
-                <SimpleBarChart
-                  data={monthlySeries.data}
-                  width={barChartWidth}
-                  height={CHART_BAR_HEIGHT}
-                  niceMaxY={barChartScale.niceMaxY}
-                  yTicks={barChartScale.yTicks}
-                  fill={theme.colors.accent}
-                  grid={theme.colors.border}
-                  textColor={theme.colors.muted}
-                  formatXLabel={formatChartMonth}
-                />
-              </ScrollView>
-            </View>
-          )}
+          </Pressable>
         </View>
+        {recentServiceEntries.length > 0 ? (
+          <View style={styles.recentServiceList}>
+            {recentServiceEntries.map((entry) => {
+              const cat = (entry.category ?? "other") as ServiceEntryCategory;
+              return (
+                <ServiceItem
+                  key={entry.id}
+                  title={entry.title}
+                  icon={renderServiceIcon(cat)}
+                  iconBackgroundColor={SERVICE_CATEGORY_ICON_BACKGROUND[cat]}
+                  date={entry.service_date}
+                  mileage={entry.mileage}
+                  distanceUnit={distanceUnit}
+                  workshopName={
+                    entry.workshop_id
+                      ? workshopsById[entry.workshop_id]?.name
+                      : null
+                  }
+                  cost={entry.cost}
+                  currency={currency}
+                  onPress={() => {
+                    if (embedded) {
+                      navigation.navigate("ServiceEntryForm", {
+                        entryId: entry.id,
+                        vehicleId,
+                      });
+                      return;
+                    }
+                    props.navigation.navigate("ServiceEntryForm", {
+                      entryId: entry.id,
+                      vehicleId,
+                    });
+                  }}
+                />
+              );
+            })}
+          </View>
+        ) : (
+          <Text style={[styles.empty, { color: theme.colors.muted }]}>
+            {t("dashboard.stats.empty")}
+          </Text>
+        )}
       </View>
+
+      {/* Donut chart and legend for expense distribution by category. */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
           {t("dashboard.stats.charts.expensesByCategory")}
@@ -1335,6 +1526,7 @@ export function StatisticsScreen(props: Props) {
         ) : null}
       </View>
 
+      {/* Oil change recency and average interval toggles. */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
           {t("dashboard.stats.oilChange")}
@@ -1385,8 +1577,66 @@ export function StatisticsScreen(props: Props) {
             accessibilityHint={t("dashboard.stats.tapToSwitchUnit")}
           />
         </View>
+        {oilLife ? (
+          <View
+            style={[styles.oilLifeCard, { backgroundColor: theme.colors.card }]}
+          >
+            <View style={styles.oilLifeTopRow}>
+              <View style={styles.oilLifeTopCell}>
+                <Text style={[styles.oilLifeLabel]}>
+                  {t("dashboard.stats.estNextShort")}
+                </Text>
+                <Text
+                  style={[styles.oilLifeMainValue, { color: theme.colors.fg }]}
+                >
+                  {`${oilLife.remainingDays}d`}
+                </Text>
+              </View>
+              <View style={styles.oilLifeTopCell}>
+                <Text style={[styles.oilLifeLabel]}>
+                  {t("dashboard.stats.estRemaining")}
+                </Text>
+                <Text
+                  style={[styles.oilLifeMainValue, { color: theme.colors.fg }]}
+                >
+                  {oilLife.remainingKm != null
+                    ? `${oilLife.remainingKm.toLocaleString()} ${distanceUnit}`
+                    : `${oilLife.remainingDays}d`}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.oilLifeProgressTrack}>
+              <View
+                style={[
+                  styles.oilLifeProgressFill,
+                  {
+                    width: `${oilLife.progressPercent}%`,
+                    backgroundColor: oilLife.isOverdue
+                      ? theme.colors.danger
+                      : oilLife.isDueSoon
+                        ? "#EAB308"
+                        : theme.colors.accent,
+                  },
+                ]}
+              />
+              <Text
+                style={[styles.oilLifeProgressText, { color: theme.colors.fg }]}
+              >
+                {`${oilLife.progressPercent}% ${
+                  oilLife.isOverdue
+                    ? t("dashboard.stats.statusOverdue")
+                    : oilLife.isDueSoon
+                      ? t("dashboard.stats.statusDueSoon")
+                      : t("dashboard.stats.statusOptimal")
+                }`.toUpperCase()}
+              </Text>
+            </View>
+          </View>
+        ) : null}
       </View>
 
+      {/* Insurance and inspection validity dates overview. */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
           {t("dashboard.stats.insuranceAndInspection")}
@@ -1409,6 +1659,7 @@ export function StatisticsScreen(props: Props) {
         </View>
       </View>
 
+      {/* Currently fitted tire and wheel configuration snapshot. */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
           {t("dashboard.stats.wheels")}
@@ -1550,6 +1801,66 @@ const makeStyles = (theme: any) =>
     sectionTitle: {
       fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.title,
+    },
+    sectionHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: theme.spacing.sm,
+    },
+    viewAllLink: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    oilLifeCard: {
+      borderRadius: theme.radius.md,
+      padding: theme.spacing.md,
+      gap: theme.spacing.sm,
+    },
+    oilLifeTopRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: theme.spacing.md,
+    },
+    oilLifeTopCell: {
+      flex: 1,
+      gap: theme.spacing.xs / 2,
+    },
+    oilLifeLabel: {
+      fontSize: theme.typography.small,
+      color: theme.colors.accent,
+      textTransform: "uppercase",
+      letterSpacing: 0.4,
+    },
+    oilLifeMainValue: {
+      fontSize: theme.typography.title,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    oilLifeProgressTrack: {
+      height: 44,
+      borderRadius: 12,
+      overflow: "hidden",
+      backgroundColor: theme.colors.bg,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      justifyContent: "center",
+    },
+    oilLifeProgressFill: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      bottom: 0,
+      borderTopLeftRadius: 12,
+      borderBottomLeftRadius: 12,
+    },
+    oilLifeProgressText: {
+      textAlign: "center",
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+      textTransform: "uppercase",
+    },
+    recentServiceList: {
+      gap: theme.spacing.sm,
     },
     empty: { fontSize: theme.typography.body },
     chartContainer: {
