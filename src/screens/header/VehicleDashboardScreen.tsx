@@ -33,6 +33,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import { Image } from "expo-image";
 import { BlurView } from "expo-blur";
+import QRCode from "react-native-qrcode-svg";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import Animated, {
   interpolateColor,
@@ -91,6 +92,7 @@ import { RimIcon } from "../../ui/components/icons/RimIcon";
 import { DashboardFab } from "../../ui/components/common/DashboardFab";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
+import { Logo } from "../../ui/components/branding/Logo";
 import { ReminderItem } from "../../ui/components/list/ReminderItem";
 import { StatisticsScreen } from "./StatisticsScreen";
 import {
@@ -334,7 +336,7 @@ function DashboardStatTile({
   );
 }
 
-const MILEAGE_STALE_MIN_DAYS = 2;
+const MILEAGE_STALE_MIN_DAYS = 90;
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -466,6 +468,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const [publicReportUrl, setPublicReportUrl] = useState<string | null>(null);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [fullScreenIndex, setFullScreenIndex] = useState<number | null>(null);
+  const [isPublicQrVisible, setIsPublicQrVisible] = useState(false);
   const [activePage, setActivePage] = useState(1);
   const [loading, setLoading] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -624,6 +627,49 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     );
   }
 
+  async function handleOpenPublicReportInBrowser() {
+    if (!publicReportUrl) return;
+    try {
+      const canOpen = await Linking.canOpenURL(publicReportUrl);
+      if (canOpen) {
+        await Linking.openURL(publicReportUrl);
+      } else {
+        toastError(t("share.cannotOpenUrl"));
+      }
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    }
+  }
+
+  async function handleCopyPublicReportLink() {
+    if (!publicReportUrl) return;
+    try {
+      await Clipboard.setStringAsync(publicReportUrl);
+      toastSuccess(t("share.linkCopied"));
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    }
+  }
+
+  function openPublicReportShareActions() {
+    if (!publicReportUrl) return;
+    Alert.alert(t("share.title"), undefined, [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("share.openInBrowser"),
+        onPress: () => void handleOpenPublicReportInBrowser(),
+      },
+      {
+        text: t("share.showQRCode"),
+        onPress: () => setIsPublicQrVisible(true),
+      },
+      {
+        text: t("share.copyLink"),
+        onPress: () => void handleCopyPublicReportLink(),
+      },
+    ]);
+  }
+
   async function onDeleteVehicle() {
     Alert.alert(
       t("manageVehicle.deleteVehicleTitle"),
@@ -660,6 +706,50 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       },
     ]);
   }
+
+  const handleAddService = useCallback(() => {
+    navigation.navigate("ServiceEntryForm", { vehicleId });
+  }, [navigation, vehicleId]);
+
+  const handleAddFuel = useCallback(() => {
+    navigation.navigate("FuelingEntryForm", { vehicleId });
+  }, [navigation, vehicleId]);
+
+  const handleAddReminder = useCallback(() => {
+    if (!isPremium && freePlanVehicleId === vehicleId) {
+      const visibleCount = freePlanReminderIds?.length ?? 0;
+      if (visibleCount >= remindersLimit) {
+        Alert.alert(
+          t("limits.reminderLimitReachedTitle"),
+          t("limits.reminderLimitReachedBody", { limit: remindersLimit }),
+          [
+            { text: t("common.cancel"), style: "cancel" },
+            {
+              text: t("limits.upgradeToPremium"),
+              onPress: () => navigation.navigate("Shop"),
+            },
+          ],
+        );
+        return;
+      }
+    }
+    navigation.navigate("ReminderForm", { vehicleId });
+  }, [
+    navigation,
+    vehicleId,
+    isPremium,
+    freePlanVehicleId,
+    freePlanReminderIds,
+    remindersLimit,
+    t,
+  ]);
+
+  const mileageStaleTitle =
+    mileageStaleYmd == null
+      ? null
+      : t("dashboard.mileageUpdated.lastUpdated", {
+          relative: formatRelativeTimePast(mileageStaleYmd, i18n.language),
+        });
 
   const handleQuickMileageEdit = useCallback(() => {
     Alert.prompt(
@@ -765,14 +855,36 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         </View>
         {isPremium && publicReportUrl ? (
           <Pressable
-            onPress={() => Linking.openURL(publicReportUrl)}
+            onPress={openPublicReportShareActions}
             style={styles.publicPageCircleButton}
             hitSlop={10}
           >
-            <MaterialIcons name="public" size={24} color="#000" />
+            <Ionicons name="share-social" size={24} color="#000" />
           </Pressable>
         ) : null}
       </View>
+
+      {mileageStaleTitle ? (
+        <View
+          style={[
+            styles.mileageStaleCard,
+            { backgroundColor: hexToRgba(theme.colors.accent, 0.14) },
+          ]}
+          accessibilityLabel={mileageStaleTitle ?? undefined}
+        >
+          <View style={styles.mileageStaleCardTop}>
+            <Clock size={26} color={theme.colors.accent} strokeWidth={2} />
+            <Text
+              style={[styles.mileageStaleCardTitle, { color: theme.colors.fg }]}
+            >
+              {mileageStaleTitle}
+            </Text>
+          </View>
+          <Button onPress={handleQuickMileageEdit}>
+            {t("dashboard.mileageUpdated.cta")}
+          </Button>
+        </View>
+      ) : null}
       <View style={styles.panelSections}>
         <View style={styles.sectionBlock}>
           <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
@@ -916,6 +1028,36 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                 <View style={styles.detailItem} />
               </View>
             </View>
+          </View>
+        </View>
+        <View style={styles.sectionBlock}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+            {t("dashboard.quickActionsTitle", {
+              defaultValue: "Quick actions",
+            })}
+          </Text>
+          <View style={styles.quickActionsRow}>
+            <Pressable
+              onPress={handleAddService}
+              hitSlop={8}
+              style={styles.quickActionCircleButton}
+            >
+              <Ionicons name="construct" size={24} color="#000000" />
+            </Pressable>
+            <Pressable
+              onPress={handleAddFuel}
+              hitSlop={8}
+              style={styles.quickActionCircleButton}
+            >
+              <Fuel size={24} color="#000000" />
+            </Pressable>
+            <Pressable
+              onPress={handleAddReminder}
+              hitSlop={8}
+              style={styles.quickActionCircleButton}
+            >
+              <Ionicons name="notifications" size={24} color="#000000" />
+            </Pressable>
           </View>
         </View>
         <View style={styles.sectionBlock}>
@@ -1105,36 +1247,8 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     </View>
   );
 
-  const mileageStaleTitle =
-    mileageStaleYmd == null
-      ? null
-      : t("dashboard.mileageUpdated.lastUpdated", {
-          relative: formatRelativeTimePast(mileageStaleYmd, i18n.language),
-        });
-
   const buttonsPage = (
     <View style={[styles.page, { width: windowWidth }]}>
-      {mileageStaleYmd ? (
-        <View
-          style={[
-            styles.mileageStaleCard,
-            { backgroundColor: hexToRgba(theme.colors.accent, 0.14) },
-          ]}
-          accessibilityLabel={mileageStaleTitle ?? undefined}
-        >
-          <View style={styles.mileageStaleCardTop}>
-            <Clock size={26} color={theme.colors.accent} strokeWidth={2} />
-            <Text
-              style={[styles.mileageStaleCardTitle, { color: theme.colors.fg }]}
-            >
-              {mileageStaleTitle}
-            </Text>
-          </View>
-          <Button onPress={handleQuickMileageEdit}>
-            {t("dashboard.mileageUpdated.cta")}
-          </Button>
-        </View>
-      ) : null}
       <View style={styles.tilesWrap}>
         {tiles.map((item) => (
           <View key={item.key} style={styles.tileWrapper}>
@@ -1187,7 +1301,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     </View>
   );
 
-  const pages = [technicalDataPage, buttonsPage, statsPage];
+  const pages = [buttonsPage, technicalDataPage, statsPage];
 
   const headerRight = (
     <View style={styles.headerRightActions}>
@@ -1215,43 +1329,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       </HeaderButton>
     </View>
   );
-
-  const handleAddService = useCallback(() => {
-    navigation.navigate("ServiceEntryForm", { vehicleId });
-  }, [navigation, vehicleId]);
-
-  const handleAddFuel = useCallback(() => {
-    navigation.navigate("FuelingEntryForm", { vehicleId });
-  }, [navigation, vehicleId]);
-
-  const handleAddReminder = useCallback(() => {
-    if (!isPremium && freePlanVehicleId === vehicleId) {
-      const visibleCount = freePlanReminderIds?.length ?? 0;
-      if (visibleCount >= remindersLimit) {
-        Alert.alert(
-          t("limits.reminderLimitReachedTitle"),
-          t("limits.reminderLimitReachedBody", { limit: remindersLimit }),
-          [
-            { text: t("common.cancel"), style: "cancel" },
-            {
-              text: t("limits.upgradeToPremium"),
-              onPress: () => navigation.navigate("Shop"),
-            },
-          ],
-        );
-        return;
-      }
-    }
-    navigation.navigate("ReminderForm", { vehicleId });
-  }, [
-    navigation,
-    vehicleId,
-    isPremium,
-    freePlanVehicleId,
-    freePlanReminderIds,
-    remindersLimit,
-    t,
-  ]);
 
   useEffect(() => {
     if (activePage <= 1 && scrollOffsetYRef.current > 4) {
@@ -1353,6 +1430,51 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           ))}
         </View>
       </View>
+
+      <Modal
+        visible={isPublicQrVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsPublicQrVisible(false)}
+      >
+        <View style={styles.qrModalOverlay}>
+          <View
+            style={[styles.qrModalCard, { backgroundColor: theme.colors.card }]}
+          >
+            <Pressable
+              style={styles.qrModalClose}
+              onPress={() => setIsPublicQrVisible(false)}
+              hitSlop={10}
+            >
+              <Ionicons name="close" size={22} color={theme.colors.fg} />
+            </Pressable>
+            {publicReportUrl ? (
+              <View style={styles.qrWrap}>
+                <QRCode
+                  value={publicReportUrl}
+                  size={220}
+                  color={mode === "dark" ? "#ffffff" : "#000000"}
+                  backgroundColor={theme.colors.bg}
+                  ecl="H"
+                />
+                <View style={styles.qrLogoOverlay} pointerEvents="none">
+                  <View
+                    style={[
+                      styles.qrLogoBadge,
+                      {
+                        backgroundColor: theme.colors.card,
+                        borderColor: hexToRgba(theme.colors.accent, 0.28),
+                      },
+                    ]}
+                  >
+                    <Logo width={34} height={34} />
+                  </View>
+                </View>
+              </View>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={fullScreenIndex !== null}
@@ -1541,7 +1663,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
       gap: theme.spacing.md,
-      marginBottom: theme.spacing.sm,
+      marginBottom: theme.spacing.md,
     },
     mileageStaleCardTop: {
       flexDirection: "row",
@@ -1636,6 +1758,20 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flex: 1,
       gap: theme.spacing.xs,
     },
+    quickActionsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: theme.spacing.lg,
+    },
+    quickActionCircleButton: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.colors.accent,
+    },
     dashboardStatTileValueSuffix: {
       fontWeight: theme.typography.fontWeight.regular,
       fontSize: theme.typography.small,
@@ -1698,6 +1834,51 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     fullScreenOverlay: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.95)",
+      justifyContent: "center",
+    },
+    qrModalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.55)",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+    },
+    qrModalCard: {
+      width: "100%",
+      maxWidth: 320,
+      borderRadius: theme.radius.lg,
+      padding: theme.spacing.md,
+      alignItems: "center",
+      justifyContent: "center",
+      overflow: "hidden",
+    },
+    qrModalClose: {
+      position: "absolute",
+      top: theme.spacing.sm,
+      right: theme.spacing.sm,
+      zIndex: 10,
+      width: 34,
+      height: 34,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    qrWrap: {
+      position: "relative",
+      width: 220,
+      height: 220,
+      alignItems: "center",
+      justifyContent: "center",
+      margin: theme.spacing.xl,
+    },
+    qrLogoOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    qrLogoBadge: {
+      borderRadius: 999,
+      padding: theme.spacing.xs,
+      alignItems: "center",
       justifyContent: "center",
     },
     fullScreenClose: {

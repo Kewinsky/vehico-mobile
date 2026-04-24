@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import { useSharedValue } from "react-native-reanimated";
+import { BlurView } from "expo-blur";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { Vehicle } from "../../types/domain";
@@ -39,6 +40,7 @@ type VehicleCarouselProps = {
   height: number;
   theme: any;
   progress: ReturnType<typeof useSharedValue<number>>;
+  isLocked?: boolean;
 };
 
 function VehicleCarousel({
@@ -47,12 +49,14 @@ function VehicleCarousel({
   height,
   theme,
   progress,
+  isLocked = false,
 }: VehicleCarouselProps) {
   if (photoUrls.length === 0) return null;
 
   return (
     <View style={{ position: "relative", width, height, overflow: "hidden" }}>
       <Carousel
+        enabled={!isLocked}
         loop={true}
         snapEnabled={true}
         pagingEnabled={true}
@@ -118,13 +122,33 @@ function VehicleCardImage({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.65)",
             zIndex: 5,
             alignItems: "center",
             justifyContent: "center",
           }}
           pointerEvents="none"
         >
+          <BlurView
+            intensity={60}
+            tint="dark"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          />
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.35)",
+            }}
+          />
           <Ionicons
             name="lock-closed"
             size={48}
@@ -138,6 +162,7 @@ function VehicleCardImage({
         height={220}
         theme={theme}
         progress={progress}
+        isLocked={isLocked}
       />
       <View style={styles.vehicleImageContent} pointerEvents="none">
         <Text
@@ -157,7 +182,7 @@ function VehicleCardImage({
           {item.mileage ? ` · ${formatMileage(item.mileage)}` : ""}
         </Text>
       </View>
-      {photoUrls.length > 1 && (
+      {photoUrls.length > 1 && !isLocked && (
         <View
           style={{
             position: "absolute",
@@ -473,13 +498,33 @@ export function VehiclesScreen({ navigation, route }: Props) {
                               left: 0,
                               right: 0,
                               bottom: 0,
-                              backgroundColor: "rgba(0,0,0,0.65)",
                               zIndex: 5,
                               alignItems: "center",
                               justifyContent: "center",
                             }}
                             pointerEvents="none"
                           >
+                            <BlurView
+                              intensity={60}
+                              tint="dark"
+                              style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                              }}
+                            />
+                            <View
+                              style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: "rgba(0,0,0,0.35)",
+                              }}
+                            />
                             <Ionicons
                               name="lock-closed"
                               size={48}

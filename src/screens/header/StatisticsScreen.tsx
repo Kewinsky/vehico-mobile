@@ -453,7 +453,7 @@ function SimpleBarChart({
           width={bar.width}
           height={bar.height}
           fill={fill}
-          rx={2}
+          rx={5}
         />
       ))}
       {xTicks.map((tick, i) => (
