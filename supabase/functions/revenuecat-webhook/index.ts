@@ -153,9 +153,12 @@ async function buildFreePlanSelections(
       .select("id")
       .eq("owner_id", userId)
       .order("created_at", { ascending: true })
-      .limit(1);
+      .limit(2);
     if (vehicleError) throw vehicleError;
-    freePlanVehicleId = vehicleRows?.[0]?.id ?? null;
+    freePlanVehicleId =
+      vehicleRows != null && vehicleRows.length === 1
+        ? (vehicleRows[0]?.id ?? null)
+        : null;
   }
 
   if (!freePlanVehicleId) {
