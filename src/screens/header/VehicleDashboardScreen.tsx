@@ -29,6 +29,7 @@ import {
   Hash,
   CalendarCheck,
   CheckCheck,
+  Copy,
   ShieldCheck,
 } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -848,11 +849,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           {vehicle?.vin && (
             <Pressable onPress={onCopyVin} style={styles.vinRow} hitSlop={10}>
               <Text style={styles.vinText}>{vehicle.vin}</Text>
-              <Ionicons
-                name="copy-outline"
-                size={16}
-                color={theme.colors.muted}
-              />
+              <Copy size={16} color={theme.colors.muted} strokeWidth={2} />
             </Pressable>
           )}
         </View>
@@ -1065,7 +1062,10 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             <Pressable
               onPress={handleAddService}
               hitSlop={8}
-              style={[styles.quickActionCard, { backgroundColor: theme.colors.card }]}
+              style={[
+                styles.quickActionCard,
+                { backgroundColor: theme.colors.card },
+              ]}
             >
               <Ionicons
                 name="construct"
@@ -1073,28 +1073,38 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                 color={theme.colors.accent}
                 style={styles.quickActionIcon}
               />
-              <Text style={[styles.quickActionLabel, { color: theme.colors.fg }]}>
+              <Text
+                style={[styles.quickActionLabel, { color: theme.colors.fg }]}
+              >
                 Serwis
               </Text>
             </Pressable>
             <Pressable
               onPress={handleAddFuel}
               hitSlop={8}
-              style={[styles.quickActionCard, { backgroundColor: theme.colors.card }]}
+              style={[
+                styles.quickActionCard,
+                { backgroundColor: theme.colors.card },
+              ]}
             >
               <Fuel
                 size={detailIconSize}
                 color={theme.colors.accent}
                 style={styles.quickActionIcon}
               />
-              <Text style={[styles.quickActionLabel, { color: theme.colors.fg }]}>
+              <Text
+                style={[styles.quickActionLabel, { color: theme.colors.fg }]}
+              >
                 Paliwo
               </Text>
             </Pressable>
             <Pressable
               onPress={handleAddReminder}
               hitSlop={8}
-              style={[styles.quickActionCard, { backgroundColor: theme.colors.card }]}
+              style={[
+                styles.quickActionCard,
+                { backgroundColor: theme.colors.card },
+              ]}
             >
               <Ionicons
                 name="notifications"
@@ -1102,7 +1112,9 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                 color={theme.colors.accent}
                 style={styles.quickActionIcon}
               />
-              <Text style={[styles.quickActionLabel, { color: theme.colors.fg }]}>
+              <Text
+                style={[styles.quickActionLabel, { color: theme.colors.fg }]}
+              >
                 Alert
               </Text>
             </Pressable>
@@ -1190,7 +1202,9 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               }
             />
             <DashboardStatTile
-              iconComponent={<CheckCheck size={20} color={theme.colors.accent} />}
+              iconComponent={
+                <CheckCheck size={20} color={theme.colors.accent} />
+              }
               label={t("dashboard.stats.inspection")}
               valueMain={formatTermsValue(
                 vehicle?.inspection_valid_until,
