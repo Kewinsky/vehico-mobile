@@ -91,6 +91,7 @@ export function ReminderItem({
       : progressPercent > 85
         ? theme.colors.danger
         : theme.colors.accent;
+  const primaryTextColor = dimmed ? theme.colors.muted : theme.colors.fg;
 
   const remainingDistanceText =
     mileageRemaining != null ? `${mileageRemaining.toLocaleString()} ${distanceUnit}` : "—";
@@ -98,10 +99,10 @@ export function ReminderItem({
     dateRemainingDays != null ? `${dateRemainingDays}d` : "—";
 
   const content = (
-    <View style={[styles.card, dimmed ? styles.dimmedCard : null]}>
+    <View style={styles.card}>
       <View style={styles.titleRow}>
         <Text
-          style={[styles.title, { color: theme.colors.fg }, dimmed ? styles.dimmedText : null]}
+          style={[styles.title, { color: primaryTextColor }, dimmed ? styles.dimmedText : null]}
           numberOfLines={1}
         >
           {title}
@@ -126,7 +127,7 @@ export function ReminderItem({
           <Text style={[styles.metaLabel, { color: theme.colors.muted }]}>
             {remainingDistanceLabel}
           </Text>
-          <Text style={[styles.metaText, { color: theme.colors.fg }]}>
+          <Text style={[styles.metaText, { color: primaryTextColor }]}>
             {remainingDistanceText}
           </Text>
         </View>
@@ -134,7 +135,7 @@ export function ReminderItem({
           <Text style={[styles.metaLabel, { color: theme.colors.muted }]}>
             {estimatedTimeLabel}
           </Text>
-          <Text style={[styles.metaText, { color: theme.colors.fg }]}>
+          <Text style={[styles.metaText, { color: primaryTextColor }]}>
             {estimatedTimeText}
           </Text>
         </View>
@@ -200,9 +201,6 @@ const makeStyles = (theme: AppTheme) =>
       padding: theme.spacing.sm,
       backgroundColor: theme.colors.card,
       gap: theme.spacing.sm,
-    },
-    dimmedCard: {
-      opacity: 0.7,
     },
     titleRow: {
       flexDirection: "row",

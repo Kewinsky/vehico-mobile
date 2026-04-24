@@ -32,6 +32,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import { Image } from "expo-image";
+import { BlurView } from "expo-blur";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import Animated, {
   interpolateColor,
@@ -446,7 +447,7 @@ function formatTermsValue(
 
 export function VehicleDashboardScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, insets);
@@ -1330,6 +1331,11 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
       <View style={styles.pagerDotsContainer} pointerEvents="box-none">
         <View style={styles.pagerDots}>
+          <BlurView
+            intensity={mode === "dark" ? 45 : 70}
+            tint={mode === "dark" ? "dark" : "light"}
+            style={StyleSheet.absoluteFill}
+          />
           {pageData.map((pageIndex) => (
             <PagerDot
               key={`dot-${pageIndex}`}
@@ -1673,6 +1679,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       pointerEvents: "box-none",
     },
     pagerDots: {
+      overflow: "hidden",
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
@@ -1680,7 +1687,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingHorizontal: theme.spacing.md,
       paddingVertical: theme.spacing.sm,
       borderRadius: 999,
-      backgroundColor: `${theme.colors.card}E6`,
+      backgroundColor: "transparent",
       elevation: 4,
     },
     headerRightActions: {
