@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Navigation, Phone } from "lucide-react-native";
 import {
   Linking,
   Platform,
@@ -7,6 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 
 import type { Workshop, WorkshopType } from "../../../types/domain";
 import { useTheme } from "../../ThemeProvider";
@@ -27,6 +29,7 @@ const WORKSHOP_ICON_BACKGROUND: Record<WorkshopType, string> = {
   car_wash: "rgba(14,165,233,0.1)",
   other: "rgba(107,114,128,0.1)",
 };
+const NAVIGATE_ACTION_BLUE = "#3b82f6";
 
 function workshopIconBackground(type: WorkshopType | null | undefined): string {
   if (!type) return WORKSHOP_ICON_BACKGROUND.other;
@@ -92,15 +95,22 @@ export function WorkshopItem({
     const encodedAddress = encodeURIComponent(addressTrimmed);
     const nativeUrls =
       Platform.OS === "ios"
-        ? [`maps://?q=${encodedAddress}`]
-        : [`geo:0,0?q=${encodedAddress}`];
+        ? [
+            `comgooglemaps://?q=${encodedAddress}`,
+            `maps://?q=${encodedAddress}`,
+          ]
+        : [
+            `google.navigation:q=${encodedAddress}`,
+            `geo:0,0?q=${encodedAddress}`,
+          ];
     const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
 
     for (const url of nativeUrls) {
-      const canOpen = await Linking.canOpenURL(url);
-      if (canOpen) {
+      try {
         await Linking.openURL(url);
         return;
+      } catch {
+        // Try the next navigation handler.
       }
     }
 
@@ -143,63 +153,58 @@ export function WorkshopItem({
           )}
         </View>
       </View>
-
-      {(canCall || canNavigate) && (
-        <View style={styles.actionsRow}>
-          <Pressable
-            disabled={!canNavigate}
-            onPress={(event) => {
-              event.stopPropagation();
-              void openNavigation();
-            }}
-            style={({ pressed }) => [
-              styles.navigateButton,
-              {
-                opacity: !canNavigate ? 0.5 : pressed ? 0.85 : 1,
-              },
-            ]}
-          >
-            <Ionicons
-              name="navigate-outline"
-              size={18}
-              color={theme.colors.accent}
-            />
-            <Text style={styles.navigateLabel}>{navigateLabel}</Text>
-          </Pressable>
-
-          <Pressable
-            disabled={!canCall}
-            onPress={(event) => {
-              event.stopPropagation();
-              void placeCall();
-            }}
-            accessibilityLabel={callLabel}
-            style={({ pressed }) => [
-              styles.callButton,
-              {
-                opacity: !canCall ? 0.5 : pressed ? 0.85 : 1,
-              },
-            ]}
-          >
-            <Ionicons name="call-outline" size={18} color="#000000" />
-          </Pressable>
-        </View>
-      )}
     </View>
   );
 
-  if (onPress) {
+  const rowContent = onPress ? (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+    >
+      {content}
+    </Pressable>
+  ) : (
+    content
+  );
+
+  if (!canCall && !canNavigate) return rowContent;
+
+  function renderRightActions() {
     return (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
-      >
-        {content}
-      </Pressable>
+      <View style={styles.swipeActionsWrap}>
+        <Pressable
+          disabled={!canNavigate}
+          onPress={() => void openNavigation()}
+          accessibilityLabel={navigateLabel}
+          style={({ pressed }) => [
+            styles.swipeActionBtn,
+            styles.swipeNavigateAction,
+            { opacity: !canNavigate ? 0.5 : pressed ? 0.85 : 1 },
+          ]}
+        >
+          <Navigation size={20} color="#000000" />
+        </Pressable>
+        <Pressable
+          disabled={!canCall}
+          onPress={() => void placeCall()}
+          accessibilityLabel={callLabel}
+          style={({ pressed }) => [
+            styles.swipeActionBtn,
+            styles.swipeCallAction,
+            { opacity: !canCall ? 0.5 : pressed ? 0.85 : 1 },
+          ]}
+        >
+          <Phone size={20} color="#000000" />
+        </Pressable>
+      </View>
     );
   }
 
-  return content;
+  return (
+    <Swipeable renderRightActions={renderRightActions} rightThreshold={32}>
+      {rowContent}
+    </Swipeable>
+  );
 }
 
 const makeStyles = (theme: AppTheme) =>
@@ -236,35 +241,22 @@ const makeStyles = (theme: AppTheme) =>
       fontSize: theme.typography.small,
       lineHeight: theme.typography.body + 2,
     },
-    actionsRow: {
+    swipeActionsWrap: {
       flexDirection: "row",
-      gap: theme.spacing.sm,
       alignItems: "stretch",
+      marginLeft: theme.spacing.xs,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
     },
-    navigateButton: {
-      flex: 1,
-      flexDirection: "row",
+    swipeActionBtn: {
+      width: 72,
       alignItems: "center",
       justifyContent: "center",
-      gap: theme.spacing.xs,
-      borderRadius: theme.radius.lg,
-      borderWidth: 1,
-      borderColor: theme.colors.accent,
-      backgroundColor: theme.colors.card,
-      paddingHorizontal: theme.spacing.sm,
-      paddingVertical: theme.spacing.xs,
     },
-    navigateLabel: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.medium,
-      color: theme.colors.accent,
+    swipeNavigateAction: {
+      backgroundColor: theme.colors.muted,
     },
-    callButton: {
-      width: 44,
-      height: 44,
-      borderRadius: theme.radius.lg,
-      alignItems: "center",
-      justifyContent: "center",
+    swipeCallAction: {
       backgroundColor: theme.colors.accent,
     },
   });
