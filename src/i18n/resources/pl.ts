@@ -419,6 +419,7 @@ export const pl = {
   dashboard: {
     backToVehicles: "Wróć do pojazdów",
     specification: "Specyfikacja",
+    quickActionsTitle: "Szybkie akcje",
     mileageUpdated: {
       lastUpdated: "Ostatnia aktualizacja przebiegu {{relative}}.",
       cta: "Zaktualizuj przebieg",

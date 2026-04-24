@@ -28,6 +28,8 @@ import {
   Fuel,
   Hash,
   CalendarCheck,
+  CheckCheck,
+  ShieldCheck,
 } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
@@ -938,7 +940,11 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                       color={theme.colors.accent}
                     />
                   }
-                  label={t("vehicleForm.initialMileageLabel")}
+                  label={
+                    i18n.language?.toLowerCase().startsWith("pl")
+                      ? "Poczt. przebieg"
+                      : t("vehicleForm.initialMileageLabel")
+                  }
                   value={
                     vehicle?.initial_mileage != null
                       ? `${vehicle.initial_mileage.toLocaleString()} ${distanceUnitLabel}`
@@ -970,7 +976,11 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                       color={theme.colors.accent}
                     />
                   }
-                  label={t("vehicleForm.engineCapacityLabel")}
+                  label={
+                    i18n.language?.toLowerCase().startsWith("pl")
+                      ? "Poj. silnika"
+                      : t("vehicleForm.engineCapacityLabel")
+                  }
                   value={
                     vehicle?.engine_capacity
                       ? `${vehicle.engine_capacity} cm³`
@@ -1055,23 +1065,46 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             <Pressable
               onPress={handleAddService}
               hitSlop={8}
-              style={styles.quickActionCircleButton}
+              style={[styles.quickActionCard, { backgroundColor: theme.colors.card }]}
             >
-              <Ionicons name="construct" size={24} color="#000000" />
+              <Ionicons
+                name="construct"
+                size={detailIconSize}
+                color={theme.colors.accent}
+                style={styles.quickActionIcon}
+              />
+              <Text style={[styles.quickActionLabel, { color: theme.colors.fg }]}>
+                Serwis
+              </Text>
             </Pressable>
             <Pressable
               onPress={handleAddFuel}
               hitSlop={8}
-              style={styles.quickActionCircleButton}
+              style={[styles.quickActionCard, { backgroundColor: theme.colors.card }]}
             >
-              <Fuel size={24} color="#000000" />
+              <Fuel
+                size={detailIconSize}
+                color={theme.colors.accent}
+                style={styles.quickActionIcon}
+              />
+              <Text style={[styles.quickActionLabel, { color: theme.colors.fg }]}>
+                Paliwo
+              </Text>
             </Pressable>
             <Pressable
               onPress={handleAddReminder}
               hitSlop={8}
-              style={styles.quickActionCircleButton}
+              style={[styles.quickActionCard, { backgroundColor: theme.colors.card }]}
             >
-              <Ionicons name="notifications" size={24} color="#000000" />
+              <Ionicons
+                name="notifications"
+                size={detailIconSize}
+                color={theme.colors.accent}
+                style={styles.quickActionIcon}
+              />
+              <Text style={[styles.quickActionLabel, { color: theme.colors.fg }]}>
+                Alert
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -1122,11 +1155,13 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         </View>
         <View style={styles.sectionBlock}>
           <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-            {t("dashboard.stats.insuranceAndInspection")}
+            {t("dashboard.stats.formalities", { defaultValue: "Formalności" })}
           </Text>
           <View style={styles.termsTilesRow}>
             <DashboardStatTile
-              icon="shield-checkmark-outline"
+              iconComponent={
+                <ShieldCheck size={20} color={theme.colors.accent} />
+              }
               label={t("dashboard.stats.insurance")}
               valueMain={formatTermsValue(
                 vehicle?.insurance_valid_until,
@@ -1155,7 +1190,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               }
             />
             <DashboardStatTile
-              icon="checkmark-done-outline"
+              iconComponent={<CheckCheck size={20} color={theme.colors.accent} />}
               label={t("dashboard.stats.inspection")}
               valueMain={formatTermsValue(
                 vehicle?.inspection_valid_until,
@@ -1637,7 +1672,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       gap: theme.spacing.lg,
     },
     panelSections: {
-      gap: theme.spacing.md,
+      gap: theme.spacing.xl,
     },
     sectionBlock: {
       gap: theme.spacing.sm,
@@ -1775,17 +1810,26 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     quickActionsRow: {
       flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: theme.spacing.lg,
+      alignItems: "stretch",
+      gap: theme.spacing.sm,
     },
-    quickActionCircleButton: {
-      width: 52,
-      height: 52,
-      borderRadius: 26,
+    quickActionCard: {
+      flex: 1,
+      aspectRatio: 1,
+      borderRadius: theme.radius.md,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: theme.colors.accent,
+      gap: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm,
+    },
+    quickActionIcon: {
+      opacity: 0.95,
+    },
+    quickActionLabel: {
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+      textAlign: "center",
     },
     dashboardStatTileValueSuffix: {
       fontWeight: theme.typography.fontWeight.regular,
