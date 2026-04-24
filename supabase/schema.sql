@@ -783,7 +783,7 @@ declare
   v_snapshot jsonb;
   v_vehicle jsonb;
   v_service_entries jsonb;
-  v_fueling_entries jsonb;
+  v_avg_fueling numeric;
   v_vehicle_photos jsonb;
   v_temp_photos jsonb;
   v_vehicle_tires jsonb;
@@ -864,24 +864,17 @@ begin
     v_service_entries := '[]'::jsonb;
   end if;
 
-  -- Get fueling entries (if stats included)
+  -- Ready-to-display avg L/100 km (null when no usable tank data)
   if v_include_fueling_stats then
-    select coalesce(jsonb_agg(
-      jsonb_build_object(
-        'id', fe.id,
-        'date', fe.date,
-        'distance', fe.distance,
-        'fuel_amount', fe.fuel_amount,
-        'fuel_cost', fe.fuel_cost,
-        'fuel_type', fe.fuel_type,
-        'gas_station', fe.gas_station,
-        'created_at', fe.created_at
-      ) order by fe.date desc
-    ), '[]'::jsonb) into v_fueling_entries
+    select
+      case
+        when coalesce(sum(fe.distance), 0) > 0 then
+          (coalesce(sum(fe.fuel_amount), 0) / sum(fe.distance)) * 100
+        else null
+      end
+    into v_avg_fueling
     from public.fueling_entries fe
     where fe.vehicle_id = p_vehicle_id;
-  else
-    v_fueling_entries := '[]'::jsonb;
   end if;
 
   -- Get vehicle tires and wheels (if included)
@@ -990,7 +983,6 @@ begin
   v_snapshot := jsonb_build_object(
     'vehicle', v_vehicle,
     'service_entries', v_service_entries,
-    'fueling_entries', v_fueling_entries,
     'vehicle_photos', v_vehicle_photos,
     'vehicle_tires', v_vehicle_tires,
     'vehicle_wheels', v_vehicle_wheels,
@@ -1003,6 +995,13 @@ begin
     'snapshot_version', '2.0',
     'snapshot_date', now()
   );
+
+  if v_include_fueling_stats then
+    v_snapshot := v_snapshot || jsonb_build_object(
+      'fueling_stats',
+      to_jsonb(v_avg_fueling)
+    );
+  end if;
 
   return v_snapshot;
 end;

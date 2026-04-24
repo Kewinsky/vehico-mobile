@@ -126,7 +126,7 @@ export type PublicReportSnapshot = {
   snapshot_data: {
     vehicle: Vehicle;
     service_entries: ServiceEntry[];
-    fueling_entries?: FuelingEntry[]; // Optional, included if fueling stats requested
+    fueling_stats?: number | null;
     vehicle_photos: Array<{
       id: string;
       storage_path: string;
