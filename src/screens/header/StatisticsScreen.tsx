@@ -690,10 +690,7 @@ export function StatisticsScreen(props: Props) {
 
   const currency = settings?.currency ?? "PLN";
   const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel =
-    distanceUnit === "miles"
-      ? t("settings.distanceUnitMiles")
-      : t("settings.distanceUnitKm");
+  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
   const fuelUnit = settings?.fuelUnit ?? "liters";
   const fuelUnitLabel =
     fuelUnit === "liters"

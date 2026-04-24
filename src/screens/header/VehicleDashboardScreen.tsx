@@ -478,10 +478,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const pagerProgress = useSharedValue(1);
   const detailIconSize = 28;
   const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel =
-    distanceUnit === "miles"
-      ? t("settings.distanceUnitMiles")
-      : t("settings.distanceUnitKm");
+  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
   const vehicleImageHeight = Math.min(Math.max(windowHeight * 0.34, 280), 360);
   const mileageStaleYmd = useMemo(() => {
     if (vehicle?.mileage == null) return null;

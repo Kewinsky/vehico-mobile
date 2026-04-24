@@ -88,10 +88,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
     selectedReportId,
   } = route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel =
-    distanceUnit === "miles"
-      ? t("settings.distanceUnitMiles")
-      : t("settings.distanceUnitKm");
+  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [serviceEntriesCount, setServiceEntriesCount] = useState<number>(0);

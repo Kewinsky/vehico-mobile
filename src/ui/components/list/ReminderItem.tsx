@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Trash2, Undo2 } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useTranslation } from "react-i18next";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 
 import { useTheme } from "../../ThemeProvider";
@@ -44,13 +43,9 @@ export function ReminderItem({
   onToggleDone,
   onDelete,
 }: ReminderItemProps) {
-  const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = makeStyles(theme);
-  const distanceUnitLabel =
-    distanceUnit === "miles"
-      ? t("settings.distanceUnitMiles")
-      : t("settings.distanceUnitKm");
+  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
 
   const now = new Date();
 

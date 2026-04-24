@@ -85,10 +85,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const { vehicleId, reportOptions, selectedVehiclePhotoIds, tempPhotos } =
     route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel =
-    distanceUnit === "miles"
-      ? t("settings.distanceUnitMiles")
-      : t("settings.distanceUnitKm");
+  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [serviceEntriesCount, setServiceEntriesCount] = useState<number>(0);

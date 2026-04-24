@@ -262,10 +262,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
     refresh: refreshEntitlements,
   } = useEntitlements();
   const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel =
-    distanceUnit === "miles"
-      ? t("settings.distanceUnitMiles")
-      : t("settings.distanceUnitKm");
+  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
 
   const visibleVehicleId: string | null = isPremium
     ? null

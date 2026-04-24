@@ -86,10 +86,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const styles = makeStyles(theme);
   const { vehicleId, reminderId } = route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel =
-    distanceUnit === "miles"
-      ? t("settings.distanceUnitMiles")
-      : t("settings.distanceUnitKm");
+  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
 
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
