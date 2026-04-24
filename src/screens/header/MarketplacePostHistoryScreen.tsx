@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Pencil } from "lucide-react-native";
+import { SquarePen } from "lucide-react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -131,7 +131,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
           onPress={() => handleEditTitle(item)}
           style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
         >
-          <Pencil size={22} color="#000000" />
+          <SquarePen size={22} color="#000000" />
         </Pressable>
       </View>
     );

@@ -57,6 +57,7 @@ import type {
 import {
   deleteVehicle,
   getVehicle,
+  updateVehicle,
 } from "../../services/vehicles/vehiclesRepo";
 import {
   listVehiclePhotos,
@@ -95,6 +96,7 @@ import {
   daysSinceYmd,
   formatRelativeTimePast,
 } from "../../utils/formatRelativeTimePast";
+import { isNonNegativeNumber } from "../../utils/validation";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
@@ -331,7 +333,7 @@ function DashboardStatTile({
   );
 }
 
-const MILEAGE_STALE_MIN_DAYS = 90;
+const MILEAGE_STALE_MIN_DAYS = 2;
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -658,6 +660,37 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     ]);
   }
 
+  const handleQuickMileageEdit = useCallback(() => {
+    Alert.prompt(
+      t("dashboard.mileageUpdated.cta"),
+      `${t("vehicleForm.mileageLabel")} (${distanceUnit})`,
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.save"),
+          onPress: async (value: string | undefined) => {
+            const mileageRaw = (value ?? "").trim();
+            if (!mileageRaw.length || !isNonNegativeNumber(mileageRaw)) {
+              toastError(t("validation.nonNegativeRequired"));
+              return;
+            }
+            try {
+              const updatedVehicle = await updateVehicle(vehicleId, {
+                mileage: Number(mileageRaw),
+                mileage_updated_at: new Date().toISOString().slice(0, 10),
+              });
+              setVehicle(updatedVehicle);
+            } catch (e: any) {
+              toastError(e?.message ?? t("common.error"));
+            }
+          },
+        },
+      ],
+      "plain-text",
+      vehicle?.mileage != null ? String(vehicle.mileage) : "",
+    );
+  }, [distanceUnit, t, vehicle?.mileage, vehicleId]);
+
   const tiles: DashboardTile[] = [
     {
       key: "service",
@@ -860,11 +893,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               <View style={styles.detailsRow}>
                 <DetailItem
                   icon={
-                    <Ionicons
-                      name="water-outline"
-                      size={detailIconSize}
-                      color={theme.colors.accent}
-                    />
+                    <Fuel size={detailIconSize} color={theme.colors.accent} />
                   }
                   label={t("vehicleForm.fuelTypeLabel")}
                   value={
@@ -1000,9 +1029,21 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         </View>
 
         <View style={styles.sectionBlock}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-            {t("dashboard.stats.wheels")}
-          </Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+              {t("dashboard.stats.wheels")}
+            </Text>
+            <Pressable
+              onPress={() => navigation.navigate("Wheels", { vehicleId })}
+              hitSlop={8}
+            >
+              <Text
+                style={[styles.viewAllLink, { color: theme.colors.accent }]}
+              >
+                {t("dashboard.stats.viewAll")}
+              </Text>
+            </Pressable>
+          </View>
           <DashboardStatTile
             iconComponent={<TireIcon size={24} color={theme.colors.accent} />}
             label={t("dashboard.stats.currentTire")}
@@ -1088,9 +1129,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               {mileageStaleTitle}
             </Text>
           </View>
-          <Button
-            onPress={() => navigation.navigate("VehicleForm", { vehicleId })}
-          >
+          <Button onPress={handleQuickMileageEdit}>
             {t("dashboard.mileageUpdated.cta")}
           </Button>
         </View>
@@ -1326,11 +1365,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             onPress={() => setFullScreenIndex(null)}
             hitSlop={12}
           >
-            <Ionicons
-              name="close"
-              size={28}
-              color="#FFFFFF"
-            />
+            <Ionicons name="close" size={28} color="#FFFFFF" />
           </Pressable>
           {fullScreenIndex !== null && photoUrls.length > 0 && (
             <FlatList

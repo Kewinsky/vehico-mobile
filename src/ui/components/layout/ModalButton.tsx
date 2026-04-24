@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Text } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { HeaderButton } from "@react-navigation/elements";
+import { Check, X } from "lucide-react-native";
 
 import { useTheme } from "../../ThemeProvider";
 
@@ -19,6 +19,7 @@ export function ModalButton({
   children,
 }: ModalButtonProps) {
   const { theme } = useTheme();
+  const iconSize = 20;
 
   const a11yLabel = typeof children === "string" ? children : undefined;
 
@@ -30,11 +31,7 @@ export function ModalButton({
         accessibilityLabel={a11yLabel}
         tintColor={theme.colors.fg}
       >
-        <Ionicons
-          name="close-outline"
-          size={theme.icons.headerButton}
-          color={theme.colors.fg}
-        />
+        <X size={iconSize} color={theme.colors.fg} />
       </HeaderButton>
     );
   }
@@ -47,11 +44,7 @@ export function ModalButton({
         accessibilityLabel={a11yLabel}
         tintColor={theme.colors.accent}
       >
-        <Ionicons
-          name="checkmark"
-          size={theme.icons.headerButton}
-          color={theme.colors.accent}
-        />
+        <Check size={iconSize} color={theme.colors.accent} />
       </HeaderButton>
     );
   }

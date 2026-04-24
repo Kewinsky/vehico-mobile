@@ -1,11 +1,17 @@
 import type { ReactNode } from "react";
 import { useLayoutEffect, useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HeaderButton } from "@react-navigation/elements";
-import { Crown } from "lucide-react-native";
+import {
+  ChevronLeft,
+  Crown,
+  Ellipsis,
+  Plus,
+  Settings,
+  SlidersHorizontal,
+} from "lucide-react-native";
 
 import { useTheme } from "../../ThemeProvider";
 import { useAuth } from "../../../app/providers/AuthProvider";
@@ -45,6 +51,7 @@ export function useNativeHeaderAsAppNavbar({
   actions,
 }: AppNavbarProps) {
   const { theme } = useTheme();
+  const headerIconSize = 20;
   const { user } = useAuth();
   const route = useRoute();
   const navigation =
@@ -81,9 +88,8 @@ export function useNativeHeaderAsAppNavbar({
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Filter"
               >
-                <Ionicons
-                  name="options-outline"
-                  size={theme.icons.headerButton}
+                <SlidersHorizontal
+                  size={headerIconSize}
                   color={theme.colors.accent}
                 />
               </HeaderButton>
@@ -97,11 +103,7 @@ export function useNativeHeaderAsAppNavbar({
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Reset filters"
               >
-                <Ionicons
-                  name="sync-outline"
-                  size={theme.icons.headerButton}
-                  color={theme.colors.accent}
-                />
+                <Ellipsis size={headerIconSize} color={theme.colors.accent} />
               </HeaderButton>
             );
           }
@@ -113,11 +115,7 @@ export function useNativeHeaderAsAppNavbar({
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Add"
               >
-                <Ionicons
-                  name="add"
-                  size={theme.icons.headerButton}
-                  color={theme.colors.accent}
-                />
+                <Plus size={headerIconSize} color={theme.colors.accent} />
               </HeaderButton>
             );
           }
@@ -125,7 +123,7 @@ export function useNativeHeaderAsAppNavbar({
         })}
       </View>
     );
-  }, [actions, theme.colors.accent, theme.icons.headerButton, theme.spacing.sm]);
+  }, [actions, headerIconSize, theme.colors.accent, theme.spacing.sm]);
 
   useLayoutEffect(() => {
     const rightContent = showShopIcon ? (
@@ -141,7 +139,7 @@ export function useNativeHeaderAsAppNavbar({
           tintColor={theme.colors.accent}
           accessibilityLabel="Shop"
         >
-          <Crown size={theme.icons.headerButton} color={theme.colors.accent} />
+          <Crown size={headerIconSize} color={theme.colors.accent} />
         </HeaderButton>
         {showProfileAvatar && user && (
           <HeaderButton
@@ -149,11 +147,7 @@ export function useNativeHeaderAsAppNavbar({
             tintColor={theme.colors.accent}
             accessibilityLabel="Settings"
           >
-            <Ionicons
-              name="settings-outline"
-              size={theme.icons.headerButton}
-              color={theme.colors.accent}
-            />
+            <Settings size={headerIconSize} color={theme.colors.accent} />
           </HeaderButton>
         )}
         {right}
@@ -166,11 +160,7 @@ export function useNativeHeaderAsAppNavbar({
         tintColor={theme.colors.accent}
         accessibilityLabel="Settings"
       >
-        <Ionicons
-          name="settings-outline"
-          size={theme.icons.headerButton}
-          color={theme.colors.accent}
-        />
+        <Settings size={headerIconSize} color={theme.colors.accent} />
       </HeaderButton>
     ) : null;
 
@@ -199,11 +189,7 @@ export function useNativeHeaderAsAppNavbar({
               tintColor={theme.colors.accent}
               accessibilityLabel={undefined}
             >
-              <Ionicons
-                name="chevron-back"
-                size={theme.icons.headerButton}
-                color={theme.colors.accent}
-              />
+              <ChevronLeft size={headerIconSize} color={theme.colors.accent} />
             </HeaderButton>
           )
         : undefined,
@@ -226,7 +212,6 @@ export function useNativeHeaderAsAppNavbar({
     theme.spacing.sm,
     theme.typography.fontWeight.bold,
     theme.typography.title,
-    theme.icons.headerButton,
     onBack,
     right,
     title,
@@ -248,6 +233,7 @@ export function AppNavbar({
   actions,
 }: AppNavbarProps) {
   const { theme } = useTheme();
+  const headerIconSize = 20;
   const { user } = useAuth();
   const route = useRoute();
   const navigation =
@@ -280,9 +266,8 @@ export function AppNavbar({
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Filter"
               >
-                <Ionicons
-                  name="options-outline"
-                  size={theme.icons.headerButton}
+                <SlidersHorizontal
+                  size={headerIconSize}
                   color={theme.colors.accent}
                 />
               </HeaderButton>
@@ -296,11 +281,7 @@ export function AppNavbar({
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Reset filters"
               >
-                <Ionicons
-                  name="sync-outline"
-                  size={theme.icons.headerButton}
-                  color={theme.colors.accent}
-                />
+                <Ellipsis size={headerIconSize} color={theme.colors.accent} />
               </HeaderButton>
             );
           }
@@ -312,11 +293,7 @@ export function AppNavbar({
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Add"
               >
-                <Ionicons
-                  name="add"
-                  size={theme.icons.headerButton}
-                  color={theme.colors.accent}
-                />
+                <Plus size={headerIconSize} color={theme.colors.accent} />
               </HeaderButton>
             );
           }
@@ -324,7 +301,7 @@ export function AppNavbar({
         })}
       </View>
     );
-  }, [actions, styles.rightIcons, theme.colors.accent, theme.icons.headerButton]);
+  }, [actions, headerIconSize, styles.rightIcons, theme.colors.accent]);
 
   return (
     <View style={styles.root}>
@@ -335,11 +312,7 @@ export function AppNavbar({
             tintColor={theme.colors.accent}
             accessibilityLabel={undefined}
           >
-            <Ionicons
-              name="chevron-back"
-              size={theme.icons.headerButton}
-              color={theme.colors.accent}
-            />
+            <ChevronLeft size={headerIconSize} color={theme.colors.accent} />
           </HeaderButton>
         ) : null}
       </View>
@@ -362,7 +335,7 @@ export function AppNavbar({
               accessibilityLabel="Shop"
             >
               <Crown
-                size={theme.icons.headerButton}
+                size={headerIconSize}
                 color={theme.colors.accent}
               />
             </HeaderButton>
@@ -372,11 +345,7 @@ export function AppNavbar({
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Settings"
               >
-                <Ionicons
-                  name="settings-outline"
-                  size={22}
-                  color={theme.colors.accent}
-                />
+                <Settings size={headerIconSize} color={theme.colors.accent} />
               </HeaderButton>
             )}
             {right}
@@ -393,11 +362,7 @@ export function AppNavbar({
             tintColor={theme.colors.accent}
             accessibilityLabel="Settings"
           >
-            <Ionicons
-              name="settings-outline"
-              size={22}
-              color={theme.colors.accent}
-            />
+            <Settings size={headerIconSize} color={theme.colors.accent} />
           </HeaderButton>
         ) : null}
       </View>

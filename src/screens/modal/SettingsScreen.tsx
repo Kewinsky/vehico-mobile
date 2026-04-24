@@ -3,8 +3,14 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Linking from "expo-linking";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
-import { Crown } from "lucide-react-native";
+import {
+  ChevronRight,
+  Crown,
+  LogOut,
+  MessageCircleQuestionMark,
+  SquarePen,
+  SlidersHorizontal,
+} from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { useAuth } from "../../app/providers/AuthProvider";
@@ -37,7 +43,7 @@ function getInitials(user: {
 
 type RowItem = {
   id: string;
-  icon: React.ComponentProps<typeof Ionicons>["name"] | React.ReactNode;
+  icon: React.ReactNode;
   title: string;
   subtitle: string;
   onPress: () => void;
@@ -118,7 +124,7 @@ export function SettingsScreen({ navigation }: Props) {
     (): RowItem[] => [
       {
         id: "appearance",
-        icon: "options-outline",
+        icon: <SlidersHorizontal size={22} color={theme.colors.accent} />,
         title: t("settings.appearanceButton"),
         subtitle: t("settings.appearanceSubtitle"),
         onPress: () => navigation.navigate("Appearance"),
@@ -132,14 +138,14 @@ export function SettingsScreen({ navigation }: Props) {
       },
       {
         id: "support",
-        icon: "help-circle-outline",
+        icon: <MessageCircleQuestionMark size={22} color={theme.colors.accent} />,
         title: t("settings.supportTitle"),
         subtitle: t("settings.supportSubtitle"),
         onPress: onSupport,
       },
       {
         id: "signout",
-        icon: "log-out-outline",
+        icon: <LogOut size={22} color={theme.colors.danger} />,
         title: t("profile.signOut"),
         subtitle: t("settings.signOutSubtitle"),
         onPress: onSignOut,
@@ -185,8 +191,7 @@ export function SettingsScreen({ navigation }: Props) {
             >
               {displayLabel}
             </Text>
-            <Ionicons
-              name="create-outline"
+            <SquarePen
               size={18}
               color={theme.colors.accent}
               style={styles.pencilIcon}
@@ -211,20 +216,7 @@ export function SettingsScreen({ navigation }: Props) {
                     pressed && styles.rowPressed,
                   ]}
                 >
-                  {typeof row.icon === "string" ? (
-                    <Ionicons
-                      name={
-                        row.icon as React.ComponentProps<
-                          typeof Ionicons
-                        >["name"]
-                      }
-                      size={22}
-                      color={iconColor}
-                      style={styles.rowIcon}
-                    />
-                  ) : (
-                    <View style={styles.rowIcon}>{row.icon}</View>
-                  )}
+                  <View style={styles.rowIcon}>{row.icon}</View>
                   <View style={styles.rowText}>
                     <Text
                       style={[styles.rowTitle, { color: theme.colors.fg }]}
@@ -242,11 +234,7 @@ export function SettingsScreen({ navigation }: Props) {
                       {row.subtitle}
                     </Text>
                   </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color={chevronColor}
-                  />
+                  <ChevronRight size={20} color={chevronColor} />
                 </Pressable>
               </View>
             );

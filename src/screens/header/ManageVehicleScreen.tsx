@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HeaderButton } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
-import { Hash, CalendarCheck } from "lucide-react-native";
+import { Hash, CalendarCheck, Fuel } from "lucide-react-native";
 import {
   Ionicons,
   MaterialCommunityIcons,
@@ -486,11 +486,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                   <View style={styles.detailsRow}>
                     <DetailItem
                       icon={
-                        <Ionicons
-                          name="water-outline"
-                          size={detailIconSize}
-                          color={theme.colors.accent}
-                        />
+                        <Fuel size={detailIconSize} color={theme.colors.accent} />
                       }
                       label={t("vehicleForm.fuelTypeLabel")}
                       value={

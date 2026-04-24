@@ -51,7 +51,7 @@ import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Textarea } from "../../ui/components/common/Textarea";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
-import { Pencil, Trash2 } from "lucide-react-native";
+import { SquarePen, Trash2 } from "lucide-react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
@@ -292,7 +292,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           onPress={() => handleEditAttachmentName(item)}
           style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
         >
-          <Pencil size={20} color="#000000" />
+          <SquarePen size={20} color="#000000" />
         </Pressable>
         <Pressable
           onPress={() => confirmDeleteAttachment(item)}
@@ -314,7 +314,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           onPress={() => handleEditPendingFileName(index, item.fileName)}
           style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
         >
-          <Pencil size={20} color="#000000" />
+          <SquarePen size={20} color="#000000" />
         </Pressable>
         <Pressable
           onPress={() => {
@@ -978,11 +978,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   }}
                 >
                   <View style={styles.rowLeft}>
-                    <Ionicons
-                      name="create-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
+                    <SquarePen size={20} color={theme.colors.accent} />
                     <Text
                       style={[styles.label, { color: theme.colors.muted }]}
                       numberOfLines={1}

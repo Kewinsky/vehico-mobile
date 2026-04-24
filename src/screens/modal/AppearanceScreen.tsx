@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import type { TFunction } from "i18next";
+import { Fuel } from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { ModalLayout } from "../../layouts";
@@ -128,11 +129,15 @@ export function AppearanceScreen({ navigation }: Props) {
                 return (
                   <View key={key} style={[styles.row]}>
                     <View style={styles.sectionTitleRow}>
-                      <Ionicons
-                        name={currentIcon}
-                        size={20}
-                        color={theme.colors.accent}
-                      />
+                      {key === "fuelUnit" ? (
+                        <Fuel size={20} color={theme.colors.accent} />
+                      ) : (
+                        <Ionicons
+                          name={currentIcon}
+                          size={20}
+                          color={theme.colors.accent}
+                        />
+                      )}
                       <Text
                         style={[
                           styles.sectionLabel,

@@ -47,7 +47,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { ModalLayout } from "../../layouts";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
-import { Hash, CalendarCheck } from "lucide-react-native";
+import { Hash, CalendarCheck, Fuel } from "lucide-react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
@@ -947,11 +947,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                 >
                   <CardRow>
                     <View style={styles.rowLeft}>
-                      <Ionicons
-                        name="water-outline"
-                        size={20}
-                        color={theme.colors.accent}
-                      />
+                      <Fuel size={20} color={theme.colors.accent} />
                       <Text
                         style={[styles.label, { color: theme.colors.muted }]}
                         numberOfLines={1}

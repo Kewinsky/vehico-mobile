@@ -52,6 +52,7 @@ import {
 import { ModalLayout } from "../../layouts";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
+import { SquarePen } from "lucide-react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
 
@@ -815,11 +816,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
               }}
             >
               <View style={styles.rowLeft}>
-                <Ionicons
-                  name="create-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
+                <SquarePen size={20} color={theme.colors.accent} />
                 <Text
                   style={[styles.label, { color: theme.colors.muted }]}
                   numberOfLines={1}

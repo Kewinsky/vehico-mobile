@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Search } from "lucide-react-native";
 
 import { useTheme } from "../../ThemeProvider";
 
@@ -37,12 +37,7 @@ export function SearchBar({
           },
         ]}
       >
-        <Ionicons
-          name="search-outline"
-          size={20}
-          color={theme.colors.accent}
-          style={styles.searchIcon}
-        />
+        <Search size={20} color={theme.colors.accent} style={styles.searchIcon} />
         <TextInput
           value={value}
           onChangeText={onChangeText}
