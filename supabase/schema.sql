@@ -821,17 +821,7 @@ begin
     raise exception 'Vehicle not found: %', p_vehicle_id;
   end if;
 
-  select
-    coalesce(us.distance_unit, 'km'),
-    coalesce(us.fuel_unit, 'liters'),
-    coalesce(us.currency, 'PLN')
-  into v_distance_unit, v_fuel_unit, v_currency
-  from public.user_settings us
-  where us.user_id = auth.uid()
-  limit 1;
-  v_distance_unit := coalesce(v_distance_unit, 'km');
-  v_fuel_unit := coalesce(v_fuel_unit, 'liters');
-  v_currency := coalesce(v_currency, 'PLN');
+  -- Units (v_distance_unit / v_fuel_unit / v_currency): defaults above; app prefs live in AsyncStorage, not Postgres.
 
   -- Strip optional vehicle fields when not included
   if not v_include_notes then
