@@ -25,6 +25,11 @@ type SettingItem = {
   options: Option<UserSettings[keyof UserSettings]>[];
 };
 
+function capitalizeFirst(value: string): string {
+  if (!value.length) return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 function buildCardConfig(t: TFunction): Array<{
   cardLabelKey: string;
   items: SettingItem[];
@@ -38,8 +43,8 @@ function buildCardConfig(t: TFunction): Array<{
           icon: "cash-outline",
           labelKey: "settings.currency",
           options: [
-            { value: "PLN", label: "PLN" },
-            { value: "EUR", label: "EUR" },
+            { value: "PLN", label: capitalizeFirst("PLN") },
+            { value: "EUR", label: capitalizeFirst("EUR") },
           ],
         },
         {
@@ -47,8 +52,11 @@ function buildCardConfig(t: TFunction): Array<{
           icon: "speedometer-outline",
           labelKey: "settings.distanceUnit",
           options: [
-            { value: "km", label: t("settings.distanceUnitKm") },
-            { value: "miles", label: t("settings.distanceUnitMiles") },
+            { value: "km", label: capitalizeFirst(t("settings.distanceUnitKm")) },
+            {
+              value: "miles",
+              label: capitalizeFirst(t("settings.distanceUnitMiles")),
+            },
           ],
         },
         {
@@ -56,8 +64,11 @@ function buildCardConfig(t: TFunction): Array<{
           icon: "water-outline",
           labelKey: "settings.fuelUnit",
           options: [
-            { value: "liters", label: t("settings.fuelUnitLiters") },
-            { value: "gallons", label: t("settings.fuelUnitGallons") },
+            { value: "liters", label: capitalizeFirst(t("settings.fuelUnitLiters")) },
+            {
+              value: "gallons",
+              label: capitalizeFirst(t("settings.fuelUnitGallons")),
+            },
           ],
         },
       ],
@@ -70,8 +81,8 @@ function buildCardConfig(t: TFunction): Array<{
           icon: "sunny-outline",
           labelKey: "settings.theme",
           options: [
-            { value: "light", label: t("settings.themeLight") },
-            { value: "dark", label: t("settings.themeDark") },
+            { value: "light", label: capitalizeFirst(t("settings.themeLight")) },
+            { value: "dark", label: capitalizeFirst(t("settings.themeDark")) },
           ],
         },
         {
@@ -79,8 +90,8 @@ function buildCardConfig(t: TFunction): Array<{
           icon: "language-outline",
           labelKey: "settings.language",
           options: [
-            { value: "pl", label: "PL" },
-            { value: "en", label: "EN" },
+            { value: "pl", label: capitalizeFirst("PL") },
+            { value: "en", label: capitalizeFirst("EN") },
           ],
         },
       ],

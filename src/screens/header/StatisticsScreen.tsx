@@ -76,7 +76,7 @@ function StatTile({
 }: {
   icon?: keyof typeof Ionicons.glyphMap;
   iconComponent?: ReactNode;
-  label: string;
+  label: ReactNode;
   valueMain: string;
   valueSuffix?: string;
   theme: AppTheme;
@@ -136,7 +136,7 @@ function StatTile({
         style={({ pressed }) => [...tileStyle, pressed && { opacity: 0.7 }]}
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={label}
+        accessibilityLabel={typeof label === "string" ? label : undefined}
         accessibilityHint={accessibilityHint}
       >
         {tileContent}
@@ -675,6 +675,7 @@ export function StatisticsScreen(props: Props) {
   const [oilLastChangeShowDate, setOilLastChangeShowDate] = useState(true);
   const [oilAvgIntervalShowMonths, setOilAvgIntervalShowMonths] =
     useState(true);
+  const [lastRefuelShowAmount, setLastRefuelShowAmount] = useState(true);
   const [loading, setLoading] = useState(true);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [service, setService] = useState<ServiceEntry[]>([]);
@@ -689,12 +690,19 @@ export function StatisticsScreen(props: Props) {
 
   const currency = settings?.currency ?? "PLN";
   const distanceUnit = settings?.distanceUnit ?? "km";
+  const distanceUnitLabel =
+    distanceUnit === "miles"
+      ? t("settings.distanceUnitMiles")
+      : t("settings.distanceUnitKm");
   const fuelUnit = settings?.fuelUnit ?? "liters";
   const fuelUnitLabel =
     fuelUnit === "liters"
       ? t("dashboard.stats.units.liters")
       : t("dashboard.stats.units.gallons");
-  const fuelUnitShort = fuelUnit === "liters" ? "L" : "gal";
+  const fuelUnitShort =
+    fuelUnit === "liters"
+      ? t("dashboard.stats.units.litersShort")
+      : t("dashboard.stats.units.gallonsShort");
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -1000,10 +1008,10 @@ export function StatisticsScreen(props: Props) {
     : "—";
   const lastOilChangeMileageLabel =
     lastOilChange?.mileage != null
-      ? `${fmtNumber(lastOilChange.mileage, 0)} ${distanceUnit}`
+      ? `${fmtNumber(lastOilChange.mileage, 0)} ${distanceUnitLabel}`
       : "—";
   const oilIntervalAvgKmLabel = Number.isFinite(oilIntervals.avgKm)
-    ? `${fmtNumber(oilIntervals.avgKm, 0)} ${distanceUnit}`
+    ? `${fmtNumber(oilIntervals.avgKm, 0)} ${distanceUnitLabel}`
     : "—";
   const oilIntervalAvgMonthsLabel = Number.isFinite(oilIntervals.avgMonths)
     ? `${fmtMonths(oilIntervals.avgMonths)} ${t("dashboard.stats.months")}`
@@ -1093,6 +1101,16 @@ export function StatisticsScreen(props: Props) {
     daysSinceLastRefuel != null
       ? t("dashboard.stats.daysAgo", { days: daysSinceLastRefuel })
       : null;
+  const canToggleLastRefuel =
+    Number.isFinite(lastRefuelAmount) && lastRefuelHint != null;
+  const lastRefuelValueMain = lastRefuelShowAmount
+    ? lastRefuelAmountMain
+    : (lastRefuelHint ?? "—");
+  const lastRefuelValueSuffix = lastRefuelShowAmount
+    ? Number.isFinite(lastRefuelAmount)
+      ? fuelUnitLabel
+      : undefined
+    : undefined;
 
   const renderServiceIcon = useCallback(
     (cat: ServiceEntryCategory) => {
@@ -1321,7 +1339,7 @@ export function StatisticsScreen(props: Props) {
             }
             valueSuffix={
               Number.isFinite(totals.avgConsumptionPer100)
-                ? `${fuelUnitShort}/100${distanceUnit}`
+                ? `${fuelUnitShort}/100 ${distanceUnitLabel}`
                 : undefined
             }
           />
@@ -1343,15 +1361,15 @@ export function StatisticsScreen(props: Props) {
           <StatTile
             theme={theme}
             styles={styles}
-            label={
-              lastRefuelHint
-                ? `${t("dashboard.stats.lastRefuel")} (${lastRefuelHint})`
-                : t("dashboard.stats.lastRefuel")
+            label={t("dashboard.stats.lastRefuel")}
+            valueMain={lastRefuelValueMain}
+            valueSuffix={lastRefuelValueSuffix}
+            onPress={
+              canToggleLastRefuel
+                ? () => setLastRefuelShowAmount((p) => !p)
+                : undefined
             }
-            valueMain={lastRefuelAmountMain}
-            valueSuffix={
-              Number.isFinite(lastRefuelAmount) ? fuelUnitLabel : undefined
-            }
+            accessibilityHint={t("dashboard.stats.tapToSwitchUnit")}
           />
           <StatTile
             theme={theme}
@@ -1360,7 +1378,7 @@ export function StatisticsScreen(props: Props) {
             valueMain={
               fuelStatsDistance != null ? fmtNumber(fuelStatsDistance, 0) : "—"
             }
-            valueSuffix={fuelStatsDistance != null ? distanceUnit : undefined}
+            valueSuffix={fuelStatsDistance != null ? distanceUnitLabel : undefined}
           />
         </View>
       </View>
@@ -1556,7 +1574,7 @@ export function StatisticsScreen(props: Props) {
             }
             valueSuffix={
               !oilLastChangeShowDate && lastOilChange?.mileage != null
-                ? distanceUnit
+                ? distanceUnitLabel
                 : undefined
             }
             onPress={() => setOilLastChangeShowDate((p) => !p)}
@@ -1581,7 +1599,7 @@ export function StatisticsScreen(props: Props) {
                   ? t("dashboard.stats.months")
                   : undefined
                 : Number.isFinite(oilIntervals.avgKm)
-                  ? distanceUnit
+                  ? distanceUnitLabel
                   : undefined
             }
             onPress={() => setOilAvgIntervalShowMonths((p) => !p)}
@@ -1611,7 +1629,7 @@ export function StatisticsScreen(props: Props) {
                   style={[styles.oilLifeMainValue, { color: theme.colors.fg }]}
                 >
                   {oilLife.remainingKm != null
-                    ? `${oilLife.remainingKm.toLocaleString()} ${distanceUnit}`
+                    ? `${oilLife.remainingKm.toLocaleString()} ${distanceUnitLabel}`
                     : `${oilLife.remainingDays}d`}
                 </Text>
               </View>

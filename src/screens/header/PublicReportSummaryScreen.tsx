@@ -85,6 +85,10 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const { vehicleId, reportOptions, selectedVehiclePhotoIds, tempPhotos } =
     route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
+  const distanceUnitLabel =
+    distanceUnit === "miles"
+      ? t("settings.distanceUnitMiles")
+      : t("settings.distanceUnitKm");
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [serviceEntriesCount, setServiceEntriesCount] = useState<number>(0);
@@ -347,7 +351,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                   const licenseVal = val(vehicle.license_plate, dash);
                   const mileageVal =
                     vehicle.mileage != null
-                      ? `${vehicle.mileage.toLocaleString()} ${distanceUnit}`
+                      ? `${vehicle.mileage.toLocaleString()} ${distanceUnitLabel}`
                       : dash;
                   const engineVal =
                     vehicle.engine_capacity != null

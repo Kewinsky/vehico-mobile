@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
@@ -30,7 +31,12 @@ export function ServiceItem({
   onPress,
 }: ServiceItemProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = makeStyles(theme);
+  const distanceUnitLabel =
+    distanceUnit === "miles"
+      ? t("settings.distanceUnitMiles")
+      : t("settings.distanceUnitKm");
 
   const formattedDate = date
     ? new Intl.DateTimeFormat("en-GB", {
@@ -40,7 +46,7 @@ export function ServiceItem({
       }).format(new Date(date))
     : "—";
   const mileageText =
-    mileage != null ? `${mileage.toLocaleString()} ${distanceUnit}` : "—";
+    mileage != null ? `${mileage.toLocaleString()} ${distanceUnitLabel}` : "—";
   const costText = cost != null ? `${cost.toLocaleString()} ${currency}` : "—";
 
   const content = (

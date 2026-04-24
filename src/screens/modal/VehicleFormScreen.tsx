@@ -87,6 +87,10 @@ export function VehicleFormScreen({ navigation, route }: Props) {
   const { vehiclesLimit, isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = makeStyles(theme);
   const distanceUnit = settings?.distanceUnit ?? "km";
+  const distanceUnitLabel =
+    distanceUnit === "miles"
+      ? t("settings.distanceUnitMiles")
+      : t("settings.distanceUnitKm");
   const vehicleId = route.params?.vehicleId;
   const isEditMode = !!vehicleId;
   const accentBg = useMemo(
@@ -805,7 +809,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       style={[styles.label, { color: theme.colors.muted }]}
                       numberOfLines={1}
                     >
-                      {t("vehicleForm.mileageLabel")} ({distanceUnit})
+                      {t("vehicleForm.mileageLabel")} ({distanceUnitLabel})
                     </Text>
                   </View>
                   <TextInput

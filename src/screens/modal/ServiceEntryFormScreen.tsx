@@ -91,6 +91,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { isPremium, workshopsLimit, freePlanWorkshopIds } = useEntitlements();
   const { vehicleId, entryId } = route.params as any;
   const distanceUnit = settings?.distanceUnit ?? "km";
+  const distanceUnitLabel =
+    distanceUnit === "miles"
+      ? t("settings.distanceUnitMiles")
+      : t("settings.distanceUnitKm");
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -798,7 +802,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   style={[styles.label, { color: theme.colors.muted }]}
                   numberOfLines={1}
                 >
-                  {t("entryForm.mileage")} ({distanceUnit})
+                  {t("entryForm.mileage")} ({distanceUnitLabel})
                 </Text>
               </View>
               <TextInput

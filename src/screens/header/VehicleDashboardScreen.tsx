@@ -478,6 +478,10 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const pagerProgress = useSharedValue(1);
   const detailIconSize = 28;
   const distanceUnit = settings?.distanceUnit ?? "km";
+  const distanceUnitLabel =
+    distanceUnit === "miles"
+      ? t("settings.distanceUnitMiles")
+      : t("settings.distanceUnitKm");
   const vehicleImageHeight = Math.min(Math.max(windowHeight * 0.34, 280), 360);
   const mileageStaleYmd = useMemo(() => {
     if (vehicle?.mileage == null) return null;
@@ -754,7 +758,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const handleQuickMileageEdit = useCallback(() => {
     Alert.prompt(
       t("dashboard.mileageUpdated.cta"),
-      `${t("vehicleForm.mileageLabel")} (${distanceUnit})`,
+      `${t("vehicleForm.mileageLabel")} (${distanceUnitLabel})`,
       [
         { text: t("common.cancel"), style: "cancel" },
         {
@@ -780,7 +784,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       "plain-text",
       vehicle?.mileage != null ? String(vehicle.mileage) : "",
     );
-  }, [distanceUnit, t, vehicle?.mileage, vehicleId]);
+  }, [distanceUnitLabel, t, vehicle?.mileage, vehicleId]);
 
   const tiles: DashboardTile[] = [
     {
@@ -917,7 +921,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   label={t("vehicleForm.mileageLabel")}
                   value={
                     vehicle?.mileage
-                      ? `${vehicle.mileage.toLocaleString()} ${distanceUnit}`
+                      ? `${vehicle.mileage.toLocaleString()} ${distanceUnitLabel}`
                       : "—"
                   }
                 />

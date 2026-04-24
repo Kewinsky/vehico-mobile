@@ -86,6 +86,10 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const styles = makeStyles(theme);
   const { vehicleId, reminderId } = route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
+  const distanceUnitLabel =
+    distanceUnit === "miles"
+      ? t("settings.distanceUnitMiles")
+      : t("settings.distanceUnitKm");
 
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
@@ -738,7 +742,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                     style={[styles.label, { color: theme.colors.muted }]}
                     numberOfLines={1}
                   >
-                    {t("reminderForm.dueMileage", { unit: distanceUnit })}
+                    {t("reminderForm.dueMileage", { unit: distanceUnitLabel })}
                   </Text>
                   <TextInput
                     value={dueMileage}

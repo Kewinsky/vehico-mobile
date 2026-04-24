@@ -29,7 +29,7 @@ import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
-import { Fuel } from "lucide-react-native";
+import { Droplet, Fuel } from "lucide-react-native";
 
 const FUEL_TYPE_OPTIONS: readonly FuelGrade[] = [
   "95",
@@ -303,11 +303,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
             >
               <CardRow>
                 <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="options-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
+                  <Fuel size={20} color={theme.colors.accent} />
                   <Text
                     style={[styles.label, { color: theme.colors.muted }]}
                     numberOfLines={1}
@@ -410,7 +406,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
 
             <CardRow>
               <View style={styles.rowLeft}>
-                <Fuel size={20} color={theme.colors.accent} />
+                <Droplet size={20} color={theme.colors.accent} />
                 <Text
                   style={[styles.label, { color: theme.colors.muted }]}
                   numberOfLines={1}

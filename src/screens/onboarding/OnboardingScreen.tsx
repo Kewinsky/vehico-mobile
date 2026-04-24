@@ -68,6 +68,10 @@ export function OnboardingScreen({ navigation }: Props) {
   const { vehiclesLimit, isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const distanceUnit = settings?.distanceUnit ?? "km";
+  const distanceUnitLabel =
+    distanceUnit === "miles"
+      ? t("settings.distanceUnitMiles")
+      : t("settings.distanceUnitKm");
 
   const [currentStep, setCurrentStep] = useState(0);
   const [showValidation, setShowValidation] = useState(false);
@@ -888,7 +892,7 @@ export function OnboardingScreen({ navigation }: Props) {
                           ]}
                         >
                           {mileage.trim().length
-                            ? `${Number(mileage.trim()).toLocaleString()} ${distanceUnit}`
+                            ? `${Number(mileage.trim()).toLocaleString()} ${distanceUnitLabel}`
                             : "—"}
                         </Text>
                       </View>

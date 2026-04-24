@@ -88,6 +88,10 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
     selectedReportId,
   } = route.params;
   const distanceUnit = settings?.distanceUnit ?? "km";
+  const distanceUnitLabel =
+    distanceUnit === "miles"
+      ? t("settings.distanceUnitMiles")
+      : t("settings.distanceUnitKm");
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [serviceEntriesCount, setServiceEntriesCount] = useState<number>(0);
@@ -275,7 +279,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                 const licenseVal = val(vehicle.license_plate, dash);
                 const mileageVal =
                   vehicle.mileage != null
-                    ? `${vehicle.mileage.toLocaleString()} ${distanceUnit}`
+                    ? `${vehicle.mileage.toLocaleString()} ${distanceUnitLabel}`
                     : dash;
                 const engineVal =
                   vehicle.engine_capacity != null

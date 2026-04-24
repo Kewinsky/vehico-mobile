@@ -262,6 +262,10 @@ export function VehiclesScreen({ navigation, route }: Props) {
     refresh: refreshEntitlements,
   } = useEntitlements();
   const distanceUnit = settings?.distanceUnit ?? "km";
+  const distanceUnitLabel =
+    distanceUnit === "miles"
+      ? t("settings.distanceUnitMiles")
+      : t("settings.distanceUnitKm");
 
   const visibleVehicleId: string | null = isPremium
     ? null
@@ -307,9 +311,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
     if (!mileage) return "";
     const value =
       distanceUnit === "miles" ? Math.round(mileage * 0.621371) : mileage;
-    return `${value.toLocaleString()} ${
-      distanceUnit === "km" ? "km" : "miles"
-    }`;
+    return `${value.toLocaleString()} ${distanceUnitLabel}`;
   };
 
   const load = useCallback(
