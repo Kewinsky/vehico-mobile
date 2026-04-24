@@ -909,6 +909,44 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                 />
                 <DetailItem
                   icon={
+                    <Fuel size={detailIconSize} color={theme.colors.accent} />
+                  }
+                  label={t("vehicleForm.fuelTypeLabel")}
+                  value={
+                    vehicle?.fuel_type
+                      ? t(
+                          `vehicleForm.fuelType${
+                            vehicle.fuel_type.charAt(0).toUpperCase() +
+                            vehicle.fuel_type.slice(1)
+                          }` as
+                            | "vehicleForm.fuelTypePetrol"
+                            | "vehicleForm.fuelTypeDiesel"
+                            | "vehicleForm.fuelTypeHybrid"
+                            | "vehicleForm.fuelTypeElectric"
+                            | "vehicleForm.fuelTypeLpg",
+                        )
+                      : "—"
+                  }
+                />
+              </View>
+              <View style={styles.detailsRow}>
+                <DetailItem
+                  icon={
+                    <Ionicons
+                      name="speedometer-outline"
+                      size={detailIconSize}
+                      color={theme.colors.accent}
+                    />
+                  }
+                  label={t("vehicleForm.initialMileageLabel")}
+                  value={
+                    vehicle?.initial_mileage != null
+                      ? `${vehicle.initial_mileage.toLocaleString()} ${distanceUnitLabel}`
+                      : "—"
+                  }
+                />
+                <DetailItem
+                  icon={
                     <Ionicons
                       name="speedometer-outline"
                       size={detailIconSize}
@@ -917,29 +955,10 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   }
                   label={t("vehicleForm.mileageLabel")}
                   value={
-                    vehicle?.mileage
+                    vehicle?.mileage != null
                       ? `${vehicle.mileage.toLocaleString()} ${distanceUnitLabel}`
                       : "—"
                   }
-                />
-              </View>
-              <View style={styles.detailsRow}>
-                <DetailItem
-                  icon={
-                    <CalendarCheck
-                      size={detailIconSize}
-                      color={theme.colors.accent}
-                    />
-                  }
-                  label={t("vehicleForm.firstRegistrationDateLabel")}
-                  value={vehicle?.first_registration_date ?? "—"}
-                />
-                <DetailItem
-                  icon={
-                    <Hash size={detailIconSize} color={theme.colors.accent} />
-                  }
-                  label={t("vehicleForm.licensePlateLabel")}
-                  value={vehicle?.license_plate ?? "—"}
                 />
               </View>
               <View style={styles.detailsRow}>
@@ -1007,26 +1026,21 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               <View style={styles.detailsRow}>
                 <DetailItem
                   icon={
-                    <Fuel size={detailIconSize} color={theme.colors.accent} />
+                    <CalendarCheck
+                      size={detailIconSize}
+                      color={theme.colors.accent}
+                    />
                   }
-                  label={t("vehicleForm.fuelTypeLabel")}
-                  value={
-                    vehicle?.fuel_type
-                      ? t(
-                          `vehicleForm.fuelType${
-                            vehicle.fuel_type.charAt(0).toUpperCase() +
-                            vehicle.fuel_type.slice(1)
-                          }` as
-                            | "vehicleForm.fuelTypePetrol"
-                            | "vehicleForm.fuelTypeDiesel"
-                            | "vehicleForm.fuelTypeHybrid"
-                            | "vehicleForm.fuelTypeElectric"
-                            | "vehicleForm.fuelTypeLpg",
-                        )
-                      : "—"
-                  }
+                  label={t("vehicleForm.firstRegistrationDateLabel")}
+                  value={vehicle?.first_registration_date ?? "—"}
                 />
-                <View style={styles.detailItem} />
+                <DetailItem
+                  icon={
+                    <Hash size={detailIconSize} color={theme.colors.accent} />
+                  }
+                  label={t("vehicleForm.licensePlateLabel")}
+                  value={vehicle?.license_plate ?? "—"}
+                />
               </View>
             </View>
           </View>

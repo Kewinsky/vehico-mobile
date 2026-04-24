@@ -101,6 +101,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
+  const [initialMileage, setInitialMileage] = useState("");
   const [mileage, setMileage] = useState("");
   const [firstRegistrationDate, setFirstRegistrationDate] = useState("");
   const [licensePlate, setLicensePlate] = useState("");
@@ -154,6 +155,9 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       setMake(v.make);
       setModel(v.model);
       setYear(String(v.production_year));
+      setInitialMileage(
+        v.initial_mileage != null ? String(v.initial_mileage) : "",
+      );
       setMileage(v.mileage ? String(v.mileage) : "");
       initialMileageRef.current = v.mileage;
       setFirstRegistrationDate(v.first_registration_date ?? "");
@@ -439,6 +443,10 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         return;
       }
       const production_year = Number(year.trim());
+      if (initialMileage.trim() && !isNonNegativeNumber(initialMileage)) {
+        toastError(t("validation.nonNegativeRequired"));
+        return;
+      }
       if (mileage.trim() && !isNonNegativeNumber(mileage)) {
         toastError(t("validation.nonNegativeRequired"));
         return;
@@ -458,6 +466,9 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         make: make.trim(),
         model: model.trim(),
         production_year,
+        initial_mileage: initialMileage.trim().length
+          ? Number(initialMileage)
+          : null,
         mileage: mileage.trim().length ? Number(mileage) : null,
         first_registration_date: firstRegistrationDate.trim().length
           ? firstRegistrationDate.trim()
@@ -786,6 +797,38 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       type === "motorcycle"
                         ? t("vehicleForm.placeholderYearMotorcycle")
                         : t("vehicleForm.placeholderYear")
+                    }
+                    placeholderTextColor={theme.colors.muted}
+                    style={[
+                      styles.input,
+                      { color: theme.colors.fg, textAlign: "right" },
+                    ]}
+                  />
+                </CardRow>
+
+                <CardRow>
+                  <View style={styles.rowLeft}>
+                    <Ionicons
+                      name="speedometer-outline"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
+                    <Text
+                      style={[styles.label, { color: theme.colors.muted }]}
+                      numberOfLines={1}
+                    >
+                      {t("vehicleForm.initialMileageLabel")} ({distanceUnitLabel})
+                    </Text>
+                  </View>
+                  <TextInput
+                    value={initialMileage}
+                    onChangeText={setInitialMileage}
+                    keyboardType="number-pad"
+                    editable={!saving}
+                    placeholder={
+                      type === "motorcycle"
+                        ? t("vehicleForm.placeholderInitialMileageMotorcycle")
+                        : t("vehicleForm.placeholderInitialMileage")
                     }
                     placeholderTextColor={theme.colors.muted}
                     style={[

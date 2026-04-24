@@ -12,6 +12,7 @@ export type Vehicle = {
   make: string;
   model: string;
   production_year: number;
+  initial_mileage?: number | null;
   mileage: number | null; // current mileage in km
   mileage_updated_at: string | null; // ISO date YYYY-MM-DD
   first_registration_date: string | null; // ISO date YYYY-MM-DD
@@ -143,6 +144,11 @@ export type PublicReportSnapshot = {
     };
     vehicle_tires?: VehicleTire[];
     vehicle_wheels?: VehicleWheel[];
+    units?: {
+      distance_unit?: DistanceUnit;
+      fuel_unit?: FuelUnit;
+      currency?: Currency;
+    };
     snapshot_version: string;
     snapshot_date: string;
   };

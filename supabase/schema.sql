@@ -20,6 +20,7 @@ create table public.vehicles (
   make text not null,
   model text not null,
   production_year integer not null,
+  initial_mileage integer, -- mileage when the vehicle was first added
   mileage integer, -- current mileage in km
   mileage_updated_at date, -- calendar day when mileage was last set
   first_registration_date date, -- first registration date
@@ -796,6 +797,9 @@ declare
   v_include_tires boolean;
   v_include_fueling_stats boolean;
   v_include_photos boolean;
+  v_distance_unit text := 'km';
+  v_fuel_unit text := 'liters';
+  v_currency text := 'PLN';
 begin
   -- Extract options (new format + backward compat with old keys)
   v_include_service_history := coalesce((p_report_options->>'include_service_history')::boolean, (p_report_options->>'include_service_entries')::boolean, false);
@@ -816,6 +820,18 @@ begin
   if v_vehicle is null then
     raise exception 'Vehicle not found: %', p_vehicle_id;
   end if;
+
+  select
+    coalesce(us.distance_unit, 'km'),
+    coalesce(us.fuel_unit, 'liters'),
+    coalesce(us.currency, 'PLN')
+  into v_distance_unit, v_fuel_unit, v_currency
+  from public.user_settings us
+  where us.user_id = auth.uid()
+  limit 1;
+  v_distance_unit := coalesce(v_distance_unit, 'km');
+  v_fuel_unit := coalesce(v_fuel_unit, 'liters');
+  v_currency := coalesce(v_currency, 'PLN');
 
   -- Strip optional vehicle fields when not included
   if not v_include_notes then
@@ -978,6 +994,11 @@ begin
     'vehicle_photos', v_vehicle_photos,
     'vehicle_tires', v_vehicle_tires,
     'vehicle_wheels', v_vehicle_wheels,
+    'units', jsonb_build_object(
+      'distance_unit', v_distance_unit,
+      'fuel_unit', v_fuel_unit,
+      'currency', v_currency
+    ),
     'report_options', p_report_options,
     'snapshot_version', '2.0',
     'snapshot_date', now()
@@ -1538,6 +1559,7 @@ begin
     make,
     model,
     production_year,
+    initial_mileage,
     mileage,
     mileage_updated_at,
     first_registration_date,
@@ -1557,6 +1579,7 @@ begin
     p_make,
     p_model,
     p_production_year,
+    p_mileage,
     p_mileage,
     case when p_mileage is not null then current_date else null end,
     p_first_registration_date,

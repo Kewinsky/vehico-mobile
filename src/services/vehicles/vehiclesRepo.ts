@@ -8,6 +8,7 @@ type NewVehicleInput = {
   make: string;
   model: string;
   production_year: number;
+  initial_mileage?: number | null;
   mileage?: number | null;
   mileage_updated_at?: string | null;
   first_registration_date?: string | null;
