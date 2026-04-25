@@ -52,6 +52,8 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import type { AppTheme } from "../../ui/theme";
 import { ServiceItem } from "../../ui/components/list/ServiceItem";
+import { formatShortDisplayDate } from "../../utils/dateFormatting";
+import { groupThousands } from "../../utils/numberFormatting";
 
 type ScreenProps = NativeStackScreenProps<AppStackParamList, "Statistics">;
 type EmbeddedProps = {
@@ -234,9 +236,9 @@ function fmtPct(pct: number) {
   if (!Number.isFinite(pct)) return "—";
   return `${Math.round(pct)}%`;
 }
-function fmtNumber(amount: number, digits = 1) {
+function fmtNumber(amount: number, language: string, digits = 1) {
   if (!Number.isFinite(amount)) return "—";
-  return amount.toFixed(digits);
+  return groupThousands(amount, language, digits);
 }
 /** Format month count for display: integer without decimal (e.g. "2" not "2.0"). */
 function fmtMonths(value: number): string {
@@ -1428,15 +1430,16 @@ export function StatisticsScreen(props: Props) {
     return { avgKm, avgMonths };
   }, [service]);
 
-  const lastOilChangeDateLabel = lastOilChange?.service_date
-    ? lastOilChange.service_date.slice(0, 10)
-    : "—";
+  const lastOilChangeDateLabel = formatShortDisplayDate(
+    lastOilChange?.service_date ?? null,
+    i18n.language,
+  );
   const lastOilChangeMileageLabel =
     lastOilChange?.mileage != null
-      ? `${fmtNumber(lastOilChange.mileage, 0)} ${distanceUnitLabel}`
+      ? `${fmtNumber(lastOilChange.mileage, i18n.language, 0)} ${distanceUnitLabel}`
       : "—";
   const oilIntervalAvgKmLabel = Number.isFinite(oilIntervals.avgKm)
-    ? `${fmtNumber(oilIntervals.avgKm, 0)} ${distanceUnitLabel}`
+    ? `${fmtNumber(oilIntervals.avgKm, i18n.language, 0)} ${distanceUnitLabel}`
     : "—";
   const oilIntervalAvgMonthsLabel = Number.isFinite(oilIntervals.avgMonths)
     ? `${fmtMonths(oilIntervals.avgMonths)} ${t("dashboard.stats.months")}`
@@ -1496,8 +1499,14 @@ export function StatisticsScreen(props: Props) {
       isDueSoon,
     };
   }, [lastOilChange?.service_date, lastOilChange?.mileage, vehicle?.mileage]);
-  const insuranceValidUntilLabel = vehicle?.insurance_valid_until ?? "—";
-  const inspectionValidUntilLabel = vehicle?.inspection_valid_until ?? "—";
+  const insuranceValidUntilLabel = formatShortDisplayDate(
+    vehicle?.insurance_valid_until ?? null,
+    i18n.language,
+  );
+  const inspectionValidUntilLabel = formatShortDisplayDate(
+    vehicle?.inspection_valid_until ?? null,
+    i18n.language,
+  );
   const fuelStatsDistance =
     totals.totalDistance > 0 ? totals.totalDistance : null;
   const lastRefuelAmount = Number(lastFueling?.fuel_amount ?? Number.NaN);
@@ -1695,21 +1704,29 @@ export function StatisticsScreen(props: Props) {
 
   const totalMain =
     totals.total > 0
-      ? totals.total >= 10
-        ? Math.round(totals.total).toString()
-        : totals.total.toFixed(1)
+      ? groupThousands(
+          totals.total >= 10 ? Math.round(totals.total) : totals.total,
+          i18n.language,
+          totals.total >= 10 ? 0 : 1,
+        )
       : "—";
   const fuelMain =
     totals.fuelCost > 0
-      ? totals.fuelCost >= 10
-        ? Math.round(totals.fuelCost).toString()
-        : totals.fuelCost.toFixed(1)
+      ? groupThousands(
+          totals.fuelCost >= 10 ? Math.round(totals.fuelCost) : totals.fuelCost,
+          i18n.language,
+          totals.fuelCost >= 10 ? 0 : 1,
+        )
       : "—";
   const serviceMain =
     totals.serviceCost > 0
-      ? totals.serviceCost >= 10
-        ? Math.round(totals.serviceCost).toString()
-        : totals.serviceCost.toFixed(1)
+      ? groupThousands(
+          totals.serviceCost >= 10
+            ? Math.round(totals.serviceCost)
+            : totals.serviceCost,
+          i18n.language,
+          totals.serviceCost >= 10 ? 0 : 1,
+        )
       : "—";
 
   const oilLifeStatusText = oilLife
@@ -1731,6 +1748,14 @@ export function StatisticsScreen(props: Props) {
     <View>
       {/* Cost summary split by fuel and service categories. */}
       <View style={styles.section}>
+        <StatTile
+          theme={theme}
+          styles={styles}
+          label={t("dashboard.stats.metrics.totalExpenses")}
+          valueMain={totalMain}
+          valueSuffix={totalMain !== "—" ? currency : undefined}
+          fullWidth
+        />
         <View style={styles.tilesRow}>
           <StatTile
             theme={theme}
@@ -1828,7 +1853,7 @@ export function StatisticsScreen(props: Props) {
             label={t("dashboard.stats.metrics.avgFuelConsumption")}
             valueMain={
               Number.isFinite(totals.avgConsumptionPer100)
-                ? fmtNumber(totals.avgConsumptionPer100, 1)
+                ? fmtNumber(totals.avgConsumptionPer100, i18n.language, 1)
                 : "—"
             }
             valueSuffix={
@@ -1843,7 +1868,7 @@ export function StatisticsScreen(props: Props) {
             label={t("dashboard.stats.avgCostPerUnit", { unit: fuelUnitShort })}
             valueMain={
               Number.isFinite(totals.avgCostPerLiter)
-                ? fmtNumber(totals.avgCostPerLiter, 2)
+                ? fmtNumber(totals.avgCostPerLiter, i18n.language, 2)
                 : "—"
             }
             valueSuffix={
@@ -1870,7 +1895,9 @@ export function StatisticsScreen(props: Props) {
             styles={styles}
             label={t("dashboard.stats.metrics.totalDistance")}
             valueMain={
-              fuelStatsDistance != null ? fmtNumber(fuelStatsDistance, 0) : "—"
+              fuelStatsDistance != null
+                ? fmtNumber(fuelStatsDistance, i18n.language, 0)
+                : "—"
             }
             valueSuffix={fuelStatsDistance != null ? distanceUnitLabel : undefined}
           />
@@ -2209,7 +2236,7 @@ export function StatisticsScreen(props: Props) {
               oilLastChangeShowDate
                 ? lastOilChangeDateLabel
                 : lastOilChange?.mileage != null
-                  ? fmtNumber(lastOilChange.mileage, 0)
+                  ? fmtNumber(lastOilChange.mileage, i18n.language, 0)
                   : "—"
             }
             valueSuffix={
@@ -2230,7 +2257,7 @@ export function StatisticsScreen(props: Props) {
                   ? fmtMonths(oilIntervals.avgMonths)
                   : "—"
                 : Number.isFinite(oilIntervals.avgKm)
-                  ? fmtNumber(oilIntervals.avgKm, 0)
+                  ? fmtNumber(oilIntervals.avgKm, i18n.language, 0)
                   : "—"
             }
             valueSuffix={
@@ -2269,7 +2296,7 @@ export function StatisticsScreen(props: Props) {
                   style={[styles.oilLifeMainValue, { color: theme.colors.fg }]}
                 >
                   {oilLife.remainingKm != null
-                    ? `${oilLife.remainingKm.toLocaleString()} ${distanceUnitLabel}`
+                    ? `${groupThousands(oilLife.remainingKm, i18n.language)} ${distanceUnitLabel}`
                     : `${oilLife.remainingDays}d`}
                 </Text>
               </View>

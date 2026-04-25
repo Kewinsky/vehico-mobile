@@ -44,7 +44,7 @@ function buildCardConfig(t: TFunction): Array<{
           labelKey: "settings.currency",
           options: [
             { value: "PLN", label: capitalizeFirst("PLN") },
-            { value: "EUR", label: capitalizeFirst("EUR") },
+            { value: "USD", label: capitalizeFirst("USD") },
           ],
         },
         {

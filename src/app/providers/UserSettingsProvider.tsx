@@ -14,7 +14,7 @@ import type { SupportedLanguage } from "../../i18n/i18n";
 import { useAuth } from "./AuthProvider";
 
 export type UserSettings = {
-  currency: "PLN" | "EUR";
+  currency: "PLN" | "USD";
   distanceUnit: "km" | "miles";
   fuelUnit: "liters" | "gallons";
   theme: "system" | "light" | "dark";

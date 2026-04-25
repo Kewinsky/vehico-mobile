@@ -30,6 +30,29 @@ export function formatDateDisplay(iso: string, locale: string): string {
 }
 
 /**
+ * Formats date for card/detail display in "25 Oct 2026" style.
+ * Uses app language (pl/en) while keeping day-month-year ordering.
+ */
+export function formatShortDisplayDate(
+  input: string | Date | null | undefined,
+  language?: string | null,
+): string {
+  if (!input) return "—";
+  const date = input instanceof Date ? input : new Date(String(input));
+  if (Number.isNaN(date.getTime())) return "—";
+  const localeCode = (language ?? "en").toLowerCase().startsWith("pl")
+    ? "pl-PL"
+    : "en-GB";
+  return new Intl.DateTimeFormat(localeCode, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  })
+    .format(date)
+    .replace(",", "");
+}
+
+/**
  * Formats date string to "Month Year" format in English
  * @param dateStr Date string in YYYY-MM-DD format
  * @returns Formatted string like "January 2024"

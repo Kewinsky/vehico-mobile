@@ -103,6 +103,8 @@ import {
   formatRelativeTimePast,
 } from "../../utils/formatRelativeTimePast";
 import { isNonNegativeNumber } from "../../utils/validation";
+import { formatShortDisplayDate } from "../../utils/dateFormatting";
+import { groupThousands } from "../../utils/numberFormatting";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
@@ -407,15 +409,14 @@ function parseYmd(dateYmd: string): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function formatTermsDate(dateYmd: string | null | undefined): string {
+function formatTermsDate(
+  dateYmd: string | null | undefined,
+  language: string,
+): string {
   if (!dateYmd) return "—";
   const date = parseYmd(dateYmd);
   if (!date) return "—";
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+  return formatShortDisplayDate(date, language);
 }
 
 function getDaysUntilDate(dateYmd: string | null | undefined): number | null {
@@ -441,13 +442,14 @@ function formatTermsValue(
   dateYmd: string | null | undefined,
   daysUntil: number | null,
   translate: (key: string, options?: Record<string, unknown>) => string,
+  language: string,
 ): string {
   if (!dateYmd) return "—";
-  if (daysUntil == null) return formatTermsDate(dateYmd);
+  if (daysUntil == null) return formatTermsDate(dateYmd, language);
   if (daysUntil < 0) return translate("dashboard.stats.statusOverdue");
   if (daysUntil <= 30)
     return translate("dashboard.stats.dueInDaysShort", { days: daysUntil });
-  return formatTermsDate(dateYmd);
+  return formatTermsDate(dateYmd, language);
 }
 
 export function VehicleDashboardScreen({ navigation, route }: Props) {
@@ -944,7 +946,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   }
                   value={
                     vehicle?.initial_mileage != null
-                      ? `${vehicle.initial_mileage.toLocaleString()} ${distanceUnitLabel}`
+                      ? `${groupThousands(vehicle.initial_mileage, i18n.language)} ${distanceUnitLabel}`
                       : "—"
                   }
                 />
@@ -959,7 +961,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   label={t("vehicleForm.mileageLabel")}
                   value={
                     vehicle?.mileage != null
-                      ? `${vehicle.mileage.toLocaleString()} ${distanceUnitLabel}`
+                      ? `${groupThousands(vehicle.mileage, i18n.language)} ${distanceUnitLabel}`
                       : "—"
                   }
                 />
@@ -1039,7 +1041,10 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                     />
                   }
                   label={t("vehicleForm.firstRegistrationDateLabel")}
-                  value={vehicle?.first_registration_date ?? "—"}
+                  value={formatShortDisplayDate(
+                    vehicle?.first_registration_date ?? null,
+                    i18n.language,
+                  )}
                 />
                 <DetailItem
                   icon={
@@ -1179,6 +1184,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                 vehicle?.insurance_valid_until,
                 insuranceDaysUntil,
                 t,
+                i18n.language,
               )}
               valueMainColor={
                 insuranceDaysUntil != null && insuranceDaysUntil < 0
@@ -1210,6 +1216,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                 vehicle?.inspection_valid_until,
                 inspectionDaysUntil,
                 t,
+                i18n.language,
               )}
               valueMainColor={
                 inspectionDaysUntil != null && inspectionDaysUntil < 0

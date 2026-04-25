@@ -1,8 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
+import { formatShortDisplayDate } from "../../../utils/dateFormatting";
 
 type FuelItemProps = {
   date: string;
@@ -25,36 +26,34 @@ export function FuelItem({
   currency,
   onPress,
 }: FuelItemProps) {
+  const { i18n } = useTranslation();
   const { theme } = useTheme();
   const styles = makeStyles(theme);
-  const formattedDate = date
-    ? new Intl.DateTimeFormat("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }).format(new Date(date))
-    : "—";
+  const formattedDate = formatShortDisplayDate(date, i18n.language);
   const details =
-    [formattedDate, stationLabel].filter(Boolean).join(" · ") || "—";
-  const amountWithType = fuelTypeLabel
-    ? `${Number(amount).toFixed(1)} ${fuelUnitLabel} (${fuelTypeLabel})`
-    : `${Number(amount).toFixed(1)} ${fuelUnitLabel}`;
+    [formattedDate, fuelTypeLabel, stationLabel].filter(Boolean).join(" · ") || "—";
 
   const content = (
     <View style={styles.card}>
       <View style={styles.topRow}>
         <Text
-          style={[styles.details, { color: theme.colors.fg }]}
+          style={[styles.details, { color: theme.colors.muted }]}
           numberOfLines={1}
         >
           {details}
         </Text>
       </View>
       <View style={styles.bottomRow}>
-        <Text style={styles.amountText}>{amountWithType}</Text>
-        <Text style={[styles.costText, { color: theme.colors.accent }]}>
-          {Number(cost).toFixed(2)} {currency}
-        </Text>
+        <View style={styles.valueWrap}>
+          <Text style={styles.amountText}>{Number(amount).toFixed(1)}</Text>
+          <Text style={styles.amountUnitText}> {fuelUnitLabel}</Text>
+        </View>
+        <View style={styles.valueWrap}>
+          <Text style={[styles.costText, { color: theme.colors.fg }]}>
+            {Number(cost).toFixed(2)}
+          </Text>
+          <Text style={styles.costCurrencyText}> {currency}</Text>
+        </View>
       </View>
     </View>
   );
@@ -85,8 +84,8 @@ const makeStyles = (theme: AppTheme) =>
     details: {
       flex: 1,
       minWidth: 0,
-      fontSize: theme.typography.body,
-      lineHeight: theme.typography.body + 2,
+      fontSize: theme.typography.small,
+      lineHeight: theme.typography.small + 4,
     },
     topRow: {
       flexDirection: "row",
@@ -100,15 +99,29 @@ const makeStyles = (theme: AppTheme) =>
       gap: theme.spacing.sm,
     },
     amountText: {
-      flex: 1,
-      minWidth: 0,
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
+    },
+    amountUnitText: {
+      fontSize: theme.typography.small,
+      color: theme.colors.muted,
+      fontWeight: theme.typography.fontWeight.regular,
     },
     costText: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
       textAlign: "right",
+    },
+    costCurrencyText: {
+      fontSize: theme.typography.small,
+      color: theme.colors.muted,
+      fontWeight: theme.typography.fontWeight.regular,
+    },
+    valueWrap: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      minWidth: 0,
+      flexShrink: 1,
     },
   });

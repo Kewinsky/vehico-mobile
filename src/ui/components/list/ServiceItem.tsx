@@ -1,8 +1,11 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
+import { formatShortDisplayDate } from "../../../utils/dateFormatting";
+import { groupThousands } from "../../../utils/numberFormatting";
 
 type ServiceItemProps = {
   title: string;
@@ -29,20 +32,18 @@ export function ServiceItem({
   iconBackgroundColor,
   onPress,
 }: ServiceItemProps) {
+  const { i18n } = useTranslation();
   const { theme } = useTheme();
   const styles = makeStyles(theme);
   const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
 
-  const formattedDate = date
-    ? new Intl.DateTimeFormat("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }).format(new Date(date))
-    : "—";
+  const formattedDate = formatShortDisplayDate(date, i18n.language);
   const mileageText =
-    mileage != null ? `${mileage.toLocaleString()} ${distanceUnitLabel}` : "—";
-  const costText = cost != null ? `${cost.toLocaleString()} ${currency}` : "—";
+    mileage != null
+      ? `${groupThousands(mileage, i18n.language)} ${distanceUnitLabel}`
+      : "—";
+  const costMain = cost != null ? groupThousands(cost, i18n.language) : "—";
+  const hasCost = cost != null;
 
   const content = (
     <View style={styles.card}>
@@ -75,9 +76,17 @@ export function ServiceItem({
           </Text>
         </View>
 
-        <Text style={[styles.costValue, { color: theme.colors.accent }]}>
-          {costText}
-        </Text>
+        <View style={styles.costWrap}>
+          <Text style={[styles.costValue, { color: theme.colors.fg }]}>
+            {costMain}
+          </Text>
+          {hasCost ? (
+            <Text style={[styles.costCurrency, { color: theme.colors.muted }]}>
+              {" "}
+              {currency}
+            </Text>
+          ) : null}
+        </View>
       </View>
     </View>
   );
@@ -141,9 +150,17 @@ const makeStyles = (theme: AppTheme) =>
       gap: theme.spacing.sm,
     },
     costValue: {
-      marginLeft: "auto",
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
       textAlign: "right",
+    },
+    costWrap: {
+      marginLeft: "auto",
+      flexDirection: "row",
+      alignItems: "baseline",
+    },
+    costCurrency: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.regular,
     },
   });
