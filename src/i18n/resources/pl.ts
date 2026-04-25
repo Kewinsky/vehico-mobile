@@ -467,7 +467,28 @@ export const pl = {
       charts: {
         expensesOverTime: "Wydatki w czasie",
         distanceOverTime: "Dystans wg miesięcy",
+        costPerKmOverTime: "Koszt utrzymania",
+        consumptionVsFuelPrice: "Spalanie vs cena paliwa",
+        legend: {
+          consumption: "Spalanie (L/100 km)",
+          fuelPrice: "Cena paliwa / L",
+        },
         expensesByCategory: "Wydatki wg kategorii",
+      },
+      chartInfo: {
+        open: "Pokaż wyjaśnienie wykresu",
+        costPerKmTitle: "Jak czytać koszt utrzymania?",
+        costPerKmBody:
+          "Wykres pokazuje koszt utrzymania przeliczony na 1 km w każdym miesiącu: (paliwo + serwis) / przejechane km. Rosnący trend oznacza, że auto staje się droższe w utrzymaniu. Pojedyncze piki zwykle oznaczają większy serwis lub naprawę.",
+        consumptionVsFuelPriceTitle: "Jak czytać spalanie vs cena paliwa?",
+        consumptionVsFuelPriceBody:
+          "Porównaj dwie linie: spalanie (L/100 km) i średnią cenę paliwa za litr. Gdy rośnie głównie spalanie, problem może być w stylu jazdy lub stanie auta. Gdy rośnie głównie cena paliwa, wpływ ma głównie rynek.",
+        expensesOverTimeTitle: "Jak czytać wydatki w czasie?",
+        expensesOverTimeBody:
+          "Wykres pokazuje łączne wydatki miesięczne (paliwo + serwis). Służy do szybkiego wykrywania pików kosztów i porównania, czy bieżące miesiące są droższe od poprzednich.",
+        expensesByCategoryTitle: "Jak czytać wydatki wg kategorii?",
+        expensesByCategoryBody:
+          "Wykres pokazuje udział każdej kategorii kosztów w wybranym okresie. Legenda pod wykresem jest klikalna i przełącza widok między procentami a sumami kwot.",
       },
       categories: {
         fuel: "Paliwo",

@@ -463,7 +463,28 @@ export const en = {
       charts: {
         expensesOverTime: "Expenses over time",
         distanceOverTime: "Monthly distance",
+        costPerKmOverTime: "Maintenance cost",
+        consumptionVsFuelPrice: "Consumption vs fuel price",
+        legend: {
+          consumption: "Consumption (L/100 km)",
+          fuelPrice: "Fuel price / L",
+        },
         expensesByCategory: "Expenses by category",
+      },
+      chartInfo: {
+        open: "Show chart explanation",
+        costPerKmTitle: "How to read maintenance cost?",
+        costPerKmBody:
+          "This chart shows maintenance cost per 1 km in each month: (fuel + service costs) / driven km. A rising trend means the vehicle is getting more expensive to maintain. Single spikes usually indicate a larger service or repair event.",
+        consumptionVsFuelPriceTitle: "How to read consumption vs fuel price?",
+        consumptionVsFuelPriceBody:
+          "Compare two lines: fuel consumption (L/100 km) and average fuel price per liter. If mostly consumption rises, the issue may be driving style or vehicle condition. If mostly fuel price rises, market prices are the main factor.",
+        expensesOverTimeTitle: "How to read expenses over time?",
+        expensesOverTimeBody:
+          "This chart shows total monthly expenses (fuel + service). Use it to quickly spot cost spikes and compare whether current months are more expensive than previous ones.",
+        expensesByCategoryTitle: "How to read expenses by category?",
+        expensesByCategoryBody:
+          "This chart shows each cost category share in the selected period. The legend below is clickable and toggles between percentage share and total amount values.",
       },
       categories: {
         fuel: "Fuel",

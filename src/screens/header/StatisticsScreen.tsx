@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,6 +14,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { CircleHelp } from "lucide-react-native";
 import Svg, {
   Circle,
   Line as SvgLine,
@@ -574,6 +576,144 @@ function SimpleLineChart({
   );
 }
 
+function SimpleDualLineChart({
+  dataPrimary,
+  dataSecondary,
+  width,
+  height,
+  minY,
+  maxY,
+  yTicks,
+  primaryStroke,
+  secondaryStroke,
+  grid,
+  textColor,
+  formatXLabel,
+}: {
+  dataPrimary: XY[];
+  dataSecondary: XY[];
+  width: number;
+  height: number;
+  minY: number;
+  maxY: number;
+  yTicks: ChartYTick[];
+  primaryStroke: string;
+  secondaryStroke: string;
+  grid: string;
+  textColor: string;
+  formatXLabel?: (key: string) => string;
+}) {
+  const w = width;
+  const h = height;
+  const plotW = w - CHART_PLOT_PADDING_LEFT - CHART_PLOT_PADDING_RIGHT;
+  const plotH = h - CHART_PLOT_PADDING_TOP - CHART_PLOT_PADDING_BOTTOM;
+  const lineStartX = CHART_PLOT_PADDING_LEFT + CHART_LINE_START_INSET;
+  const lineEndX = w - CHART_PLOT_PADDING_RIGHT;
+  const linePlotW = Math.max(0, lineEndX - lineStartX);
+  const yRange = Math.max(1, maxY - minY);
+  const dataLength = Math.max(dataPrimary.length, dataSecondary.length);
+  const toPoint = (d: XY, i: number) => {
+    const x =
+      dataLength <= 1
+        ? lineStartX + linePlotW / 2
+        : lineStartX + (i / (dataLength - 1)) * linePlotW;
+    const normalizedY = Math.min(
+      1,
+      Math.max(0, (clampNonNeg(d.y) - minY) / yRange),
+    );
+    const y = CHART_PLOT_PADDING_TOP + (1 - normalizedY) * plotH;
+    return { x, y, label: d.x };
+  };
+  const primaryPoints = dataPrimary.map(toPoint);
+  const secondaryPoints = dataSecondary.map(toPoint);
+  const toXLabel = (key: string) =>
+    formatXLabel ? formatXLabel(key) : key.replace("-", "/");
+  const baseTicks = dataPrimary.length > 0 ? primaryPoints : secondaryPoints;
+  const xTicks = baseTicks.map((p, i) => ({
+    x: p.x,
+    label: toXLabel(p.label),
+    index: i,
+  }));
+
+  return (
+    <Svg width={w} height={h}>
+      {yTicks.map((tick, i) => (
+        <SvgLine
+          key={`grid-y-${i}`}
+          x1={0}
+          y1={tick.y}
+          x2={w}
+          y2={tick.y}
+          stroke={grid}
+          strokeWidth={1}
+          strokeDasharray="2,2"
+        />
+      ))}
+      {xTicks.map((tick, i) => (
+        <SvgText
+          key={`x-label-${i}`}
+          x={tick.x}
+          y={CHART_PLOT_PADDING_TOP + plotH + 26}
+          fontSize={CHART_AXIS_FONT_SIZE}
+          fill={textColor}
+          textAnchor="middle"
+          alignmentBaseline="hanging"
+        >
+          {tick.label}
+        </SvgText>
+      ))}
+      {primaryPoints.length > 0 ? (
+        <Polyline
+          points={primaryPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+          fill="none"
+          stroke={primaryStroke}
+          strokeWidth={3}
+        />
+      ) : null}
+      {secondaryPoints.length > 0 ? (
+        <Polyline
+          points={secondaryPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+          fill="none"
+          stroke={secondaryStroke}
+          strokeWidth={3}
+        />
+      ) : null}
+      {primaryPoints.length > 0 ? (
+        <Circle
+          cx={primaryPoints[0].x}
+          cy={primaryPoints[0].y}
+          r={4}
+          fill={primaryStroke}
+        />
+      ) : null}
+      {primaryPoints.length > 0 ? (
+        <Circle
+          cx={primaryPoints[primaryPoints.length - 1].x}
+          cy={primaryPoints[primaryPoints.length - 1].y}
+          r={4}
+          fill={primaryStroke}
+        />
+      ) : null}
+      {secondaryPoints.length > 0 ? (
+        <Circle
+          cx={secondaryPoints[0].x}
+          cy={secondaryPoints[0].y}
+          r={4}
+          fill={secondaryStroke}
+        />
+      ) : null}
+      {secondaryPoints.length > 0 ? (
+        <Circle
+          cx={secondaryPoints[secondaryPoints.length - 1].x}
+          cy={secondaryPoints[secondaryPoints.length - 1].y}
+          r={4}
+          fill={secondaryStroke}
+        />
+      ) : null}
+    </Svg>
+  );
+}
+
 function SimplePieChart({
   data,
   size,
@@ -923,16 +1063,25 @@ export function StatisticsScreen(props: Props) {
     )[0];
   }, [filtered.fueling]);
 
-  const monthlyDistanceSeries = useMemo(() => {
-    const byMonth: Record<string, number> = {};
+  const costPerDistanceSeries = useMemo(() => {
+    const byMonthCost: Record<string, number> = {};
+    const byMonthDistance: Record<string, number> = {};
+    const addCost = (k: string, amount: number) => {
+      byMonthCost[k] = (byMonthCost[k] ?? 0) + clampNonNeg(amount);
+    };
     for (const f of filtered.fueling) {
       const d = parseDateLoose(f.date);
       if (!d) continue;
       const k = monthKey(d);
-      const dist = Number(f.distance ?? 0);
-      byMonth[k] = (byMonth[k] ?? 0) + dist;
+      addCost(k, Number(f.fuel_cost ?? 0));
+      byMonthDistance[k] = (byMonthDistance[k] ?? 0) + Number(f.distance ?? 0);
     }
-    const keysWithData = Object.keys(byMonth).sort();
+    for (const s of filtered.service) {
+      const d = parseDateLoose(s.service_date);
+      if (!d) continue;
+      addCost(monthKey(d), Number(s.cost ?? 0));
+    }
+    const keysWithData = Object.keys(byMonthCost).sort();
     const monthKeys =
       period === "all"
         ? keysWithData.length > 0
@@ -942,7 +1091,48 @@ export function StatisticsScreen(props: Props) {
             monthRange.startMonthStr!,
             monthRange.currentMonthStr,
           );
-    return monthKeys.map((k) => ({ x: k, y: byMonth[k] ?? 0 }));
+    return monthKeys.map((k) => {
+      const distance = byMonthDistance[k] ?? 0;
+      const totalCost = byMonthCost[k] ?? 0;
+      return { x: k, y: distance > 0 ? totalCost / distance : 0 };
+    });
+  }, [filtered.fueling, filtered.service, period, monthRange]);
+
+  const fuelVsConsumptionSeries = useMemo(() => {
+    const byMonthFuelCost: Record<string, number> = {};
+    const byMonthFuelAmount: Record<string, number> = {};
+    const byMonthDistance: Record<string, number> = {};
+    for (const f of filtered.fueling) {
+      const d = parseDateLoose(f.date);
+      if (!d) continue;
+      const k = monthKey(d);
+      byMonthFuelCost[k] =
+        (byMonthFuelCost[k] ?? 0) + clampNonNeg(Number(f.fuel_cost ?? 0));
+      byMonthFuelAmount[k] =
+        (byMonthFuelAmount[k] ?? 0) + clampNonNeg(Number(f.fuel_amount ?? 0));
+      byMonthDistance[k] = (byMonthDistance[k] ?? 0) + Number(f.distance ?? 0);
+    }
+    const keysWithData = Object.keys(byMonthFuelCost).sort();
+    const monthKeys =
+      period === "all"
+        ? keysWithData.length > 0
+          ? listMonthKeysInclusive(keysWithData[0]!, monthRange.currentMonthStr)
+          : []
+        : listMonthKeysInclusive(
+            monthRange.startMonthStr!,
+            monthRange.currentMonthStr,
+          );
+    const consumption = monthKeys.map((k) => {
+      const distance = byMonthDistance[k] ?? 0;
+      const amount = byMonthFuelAmount[k] ?? 0;
+      return { x: k, y: distance > 0 ? (amount / distance) * 100 : 0 };
+    });
+    const fuelPrice = monthKeys.map((k) => {
+      const amount = byMonthFuelAmount[k] ?? 0;
+      const cost = byMonthFuelCost[k] ?? 0;
+      return { x: k, y: amount > 0 ? cost / amount : 0 };
+    });
+    return { consumption, fuelPrice };
   }, [filtered.fueling, period, monthRange]);
 
   const lastOilChange = useMemo(() => {
@@ -1157,6 +1347,35 @@ export function StatisticsScreen(props: Props) {
     props.navigation.navigate("Fuel", { vehicleId });
   }, [embedded, navigation, props, vehicleId]);
 
+  const showChartInfo = useCallback(
+    (
+      chart: "costPerKm" | "consumptionVsFuelPrice" | "expensesOverTime" | "expensesByCategory",
+    ) => {
+      const info =
+        chart === "costPerKm"
+          ? {
+              title: t("dashboard.stats.chartInfo.costPerKmTitle"),
+              body: t("dashboard.stats.chartInfo.costPerKmBody"),
+            }
+          : chart === "consumptionVsFuelPrice"
+            ? {
+                title: t("dashboard.stats.chartInfo.consumptionVsFuelPriceTitle"),
+                body: t("dashboard.stats.chartInfo.consumptionVsFuelPriceBody"),
+              }
+            : chart === "expensesOverTime"
+              ? {
+                  title: t("dashboard.stats.chartInfo.expensesOverTimeTitle"),
+                  body: t("dashboard.stats.chartInfo.expensesOverTimeBody"),
+                }
+              : {
+                  title: t("dashboard.stats.chartInfo.expensesByCategoryTitle"),
+                  body: t("dashboard.stats.chartInfo.expensesByCategoryBody"),
+                };
+      Alert.alert(info.title, info.body);
+    },
+    [t],
+  );
+
   const chartViewportWidth = Math.max(
     280,
     windowWidth - theme.layout.contentPaddingHorizontal * 2,
@@ -1170,7 +1389,11 @@ export function StatisticsScreen(props: Props) {
     chartScrollViewportWidth,
   );
   const lineChartWidth = getScrollableChartWidth(
-    monthlyDistanceSeries.length,
+    costPerDistanceSeries.length,
+    chartScrollViewportWidth,
+  );
+  const dualLineChartWidth = getScrollableChartWidth(
+    fuelVsConsumptionSeries.consumption.length,
     chartScrollViewportWidth,
   );
   const barChartScale = getChartScale(
@@ -1178,7 +1401,14 @@ export function StatisticsScreen(props: Props) {
     CHART_BAR_HEIGHT,
   );
   const lineChartScale = getChartScale(
-    monthlyDistanceSeries.map((item) => item.y),
+    costPerDistanceSeries.map((item) => item.y),
+    CHART_LINE_HEIGHT,
+  );
+  const fuelComparisonScale = getChartScale(
+    [
+      ...fuelVsConsumptionSeries.consumption.map((item) => item.y),
+      ...fuelVsConsumptionSeries.fuelPrice.map((item) => item.y),
+    ],
     CHART_LINE_HEIGHT,
   );
   const categorySeries = useMemo(
@@ -1268,21 +1498,32 @@ export function StatisticsScreen(props: Props) {
         </View>
       </View>
 
-      {/* Bar chart showing monthly expenses trend for selected period. */}
+      {/* Line chart showing monthly total cost per distance (cost/km). */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-          {t("dashboard.stats.charts.expensesOverTime")}
-        </Text>
-        <View style={styles.chartContainer} key={`bar-chart-${period}`}>
-          {monthlySeries.data.length === 0 ? (
+        <View style={styles.sectionHeaderInline}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+            {t("dashboard.stats.charts.costPerKmOverTime")}
+          </Text>
+          <Pressable
+            style={styles.infoIconButton}
+            onPress={() => showChartInfo("costPerKm")}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t("dashboard.stats.chartInfo.open")}
+          >
+            <CircleHelp size={18} color={theme.colors.muted} />
+          </Pressable>
+        </View>
+        <View style={styles.chartContainer} key={`distance-chart-${period}`}>
+          {costPerDistanceSeries.length === 0 ? (
             <Text style={[styles.empty, { color: theme.colors.muted }]}>
               {t("dashboard.stats.empty")}
             </Text>
           ) : (
             <View style={styles.chartFrame}>
               <ChartYAxis
-                height={CHART_BAR_HEIGHT}
-                yTicks={barChartScale.yTicks}
+                height={CHART_LINE_HEIGHT}
+                yTicks={lineChartScale.yTicks}
                 textColor={theme.colors.muted}
                 grid={theme.colors.border}
                 formatYLabel={formatChartYAxisLabel}
@@ -1297,13 +1538,14 @@ export function StatisticsScreen(props: Props) {
                   { minWidth: chartScrollViewportWidth },
                 ]}
               >
-                <SimpleBarChart
-                  data={monthlySeries.data}
-                  width={barChartWidth}
-                  height={CHART_BAR_HEIGHT}
-                  niceMaxY={barChartScale.niceMaxY}
-                  yTicks={barChartScale.yTicks}
-                  fill={theme.colors.accent}
+                <SimpleLineChart
+                  data={costPerDistanceSeries}
+                  width={lineChartWidth}
+                  height={CHART_LINE_HEIGHT}
+                  minY={0}
+                  maxY={lineChartScale.niceMaxY}
+                  yTicks={lineChartScale.yTicks}
+                  stroke={theme.colors.accent}
                   grid={theme.colors.border}
                   textColor={theme.colors.muted}
                   formatXLabel={formatChartMonth}
@@ -1382,13 +1624,46 @@ export function StatisticsScreen(props: Props) {
         </View>
       </View>
 
-      {/* Line chart showing monthly driven distance for selected period. */}
+
+      {/* Dual-line chart to compare consumption trend and average fuel price. */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-          {t("dashboard.stats.charts.distanceOverTime")}
-        </Text>
-        <View style={styles.chartContainer} key={`distance-chart-${period}`}>
-          {monthlyDistanceSeries.length === 0 ? (
+        <View style={styles.sectionHeaderInline}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+            {t("dashboard.stats.charts.consumptionVsFuelPrice")}
+          </Text>
+          <Pressable
+            style={styles.infoIconButton}
+            onPress={() => showChartInfo("consumptionVsFuelPrice")}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t("dashboard.stats.chartInfo.open")}
+          >
+            <CircleHelp size={18} color={theme.colors.muted} />
+          </Pressable>
+        </View>
+        <View style={styles.legendInline}>
+          <View style={styles.legendInlineItem}>
+            <View
+              style={[
+                styles.legendInlineDot,
+                { backgroundColor: theme.colors.accent },
+              ]}
+            />
+            <Text style={[styles.legendInlineText, { color: theme.colors.fg }]}>
+              {t("dashboard.stats.charts.legend.consumption")}
+            </Text>
+          </View>
+          <View style={styles.legendInlineItem}>
+            <View
+              style={[styles.legendInlineDot, { backgroundColor: "#8B5CF6" }]}
+            />
+            <Text style={[styles.legendInlineText, { color: theme.colors.fg }]}>
+              {t("dashboard.stats.charts.legend.fuelPrice")}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.chartContainer} key={`fuel-consumption-chart-${period}`}>
+          {fuelVsConsumptionSeries.consumption.length === 0 ? (
             <Text style={[styles.empty, { color: theme.colors.muted }]}>
               {t("dashboard.stats.empty")}
             </Text>
@@ -1396,10 +1671,10 @@ export function StatisticsScreen(props: Props) {
             <View style={styles.chartFrame}>
               <ChartYAxis
                 height={CHART_LINE_HEIGHT}
-                yTicks={lineChartScale.yTicks}
+                yTicks={fuelComparisonScale.yTicks}
                 textColor={theme.colors.muted}
                 grid={theme.colors.border}
-                formatYLabel={formatChartYAxisLabel}
+                formatYLabel={fmtChartNumber}
               />
               <ScrollView
                 horizontal
@@ -1411,14 +1686,16 @@ export function StatisticsScreen(props: Props) {
                   { minWidth: chartScrollViewportWidth },
                 ]}
               >
-                <SimpleLineChart
-                  data={monthlyDistanceSeries}
-                  width={lineChartWidth}
+                <SimpleDualLineChart
+                  dataPrimary={fuelVsConsumptionSeries.consumption}
+                  dataSecondary={fuelVsConsumptionSeries.fuelPrice}
+                  width={dualLineChartWidth}
                   height={CHART_LINE_HEIGHT}
                   minY={0}
-                  maxY={lineChartScale.niceMaxY}
-                  yTicks={lineChartScale.yTicks}
-                  stroke={theme.colors.accent}
+                  maxY={fuelComparisonScale.niceMaxY}
+                  yTicks={fuelComparisonScale.yTicks}
+                  primaryStroke={theme.colors.accent}
+                  secondaryStroke="#8B5CF6"
                   grid={theme.colors.border}
                   textColor={theme.colors.muted}
                   formatXLabel={formatChartMonth}
@@ -1487,9 +1764,20 @@ export function StatisticsScreen(props: Props) {
 
       {/* Donut chart and legend for expense distribution by category. */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-          {t("dashboard.stats.charts.expensesByCategory")}
-        </Text>
+        <View style={styles.sectionHeaderInline}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+            {t("dashboard.stats.charts.expensesByCategory")}
+          </Text>
+          <Pressable
+            style={styles.infoIconButton}
+            onPress={() => showChartInfo("expensesByCategory")}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t("dashboard.stats.chartInfo.open")}
+          >
+            <CircleHelp size={18} color={theme.colors.muted} />
+          </Pressable>
+        </View>
         <View style={styles.chartContainer} key={`pie-chart-${period}`}>
           {categorySeries.length === 0 ? (
             <Text style={[styles.empty, { color: theme.colors.muted }]}>
@@ -1552,6 +1840,63 @@ export function StatisticsScreen(props: Props) {
             </View>
           </Pressable>
         ) : null}
+      </View>
+
+      {/* Bar chart showing monthly expenses trend for selected period. */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeaderInline}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+            {t("dashboard.stats.charts.expensesOverTime")}
+          </Text>
+          <Pressable
+            style={styles.infoIconButton}
+            onPress={() => showChartInfo("expensesOverTime")}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t("dashboard.stats.chartInfo.open")}
+          >
+            <CircleHelp size={18} color={theme.colors.muted} />
+          </Pressable>
+        </View>
+        <View style={styles.chartContainer} key={`bar-chart-${period}`}>
+          {monthlySeries.data.length === 0 ? (
+            <Text style={[styles.empty, { color: theme.colors.muted }]}>
+              {t("dashboard.stats.empty")}
+            </Text>
+          ) : (
+            <View style={styles.chartFrame}>
+              <ChartYAxis
+                height={CHART_BAR_HEIGHT}
+                yTicks={barChartScale.yTicks}
+                textColor={theme.colors.muted}
+                grid={theme.colors.border}
+                formatYLabel={formatChartYAxisLabel}
+              />
+              <ScrollView
+                horizontal
+                bounces={false}
+                showsHorizontalScrollIndicator={false}
+                style={styles.chartScroll}
+                contentContainerStyle={[
+                  styles.chartScrollContent,
+                  { minWidth: chartScrollViewportWidth },
+                ]}
+              >
+                <SimpleBarChart
+                  data={monthlySeries.data}
+                  width={barChartWidth}
+                  height={CHART_BAR_HEIGHT}
+                  niceMaxY={barChartScale.niceMaxY}
+                  yTicks={barChartScale.yTicks}
+                  fill={theme.colors.accent}
+                  grid={theme.colors.border}
+                  textColor={theme.colors.muted}
+                  formatXLabel={formatChartMonth}
+                />
+              </ScrollView>
+            </View>
+          )}
+        </View>
       </View>
 
       {/* Oil change recency and average interval toggles. */}
@@ -1687,7 +2032,6 @@ export function StatisticsScreen(props: Props) {
       </View>
     </View>
   );
-
   if (embedded) {
     return (
       <View style={{ paddingBottom: theme.spacing.xl }}>
@@ -1791,6 +2135,14 @@ const makeStyles = (theme: any) =>
       fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.title,
     },
+    sectionHeaderInline: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+    },
+    infoIconButton: {
+      padding: 2,
+    },
     sectionHeaderRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -1882,6 +2234,26 @@ const makeStyles = (theme: any) =>
     chartScrollContent: {
       alignItems: "flex-start",
       justifyContent: "flex-start",
+    },
+    legendInline: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.md,
+      flexWrap: "wrap",
+    },
+    legendInlineItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+    },
+    legendInlineDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 999,
+    },
+    legendInlineText: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.medium,
     },
     pieChartWrap: {
       width: "100%",
