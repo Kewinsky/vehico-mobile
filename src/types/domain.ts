@@ -38,6 +38,7 @@ export type ServiceEntry = {
   description: string;
   cost: number | null;
   workshop_id: string | null;
+  workshop_snapshot: string | null;
   created_at: string;
 };
 

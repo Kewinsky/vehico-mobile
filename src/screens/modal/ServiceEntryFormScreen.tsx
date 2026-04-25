@@ -120,6 +120,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   >([]);
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [workshopId, setWorkshopId] = useState<string | null>(null);
+  const [workshopSnapshot, setWorkshopSnapshot] = useState<string | null>(null);
 
   const checkAndUpload = useCallback(
     async (params: {
@@ -165,6 +166,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         ]);
         setDescription(e.description ?? "");
         setWorkshopId((e as any).workshop_id ?? null);
+        setWorkshopSnapshot((e as any).workshop_snapshot ?? null);
         setMode("single");
         await reloadAttachments(entryId);
       } catch (err: any) {
@@ -404,6 +406,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     setEntries([{ title: "", cost: "" }]);
     setDescription("");
     setWorkshopId(null);
+    setWorkshopSnapshot(null);
     setPendingFiles([]);
   }
 
@@ -558,6 +561,11 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         mileage: mileage.trim().length ? Number(mileage) : null,
         category,
         workshop_id: workshopId || null,
+        workshop_snapshot:
+          workshopId != null
+            ? (workshops.find((w) => w.id === workshopId)?.name ??
+              workshopSnapshot)
+            : null,
       };
 
       if (entryId) {
@@ -749,8 +757,16 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   value: workshopId,
                   options: workshops.map((w) => w.id),
                   getLabel: (id) =>
-                    workshops.find((w) => w.id === id)?.name ?? id,
-                  onChange: setWorkshopId,
+                    workshops.find((w) => w.id === id)?.name ?? "",
+                  onChange: (selectedId) => {
+                    setWorkshopId(selectedId);
+                    setWorkshopSnapshot(
+                      selectedId
+                        ? (workshops.find((w) => w.id === selectedId)?.name ??
+                          workshopSnapshot)
+                        : null,
+                    );
+                  },
                   placeholderLabel: t("entryForm.workshopPlaceholder"),
                 })
               }
@@ -782,7 +798,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 >
                   {workshopId
                     ? (workshops.find((w) => w.id === workshopId)?.name ??
-                      workshopId)
+                      workshopSnapshot ??
+                      t("entryForm.workshopPlaceholder"))
                     : t("entryForm.workshopPlaceholder")}
                 </Text>
               </CardRow>

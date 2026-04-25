@@ -10,6 +10,7 @@ type NewServiceEntryInput = {
   description: string;
   cost: number | null;
   workshop_id?: string | null;
+  workshop_snapshot?: string | null;
 };
 
 export async function listServiceEntries(

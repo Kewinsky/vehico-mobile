@@ -65,12 +65,14 @@ create table public.service_entries (
   description text not null default '',
   cost numeric,
   workshop_id uuid references public.workshops(id) on delete set null,
+  workshop_snapshot text,
   created_at timestamptz not null default now()
 );
 
 create index service_entries_vehicle_id_idx on public.service_entries(vehicle_id);
 create index service_entries_service_date_idx on public.service_entries(service_date desc);
 create index service_entries_workshop_id_idx on public.service_entries(workshop_id);
+alter table public.service_entries add column if not exists workshop_snapshot text;
 
 -- Attachments and vehicle_documents are stored locally on device (SQLite + file system).
 -- See: src/services/localStorage/
