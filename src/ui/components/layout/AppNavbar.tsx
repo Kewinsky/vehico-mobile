@@ -7,8 +7,8 @@ import { HeaderButton } from "@react-navigation/elements";
 import {
   ChevronLeft,
   Crown,
-  Ellipsis,
   Plus,
+  RefreshCcw,
   Settings,
   SlidersHorizontal,
 } from "lucide-react-native";
@@ -103,7 +103,10 @@ export function useNativeHeaderAsAppNavbar({
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Reset filters"
               >
-                <Ellipsis size={headerIconSize} color={theme.colors.accent} />
+                <RefreshCcw
+                  size={headerIconSize}
+                  color={theme.colors.accent}
+                />
               </HeaderButton>
             );
           }
@@ -281,7 +284,10 @@ export function AppNavbar({
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Reset filters"
               >
-                <Ellipsis size={headerIconSize} color={theme.colors.accent} />
+                <RefreshCcw
+                  size={headerIconSize}
+                  color={theme.colors.accent}
+                />
               </HeaderButton>
             );
           }

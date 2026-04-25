@@ -4,7 +4,6 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import type { WorkshopsFiltersParams } from "../modal/WorkshopsFiltersScreen";
 import type { Workshop, WorkshopType } from "../../types/domain";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
@@ -22,12 +21,19 @@ type Props = NativeStackScreenProps<AppStackParamList, "Workshops">;
 
 export function WorkshopsScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const WORKSHOP_TYPE_OPTIONS: WorkshopType[] = [
+    "mechanic",
+    "electrician",
+    "detailer",
+    "bodywork",
+    "car_wash",
+    "other",
+  ];
 
   const [items, setItems] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<WorkshopType | "all">("all");
-  const [sortOrder, setSortOrder] = useState<"az" | "za">("az");
 
   const {
     isPremium,
@@ -53,15 +59,10 @@ export function WorkshopsScreen({ navigation }: Props) {
     [t, isPremium, freePlanWorkshopIds],
   );
 
-  useScreenFocusReload<WorkshopsFiltersParams>({
+  useScreenFocusReload({
     initialLoad: () => load(),
     beforeFocusReload: refreshEntitlements,
     onFocusReload: () => load({ showLoading: false }),
-    pendingModalKey: "workshops",
-    applyPendingModalResult: (pending) => {
-      setTypeFilter(pending.typeFilter ?? "all");
-      setSortOrder(pending.sortOrder ?? "az");
-    },
     deferFocusReload: true,
   });
 
@@ -79,16 +80,15 @@ export function WorkshopsScreen({ navigation }: Props) {
           (w.address ?? "").toLowerCase().includes(q),
       );
     }
-    const sorted = [...list].sort((a, b) => {
+    return [...list].sort((a, b) => {
       const cmp = a.name.localeCompare(b.name, undefined, {
         sensitivity: "base",
       });
-      return sortOrder === "az" ? cmp : -cmp;
+      return cmp;
     });
-    return sorted;
-  }, [items, query, typeFilter, sortOrder]);
+  }, [items, query, typeFilter]);
 
-  const hasActiveFilters = typeFilter !== "all" || sortOrder !== "az";
+  const hasActiveFilters = typeFilter !== "all";
 
   function onAddWorkshopPress() {
     if (!isPremium && items.length >= workshopsLimit) {
@@ -109,15 +109,25 @@ export function WorkshopsScreen({ navigation }: Props) {
   }
 
   const openFilters = useCallback(() => {
-    navigation.navigate("WorkshopsFilters", {
-      typeFilter,
-      sortOrder,
+    const buttons: Array<{
+      text: string;
+      onPress?: () => void;
+      style?: "cancel" | "default";
+    }> = [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("workshops.typeAll"), onPress: () => setTypeFilter("all") },
+      ...WORKSHOP_TYPE_OPTIONS.map((type) => ({
+        text: t(`workshopForm.types.${type}`),
+        onPress: () => setTypeFilter(type),
+      })),
+    ];
+    Alert.alert(t("workshops.filterByType"), t("common.chooseOption"), buttons, {
+      cancelable: true,
     });
-  }, [navigation, typeFilter, sortOrder]);
+  }, [t]);
 
   const resetFilters = useCallback(() => {
     setTypeFilter("all");
-    setSortOrder("az");
   }, []);
 
   const headerActions: HeaderAction[] = useMemo(

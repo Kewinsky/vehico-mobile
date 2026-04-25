@@ -931,8 +931,8 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               <View style={styles.detailsRow}>
                 <DetailItem
                   icon={
-                    <Ionicons
-                      name="speedometer-outline"
+                    <MaterialCommunityIcons
+                      name="progress-clock"
                       size={detailIconSize}
                       color={theme.colors.accent}
                     />
