@@ -14,6 +14,9 @@ export type ReportOptions = {
   include_service_stats: boolean;
   include_fueling_stats: boolean;
   include_photos: boolean;
+  distance_unit?: "km" | "miles";
+  fuel_unit?: "liters" | "gallons";
+  currency?: "PLN" | "EUR";
 };
 
 /**
@@ -29,19 +32,16 @@ export async function generatePublicPageWithOptions(
   tempPhotos: TempReportPhoto[],
   reportOptions: ReportOptions,
 ): Promise<PublicReportSnapshot> {
-  const { data, error } = await supabase.rpc(
-    "create_report_snapshot",
-    {
-      p_vehicle_id: vehicleId,
-      p_selected_vehicle_photo_ids:
-        selectedVehiclePhotoIds.length > 0 ? selectedVehiclePhotoIds : [],
-      p_temp_photos_data: tempPhotos.map((photo) => ({
-        storage_path: photo.storage_path,
-        display_order: photo.display_order,
-      })),
-      p_report_options: reportOptions,
-    },
-  );
+  const { data, error } = await supabase.rpc("create_report_snapshot", {
+    p_vehicle_id: vehicleId,
+    p_selected_vehicle_photo_ids:
+      selectedVehiclePhotoIds.length > 0 ? selectedVehiclePhotoIds : [],
+    p_temp_photos_data: tempPhotos.map((photo) => ({
+      storage_path: photo.storage_path,
+      display_order: photo.display_order,
+    })),
+    p_report_options: reportOptions,
+  });
 
   if (error) throw error;
   return data as PublicReportSnapshot;

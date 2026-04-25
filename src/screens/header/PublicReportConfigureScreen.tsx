@@ -23,7 +23,7 @@ import { Button } from "../../ui/components/common/Button";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
 
 const MAX_PHOTOS = 40;
@@ -42,7 +42,7 @@ type PhotoItem = {
 export function PublicReportConfigureScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium } = useEntitlements();
+  const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
 
@@ -285,6 +285,9 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         include_service_stats: includeServiceStats,
         include_fueling_stats: includeFuelingStats,
         include_photos: includePhotos,
+        distance_unit: settings?.distanceUnit ?? "km",
+        fuel_unit: settings?.fuelUnit ?? "liters",
+        currency: settings?.currency ?? "PLN",
       },
       selectedVehiclePhotoIds: includePhotos
         ? Array.from(selectedVehiclePhotoIds)

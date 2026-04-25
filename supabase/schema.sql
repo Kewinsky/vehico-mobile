@@ -811,6 +811,9 @@ begin
   v_include_tires := coalesce((p_report_options->>'include_tires')::boolean, (p_report_options->>'include_wheels_tires')::boolean, false);
   v_include_fueling_stats := coalesce((p_report_options->>'include_fueling_stats')::boolean, false);
   v_include_photos := coalesce((p_report_options->>'include_photos')::boolean, true);
+  v_distance_unit := coalesce((p_report_options->>'distance_unit')::text, 'km');
+  v_fuel_unit := coalesce((p_report_options->>'fuel_unit')::text, 'liters');
+  v_currency := coalesce((p_report_options->>'currency')::text, 'PLN');
 
   -- Get vehicle data
   select to_jsonb(v.*) into v_vehicle
@@ -821,7 +824,7 @@ begin
     raise exception 'Vehicle not found: %', p_vehicle_id;
   end if;
 
-  -- Units (v_distance_unit / v_fuel_unit / v_currency): defaults above; app prefs live in AsyncStorage, not Postgres.
+  -- Units come from report options captured at generation time.
 
   -- Strip optional vehicle fields when not included
   if not v_include_notes then

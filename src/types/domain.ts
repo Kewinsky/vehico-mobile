@@ -141,6 +141,9 @@ export type PublicReportSnapshot = {
       include_fueling_stats: boolean;
       include_service_stats: boolean;
       include_wheels_tires?: boolean;
+      distance_unit?: DistanceUnit;
+      fuel_unit?: FuelUnit;
+      currency?: Currency;
     };
     vehicle_tires?: VehicleTire[];
     vehicle_wheels?: VehicleWheel[];
