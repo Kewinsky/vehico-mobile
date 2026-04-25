@@ -163,7 +163,7 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
         onPress: () => setCategoryFilter(c),
       })),
     ];
-    Alert.alert(t("timeline.filterCategory"), "", buttons, {
+    Alert.alert(t("timeline.filterCategory"), t("common.chooseOption"), buttons, {
       cancelable: true,
     });
   }

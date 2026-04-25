@@ -68,7 +68,9 @@ export function WorkshopsFiltersScreen({ navigation, route }: Props) {
         onPress: () => setTypeFilter(tp),
       })),
     ];
-    Alert.alert(t("workshops.filterByType"), "", buttons, { cancelable: true });
+    Alert.alert(t("workshops.filterByType"), t("common.chooseOption"), buttons, {
+      cancelable: true,
+    });
   }
 
   function applyFilters() {

@@ -47,7 +47,7 @@ export function PickerField<T extends string>({
       });
     });
 
-    Alert.alert(label, "", buttons, { cancelable: true });
+    Alert.alert(label, t("common.chooseOption"), buttons, { cancelable: true });
   };
 
   return (

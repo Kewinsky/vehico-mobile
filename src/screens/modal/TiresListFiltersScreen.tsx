@@ -71,7 +71,7 @@ export function TiresListFiltersScreen({ navigation, route }: Props) {
     ];
     Alert.alert(
       t("wheels.filterByType", { defaultValue: "Filter by type" }),
-      "",
+      t("common.chooseOption"),
       buttons,
       {
         cancelable: true,

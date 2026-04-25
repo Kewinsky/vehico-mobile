@@ -374,7 +374,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       });
     });
 
-    Alert.alert(opts.title, "", buttons, { cancelable: true });
+    Alert.alert(opts.title, t("common.chooseOption"), buttons, {
+      cancelable: true,
+    });
   }
 
   function confirmDeleteEntry() {

@@ -109,7 +109,9 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
         onPress: () => setStationFilter(s),
       })),
     ];
-    Alert.alert(t("timeline.filterStation"), "", buttons, { cancelable: true });
+    Alert.alert(t("timeline.filterStation"), t("common.chooseOption"), buttons, {
+      cancelable: true,
+    });
   }
 
   function applyFilters() {

@@ -201,7 +201,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
   }
 
   function openAddPicker() {
-    Alert.alert(t("documents.addVehicleDocument"), undefined, [
+    Alert.alert(t("documents.addVehicleDocument"), t("common.chooseOption"), [
       { text: t("common.cancel"), style: "cancel" },
       {
         text: t("documents.addVehicleDocument"),

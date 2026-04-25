@@ -74,7 +74,10 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
   const [exporting, setExporting] = useState(false);
 
   function showExportFormatAlert() {
-    Alert.alert(t("dataPortability.exportFormatTitle"), undefined, [
+    Alert.alert(
+      t("dataPortability.exportFormatTitle"),
+      t("dataPortability.exportFormatSubtitle"),
+      [
       { text: t("common.cancel"), style: "cancel" },
       {
         text: t("dataPortability.exportFormatJson"),
@@ -84,37 +87,42 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
         text: t("dataPortability.exportFormatCsv"),
         onPress: () => showCsvDataTypeAlert(),
       },
-    ]);
+      ],
+    );
   }
 
   function showCsvDataTypeAlert() {
-    Alert.alert(t("dataPortability.exportCsvDataTypeTitle"), undefined, [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("dataPortability.exportCsvServiceEntries"),
-        onPress: () => handleExportCsv("service_entries"),
-      },
-      {
-        text: t("dataPortability.exportCsvFueling"),
-        onPress: () => handleExportCsv("fueling_entries"),
-      },
-      {
-        text: t("dataPortability.exportCsvReminders"),
-        onPress: () => handleExportCsv("reminders"),
-      },
-      {
-        text: t("dataPortability.exportCsvWheels"),
-        onPress: () => handleExportCsv("wheels"),
-      },
-      {
-        text: t("dataPortability.exportCsvTires"),
-        onPress: () => handleExportCsv("tires"),
-      },
-      {
-        text: t("dataPortability.exportCsvWorkshops"),
-        onPress: () => handleExportCsv("workshops"),
-      },
-    ]);
+    Alert.alert(
+      t("dataPortability.exportCsvDataTypeTitle"),
+      t("dataPortability.exportCsvDataTypeSubtitle"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("dataPortability.exportCsvServiceEntries"),
+          onPress: () => handleExportCsv("service_entries"),
+        },
+        {
+          text: t("dataPortability.exportCsvFueling"),
+          onPress: () => handleExportCsv("fueling_entries"),
+        },
+        {
+          text: t("dataPortability.exportCsvReminders"),
+          onPress: () => handleExportCsv("reminders"),
+        },
+        {
+          text: t("dataPortability.exportCsvWheels"),
+          onPress: () => handleExportCsv("wheels"),
+        },
+        {
+          text: t("dataPortability.exportCsvTires"),
+          onPress: () => handleExportCsv("tires"),
+        },
+        {
+          text: t("dataPortability.exportCsvWorkshops"),
+          onPress: () => handleExportCsv("workshops"),
+        },
+      ],
+    );
   }
 
   async function handleExportJson() {

@@ -5,7 +5,6 @@ import { useCallback, useMemo, useState } from "react";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { VehicleTire, TireType } from "../../types/domain";
-import type { TiresListFiltersParams } from "../modal/TiresListFiltersScreen";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { listVehicleTires } from "../../services/tires/tiresRepo";
 import { HeaderLayout } from "../../layouts";
@@ -53,10 +52,14 @@ export function TiresListScreen({ route, navigation }: Props) {
   const [tires, setTires] = useState<VehicleTire[]>([]);
   const [loading, setLoading] = useState(true);
   const [tireTypeFilter, setTireTypeFilter] = useState<TireType | "all">("all");
-  const [fittedFilter, setFittedFilter] = useState<
-    "all" | "fitted" | "not_fitted"
-  >("all");
-  const [sortOrder, setSortOrder] = useState<"az" | "za">("az");
+  const TIRE_TYPE_OPTIONS: TireType[] = [
+    "summer",
+    "winter",
+    "all_season",
+    "run_flat",
+    "uhp",
+    "suv_xl",
+  ];
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -78,40 +81,27 @@ export function TiresListScreen({ route, navigation }: Props) {
     [vehicleId, t, tireOptions],
   );
 
-  useScreenFocusReload<TiresListFiltersParams>({
+  useScreenFocusReload({
     initialLoad: () => load(),
     beforeFocusReload: refreshEntitlements,
     onFocusReload: () => load({ showLoading: false }),
-    pendingModalKey: "tiresList",
-    applyPendingModalResult: (pending) => {
-      setTireTypeFilter((pending.tireTypeFilter as TireType | "all") ?? "all");
-      setFittedFilter(pending.fittedFilter ?? "all");
-      setSortOrder(pending.sortOrder ?? "az");
-    },
     deferFocusReload: true,
   });
 
-  const hasActiveFilters =
-    tireTypeFilter !== "all" || fittedFilter !== "all" || sortOrder !== "az";
+  const hasActiveFilters = tireTypeFilter !== "all";
 
   const filteredTires = useMemo(() => {
     let list = tires;
     if (tireTypeFilter !== "all") {
       list = list.filter((tire) => tire.tire_type === tireTypeFilter);
     }
-    if (fittedFilter === "fitted") {
-      list = list.filter((tire) => tire.is_currently_fitted);
-    } else if (fittedFilter === "not_fitted") {
-      list = list.filter((tire) => !tire.is_currently_fitted);
-    }
-    const sorted = [...list].sort((a, b) => {
+    return [...list].sort((a, b) => {
       const cmp = (a.name ?? "").localeCompare(b.name ?? "", undefined, {
         sensitivity: "base",
       });
-      return sortOrder === "az" ? cmp : -cmp;
+      return cmp;
     });
-    return sorted;
-  }, [tires, tireTypeFilter, fittedFilter, sortOrder]);
+  }, [tires, tireTypeFilter]);
 
   function onAddTirePress() {
     if (!isPremium && tires.length >= tiresPerVehicleLimit) {
@@ -132,18 +122,25 @@ export function TiresListScreen({ route, navigation }: Props) {
   }
 
   const openFilters = useCallback(() => {
-    navigation.navigate("TiresListFilters", {
-      vehicleId,
-      tireTypeFilter,
-      fittedFilter,
-      sortOrder,
+    const buttons: Array<{
+      text: string;
+      onPress?: () => void;
+      style?: "cancel" | "default";
+    }> = [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("common.all"), onPress: () => setTireTypeFilter("all") },
+      ...TIRE_TYPE_OPTIONS.map((type) => ({
+        text: t(`tireForm.types.${type}`),
+        onPress: () => setTireTypeFilter(type),
+      })),
+    ];
+    Alert.alert(t("tires.filterByType"), t("common.chooseOption"), buttons, {
+      cancelable: true,
     });
-  }, [navigation, vehicleId, tireTypeFilter, fittedFilter, sortOrder]);
+  }, [t]);
 
   const resetFilters = useCallback(() => {
     setTireTypeFilter("all");
-    setFittedFilter("all");
-    setSortOrder("az");
   }, []);
 
   const headerActions: HeaderAction[] = useMemo(

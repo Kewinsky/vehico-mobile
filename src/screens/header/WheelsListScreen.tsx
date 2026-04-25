@@ -5,7 +5,6 @@ import { useCallback, useMemo, useState } from "react";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { VehicleWheel } from "../../types/domain";
-import type { WheelsListFiltersParams } from "../modal/WheelsListFiltersScreen";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import {
   listVehicleWheels,
@@ -54,10 +53,6 @@ export function WheelsListScreen({ route, navigation }: Props) {
 
   const [wheels, setWheels] = useState<VehicleWheel[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fittedFilter, setFittedFilter] = useState<
-    "all" | "fitted" | "not_fitted"
-  >("all");
-  const [sortOrder, setSortOrder] = useState<"az" | "za">("az");
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -79,35 +74,21 @@ export function WheelsListScreen({ route, navigation }: Props) {
     [vehicleId, t, wheelOptions],
   );
 
-  useScreenFocusReload<WheelsListFiltersParams>({
+  useScreenFocusReload({
     initialLoad: () => load(),
     beforeFocusReload: refreshEntitlements,
     onFocusReload: () => load({ showLoading: false }),
-    pendingModalKey: "wheelsList",
-    applyPendingModalResult: (pending) => {
-      setFittedFilter(pending.fittedFilter ?? "all");
-      setSortOrder(pending.sortOrder ?? "az");
-    },
     deferFocusReload: true,
   });
 
-  const hasActiveFilters = fittedFilter !== "all" || sortOrder !== "az";
-
   const filteredWheels = useMemo(() => {
-    let list = wheels;
-    if (fittedFilter === "fitted") {
-      list = list.filter((w) => w.is_currently_fitted);
-    } else if (fittedFilter === "not_fitted") {
-      list = list.filter((w) => !w.is_currently_fitted);
-    }
-    const sorted = [...list].sort((a, b) => {
+    return [...wheels].sort((a, b) => {
       const cmp = (a.name ?? "").localeCompare(b.name ?? "", undefined, {
         sensitivity: "base",
       });
-      return sortOrder === "az" ? cmp : -cmp;
+      return cmp;
     });
-    return sorted;
-  }, [wheels, fittedFilter, sortOrder]);
+  }, [wheels]);
 
   function onAddWheelPress() {
     if (!isPremium && wheels.length >= wheelsPerVehicleLimit) {
@@ -127,40 +108,14 @@ export function WheelsListScreen({ route, navigation }: Props) {
     navigation.navigate("WheelForm", { vehicleId });
   }
 
-  const openFilters = useCallback(() => {
-    navigation.navigate("WheelsListFilters", {
-      vehicleId,
-      fittedFilter,
-      sortOrder,
-    });
-  }, [navigation, vehicleId, fittedFilter, sortOrder]);
-
-  const resetFilters = useCallback(() => {
-    setFittedFilter("all");
-    setSortOrder("az");
-  }, []);
-
   const headerActions: HeaderAction[] = useMemo(
     () => [
-      ...(hasActiveFilters
-        ? [
-            {
-              type: "filterReset",
-              onPress: resetFilters,
-            } as HeaderAction,
-          ]
-        : []),
-      {
-        type: "filter",
-        onPress: openFilters,
-        hasActive: hasActiveFilters,
-      },
       {
         type: "add",
         onPress: onAddWheelPress,
       },
     ],
-    [hasActiveFilters, onAddWheelPress, openFilters, resetFilters],
+    [onAddWheelPress],
   );
 
   return (
