@@ -1046,14 +1046,16 @@ export function StatisticsScreen(props: Props) {
     const isOverdue = rawRatio >= 1;
     const isDueSoon = !isOverdue && rawRatio >= 0.85;
 
-    const remainingDays = Math.max(
+    const computedRemainingDays = Math.max(
       0,
       Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)),
     );
-    const remainingKm =
+    const computedRemainingKm =
       dueMileage != null && currentMileage != null
         ? Math.max(0, Math.round(dueMileage - currentMileage))
         : null;
+    const remainingDays = isOverdue ? 0 : computedRemainingDays;
+    const remainingKm = isOverdue ? 0 : computedRemainingKm;
 
     return {
       progressPercent,
