@@ -433,6 +433,8 @@ export const pl = {
       recentService: "Ostatnie serwisy",
       lastRefuel: "Ost. tankowanie",
       daysAgo: "{{days}}d temu",
+      showMoreCategories: "Pokaż więcej",
+      showFewerCategories: "Pokaż mniej",
       avgCostPerUnit: "Śr. cena / {{unit}}",
       tabs: {
         metrics: "Metryki",

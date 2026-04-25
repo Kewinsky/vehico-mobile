@@ -429,6 +429,8 @@ export const en = {
       recentService: "Recent Service",
       lastRefuel: "Last refuel",
       daysAgo: "{{days}}d ago",
+      showMoreCategories: "Show more",
+      showFewerCategories: "Show less",
       avgCostPerUnit: "Avg cost / {{unit}}",
       tabs: {
         metrics: "Metrics",

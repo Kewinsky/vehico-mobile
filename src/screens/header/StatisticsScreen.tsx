@@ -298,6 +298,40 @@ function donutSlicePath(
   ].join(" ");
 }
 
+function roundedRectPath(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  corners: {
+    topLeft: boolean;
+    topRight: boolean;
+    bottomRight: boolean;
+    bottomLeft: boolean;
+  },
+) {
+  const r = Math.max(0, Math.min(radius, width / 2, height / 2));
+  const tl = corners.topLeft ? r : 0;
+  const tr = corners.topRight ? r : 0;
+  const br = corners.bottomRight ? r : 0;
+  const bl = corners.bottomLeft ? r : 0;
+  return [
+    `M ${x + tl} ${y}`,
+    `H ${x + width - tr}`,
+    tr > 0 ? `Q ${x + width} ${y} ${x + width} ${y + tr}` : `L ${x + width} ${y}`,
+    `V ${y + height - br}`,
+    br > 0
+      ? `Q ${x + width} ${y + height} ${x + width - br} ${y + height}`
+      : `L ${x + width} ${y + height}`,
+    `H ${x + bl}`,
+    bl > 0 ? `Q ${x} ${y + height} ${x} ${y + height - bl}` : `L ${x} ${y + height}`,
+    `V ${y + tl}`,
+    tl > 0 ? `Q ${x} ${y} ${x + tl} ${y}` : `L ${x} ${y}`,
+    "Z",
+  ].join(" ");
+}
+
 const CHART_AXIS_FONT_SIZE = 13;
 const CHART_LINE_HEIGHT = 260;
 const CHART_BAR_HEIGHT = 260;
@@ -376,27 +410,124 @@ function ChartYAxis({
   );
 }
 
-function SimpleBarChart({
+type ChartTooltipRow = {
+  color: string;
+  value: string;
+};
+
+function estimateTooltipWidth(lines: string[]) {
+  const maxChars = lines.reduce((max, line) => Math.max(max, line.length), 0);
+  return Math.max(124, Math.min(220, maxChars * 7 + 28));
+}
+
+function SvgChartTooltip({
+  visible,
+  anchorX,
+  anchorY,
+  viewportWidth,
+  viewportHeight,
+  title,
+  rows,
+  backgroundColor,
+  textColor,
+}: {
+  visible: boolean;
+  anchorX: number;
+  anchorY: number;
+  viewportWidth: number;
+  viewportHeight: number;
+  title: string;
+  rows: ChartTooltipRow[];
+  backgroundColor: string;
+  textColor: string;
+}) {
+  if (!visible) return null;
+  const tooltipWidth = estimateTooltipWidth([title, ...rows.map((row) => row.value)]);
+  const rowCount = rows.length;
+  const tooltipHeight = 34 + rowCount * 16 + 8;
+  const tooltipMargin = 8;
+  const tooltipX = Math.max(
+    CHART_PLOT_PADDING_LEFT,
+    Math.min(
+      viewportWidth - CHART_PLOT_PADDING_RIGHT - tooltipWidth,
+      anchorX - tooltipWidth / 2,
+    ),
+  );
+  const tooltipY = Math.max(
+    CHART_PLOT_PADDING_TOP,
+    Math.min(anchorY, viewportHeight - CHART_PLOT_PADDING_BOTTOM - tooltipHeight) -
+      tooltipMargin -
+      tooltipHeight,
+  );
+
+  return (
+    <>
+      <Rect
+        x={tooltipX}
+        y={tooltipY}
+        width={tooltipWidth}
+        height={tooltipHeight}
+        rx={8}
+        fill={backgroundColor}
+      />
+      <SvgText
+        x={tooltipX + 10}
+        y={tooltipY + 20}
+        fontSize={12}
+        fill={textColor}
+        fontWeight="700"
+      >
+        {title}
+      </SvgText>
+      {rows.flatMap((row, idx) => {
+        const y = tooltipY + 38 + idx * 16;
+        return [
+          <Circle key={`tooltip-dot-${idx}`} cx={tooltipX + 14} cy={y} r={4} fill={row.color} />,
+          <SvgText
+            key={`tooltip-text-${idx}`}
+            x={tooltipX + 24}
+            y={y + 4}
+            fontSize={11}
+            fill={textColor}
+          >
+            {row.value}
+          </SvgText>,
+        ];
+      })}
+    </>
+  );
+}
+
+function SimpleStackedBarChart({
   data,
   width,
   height,
   niceMaxY,
   yTicks,
-  fill,
+  fuelFill,
+  serviceFill,
   grid,
   textColor,
   formatXLabel,
+  currency,
+  tooltipBg,
+  tooltipText,
 }: {
-  data: XY[];
+  data: Array<{ x: string; fuel: number; service: number }>;
   width: number;
   height: number;
   niceMaxY: number;
   yTicks: ChartYTick[];
-  fill: string;
+  fuelFill: string;
+  serviceFill: string;
   grid: string;
   textColor: string;
   formatXLabel?: (key: string) => string;
+  currency: string;
+  tooltipBg: string;
+  tooltipText: string;
 }) {
+  const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const w = width;
   const h = height;
   const plotW = w - CHART_PLOT_PADDING_LEFT - CHART_PLOT_PADDING_RIGHT;
@@ -417,15 +548,23 @@ function SimpleBarChart({
   }
   const bars = data.map((d, i) => {
     const barX = startX + i * (barWidth + barGap);
-    const barHeight = (clampNonNeg(d.y) / niceMaxY) * plotH;
-    const barY = CHART_PLOT_PADDING_TOP + plotH - barHeight;
+    const fuelValue = clampNonNeg(d.fuel);
+    const serviceValue = clampNonNeg(d.service);
+    const fuelHeight = (fuelValue / niceMaxY) * plotH;
+    const serviceHeight = (serviceValue / niceMaxY) * plotH;
+    const fuelY = CHART_PLOT_PADDING_TOP + plotH - fuelHeight;
+    const serviceY = fuelY - serviceHeight;
     return {
       x: barX,
-      y: barY,
       width: barWidth,
-      height: barHeight,
+      fuelY,
+      fuelHeight,
+      serviceY,
+      serviceHeight,
       label: formatXLabel ? formatXLabel(d.x) : d.x.replace("-", "/"),
-      value: d.y,
+      fuelValue,
+      serviceValue,
+      totalValue: fuelValue + serviceValue,
     };
   });
   const xTicks = bars.map((b, i) => ({
@@ -433,6 +572,30 @@ function SimpleBarChart({
     label: b.label,
     index: i,
   }));
+  const selectedBar =
+    selectedBarIndex != null ? bars[selectedBarIndex] ?? null : null;
+  const tooltipTitle = selectedBar
+    ? `${selectedBar.label}  ${selectedBar.totalValue.toFixed(2)} ${currency}`
+    : "";
+  const tooltipRows: ChartTooltipRow[] = selectedBar
+    ? [
+        {
+          color: fuelFill,
+          value: `${selectedBar.fuelValue.toFixed(2)} ${currency}`,
+        },
+        {
+          color: serviceFill,
+          value: `${selectedBar.serviceValue.toFixed(2)} ${currency}`,
+        },
+      ]
+    : [];
+  const tooltipAnchorX = selectedBar ? selectedBar.x + selectedBar.width / 2 : 0;
+  const tooltipAnchorY = selectedBar
+    ? selectedBar.serviceHeight > 0
+      ? selectedBar.serviceY
+      : selectedBar.fuelY
+    : 0;
+
   return (
     <Svg width={w} height={h}>
       {yTicks.map((tick, i) => (
@@ -447,17 +610,65 @@ function SimpleBarChart({
           strokeDasharray="2,2"
         />
       ))}
-      {bars.map((bar, i) => (
-        <Rect
-          key={`bar-${i}`}
-          x={bar.x}
-          y={bar.y}
-          width={bar.width}
-          height={bar.height}
-          fill={fill}
-          rx={5}
-        />
-      ))}
+      {bars.map((bar, i) => {
+        const hasFuel = bar.fuelHeight > 0;
+        const hasService = bar.serviceHeight > 0;
+        if (!hasFuel) return null;
+        const d = roundedRectPath(bar.x, bar.fuelY, bar.width, bar.fuelHeight, 5, {
+          topLeft: !hasService,
+          topRight: !hasService,
+          bottomRight: true,
+          bottomLeft: true,
+        });
+        return <Path key={`fuel-bar-${i}`} d={d} fill={fuelFill} />;
+      })}
+      {bars.map((bar, i) => {
+        const hasFuel = bar.fuelHeight > 0;
+        const hasService = bar.serviceHeight > 0;
+        if (!hasService) return null;
+        const d = roundedRectPath(
+          bar.x,
+          bar.serviceY,
+          bar.width,
+          bar.serviceHeight,
+          5,
+          {
+            topLeft: true,
+            topRight: true,
+            bottomRight: !hasFuel,
+            bottomLeft: !hasFuel,
+          },
+        );
+        return <Path key={`service-bar-${i}`} d={d} fill={serviceFill} />;
+      })}
+      {bars.map((bar, i) => {
+        const topY = bar.serviceHeight > 0 ? bar.serviceY : bar.fuelY;
+        const totalHeight = bar.fuelHeight + bar.serviceHeight;
+        return (
+          <Rect
+            key={`bar-hitbox-${i}`}
+            x={bar.x}
+            y={topY}
+            width={bar.width}
+            height={Math.max(totalHeight, 24)}
+            fill="transparent"
+            onPress={() =>
+              setSelectedBarIndex((prev) => (prev === i ? null : i))
+            }
+          />
+        );
+      })}
+      <SvgChartTooltip
+        visible={selectedBar != null}
+        anchorX={tooltipAnchorX}
+        anchorY={tooltipAnchorY}
+        viewportWidth={w}
+        viewportHeight={h}
+        title={tooltipTitle}
+        rows={tooltipRows}
+        backgroundColor={tooltipBg}
+        textColor={tooltipText}
+      />
       {xTicks.map((tick, i) => (
         <SvgText
           key={`x-label-${i}`}
@@ -832,6 +1043,7 @@ export function StatisticsScreen(props: Props) {
 
   const [period, setPeriod] = useState<PeriodKey>("3m");
   const [legendShowPercent, setLegendShowPercent] = useState(true);
+  const [showAllCategoryLegend, setShowAllCategoryLegend] = useState(false);
   const [oilLastChangeShowDate, setOilLastChangeShowDate] = useState(true);
   const [oilAvgIntervalShowMonths, setOilAvgIntervalShowMonths] =
     useState(true);
@@ -1036,23 +1248,25 @@ export function StatisticsScreen(props: Props) {
     return items.map((x) => ({ ...x, label: label(x.key) }));
   }, [filtered.service, filtered.fueling, t]);
 
-  const monthlySeries = useMemo(() => {
-    const byMonth: Record<string, number> = {};
-    const add = (d: Date, amount: number) => {
-      const k = monthKey(d);
-      byMonth[k] = (byMonth[k] ?? 0) + clampNonNeg(amount);
-    };
+  const monthlyExpensesSeries = useMemo(() => {
+    const byMonthFuel: Record<string, number> = {};
+    const byMonthService: Record<string, number> = {};
     for (const f of filtered.fueling) {
       const d = parseDateLoose(f.date);
       if (!d) continue;
-      add(d, Number(f.fuel_cost ?? 0));
+      const k = monthKey(d);
+      byMonthFuel[k] = (byMonthFuel[k] ?? 0) + clampNonNeg(Number(f.fuel_cost ?? 0));
     }
     for (const s of filtered.service) {
       const d = parseDateLoose(s.service_date);
       if (!d) continue;
-      add(d, Number(s.cost ?? 0));
+      const k = monthKey(d);
+      byMonthService[k] =
+        (byMonthService[k] ?? 0) + clampNonNeg(Number(s.cost ?? 0));
     }
-    const keysWithData = Object.keys(byMonth).sort();
+    const keysWithData = Array.from(
+      new Set([...Object.keys(byMonthFuel), ...Object.keys(byMonthService)]),
+    ).sort();
     const monthKeys =
       period === "all"
         ? keysWithData.length > 0
@@ -1062,7 +1276,11 @@ export function StatisticsScreen(props: Props) {
             monthRange.startMonthStr!,
             monthRange.currentMonthStr,
           );
-    const data = monthKeys.map((k) => ({ x: k, y: byMonth[k] ?? 0 }));
+    const data = monthKeys.map((k) => {
+      const fuel = byMonthFuel[k] ?? 0;
+      const service = byMonthService[k] ?? 0;
+      return { x: k, fuel, service, total: fuel + service };
+    });
     return { data };
   }, [filtered.service, filtered.fueling, period, monthRange]);
 
@@ -1405,7 +1623,7 @@ export function StatisticsScreen(props: Props) {
     chartViewportWidth - CHART_Y_AXIS_WIDTH,
   );
   const barChartWidth = getScrollableChartWidth(
-    monthlySeries.data.length,
+    monthlyExpensesSeries.data.length,
     chartScrollViewportWidth,
   );
   const lineChartWidth = getScrollableChartWidth(
@@ -1417,7 +1635,7 @@ export function StatisticsScreen(props: Props) {
     chartScrollViewportWidth,
   );
   const barChartScale = getChartScale(
-    monthlySeries.data.map((item) => item.y),
+    monthlyExpensesSeries.data.map((item) => item.total),
     CHART_BAR_HEIGHT,
   );
   const lineChartScale = getChartScale(
@@ -1455,6 +1673,12 @@ export function StatisticsScreen(props: Props) {
     () => categorySeries.reduce((s, x) => s + clampNonNeg(x.value), 0),
     [categorySeries],
   );
+  const visibleCategorySeries = useMemo(
+    () =>
+      showAllCategoryLegend ? categorySeries : categorySeries.slice(0, 3),
+    [categorySeries, showAllCategoryLegend],
+  );
+  const hasHiddenCategoryItems = categorySeries.length > 3;
   const isNarrow = windowWidth < 380;
 
   const filterPanelContent = (
@@ -1826,48 +2050,63 @@ export function StatisticsScreen(props: Props) {
           )}
         </View>
         {categorySeries.length > 0 ? (
-          <Pressable
-            style={({ pressed }) => [
-              styles.legendCard,
-              { backgroundColor: theme.colors.card },
-              pressed && styles.legendCardPressed,
-            ]}
-            onPress={() => setLegendShowPercent((prev) => !prev)}
-            accessibilityRole="button"
-            accessibilityLabel={t("dashboard.stats.charts.expensesByCategory")}
-            accessibilityHint={t("dashboard.stats.tapToSwitchUnit")}
-          >
-            <View style={styles.legend}>
-              {categorySeries.map((c) => {
-                const pct =
-                  totalByCategory > 0
-                    ? (c.value / totalByCategory) * 100
-                    : Number.NaN;
-                return (
-                  <View key={c.key} style={styles.legendRow}>
-                    <View
-                      style={[styles.legendDot, { backgroundColor: c.color }]}
-                    />
-                    <Text
-                      style={[styles.legendLabel, { color: theme.colors.fg }]}
-                      numberOfLines={2}
-                    >
-                      {c.label}
-                    </Text>
-                    <View style={styles.legendValueWrap}>
-                      {legendShowPercent ? (
-                        <Text style={styles.legendValue}>{fmtPct(pct)}</Text>
-                      ) : (
-                        <Text style={styles.legendValue}>
-                          {fmtMoney(c.value, currency)}
-                        </Text>
-                      )}
+          <>
+            <Pressable
+              style={({ pressed }) => [
+                styles.legendCard,
+                { backgroundColor: theme.colors.card },
+                pressed && styles.legendCardPressed,
+              ]}
+              onPress={() => setLegendShowPercent((prev) => !prev)}
+              accessibilityRole="button"
+              accessibilityLabel={t("dashboard.stats.charts.expensesByCategory")}
+              accessibilityHint={t("dashboard.stats.tapToSwitchUnit")}
+            >
+              <View style={styles.legend}>
+                {visibleCategorySeries.map((c) => {
+                  const pct =
+                    totalByCategory > 0
+                      ? (c.value / totalByCategory) * 100
+                      : Number.NaN;
+                  return (
+                    <View key={c.key} style={styles.legendRow}>
+                      <View
+                        style={[styles.legendDot, { backgroundColor: c.color }]}
+                      />
+                      <Text
+                        style={[styles.legendLabel, { color: theme.colors.fg }]}
+                        numberOfLines={2}
+                      >
+                        {c.label}
+                      </Text>
+                      <View style={styles.legendValueWrap}>
+                        {legendShowPercent ? (
+                          <Text style={styles.legendValue}>{fmtPct(pct)}</Text>
+                        ) : (
+                          <Text style={styles.legendValue}>
+                            {fmtMoney(c.value, currency)}
+                          </Text>
+                        )}
+                      </View>
                     </View>
-                  </View>
-                );
-              })}
-            </View>
-          </Pressable>
+                  );
+                })}
+              </View>
+            </Pressable>
+            {hasHiddenCategoryItems ? (
+              <Pressable
+                onPress={() => setShowAllCategoryLegend((prev) => !prev)}
+                hitSlop={8}
+                style={styles.legendExpandButton}
+              >
+                <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
+                  {showAllCategoryLegend
+                    ? t("dashboard.stats.showFewerCategories")
+                    : t("dashboard.stats.showMoreCategories")}
+                </Text>
+              </Pressable>
+            ) : null}
+          </>
         ) : null}
       </View>
 
@@ -1887,8 +2126,32 @@ export function StatisticsScreen(props: Props) {
             <CircleHelp size={18} color={theme.colors.muted} />
           </Pressable>
         </View>
+        <View style={styles.legendInline}>
+          <View style={styles.legendInlineItem}>
+            <View
+              style={[
+                styles.legendInlineDot,
+                { backgroundColor: theme.colors.accent },
+              ]}
+            />
+            <Text style={[styles.legendInlineText, { color: theme.colors.fg }]}>
+              {t("dashboard.stats.categories.fuel")}
+            </Text>
+          </View>
+          <View style={styles.legendInlineItem}>
+            <View
+              style={[
+                styles.legendInlineDot,
+                { backgroundColor: theme.colors.muted },
+              ]}
+            />
+            <Text style={[styles.legendInlineText, { color: theme.colors.fg }]}>
+              {t("dashboard.tiles.serviceTitle")}
+            </Text>
+          </View>
+        </View>
         <View style={styles.chartContainer} key={`bar-chart-${period}`}>
-          {monthlySeries.data.length === 0 ? (
+          {monthlyExpensesSeries.data.length === 0 ? (
             <Text style={[styles.empty, { color: theme.colors.muted }]}>
               {t("dashboard.stats.empty")}
             </Text>
@@ -1911,16 +2174,20 @@ export function StatisticsScreen(props: Props) {
                   { minWidth: chartScrollViewportWidth },
                 ]}
               >
-                <SimpleBarChart
-                  data={monthlySeries.data}
+                <SimpleStackedBarChart
+                  data={monthlyExpensesSeries.data}
                   width={barChartWidth}
                   height={CHART_BAR_HEIGHT}
                   niceMaxY={barChartScale.niceMaxY}
                   yTicks={barChartScale.yTicks}
-                  fill={theme.colors.accent}
+                  fuelFill={theme.colors.accent}
+                  serviceFill={theme.colors.muted}
                   grid={theme.colors.border}
                   textColor={theme.colors.muted}
                   formatXLabel={formatChartMonth}
+                  currency={currency}
+                  tooltipBg={theme.colors.card}
+                  tooltipText={theme.colors.fg}
                 />
               </ScrollView>
             </View>
@@ -2299,6 +2566,10 @@ const makeStyles = (theme: any) =>
     },
     legendCardPressed: {
       opacity: 0.85,
+    },
+    legendExpandButton: {
+      marginTop: theme.spacing.xs / 2,
+      alignSelf: "flex-end",
     },
     legendRow: {
       flexDirection: "row",
