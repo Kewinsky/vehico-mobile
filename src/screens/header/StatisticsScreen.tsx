@@ -486,6 +486,8 @@ function SimpleLineChart({
   grid,
   textColor,
   formatXLabel,
+  referenceLineY,
+  referenceLineStroke,
 }: {
   data: XY[];
   width: number;
@@ -497,6 +499,8 @@ function SimpleLineChart({
   grid: string;
   textColor: string;
   formatXLabel?: (key: string) => string;
+  referenceLineY?: number;
+  referenceLineStroke?: string;
 }) {
   const w = width;
   const h = height;
@@ -506,6 +510,11 @@ function SimpleLineChart({
   const lineEndX = w - CHART_PLOT_PADDING_RIGHT;
   const linePlotW = Math.max(0, lineEndX - lineStartX);
   const yRange = Math.max(1, maxY - minY);
+  const referenceLineYPos =
+    Number.isFinite(referenceLineY) && referenceLineY != null
+      ? CHART_PLOT_PADDING_TOP +
+        (1 - Math.min(1, Math.max(0, (referenceLineY - minY) / yRange))) * plotH
+      : null;
   const points = data.map((d, i) => {
     const x =
       data.length === 1
@@ -559,6 +568,17 @@ function SimpleLineChart({
           fill="none"
           stroke={stroke}
           strokeWidth={3}
+        />
+      ) : null}
+      {referenceLineYPos != null ? (
+        <SvgLine
+          x1={0}
+          y1={referenceLineYPos}
+          x2={w}
+          y2={referenceLineYPos}
+          stroke={referenceLineStroke ?? stroke}
+          strokeWidth={2}
+          strokeDasharray="6,4"
         />
       ) : null}
       {points.length > 0 ? (
@@ -1404,6 +1424,13 @@ export function StatisticsScreen(props: Props) {
     costPerDistanceSeries.map((item) => item.y),
     CHART_LINE_HEIGHT,
   );
+  const avgCostPerDistance = useMemo(() => {
+    const values = costPerDistanceSeries
+      .map((item) => item.y)
+      .filter((value) => Number.isFinite(value) && value > 0);
+    if (values.length === 0) return Number.NaN;
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+  }, [costPerDistanceSeries]);
   const fuelComparisonScale = getChartScale(
     [
       ...fuelVsConsumptionSeries.consumption.map((item) => item.y),
@@ -1546,6 +1573,8 @@ export function StatisticsScreen(props: Props) {
                   maxY={lineChartScale.niceMaxY}
                   yTicks={lineChartScale.yTicks}
                   stroke={theme.colors.accent}
+                  referenceLineY={avgCostPerDistance}
+                  referenceLineStroke="#EF4444"
                   grid={theme.colors.border}
                   textColor={theme.colors.muted}
                   formatXLabel={formatChartMonth}

@@ -479,7 +479,7 @@ export const pl = {
         open: "Pokaż wyjaśnienie wykresu",
         costPerKmTitle: "Jak czytać koszt utrzymania?",
         costPerKmBody:
-          "Wykres pokazuje koszt utrzymania przeliczony na 1 km w każdym miesiącu: (paliwo + serwis) / przejechane km. Rosnący trend oznacza, że auto staje się droższe w utrzymaniu. Pojedyncze piki zwykle oznaczają większy serwis lub naprawę.",
+          "Wykres pokazuje koszt utrzymania przeliczony na 1 km w każdym miesiącu: (paliwo + serwis) / przejechane km. Czerwona przerywana linia to średni koszt utrzymania z wybranego okresu. Gdy punkty są powyżej tej linii, auto jest droższe w utrzymaniu niż zwykle. Pojedyncze piki zwykle oznaczają większy serwis lub naprawę.",
         consumptionVsFuelPriceTitle: "Jak czytać spalanie vs cena paliwa?",
         consumptionVsFuelPriceBody:
           "Porównaj dwie linie: spalanie (L/100 km) i średnią cenę paliwa za litr. Gdy rośnie głównie spalanie, problem może być w stylu jazdy lub stanie auta. Gdy rośnie głównie cena paliwa, wpływ ma głównie rynek.",

@@ -475,7 +475,7 @@ export const en = {
         open: "Show chart explanation",
         costPerKmTitle: "How to read maintenance cost?",
         costPerKmBody:
-          "This chart shows maintenance cost per 1 km in each month: (fuel + service costs) / driven km. A rising trend means the vehicle is getting more expensive to maintain. Single spikes usually indicate a larger service or repair event.",
+          "This chart shows maintenance cost per 1 km in each month: (fuel + service costs) / driven km. The red dashed line is the average maintenance cost for the selected period. When points are above this line, the vehicle is more expensive to maintain than usual. A rising trend means the vehicle is getting more expensive overall, and single spikes usually indicate a larger service or repair event.",
         consumptionVsFuelPriceTitle: "How to read consumption vs fuel price?",
         consumptionVsFuelPriceBody:
           "Compare two lines: fuel consumption (L/100 km) and average fuel price per liter. If mostly consumption rises, the issue may be driving style or vehicle condition. If mostly fuel price rises, market prices are the main factor.",
