@@ -4,7 +4,6 @@ import * as Linking from "expo-linking";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import {
-  ChevronRight,
   Crown,
   LogOut,
   MessageCircleQuestionMark,
@@ -138,7 +137,9 @@ export function SettingsScreen({ navigation }: Props) {
       },
       {
         id: "support",
-        icon: <MessageCircleQuestionMark size={22} color={theme.colors.accent} />,
+        icon: (
+          <MessageCircleQuestionMark size={22} color={theme.colors.accent} />
+        ),
         title: t("settings.supportTitle"),
         subtitle: t("settings.supportSubtitle"),
         onPress: onSupport,
@@ -205,7 +206,6 @@ export function SettingsScreen({ navigation }: Props) {
             const iconColor = isSignOut
               ? theme.colors.danger
               : theme.colors.accent;
-            const chevronColor = iconColor;
 
             return (
               <View key={row.id}>
@@ -234,7 +234,6 @@ export function SettingsScreen({ navigation }: Props) {
                       {row.subtitle}
                     </Text>
                   </View>
-                  <ChevronRight size={20} color={chevronColor} />
                 </Pressable>
               </View>
             );
