@@ -513,6 +513,7 @@ export const en = {
       months: "mo",
       noOilIntervals: "Not enough entries to compute intervals.",
       tapToSwitchUnit: "Tap to switch unit",
+      formalities: "Formalities",
       insuranceAndInspection: "Terms",
       insurance: "Insurance",
       insuranceValidUntil: "Insurance valid until",
