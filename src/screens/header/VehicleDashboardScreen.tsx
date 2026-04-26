@@ -960,7 +960,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   }
                   value={
                     vehicle?.initial_mileage != null
-                      ? `${groupThousands(vehicle.initial_mileage, i18n.language)} ${distanceUnitLabel}`
+                      ? `${groupThousands(vehicle.initial_mileage)} ${distanceUnitLabel}`
                       : "—"
                   }
                 />
@@ -975,7 +975,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   label={t("vehicleForm.mileageLabel")}
                   value={
                     vehicle?.mileage != null
-                      ? `${groupThousands(vehicle.mileage, i18n.language)} ${distanceUnitLabel}`
+                      ? `${groupThousands(vehicle.mileage)} ${distanceUnitLabel}`
                       : "—"
                   }
                 />
