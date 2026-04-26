@@ -25,7 +25,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 
-import { formatDateDisplay } from "../../utils/dateFormatting";
+import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { i18n } from "../../i18n/i18n";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 
@@ -120,7 +120,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
       vehicleTitle,
       vehicleId,
       postTitle: post.title,
-      generatedAt: `${t("marketplace.generatedOn")} ${formatDateDisplay(post.created_at, i18n.language)}`,
+      generatedAt: `${t("marketplace.generatedOn")} ${formatShortDisplayDate(post.created_at, i18n.language)}`,
     });
   }
 
@@ -162,7 +162,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
             >
               <ListRowWithActions
                 title={item.title || t("marketplace.defaultTitle")}
-                subtitle={`${t("marketplace.generatedOn")} ${formatDateDisplay(item.created_at, i18n.language)}`}
+                subtitle={`${t("marketplace.generatedOn")} ${formatShortDisplayDate(item.created_at, i18n.language)}`}
                 onPress={() => handlePostPress(item)}
               />
             </Swipeable>

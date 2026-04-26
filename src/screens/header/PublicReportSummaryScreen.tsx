@@ -38,7 +38,10 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { formatDateDisplay } from "../../utils/dateFormatting";
+import {
+  formatDateDisplay,
+  formatShortDisplayDate,
+} from "../../utils/dateFormatting";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportSummary">;
@@ -189,7 +192,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
               vehicleTitle,
               vehicleId,
               reportTitle: report.title,
-              generatedAt: `${t("share.generatedOn")} ${formatDateDisplay(report.created_at, i18n.language)}`,
+              generatedAt: `${t("share.generatedOn")} ${formatShortDisplayDate(report.created_at, i18n.language)}`,
             },
           },
         ],

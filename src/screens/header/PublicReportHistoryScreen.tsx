@@ -25,7 +25,7 @@ import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { formatDateDisplay } from "../../utils/dateFormatting";
+import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { i18n } from "../../i18n/i18n";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 
@@ -119,7 +119,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
         vehicleTitle,
         vehicleId,
         reportTitle: report.title,
-        generatedAt: `${t("share.generatedOn")} ${formatDateDisplay(report.created_at, i18n.language)}`,
+        generatedAt: `${t("share.generatedOn")} ${formatShortDisplayDate(report.created_at, i18n.language)}`,
       });
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
@@ -162,7 +162,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
             >
               <ListRowWithActions
                 title={item.title || t("publicReport.defaultTitle")}
-                subtitle={`${t("share.generatedOn")} ${formatDateDisplay(item.created_at, i18n.language)}`}
+                subtitle={`${t("share.generatedOn")} ${formatShortDisplayDate(item.created_at, i18n.language)}`}
                 onPress={() => handleReportPress(item)}
               />
             </Swipeable>

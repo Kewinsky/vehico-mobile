@@ -81,13 +81,23 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
       ? t("publicReport.reportWithTitle", { title: reportTitle })
       : t("share.onlineReport");
 
+  const footer = (
+    <View style={styles.actions}>
+      <Button onPress={handleOpenInBrowser}>{t("share.openInBrowser")}</Button>
+      <Button onPress={handleShare} variant="outlined">
+        {t("share.title")}
+      </Button>
+    </View>
+  );
+
   return (
-    <HeaderLayout onBack={handleBack} showProfileAvatar>
-      <NativeHeaderScrollView>
+    <HeaderLayout onBack={handleBack} showProfileAvatar footer={footer}>
+      <NativeHeaderScrollView contentContainerStyle={styles.scrollContent}>
         <ContentHeader title={layoutTitle} subtitle={generatedAt} />
-        <View style={styles.qrContainer}>
+        <View style={styles.qrCenterWrap}>
           <View
             style={[
+              styles.qrCard,
               {
                 backgroundColor: theme.colors.card,
                 borderColor: hexToRgba(
@@ -127,15 +137,6 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
             </View>
           </View>
         </View>
-
-        <View style={styles.actions}>
-          <Button onPress={handleOpenInBrowser}>
-            {t("share.openInBrowser")}
-          </Button>
-          <Button onPress={handleShare} variant="outlined">
-            {t("share.title")}
-          </Button>
-        </View>
       </NativeHeaderScrollView>
     </HeaderLayout>
   );
@@ -143,10 +144,19 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    qrContainer: {
-      alignItems: "center",
+    scrollContent: {
+      flexGrow: 1,
+    },
+    qrCenterWrap: {
+      flex: 1,
       justifyContent: "center",
-      marginBottom: theme.spacing.md,
+      alignItems: "center",
+      paddingBottom: theme.spacing.md,
+    },
+    qrCard: {
+      borderWidth: 1,
+      borderRadius: theme.radius.lg,
+      padding: theme.spacing.md,
     },
     qrInner: {
       position: "relative",

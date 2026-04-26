@@ -31,7 +31,10 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { formatDateDisplay } from "../../utils/dateFormatting";
+import {
+  formatDateDisplay,
+  formatShortDisplayDate,
+} from "../../utils/dateFormatting";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceSummary">;
@@ -185,7 +188,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
               content,
               vehicleTitle: vehicle ? `${vehicle.make} ${vehicle.model}` : "",
               vehicleId,
-              generatedAt: `${t("marketplace.generatedOn")} ${formatDateDisplay(new Date().toISOString(), i18n.language)}`,
+              generatedAt: `${t("marketplace.generatedOn")} ${formatShortDisplayDate(new Date().toISOString(), i18n.language)}`,
             },
           },
         ],
