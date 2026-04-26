@@ -321,13 +321,17 @@ function roundedRectPath(
   return [
     `M ${x + tl} ${y}`,
     `H ${x + width - tr}`,
-    tr > 0 ? `Q ${x + width} ${y} ${x + width} ${y + tr}` : `L ${x + width} ${y}`,
+    tr > 0
+      ? `Q ${x + width} ${y} ${x + width} ${y + tr}`
+      : `L ${x + width} ${y}`,
     `V ${y + height - br}`,
     br > 0
       ? `Q ${x + width} ${y + height} ${x + width - br} ${y + height}`
       : `L ${x + width} ${y + height}`,
     `H ${x + bl}`,
-    bl > 0 ? `Q ${x} ${y + height} ${x} ${y + height - bl}` : `L ${x} ${y + height}`,
+    bl > 0
+      ? `Q ${x} ${y + height} ${x} ${y + height - bl}`
+      : `L ${x} ${y + height}`,
     `V ${y + tl}`,
     tl > 0 ? `Q ${x} ${y} ${x + tl} ${y}` : `L ${x} ${y}`,
     "Z",
@@ -444,7 +448,10 @@ function SvgChartTooltip({
   textColor: string;
 }) {
   if (!visible) return null;
-  const tooltipWidth = estimateTooltipWidth([title, ...rows.map((row) => row.value)]);
+  const tooltipWidth = estimateTooltipWidth([
+    title,
+    ...rows.map((row) => row.value),
+  ]);
   const rowCount = rows.length;
   const tooltipHeight = 34 + rowCount * 16 + 8;
   const tooltipMargin = 8;
@@ -457,7 +464,10 @@ function SvgChartTooltip({
   );
   const tooltipY = Math.max(
     CHART_PLOT_PADDING_TOP,
-    Math.min(anchorY, viewportHeight - CHART_PLOT_PADDING_BOTTOM - tooltipHeight) -
+    Math.min(
+      anchorY,
+      viewportHeight - CHART_PLOT_PADDING_BOTTOM - tooltipHeight,
+    ) -
       tooltipMargin -
       tooltipHeight,
   );
@@ -484,7 +494,13 @@ function SvgChartTooltip({
       {rows.flatMap((row, idx) => {
         const y = tooltipY + 38 + idx * 16;
         return [
-          <Circle key={`tooltip-dot-${idx}`} cx={tooltipX + 14} cy={y} r={4} fill={row.color} />,
+          <Circle
+            key={`tooltip-dot-${idx}`}
+            cx={tooltipX + 14}
+            cy={y}
+            r={4}
+            fill={row.color}
+          />,
           <SvgText
             key={`tooltip-text-${idx}`}
             x={tooltipX + 24}
@@ -575,7 +591,7 @@ function SimpleStackedBarChart({
     index: i,
   }));
   const selectedBar =
-    selectedBarIndex != null ? bars[selectedBarIndex] ?? null : null;
+    selectedBarIndex != null ? (bars[selectedBarIndex] ?? null) : null;
   const tooltipTitle = selectedBar
     ? `${selectedBar.label}  ${selectedBar.totalValue.toFixed(2)} ${currency}`
     : "";
@@ -591,7 +607,9 @@ function SimpleStackedBarChart({
         },
       ]
     : [];
-  const tooltipAnchorX = selectedBar ? selectedBar.x + selectedBar.width / 2 : 0;
+  const tooltipAnchorX = selectedBar
+    ? selectedBar.x + selectedBar.width / 2
+    : 0;
   const tooltipAnchorY = selectedBar
     ? selectedBar.serviceHeight > 0
       ? selectedBar.serviceY
@@ -616,12 +634,19 @@ function SimpleStackedBarChart({
         const hasFuel = bar.fuelHeight > 0;
         const hasService = bar.serviceHeight > 0;
         if (!hasFuel) return null;
-        const d = roundedRectPath(bar.x, bar.fuelY, bar.width, bar.fuelHeight, 5, {
-          topLeft: !hasService,
-          topRight: !hasService,
-          bottomRight: true,
-          bottomLeft: true,
-        });
+        const d = roundedRectPath(
+          bar.x,
+          bar.fuelY,
+          bar.width,
+          bar.fuelHeight,
+          5,
+          {
+            topLeft: !hasService,
+            topRight: !hasService,
+            bottomRight: true,
+            bottomLeft: true,
+          },
+        );
         return <Path key={`fuel-bar-${i}`} d={d} fill={fuelFill} />;
       })}
       {bars.map((bar, i) => {
@@ -1257,7 +1282,8 @@ export function StatisticsScreen(props: Props) {
       const d = parseDateLoose(f.date);
       if (!d) continue;
       const k = monthKey(d);
-      byMonthFuel[k] = (byMonthFuel[k] ?? 0) + clampNonNeg(Number(f.fuel_cost ?? 0));
+      byMonthFuel[k] =
+        (byMonthFuel[k] ?? 0) + clampNonNeg(Number(f.fuel_cost ?? 0));
     }
     for (const s of filtered.service) {
       const d = parseDateLoose(s.service_date);
@@ -1596,7 +1622,11 @@ export function StatisticsScreen(props: Props) {
 
   const showChartInfo = useCallback(
     (
-      chart: "costPerKm" | "consumptionVsFuelPrice" | "expensesOverTime" | "expensesByCategory",
+      chart:
+        | "costPerKm"
+        | "consumptionVsFuelPrice"
+        | "expensesOverTime"
+        | "expensesByCategory",
     ) => {
       const info =
         chart === "costPerKm"
@@ -1606,7 +1636,9 @@ export function StatisticsScreen(props: Props) {
             }
           : chart === "consumptionVsFuelPrice"
             ? {
-                title: t("dashboard.stats.chartInfo.consumptionVsFuelPriceTitle"),
+                title: t(
+                  "dashboard.stats.chartInfo.consumptionVsFuelPriceTitle",
+                ),
                 body: t("dashboard.stats.chartInfo.consumptionVsFuelPriceBody"),
               }
             : chart === "expensesOverTime"
@@ -1683,8 +1715,7 @@ export function StatisticsScreen(props: Props) {
     [categorySeries],
   );
   const visibleCategorySeries = useMemo(
-    () =>
-      showAllCategoryLegend ? categorySeries : categorySeries.slice(0, 3),
+    () => (showAllCategoryLegend ? categorySeries : categorySeries.slice(0, 3)),
     [categorySeries, showAllCategoryLegend],
   );
   const hasHiddenCategoryItems = categorySeries.length > 3;
@@ -1899,11 +1930,12 @@ export function StatisticsScreen(props: Props) {
                 ? fmtNumber(fuelStatsDistance, i18n.language, 0)
                 : "—"
             }
-            valueSuffix={fuelStatsDistance != null ? distanceUnitLabel : undefined}
+            valueSuffix={
+              fuelStatsDistance != null ? distanceUnitLabel : undefined
+            }
           />
         </View>
       </View>
-
 
       {/* Dual-line chart to compare consumption trend and average fuel price. */}
       <View style={styles.section}>
@@ -1942,7 +1974,10 @@ export function StatisticsScreen(props: Props) {
             </Text>
           </View>
         </View>
-        <View style={styles.chartContainer} key={`fuel-consumption-chart-${period}`}>
+        <View
+          style={styles.chartContainer}
+          key={`fuel-consumption-chart-${period}`}
+        >
           {fuelVsConsumptionSeries.consumption.length === 0 ? (
             <Text style={[styles.empty, { color: theme.colors.muted }]}>
               {t("dashboard.stats.empty")}
@@ -2086,7 +2121,9 @@ export function StatisticsScreen(props: Props) {
               ]}
               onPress={() => setLegendShowPercent((prev) => !prev)}
               accessibilityRole="button"
-              accessibilityLabel={t("dashboard.stats.charts.expensesByCategory")}
+              accessibilityLabel={t(
+                "dashboard.stats.charts.expensesByCategory",
+              )}
               accessibilityHint={t("dashboard.stats.tapToSwitchUnit")}
             >
               <View style={styles.legend}>
@@ -2126,7 +2163,9 @@ export function StatisticsScreen(props: Props) {
                 hitSlop={8}
                 style={styles.legendExpandButton}
               >
-                <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
+                <Text
+                  style={[styles.viewAllLink, { color: theme.colors.accent }]}
+                >
                   {showAllCategoryLegend
                     ? t("dashboard.stats.showFewerCategories")
                     : t("dashboard.stats.showMoreCategories")}

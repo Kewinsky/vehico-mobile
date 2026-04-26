@@ -1191,7 +1191,14 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           <View style={styles.termsTilesRow}>
             <DashboardStatTile
               iconComponent={
-                <ShieldCheck size={20} color={theme.colors.accent} />
+                <ShieldCheck
+                  size={20}
+                  color={
+                    insuranceDaysUntil != null && insuranceDaysUntil <= 30
+                      ? theme.colors.danger
+                      : theme.colors.accent
+                  }
+                />
               }
               label={t("dashboard.stats.insurance")}
               valueMain={formatTermsValue(
@@ -1223,7 +1230,14 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             />
             <DashboardStatTile
               iconComponent={
-                <CheckCheck size={20} color={theme.colors.accent} />
+                <CheckCheck
+                  size={20}
+                  color={
+                    inspectionDaysUntil != null && inspectionDaysUntil <= 30
+                      ? theme.colors.danger
+                      : theme.colors.accent
+                  }
+                />
               }
               label={t("dashboard.stats.inspection")}
               valueMain={formatTermsValue(
