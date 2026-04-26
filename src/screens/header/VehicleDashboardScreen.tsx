@@ -464,6 +464,8 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     remindersLimit,
     freePlanVehicleId,
     freePlanReminderIds,
+    freePlanTireId,
+    freePlanWheelId,
     refresh: refreshEntitlements,
   } = useEntitlements();
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
@@ -493,12 +495,24 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     return ts;
   }, [vehicle?.mileage, vehicle?.mileage_updated_at]);
   const fittedTires = useMemo(
-    () => tires.filter((item) => item.is_currently_fitted),
-    [tires],
+    () =>
+      tires.filter((item) => {
+        if (!item.is_currently_fitted) return false;
+        if (isPremium) return true;
+        if (freePlanVehicleId !== vehicleId) return false;
+        return freePlanTireId != null && item.id === freePlanTireId;
+      }),
+    [tires, isPremium, freePlanVehicleId, vehicleId, freePlanTireId],
   );
   const fittedWheels = useMemo(
-    () => wheels.filter((item) => item.is_currently_fitted),
-    [wheels],
+    () =>
+      wheels.filter((item) => {
+        if (!item.is_currently_fitted) return false;
+        if (isPremium) return true;
+        if (freePlanVehicleId !== vehicleId) return false;
+        return freePlanWheelId != null && item.id === freePlanWheelId;
+      }),
+    [wheels, isPremium, freePlanVehicleId, vehicleId, freePlanWheelId],
   );
   const fittedTiresLines = useMemo(() => {
     if (fittedTires.length === 0) return ["—"];
