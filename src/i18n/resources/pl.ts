@@ -517,6 +517,7 @@ export const pl = {
       months: "mies.",
       noOilIntervals: "Za mało wpisów do obliczenia interwałów.",
       tapToSwitchUnit: "Dotknij, aby zmienić jednostkę",
+      formalities: "Formalności",
       insuranceAndInspection: "Terminy",
       insurance: "Ubezpieczenie",
       insuranceValidUntil: "Ubezpieczenie ważne do",
