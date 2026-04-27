@@ -622,7 +622,115 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- RPC: set free plan vehicle and populate reminder/tire/wheel IDs for that vehicle (oldest by created_at)
+-- Choose free-plan tire/wheel row for a vehicle: exactly one fitted → that set; zero fitted → oldest created_at overall;
+-- two or more fitted → oldest created_at among fitted sets only.
+create or replace function public.pick_free_plan_tire_id_for_vehicle(p_vehicle_id uuid)
+returns uuid
+language plpgsql
+stable
+set search_path = public
+as $$
+declare
+  v_fitted_count int;
+  v_id uuid;
+begin
+  select count(*)::int into v_fitted_count
+  from public.tires
+  where vehicle_id = p_vehicle_id and is_currently_fitted = true;
+
+  if v_fitted_count = 1 then
+    select id into v_id from public.tires
+    where vehicle_id = p_vehicle_id and is_currently_fitted = true
+    limit 1;
+    return v_id;
+  elsif v_fitted_count >= 2 then
+    select id into v_id from public.tires
+    where vehicle_id = p_vehicle_id and is_currently_fitted = true
+    order by created_at asc
+    limit 1;
+    return v_id;
+  else
+    select id into v_id from public.tires
+    where vehicle_id = p_vehicle_id
+    order by created_at asc
+    limit 1;
+    return v_id;
+  end if;
+end;
+$$;
+
+create or replace function public.pick_free_plan_wheel_id_for_vehicle(p_vehicle_id uuid)
+returns uuid
+language plpgsql
+stable
+set search_path = public
+as $$
+declare
+  v_fitted_count int;
+  v_id uuid;
+begin
+  select count(*)::int into v_fitted_count
+  from public.wheels
+  where vehicle_id = p_vehicle_id and is_currently_fitted = true;
+
+  if v_fitted_count = 1 then
+    select id into v_id from public.wheels
+    where vehicle_id = p_vehicle_id and is_currently_fitted = true
+    limit 1;
+    return v_id;
+  elsif v_fitted_count >= 2 then
+    select id into v_id from public.wheels
+    where vehicle_id = p_vehicle_id and is_currently_fitted = true
+    order by created_at asc
+    limit 1;
+    return v_id;
+  else
+    select id into v_id from public.wheels
+    where vehicle_id = p_vehicle_id
+    order by created_at asc
+    limit 1;
+    return v_id;
+  end if;
+end;
+$$;
+
+create or replace function public.entitlements_sync_free_plan_tire_ids_for_vehicle(p_vehicle_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.entitlements e
+  set free_plan_tire_id = public.pick_free_plan_tire_id_for_vehicle(p_vehicle_id),
+      updated_at = now()
+  from public.vehicles v
+  where v.id = p_vehicle_id
+    and v.owner_id = e.user_id
+    and e.plan = 'free'
+    and e.free_plan_vehicle_id is not distinct from p_vehicle_id;
+end;
+$$;
+
+create or replace function public.entitlements_sync_free_plan_wheel_ids_for_vehicle(p_vehicle_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.entitlements e
+  set free_plan_wheel_id = public.pick_free_plan_wheel_id_for_vehicle(p_vehicle_id),
+      updated_at = now()
+  from public.vehicles v
+  where v.id = p_vehicle_id
+    and v.owner_id = e.user_id
+    and e.plan = 'free'
+    and e.free_plan_vehicle_id is not distinct from p_vehicle_id;
+end;
+$$;
+
+-- RPC: set free plan vehicle and populate reminders + tire/wheel IDs (tires/wheels: fitted-first, else oldest created_at)
 create or replace function public.set_free_plan_vehicle(p_vehicle_id uuid)
 returns void
 language plpgsql
@@ -642,8 +750,8 @@ begin
   select array_agg(id order by created_at asc)
   into v_reminder_ids
   from (select id, created_at from public.reminders where vehicle_id = p_vehicle_id order by created_at asc limit 5) t;
-  select id into v_tire_id from public.tires where vehicle_id = p_vehicle_id order by created_at asc limit 1;
-  select id into v_wheel_id from public.wheels where vehicle_id = p_vehicle_id order by created_at asc limit 1;
+  select public.pick_free_plan_tire_id_for_vehicle(p_vehicle_id) into v_tire_id;
+  select public.pick_free_plan_wheel_id_for_vehicle(p_vehicle_id) into v_wheel_id;
   update public.entitlements
   set free_plan_vehicle_id = p_vehicle_id, free_plan_reminder_ids = coalesce(v_reminder_ids, '{}'),
       free_plan_tire_id = v_tire_id, free_plan_wheel_id = v_wheel_id, updated_at = now()
@@ -674,23 +782,23 @@ end;
 $$;
 create trigger after_reminder_delete_entitlements after delete on public.reminders for each row execute function public.entitlements_remove_reminder_from_free_list();
 
-create or replace function public.entitlements_clear_free_tire_on_delete()
+create or replace function public.entitlements_refresh_free_plan_tire_after_delete()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  update public.entitlements set free_plan_tire_id = null, updated_at = now() where free_plan_tire_id = old.id;
+  perform public.entitlements_sync_free_plan_tire_ids_for_vehicle(old.vehicle_id);
   return old;
 end;
 $$;
-create trigger after_tire_delete_entitlements after delete on public.tires for each row execute function public.entitlements_clear_free_tire_on_delete();
+create trigger after_tire_delete_entitlements after delete on public.tires for each row execute function public.entitlements_refresh_free_plan_tire_after_delete();
 
-create or replace function public.entitlements_clear_free_wheel_on_delete()
+create or replace function public.entitlements_refresh_free_plan_wheel_after_delete()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  update public.entitlements set free_plan_wheel_id = null, updated_at = now() where free_plan_wheel_id = old.id;
+  perform public.entitlements_sync_free_plan_wheel_ids_for_vehicle(old.vehicle_id);
   return old;
 end;
 $$;
-create trigger after_wheel_delete_entitlements after delete on public.wheels for each row execute function public.entitlements_clear_free_wheel_on_delete();
+create trigger after_wheel_delete_entitlements after delete on public.wheels for each row execute function public.entitlements_refresh_free_plan_wheel_after_delete();
 
 -- Triggers: append to free-plan list on insert when under limit
 create or replace function public.entitlements_append_workshop_on_insert()
@@ -721,11 +829,11 @@ create trigger after_reminder_insert_entitlements after insert on public.reminde
 
 create or replace function public.entitlements_set_free_tire_on_insert()
 returns trigger language plpgsql security definer set search_path = public as $$
-declare v_plan text; v_vehicle_id uuid; v_current_tire_id uuid;
+declare v_plan text; v_vehicle_id uuid;
 begin
-  select e.plan, e.free_plan_vehicle_id, e.free_plan_tire_id into v_plan, v_vehicle_id, v_current_tire_id from public.entitlements e join public.vehicles v on v.owner_id = e.user_id where v.id = new.vehicle_id;
+  select e.plan, e.free_plan_vehicle_id into v_plan, v_vehicle_id from public.entitlements e join public.vehicles v on v.owner_id = e.user_id where v.id = new.vehicle_id;
   if v_plan is null or v_plan not in ('free') or v_vehicle_id is distinct from new.vehicle_id then return new; end if;
-  if v_current_tire_id is null then update public.entitlements e set free_plan_tire_id = new.id, updated_at = now() from public.vehicles v where v.id = new.vehicle_id and e.user_id = v.owner_id; end if;
+  perform public.entitlements_sync_free_plan_tire_ids_for_vehicle(new.vehicle_id);
   return new;
 end;
 $$;
@@ -733,15 +841,39 @@ create trigger after_tire_insert_entitlements after insert on public.tires for e
 
 create or replace function public.entitlements_set_free_wheel_on_insert()
 returns trigger language plpgsql security definer set search_path = public as $$
-declare v_plan text; v_vehicle_id uuid; v_current_wheel_id uuid;
+declare v_plan text; v_vehicle_id uuid;
 begin
-  select e.plan, e.free_plan_vehicle_id, e.free_plan_wheel_id into v_plan, v_vehicle_id, v_current_wheel_id from public.entitlements e join public.vehicles v on v.owner_id = e.user_id where v.id = new.vehicle_id;
+  select e.plan, e.free_plan_vehicle_id into v_plan, v_vehicle_id from public.entitlements e join public.vehicles v on v.owner_id = e.user_id where v.id = new.vehicle_id;
   if v_plan is null or v_plan not in ('free') or v_vehicle_id is distinct from new.vehicle_id then return new; end if;
-  if v_current_wheel_id is null then update public.entitlements e set free_plan_wheel_id = new.id, updated_at = now() from public.vehicles v where v.id = new.vehicle_id and e.user_id = v.owner_id; end if;
+  perform public.entitlements_sync_free_plan_wheel_ids_for_vehicle(new.vehicle_id);
   return new;
 end;
 $$;
 create trigger after_wheel_insert_entitlements after insert on public.wheels for each row execute function public.entitlements_set_free_wheel_on_insert();
+
+create or replace function public.entitlements_refresh_free_plan_tire_after_fitted_change()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if old.is_currently_fitted is not distinct from new.is_currently_fitted then return new; end if;
+  perform public.entitlements_sync_free_plan_tire_ids_for_vehicle(new.vehicle_id);
+  return new;
+end;
+$$;
+create trigger after_tire_fitted_change_entitlements
+  after update of is_currently_fitted on public.tires
+  for each row execute function public.entitlements_refresh_free_plan_tire_after_fitted_change();
+
+create or replace function public.entitlements_refresh_free_plan_wheel_after_fitted_change()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if old.is_currently_fitted is not distinct from new.is_currently_fitted then return new; end if;
+  perform public.entitlements_sync_free_plan_wheel_ids_for_vehicle(new.vehicle_id);
+  return new;
+end;
+$$;
+create trigger after_wheel_fitted_change_entitlements
+  after update of is_currently_fitted on public.wheels
+  for each row execute function public.entitlements_refresh_free_plan_wheel_after_fitted_change();
 
 -- ================
 -- Functions for public reports

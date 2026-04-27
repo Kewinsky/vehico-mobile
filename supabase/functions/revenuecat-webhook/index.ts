@@ -12,6 +12,11 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+import {
+  pickFreePlanTireIdForVehicle,
+  pickFreePlanWheelIdForVehicle,
+} from "../_shared/freePlanTireWheel.ts";
+
 // Must match RevenueCat dashboard and vehico-mobile src/services/payments/revenuecat.ts
 const PREMIUM_ENTITLEMENT_ID = "vehico Premium";
 const PRODUCT_ID_LIFETIME = "lifetime";
@@ -76,7 +81,7 @@ function isLifetimeProduct(productId: string | undefined): boolean {
 function isSubscriptionProduct(productId: string | undefined): boolean {
   if (!productId) return false;
   return PRODUCT_IDS_SUBSCRIPTION.some(
-    (id) => productId === id || productId.startsWith(`${id}:`)
+    (id) => productId === id || productId.startsWith(`${id}:`),
   );
 }
 
@@ -164,52 +169,44 @@ async function buildFreePlanSelections(
   if (!freePlanVehicleId) {
     return {
       freePlanVehicleId: null,
-      freePlanWorkshopIds: (workshopRows ?? []).map((row: { id: string }) => row.id),
+      freePlanWorkshopIds: (workshopRows ?? []).map(
+        (row: { id: string }) => row.id,
+      ),
       freePlanReminderIds: [],
       freePlanTireId: null,
       freePlanWheelId: null,
     };
   }
 
-  const [reminderResult, tireResult, wheelResult] = await Promise.all([
+  const [reminderResult, freePlanTireId, freePlanWheelId] = await Promise.all([
     supabase
       .from("reminders")
       .select("id")
       .eq("vehicle_id", freePlanVehicleId)
       .order("created_at", { ascending: true })
       .limit(FREE_LIMITS.reminders_limit),
-    supabase
-      .from("tires")
-      .select("id")
-      .eq("vehicle_id", freePlanVehicleId)
-      .order("created_at", { ascending: true })
-      .limit(1),
-    supabase
-      .from("wheels")
-      .select("id")
-      .eq("vehicle_id", freePlanVehicleId)
-      .order("created_at", { ascending: true })
-      .limit(1),
+    pickFreePlanTireIdForVehicle(supabase, freePlanVehicleId),
+    pickFreePlanWheelIdForVehicle(supabase, freePlanVehicleId),
   ]);
 
   if (reminderResult.error) throw reminderResult.error;
-  if (tireResult.error) throw tireResult.error;
-  if (wheelResult.error) throw wheelResult.error;
 
   return {
     freePlanVehicleId,
-    freePlanWorkshopIds: (workshopRows ?? []).map((row: { id: string }) => row.id),
+    freePlanWorkshopIds: (workshopRows ?? []).map(
+      (row: { id: string }) => row.id,
+    ),
     freePlanReminderIds: (reminderResult.data ?? []).map(
       (row: { id: string }) => row.id,
     ),
-    freePlanTireId: tireResult.data?.[0]?.id ?? null,
-    freePlanWheelId: wheelResult.data?.[0]?.id ?? null,
+    freePlanTireId,
+    freePlanWheelId,
   };
 }
 
 /** Build entitlements update from event type and payload. */
 function getEntitlementsUpdate(
-  event: RevenueCatWebhookEvent
+  event: RevenueCatWebhookEvent,
 ): EntitlementsUpdate | null {
   const type = event.type;
   const productId = event.product_id;
@@ -321,46 +318,49 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const authHeader = req.headers.get("Authorization");
   const expectedSecret = Deno.env.get("REVENUECAT_WEBHOOK_AUTHORIZATION");
   if (!expectedSecret) {
     console.error("REVENUECAT_WEBHOOK_AUTHORIZATION is not set");
-    return new Response(
-      JSON.stringify({ error: "Server misconfiguration" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Server misconfiguration" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
   const expectedAuth = expectedSecret.startsWith("Bearer ")
     ? expectedSecret
     : `Bearer ${expectedSecret}`;
   if (authHeader !== expectedAuth) {
-    return new Response(
-      JSON.stringify({ error: "Unauthorized" }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   let body: RevenueCatWebhookBody;
   try {
     body = (await req.json()) as RevenueCatWebhookBody;
   } catch {
-    return new Response(
-      JSON.stringify({ error: "Invalid JSON body" }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const event = body?.event;
   if (!event?.type) {
     return new Response(
       JSON.stringify({ error: "Missing event or event.type" }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 
@@ -374,18 +374,21 @@ Deno.serve(async (req: Request): Promise<Response> => {
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
     );
   }
 
   const update = getEntitlementsUpdate(event);
   if (!update) {
     return new Response(
-      JSON.stringify({ received: true, message: "No entitlement update for type" }),
+      JSON.stringify({
+        received: true,
+        message: "No entitlement update for type",
+      }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
     );
   }
 
@@ -393,27 +396,31 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceRoleKey) {
     console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
-    return new Response(
-      JSON.stringify({ error: "Server misconfiguration" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Server misconfiguration" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
   const now = new Date().toISOString();
-  const {
-    data: currentEntitlements,
-    error: currentEntitlementsError,
-  } = await supabase
-    .from("entitlements")
-    .select("free_plan_vehicle_id")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { data: currentEntitlements, error: currentEntitlementsError } =
+    await supabase
+      .from("entitlements")
+      .select("free_plan_vehicle_id")
+      .eq("user_id", userId)
+      .maybeSingle();
   if (currentEntitlementsError) {
-    console.error("Failed to load current entitlements:", currentEntitlementsError);
+    console.error(
+      "Failed to load current entitlements:",
+      currentEntitlementsError,
+    );
     return new Response(
       JSON.stringify({ error: "Failed to load current entitlements" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 
@@ -465,13 +472,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
         {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        },
       );
     }
     console.error("Entitlements update failed:", error);
     return new Response(
       JSON.stringify({ error: "Failed to update entitlements" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 
@@ -485,6 +495,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
     {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-    }
+    },
   );
 });

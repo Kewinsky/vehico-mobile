@@ -9,6 +9,11 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+import {
+  pickFreePlanTireIdForVehicle,
+  pickFreePlanWheelIdForVehicle,
+} from "../_shared/freePlanTireWheel.ts";
+
 const PREMIUM_ENTITLEMENT_ID = "vehico Premium";
 const PRODUCT_ID_LIFETIME = "lifetime";
 const PRODUCT_IDS_SUBSCRIPTION = ["monthly", "yearly"] as const;
@@ -130,46 +135,38 @@ async function buildFreePlanSelections(
   if (!freePlanVehicleId) {
     return {
       freePlanVehicleId: null,
-      freePlanWorkshopIds: (workshopRows ?? []).map((row: { id: string }) => row.id),
+      freePlanWorkshopIds: (workshopRows ?? []).map(
+        (row: { id: string }) => row.id,
+      ),
       freePlanReminderIds: [],
       freePlanTireId: null,
       freePlanWheelId: null,
     };
   }
 
-  const [reminderResult, tireResult, wheelResult] = await Promise.all([
+  const [reminderResult, freePlanTireId, freePlanWheelId] = await Promise.all([
     supabase
       .from("reminders")
       .select("id")
       .eq("vehicle_id", freePlanVehicleId)
       .order("created_at", { ascending: true })
       .limit(FREE_LIMITS.reminders_limit),
-    supabase
-      .from("tires")
-      .select("id")
-      .eq("vehicle_id", freePlanVehicleId)
-      .order("created_at", { ascending: true })
-      .limit(1),
-    supabase
-      .from("wheels")
-      .select("id")
-      .eq("vehicle_id", freePlanVehicleId)
-      .order("created_at", { ascending: true })
-      .limit(1),
+    pickFreePlanTireIdForVehicle(supabase, freePlanVehicleId),
+    pickFreePlanWheelIdForVehicle(supabase, freePlanVehicleId),
   ]);
 
   if (reminderResult.error) throw reminderResult.error;
-  if (tireResult.error) throw tireResult.error;
-  if (wheelResult.error) throw wheelResult.error;
 
   return {
     freePlanVehicleId,
-    freePlanWorkshopIds: (workshopRows ?? []).map((row: { id: string }) => row.id),
+    freePlanWorkshopIds: (workshopRows ?? []).map(
+      (row: { id: string }) => row.id,
+    ),
     freePlanReminderIds: (reminderResult.data ?? []).map(
       (row: { id: string }) => row.id,
     ),
-    freePlanTireId: tireResult.data?.[0]?.id ?? null,
-    freePlanWheelId: wheelResult.data?.[0]?.id ?? null,
+    freePlanTireId,
+    freePlanWheelId,
   };
 }
 
@@ -186,8 +183,7 @@ function buildUpdateFromRC(rc: RCSubscriberResponse): EntitlementsUpdate {
 
   const expiresDate = ent.expires_date;
   const now = new Date();
-  const isExpired =
-    expiresDate != null && new Date(expiresDate) <= now;
+  const isExpired = expiresDate != null && new Date(expiresDate) <= now;
 
   if (isExpired) {
     return {
@@ -225,17 +221,20 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
     return new Response(
       JSON.stringify({ error: "Missing Authorization header" }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 
@@ -244,11 +243,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const rcSecretKey = Deno.env.get("REVENUECAT_SECRET_API_KEY");
 
-  if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey || !rcSecretKey) {
-    return new Response(
-      JSON.stringify({ error: "Server misconfiguration" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+  if (
+    !supabaseUrl ||
+    !supabaseAnonKey ||
+    !supabaseServiceRoleKey ||
+    !rcSecretKey
+  ) {
+    return new Response(JSON.stringify({ error: "Server misconfiguration" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const userClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -261,10 +265,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
   } = await userClient.auth.getUser();
 
   if (userError || !user) {
-    return new Response(
-      JSON.stringify({ error: "Unauthorized" }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const appUserId = user.id;
@@ -280,19 +284,25 @@ Deno.serve(async (req: Request): Promise<Response> => {
           Authorization: `Bearer ${rcSecretKey}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
   } catch {
     return new Response(
       JSON.stringify({ error: "Failed to fetch subscription status" }),
-      { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 
   if (!rcResponse.ok) {
     return new Response(
       JSON.stringify({ error: "RevenueCat error", status: rcResponse.status }),
-      { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 
@@ -302,25 +312,29 @@ Deno.serve(async (req: Request): Promise<Response> => {
   } catch {
     return new Response(
       JSON.stringify({ error: "Invalid response from RevenueCat" }),
-      { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 
   const update = buildUpdateFromRC(rcBody);
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
   const now = new Date().toISOString();
-  const {
-    data: currentEntitlements,
-    error: currentEntitlementsError,
-  } = await supabase
-    .from("entitlements")
-    .select("free_plan_vehicle_id")
-    .eq("user_id", appUserId)
-    .maybeSingle();
+  const { data: currentEntitlements, error: currentEntitlementsError } =
+    await supabase
+      .from("entitlements")
+      .select("free_plan_vehicle_id")
+      .eq("user_id", appUserId)
+      .maybeSingle();
   if (currentEntitlementsError) {
     return new Response(
       JSON.stringify({ error: "Failed to load current entitlements" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 
@@ -366,12 +380,18 @@ Deno.serve(async (req: Request): Promise<Response> => {
     if (error.code === "PGRST116") {
       return new Response(
         JSON.stringify({ error: "Entitlements row not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
     return new Response(
       JSON.stringify({ error: "Failed to update entitlements" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 
@@ -381,6 +401,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
       plan: update.plan,
       premium_until: update.premium_until ?? undefined,
     }),
-    { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    },
   );
 });
