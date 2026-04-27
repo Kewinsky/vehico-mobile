@@ -1093,60 +1093,90 @@ export function VehicleFormScreen({ navigation, route }: Props) {
               <View style={{ height: theme.spacing.sm }} />
 
               <Card>
-                <CardRow>
-                  <View style={styles.rowLeft}>
-                    <MaterialCommunityIcons
-                      name="car-shift-pattern"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
+                <Pressable
+                  onPress={() =>
+                    showPicker<TransmissionType>({
+                      title: t("vehicleForm.transmissionLabel"),
+                      value: transmission,
+                      options: ["manual", "automatic"] as const,
+                      getLabel: (value) =>
+                        value === "manual"
+                          ? t("vehicleForm.transmissionManual")
+                          : t("vehicleForm.transmissionAutomatic"),
+                      onChange: setTransmission,
+                    })
+                  }
+                  style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+                >
+                  <CardRow>
+                    <View style={styles.rowLeft}>
+                      <MaterialCommunityIcons
+                        name="car-shift-pattern"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <Text
+                        style={[styles.label, { color: theme.colors.muted }]}
+                        numberOfLines={1}
+                      >
+                        {t("vehicleForm.transmissionLabel")}
+                      </Text>
+                    </View>
                     <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("vehicleForm.transmissionLabel")}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <SegmentTabs<TransmissionType>
-                      value={transmission ?? "manual"}
-                      options={[
+                      style={[
+                        styles.valueText,
                         {
-                          value: "manual",
-                          label: t("vehicleForm.transmissionManual"),
-                        },
-                        {
-                          value: "automatic",
-                          label: t("vehicleForm.transmissionAutomatic"),
+                          color: transmission ? theme.colors.fg : theme.colors.muted,
+                          textAlign: "right",
                         },
                       ]}
-                      onChange={setTransmission}
-                    />
-                  </View>
-                </CardRow>
+                      numberOfLines={1}
+                    >
+                      {transmission
+                        ? transmission === "manual"
+                          ? t("vehicleForm.transmissionManual")
+                          : t("vehicleForm.transmissionAutomatic")
+                        : t("common.chooseOption")}
+                    </Text>
+                  </CardRow>
+                </Pressable>
 
-                <CardRow>
-                  <View style={styles.rowLeft}>
-                    <DriveTypeIcon size={20} color={theme.colors.accent} />
+                <Pressable
+                  onPress={() =>
+                    showPicker<DriveType>({
+                      title: t("vehicleForm.driveTypeLabel"),
+                      value: driveType,
+                      options: ["FWD", "RWD", "AWD"] as const,
+                      getLabel: (value) => value,
+                      onChange: setDriveType,
+                    })
+                  }
+                  style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+                >
+                  <CardRow>
+                    <View style={styles.rowLeft}>
+                      <DriveTypeIcon size={20} color={theme.colors.accent} />
+                      <Text
+                        style={[styles.label, { color: theme.colors.muted }]}
+                        numberOfLines={1}
+                      >
+                        {t("vehicleForm.driveTypeLabel")}
+                      </Text>
+                    </View>
                     <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
+                      style={[
+                        styles.valueText,
+                        {
+                          color: driveType ? theme.colors.fg : theme.colors.muted,
+                          textAlign: "right",
+                        },
+                      ]}
                       numberOfLines={1}
                     >
-                      {t("vehicleForm.driveTypeLabel")}
+                      {driveType ?? t("common.chooseOption")}
                     </Text>
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <SegmentTabs<DriveType>
-                      value={driveType ?? "FWD"}
-                      options={[
-                        { value: "FWD", label: "FWD" },
-                        { value: "RWD", label: "RWD" },
-                        { value: "AWD", label: "AWD" },
-                      ]}
-                      onChange={setDriveType}
-                    />
-                  </View>
-                </CardRow>
+                  </CardRow>
+                </Pressable>
               </Card>
 
               <View style={{ height: theme.spacing.sm }} />

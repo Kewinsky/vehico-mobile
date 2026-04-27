@@ -17,7 +17,6 @@ import { Button } from "../../ui/components/common/Button";
 import { ModalFormScreen } from "../../ui/components/layout/ModalFormScreen";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 
@@ -61,11 +60,9 @@ function parseYmd(ymd: string): Date {
 export function FuelFiltersScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const params = route.params;
-  const currency = settings?.currency ?? "PLN";
 
   const [dateFrom, setDateFrom] = useState(params.dateFrom ?? "");
   const [dateTo, setDateTo] = useState(params.dateTo ?? "");
@@ -78,6 +75,7 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
   );
   const [minCost, setMinCost] = useState(params.minCost ?? "");
   const [maxCost, setMaxCost] = useState(params.maxCost ?? "");
+  const stationPlaceholder = t("fuelingForm.gasStationPlaceholderShort");
 
   function clearFilters() {
     setDateFrom("");
@@ -109,9 +107,14 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
         onPress: () => setStationFilter(s),
       })),
     ];
-    Alert.alert(t("timeline.filterStation"), t("common.chooseOption"), buttons, {
-      cancelable: true,
-    });
+    Alert.alert(
+      t("timeline.filterStation"),
+      t("common.chooseOption"),
+      buttons,
+      {
+        cancelable: true,
+      },
+    );
   }
 
   function applyFilters() {
@@ -144,12 +147,17 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
           onPress={showStationPicker}
           style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
         >
-          <CardRow>
-            <Ionicons
-              name="location-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
+          <CardRow style={styles.rowSpread}>
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="location-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("timeline.filterStation")}
+              </Text>
+            </View>
             <Text
               style={[
                 styles.valueText,
@@ -160,16 +168,12 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
                       : theme.colors.muted,
                 },
               ]}
+              numberOfLines={1}
             >
               {stationFilter != null
                 ? t(`fuelingForm.stations.${stationFilter}`)
-                : t("timeline.filterStation")}
+                : stationPlaceholder}
             </Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={theme.colors.accent}
-            />
           </CardRow>
         </Pressable>
 
@@ -177,17 +181,23 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
           onPress={() => openPicker("from")}
           style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
         >
-          <CardRow>
-            <Ionicons
-              name="calendar-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
+          <CardRow style={styles.rowSpread}>
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("timeline.filterFrom")}
+              </Text>
+            </View>
             <Text
               style={[
                 styles.valueText,
                 { color: dateFrom ? theme.colors.fg : theme.colors.muted },
               ]}
+              numberOfLines={1}
             >
               {dateFrom || t("timeline.filterFrom")}
             </Text>
@@ -210,17 +220,23 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
           onPress={() => openPicker("to")}
           style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
         >
-          <CardRow>
-            <Ionicons
-              name="calendar-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
+          <CardRow style={styles.rowSpread}>
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("timeline.filterTo")}
+              </Text>
+            </View>
             <Text
               style={[
                 styles.valueText,
                 { color: dateTo ? theme.colors.fg : theme.colors.muted },
               ]}
+              numberOfLines={1}
             >
               {dateTo || t("timeline.filterTo")}
             </Text>
@@ -239,26 +255,50 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
           />
         ) : null}
 
-        <CardRow>
-          <Ionicons name="cash-outline" size={20} color={theme.colors.accent} />
+        <CardRow style={styles.rowSpread}>
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="cash-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text style={[styles.label, { color: theme.colors.muted }]}>
+              {t("timeline.filterMinCost")}
+            </Text>
+          </View>
           <TextInput
             value={minCost}
             onChangeText={setMinCost}
             keyboardType="decimal-pad"
-            placeholder={`${t("timeline.filterMinCost")} (${currency})`}
+            placeholder={t("timeline.placeholderMinCost")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </CardRow>
-        <CardRow>
-          <Ionicons name="cash-outline" size={20} color={theme.colors.accent} />
+        <CardRow style={styles.rowSpread}>
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="cash-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text style={[styles.label, { color: theme.colors.muted }]}>
+              {t("timeline.filterMaxCost")}
+            </Text>
+          </View>
           <TextInput
             value={maxCost}
             onChangeText={setMaxCost}
             keyboardType="decimal-pad"
-            placeholder={`${t("timeline.filterMaxCost")} (${currency})`}
+            placeholder={t("timeline.placeholderMaxCost")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </CardRow>
       </Card>
@@ -268,7 +308,26 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
+    rowLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      flex: 0,
+      flexShrink: 1,
+    },
+    label: {
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    rowSpread: {
+      justifyContent: "space-between",
+    },
+    valueText: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.body,
+      textAlign: "right",
+    },
     input: {
       flex: 1,
       minWidth: 0,

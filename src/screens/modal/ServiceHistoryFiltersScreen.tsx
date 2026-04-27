@@ -13,15 +13,13 @@ import {
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { ServiceEntryCategory } from "../../types/domain";
 import { setPendingModalResult } from "../../app/pendingModalResult";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Button } from "../../ui/components/common/Button";
-import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { ModalFormScreen } from "../../ui/components/layout/ModalFormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
+import { ListFilter } from "lucide-react-native";
 
 export type ServiceHistoryFiltersParams = {
   categoryFilter: "all" | ServiceEntryCategory;
@@ -69,11 +67,9 @@ function parseYmd(ymd: string): Date {
 export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const params = route.params;
-  const currency = settings?.currency ?? "PLN";
 
   const [categoryFilter, setCategoryFilter] = useState<
     "all" | ServiceEntryCategory
@@ -95,11 +91,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
     | "cost-desc";
   const [sortOption, setSortOption] = useState<SortOption>(
     (params.sortOption as SortOption | undefined) ?? "date-newest",
-  );
-
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
   );
 
   const sortField = useMemo(() => {
@@ -163,15 +154,110 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
         onPress: () => setCategoryFilter(c),
       })),
     ];
-    Alert.alert(t("timeline.filterCategory"), t("common.chooseOption"), buttons, {
+    Alert.alert(
+      t("timeline.filterCategory"),
+      t("common.chooseOption"),
+      buttons,
+      {
+        cancelable: true,
+      },
+    );
+  }
+
+  function showSortFieldPicker() {
+    const buttons: Array<{
+      text: string;
+      onPress?: () => void;
+      style?: "cancel" | "default";
+    }> = [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("timeline.sortFieldDate"),
+        onPress: () => setSortField("date"),
+      },
+      {
+        text: t("timeline.sortFieldTitle"),
+        onPress: () => setSortField("title"),
+      },
+      {
+        text: t("timeline.sortFieldAmount"),
+        onPress: () => setSortField("cost"),
+      },
+    ];
+    Alert.alert(t("timeline.sortBy"), t("common.chooseOption"), buttons, {
+      cancelable: true,
+    });
+  }
+
+  function showSortOrderPicker() {
+    const baseButtons: Array<{
+      text: string;
+      onPress?: () => void;
+      style?: "cancel" | "default";
+    }> = [{ text: t("common.cancel"), style: "cancel" }];
+
+    if (sortField === "date") {
+      baseButtons.push(
+        {
+          text: t("timeline.sortOrderNewest"),
+          onPress: () => setDateSortOption("date-newest"),
+        },
+        {
+          text: t("timeline.sortOrderOldest"),
+          onPress: () => setDateSortOption("date-oldest"),
+        },
+      );
+    } else if (sortField === "title") {
+      baseButtons.push(
+        {
+          text: t("timeline.sortOrderAz"),
+          onPress: () => setTitleSortOption("title-az"),
+        },
+        {
+          text: t("timeline.sortOrderZa"),
+          onPress: () => setTitleSortOption("title-za"),
+        },
+      );
+    } else {
+      baseButtons.push(
+        {
+          text: t("timeline.sortOrderAmountAsc"),
+          onPress: () => setCostSortOption("cost-asc"),
+        },
+        {
+          text: t("timeline.sortOrderAmountDesc"),
+          onPress: () => setCostSortOption("cost-desc"),
+        },
+      );
+    }
+
+    Alert.alert(t("timeline.sortBy"), t("common.chooseOption"), baseButtons, {
       cancelable: true,
     });
   }
 
   const categoryLabel =
     categoryFilter === "all"
-      ? t("common.all")
+      ? t("entryForm.categoryPlaceholder")
       : t(`entryForm.categories.${categoryFilter}` as any);
+  const sortFieldLabel =
+    sortField === "date"
+      ? t("timeline.sortFieldDate")
+      : sortField === "title"
+        ? t("timeline.sortFieldTitle")
+        : t("timeline.sortFieldAmount");
+  const sortOrderLabel =
+    sortField === "date"
+      ? dateSortOption === "date-oldest"
+        ? t("timeline.sortOrderOldest")
+        : t("timeline.sortOrderNewest")
+      : sortField === "title"
+        ? titleSortOption === "title-za"
+          ? t("timeline.sortOrderZa")
+          : t("timeline.sortOrderAz")
+        : costSortOption === "cost-desc"
+          ? t("timeline.sortOrderAmountDesc")
+          : t("timeline.sortOrderAmountAsc");
 
   function applyFilters() {
     const applied: ServiceHistoryFiltersParams = {
@@ -204,12 +290,17 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
           onPress={showCategoryPicker}
           style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
         >
-          <CardRow>
-            <Ionicons
-              name="pricetag-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
+          <CardRow style={styles.rowSpread}>
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="pricetag-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("timeline.filterCategory")}
+              </Text>
+            </View>
             <Text
               style={[
                 styles.valueText,
@@ -220,102 +311,75 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
                       : theme.colors.fg,
                 },
               ]}
+              numberOfLines={1}
             >
               {categoryLabel}
             </Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={theme.colors.accent}
-            />
           </CardRow>
         </Pressable>
-        <CardRow>
-          <Ionicons
-            name="swap-vertical-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <View style={styles.segmentWrap}>
-            <SegmentTabs<"date" | "title" | "cost">
-              value={sortField}
-              options={[
-                { value: "date", label: t("timeline.sortFieldDate") },
-                { value: "title", label: t("timeline.sortFieldTitle") },
-                { value: "cost", label: t("timeline.sortFieldAmount") },
-              ]}
-              onChange={setSortField}
-              size="sm"
-            />
-          </View>
-        </CardRow>
-        <CardRow>
-          <Ionicons
-            name="options-outline"
-            size={20}
-            color={theme.colors.accent}
-          />
-          <View style={styles.segmentWrap}>
-            {sortField === "date" ? (
-              <SegmentTabs<"date-newest" | "date-oldest">
-                value={dateSortOption}
-                options={[
-                  {
-                    value: "date-newest",
-                    label: t("timeline.sortOrderNewest"),
-                  },
-                  {
-                    value: "date-oldest",
-                    label: t("timeline.sortOrderOldest"),
-                  },
-                ]}
-                onChange={setDateSortOption}
-                size="sm"
+        <Pressable
+          onPress={showSortFieldPicker}
+          style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+        >
+          <CardRow style={styles.rowSpread}>
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="swap-vertical-outline"
+                size={20}
+                color={theme.colors.accent}
               />
-            ) : sortField === "title" ? (
-              <SegmentTabs<"title-az" | "title-za">
-                value={titleSortOption}
-                options={[
-                  { value: "title-az", label: t("timeline.sortOrderAz") },
-                  { value: "title-za", label: t("timeline.sortOrderZa") },
-                ]}
-                onChange={setTitleSortOption}
-                size="sm"
-              />
-            ) : (
-              <SegmentTabs<"cost-asc" | "cost-desc">
-                value={costSortOption}
-                options={[
-                  {
-                    value: "cost-asc",
-                    label: t("timeline.sortOrderAmountAsc"),
-                  },
-                  {
-                    value: "cost-desc",
-                    label: t("timeline.sortOrderAmountDesc"),
-                  },
-                ]}
-                onChange={setCostSortOption}
-                size="sm"
-              />
-            )}
-          </View>
-        </CardRow>
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("timeline.sortBy")}
+              </Text>
+            </View>
+            <Text
+              style={[styles.valueText, { color: theme.colors.fg }]}
+              numberOfLines={1}
+            >
+              {sortFieldLabel}
+            </Text>
+          </CardRow>
+        </Pressable>
+        <Pressable
+          onPress={showSortOrderPicker}
+          style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
+        >
+          <CardRow style={styles.rowSpread}>
+            <View style={styles.rowLeft}>
+              <ListFilter size={20} color={theme.colors.accent} />
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("timeline.sortOrderNewest")}
+              </Text>
+            </View>
+            <Text
+              style={[styles.valueText, { color: theme.colors.fg }]}
+              numberOfLines={1}
+            >
+              {sortOrderLabel}
+            </Text>
+          </CardRow>
+        </Pressable>
         <Pressable
           onPress={() => openPicker("from")}
           style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
         >
-          <CardRow>
-            <Ionicons
-              name="calendar-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
+          <CardRow style={styles.rowSpread}>
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("timeline.filterFrom")}
+              </Text>
+            </View>
             <Text
               style={[
                 styles.valueText,
                 { color: dateFrom ? theme.colors.fg : theme.colors.muted },
               ]}
+              numberOfLines={1}
             >
               {dateFrom || t("timeline.filterFrom")}
             </Text>
@@ -338,17 +402,23 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
           onPress={() => openPicker("to")}
           style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
         >
-          <CardRow>
-            <Ionicons
-              name="calendar-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
+          <CardRow style={styles.rowSpread}>
+            <View style={styles.rowLeft}>
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={theme.colors.accent}
+              />
+              <Text style={[styles.label, { color: theme.colors.muted }]}>
+                {t("timeline.filterTo")}
+              </Text>
+            </View>
             <Text
               style={[
                 styles.valueText,
                 { color: dateTo ? theme.colors.fg : theme.colors.muted },
               ]}
+              numberOfLines={1}
             >
               {dateTo || t("timeline.filterTo")}
             </Text>
@@ -366,26 +436,50 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
             }}
           />
         ) : null}
-        <CardRow>
-          <Ionicons name="cash-outline" size={20} color={theme.colors.accent} />
+        <CardRow style={styles.rowSpread}>
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="cash-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text style={[styles.label, { color: theme.colors.muted }]}>
+              {t("timeline.filterMinCost")}
+            </Text>
+          </View>
           <TextInput
             value={minCost}
             onChangeText={setMinCost}
             keyboardType="decimal-pad"
-            placeholder={`${t("timeline.filterMinCost")} (${currency})`}
+            placeholder={t("timeline.placeholderMinCost")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </CardRow>
-        <CardRow>
-          <Ionicons name="cash-outline" size={20} color={theme.colors.accent} />
+        <CardRow style={styles.rowSpread}>
+          <View style={styles.rowLeft}>
+            <Ionicons
+              name="cash-outline"
+              size={20}
+              color={theme.colors.accent}
+            />
+            <Text style={[styles.label, { color: theme.colors.muted }]}>
+              {t("timeline.filterMaxCost")}
+            </Text>
+          </View>
           <TextInput
             value={maxCost}
             onChangeText={setMaxCost}
             keyboardType="decimal-pad"
-            placeholder={`${t("timeline.filterMaxCost")} (${currency})`}
+            placeholder={t("timeline.placeholderMaxCost")}
             placeholderTextColor={theme.colors.muted}
-            style={[styles.input, { color: theme.colors.fg }]}
+            style={[
+              styles.input,
+              { color: theme.colors.fg, textAlign: "right" },
+            ]}
           />
         </CardRow>
       </Card>
@@ -395,15 +489,30 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
+    rowLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      flex: 0,
+      flexShrink: 1,
+    },
+    label: {
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    rowSpread: {
+      justifyContent: "space-between",
+    },
+    valueText: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.body,
+      textAlign: "right",
+    },
     input: {
       flex: 1,
       minWidth: 0,
       fontSize: theme.typography.body,
       paddingVertical: 0,
-    },
-    segmentWrap: {
-      flex: 1,
-      minWidth: 0,
     },
   });
