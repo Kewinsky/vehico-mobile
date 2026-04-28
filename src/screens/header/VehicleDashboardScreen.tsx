@@ -1095,7 +1095,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               <Text
                 style={[styles.quickActionLabel, { color: theme.colors.fg }]}
               >
-                Serwis
+                {t("dashboard.quickActions.addService")}
               </Text>
             </Pressable>
             <Pressable
@@ -1114,7 +1114,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               <Text
                 style={[styles.quickActionLabel, { color: theme.colors.fg }]}
               >
-                Paliwo
+                {t("dashboard.quickActions.addFuel")}
               </Text>
             </Pressable>
             <Pressable
@@ -1134,7 +1134,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               <Text
                 style={[styles.quickActionLabel, { color: theme.colors.fg }]}
               >
-                Alert
+                {t("dashboard.quickActions.addReminder")}
               </Text>
             </Pressable>
           </View>

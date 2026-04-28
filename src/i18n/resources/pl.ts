@@ -552,9 +552,9 @@ export const pl = {
       workshopsSubtitle: "Twoja książka warsztatów.",
     },
     quickActions: {
-      addService: "Dodaj wpis serwisowy",
-      addFuel: "Dodaj tankowanie",
-      addReminder: "Dodaj przypomnienie",
+      addService: "Serwis",
+      addFuel: "Paliwo",
+      addReminder: "Alert",
       selectVehicle: "Wybierz pojazd, aby dodać wpisy",
     },
     publicLinkTitle: "Link publiczny",

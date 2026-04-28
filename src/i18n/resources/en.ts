@@ -547,9 +547,9 @@ export const en = {
       workshopsSubtitle: "Your workshop phonebook.",
     },
     quickActions: {
-      addService: "Add service entry",
-      addFuel: "Add fueling",
-      addReminder: "Add reminder",
+      addService: "Service",
+      addFuel: "Fuel",
+      addReminder: "Alert",
       selectVehicle: "Select a vehicle to add entries",
     },
     publicLinkTitle: "Public link",
