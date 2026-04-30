@@ -34,6 +34,7 @@ import {
 } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
+import * as Font from "expo-font";
 import { Image } from "expo-image";
 import { BlurView } from "expo-blur";
 import QRCode from "react-native-qrcode-svg";
@@ -85,6 +86,7 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { Button } from "../../ui/components/common/Button";
+import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Tile as TileCard } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
@@ -478,6 +480,9 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const [isPublicQrVisible, setIsPublicQrVisible] = useState(false);
   const [activePage, setActivePage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [iconFontsReady, setIconFontsReady] = useState(false);
+  const [initialLoaderDelayPassed, setInitialLoaderDelayPassed] =
+    useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollOffsetYRef = useRef(0);
   const pagerRef = useRef<FlatList<number>>(null);
@@ -1435,11 +1440,50 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     }
   }, [activePage]);
 
+  useEffect(() => {
+    let isMounted = true;
+    const loadIconFonts = async () => {
+      try {
+        await Font.loadAsync({
+          ...Ionicons.font,
+          ...MaterialCommunityIcons.font,
+          ...FontAwesome5.font,
+          ...MaterialIcons.font,
+        });
+      } finally {
+        if (isMounted) setIconFontsReady(true);
+      }
+    };
+    void loadIconFonts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handlePagerScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       pagerProgress.value = event.contentOffset.x / windowWidth;
     },
   });
+
+  const isInitialContentReady =
+    !loading && iconFontsReady && initialLoaderDelayPassed;
+
+  if (!isInitialContentReady) {
+    return (
+      <HeaderLayout
+        loading={false}
+        onBack={() => navigation.goBack()}
+        showShopIcon={!isPremium}
+        right={headerRight}
+        paddingHorizontal={false}
+      >
+        <View style={styles.loadingContainer}>
+          <LoadingIndicator />
+        </View>
+      </HeaderLayout>
+    );
+  }
 
   return (
     <HeaderLayout
@@ -1938,6 +1982,12 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.xs,
+    },
+    loadingContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: theme.spacing.xl * 2,
     },
     fullScreenOverlay: {
       flex: 1,
