@@ -19,6 +19,8 @@ export type ModalLayoutProps = PropsWithChildren<{
     disabled?: boolean;
   };
   loading?: boolean;
+  ready?: boolean;
+  minLoadingMs?: number;
   footer?: ReactNode;
   footerTransparent?: boolean;
   background?: ReactNode;
@@ -33,6 +35,8 @@ export function ModalLayout({
   cancel,
   done,
   loading = false,
+  ready = true,
+  minLoadingMs = 0,
   footer,
   footerTransparent = false,
   background,
@@ -101,6 +105,8 @@ export function ModalLayout({
   return (
     <AppLayout
       loading={loading}
+      ready={ready}
+      minLoadingMs={minLoadingMs}
       isModal
       useNativeHeader
       footer={footer}

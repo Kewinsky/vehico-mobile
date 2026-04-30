@@ -1,4 +1,9 @@
-import { type PropsWithChildren, type ReactNode } from "react";
+import {
+  type PropsWithChildren,
+  type ReactNode,
+  useEffect,
+  useState,
+} from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -10,6 +15,8 @@ export type AppLayoutProps = PropsWithChildren<{
   footer?: ReactNode;
   footerTransparent?: boolean;
   loading?: boolean;
+  ready?: boolean;
+  minLoadingMs?: number;
   isModal?: boolean;
   background?: ReactNode;
   useNativeHeader?: boolean;
@@ -21,6 +28,8 @@ export function AppLayout({
   header,
   footer,
   loading = false,
+  ready = true,
+  minLoadingMs = 0,
   isModal = false,
   background,
   useNativeHeader = false,
@@ -28,7 +37,23 @@ export function AppLayout({
 }: AppLayoutProps) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const [minDelayPassed, setMinDelayPassed] = useState(minLoadingMs <= 0);
   const skipTopPadding = isModal || useNativeHeader;
+  const isReady = ready && minDelayPassed;
+  const shouldShowLoading = loading || !isReady;
+
+  useEffect(() => {
+    if (minLoadingMs <= 0) {
+      setMinDelayPassed(true);
+      return;
+    }
+    setMinDelayPassed(false);
+    const timeoutId = setTimeout(() => {
+      setMinDelayPassed(true);
+    }, minLoadingMs);
+    return () => clearTimeout(timeoutId);
+  }, [minLoadingMs]);
+
   return (
     <View
       style={[
@@ -45,7 +70,7 @@ export function AppLayout({
         </View>
       ) : null}
       {header}
-      {loading ? (
+      {shouldShowLoading ? (
         <LoadingView />
       ) : (
         <View

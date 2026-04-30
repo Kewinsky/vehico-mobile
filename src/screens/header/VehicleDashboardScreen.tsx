@@ -86,7 +86,6 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { Button } from "../../ui/components/common/Button";
-import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Tile as TileCard } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
@@ -481,8 +480,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const [activePage, setActivePage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [iconFontsReady, setIconFontsReady] = useState(false);
-  const [initialLoaderDelayPassed, setInitialLoaderDelayPassed] =
-    useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollOffsetYRef = useRef(0);
   const pagerRef = useRef<FlatList<number>>(null);
@@ -1466,28 +1463,11 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     },
   });
 
-  const isInitialContentReady =
-    !loading && iconFontsReady && initialLoaderDelayPassed;
-
-  if (!isInitialContentReady) {
-    return (
-      <HeaderLayout
-        loading={false}
-        onBack={() => navigation.goBack()}
-        showShopIcon={!isPremium}
-        right={headerRight}
-        paddingHorizontal={false}
-      >
-        <View style={styles.loadingContainer}>
-          <LoadingIndicator />
-        </View>
-      </HeaderLayout>
-    );
-  }
-
   return (
     <HeaderLayout
       loading={loading}
+      ready={iconFontsReady}
+      minLoadingMs={1200}
       onBack={() => navigation.goBack()}
       showShopIcon={!isPremium}
       right={headerRight}
@@ -1982,12 +1962,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.xs,
-    },
-    loadingContainer: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: theme.spacing.xl * 2,
     },
     fullScreenOverlay: {
       flex: 1,

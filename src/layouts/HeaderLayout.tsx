@@ -9,6 +9,8 @@ import {
 export type HeaderLayoutProps = PropsWithChildren<
   AppNavbarProps & {
     loading?: boolean;
+    ready?: boolean;
+    minLoadingMs?: number;
     footer?: ReactNode;
     paddingHorizontal?: boolean;
   }
@@ -18,6 +20,8 @@ export function HeaderLayout(props: HeaderLayoutProps) {
   const {
     children,
     loading = false,
+    ready = true,
+    minLoadingMs = 0,
     footer,
     paddingHorizontal = true,
     ...navbarProps
@@ -31,6 +35,8 @@ export function HeaderLayout(props: HeaderLayoutProps) {
   return (
     <AppLayout
       loading={loading}
+      ready={ready}
+      minLoadingMs={minLoadingMs}
       useNativeHeader
       footer={footer}
       useHorizontalContentInset={paddingHorizontal}

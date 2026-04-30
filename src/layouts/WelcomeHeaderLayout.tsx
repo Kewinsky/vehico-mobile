@@ -18,6 +18,8 @@ export type WelcomeHeaderLayoutProps = PropsWithChildren<{
   showShopIcon?: boolean;
   right?: ReactNode;
   loading?: boolean;
+  ready?: boolean;
+  minLoadingMs?: number;
   footer?: ReactNode;
 }>;
 
@@ -28,6 +30,8 @@ export function WelcomeHeaderLayout({
   showShopIcon = false,
   right,
   loading = false,
+  ready = true,
+  minLoadingMs = 0,
   footer,
 }: WelcomeHeaderLayoutProps) {
   const { theme } = useTheme();
@@ -124,7 +128,13 @@ export function WelcomeHeaderLayout({
   ]);
 
   return (
-    <AppLayout loading={loading} useNativeHeader footer={footer}>
+    <AppLayout
+      loading={loading}
+      ready={ready}
+      minLoadingMs={minLoadingMs}
+      useNativeHeader
+      footer={footer}
+    >
       {children}
     </AppLayout>
   );

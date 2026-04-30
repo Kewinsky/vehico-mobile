@@ -248,6 +248,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
   );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [initialVisualReady, setInitialVisualReady] = useState(false);
 
   const windowWidth = Dimensions.get("window").width;
   const { settings } = useUserSettings();
@@ -313,8 +314,10 @@ export function VehiclesScreen({ navigation, route }: Props) {
 
   const load = useCallback(
     async (opts?: { refreshing?: boolean; showLoading?: boolean }) => {
+      const shouldShowLoading = opts?.showLoading !== false;
       try {
-        if (opts?.showLoading !== false) {
+        if (shouldShowLoading) {
+          setInitialVisualReady(false);
           if (opts?.refreshing) setRefreshing(true);
           else setLoading(true);
         }
@@ -337,10 +340,24 @@ export function VehiclesScreen({ navigation, route }: Props) {
           if (urls.length > 0) urlsMap.set(vehicle.id, urls);
         }
         setPhotoUrlsMap(urlsMap);
+
+        if (shouldShowLoading) {
+          const allPhotoUrls = Array.from(urlsMap.values()).flat();
+          const uniquePhotoUrls = Array.from(new Set(allPhotoUrls));
+          if (uniquePhotoUrls.length > 0) {
+            try {
+              await Image.prefetch(uniquePhotoUrls);
+            } catch {
+              // Don't block screen on photo prefetch failures.
+            }
+          }
+          setInitialVisualReady(true);
+        }
       } catch (e: any) {
         toastError(e?.message ?? t("common.error"));
+        if (shouldShowLoading) setInitialVisualReady(true);
       } finally {
-        if (opts?.showLoading !== false) {
+        if (shouldShowLoading) {
           if (opts?.refreshing) setRefreshing(false);
           else setLoading(false);
         }
@@ -451,6 +468,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
       showProfileAvatar
       showShopIcon={!isPremium}
       loading={loading}
+      ready={initialVisualReady}
       footer={
         <Button onPress={handleAddVehicle}>{t("vehicles.addVehicle")}</Button>
       }
