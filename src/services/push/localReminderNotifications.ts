@@ -1,11 +1,23 @@
 import * as Notifications from "expo-notifications";
 
+import { i18n } from "../../i18n/i18n";
+import { formatLongMonthDisplayDate } from "../../utils/dateFormatting";
+
 const DEFAULT_HOUR = 9;
 const DEFAULT_MINUTE = 0;
 
 /** Prefix for scheduled notification identifiers so we can cancel by reminder id */
 const PREFIX = "vehico-reminder-";
 const PREFIX_BEFORE = "vehico-reminder-before-";
+
+/** Relative lead time for push body, with correct EN/PL singular/plural. */
+function formatReminderLeadTimePhrase(days: number, lang: string): string {
+  const pl = lang.toLowerCase().startsWith("pl");
+  if (pl) {
+    return days === 1 ? `za ${days} dzień` : `za ${days} dni`;
+  }
+  return days === 1 ? `in ${days} day` : `in ${days} days`;
+}
 
 export type ReminderForSchedule = {
   id: string;
@@ -43,7 +55,15 @@ export async function scheduleLocalReminder(
   await cancelLocalReminder(reminder.id);
 
   const title = "Vehico";
-  const body = `${reminder.title ?? "Reminder"} — due ${reminder.due_date}`;
+  const lang = i18n.language ?? "en";
+  const reminderTitle =
+    (reminder.title ?? "").trim() ||
+    i18n.t("reminders.localNotification.defaultTitle");
+  const dateFormatted = formatLongMonthDisplayDate(reminder.due_date, lang);
+  const body = i18n.t("reminders.localNotification.onDueDay", {
+    title: reminderTitle,
+    date: dateFormatted,
+  });
   const data = { reminderId: reminder.id, vehicleId: reminder.vehicle_id };
 
   const due = new Date(reminder.due_date);
@@ -69,13 +89,16 @@ export async function scheduleLocalReminder(
     const beforeDate = new Date(due);
     beforeDate.setDate(beforeDate.getDate() - daysBefore);
     if (beforeDate.getTime() > Date.now()) {
+      const beforeBody = i18n.t("reminders.localNotification.daysBefore", {
+        title: reminderTitle,
+        when: formatReminderLeadTimePhrase(daysBefore, lang),
+        date: dateFormatted,
+      });
       const id = await Notifications.scheduleNotificationAsync({
         identifier: `${PREFIX_BEFORE}${reminder.id}`,
         content: {
           title,
-          body: `${reminder.title ?? "Reminder"} — in ${daysBefore} days (${
-            reminder.due_date
-          })`,
+          body: beforeBody,
           data,
         },
         trigger: {

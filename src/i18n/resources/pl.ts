@@ -786,6 +786,11 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     tabCompleted: "Ukończone",
     filterStatus: "Status",
     filterAll: "Wszystkie",
+    localNotification: {
+      defaultTitle: "Przypomnienie",
+      onDueDay: "{{title}} — termin {{date}}",
+      daysBefore: "{{title}} — {{when}} ({{date}})",
+    },
   },
   reminderDetail: {
     title: "Przypomnienie",

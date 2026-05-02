@@ -53,6 +53,31 @@ export function formatShortDisplayDate(
 }
 
 /**
+ * Long month name for notifications / readable headers, e.g.
+ * PL: "24 marca 2026", EN: "24 March 2026".
+ * Pass YYYY-MM-DD or ISO string; uses midday local to avoid TZ drift.
+ */
+export function formatLongMonthDisplayDate(
+  input: string | Date | null | undefined,
+  language?: string | null,
+): string {
+  if (!input) return "";
+  const date =
+    typeof input === "string"
+      ? new Date(`${String(input).trim().slice(0, 10)}T12:00:00`)
+      : input;
+  if (Number.isNaN(date.getTime())) return "";
+  const localeCode = (language ?? "en").toLowerCase().startsWith("pl")
+    ? "pl-PL"
+    : "en-GB";
+  return new Intl.DateTimeFormat(localeCode, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
+/**
  * Formats date string to "Month Year" format in English
  * @param dateStr Date string in YYYY-MM-DD format
  * @returns Formatted string like "January 2024"
