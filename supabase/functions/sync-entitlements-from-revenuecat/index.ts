@@ -149,6 +149,7 @@ async function buildFreePlanSelections(
       .from("reminders")
       .select("id")
       .eq("vehicle_id", freePlanVehicleId)
+      .order("status", { ascending: true })
       .order("created_at", { ascending: true })
       .limit(FREE_LIMITS.reminders_limit),
     pickFreePlanTireIdForVehicle(supabase, freePlanVehicleId),
