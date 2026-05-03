@@ -70,11 +70,38 @@ export type NewReminder = {
 };
 
 export type ListRemindersOptions = {
-  /** When set (e.g. free plan), return only first N by created_at (newest first). Ignored if freePlanReminderIds is set. */
+  /** When set (e.g. free plan without ID list): first N reminders — active before done, then oldest created_at. Ignored if freePlanReminderIds is set. */
   limit?: number;
   /** Free plan: return only reminders whose id is in this list (stable set). */
   freePlanReminderIds?: string[] | null;
 };
+
+/** Same ordering as DB pick_free_plan_reminder_ids_for_vehicle (active before done, then oldest created_at). */
+export function sortRemindersFreePlanPriority<
+  T extends { status: string; created_at: string },
+>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => {
+    const da = a.status === "done" ? 1 : 0;
+    const db = b.status === "done" ? 1 : 0;
+    if (da !== db) return da - db;
+    return (
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+  });
+}
+
+/** Total active reminders for the vehicle (for dashboards / metrics; ignores free-plan list filtering). */
+export async function countActiveReminders(
+  vehicleId: string,
+): Promise<number> {
+  const { count, error } = await supabase
+    .from("reminders")
+    .select("id", { count: "exact", head: true })
+    .eq("vehicle_id", vehicleId)
+    .eq("status", "active");
+  if (error) throw error;
+  return count ?? 0;
+}
 
 export async function listReminders(
   vehicleId: string,
@@ -87,20 +114,26 @@ export async function listReminders(
       .from("reminders")
       .select("*")
       .eq("vehicle_id", vehicleId)
-      .in("id", ids)
-      .order("created_at", { ascending: true });
+      .in("id", ids);
     if (error) throw error;
-    return (data ?? []) as Reminder[];
+    return sortRemindersFreePlanPriority((data ?? []) as Reminder[]);
   }
-  let query = supabase
+  if (options?.limit != null) {
+    const { data, error } = await supabase
+      .from("reminders")
+      .select("*")
+      .eq("vehicle_id", vehicleId);
+    if (error) throw error;
+    return sortRemindersFreePlanPriority((data ?? []) as Reminder[]).slice(
+      0,
+      options.limit,
+    );
+  }
+  const { data, error } = await supabase
     .from("reminders")
     .select("*")
     .eq("vehicle_id", vehicleId)
     .order("created_at", { ascending: false });
-  if (options?.limit != null) {
-    query = query.limit(options.limit);
-  }
-  const { data, error } = await query;
   if (error) throw error;
   return (data ?? []) as Reminder[];
 }

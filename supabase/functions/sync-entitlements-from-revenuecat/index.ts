@@ -13,6 +13,7 @@ import {
   pickFreePlanTireIdForVehicle,
   pickFreePlanWheelIdForVehicle,
 } from "../_shared/freePlanTireWheel.ts";
+import { pickFreePlanReminderIds } from "../_shared/freePlanReminders.ts";
 
 const PREMIUM_ENTITLEMENT_ID = "vehico Premium";
 const PRODUCT_ID_LIFETIME = "lifetime";
@@ -144,28 +145,28 @@ async function buildFreePlanSelections(
     };
   }
 
-  const [reminderResult, freePlanTireId, freePlanWheelId] = await Promise.all([
+  const [reminderFetch, freePlanTireId, freePlanWheelId] = await Promise.all([
     supabase
       .from("reminders")
-      .select("id")
-      .eq("vehicle_id", freePlanVehicleId)
-      .order("status", { ascending: true })
-      .order("created_at", { ascending: true })
-      .limit(FREE_LIMITS.reminders_limit),
+      .select("id,status,created_at")
+      .eq("vehicle_id", freePlanVehicleId),
     pickFreePlanTireIdForVehicle(supabase, freePlanVehicleId),
     pickFreePlanWheelIdForVehicle(supabase, freePlanVehicleId),
   ]);
 
-  if (reminderResult.error) throw reminderResult.error;
+  if (reminderFetch.error) throw reminderFetch.error;
+
+  const freePlanReminderIds = pickFreePlanReminderIds(
+    reminderFetch.data ?? [],
+    FREE_LIMITS.reminders_limit,
+  );
 
   return {
     freePlanVehicleId,
     freePlanWorkshopIds: (workshopRows ?? []).map(
       (row: { id: string }) => row.id,
     ),
-    freePlanReminderIds: (reminderResult.data ?? []).map(
-      (row: { id: string }) => row.id,
-    ),
+    freePlanReminderIds,
     freePlanTireId,
     freePlanWheelId,
   };

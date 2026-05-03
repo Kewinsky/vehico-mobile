@@ -730,26 +730,32 @@ begin
 end;
 $$;
 
+-- Active reminders first, then done; within each bucket oldest created_at first (limit 5).
 create or replace function public.pick_free_plan_reminder_ids_for_vehicle(p_vehicle_id uuid)
 returns uuid[]
-language sql
+language plpgsql
 stable
 set search_path = public
 as $$
+declare
+  v_ids uuid[];
+begin
   select coalesce(
-    (select array_agg(x.id order by x.grp, x.created_at)
-     from (
-       select r.id,
-              r.created_at,
-              case when r.status = 'done' then 1 else 0 end as grp
-       from public.reminders r
-       where r.vehicle_id = p_vehicle_id
-       order by case when r.status = 'done' then 1 else 0 end asc,
-                r.created_at asc
-       limit 5
-     ) x),
-    '{}'::uuid[]
-  );
+           array_agg(id order by grp asc, created_at asc),
+           '{}'::uuid[]
+         )
+    into v_ids
+    from (
+           select r.id,
+                  r.created_at,
+                  case when r.status = 'done' then 1 else 0 end as grp
+           from public.reminders r
+           where r.vehicle_id = p_vehicle_id
+           order by grp asc, r.created_at asc
+           limit 5
+         ) picked;
+  return v_ids;
+end;
 $$;
 
 create or replace function public.entitlements_recompute_free_plan_reminder_ids_for_vehicle(p_vehicle_id uuid)
