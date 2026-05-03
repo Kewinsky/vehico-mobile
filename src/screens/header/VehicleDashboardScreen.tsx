@@ -1012,7 +1012,12 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     <View style={[styles.page, { width: windowWidth }]}>
       <View style={styles.vehicleHeaderRow}>
         <View style={styles.vehicleHeaderText}>
-          <Text style={styles.title}>
+          <Text
+            style={[
+              styles.title,
+              { paddingBottom: vehicle?.vin ? 0 : theme.spacing.md },
+            ]}
+          >
             {vehicle ? `${vehicle.make} ${vehicle.model}` : ""}
           </Text>
           {vehicle?.vin && (
