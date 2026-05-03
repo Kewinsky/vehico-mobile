@@ -43,13 +43,13 @@ export const pl = {
     chooseVehicle: "Wybierz pojazd",
     vehicleLimitReachedTitle: "Osiągnięto limit pojazdów",
     vehicleLimitReachedBody:
-      "Osiągnięto limit {{limit}} pojazdu(ów). Przejdź na Premium, aby mieć nielimitowane pojazdy.",
+      "Osiągnięto limit pojazdów. Przejdź na Premium, aby mieć nielimitowane pojazdy.",
     tireLimitReachedTitle: "Osiągnięto limit opon",
     tireLimitReachedBody:
-      "Osiągnięto limit {{limit}} kompletu(ów) opon na pojazd. Przejdź na Premium, aby mieć nielimitowane opony.",
+      "Osiągnięto limit kompletów opon na pojazd. Przejdź na Premium, aby mieć nielimitowane opony.",
     wheelLimitReachedTitle: "Osiągnięto limit felg",
     wheelLimitReachedBody:
-      "Osiągnięto limit {{limit}} kompletu(ów) felg na pojazd. Przejdź na Premium, aby mieć nielimitowane felgi.",
+      "Osiągnięto limit kompletów felg na pojazd. Przejdź na Premium, aby mieć nielimitowane felgi.",
     fittedTireLimitReachedTitle: "Maks. zestawów na pojazd",
     fittedTireLimitReachedBody:
       "Możesz oznaczyć co najwyżej 2 zestawy opon jako aktualnie założone na tym samym pojeździe.",
@@ -58,13 +58,13 @@ export const pl = {
       "Możesz oznaczyć co najwyżej 2 zestawy felg jako aktualnie założone na tym samym pojeździe.",
     workshopLimitReachedTitle: "Osiągnięto limit warsztatów",
     workshopLimitReachedBody:
-      "Osiągnięto limit {{limit}} warsztatu(ów). Przejdź na Premium, aby mieć nielimitowane warsztaty.",
+      "Osiągnięto limit warsztatów. Przejdź na Premium, aby mieć nielimitowane warsztaty.",
     reminderLimitReachedTitle: "Osiągnięto limit przypomnień",
     reminderLimitReachedBody:
-      "Osiągnięto limit {{limit}} przypomnienia(eń). Przejdź na Premium, aby mieć nielimitowane przypomnienia.",
+      "Osiągnięto limit przypomnień. Przejdź na Premium, aby mieć nielimitowane przypomnienia.",
     photoLimitReachedTitle: "Osiągnięto limit zdjęć",
     photoLimitReachedBody:
-      "Osiągnięto limit {{limit}} zdjęć na pojazd. Przejdź na Premium, aby mieć do 40 zdjęć.",
+      "Osiągnięto limit zdjęć na pojazd. Przejdź na Premium, aby mieć do 40 zdjęć.",
     limitReachedTitle: "Osiągnięto limit",
     limitReachedBody:
       "Osiągnięto limit dla tej funkcji. Przejdź na Premium, aby zyskać więcej.",
@@ -255,6 +255,7 @@ export const pl = {
   },
   vehicles: {
     title: "Pojazdy",
+    headerGreetingVariants: ["Cześć", "Witaj", "Hej", "Czołem"],
     greeting: "Cześć, {{name}}!",
     greetingMorning: "Dzień dobry, {{name}}!",
     greetingAfternoon: "Witaj, {{name}}!",

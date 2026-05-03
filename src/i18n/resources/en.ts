@@ -252,6 +252,7 @@ export const en = {
   },
   vehicles: {
     title: "Vehicles",
+    headerGreetingVariants: ["Hi", "Hello", "Hey", "Welcome"],
     greeting: "Hello, {{name}}!",
     greetingMorning: "Good morning, {{name}}!",
     greetingAfternoon: "Good afternoon, {{name}}!",

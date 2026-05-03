@@ -218,21 +218,14 @@ function getFirstName(fullName: string | null | undefined): string {
   return parts[0] ?? "";
 }
 
-function getDailyGreeting(seedInput: string): string {
-  const greetings = [
-    "Hi",
-    "Hello",
-    "Hey",
-    "Welcome",
-    "Good to see you",
-    "Let's go",
-  ];
+function pickDailyGreetingVariant(seedInput: string, variants: string[]): string {
+  if (variants.length === 0) return "";
   let hash = 0;
   for (let i = 0; i < seedInput.length; i += 1) {
     hash = (hash * 31 + seedInput.charCodeAt(i)) | 0;
   }
-  const idx = Math.abs(hash) % greetings.length;
-  return greetings[idx] ?? "Hi";
+  const idx = Math.abs(hash) % variants.length;
+  return variants[idx] ?? variants[0];
 }
 
 export function VehiclesScreen({ navigation, route }: Props) {
@@ -294,12 +287,26 @@ export function VehiclesScreen({ navigation, route }: Props) {
     user?.user_metadata?.full_name as string | undefined,
   );
   const firstName = getFirstName(normalizedName);
+
+  const headerGreetingVariants = useMemo(() => {
+    const raw = t("vehicles.headerGreetingVariants", {
+      returnObjects: true,
+    }) as unknown;
+    if (Array.isArray(raw) && raw.every((x) => typeof x === "string")) {
+      return raw as string[];
+    }
+    return ["Hi", "Hello", "Hey", "Welcome", "Good to see you", "Let's go"];
+  }, [t, i18n.language]);
+
   const headerGreeting = useMemo(() => {
     // Stable per day for a given user (changes once daily).
     const today = new Date().toISOString().slice(0, 10);
     const userSeed = user?.id ?? "anonymous";
-    return getDailyGreeting(`${userSeed}:${today}`);
-  }, [user?.id]);
+    return pickDailyGreetingVariant(
+      `${userSeed}:${today}`,
+      headerGreetingVariants,
+    );
+  }, [user?.id, headerGreetingVariants]);
   const headerTitle = firstName
     ? `${headerGreeting}, ${firstName}!`
     : `${headerGreeting}!`;
