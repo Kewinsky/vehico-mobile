@@ -1,19 +1,21 @@
-/** Rows must include status + created_at; matches DB pick_free_plan_reminder_ids_for_vehicle ordering. */
+/** Rows must include status + created_at (same ordering as client listReminders). */
 export type ReminderPickRow = {
   id: string;
   status: string;
   created_at: string;
 };
 
-/** Active first, then done; within each group oldest created_at first. */
+const statusRank = (s: string) => (s === "active" ? 0 : 1);
+
+/** `active` first, then other statuses; within each group oldest `created_at` first; then take first `limit` ids. */
 export function pickFreePlanReminderIds(
   rows: ReminderPickRow[],
   limit: number,
 ): string[] {
   const sorted = [...rows].sort((a, b) => {
-    const da = a.status === "done" ? 1 : 0;
-    const db = b.status === "done" ? 1 : 0;
-    if (da !== db) return da - db;
+    const ra = statusRank(a.status);
+    const rb = statusRank(b.status);
+    if (ra !== rb) return ra - rb;
     return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
   });
   return sorted.slice(0, limit).map((r) => r.id);

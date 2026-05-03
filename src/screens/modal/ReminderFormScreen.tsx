@@ -922,6 +922,5 @@ const makeStyles = (theme: any) =>
     },
     footerAction: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.md,
     },
   });

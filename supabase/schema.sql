@@ -559,7 +559,7 @@ create table public.entitlements (
   downgraded_at timestamptz, -- when user downgraded to free; used for 90-day retention cleanup
   -- Free plan: fixed set of visible IDs (oldest by created_at at downgrade); no auto-reveal on delete
   free_plan_workshop_ids uuid[] default '{}', -- up to 3; populated when plan goes free
-  free_plan_reminder_ids uuid[] default '{}', -- up to 5 for free_plan_vehicle_id; active before done, then oldest created_at; recomputed on downgrade / set_free_plan_vehicle / reminder insert|delete|status change
+  free_plan_reminder_ids uuid[] default '{}', -- up to 5 for free_plan_vehicle_id; status active first then others, then oldest created_at; recomputed on downgrade / set_free_plan_vehicle / reminder insert|delete|status change
   free_plan_tire_id uuid references public.tires(id) on delete set null, -- 1 set for free vehicle
   free_plan_wheel_id uuid references public.wheels(id) on delete set null, -- 1 set for free vehicle
   created_at timestamptz not null default now(),
@@ -730,7 +730,7 @@ begin
 end;
 $$;
 
--- Active reminders first, then done; within each bucket oldest created_at first (limit 5).
+-- `active` first, then any other status; within each bucket oldest created_at first (limit 5).
 create or replace function public.pick_free_plan_reminder_ids_for_vehicle(p_vehicle_id uuid)
 returns uuid[]
 language plpgsql
@@ -748,7 +748,7 @@ begin
     from (
            select r.id,
                   r.created_at,
-                  case when r.status = 'done' then 1 else 0 end as grp
+                  case when r.status = 'active' then 0 else 1 end as grp
            from public.reminders r
            where r.vehicle_id = p_vehicle_id
            order by grp asc, r.created_at asc

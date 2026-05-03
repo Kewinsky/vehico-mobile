@@ -55,7 +55,9 @@ import {
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type {
+  FuelingEntry,
   Reminder,
+  ServiceEntry,
   Vehicle,
   VehicleTire,
   VehicleWheel,
@@ -82,6 +84,8 @@ import {
   listVehicleWheels,
 } from "../../services/wheels/wheelsRepo";
 import { listReminders } from "../../services/reminders/remindersRepo";
+import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
+import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
@@ -105,7 +109,10 @@ import {
 } from "../../utils/formatRelativeTimePast";
 import { isNonNegativeNumber } from "../../utils/validation";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
-import { groupThousands } from "../../utils/numberFormatting";
+import {
+  groupThousands,
+  localeCodeFromLanguage,
+} from "../../utils/numberFormatting";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
@@ -410,6 +417,22 @@ function parseYmd(dateYmd: string): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function localYmd(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Inclusive YMD bounds for quick metrics (~one month of activity). */
+function quickMetricsWindowYmdBounds(): { fromYmd: string; toYmd: string } {
+  const end = new Date();
+  end.setHours(12, 0, 0, 0);
+  const start = new Date(end);
+  start.setDate(start.getDate() - 29);
+  return { fromYmd: localYmd(start), toYmd: localYmd(end) };
+}
+
 function formatTermsDate(
   dateYmd: string | null | undefined,
   language: string,
@@ -473,6 +496,8 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const [tires, setTires] = useState<VehicleTire[]>([]);
   const [wheels, setWheels] = useState<VehicleWheel[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [fuelingEntries, setFuelingEntries] = useState<FuelingEntry[]>([]);
+  const [serviceEntries, setServiceEntries] = useState<ServiceEntry[]>([]);
   const [publicReportUrl, setPublicReportUrl] = useState<string | null>(null);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [fullScreenIndex, setFullScreenIndex] = useState<number | null>(null);
@@ -488,6 +513,12 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const detailIconSize = 28;
   const distanceUnit = settings?.distanceUnit ?? "km";
   const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
+  const fuelUnit = settings?.fuelUnit ?? "liters";
+  const fuelUnitShort =
+    fuelUnit === "liters"
+      ? t("dashboard.stats.units.litersShort")
+      : t("dashboard.stats.units.gallonsShort");
+  const currency = settings?.currency ?? "PLN";
   const vehicleImageHeight = Math.min(Math.max(windowHeight * 0.34, 280), 360);
   const mileageStaleYmd = useMemo(() => {
     if (vehicle?.mileage == null) return null;
@@ -542,7 +573,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     return reminders
       .filter(
         (reminder) =>
-          reminder.status !== "done" &&
+          reminder.status === "active" &&
           !isReminderOverdue(reminder, currentMileage),
       )
       .sort((a, b) => {
@@ -559,8 +590,9 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       })
       .slice(0, 3);
   }, [reminders, vehicle?.mileage]);
+  /** Active reminders among rows returned by listReminders (respects plan limits / id list). */
   const activeRemindersCount = useMemo(
-    () => reminders.filter((reminder) => reminder.status !== "done").length,
+    () => reminders.filter((r) => r.status === "active").length,
     [reminders],
   );
   const insuranceDaysUntil = useMemo(
@@ -572,6 +604,113 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     [vehicle?.inspection_valid_until],
   );
 
+  const quickMetrics = useMemo(() => {
+    const { fromYmd, toYmd } = quickMetricsWindowYmdBounds();
+    const fuelInWindow = fuelingEntries.filter((x) => {
+      const d = String(x.date).slice(0, 10);
+      return d >= fromYmd && d <= toYmd;
+    });
+    const serviceInWindow = serviceEntries.filter((x) => {
+      const d = String(x.service_date).slice(0, 10);
+      return d >= fromYmd && d <= toYmd;
+    });
+
+    const distanceKmTotal = fuelInWindow.reduce(
+      (sum, x) => sum + Number(x.distance ?? 0),
+      0,
+    );
+    const totalFuel = fuelInWindow.reduce(
+      (sum, x) => sum + Number(x.fuel_amount ?? 0),
+      0,
+    );
+    const avgConsumptionPer100 =
+      distanceKmTotal > 0 ? (totalFuel / distanceKmTotal) * 100 : Number.NaN;
+
+    const fuelCost = fuelInWindow.reduce(
+      (sum, x) => sum + Number(x.fuel_cost ?? 0),
+      0,
+    );
+    const serviceCost = serviceInWindow.reduce(
+      (sum, x) => sum + Number(x.cost ?? 0),
+      0,
+    );
+    const totalCost = fuelCost + serviceCost;
+
+    const dates: string[] = [];
+    for (const f of fuelInWindow) dates.push(f.date.slice(0, 10));
+    for (const s of serviceInWindow)
+      dates.push(String(s.service_date).slice(0, 10));
+
+    let daysSpan = 1;
+    if (dates.length > 0) {
+      dates.sort();
+      const minYmd = dates[0]!;
+      const todayYmd = new Date().toISOString().slice(0, 10);
+      const ms =
+        new Date(`${todayYmd}T12:00:00`).getTime() -
+        new Date(`${minYmd}T12:00:00`).getTime();
+      daysSpan = Math.max(1, Math.ceil(ms / 86400000) + 1);
+    }
+
+    const costPerDay =
+      dates.length > 0 && totalCost >= 0 ? totalCost / daysSpan : Number.NaN;
+
+    const consumptionUnitLine = `${fuelUnitShort}/100 ${distanceUnitLabel}`;
+
+    const locale = localeCodeFromLanguage(i18n.language);
+    const fmtOneDecimal = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    });
+
+    let distanceNumber = groupThousands(0, 0);
+    if (distanceKmTotal > 0) {
+      const dist =
+        distanceUnit === "miles"
+          ? Math.round(distanceKmTotal * 0.621371)
+          : distanceKmTotal;
+      if (dist >= 1000) {
+        const thousands = Math.round((dist / 1000) * 10) / 10;
+        distanceNumber = fmtOneDecimal.format(thousands);
+      } else {
+        distanceNumber = groupThousands(dist, 0);
+      }
+    }
+
+    const consumptionSecondary = consumptionUnitLine;
+    const consumptionPrimary = Number.isFinite(avgConsumptionPer100)
+      ? groupThousands(avgConsumptionPer100, 1)
+      : groupThousands(0, 0);
+
+    const costRounded =
+      dates.length > 0 && Number.isFinite(costPerDay)
+        ? Math.round(costPerDay)
+        : 0;
+    const costNumber = groupThousands(costRounded, 0);
+    const costShowCurrency = costRounded !== 0;
+
+    const distanceShowUnit = distanceKmTotal > 0;
+
+    return {
+      consumptionPrimary,
+      consumptionSecondary,
+      costNumber,
+      costShowCurrency,
+      distanceNumber,
+      distanceShowUnit,
+      remindersPrimary: String(activeRemindersCount),
+    };
+  }, [
+    fuelingEntries,
+    serviceEntries,
+    distanceUnit,
+    distanceUnitLabel,
+    fuelUnitShort,
+    currency,
+    activeRemindersCount,
+    i18n.language,
+  ]);
+
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
       const showLoading = opts?.showLoading !== false;
@@ -582,20 +721,32 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           : freePlanVehicleId === vehicleId
             ? { freePlanReminderIds }
             : { limit: remindersLimit };
-        const [v, photos, tiresData, wheelsData, reports, remindersData] =
-          await Promise.all([
-            getVehicle(vehicleId),
-            listVehiclePhotos(vehicleId),
-            listVehicleTires(vehicleId),
-            listVehicleWheels(vehicleId),
-            isPremium ? listPublicPages(vehicleId) : Promise.resolve([]),
-            listReminders(vehicleId, reminderOptions),
-          ]);
+        const [
+          v,
+          photos,
+          tiresData,
+          wheelsData,
+          reports,
+          remindersData,
+          fuelingData,
+          serviceData,
+        ] = await Promise.all([
+          getVehicle(vehicleId),
+          listVehiclePhotos(vehicleId),
+          listVehicleTires(vehicleId),
+          listVehicleWheels(vehicleId),
+          isPremium ? listPublicPages(vehicleId) : Promise.resolve([]),
+          listReminders(vehicleId, reminderOptions),
+          listFuelingEntries(vehicleId),
+          listServiceEntries(vehicleId),
+        ]);
         setVehicle(v);
         setPhotoUrls(photos.map((photo) => getVehiclePhotoUrl(photo)));
         setTires(tiresData);
         setWheels(wheelsData);
         setReminders(remindersData);
+        setFuelingEntries(fuelingData);
+        setServiceEntries(serviceData);
         const latestReport = reports[0];
         const reportUrl = latestReport?.public_id
           ? await getPublicPageUrl(latestReport.public_id)
@@ -904,6 +1055,128 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         </View>
       ) : null}
       <View style={styles.panelSections}>
+        <View style={styles.sectionBlock}>
+          <View
+            style={[
+              styles.quickMetricsCard,
+              { backgroundColor: theme.colors.card },
+            ]}
+          >
+            <View style={styles.quickMetricsRow}>
+              <View style={styles.quickMetricCell}>
+                <Text
+                  style={[
+                    styles.quickMetricPrimary,
+                    { color: theme.colors.fg },
+                  ]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.6}
+                >
+                  {quickMetrics.consumptionPrimary}
+                </Text>
+                <Text
+                  style={[
+                    styles.quickMetricSecondary,
+                    { color: theme.colors.muted },
+                  ]}
+                  numberOfLines={2}
+                >
+                  {quickMetrics.consumptionSecondary}
+                </Text>
+              </View>
+              <View style={styles.quickMetricSeparator} />
+              <View style={styles.quickMetricCell}>
+                <Text
+                  style={[
+                    styles.quickMetricPrimary,
+                    { color: theme.colors.fg },
+                  ]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.6}
+                >
+                  {quickMetrics.costNumber}
+                  {quickMetrics.costShowCurrency ? (
+                    <Text
+                      style={[
+                        styles.quickMetricInlineUnit,
+                        { color: theme.colors.muted },
+                      ]}
+                    >
+                      {` ${currency}`}
+                    </Text>
+                  ) : null}
+                </Text>
+                <Text
+                  style={[
+                    styles.quickMetricSecondary,
+                    { color: theme.colors.muted },
+                  ]}
+                  numberOfLines={2}
+                >
+                  {t("dashboard.quickMetrics.costSubtitle")}
+                </Text>
+              </View>
+              <View style={styles.quickMetricSeparator} />
+              <View style={styles.quickMetricCell}>
+                <Text
+                  style={[
+                    styles.quickMetricPrimary,
+                    { color: theme.colors.fg },
+                  ]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.6}
+                >
+                  {quickMetrics.distanceNumber}
+                  {quickMetrics.distanceShowUnit ? (
+                    <Text
+                      style={[
+                        styles.quickMetricInlineUnit,
+                        { color: theme.colors.muted },
+                      ]}
+                    >
+                      {` ${distanceUnitLabel}`}
+                    </Text>
+                  ) : null}
+                </Text>
+                <Text
+                  style={[
+                    styles.quickMetricSecondary,
+                    { color: theme.colors.muted },
+                  ]}
+                  numberOfLines={2}
+                >
+                  {t("dashboard.quickMetrics.distanceSubtitle")}
+                </Text>
+              </View>
+              <View style={styles.quickMetricSeparator} />
+              <View style={styles.quickMetricCell}>
+                <Text
+                  style={[
+                    styles.quickMetricPrimary,
+                    { color: theme.colors.fg },
+                  ]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.65}
+                >
+                  {quickMetrics.remindersPrimary}
+                </Text>
+                <Text
+                  style={[
+                    styles.quickMetricSecondary,
+                    { color: theme.colors.muted },
+                  ]}
+                  numberOfLines={2}
+                >
+                  {t("dashboard.quickMetrics.alertsSubtitle")}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
         <View style={styles.sectionBlock}>
           <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
             {t("dashboard.specification")}
@@ -1746,6 +2019,45 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     panelSections: {
       gap: theme.spacing.xl,
+    },
+    quickMetricsCard: {
+      borderRadius: theme.radius.md,
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.sm,
+    },
+    quickMetricsRow: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      justifyContent: "space-between",
+      gap: 0,
+    },
+    quickMetricSeparator: {
+      width: 1,
+      backgroundColor: theme.colors.accent,
+    },
+    quickMetricCell: {
+      flex: 1,
+      minWidth: 0,
+      alignItems: "center",
+      gap: theme.spacing.xs / 2,
+      paddingHorizontal: theme.spacing.xs / 2,
+    },
+    quickMetricPrimary: {
+      fontSize: theme.typography.largeTitle,
+      fontWeight: theme.typography.fontWeight.bold,
+      textAlign: "center",
+      width: "100%",
+      lineHeight: theme.typography.largeTitle + 4,
+    },
+    quickMetricInlineUnit: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.medium,
+    },
+    quickMetricSecondary: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.medium,
+      textAlign: "center",
+      width: "100%",
     },
     sectionBlock: {
       gap: theme.spacing.sm,

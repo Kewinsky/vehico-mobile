@@ -426,6 +426,11 @@ export const pl = {
       lastUpdated: "Ostatnia aktualizacja przebiegu {{relative}}.",
       cta: "Zaktualizuj przebieg",
     },
+    quickMetrics: {
+      costSubtitle: "koszt / dzień",
+      distanceSubtitle: "Przejechane",
+      alertsSubtitle: "Alerty",
+    },
     stats: {
       title: "Statystyki",
       empty: "Brak danych dla tego okresu.",

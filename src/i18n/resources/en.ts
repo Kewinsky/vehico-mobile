@@ -422,6 +422,11 @@ export const en = {
       lastUpdated: "Mileage last updated {{relative}}.",
       cta: "Update odometer",
     },
+    quickMetrics: {
+      costSubtitle: "cost / day",
+      distanceSubtitle: "Driven",
+      alertsSubtitle: "Alerts",
+    },
     stats: {
       title: "Statistics",
       empty: "No data for this period.",
