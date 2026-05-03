@@ -262,15 +262,6 @@ export function VehiclesScreen({ navigation, route }: Props) {
     ? null
     : (freePlanVehicleId ??
       (items.length === 1 ? (items[0]?.id ?? null) : null));
-  const showFreePlanPicker =
-    !entitlementsLoading &&
-    !isPremium &&
-    !freePlanVehicleId &&
-    items.length >= 2;
-  const shouldShowPicker =
-    isFocused &&
-    items.length >= 2 &&
-    (showFreePlanPicker || route.params?.showVehiclePicker === true);
   const hasShownPickerRef = useRef(false);
   const hasAutoSelectedSingleVehicleRef = useRef(false);
 
@@ -405,13 +396,21 @@ export function VehiclesScreen({ navigation, route }: Props) {
   ]);
 
   useEffect(() => {
-    if (!shouldShowPicker) {
+    if (isPremium || freePlanVehicleId != null) {
       hasShownPickerRef.current = false;
       return;
     }
+    if (!isFocused || items.length < 2) return;
+    if (entitlementsLoading) return;
+
+    const fromDowngradeParam = route.params?.showVehiclePicker === true;
+    const needPicker = fromDowngradeParam || !freePlanVehicleId;
+    if (!needPicker) return;
+
     if (hasShownPickerRef.current) return;
     hasShownPickerRef.current = true;
-    if (route.params?.showVehiclePicker === true) {
+
+    if (fromDowngradeParam) {
       navigation.setParams({ showVehiclePicker: false });
     }
     const vehicleButtons = items.map((item) => ({
@@ -424,12 +423,15 @@ export function VehiclesScreen({ navigation, route }: Props) {
       vehicleButtons,
     );
   }, [
-    shouldShowPicker,
+    isFocused,
     items,
     t,
     setFreePlanVehicleId,
     navigation,
     route.params?.showVehiclePicker,
+    isPremium,
+    freePlanVehicleId,
+    entitlementsLoading,
   ]);
 
   const handleLockedVehiclePress = () => {
