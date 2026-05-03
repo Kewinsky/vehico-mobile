@@ -451,7 +451,7 @@ export const en = {
         all: "All",
       },
       metrics: {
-        totalExpenses: "Total expenses",
+        totalExpenses: "Expenses",
         avgMonthlyFuelCost: "Monthly fuel",
         avgFuelConsumption: "Consumption",
         costPer100: "Fuel cost",

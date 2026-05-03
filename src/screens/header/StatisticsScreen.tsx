@@ -1776,14 +1776,41 @@ export function StatisticsScreen(props: Props) {
     <View>
       {/* Cost summary split by fuel and service categories. */}
       <View style={styles.section}>
-        <StatTile
-          theme={theme}
-          styles={styles}
-          label={t("dashboard.stats.metrics.totalExpenses")}
-          valueMain={totalMain}
-          valueSuffix={totalMain !== "—" ? currency : undefined}
-          fullWidth
-        />
+        <View
+          style={[
+            styles.tile,
+            styles.tileFullWidth,
+            { backgroundColor: theme.colors.card },
+          ]}
+        >
+          <View style={styles.expensesHeroRow}>
+            <Text
+              style={[styles.expensesHeroLabel, { color: theme.colors.accent }]}
+              numberOfLines={1}
+            >
+              {t("dashboard.stats.metrics.totalExpenses")}
+            </Text>
+            <View style={styles.expensesHeroValueGroup}>
+              <Text
+                style={[styles.expensesHeroValue, { color: theme.colors.fg }]}
+                numberOfLines={1}
+              >
+                {totalMain}
+              </Text>
+              {totalMain !== "—" ? (
+                <Text
+                  style={[
+                    styles.expensesHeroCurrency,
+                    { color: theme.colors.muted },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {currency}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        </View>
         <View style={styles.tilesRow}>
           <StatTile
             theme={theme}
@@ -2444,6 +2471,31 @@ const makeStyles = (theme: any) =>
     },
     heroMeta: {
       fontWeight: theme.typography.fontWeight.medium,
+      fontSize: theme.typography.small,
+    },
+    expensesHeroRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: theme.spacing.sm,
+    },
+    expensesHeroLabel: {
+      flex: 1,
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.title,
+    },
+    expensesHeroValueGroup: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      gap: theme.spacing.xs,
+      flexShrink: 0,
+    },
+    expensesHeroValue: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.title,
+    },
+    expensesHeroCurrency: {
+      fontWeight: theme.typography.fontWeight.regular,
       fontSize: theme.typography.small,
     },
     tilesRow: { flexDirection: "row", gap: theme.spacing.sm },

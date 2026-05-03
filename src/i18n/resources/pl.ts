@@ -455,7 +455,7 @@ export const pl = {
         all: "Wszystko",
       },
       metrics: {
-        totalExpenses: "Wydatki razem",
+        totalExpenses: "Wydatki",
         avgMonthlyFuelCost: "Paliwo/mies.",
         avgFuelConsumption: "Spalanie",
         costPer100: "Koszt paliwa",
