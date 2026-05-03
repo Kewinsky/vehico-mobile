@@ -14,6 +14,10 @@ import {
   pickFreePlanWheelIdForVehicle,
 } from "../_shared/freePlanTireWheel.ts";
 import { pickFreePlanReminderIds } from "../_shared/freePlanReminders.ts";
+import {
+  FREE_TIER_ENTITLEMENT_LIMITS,
+  PREMIUM_TIER_ENTITLEMENT_LIMITS,
+} from "../_shared/entitlementLimits.ts";
 
 const PREMIUM_ENTITLEMENT_ID = "vehico Premium";
 const PRODUCT_ID_LIFETIME = "lifetime";
@@ -26,24 +30,6 @@ const corsHeaders: Record<string, string> = {
 };
 
 type EntitlementPlan = "free" | "premium" | "lifetime";
-
-const FREE_LIMITS = {
-  vehicles_limit: 1,
-  photos_per_vehicle_limit: 6,
-  tires_per_vehicle_limit: 1,
-  wheels_per_vehicle_limit: 1,
-  workshops_limit: 3,
-  reminders_limit: 5,
-} as const;
-
-const PREMIUM_LIMITS = {
-  vehicles_limit: 999,
-  photos_per_vehicle_limit: 40,
-  tires_per_vehicle_limit: 999,
-  wheels_per_vehicle_limit: 999,
-  workshops_limit: 999,
-  reminders_limit: 999,
-} as const;
 
 function isLifetimeProduct(productId: string | undefined): boolean {
   if (!productId) return false;
@@ -103,7 +89,7 @@ async function buildFreePlanSelections(
     .select("id")
     .eq("owner_id", userId)
     .order("created_at", { ascending: true })
-    .limit(FREE_LIMITS.workshops_limit);
+    .limit(FREE_TIER_ENTITLEMENT_LIMITS.workshops_limit);
   if (workshopError) throw workshopError;
 
   let freePlanVehicleId = preferredVehicleId;
@@ -158,7 +144,7 @@ async function buildFreePlanSelections(
 
   const freePlanReminderIds = pickFreePlanReminderIds(
     reminderFetch.data ?? [],
-    FREE_LIMITS.reminders_limit,
+    FREE_TIER_ENTITLEMENT_LIMITS.reminders_limit,
   );
 
   return {
@@ -179,7 +165,7 @@ function buildUpdateFromRC(rc: RCSubscriberResponse): EntitlementsUpdate {
       plan: "free",
       premium_until: null,
       product_id: null,
-      ...FREE_LIMITS,
+      ...FREE_TIER_ENTITLEMENT_LIMITS,
     };
   }
 
@@ -192,7 +178,7 @@ function buildUpdateFromRC(rc: RCSubscriberResponse): EntitlementsUpdate {
       plan: "free",
       premium_until: null,
       product_id: null,
-      ...FREE_LIMITS,
+      ...FREE_TIER_ENTITLEMENT_LIMITS,
     };
   }
 
@@ -205,7 +191,7 @@ function buildUpdateFromRC(rc: RCSubscriberResponse): EntitlementsUpdate {
       plan: "lifetime",
       premium_until: null,
       product_id: productId ?? "lifetime",
-      ...PREMIUM_LIMITS,
+      ...PREMIUM_TIER_ENTITLEMENT_LIMITS,
     };
   }
 
@@ -213,7 +199,7 @@ function buildUpdateFromRC(rc: RCSubscriberResponse): EntitlementsUpdate {
     plan: "premium",
     premium_until: premiumUntil,
     product_id: productId,
-    ...PREMIUM_LIMITS,
+    ...PREMIUM_TIER_ENTITLEMENT_LIMITS,
   };
 }
 

@@ -8,6 +8,44 @@
 create extension if not exists "pgcrypto";
 
 -- ================
+-- Tier defaults (single source in SQL; Edge mirrors in functions/_shared/entitlementLimits.ts)
+-- ================
+
+create or replace function public.internal_default_free_entitlement_limits()
+returns table (
+  vehicles_limit integer,
+  photos_per_vehicle_limit integer,
+  tires_per_vehicle_limit integer,
+  wheels_per_vehicle_limit integer,
+  workshops_limit integer,
+  reminders_limit integer
+)
+language sql
+stable
+parallel safe
+set search_path = public
+as $$
+  select 1, 6, 1, 1, 3, 5;
+$$;
+
+create or replace function public.internal_default_premium_entitlement_limits()
+returns table (
+  vehicles_limit integer,
+  photos_per_vehicle_limit integer,
+  tires_per_vehicle_limit integer,
+  wheels_per_vehicle_limit integer,
+  workshops_limit integer,
+  reminders_limit integer
+)
+language sql
+stable
+parallel safe
+set search_path = public
+as $$
+  select 999, 40, 999, 999, 999, 999;
+$$;
+
+-- ================
 -- Tables
 -- ================
 
@@ -60,7 +98,9 @@ create table public.service_entries (
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   service_date date not null,
   mileage integer,
-  category text not null default 'other',
+  category text not null default 'other' check (category in (
+    'maintenance', 'repair', 'inspection', 'upgrade', 'oil_change', 'other'
+  )),
   title text not null,
   description text not null default '',
   cost numeric,
@@ -239,7 +279,10 @@ to authenticated
 using (owner_id = auth.uid());
 
 -- Workshops: owner can CRUD (per user)
-create policy workshops_select_own on public.workshops for select to authenticated using (owner_id = auth.uid());
+create policy workshops_select_own
+on public.workshops for select
+to authenticated
+using (owner_id = auth.uid());
 
 -- NOTE: direct INSERT is disabled; use security definer RPC `public.create_workshop(...)`.
 
@@ -497,30 +540,82 @@ using (
 );
 
 -- Vehicle tires: allowed if vehicle belongs to user
-create policy tires_select_own_vehicle on public.tires for select to authenticated
-using (exists (select 1 from public.vehicles v where v.id = tires.vehicle_id and v.owner_id = auth.uid()));
+create policy tires_select_own_vehicle
+on public.tires for select
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = tires.vehicle_id and v.owner_id = auth.uid()
+  )
+);
 
 -- NOTE: direct INSERT is disabled; use security definer RPC `public.create_tire(...)`.
 
-create policy tires_update_own_vehicle on public.tires for update to authenticated
-using (exists (select 1 from public.vehicles v where v.id = tires.vehicle_id and v.owner_id = auth.uid()))
-with check (exists (select 1 from public.vehicles v where v.id = tires.vehicle_id and v.owner_id = auth.uid()));
+create policy tires_update_own_vehicle
+on public.tires for update
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = tires.vehicle_id and v.owner_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = tires.vehicle_id and v.owner_id = auth.uid()
+  )
+);
 
-create policy tires_delete_own_vehicle on public.tires for delete to authenticated
-using (exists (select 1 from public.vehicles v where v.id = tires.vehicle_id and v.owner_id = auth.uid()));
+create policy tires_delete_own_vehicle
+on public.tires for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = tires.vehicle_id and v.owner_id = auth.uid()
+  )
+);
 
 -- Vehicle wheels: allowed if vehicle belongs to user
-create policy wheels_select_own_vehicle on public.wheels for select to authenticated
-using (exists (select 1 from public.vehicles v where v.id = wheels.vehicle_id and v.owner_id = auth.uid()));
+create policy wheels_select_own_vehicle
+on public.wheels for select
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = wheels.vehicle_id and v.owner_id = auth.uid()
+  )
+);
 
 -- NOTE: direct INSERT is disabled; use security definer RPC `public.create_wheel(...)`.
 
-create policy wheels_update_own_vehicle on public.wheels for update to authenticated
-using (exists (select 1 from public.vehicles v where v.id = wheels.vehicle_id and v.owner_id = auth.uid()))
-with check (exists (select 1 from public.vehicles v where v.id = wheels.vehicle_id and v.owner_id = auth.uid()));
+create policy wheels_update_own_vehicle
+on public.wheels for update
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = wheels.vehicle_id and v.owner_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = wheels.vehicle_id and v.owner_id = auth.uid()
+  )
+);
 
-create policy wheels_delete_own_vehicle on public.wheels for delete to authenticated
-using (exists (select 1 from public.vehicles v where v.id = wheels.vehicle_id and v.owner_id = auth.uid()));
+create policy wheels_delete_own_vehicle
+on public.wheels for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = wheels.vehicle_id and v.owner_id = auth.uid()
+  )
+);
 
 -- Marketplace posts: owner can CRUD own posts
 create policy posts_select_own
@@ -577,11 +672,7 @@ on public.entitlements for select
 to authenticated
 using (user_id = auth.uid());
 
-create policy entitlements_update_own
-on public.entitlements for update
-to authenticated
-using (user_id = auth.uid())
-with check (user_id = auth.uid());
+-- No client UPDATE: plan/limits are written by triggers, security definer RPCs, and Edge (service role).
 
 -- Trigger: initialize entitlements when user is created
 create or replace function public.handle_new_user()
@@ -602,18 +693,19 @@ begin
     reminders_limit,
     premium_until,
     product_id
-  ) values (
+  )
+  select
     new.id,
     'free',
-    1, -- Free: 1 vehicle
-    6, -- Free: 6 photos per vehicle
-    1, -- Free: 1 tire set per vehicle
-    1, -- Free: 1 wheel set per vehicle
-    3, -- Free: 3 workshops
-    5, -- Free: 5 reminders per vehicle
+    l.vehicles_limit,
+    l.photos_per_vehicle_limit,
+    l.tires_per_vehicle_limit,
+    l.wheels_per_vehicle_limit,
+    l.workshops_limit,
+    l.reminders_limit,
     null,
     null
-  );
+  from public.internal_default_free_entitlement_limits() as l;
   return new;
 end;
 $$;
@@ -622,9 +714,11 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- Choose free-plan tire/wheel row for a vehicle: exactly one fitted → that set; zero fitted → oldest created_at overall;
--- two or more fitted → oldest created_at among fitted sets only.
-create or replace function public.pick_free_plan_tire_id_for_vehicle(p_vehicle_id uuid)
+-- Shared: one fitted → that row; 2+ fitted → oldest created_at among fitted; none fitted → oldest overall.
+create or replace function public._pick_free_plan_tire_or_wheel_id(
+  p_vehicle_id uuid,
+  p_kind text
+)
 returns uuid
 language plpgsql
 stable
@@ -634,64 +728,78 @@ declare
   v_fitted_count int;
   v_id uuid;
 begin
-  select count(*)::int into v_fitted_count
-  from public.tires
-  where vehicle_id = p_vehicle_id and is_currently_fitted = true;
+  if p_kind not in ('tire', 'wheel') then
+    raise exception 'invalid p_kind: %', p_kind;
+  end if;
 
-  if v_fitted_count = 1 then
-    select id into v_id from public.tires
-    where vehicle_id = p_vehicle_id and is_currently_fitted = true
-    limit 1;
-    return v_id;
-  elsif v_fitted_count >= 2 then
-    select id into v_id from public.tires
-    where vehicle_id = p_vehicle_id and is_currently_fitted = true
-    order by created_at asc
-    limit 1;
-    return v_id;
+  if p_kind = 'tire' then
+    select count(*)::int into v_fitted_count
+    from public.tires
+    where vehicle_id = p_vehicle_id and is_currently_fitted = true;
+
+    if v_fitted_count = 1 then
+      select id into v_id from public.tires
+      where vehicle_id = p_vehicle_id and is_currently_fitted = true
+      limit 1;
+      return v_id;
+    elsif v_fitted_count >= 2 then
+      select id into v_id from public.tires
+      where vehicle_id = p_vehicle_id and is_currently_fitted = true
+      order by created_at asc
+      limit 1;
+      return v_id;
+    else
+      select id into v_id from public.tires
+      where vehicle_id = p_vehicle_id
+      order by created_at asc
+      limit 1;
+      return v_id;
+    end if;
   else
-    select id into v_id from public.tires
-    where vehicle_id = p_vehicle_id
-    order by created_at asc
-    limit 1;
-    return v_id;
+    select count(*)::int into v_fitted_count
+    from public.wheels
+    where vehicle_id = p_vehicle_id and is_currently_fitted = true;
+
+    if v_fitted_count = 1 then
+      select id into v_id from public.wheels
+      where vehicle_id = p_vehicle_id and is_currently_fitted = true
+      limit 1;
+      return v_id;
+    elsif v_fitted_count >= 2 then
+      select id into v_id from public.wheels
+      where vehicle_id = p_vehicle_id and is_currently_fitted = true
+      order by created_at asc
+      limit 1;
+      return v_id;
+    else
+      select id into v_id from public.wheels
+      where vehicle_id = p_vehicle_id
+      order by created_at asc
+      limit 1;
+      return v_id;
+    end if;
   end if;
 end;
 $$;
 
-create or replace function public.pick_free_plan_wheel_id_for_vehicle(p_vehicle_id uuid)
+create or replace function public.pick_free_plan_tire_id_for_vehicle(p_vehicle_id uuid)
 returns uuid
-language plpgsql
+language sql
 stable
+parallel safe
 set search_path = public
 as $$
-declare
-  v_fitted_count int;
-  v_id uuid;
-begin
-  select count(*)::int into v_fitted_count
-  from public.wheels
-  where vehicle_id = p_vehicle_id and is_currently_fitted = true;
+  select public._pick_free_plan_tire_or_wheel_id(p_vehicle_id, 'tire');
+$$;
 
-  if v_fitted_count = 1 then
-    select id into v_id from public.wheels
-    where vehicle_id = p_vehicle_id and is_currently_fitted = true
-    limit 1;
-    return v_id;
-  elsif v_fitted_count >= 2 then
-    select id into v_id from public.wheels
-    where vehicle_id = p_vehicle_id and is_currently_fitted = true
-    order by created_at asc
-    limit 1;
-    return v_id;
-  else
-    select id into v_id from public.wheels
-    where vehicle_id = p_vehicle_id
-    order by created_at asc
-    limit 1;
-    return v_id;
-  end if;
-end;
+create or replace function public.pick_free_plan_wheel_id_for_vehicle(p_vehicle_id uuid)
+returns uuid
+language sql
+stable
+parallel safe
+set search_path = public
+as $$
+  select public._pick_free_plan_tire_or_wheel_id(p_vehicle_id, 'wheel');
 $$;
 
 create or replace function public.entitlements_sync_free_plan_tire_ids_for_vehicle(p_vehicle_id uuid)
@@ -730,7 +838,7 @@ begin
 end;
 $$;
 
--- `active` first, then any other status; within each bucket oldest created_at first (limit 5).
+-- `active` first, then any other status; within each bucket oldest created_at first (cap = free-tier reminders_limit).
 create or replace function public.pick_free_plan_reminder_ids_for_vehicle(p_vehicle_id uuid)
 returns uuid[]
 language plpgsql
@@ -752,7 +860,7 @@ begin
            from public.reminders r
            where r.vehicle_id = p_vehicle_id
            order by grp asc, r.created_at asc
-           limit 5
+           limit (select reminders_limit from public.internal_default_free_entitlement_limits())
          ) picked;
   return v_ids;
 end;
@@ -846,12 +954,16 @@ create trigger after_wheel_delete_entitlements after delete on public.wheels for
 -- Triggers: append to free-plan list on insert when under limit
 create or replace function public.entitlements_append_workshop_on_insert()
 returns trigger language plpgsql security definer set search_path = public as $$
-declare v_plan text; v_arr uuid[]; v_len int;
+declare v_plan text; v_arr uuid[]; v_len int; v_lim int;
 begin
-  select e.plan, e.free_plan_workshop_ids into v_plan, v_arr from public.entitlements e where e.user_id = new.owner_id;
+  select e.plan, e.free_plan_workshop_ids, e.workshops_limit
+    into v_plan, v_arr, v_lim
+  from public.entitlements e where e.user_id = new.owner_id;
   if v_plan is null or v_plan not in ('free') then return new; end if;
   v_len := coalesce(array_length(v_arr, 1), 0);
-  if v_len < 3 then update public.entitlements set free_plan_workshop_ids = array_append(coalesce(free_plan_workshop_ids, '{}'), new.id), updated_at = now() where user_id = new.owner_id; end if;
+  if v_len < v_lim then
+    update public.entitlements set free_plan_workshop_ids = array_append(coalesce(free_plan_workshop_ids, '{}'), new.id), updated_at = now() where user_id = new.owner_id;
+  end if;
   return new;
 end;
 $$;
@@ -1508,6 +1620,17 @@ using (
 -- RPC Functions for entitlements (unified helpers, not exposed as RPC)
 -- ================
 
+create or replace function public.is_entitlement_premium_active(e public.entitlements)
+returns boolean
+language sql
+stable
+parallel safe
+set search_path = public
+as $$
+  select e.plan in ('premium', 'lifetime')
+    or (e.premium_until is not null and e.premium_until > now());
+$$;
+
 -- Single helper: premium-only feature (report, listing). Returns { allowed, reason, plan }.
 create or replace function public.check_premium_feature(p_feature text)
 returns jsonb
@@ -1523,8 +1646,7 @@ begin
   if v_entitlement is null then
     return jsonb_build_object('allowed', false, 'reason', 'Entitlements not found. Please contact support.', 'plan', null);
   end if;
-  if v_entitlement.plan in ('premium', 'lifetime')
-     or (v_entitlement.premium_until is not null and v_entitlement.premium_until > now()) then
+  if public.is_entitlement_premium_active(v_entitlement) then
     return jsonb_build_object('allowed', true, 'reason', null, 'plan', v_entitlement.plan);
   end if;
   v_reason := case p_feature
@@ -1536,7 +1658,8 @@ begin
 end;
 $$;
 
--- Safe length for free_plan_*_ids: works for uuid[] or single uuid (in case column type differs).
+-- Two overloads: `free_plan_reminder_ids` / `free_plan_workshop_ids` are uuid[];
+-- `free_plan_tire_id`, `free_plan_wheel_id`, `free_plan_vehicle_id` are single uuid (nullable).
 create or replace function public._free_plan_ids_length(ids uuid[])
 returns integer language sql immutable as $$
   select coalesce(array_length(ids, 1), 0);
@@ -1566,8 +1689,7 @@ begin
     return jsonb_build_object('allowed', false, 'reason', 'Entitlements not found. Please contact support.', 'plan', null);
   end if;
 
-  if v_entitlement.plan in ('premium', 'lifetime')
-     or (v_entitlement.premium_until is not null and v_entitlement.premium_until > now()) then
+  if public.is_entitlement_premium_active(v_entitlement) then
     return jsonb_build_object('allowed', true, 'reason', null, 'plan', v_entitlement.plan);
   end if;
 
@@ -2060,3 +2182,10 @@ $$;
 grant execute on function public.create_reminder(
   uuid, date, integer, integer, text, text, text, boolean, boolean, boolean, integer, text, integer, integer
 ) to authenticated;
+
+-- ================
+-- Entitlements table privileges (clients must not UPDATE plan/limits directly)
+-- ================
+
+revoke all on table public.entitlements from authenticated;
+grant select on table public.entitlements to authenticated;
