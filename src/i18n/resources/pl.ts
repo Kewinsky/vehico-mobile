@@ -427,8 +427,8 @@ export const pl = {
       cta: "Zaktualizuj przebieg",
     },
     quickMetrics: {
-      costSubtitle: "koszt / dzień",
-      distanceSubtitle: "Przejechane",
+      costSubtitle: "Koszt/dzień",
+      distanceSubtitle: "Dystans",
       alertsSubtitle: "Alerty",
     },
     stats: {
@@ -598,6 +598,7 @@ export const pl = {
     perYear: "na rok",
     unlockPremium: "Premium Vehico",
     heroSubtitle: "Zapomnij o limitach. Dodawaj i generuj ile chcesz.",
+    scrollForPricingHint: "Przewiń w dół, aby zobaczyć ceny",
     packsHeadline: "Kup paczki",
     bestDeal: "Najlepsza oferta",
     buyPack: "Kup paczkę",

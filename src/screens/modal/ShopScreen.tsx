@@ -4,6 +4,7 @@ import {
   Alert,
   Animated,
   Easing,
+  type LayoutChangeEvent,
   Pressable,
   StyleSheet,
   Text,
@@ -51,6 +52,12 @@ const HERO_ICON_POSITIONS = [
   { bottom: 16, left: 22, rotation: "8deg" },
   { bottom: 10, right: 14, rotation: "-9deg" },
 ] as const;
+/** Pixels before the end of the scroll where the pricing sheet animates in */
+const FOOTER_REVEAL_DISTANCE = 100;
+/** Fallback hide distance before we measure the real sheet height */
+const FOOTER_HIDE_FALLBACK = 360;
+/** Space under scroll content so the last rows clear the sheet when it is shown */
+const FOOTER_SCROLL_CLEARANCE = 228;
 
 export function ShopScreen({ navigation }: Props) {
   const { t } = useTranslation();
@@ -73,7 +80,122 @@ export function ShopScreen({ navigation }: Props) {
   >(null);
   const [selectedSubscription, setSelectedSubscription] =
     useState<RevenueCatProductId>(DEFAULT_SUBSCRIPTION);
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [scrollViewHeight, setScrollViewHeight] = useState(0);
+  const [scrollContentHeight, setScrollContentHeight] = useState(0);
+  const [footerSheetHeight, setFooterSheetHeight] = useState(0);
   const styles = useMemo(() => makeStyles(theme), [theme]);
+
+  const maxScrollY = Math.max(scrollContentHeight - scrollViewHeight, 0);
+  const footerHideOffset =
+    Math.max(footerSheetHeight, FOOTER_HIDE_FALLBACK) + 24;
+
+  const footerTranslateY = useMemo(() => {
+    if (maxScrollY <= 0) {
+      return scrollY.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 0],
+        extrapolate: "clamp",
+      });
+    }
+    const revealStart = Math.max(maxScrollY - FOOTER_REVEAL_DISTANCE, 0);
+    if (revealStart <= 0) {
+      return scrollY.interpolate({
+        inputRange: [0, maxScrollY],
+        outputRange: [footerHideOffset, 0],
+        extrapolate: "clamp",
+      });
+    }
+    return scrollY.interpolate({
+      inputRange: [0, revealStart, maxScrollY],
+      outputRange: [footerHideOffset, footerHideOffset, 0],
+      extrapolate: "clamp",
+    });
+  }, [footerHideOffset, maxScrollY, scrollY]);
+
+  const footerOpacity = useMemo(() => {
+    if (maxScrollY <= 0) {
+      return scrollY.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 1],
+        extrapolate: "clamp",
+      });
+    }
+    const revealStart = Math.max(maxScrollY - FOOTER_REVEAL_DISTANCE, 0);
+    if (revealStart <= 0) {
+      return scrollY.interpolate({
+        inputRange: [0, maxScrollY],
+        outputRange: [0, 1],
+        extrapolate: "clamp",
+      });
+    }
+    return scrollY.interpolate({
+      inputRange: [0, revealStart, maxScrollY],
+      outputRange: [0, 0, 1],
+      extrapolate: "clamp",
+    });
+  }, [maxScrollY, scrollY]);
+
+  const scrollHintOpacity = useMemo(() => {
+    if (maxScrollY <= 0) {
+      return scrollY.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 0],
+        extrapolate: "clamp",
+      });
+    }
+    const revealStart = Math.max(maxScrollY - FOOTER_REVEAL_DISTANCE, 0);
+    if (revealStart <= 0) {
+      return scrollY.interpolate({
+        inputRange: [0, maxScrollY * 0.5],
+        outputRange: [1, 0],
+        extrapolate: "clamp",
+      });
+    }
+    const pFade = Math.max(revealStart - 52, revealStart * 0.15);
+    const p1 = Math.min(pFade, revealStart - 0.01);
+    return scrollY.interpolate({
+      inputRange: [0, p1, revealStart],
+      outputRange: [1, 0.42, 0],
+      extrapolate: "clamp",
+    });
+  }, [maxScrollY, scrollY]);
+
+  const chevronBounce = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(chevronBounce, {
+          toValue: 1,
+          duration: 700,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(chevronBounce, {
+          toValue: 0,
+          duration: 700,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [chevronBounce]);
+  const chevronTranslateY = chevronBounce.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 7],
+    extrapolate: "clamp",
+  });
+
+  function handleScrollLayout(event: LayoutChangeEvent) {
+    setScrollViewHeight(event.nativeEvent.layout.height);
+  }
+
+  function handleFooterSheetLayout(event: LayoutChangeEvent) {
+    const next = Math.round(event.nativeEvent.layout.height);
+    setFooterSheetHeight((prev) => (prev === next ? prev : next));
+  }
 
   const selectedId = isPremium
     ? (currentPlanProductId ?? DEFAULT_SUBSCRIPTION)
@@ -322,7 +444,19 @@ export function ShopScreen({ navigation }: Props) {
       useHorizontalContentInset={false}
     >
       <View style={{ flex: 1 }}>
-        <NativeHeaderScrollView>
+        <NativeHeaderScrollView
+          onLayout={handleScrollLayout}
+          onContentSizeChange={(_, height) => setScrollContentHeight(height)}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true },
+          )}
+          scrollEventThrottle={16}
+          contentContainerStyle={{
+            paddingBottom:
+              theme.spacing.sm + FOOTER_SCROLL_CLEARANCE + insets.bottom,
+          }}
+        >
           <View style={styles.container}>
             <View style={styles.heroSection}>
               <PremiumHero theme={theme} />
@@ -352,12 +486,38 @@ export function ShopScreen({ navigation }: Props) {
           </View>
         </NativeHeaderScrollView>
 
-        <View
+        <Animated.View
+          pointerEvents="none"
+          accessibilityRole="none"
+          accessibilityLabel={t("shop.scrollForPricingHint")}
+          style={[
+            styles.scrollDownHint,
+            {
+              bottom: insets.bottom - 10,
+              opacity: scrollHintOpacity,
+            },
+          ]}
+        >
+          <Animated.View
+            style={{ transform: [{ translateY: chevronTranslateY }] }}
+          >
+            <Ionicons
+              name="chevron-down"
+              size={30}
+              color={hexToRgba(theme.colors.accent, 0.85)}
+            />
+          </Animated.View>
+        </Animated.View>
+
+        <Animated.View
+          onLayout={handleFooterSheetLayout}
           style={[
             styles.footerPanel,
             {
               backgroundColor: hexToRgba(theme.colors.accent, 0.1),
               paddingBottom: insets.bottom,
+              opacity: footerOpacity,
+              transform: [{ translateY: footerTranslateY }],
             },
           ]}
         >
@@ -404,7 +564,7 @@ export function ShopScreen({ navigation }: Props) {
             onRestorePurchases={() => void handleRestorePurchases()}
             restoreLoading={actionLoading === "restore"}
           />
-        </View>
+        </Animated.View>
       </View>
     </ModalLayout>
   );
@@ -510,7 +670,7 @@ function makeStyles(theme: AppTheme) {
     container: {
       flexGrow: 1,
       paddingTop: spacing.md,
-      paddingBottom: spacing.md,
+      paddingBottom: spacing.xs,
       paddingHorizontal: spacing.md,
       gap: spacing.md,
     },
@@ -605,12 +765,29 @@ function makeStyles(theme: AppTheme) {
       fontSize: typography.body,
       fontWeight: typography.fontWeight.bold,
     },
+    scrollDownHint: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      alignItems: "center",
+      zIndex: 1,
+    },
     footerPanel: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 2,
       paddingTop: spacing.sm,
       paddingHorizontal: spacing.sm,
       gap: spacing.sm,
       borderTopLeftRadius: radius.lg,
       borderTopRightRadius: radius.lg,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: -6 },
+      shadowOpacity: 0.12,
+      shadowRadius: 16,
+      elevation: 14,
     },
     footerButtons: {
       gap: spacing.sm,

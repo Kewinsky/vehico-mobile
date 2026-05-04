@@ -1,8 +1,10 @@
 import React from "react";
-import { ScrollView, type ScrollViewProps } from "react-native";
+import { Animated, ScrollView, type ScrollViewProps } from "react-native";
 import { useHeaderHeight } from "@react-navigation/elements";
 
 import { useTheme } from "../../ThemeProvider";
+
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 export type NativeHeaderScrollViewProps = ScrollViewProps;
 
@@ -28,7 +30,7 @@ export function NativeHeaderScrollView({
       : baseContentStyle;
 
   return (
-    <ScrollView
+    <AnimatedScrollView
       {...rest}
       showsVerticalScrollIndicator={false}
       style={[

@@ -423,8 +423,8 @@ export const en = {
       cta: "Update odometer",
     },
     quickMetrics: {
-      costSubtitle: "cost / day",
-      distanceSubtitle: "Driven",
+      costSubtitle: "Cost/day",
+      distanceSubtitle: "Distance",
       alertsSubtitle: "Alerts",
     },
     stats: {
@@ -593,6 +593,7 @@ export const en = {
     perYear: "per year",
     unlockPremium: "Premium Vehico",
     heroSubtitle: "Forget the limits. Add and generate as much as you want.",
+    scrollForPricingHint: "Scroll down for pricing",
     packsHeadline: "Buy Packs",
     bestDeal: "Best deal",
     buyPack: "Buy Pack",
