@@ -68,6 +68,13 @@ const IS_REVENUECAT_PLATFORM =
   Platform.OS === "ios" || Platform.OS === "android";
 
 /**
+ * Monetization (see `supabase/functions/revenuecat-webhook`):
+ * - RevenueCat SDK — immediate entitlement for UI (`CustomerInfo`).
+ * - Webhook — writes plan/limits on `public.entitlements` (RPCs / RLS read the row).
+ * - After store actions we re-fetch that row once; DB may still lag the webhook briefly.
+ */
+
+/**
  * Returns the next 3:00 AM in the device's local timezone at or after the given
  * instant. Used so premium expiry happens at 3:00 local to minimize interrupting use.
  */
@@ -317,14 +324,26 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
     await Promise.all([refreshSupabaseEntitlements(), refreshRevenueCat()]);
   }, [refreshSupabaseEntitlements, refreshRevenueCat]);
 
-  /** Sync RevenueCat state to Supabase (updates plan, limits, clears free_plan_vehicle_id on premium). */
-  const syncEntitlementsToSupabase = useCallback(async () => {
-    const { error } = await supabase.functions.invoke(
-      "sync-entitlements-from-revenuecat",
-      { method: "POST" },
-    );
-    if (error) throw error;
-  }, []);
+  /** Ensure RevenueCat app user id matches Supabase auth (webhook targets this id). */
+  const ensureRevenueCatLoggedIn = useCallback(async () => {
+    if (!IS_REVENUECAT_PLATFORM || !userId) return;
+
+    const currentAppUserId = await Purchases.getAppUserID();
+    if (currentAppUserId !== userId) {
+      await Purchases.logIn(userId);
+    }
+
+    await Promise.all([
+      Purchases.setAttributes({ supabase_user_id: userId }),
+      Purchases.setEmail(userEmail),
+      Purchases.setDisplayName(userDisplayName),
+    ]);
+  }, [userDisplayName, userEmail, userId]);
+
+  /** Re-fetch `entitlements` after purchase/restore/paywall (webhook updates the row async). */
+  const refreshSupabaseAfterRevenueCatMutation = useCallback(async () => {
+    await refreshSupabaseEntitlements();
+  }, [refreshSupabaseEntitlements]);
 
   const setFreePlanVehicleId = useCallback(
     async (vehicleId: string) => {
@@ -346,11 +365,18 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       throw new Error("RevenueCat is still initializing. Please try again.");
     }
 
+    await ensureRevenueCatLoggedIn();
     const result = await Purchases.syncPurchasesForResult();
     setRevenueCatCustomerInfo(result.customerInfo);
-    await refresh();
+    await refreshRevenueCat();
+    await refreshSupabaseAfterRevenueCatMutation();
     return result.customerInfo;
-  }, [isRevenueCatReady, refresh]);
+  }, [
+    isRevenueCatReady,
+    refreshRevenueCat,
+    refreshSupabaseAfterRevenueCatMutation,
+    ensureRevenueCatLoggedIn,
+  ]);
 
   const restoreRevenueCatPurchases = useCallback(async () => {
     if (!IS_REVENUECAT_PLATFORM) {
@@ -360,14 +386,19 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       throw new Error("RevenueCat is still initializing. Please try again.");
     }
 
+    await ensureRevenueCatLoggedIn();
     const nextCustomerInfo = await Purchases.restorePurchases();
     setRevenueCatCustomerInfo(nextCustomerInfo);
 
-    // Sync RC state to Supabase so DB reflects premium and clears free_plan_vehicle_id (RC does not send webhook on restore)
-    await syncEntitlementsToSupabase();
-    await refresh();
+    await refreshRevenueCat();
+    await refreshSupabaseAfterRevenueCatMutation();
     return nextCustomerInfo;
-  }, [isRevenueCatReady, refresh, syncEntitlementsToSupabase]);
+  }, [
+    isRevenueCatReady,
+    refreshRevenueCat,
+    refreshSupabaseAfterRevenueCatMutation,
+    ensureRevenueCatLoggedIn,
+  ]);
 
   const purchaseRevenueCatProduct = useCallback(
     async (productId: RevenueCatProductId) => {
@@ -377,6 +408,8 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       if (!isRevenueCatReady) {
         throw new Error("RevenueCat is still initializing. Please try again.");
       }
+
+      await ensureRevenueCatLoggedIn();
 
       const packageToPurchase = findPackageForProductId(
         revenueCatOfferings?.current,
@@ -418,15 +451,15 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
         setRevenueCatCustomerInfo(nextCustomerInfo);
       }
 
-      // Sync to Supabase so DB updates plan and clears free_plan_vehicle_id (webhook may be delayed)
-      await syncEntitlementsToSupabase();
-      await refresh();
+      await refreshRevenueCat();
+      await refreshSupabaseAfterRevenueCatMutation();
       return nextCustomerInfo;
     },
     [
       isRevenueCatReady,
-      refresh,
-      syncEntitlementsToSupabase,
+      refreshRevenueCat,
+      refreshSupabaseAfterRevenueCatMutation,
+      ensureRevenueCatLoggedIn,
       revenueCatOfferings,
       revenueCatProducts,
     ],
@@ -440,6 +473,8 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       throw new Error("RevenueCat is still initializing. Please try again.");
     }
 
+    await ensureRevenueCatLoggedIn();
+
     const result = await RevenueCatUI.presentPaywall({
       offering: revenueCatOfferings?.current ?? undefined,
     });
@@ -448,15 +483,16 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       result === PAYWALL_RESULT.PURCHASED ||
       result === PAYWALL_RESULT.RESTORED
     ) {
-      await syncEntitlementsToSupabase();
-      await refresh();
+      await refreshRevenueCat();
+      await refreshSupabaseAfterRevenueCatMutation();
     }
 
     return result;
   }, [
     isRevenueCatReady,
-    refresh,
-    syncEntitlementsToSupabase,
+    refreshRevenueCat,
+    refreshSupabaseAfterRevenueCatMutation,
+    ensureRevenueCatLoggedIn,
     revenueCatOfferings,
   ]);
 
@@ -468,6 +504,8 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       throw new Error("RevenueCat is still initializing. Please try again.");
     }
 
+    await ensureRevenueCatLoggedIn();
+
     const result = await RevenueCatUI.presentPaywallIfNeeded({
       requiredEntitlementIdentifier: REVENUECAT_PREMIUM_ENTITLEMENT_ID,
       offering: revenueCatOfferings?.current ?? undefined,
@@ -477,26 +515,29 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       result === PAYWALL_RESULT.PURCHASED ||
       result === PAYWALL_RESULT.RESTORED
     ) {
-      await syncEntitlementsToSupabase();
-      await refresh();
+      await refreshRevenueCat();
+      await refreshSupabaseAfterRevenueCatMutation();
     }
 
     return result;
   }, [
     isRevenueCatReady,
-    refresh,
-    syncEntitlementsToSupabase,
+    refreshRevenueCat,
+    refreshSupabaseAfterRevenueCatMutation,
+    ensureRevenueCatLoggedIn,
     revenueCatOfferings,
   ]);
 
   const presentRevenueCatCustomerCenter = useCallback(async () => {
     if (!IS_REVENUECAT_PLATFORM || !isRevenueCatReady) return;
 
+    await ensureRevenueCatLoggedIn();
+
     await RevenueCatUI.presentCustomerCenter({
       callbacks: {
         onRestoreCompleted: ({ customerInfo }) => {
           setRevenueCatCustomerInfo(customerInfo);
-          void refreshSupabaseEntitlements();
+          void refreshSupabaseAfterRevenueCatMutation();
         },
         onRestoreFailed: ({ error }) => {
           console.error("RevenueCat Customer Center restore failed:", error);
@@ -504,7 +545,12 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       },
     });
     await refresh();
-  }, [isRevenueCatReady, refresh, refreshSupabaseEntitlements]);
+  }, [
+    isRevenueCatReady,
+    refresh,
+    refreshSupabaseAfterRevenueCatMutation,
+    ensureRevenueCatLoggedIn,
+  ]);
 
   useEffect(() => {
     let alive = true;
@@ -579,12 +625,7 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
     (async () => {
       try {
         if (userId) {
-          await Purchases.logIn(userId);
-          await Promise.all([
-            Purchases.setAttributes({ supabase_user_id: userId }),
-            Purchases.setEmail(userEmail),
-            Purchases.setDisplayName(userDisplayName),
-          ]);
+          await ensureRevenueCatLoggedIn();
         } else {
           const isAnonymous = await Purchases.isAnonymous();
           if (!isAnonymous) {
@@ -603,13 +644,7 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
     return () => {
       alive = false;
     };
-  }, [
-    fetchRevenueCatData,
-    isRevenueCatReady,
-    userDisplayName,
-    userEmail,
-    userId,
-  ]);
+  }, [fetchRevenueCatData, isRevenueCatReady, userId, ensureRevenueCatLoggedIn]);
 
   // Single-shot timer: when effective premium expiry (next 3:00 local) is reached,
   // tick state to force recompute of computed.isPremium.

@@ -1,5 +1,6 @@
 /**
  * RevenueCat → Supabase entitlements sync (webhook handler).
+ * Authoritative writer for plan / limits / free-plan fields on `public.entitlements`.
  *
  * Configure in RevenueCat: Project → Integrations → Webhooks → add URL and
  * set Authorization header to "Bearer <REVENUECAT_WEBHOOK_AUTHORIZATION>".
@@ -13,14 +14,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import {
-  pickFreePlanTireIdForVehicle,
-  pickFreePlanWheelIdForVehicle,
-} from "../_shared/freePlanTireWheel.ts";
-import { pickFreePlanReminderIds } from "../_shared/freePlanReminders.ts";
-import {
-  FREE_TIER_ENTITLEMENT_LIMITS,
+  applyRevenueCatEntitlementUpdate,
+  type EntitlementsUpdate,
   PREMIUM_TIER_ENTITLEMENT_LIMITS,
-} from "../_shared/entitlementLimits.ts";
+  FREE_TIER_ENTITLEMENT_LIMITS,
+} from "../_shared/applyRevenueCatEntitlementUpdate.ts";
 
 // Must match RevenueCat dashboard and vehico-mobile src/services/payments/revenuecat.ts
 const PREMIUM_ENTITLEMENT_ID = "vehico Premium";
@@ -54,8 +52,6 @@ interface RevenueCatWebhookBody {
   event: RevenueCatWebhookEvent;
 }
 
-type EntitlementPlan = "free" | "premium" | "lifetime";
-
 function isLifetimeProduct(productId: string | undefined): boolean {
   if (!productId) return false;
   return (
@@ -74,7 +70,6 @@ function isSubscriptionProduct(productId: string | undefined): boolean {
 /** Resolve Supabase user_id from event (app_user_id or TRANSFER destination). */
 function getTargetUserId(event: RevenueCatWebhookEvent): string | null {
   if (event.app_user_id) return event.app_user_id;
-  // TRANSFER: webhook is sent for destination; use first transferred_to as target
   if (event.transferred_to?.length) return event.transferred_to[0];
   return null;
 }
@@ -89,108 +84,6 @@ function normalizeProductId(productId: string | undefined): string | null {
   return null;
 }
 
-/** Full entitlements row update (plan, premium_until, limits, product_id). */
-type EntitlementsUpdate = {
-  plan: EntitlementPlan;
-  premium_until: string | null;
-  product_id: string | null;
-  vehicles_limit: number;
-  photos_per_vehicle_limit: number;
-  tires_per_vehicle_limit: number;
-  wheels_per_vehicle_limit: number;
-  workshops_limit: number;
-  reminders_limit: number;
-};
-
-type SupabaseClient = ReturnType<typeof createClient>;
-
-type FreePlanSelections = {
-  freePlanVehicleId: string | null;
-  freePlanWorkshopIds: string[];
-  freePlanReminderIds: string[];
-  freePlanTireId: string | null;
-  freePlanWheelId: string | null;
-};
-
-async function buildFreePlanSelections(
-  supabase: SupabaseClient,
-  userId: string,
-  preferredVehicleId: string | null,
-): Promise<FreePlanSelections> {
-  const { data: workshopRows, error: workshopError } = await supabase
-    .from("workshops")
-    .select("id")
-    .eq("owner_id", userId)
-    .order("created_at", { ascending: true })
-    .limit(FREE_TIER_ENTITLEMENT_LIMITS.workshops_limit);
-  if (workshopError) throw workshopError;
-
-  let freePlanVehicleId = preferredVehicleId;
-  if (freePlanVehicleId) {
-    const { data: preferredVehicleRows, error: preferredVehicleError } =
-      await supabase
-        .from("vehicles")
-        .select("id")
-        .eq("id", freePlanVehicleId)
-        .eq("owner_id", userId)
-        .limit(1);
-    if (preferredVehicleError) throw preferredVehicleError;
-    freePlanVehicleId = preferredVehicleRows?.[0]?.id ?? null;
-  }
-
-  if (!freePlanVehicleId) {
-    const { data: vehicleRows, error: vehicleError } = await supabase
-      .from("vehicles")
-      .select("id")
-      .eq("owner_id", userId)
-      .order("created_at", { ascending: true })
-      .limit(2);
-    if (vehicleError) throw vehicleError;
-    freePlanVehicleId =
-      vehicleRows != null && vehicleRows.length === 1
-        ? (vehicleRows[0]?.id ?? null)
-        : null;
-  }
-
-  if (!freePlanVehicleId) {
-    return {
-      freePlanVehicleId: null,
-      freePlanWorkshopIds: (workshopRows ?? []).map(
-        (row: { id: string }) => row.id,
-      ),
-      freePlanReminderIds: [],
-      freePlanTireId: null,
-      freePlanWheelId: null,
-    };
-  }
-
-  const [reminderFetch, freePlanTireId, freePlanWheelId] = await Promise.all([
-    supabase
-      .from("reminders")
-      .select("id,status,created_at")
-      .eq("vehicle_id", freePlanVehicleId),
-    pickFreePlanTireIdForVehicle(supabase, freePlanVehicleId),
-    pickFreePlanWheelIdForVehicle(supabase, freePlanVehicleId),
-  ]);
-
-  if (reminderFetch.error) throw reminderFetch.error;
-
-  const freePlanReminderIds = pickFreePlanReminderIds(
-    reminderFetch.data ?? [],
-    FREE_TIER_ENTITLEMENT_LIMITS.reminders_limit,
-  );
-
-  return {
-    freePlanVehicleId,
-    freePlanWorkshopIds: (workshopRows ?? []).map(
-      (row: { id: string }) => row.id,
-    ),
-    freePlanReminderIds,
-    freePlanTireId,
-    freePlanWheelId,
-  };
-}
-
 /** Build entitlements update from event type and payload. */
 function getEntitlementsUpdate(
   event: RevenueCatWebhookEvent,
@@ -201,7 +94,7 @@ function getEntitlementsUpdate(
 
   switch (type) {
     case "TEST":
-      return null; // no DB update for test
+      return null;
 
     case "INITIAL_PURCHASE":
     case "RENEWAL":
@@ -390,13 +283,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
-  const now = new Date().toISOString();
+
   const { data: currentEntitlements, error: currentEntitlementsError } =
     await supabase
       .from("entitlements")
       .select("free_plan_vehicle_id")
       .eq("user_id", userId)
       .maybeSingle();
+
   if (currentEntitlementsError) {
     console.error(
       "Failed to load current entitlements:",
@@ -411,58 +305,28 @@ Deno.serve(async (req: Request): Promise<Response> => {
     );
   }
 
-  const dbUpdate: Record<string, unknown> = {
-    plan: update.plan,
-    premium_until: update.premium_until,
-    product_id: update.product_id,
-    vehicles_limit: update.vehicles_limit,
-    photos_per_vehicle_limit: update.photos_per_vehicle_limit,
-    tires_per_vehicle_limit: update.tires_per_vehicle_limit,
-    wheels_per_vehicle_limit: update.wheels_per_vehicle_limit,
-    workshops_limit: update.workshops_limit,
-    reminders_limit: update.reminders_limit,
-    updated_at: now,
-  };
-  if (update.plan === "free") {
-    const freePlanSelections = await buildFreePlanSelections(
-      supabase,
-      userId,
-      currentEntitlements?.free_plan_vehicle_id ?? null,
+  if (!currentEntitlements) {
+    return new Response(
+      JSON.stringify({
+        received: true,
+        message: "User entitlements row not found (user may not exist yet)",
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
-    dbUpdate.downgraded_at = now;
-    dbUpdate.free_plan_vehicle_id = freePlanSelections.freePlanVehicleId;
-    dbUpdate.free_plan_workshop_ids = freePlanSelections.freePlanWorkshopIds;
-    dbUpdate.free_plan_reminder_ids = freePlanSelections.freePlanReminderIds;
-    dbUpdate.free_plan_tire_id = freePlanSelections.freePlanTireId;
-    dbUpdate.free_plan_wheel_id = freePlanSelections.freePlanWheelId;
-  } else {
-    dbUpdate.free_plan_vehicle_id = null;
-    dbUpdate.downgraded_at = null;
-    dbUpdate.free_plan_workshop_ids = [];
-    dbUpdate.free_plan_reminder_ids = [];
-    dbUpdate.free_plan_tire_id = null;
-    dbUpdate.free_plan_wheel_id = null;
   }
 
-  const { error } = await supabase
-    .from("entitlements")
-    .update(dbUpdate)
-    .eq("user_id", userId);
+  const { error: applyError } = await applyRevenueCatEntitlementUpdate(
+    supabase,
+    userId,
+    update,
+    currentEntitlements.free_plan_vehicle_id ?? null,
+  );
 
-  if (error) {
-    if (error.code === "PGRST116") {
-      return new Response(
-        JSON.stringify({
-          received: true,
-          message: "User entitlements row not found (user may not exist yet)",
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-    console.error("Entitlements update failed:", error);
+  if (applyError) {
+    console.error("Entitlements update failed:", applyError);
     return new Response(
       JSON.stringify({ error: "Failed to update entitlements" }),
       {
