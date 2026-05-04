@@ -9,7 +9,6 @@ const nativeHeaderScreenOptions = {
 } as const;
 
 import { useAuth } from "../providers/AuthProvider";
-import { LandingScreen } from "../../screens/landing/LandingScreen";
 import { AuthScreen } from "../../screens/modal/AuthScreen";
 import { VehiclesScreen } from "../../screens/welcome/VehiclesScreen";
 import { VehicleFormScreen } from "../../screens/modal/VehicleFormScreen";
@@ -57,7 +56,6 @@ import { AppearanceScreen } from "../../screens/modal/AppearanceScreen";
 import { OnboardingScreen } from "../../screens/onboarding/OnboardingScreen";
 
 export type AppStackParamList = {
-  Landing: undefined;
   Auth: { magicLinkError?: "expired" } | undefined;
   EmailConfirmation: { email?: string };
   Onboarding: undefined;
@@ -221,31 +219,22 @@ export function RootNavigator() {
           ? session.user.user_metadata?.has_completed_onboarding === true
             ? "Vehicles"
             : "Onboarding"
-          : "Landing"
+          : "Auth"
       }
     >
       {!session ? (
-        <>
-          <Stack.Screen
-            name="Landing"
-            component={LandingScreen}
-            options={{
-              headerShown: true,
-              title: "",
-              headerShadowVisible: false,
-              headerTransparent: true,
-            }}
-          />
-          <Stack.Screen
-            name="Auth"
-            component={AuthScreen}
-            options={{
-              presentation: "fullScreenModal",
-              headerShown: true,
-              headerShadowVisible: false,
-            }}
-          />
-        </>
+        <Stack.Screen
+          name="Auth"
+          component={AuthScreen}
+          options={{
+            presentation: "card",
+            headerShown: true,
+            title: "",
+            headerShadowVisible: false,
+            headerTransparent: true,
+            headerBackVisible: false,
+          }}
+        />
       ) : (
         <>
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />

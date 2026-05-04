@@ -127,41 +127,6 @@ export const en = {
     openEmailApp: "Open email app",
     backToSignIn: "Back to sign in",
   },
-  landing: {
-    title: "Vehico",
-    badge: "Public vehicle report in one link",
-    subtitle:
-      "Track your vehicle maintenance, fuel consumption, and expenses all in one place.",
-    heroLead:
-      "Keep your vehicle history organized. Service, fuel and costs in one place, ready to share with a single link.",
-    howTitle: "How does Vehico work?",
-    howDesc:
-      "Capture your car's history in minutes, then generate a public share link.",
-    step1Title: "Add your car and core details",
-    step1Desc:
-      "Fill in the essentials (e.g. VIN, mileage, specs) and prepare a clear overview.",
-    step2Title: "Track service and fueling",
-    step2Desc:
-      "Add entries with cost, date and category – so the report reflects real ownership.",
-    step3Title: "Share a report link",
-    step3Desc:
-      "Generate a public report and send it anywhere. No messy PDFs or endless messages.",
-    featuresSectionTitle: "Key features",
-    featuresSectionDesc:
-      "Everything you need to maintain and share your vehicle history.",
-    feature1Title: "Service",
-    feature1Description: "Repairs, parts and documents in one place.",
-    feature2Title: "Fuel",
-    feature2Description: "Monitor fuel usage and costs.",
-    feature3Title: "Reminders",
-    feature3Description: "Stay on top of service and important dates.",
-    feature4Title: "Insights",
-    feature4Description: "Track spending and ownership costs.",
-    getStarted: "Try Vehico",
-    alreadyHaveAccount: "Already have an account? ",
-    terms: "Terms of Use",
-    privacy: "Privacy Policy",
-  },
   onboarding: {
     welcome: {
       title: "Welcome to Vehico",

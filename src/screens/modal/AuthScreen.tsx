@@ -56,6 +56,11 @@ export function AuthScreen({ navigation, route }: Props) {
     }, [navigation, route.params?.magicLinkError]),
   );
 
+  const stackCancel =
+    typeof navigation.canGoBack === "function" && navigation.canGoBack()
+      ? { onPress: () => navigation.goBack(), label: t("common.cancel") }
+      : undefined;
+
   const emailTrimmed = useMemo(() => email.trim(), [email]);
 
   // Email validation regex
@@ -275,7 +280,9 @@ export function AuthScreen({ navigation, route }: Props) {
               style={styles.magicLinkButton}
               onPress={() => {
                 setMagicLinkError(null);
-                navigation.goBack();
+                if (navigation.canGoBack()) {
+                  navigation.goBack();
+                }
               }}
             >
               {t("common.back")}
@@ -293,12 +300,7 @@ export function AuthScreen({ navigation, route }: Props) {
     const emailIdx = email.length ? magicLinkBody.indexOf(email) : -1;
 
     return (
-      <ModalLayout
-        cancel={{
-          onPress: () => navigation.goBack(),
-          label: t("common.cancel"),
-        }}
-      >
+      <ModalLayout cancel={stackCancel}>
         <FormScreen noLayout scrollEnabled={false}>
           <View style={styles.magicLinkContainer}>
             <View style={styles.iconContainer}>
@@ -344,9 +346,7 @@ export function AuthScreen({ navigation, route }: Props) {
   }
 
   return (
-    <ModalLayout
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
-    >
+    <ModalLayout cancel={stackCancel}>
       <FormScreen noLayout>
         <NativeHeaderScrollView>
           <View style={styles.brandHeader}>

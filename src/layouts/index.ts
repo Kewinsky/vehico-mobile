@@ -1,5 +1,4 @@
 export { HeaderLayout, type HeaderLayoutProps } from "./HeaderLayout";
-export { LandingLayout, type LandingLayoutProps } from "./LandingLayout";
 export { ModalLayout, type ModalLayoutProps } from "./ModalLayout";
 export {
   OnboardingLayout,

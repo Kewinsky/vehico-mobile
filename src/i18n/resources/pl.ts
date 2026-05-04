@@ -128,41 +128,6 @@ export const pl = {
     openEmailApp: "Otwórz aplikację e-mail",
     backToSignIn: "Wróć do logowania",
   },
-  landing: {
-    title: "Vehico",
-    badge: "Publiczny raport pojazdu jednym linkiem",
-    subtitle:
-      "Śledź konserwację pojazdu, zużycie paliwa i wydatki w jednym miejscu.",
-    heroLead:
-      "Prowadź historię pojazdu w uporządkowany sposób. Serwis, tankowania i koszty w jednym miejscu, gotowe do udostępnienia jednym linkiem.",
-    howTitle: "Jak działa Vehico?",
-    howDesc:
-      "W kilka minut zbierasz historię auta, a potem generujesz publiczny link do raportu.",
-    step1Title: "Dodaj auto i dane bazowe",
-    step1Desc:
-      "Uzupełnij najważniejsze informacje (np. VIN, przebieg, specyfikację) i przygotuj opis.",
-    step2Title: "Zapisuj serwis i tankowania",
-    step2Desc:
-      "Dodawaj wpisy z kosztami, datą i kategorią – dzięki temu raport ma realną historię.",
-    step3Title: "Udostępnij raport linkiem",
-    step3Desc:
-      "Wygeneruj publiczny raport i podeślij go komu chcesz. Bez chaosu w PDF-ach i wiadomościach.",
-    featuresSectionTitle: "Najważniejsze funkcje",
-    featuresSectionDesc:
-      "Wszystko, czego potrzebujesz do prowadzenia i udostępniania historii pojazdu.",
-    feature1Title: "Serwis",
-    feature1Description: "Naprawy, części i dokumenty w jednym miejscu.",
-    feature2Title: "Paliwo",
-    feature2Description: "Kontroluj zużycie i koszty paliwa.",
-    feature3Title: "Przypomnienia",
-    feature3Description: "Pilnuj terminów serwisowych i ważnych dat.",
-    feature4Title: "Statystyki",
-    feature4Description: "Sprawdzaj wydatki i koszt utrzymania pojazdu.",
-    getStarted: "Wypróbuj Vehico",
-    alreadyHaveAccount: "Masz już konto? ",
-    terms: "Regulamin",
-    privacy: "Polityka prywatności",
-  },
   onboarding: {
     welcome: {
       title: "Witaj w Vehico",
