@@ -23,6 +23,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { ENV } from "../../config/env";
 import { Card, CardRow } from "../../ui/components/common/Card";
+import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
 import { Logo } from "../../ui/components/branding/Logo";
 import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
 
@@ -287,6 +288,12 @@ export function AuthScreen({ navigation, route }: Props) {
             >
               {t("common.back")}
             </Button>
+            <View style={styles.legalFooter}>
+              <LegalLinksRow
+                termsUrl={`${ENV.WEB_APP_URL}/terms`}
+                privacyUrl={`${ENV.WEB_APP_URL}/privacy`}
+              />
+            </View>
           </View>
         </FormScreen>
       </ModalLayout>
@@ -339,6 +346,12 @@ export function AuthScreen({ navigation, route }: Props) {
             >
               {t("auth.sendAnotherLink")}
             </Button>
+            <View style={styles.legalFooter}>
+              <LegalLinksRow
+                termsUrl={`${ENV.WEB_APP_URL}/terms`}
+                privacyUrl={`${ENV.WEB_APP_URL}/privacy`}
+              />
+            </View>
           </View>
         </FormScreen>
       </ModalLayout>
@@ -505,6 +518,13 @@ export function AuthScreen({ navigation, route }: Props) {
               </Button>
             </>
           )}
+
+          <View style={styles.legalFooter}>
+            <LegalLinksRow
+              termsUrl={`${ENV.WEB_APP_URL}/terms`}
+              privacyUrl={`${ENV.WEB_APP_URL}/privacy`}
+            />
+          </View>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -622,5 +642,10 @@ const makeStyles = (theme: any) =>
     },
     bodyEmail: {
       fontWeight: theme.typography.fontWeight.bold,
+    },
+    legalFooter: {
+      marginTop: theme.spacing.xl * 2,
+      paddingBottom: theme.spacing.lg,
+      alignItems: "center",
     },
   });
