@@ -1,11 +1,5 @@
 import React, { useMemo, useState } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
@@ -443,7 +437,6 @@ export function AuthScreen({ navigation, route }: Props) {
                   styles.socialButton,
                   {
                     backgroundColor: theme.colors.card,
-                    borderColor: theme.colors.border,
                     opacity:
                       isSocialLoading === "facebook" || pressed ? 0.7 : 1,
                   },
@@ -571,7 +564,6 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
       height: theme.spacing.lg * 2,
       borderRadius: theme.radius.md,
-      borderWidth: 1,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     socialButtonText: {
