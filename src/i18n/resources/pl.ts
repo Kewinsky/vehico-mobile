@@ -616,15 +616,15 @@ export const pl = {
       subtitle:
         "Tak wygląda wygenerowane ogłoszenie. W aplikacji dostajesz gotowy tekst do wklejenia na OLX, Facebook Marketplace czy dowolny serwis z ogłoszeniami.",
       body: `=== SPRZEDAM ===
-BMW 330i z 2020 roku o mocy 190KM
+BMW M4 Coupe z 2020 roku o mocy 431KM
 VIN: WBA3A5C50ED123456
 Cena: 125 000 PLN
 
 === SPECYFIKACJA TECHNICZNA ===
-Rok produkcji: 2020
-Pojemność silnika: 1998 cm³
-Moc: 190 KM
-Rodzaj paliwa: Diesel
+Rok produkcji: 2015
+Pojemność silnika: 2979 cm³
+Moc: 431 KM
+Rodzaj paliwa: Benzyna
 Skrzynia biegów: Automatyczna
 Przebieg: 52 000 km
 Ubezpieczenie ważne do: 2026-03-15

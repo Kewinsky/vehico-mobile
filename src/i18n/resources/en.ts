@@ -611,15 +611,15 @@ export const en = {
       subtitle:
         "This is what a generated listing looks like. In the app you get plain text ready to paste on OLX, Facebook Marketplace, or any classifieds site.",
       body: `=== FOR SALE ===
-BMW 330i from 2020 year with 190HP
+BMW M4 Coupe from 2020 year with 431HP
 VIN: WBA3A5C50ED123456
 Price: 125 000 PLN
 
 === TECHNICAL SPECIFICATION ===
-Production year: 2020
-Engine capacity: 1998 cm³
-Power: 190 HP
-Fuel type: Diesel
+Production year: 2015
+Engine capacity: 2979 cm³
+Power: 431 HP
+Fuel type: Petrol
 Transmission: Automatic
 Mileage: 52000 km
 Insurance valid until: 2026-03-15
