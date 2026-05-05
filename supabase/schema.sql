@@ -1859,7 +1859,8 @@ begin
     drive_type,
     notes,
     insurance_valid_until,
-    inspection_valid_until
+    inspection_valid_until,
+    created_at
   ) values (
     auth.uid(),
     p_type,
@@ -1879,7 +1880,8 @@ begin
     p_drive_type,
     p_notes,
     p_insurance_valid_until,
-    p_inspection_valid_until
+    p_inspection_valid_until,
+    now()
   )
   returning * into v_vehicle;
 
