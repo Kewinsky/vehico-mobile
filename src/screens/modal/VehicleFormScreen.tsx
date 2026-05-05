@@ -520,11 +520,12 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         const uploadedPhotosByKey = new Map<string, VehiclePhoto>();
         for (const draftPhoto of draftPhotos) {
           if (draftPhoto.kind !== "new" || !draftPhoto.file) continue;
+          const file = draftPhoto.file;
           const uploadedPhoto = await uploadVehiclePhoto({
             vehicleId,
-            fileUri: draftPhoto.file.uri,
-            mimeType: draftPhoto.file.mimeType,
-            fileName: draftPhoto.file.fileName,
+            fileUri: file.uri,
+            mimeType: file.mimeType,
+            fileName: file.fileName,
             maxPhotos: photosPerVehicleLimit,
           });
           uploadedPhotosByKey.set(draftPhoto.key, uploadedPhoto);
@@ -819,7 +820,8 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       style={[styles.label, { color: theme.colors.muted }]}
                       numberOfLines={1}
                     >
-                      {t("vehicleForm.initialMileageLabel")} ({distanceUnitLabel})
+                      {t("vehicleForm.initialMileageLabel")} (
+                      {distanceUnitLabel})
                     </Text>
                   </View>
                   <TextInput
@@ -1126,7 +1128,9 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       style={[
                         styles.valueText,
                         {
-                          color: transmission ? theme.colors.fg : theme.colors.muted,
+                          color: transmission
+                            ? theme.colors.fg
+                            : theme.colors.muted,
                           textAlign: "right",
                         },
                       ]}
@@ -1167,7 +1171,9 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       style={[
                         styles.valueText,
                         {
-                          color: driveType ? theme.colors.fg : theme.colors.muted,
+                          color: driveType
+                            ? theme.colors.fg
+                            : theme.colors.muted,
                           textAlign: "right",
                         },
                       ]}

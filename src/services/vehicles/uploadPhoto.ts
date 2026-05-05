@@ -138,26 +138,27 @@ export async function uploadVehiclePhoto(params: {
 export async function deleteVehiclePhoto(
   photo: VehiclePhoto
 ): Promise<void> {
-  // Delete from storage
+  // Delete storage object via Storage API first.
   const { error: storageError } = await supabase.storage
     .from(photo.storage_bucket)
     .remove([photo.storage_path]);
   if (storageError) throw storageError;
 
-  // Delete from database
+  // Then delete metadata row from DB.
   const { error } = await supabase
     .from("photos")
     .delete()
     .eq("id", photo.id);
-  if (error) throw error;
-
-  // Reorder remaining photos
-  const remaining = await listVehiclePhotos(photo.vehicle_id);
-  for (let i = 0; i < remaining.length; i++) {
-    await supabase
-      .from("photos")
-      .update({ display_order: i })
-      .eq("id", remaining[i].id);
+  if (error) {
+    if (
+      typeof error.message === "string" &&
+      error.message.includes("Direct deletion from storage tables is not allowed")
+    ) {
+      throw new Error(
+        "Photo delete is blocked by backend trigger configuration. Remove trigger `photos_delete_storage` and retry.",
+      );
+    }
+    throw error;
   }
 }
 
@@ -170,8 +171,9 @@ export async function reorderVehiclePhotos(
   vehicleId: string,
   photoIds: string[]
 ): Promise<void> {
-  // Update display_order for each photo based on its position in the array
-  await Promise.all(
+  // Update display_order for each photo based on its position in the array.
+  // Supabase does not throw automatically on row-level errors, so inspect results.
+  const results = await Promise.all(
     photoIds.map((photoId, index) =>
       supabase
         .from("photos")
@@ -180,6 +182,8 @@ export async function reorderVehiclePhotos(
         .eq("vehicle_id", vehicleId)
     )
   );
+  const firstError = results.find((result) => result.error)?.error;
+  if (firstError) throw firstError;
 }
 
 /**

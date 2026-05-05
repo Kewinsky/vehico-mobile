@@ -1548,24 +1548,6 @@ using (
 -- Storage cleanup on row delete
 -- ================
 
--- Remove object from Storage when DB row is deleted (bucket/path from row)
-create or replace function public.delete_storage_object_trigger()
-returns trigger
-language plpgsql
-security definer
-set search_path = public, storage
-as $$
-begin
-  delete from storage.objects
-  where bucket_id = old.storage_bucket
-    and name = old.storage_path;
-  return old;
-end;
-$$;
-
-create trigger photos_delete_storage
-  before delete on public.photos
-  for each row execute function public.delete_storage_object_trigger();
 
 -- ================
 -- Storage policies for 'report-photos' bucket
