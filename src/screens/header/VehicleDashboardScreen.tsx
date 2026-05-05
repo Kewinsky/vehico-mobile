@@ -1091,7 +1091,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   {quickMetrics.consumptionSecondary}
                 </Text>
               </View>
-              <View style={styles.quickMetricSeparator} />
               <View style={styles.quickMetricCell}>
                 <Text
                   style={[
@@ -1124,7 +1123,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   {t("dashboard.quickMetrics.costSubtitle")}
                 </Text>
               </View>
-              <View style={styles.quickMetricSeparator} />
               <View style={styles.quickMetricCell}>
                 <Text
                   style={[
@@ -1157,7 +1155,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   {t("dashboard.quickMetrics.distanceSubtitle")}
                 </Text>
               </View>
-              <View style={styles.quickMetricSeparator} />
               <View style={styles.quickMetricCell}>
                 <Text
                   style={[
@@ -2037,10 +2034,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       alignItems: "stretch",
       justifyContent: "space-between",
       gap: 0,
-    },
-    quickMetricSeparator: {
-      width: 1,
-      backgroundColor: theme.colors.accent,
     },
     quickMetricCell: {
       flex: 1,
