@@ -450,6 +450,7 @@ export const pl = {
       },
       chartInfo: {
         open: "Pokaż wyjaśnienie wykresu",
+        openOilSection: "Informacja – wymiana oleju",
         costPerKmTitle: "Jak czytać koszt utrzymania?",
         costPerKmBody:
           "Wykres pokazuje koszt utrzymania przeliczony na 1 km w każdym miesiącu: (paliwo + serwis) / przejechane km. Czerwona przerywana linia to średni koszt utrzymania z wybranego okresu. Gdy punkty są powyżej tej linii, auto jest droższe w utrzymaniu niż zwykle. Pojedyncze piki zwykle oznaczają większy serwis lub naprawę.",
@@ -462,6 +463,9 @@ export const pl = {
         expensesByCategoryTitle: "Jak czytać wydatki wg kategorii?",
         expensesByCategoryBody:
           "Wykres pokazuje udział każdej kategorii kosztów w wybranym okresie. Legenda pod wykresem jest klikalna i przełącza widok między procentami a sumami kwot.",
+        oilChangeTitle: "Sekcja wymiany oleju",
+        oilChangeBody:
+          "Te informacje pochodzą wyłącznie z wpisów serwisowych z kategorią „{{category}}”: ostatnia wymiana (dotknij, by przełączyć datę ↔ przebieg), średnie interwały oraz szacowana „żywność” oleju. Przy wymianie oleju wybieraj tę kategorię, żeby dane były poprawne.",
       },
       categories: {
         fuel: "Paliwo",

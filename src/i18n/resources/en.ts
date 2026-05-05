@@ -446,6 +446,7 @@ export const en = {
       },
       chartInfo: {
         open: "Show chart explanation",
+        openOilSection: "About oil change stats",
         costPerKmTitle: "How to read maintenance cost?",
         costPerKmBody:
           "This chart shows maintenance cost per 1 km in each month: (fuel + service costs) / driven km. The red dashed line is the average maintenance cost for the selected period. When points are above this line, the vehicle is more expensive to maintain than usual. A rising trend means the vehicle is getting more expensive overall, and single spikes usually indicate a larger service or repair event.",
@@ -458,6 +459,9 @@ export const en = {
         expensesByCategoryTitle: "How to read expenses by category?",
         expensesByCategoryBody:
           "This chart shows each cost category share in the selected period. The legend below is clickable and toggles between percentage share and total amount values.",
+        oilChangeTitle: "Oil change section",
+        oilChangeBody:
+          "This block uses only service entries with category “{{category}}”: last oil change (tap to switch date vs mileage), average intervals, and the oil-life estimate. When you record an oil change, choose that category so these figures stay accurate.",
       },
       categories: {
         fuel: "Fuel",

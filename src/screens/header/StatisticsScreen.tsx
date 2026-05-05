@@ -14,7 +14,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { CircleHelp } from "lucide-react-native";
+import { CircleHelp, Fuel } from "lucide-react-native";
 import Svg, {
   Circle,
   Line as SvgLine,
@@ -77,10 +77,12 @@ function StatTile({
   fullWidth,
   onPress,
   accessibilityHint,
+  layout = "default",
+  accessibilityLabel,
 }: {
   icon?: keyof typeof Ionicons.glyphMap;
   iconComponent?: ReactNode;
-  label: ReactNode;
+  label?: ReactNode;
   valueMain: string;
   valueSuffix?: string;
   theme: AppTheme;
@@ -89,7 +91,83 @@ function StatTile({
   onPress?: () => void;
   /** Hint for screen readers when tile is pressable (e.g. "Tap to switch between date and mileage"). */
   accessibilityHint?: string;
+  /** `iconLeading`: accent icon left (no bubble), amount + suffix right — matches dashboard tile icons. */
+  layout?: "default" | "iconLeading";
+  accessibilityLabel?: string;
 }) {
+  const defaultA11yLabel =
+    accessibilityLabel ??
+    (typeof label === "string" ? label : undefined);
+
+  if (layout === "iconLeading") {
+    const valueA11y = `${valueMain}${
+      valueSuffix != null && valueSuffix !== "" ? ` ${valueSuffix}` : ""
+    }`;
+    const iconLeadingA11y =
+      defaultA11yLabel != null
+        ? `${defaultA11yLabel}, ${valueA11y}`
+        : valueA11y;
+
+    const leadingIcon =
+      iconComponent ??
+      (icon ? (
+        <Ionicons name={icon} size={32} color={theme.colors.accent} />
+      ) : null);
+    const tileContent = (
+      <View style={styles.tileIconLeadingRow}>
+        <View style={styles.tileIconLeadingIcon}>{leadingIcon}</View>
+        <View style={styles.tileIconLeadingValueGroup}>
+          <Text
+            style={[styles.tileValueMain, { color: theme.colors.fg }]}
+            numberOfLines={1}
+          >
+            {valueMain}
+          </Text>
+          {valueSuffix != null && valueSuffix !== "" ? (
+            <Text
+              style={[styles.tileValueSuffix, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {valueSuffix}
+            </Text>
+          ) : null}
+          {onPress ? (
+            <Ionicons
+              name="swap-horizontal"
+              size={18}
+              color={theme.colors.muted}
+              style={styles.tilePressableIcon}
+            />
+          ) : null}
+        </View>
+      </View>
+    );
+    const tileStyle = [
+      styles.tile,
+      styles.tileIconLeading,
+      fullWidth && styles.tileFullWidth,
+      { backgroundColor: theme.colors.card },
+    ];
+    if (onPress) {
+      return (
+        <Pressable
+          style={({ pressed }) => [...tileStyle, pressed && { opacity: 0.7 }]}
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={iconLeadingA11y}
+          accessibilityHint={accessibilityHint}
+        >
+          {tileContent}
+        </Pressable>
+      );
+    }
+    return (
+      <View style={tileStyle} accessibilityLabel={iconLeadingA11y}>
+        {tileContent}
+      </View>
+    );
+  }
+
   const tileContent = (
     <>
       <View style={styles.tileTitleRow}>
@@ -140,7 +218,7 @@ function StatTile({
         style={({ pressed }) => [...tileStyle, pressed && { opacity: 0.7 }]}
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={typeof label === "string" ? label : undefined}
+        accessibilityLabel={defaultA11yLabel}
         accessibilityHint={accessibilityHint}
       >
         {tileContent}
@@ -1655,6 +1733,15 @@ export function StatisticsScreen(props: Props) {
     [t],
   );
 
+  const showOilSectionInfo = useCallback(() => {
+    Alert.alert(
+      t("dashboard.stats.chartInfo.oilChangeTitle"),
+      t("dashboard.stats.chartInfo.oilChangeBody", {
+        category: t("entryForm.categories.oil_change"),
+      }),
+    );
+  }, [t]);
+
   const chartViewportWidth = Math.max(
     280,
     windowWidth - theme.layout.contentPaddingHorizontal * 2,
@@ -1815,14 +1902,20 @@ export function StatisticsScreen(props: Props) {
           <StatTile
             theme={theme}
             styles={styles}
-            label={t("dashboard.stats.categories.fuel")}
+            layout="iconLeading"
+            accessibilityLabel={t("dashboard.stats.categories.fuel")}
+            iconComponent={
+              <Fuel size={32} color={theme.colors.accent} />
+            }
             valueMain={fuelMain}
             valueSuffix={fuelMain !== "—" ? currency : undefined}
           />
           <StatTile
             theme={theme}
             styles={styles}
-            label={t("dashboard.tiles.serviceTitle")}
+            layout="iconLeading"
+            accessibilityLabel={t("dashboard.tiles.serviceTitle")}
+            icon="construct"
             valueMain={serviceMain}
             valueSuffix={serviceMain !== "—" ? currency : undefined}
           />
@@ -2285,9 +2378,20 @@ export function StatisticsScreen(props: Props) {
 
       {/* Oil change recency and average interval toggles. */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-          {t("dashboard.stats.oilChange")}
-        </Text>
+        <View style={styles.sectionHeaderInline}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+            {t("dashboard.stats.oilChange")}
+          </Text>
+          <Pressable
+            style={styles.infoIconButton}
+            onPress={showOilSectionInfo}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t("dashboard.stats.chartInfo.openOilSection")}
+          >
+            <CircleHelp size={18} color={theme.colors.muted} />
+          </Pressable>
+        </View>
         <View style={styles.tilesRow}>
           <StatTile
             theme={theme}
@@ -2504,6 +2608,30 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
       justifyContent: "space-between",
+    },
+    tileIconLeading: {
+      justifyContent: "center",
+      minHeight: theme.spacing.lg * 2 + theme.spacing.md,
+    },
+    tileIconLeadingRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: theme.spacing.sm,
+    },
+    tileIconLeadingIcon: {
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    },
+    tileIconLeadingValueGroup: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "baseline",
+      justifyContent: "flex-end",
+      flexWrap: "wrap",
+      gap: theme.spacing.xs,
+      rowGap: 0,
     },
     tileFullWidth: {
       flex: undefined,

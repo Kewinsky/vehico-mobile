@@ -34,6 +34,8 @@ export type HeaderAction =
 
 export type AppNavbarProps = {
   onBack?: () => void;
+  /** When set with `onBack`, replaces the default chevron in the native header. */
+  backIcon?: ReactNode;
   right?: ReactNode;
   title?: string;
   showProfileAvatar?: boolean;
@@ -44,6 +46,7 @@ export type AppNavbarProps = {
 
 export function useNativeHeaderAsAppNavbar({
   onBack,
+  backIcon,
   right,
   title,
   showProfileAvatar,
@@ -192,7 +195,9 @@ export function useNativeHeaderAsAppNavbar({
               tintColor={theme.colors.accent}
               accessibilityLabel={undefined}
             >
-              <ChevronLeft size={headerIconSize} color={theme.colors.accent} />
+              {backIcon ?? (
+                <ChevronLeft size={headerIconSize} color={theme.colors.accent} />
+              )}
             </HeaderButton>
           )
         : undefined,
@@ -216,6 +221,7 @@ export function useNativeHeaderAsAppNavbar({
     theme.typography.fontWeight.bold,
     theme.typography.title,
     onBack,
+    backIcon,
     right,
     title,
     showProfileAvatar,
@@ -229,6 +235,7 @@ export function useNativeHeaderAsAppNavbar({
 
 export function AppNavbar({
   onBack,
+  backIcon,
   right,
   title,
   showProfileAvatar,
@@ -318,7 +325,9 @@ export function AppNavbar({
             tintColor={theme.colors.accent}
             accessibilityLabel={undefined}
           >
-            <ChevronLeft size={headerIconSize} color={theme.colors.accent} />
+            {backIcon ?? (
+              <ChevronLeft size={headerIconSize} color={theme.colors.accent} />
+            )}
           </HeaderButton>
         ) : null}
       </View>

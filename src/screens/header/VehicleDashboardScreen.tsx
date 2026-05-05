@@ -23,14 +23,15 @@ import { HeaderButton } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import {
+  CalendarCheck,
+  CheckCheck,
   Clock,
+  Copy,
   Database,
   Fuel,
   Hash,
-  CalendarCheck,
-  CheckCheck,
-  Copy,
   ShieldCheck,
+  Warehouse,
 } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
@@ -1747,6 +1748,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       ready={iconFontsReady}
       minLoadingMs={1200}
       onBack={() => navigation.goBack()}
+      backIcon={<Warehouse size={20} color={theme.colors.accent} />}
       showShopIcon={!isPremium}
       right={headerRight}
       paddingHorizontal={false}
