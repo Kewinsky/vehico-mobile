@@ -5,6 +5,7 @@ import Swipeable from "react-native-gesture-handler/Swipeable";
 
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
+import { groupThousands } from "../../../utils/numberFormatting";
 
 type ReminderItemProps = {
   title: string;
@@ -96,7 +97,7 @@ export function ReminderItem({
 
   const remainingDistanceText =
     mileageRemaining != null
-      ? `${mileageRemaining.toLocaleString()} ${distanceUnitLabel}`
+      ? `${groupThousands(mileageRemaining)} ${distanceUnitLabel}`
       : "—";
   const estimatedTimeText =
     dateRemainingDays != null ? `${dateRemainingDays}d` : "—";
