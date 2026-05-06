@@ -105,16 +105,21 @@ import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
 import { Logo } from "../../ui/components/branding/Logo";
 import { ReminderItem } from "../../ui/components/list/ReminderItem";
 import { StatisticsScreen } from "./StatisticsScreen";
-import {
-  daysSinceYmd,
-  formatRelativeTimePast,
-} from "../../utils/formatRelativeTimePast";
+import { formatRelativeTimePast } from "../../utils/formatRelativeTimePast";
 import { isNonNegativeNumber } from "../../utils/validation";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import {
   groupThousands,
   localeCodeFromLanguage,
 } from "../../utils/numberFormatting";
+import { ButtonsPage } from "./vehicleDashboard/pages/ButtonsPage";
+import {
+  formatTermsValue,
+  getDaysUntilDate,
+  getMileageStaleYmd,
+  isReminderOverdue,
+  quickMetricsWindowYmdBounds,
+} from "./vehicleDashboard/domain/terms";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
@@ -351,87 +356,6 @@ function DashboardStatTile({
   );
 }
 
-const MILEAGE_STALE_MIN_DAYS = 90;
-
-function isReminderOverdue(
-  reminder: Reminder,
-  currentMileage: number | null | undefined,
-): boolean {
-  const today = new Date().toISOString().slice(0, 10);
-  const dateOverdue =
-    reminder.due_date != null && String(reminder.due_date).slice(0, 10) < today;
-  const mileageOverdue =
-    reminder.due_mileage != null &&
-    currentMileage != null &&
-    currentMileage >= reminder.due_mileage;
-  return dateOverdue || mileageOverdue;
-}
-
-function parseYmd(dateYmd: string): Date | null {
-  if (!dateYmd) return null;
-  const date = new Date(`${dateYmd}T12:00:00`);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
-function localYmd(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-/** Inclusive YMD bounds for quick metrics (~one month of activity). */
-function quickMetricsWindowYmdBounds(): { fromYmd: string; toYmd: string } {
-  const end = new Date();
-  end.setHours(12, 0, 0, 0);
-  const start = new Date(end);
-  start.setDate(start.getDate() - 29);
-  return { fromYmd: localYmd(start), toYmd: localYmd(end) };
-}
-
-function formatTermsDate(
-  dateYmd: string | null | undefined,
-  language: string,
-): string {
-  if (!dateYmd) return "—";
-  const date = parseYmd(dateYmd);
-  if (!date) return "—";
-  return formatShortDisplayDate(date, language);
-}
-
-function getDaysUntilDate(dateYmd: string | null | undefined): number | null {
-  if (!dateYmd) return null;
-  const date = parseYmd(dateYmd);
-  if (!date) return null;
-  const now = new Date();
-  const todayMidday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    12,
-    0,
-    0,
-    0,
-  );
-  return Math.ceil(
-    (date.getTime() - todayMidday.getTime()) / (1000 * 60 * 60 * 24),
-  );
-}
-
-function formatTermsValue(
-  dateYmd: string | null | undefined,
-  daysUntil: number | null,
-  translate: (key: string, options?: Record<string, unknown>) => string,
-  language: string,
-): string {
-  if (!dateYmd) return "—";
-  if (daysUntil == null) return formatTermsDate(dateYmd, language);
-  if (daysUntil < 0) return translate("dashboard.stats.statusOverdue");
-  if (daysUntil <= 30)
-    return translate("dashboard.stats.dueInDaysShort", { days: daysUntil });
-  return formatTermsDate(dateYmd, language);
-}
-
 export function VehicleDashboardScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme, mode } = useTheme();
@@ -477,11 +401,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const currency = settings?.currency ?? "PLN";
   const vehicleImageHeight = Math.min(Math.max(windowHeight * 0.34, 280), 360);
   const mileageStaleYmd = useMemo(() => {
-    if (vehicle?.mileage == null) return null;
-    const ts = vehicle.mileage_updated_at;
-    if (ts == null || ts === "") return null;
-    if (daysSinceYmd(ts) < MILEAGE_STALE_MIN_DAYS) return null;
-    return ts;
+    return getMileageStaleYmd(vehicle?.mileage, vehicle?.mileage_updated_at);
   }, [vehicle?.mileage, vehicle?.mileage_updated_at]);
   const fittedTires = useMemo(
     () =>
@@ -1004,9 +924,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         >
           <View style={styles.mileageStaleCardTop}>
             <Clock size={26} color={theme.colors.accent} strokeWidth={2} />
-            <Text
-              style={[styles.mileageStaleCardTitle, { color: theme.colors.fg }]}
-            >
+            <Text style={[styles.mileageStaleCardTitle, { color: theme.colors.fg }]}>
               {mileageStaleTitle}
             </Text>
           </View>
@@ -1018,18 +936,12 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       <View style={styles.panelSections}>
         <View style={styles.sectionBlock}>
           <View
-            style={[
-              styles.quickMetricsCard,
-              { backgroundColor: theme.colors.card },
-            ]}
+            style={[styles.quickMetricsCard, { backgroundColor: theme.colors.card }]}
           >
             <View style={styles.quickMetricsRow}>
               <View style={styles.quickMetricCell}>
                 <Text
-                  style={[
-                    styles.quickMetricPrimary,
-                    { color: theme.colors.fg },
-                  ]}
+                  style={[styles.quickMetricPrimary, { color: theme.colors.fg }]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.6}
@@ -1037,10 +949,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   {quickMetrics.consumptionPrimary}
                 </Text>
                 <Text
-                  style={[
-                    styles.quickMetricSecondary,
-                    { color: theme.colors.muted },
-                  ]}
+                  style={[styles.quickMetricSecondary, { color: theme.colors.muted }]}
                   numberOfLines={2}
                 >
                   {quickMetrics.consumptionSecondary}
@@ -1048,10 +957,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               </View>
               <View style={styles.quickMetricCell}>
                 <Text
-                  style={[
-                    styles.quickMetricPrimary,
-                    { color: theme.colors.fg },
-                  ]}
+                  style={[styles.quickMetricPrimary, { color: theme.colors.fg }]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.6}
@@ -1069,10 +975,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   ) : null}
                 </Text>
                 <Text
-                  style={[
-                    styles.quickMetricSecondary,
-                    { color: theme.colors.muted },
-                  ]}
+                  style={[styles.quickMetricSecondary, { color: theme.colors.muted }]}
                   numberOfLines={2}
                 >
                   {t("dashboard.quickMetrics.costSubtitle")}
@@ -1080,10 +983,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               </View>
               <View style={styles.quickMetricCell}>
                 <Text
-                  style={[
-                    styles.quickMetricPrimary,
-                    { color: theme.colors.fg },
-                  ]}
+                  style={[styles.quickMetricPrimary, { color: theme.colors.fg }]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.6}
@@ -1101,10 +1001,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   ) : null}
                 </Text>
                 <Text
-                  style={[
-                    styles.quickMetricSecondary,
-                    { color: theme.colors.muted },
-                  ]}
+                  style={[styles.quickMetricSecondary, { color: theme.colors.muted }]}
                   numberOfLines={2}
                 >
                   {t("dashboard.quickMetrics.distanceSubtitle")}
@@ -1112,10 +1009,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               </View>
               <View style={styles.quickMetricCell}>
                 <Text
-                  style={[
-                    styles.quickMetricPrimary,
-                    { color: theme.colors.fg },
-                  ]}
+                  style={[styles.quickMetricPrimary, { color: theme.colors.fg }]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.65}
@@ -1123,10 +1017,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   {quickMetrics.remindersPrimary}
                 </Text>
                 <Text
-                  style={[
-                    styles.quickMetricSecondary,
-                    { color: theme.colors.muted },
-                  ]}
+                  style={[styles.quickMetricSecondary, { color: theme.colors.muted }]}
                   numberOfLines={2}
                 >
                   {t("dashboard.quickMetrics.alertsSubtitle")}
@@ -1139,26 +1030,16 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
             {t("dashboard.specification")}
           </Text>
-          <View
-            style={[styles.infoCard, { backgroundColor: theme.colors.card }]}
-          >
+          <View style={[styles.infoCard, { backgroundColor: theme.colors.card }]}>
             <View style={styles.detailsGrid}>
               <View style={styles.detailsRow}>
                 <DetailItem
-                  icon={
-                    <Ionicons
-                      name="calendar-outline"
-                      size={detailIconSize}
-                      color={theme.colors.accent}
-                    />
-                  }
+                  icon={<Ionicons name="calendar-outline" size={detailIconSize} color={theme.colors.accent} />}
                   label={t("vehicleForm.yearLabel")}
                   value={vehicle ? String(vehicle.production_year) : "—"}
                 />
                 <DetailItem
-                  icon={
-                    <Fuel size={detailIconSize} color={theme.colors.accent} />
-                  }
+                  icon={<Fuel size={detailIconSize} color={theme.colors.accent} />}
                   label={t("vehicleForm.fuelTypeLabel")}
                   value={
                     vehicle?.fuel_type
@@ -1179,13 +1060,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               </View>
               <View style={styles.detailsRow}>
                 <DetailItem
-                  icon={
-                    <MaterialCommunityIcons
-                      name="progress-clock"
-                      size={detailIconSize}
-                      color={theme.colors.accent}
-                    />
-                  }
+                  icon={<MaterialCommunityIcons name="progress-clock" size={detailIconSize} color={theme.colors.accent} />}
                   label={
                     i18n.language?.toLowerCase().startsWith("pl")
                       ? "Poczt. przebieg"
@@ -1198,13 +1073,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   }
                 />
                 <DetailItem
-                  icon={
-                    <Ionicons
-                      name="speedometer-outline"
-                      size={detailIconSize}
-                      color={theme.colors.accent}
-                    />
-                  }
+                  icon={<Ionicons name="speedometer-outline" size={detailIconSize} color={theme.colors.accent} />}
                   label={t("vehicleForm.mileageLabel")}
                   value={
                     vehicle?.mileage != null
@@ -1215,45 +1084,23 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               </View>
               <View style={styles.detailsRow}>
                 <DetailItem
-                  icon={
-                    <MaterialCommunityIcons
-                      name="engine"
-                      size={detailIconSize}
-                      color={theme.colors.accent}
-                    />
-                  }
+                  icon={<MaterialCommunityIcons name="engine" size={detailIconSize} color={theme.colors.accent} />}
                   label={
                     i18n.language?.toLowerCase().startsWith("pl")
                       ? "Poj. silnika"
                       : t("vehicleForm.engineCapacityLabel")
                   }
-                  value={
-                    vehicle?.engine_capacity
-                      ? `${vehicle.engine_capacity} cm³`
-                      : "—"
-                  }
+                  value={vehicle?.engine_capacity ? `${vehicle.engine_capacity} cm³` : "—"}
                 />
                 <DetailItem
-                  icon={
-                    <Ionicons
-                      name="flash-outline"
-                      size={detailIconSize}
-                      color={theme.colors.accent}
-                    />
-                  }
+                  icon={<Ionicons name="flash-outline" size={detailIconSize} color={theme.colors.accent} />}
                   label={t("vehicleForm.powerHpLabel")}
                   value={vehicle?.power_hp ? `${vehicle.power_hp} HP` : "—"}
                 />
               </View>
               <View style={styles.detailsRow}>
                 <DetailItem
-                  icon={
-                    <MaterialCommunityIcons
-                      name="car-shift-pattern"
-                      size={detailIconSize}
-                      color={theme.colors.accent}
-                    />
-                  }
+                  icon={<MaterialCommunityIcons name="car-shift-pattern" size={detailIconSize} color={theme.colors.accent} />}
                   label={t("vehicleForm.transmissionLabel")}
                   value={
                     vehicle?.transmission
@@ -1269,34 +1116,19 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   }
                 />
                 <DetailItem
-                  icon={
-                    <DriveTypeIcon
-                      size={detailIconSize}
-                      color={theme.colors.accent}
-                    />
-                  }
+                  icon={<DriveTypeIcon size={detailIconSize} color={theme.colors.accent} />}
                   label={t("vehicleForm.driveTypeLabel")}
                   value={vehicle?.drive_type || "—"}
                 />
               </View>
               <View style={styles.detailsRow}>
                 <DetailItem
-                  icon={
-                    <CalendarCheck
-                      size={detailIconSize}
-                      color={theme.colors.accent}
-                    />
-                  }
+                  icon={<CalendarCheck size={detailIconSize} color={theme.colors.accent} />}
                   label={t("vehicleForm.firstRegistrationDateLabel")}
-                  value={formatShortDisplayDate(
-                    vehicle?.first_registration_date ?? null,
-                    i18n.language,
-                  )}
+                  value={formatShortDisplayDate(vehicle?.first_registration_date ?? null, i18n.language)}
                 />
                 <DetailItem
-                  icon={
-                    <Hash size={detailIconSize} color={theme.colors.accent} />
-                  }
+                  icon={<Hash size={detailIconSize} color={theme.colors.accent} />}
                   label={t("vehicleForm.licensePlateLabel")}
                   value={vehicle?.license_plate ?? "—"}
                 />
@@ -1306,69 +1138,20 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         </View>
         <View style={styles.sectionBlock}>
           <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-            {t("dashboard.quickActionsTitle", {
-              defaultValue: "Quick actions",
-            })}
+            {t("dashboard.quickActionsTitle", { defaultValue: "Quick actions" })}
           </Text>
           <View style={styles.quickActionsRow}>
-            <Pressable
-              onPress={handleAddService}
-              hitSlop={8}
-              style={[
-                styles.quickActionCard,
-                { backgroundColor: theme.colors.card },
-              ]}
-            >
-              <Ionicons
-                name="construct"
-                size={detailIconSize}
-                color={theme.colors.accent}
-                style={styles.quickActionIcon}
-              />
-              <Text
-                style={[styles.quickActionLabel, { color: theme.colors.fg }]}
-              >
-                {t("dashboard.quickActions.addService")}
-              </Text>
+            <Pressable onPress={handleAddService} hitSlop={8} style={[styles.quickActionCard, { backgroundColor: theme.colors.card }]}>
+              <Ionicons name="construct" size={detailIconSize} color={theme.colors.accent} style={styles.quickActionIcon} />
+              <Text style={[styles.quickActionLabel, { color: theme.colors.fg }]}>{t("dashboard.quickActions.addService")}</Text>
             </Pressable>
-            <Pressable
-              onPress={handleAddFuel}
-              hitSlop={8}
-              style={[
-                styles.quickActionCard,
-                { backgroundColor: theme.colors.card },
-              ]}
-            >
-              <Fuel
-                size={detailIconSize}
-                color={theme.colors.accent}
-                style={styles.quickActionIcon}
-              />
-              <Text
-                style={[styles.quickActionLabel, { color: theme.colors.fg }]}
-              >
-                {t("dashboard.quickActions.addFuel")}
-              </Text>
+            <Pressable onPress={handleAddFuel} hitSlop={8} style={[styles.quickActionCard, { backgroundColor: theme.colors.card }]}>
+              <Fuel size={detailIconSize} color={theme.colors.accent} style={styles.quickActionIcon} />
+              <Text style={[styles.quickActionLabel, { color: theme.colors.fg }]}>{t("dashboard.quickActions.addFuel")}</Text>
             </Pressable>
-            <Pressable
-              onPress={handleAddReminder}
-              hitSlop={8}
-              style={[
-                styles.quickActionCard,
-                { backgroundColor: theme.colors.card },
-              ]}
-            >
-              <Ionicons
-                name="notifications"
-                size={detailIconSize}
-                color={theme.colors.accent}
-                style={styles.quickActionIcon}
-              />
-              <Text
-                style={[styles.quickActionLabel, { color: theme.colors.fg }]}
-              >
-                {t("dashboard.quickActions.addReminder")}
-              </Text>
+            <Pressable onPress={handleAddReminder} hitSlop={8} style={[styles.quickActionCard, { backgroundColor: theme.colors.card }]}>
+              <Ionicons name="notifications" size={detailIconSize} color={theme.colors.accent} style={styles.quickActionIcon} />
+              <Text style={[styles.quickActionLabel, { color: theme.colors.fg }]}>{t("dashboard.quickActions.addReminder")}</Text>
             </Pressable>
           </View>
         </View>
@@ -1377,13 +1160,8 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
               {t("reminders.tabUpcoming", { defaultValue: "Upcoming" })}
             </Text>
-            <Pressable
-              onPress={() => navigation.navigate("Reminders", { vehicleId })}
-              hitSlop={8}
-            >
-              <Text
-                style={[styles.viewAllLink, { color: theme.colors.accent }]}
-              >
+            <Pressable onPress={() => navigation.navigate("Reminders", { vehicleId })} hitSlop={8}>
+              <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
                 {t("dashboard.stats.viewAll")}
               </Text>
             </Pressable>
@@ -1508,13 +1286,8 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
               {t("dashboard.stats.wheels")}
             </Text>
-            <Pressable
-              onPress={() => navigation.navigate("Wheels", { vehicleId })}
-              hitSlop={8}
-            >
-              <Text
-                style={[styles.viewAllLink, { color: theme.colors.accent }]}
-              >
+            <Pressable onPress={() => navigation.navigate("Wheels", { vehicleId })} hitSlop={8}>
+              <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
                 {t("dashboard.stats.viewAll")}
               </Text>
             </Pressable>
@@ -1527,10 +1300,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                 {fittedTiresLines.map((line, idx) => (
                   <Text
                     key={`fitted-tire-${idx}`}
-                    style={[
-                      styles.dashboardStatTileValueMain,
-                      { color: theme.colors.fg },
-                    ]}
+                    style={[styles.dashboardStatTileValueMain, { color: theme.colors.fg }]}
                   >
                     {line}
                   </Text>
@@ -1547,10 +1317,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                 {fittedWheelsLines.map((line, idx) => (
                   <Text
                     key={`fitted-wheel-${idx}`}
-                    style={[
-                      styles.dashboardStatTileValueMain,
-                      { color: theme.colors.fg },
-                    ]}
+                    style={[styles.dashboardStatTileValueMain, { color: theme.colors.fg }]}
                   >
                     {line}
                   </Text>
@@ -1566,9 +1333,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             <Text style={[styles.infoCardTitle, { color: theme.colors.fg }]}>
               {t("manageVehicle.notesLabel")}
             </Text>
-            <View
-              style={[styles.infoCard, { backgroundColor: theme.colors.card }]}
-            >
+            <View style={[styles.infoCard, { backgroundColor: theme.colors.card }]}>
               <Text style={[styles.notesText, { color: theme.colors.fg }]}>
                 {vehicle.notes.trim()}
               </Text>
@@ -1580,51 +1345,13 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   );
 
   const buttonsPage = (
-    <View style={[styles.page, { width: windowWidth }]}>
-      <View style={styles.tilesWrap}>
-        {tiles.map((item) => (
-          <View key={item.key} style={styles.tileWrapper}>
-            <TileCard
-              onPress={item.onPress}
-              minHeight={110}
-              title={item.title}
-              icon={
-                item.key === "fuel" ? (
-                  <Fuel size={32} color={theme.colors.accent} />
-                ) : item.key === "data" ? (
-                  <Database size={32} color={theme.colors.accent} />
-                ) : item.key === "wheels" ? (
-                  <WheelsIcon size={48} color={theme.colors.accent} />
-                ) : item.key === "reminders" ? (
-                  <View style={styles.reminderTileIconWrap}>
-                    <Ionicons
-                      name={item.icon}
-                      size={32}
-                      color={theme.colors.accent}
-                    />
-                    {activeRemindersCount > 0 ? (
-                      <View style={styles.reminderBadge}>
-                        <Text style={styles.reminderBadgeText}>
-                          {activeRemindersCount > 99
-                            ? "99+"
-                            : activeRemindersCount}
-                        </Text>
-                      </View>
-                    ) : null}
-                  </View>
-                ) : (
-                  <Ionicons
-                    name={item.icon}
-                    size={32}
-                    color={theme.colors.accent}
-                  />
-                )
-              }
-            />
-          </View>
-        ))}
-      </View>
-    </View>
+    <ButtonsPage
+      windowWidth={windowWidth}
+      styles={styles}
+      theme={theme}
+      tiles={tiles}
+      activeRemindersCount={activeRemindersCount}
+    />
   );
 
   const statsPage = (

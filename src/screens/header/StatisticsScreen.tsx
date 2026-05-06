@@ -54,6 +54,21 @@ import type { AppTheme } from "../../ui/theme";
 import { ServiceItem } from "../../ui/components/list/ServiceItem";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { groupThousands } from "../../utils/numberFormatting";
+import {
+  clampNonNeg,
+  fmtChartNumber,
+  fmtMoney,
+  fmtMonths,
+  fmtNumber,
+  fmtPct,
+  formatChartMonthKey,
+  formatChartYAxisLabel,
+  generateNiceTicks,
+  listMonthKeysInclusive,
+  monthKey,
+  niceMaxValue,
+  parseDateLoose,
+} from "./statistics/domain/math";
 
 type ScreenProps = NativeStackScreenProps<AppStackParamList, "Statistics">;
 type EmbeddedProps = {
@@ -229,127 +244,6 @@ function StatTile({
 }
 type PeriodKey = "1m" | "3m" | "6m" | "1y" | "all";
 type XY = { x: string; y: number };
-
-function monthKey(d: Date) {
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  return `${yyyy}-${mm}`;
-}
-function monthKeyFromYyyyMm(yyyyMm: string): Date | null {
-  const m = /^(\d{4})-(\d{2})$/.exec(yyyyMm);
-  if (!m) return null;
-  const y = Number(m[1]);
-  const mm = Number(m[2]);
-  if (!Number.isFinite(y) || !Number.isFinite(mm) || mm < 1 || mm > 12)
-    return null;
-  return new Date(y, mm - 1, 1);
-}
-function listMonthKeysInclusive(
-  startYyyyMm: string,
-  endYyyyMm: string,
-): string[] {
-  const start = monthKeyFromYyyyMm(startYyyyMm);
-  const end = monthKeyFromYyyyMm(endYyyyMm);
-  if (!start || !end) return [];
-  if (start > end) return [];
-  const out: string[] = [];
-  const cur = new Date(start.getTime());
-  while (cur <= end) {
-    out.push(monthKey(cur));
-    cur.setMonth(cur.getMonth() + 1);
-  }
-  return out;
-}
-function parseDateLoose(input: string): Date | null {
-  const d = new Date(input);
-  if (Number.isNaN(d.getTime())) return null;
-  return d;
-}
-function clampNonNeg(n: number) {
-  if (!Number.isFinite(n)) return 0;
-  return Math.max(0, n);
-}
-function fmtMoney(amount: number, currency: string) {
-  const v = clampNonNeg(amount);
-  return `${v.toFixed(0)} ${currency}`;
-}
-
-function niceMaxValue(max: number): number {
-  if (max <= 0) return 100;
-  const magnitude = Math.pow(10, Math.floor(Math.log10(max)));
-  const normalized = max / magnitude;
-  let niceNormalized: number;
-  if (normalized <= 1) niceNormalized = 1;
-  else if (normalized <= 2) niceNormalized = 2;
-  else if (normalized <= 5) niceNormalized = 5;
-  else niceNormalized = 10;
-  return niceNormalized * magnitude;
-}
-function roundToNice(value: number): number {
-  if (value <= 0) return 0;
-  const magnitude = Math.pow(10, Math.floor(Math.log10(value)));
-  const normalized = value / magnitude;
-  let niceNormalized: number;
-  if (normalized <= 1.5) niceNormalized = 1;
-  else if (normalized <= 3.5) niceNormalized = 2;
-  else if (normalized <= 7.5) niceNormalized = 5;
-  else niceNormalized = 10;
-  return niceNormalized * magnitude;
-}
-function generateNiceTicks(max: number): number[] {
-  const niceMax = niceMaxValue(max);
-  const ticks: number[] = [0];
-  const targetTicks = 5;
-  const rawStep = niceMax / targetTicks;
-  const niceStep = roundToNice(rawStep);
-  for (let i = niceStep; i <= niceMax; i += niceStep) ticks.push(i);
-  if (ticks.length < 4) {
-    const smallerStep = niceStep / 2;
-    ticks.length = 1;
-    for (let i = smallerStep; i <= niceMax; i += smallerStep) ticks.push(i);
-  }
-  return ticks;
-}
-function fmtPct(pct: number) {
-  if (!Number.isFinite(pct)) return "—";
-  return `${Math.round(pct)}%`;
-}
-function fmtNumber(amount: number, digits = 1) {
-  if (!Number.isFinite(amount)) return "—";
-  return groupThousands(amount, digits);
-}
-/** Format month count for display: integer without decimal (e.g. "2" not "2.0"). */
-function fmtMonths(value: number): string {
-  if (!Number.isFinite(value)) return "—";
-  return Number.isInteger(value) ? value.toString() : value.toFixed(1);
-}
-/** Format chart Y axis number without decimals when integer (e.g. 100 not 100.0). */
-function fmtChartNumber(value: number): string {
-  if (!Number.isFinite(value)) return "—";
-  if (Number.isInteger(value)) return Math.round(value).toString();
-  return value >= 10 ? Math.round(value).toString() : value.toFixed(1);
-}
-/** Format chart Y axis label: values >= 1000 as "1k", "2k", "1.5k"; below 1000 as number. */
-function formatChartYAxisLabel(value: number): string {
-  if (!Number.isFinite(value)) return "—";
-  if (value >= 1000) {
-    const k = value / 1000;
-    return Number.isInteger(k) ? `${k}k` : `${k.toFixed(1)}k`;
-  }
-  if (Number.isInteger(value)) return Math.round(value).toString();
-  return value >= 10 ? Math.round(value).toString() : value.toFixed(1);
-}
-/** Format month key "2025-01" to short month name "Jan." / "Sty." for chart X axis. */
-function formatChartMonthKey(key: string, locale: string): string {
-  const m = /^(\d{4})-(\d{2})$/.exec(key);
-  if (!m) return key.replace("-", "/");
-  const month = parseInt(m[2], 10) - 1;
-  const short = new Intl.DateTimeFormat(locale, { month: "short" }).format(
-    new Date(2000, month, 1),
-  );
-  const withDot = short.endsWith(".") ? short : `${short}.`;
-  return withDot.charAt(0).toUpperCase() + withDot.slice(1);
-}
 function polarToCartesian(cx: number, cy: number, r: number, angleRad: number) {
   return {
     x: cx + r * Math.cos(angleRad),
