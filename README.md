@@ -281,25 +281,6 @@ See `supabase/schema.sql` for the complete schema with RLS policies.
 4. Update navigation in `src/app/navigation/`
 5. Add translations to `src/i18n/resources/`
 
-## Troubleshooting
-
-### Common Issues
-
-**"Could not find the table" error**
-
-- Make sure you've run the SQL schema in Supabase
-- Check that RLS policies are set up correctly
-
-**Icons not showing in production build**
-
-- Run `npx expo prebuild --clean` after changing icons
-- Icons only appear in production builds, not in Expo Go
-
-**Keyboard covering input fields**
-
-- The app uses `FormScreen` component with keyboard handling
-- For custom screens, wrap content in `KeyboardAvoidingView`
-
 ## License
 
 Private project - All rights reserved
