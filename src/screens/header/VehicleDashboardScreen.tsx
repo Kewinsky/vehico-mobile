@@ -384,7 +384,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const [isPublicQrVisible, setIsPublicQrVisible] = useState(false);
   const [activePage, setActivePage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [iconFontsReady, setIconFontsReady] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollOffsetYRef = useRef(0);
   const pagerRef = useRef<FlatList<number>>(null);
@@ -1396,23 +1395,15 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   }, [activePage]);
 
   useEffect(() => {
-    let isMounted = true;
     const loadIconFonts = async () => {
-      try {
-        await Font.loadAsync({
-          ...Ionicons.font,
-          ...MaterialCommunityIcons.font,
-          ...FontAwesome5.font,
-          ...MaterialIcons.font,
-        });
-      } finally {
-        if (isMounted) setIconFontsReady(true);
-      }
+      await Font.loadAsync({
+        ...Ionicons.font,
+        ...MaterialCommunityIcons.font,
+        ...FontAwesome5.font,
+        ...MaterialIcons.font,
+      });
     };
     void loadIconFonts();
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   const handlePagerScroll = useAnimatedScrollHandler({
@@ -1424,8 +1415,8 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   return (
     <HeaderLayout
       loading={loading}
-      ready={iconFontsReady}
-      minLoadingMs={1200}
+      ready
+      minLoadingMs={0}
       onBack={() => navigation.goBack()}
       backIcon={<Warehouse size={20} color={theme.colors.accent} />}
       showShopIcon={!isPremium}
