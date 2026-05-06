@@ -52,24 +52,19 @@ export function WheelItem({ wheel, onPress }: WheelItemProps) {
         ),
         label: t("wheelForm.centerBore"),
         value:
-          wheel.center_bore_mm != null
-            ? `${wheel.center_bore_mm} mm`
-            : t("common.no", { defaultValue: "—" }),
+          wheel.center_bore_mm != null ? `${wheel.center_bore_mm} mm` : "—",
       },
       {
         key: "bolt_type",
         icon: <BoltTypeIcon size={16} color={theme.colors.muted} />,
         label: t("wheelForm.boltType"),
-        value: wheel.bolt_type?.trim() || t("common.no", { defaultValue: "—" }),
+        value: wheel.bolt_type?.trim() || "—",
       },
       {
         key: "weight",
         icon: <Weight size={16} color={theme.colors.muted} />,
         label: t("wheelForm.weight"),
-        value:
-          wheel.weight_kg != null
-            ? `${wheel.weight_kg} kg`
-            : t("common.no", { defaultValue: "—" }),
+        value: wheel.weight_kg != null ? `${wheel.weight_kg} kg` : "—",
       },
     ],
     [t, theme.colors.muted, wheel],
