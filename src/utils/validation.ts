@@ -78,5 +78,3 @@ export function parseDecimal(s: string): number | null {
   const n = Number(t);
   return Number.isFinite(n) ? n : null;
 }
-
-// test
