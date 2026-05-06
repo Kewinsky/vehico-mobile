@@ -49,6 +49,14 @@
           "icon": "./assets/app-icon.png",
           "color": "#FFB803"
         }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "react-native",
+          "organization": "ktasoftware"
+        }
       ]
     ],
     "scheme": "vehico",
