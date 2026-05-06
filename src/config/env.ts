@@ -31,6 +31,7 @@ if (appEnv === "production" && !revenuecatKey) {
 /** Base URL of the public Next.js web app (terms, privacy pages). */
 const webAppUrl =
   getOptionalEnv("EXPO_PUBLIC_REPORTS_APP_URL") ?? "https://vehico.app";
+const supportEmail = getOptionalEnv("EXPO_PUBLIC_SUPPORT_EMAIL") ?? "support@vehico.pl";
 
 export const ENV = {
   APP_ENV: appEnv,
@@ -39,4 +40,5 @@ export const ENV = {
   REPORTS_APP_URL: getRequiredEnv("EXPO_PUBLIC_REPORTS_APP_URL"),
   REVENUECAT_API_KEY: revenuecatKey,
   WEB_APP_URL: webAppUrl,
+  SUPPORT_EMAIL: supportEmail,
 } as const;

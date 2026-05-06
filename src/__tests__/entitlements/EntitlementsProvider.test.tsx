@@ -185,5 +185,43 @@ describe("EntitlementsProvider (Supabase entitlements + computed limits)", () =>
     });
     expect(result.current.freePlanVehicleId).toBe("v2");
   });
+
+  it("restoreRevenueCatPurchases calls RevenueCat restore flow", async () => {
+    supabase.from.mockImplementation(() =>
+      createPostgrestChain({
+        data: {
+          plan: "free",
+          vehicles_limit: 1,
+          photos_per_vehicle_limit: 6,
+          tires_per_vehicle_limit: 1,
+          wheels_per_vehicle_limit: 1,
+          workshops_limit: 3,
+          reminders_limit: 5,
+          premium_until: null,
+          product_id: null,
+          free_plan_vehicle_id: null,
+          downgraded_at: null,
+          free_plan_workshop_ids: [],
+          free_plan_reminder_ids: [],
+          free_plan_tire_id: null,
+          free_plan_wheel_id: null,
+        },
+        error: null,
+      }),
+    );
+    (Purchases.restorePurchases as any).mockResolvedValue({
+      entitlements: { active: {} },
+    });
+
+    const { result } = renderHook(() => useEntitlements(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await waitFor(() => expect(result.current.isRevenueCatReady).toBe(true));
+
+    await act(async () => {
+      await result.current.restoreRevenueCatPurchases();
+    });
+
+    expect(Purchases.restorePurchases).toHaveBeenCalledTimes(1);
+  });
 });
 

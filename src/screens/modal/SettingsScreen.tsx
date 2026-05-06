@@ -1,8 +1,10 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Linking from "expo-linking";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { HeaderButton } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
+import { Ionicons } from "@expo/vector-icons";
 import {
   Crown,
   LogOut,
@@ -19,6 +21,8 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { supabase } from "../../services/supabase/client";
 import { Card, CardDivider } from "../../ui/components/common/Card";
+import { ENV } from "../../config/env";
+import { deleteAccount } from "../../services/account/deleteAccount";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Settings">;
 
@@ -61,6 +65,7 @@ export function SettingsScreen({ navigation }: Props) {
   const displayLabel = displayNameFromUser || email || "—";
 
   const [saving, setSaving] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const saveDisplayNameFromPrompt = useCallback(
     async (nextName?: string) => {
@@ -111,13 +116,66 @@ export function SettingsScreen({ navigation }: Props) {
   }
 
   async function onSupport() {
-    const url = "mailto:example@vehico.io?subject=Support%20request";
+    const url = `mailto:${encodeURIComponent(ENV.SUPPORT_EMAIL)}?subject=Support%20request`;
     try {
       await Linking.openURL(url);
     } catch {
       toastError(t("common.error"));
     }
   }
+
+  async function handleDeleteAccount() {
+    if (deletingAccount) return;
+    try {
+      setDeletingAccount(true);
+      await deleteAccount();
+      toastSuccess(t("profile.deleteAccountSuccess"));
+      await signOut();
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    } finally {
+      setDeletingAccount(false);
+    }
+  }
+
+  function openDeleteAccountMenu() {
+    if (deletingAccount) return;
+    Alert.alert(t("profile.deleteAccountConfirmTitle"), t("profile.deleteAccountConfirmBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("profile.deleteAccount"),
+        style: "destructive",
+        onPress: () => void handleDeleteAccount(),
+      },
+    ]);
+  }
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <HeaderButton
+          onPress={openDeleteAccountMenu}
+          tintColor={theme.colors.fg}
+          disabled={deletingAccount}
+          accessibilityLabel={t("profile.deleteAccount")}
+        >
+          <Ionicons
+            name="ellipsis-horizontal"
+            size={theme.icons.headerButton}
+            color={theme.colors.accent}
+          />
+        </HeaderButton>
+      ),
+    });
+  }, [
+    deletingAccount,
+    navigation,
+    openDeleteAccountMenu,
+    t,
+    theme.colors.accent,
+    theme.colors.fg,
+    theme.icons.headerButton,
+  ]);
 
   const rows: RowItem[] = useMemo(
     (): RowItem[] => [
