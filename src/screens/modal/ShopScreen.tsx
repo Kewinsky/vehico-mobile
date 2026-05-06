@@ -4,6 +4,7 @@ import {
   Alert,
   Animated,
   Easing,
+  Modal,
   type LayoutChangeEvent,
   Pressable,
   StyleSheet,
@@ -14,8 +15,8 @@ import * as WebBrowser from "expo-web-browser";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import Purchases from "react-native-purchases";
+import RevenueCatUI from "react-native-purchases-ui";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { Card } from "../../ui/components/common/Card";
@@ -70,14 +71,12 @@ export function ShopScreen({ navigation }: Props) {
     revenueCatProducts,
     purchaseRevenueCatProduct,
     restoreRevenueCatPurchases,
-    presentRevenueCatCustomerCenter,
   } = useEntitlements();
   const [purchasing, setPurchasing] = useState<RevenueCatProductId | null>(
     null,
   );
-  const [actionLoading, setActionLoading] = useState<
-    "restore" | "customerCenter" | null
-  >(null);
+  const [actionLoading, setActionLoading] = useState<"restore" | null>(null);
+  const [customerCenterVisible, setCustomerCenterVisible] = useState(false);
   const [selectedSubscription, setSelectedSubscription] =
     useState<RevenueCatProductId>(DEFAULT_SUBSCRIPTION);
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -221,17 +220,14 @@ export function ShopScreen({ navigation }: Props) {
     }
   }
 
-  async function handleOpenCustomerCenter() {
+  function handleOpenCustomerCenter() {
     if (actionLoading || purchasing) return;
-    try {
-      setActionLoading("customerCenter");
-      await presentRevenueCatCustomerCenter();
-      await refresh();
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
-    } finally {
-      setActionLoading(null);
-    }
+    setCustomerCenterVisible(true);
+  }
+
+  function handleCustomerCenterDismiss() {
+    setCustomerCenterVisible(false);
+    void refresh();
   }
 
   async function handleRestorePurchases() {
@@ -549,9 +545,7 @@ export function ShopScreen({ navigation }: Props) {
               disabled={isPremium ? actionLoading !== null : !canPurchase}
             >
               {isPremium
-                ? actionLoading === "customerCenter"
-                  ? t("common.loading")
-                  : t("shop.manageSubscription")
+                ? t("shop.manageSubscription")
                 : purchasing
                   ? t("common.loading")
                   : t("common.continue")}
@@ -565,6 +559,25 @@ export function ShopScreen({ navigation }: Props) {
             restoreLoading={actionLoading === "restore"}
           />
         </Animated.View>
+
+        <Modal
+          visible={customerCenterVisible}
+          animationType="slide"
+          presentationStyle="fullScreen"
+          onRequestClose={handleCustomerCenterDismiss}
+        >
+          <View
+            style={[
+              styles.customerCenterModal,
+              { backgroundColor: theme.colors.bg },
+            ]}
+          >
+            <RevenueCatUI.CustomerCenterView
+              style={styles.customerCenterView}
+              onDismiss={handleCustomerCenterDismiss}
+            />
+          </View>
+        </Modal>
       </View>
     </ModalLayout>
   );
@@ -791,6 +804,12 @@ function makeStyles(theme: AppTheme) {
     },
     footerButtons: {
       gap: spacing.sm,
+    },
+    customerCenterModal: {
+      flex: 1,
+    },
+    customerCenterView: {
+      flex: 1,
     },
   });
 }
