@@ -28,7 +28,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
-import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
+import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WorkshopForm">;
 
@@ -172,7 +172,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       }
       navigation.goBack();
     } catch (e: any) {
-      if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) return;
+      if (handleAndShowLimitErrorAlert(e, t, navigation)) return;
       Alert.alert(t("common.error"), e?.message ?? t("common.error"));
     } finally {
       setSaving(false);

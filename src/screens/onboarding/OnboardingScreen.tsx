@@ -40,7 +40,7 @@ import { uploadVehiclePhoto } from "../../services/vehicles/uploadPhoto";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { supabase } from "../../services/supabase/client";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
+import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -214,8 +214,7 @@ export function OnboardingScreen({ navigation }: Props) {
         mileage: mileage.trim().length ? Number(mileage.trim()) : null,
       });
     } catch (e: any) {
-      if (maybeHandleBackendEntitlementLimitError(e, t, navigation))
-        return null;
+      if (handleAndShowLimitErrorAlert(e, t, navigation)) return null;
       toastError(e?.message ?? t("common.error"));
       return null;
     }

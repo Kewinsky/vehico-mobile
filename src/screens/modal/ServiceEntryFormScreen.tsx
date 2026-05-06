@@ -53,6 +53,7 @@ import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { SquarePen, Trash2 } from "lucide-react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
+import { formatYmd, parseYmd } from "../../utils/dateYmd";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "maintenance",
@@ -64,24 +65,6 @@ const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
 ];
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryForm">;
-
-function pad2(n: number) {
-  return String(n).padStart(2, "0");
-}
-
-function formatYmd(d: Date) {
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-}
-
-function parseYmd(ymd: string): Date {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
-  if (!m) return new Date();
-  const year = Number(m[1]);
-  const month = Number(m[2]);
-  const day = Number(m[3]);
-  // Use local time to avoid UTC date shifting.
-  return new Date(year, month - 1, day);
-}
 
 export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();

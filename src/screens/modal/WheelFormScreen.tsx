@@ -38,7 +38,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
-import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
+import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { BoltPatternIcon } from "../../ui/components/icons/BoltPatternIcon";
 import { BoltTypeIcon } from "../../ui/components/icons/BoltTypeIcon";
@@ -200,7 +200,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
           t("limits.fittedWheelLimitReachedTitle"),
           t("limits.fittedWheelLimitReachedBody"),
         );
-      } else if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) {
+      } else if (handleAndShowLimitErrorAlert(e, t, navigation)) {
         return;
       } else {
         toastError(e?.message ?? t("common.error"));

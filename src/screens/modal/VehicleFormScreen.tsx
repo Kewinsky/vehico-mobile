@@ -54,31 +54,14 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
+import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { Textarea } from "../../ui/components/common/Textarea";
 import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
+import { formatYmd, parseYmd } from "../../utils/dateYmd";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
-
-function pad2(n: number) {
-  return String(n).padStart(2, "0");
-}
-
-function formatYmd(d: Date) {
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-}
-
-function parseYmd(ymd: string): Date {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
-  if (!m) return new Date();
-  const year = Number(m[1]);
-  const month = Number(m[2]);
-  const day = Number(m[3]);
-  // Use local time to avoid UTC date shifting.
-  return new Date(year, month - 1, day);
-}
 
 export function VehicleFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -592,7 +575,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
       navigation.goBack();
     } catch (e: any) {
-      if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) return;
+      if (handleAndShowLimitErrorAlert(e, t, navigation)) return;
       toastError(e?.message ?? t("common.error"));
     } finally {
       setSaving(false);

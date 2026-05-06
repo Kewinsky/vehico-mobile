@@ -34,7 +34,7 @@ import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
-import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
+import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { SunSnowIcon } from "lucide-react-native";
 
@@ -229,7 +229,7 @@ export function TireFormScreen({ navigation, route }: Props) {
           t("limits.fittedTireLimitReachedTitle"),
           t("limits.fittedTireLimitReachedBody"),
         );
-      } else if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) {
+      } else if (handleAndShowLimitErrorAlert(e, t, navigation)) {
         return;
       } else {
         toastError(e?.message ?? t("common.error"));

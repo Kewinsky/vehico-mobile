@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
+import { formatYmd, parseYmd } from "../../utils/dateYmd";
 
 export type RemindersFiltersParams = {
   dateFrom: string;
@@ -23,23 +24,6 @@ export type RemindersFiltersParams = {
 };
 
 type Props = NativeStackScreenProps<AppStackParamList, "RemindersFilters">;
-
-function pad2(n: number) {
-  return String(n).padStart(2, "0");
-}
-
-function formatYmd(d: Date) {
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-}
-
-function parseYmd(ymd: string): Date {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
-  if (!m) return new Date();
-  const year = Number(m[1]);
-  const month = Number(m[2]);
-  const day = Number(m[3]);
-  return new Date(year, month - 1, day);
-}
 
 export function RemindersFiltersScreen({ navigation, route }: Props) {
   const { t } = useTranslation();

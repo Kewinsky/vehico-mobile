@@ -39,7 +39,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
-import { maybeHandleBackendEntitlementLimitError } from "../../ui/limits/entitlementAlerts";
+import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
 import { Ionicons } from "@expo/vector-icons";
 import { ScrollView } from "react-native";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
@@ -53,22 +53,9 @@ import { ModalLayout } from "../../layouts";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 import { SquarePen } from "lucide-react-native";
+import { formatYmd, parseYmd } from "../../utils/dateYmd";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
-
-function pad2(n: number) {
-  return String(n).padStart(2, "0");
-}
-
-function formatYmd(d: Date) {
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-}
-
-function parseYmd(ymd: string): Date {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
-  if (!m) return new Date();
-  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-}
 
 const RECURRENCE_UNITS: { value: ReminderRecurrenceUnit; max: number }[] = [
   { value: "days", max: 31 },
@@ -360,7 +347,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       }
       navigation.goBack();
     } catch (e: unknown) {
-      if (maybeHandleBackendEntitlementLimitError(e, t, navigation)) return;
+      if (handleAndShowLimitErrorAlert(e, t, navigation)) return;
       toastError((e as Error)?.message ?? t("common.error"));
     } finally {
       setSaving(false);
