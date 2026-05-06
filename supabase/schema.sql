@@ -2176,6 +2176,9 @@ grant execute on function public.create_reminder(
 grant usage on schema public to authenticated;
 grant select, insert, update, delete on all tables in schema public to authenticated;
 grant usage, select on all sequences in schema public to authenticated;
+grant usage on schema public to service_role;
+grant select, insert, update, delete on all tables in schema public to service_role;
+grant usage, select on all sequences in schema public to service_role;
 
 alter default privileges in schema public
 grant select, insert, update, delete on tables to authenticated;
@@ -2183,9 +2186,16 @@ grant select, insert, update, delete on tables to authenticated;
 alter default privileges in schema public
 grant usage, select on sequences to authenticated;
 
+alter default privileges in schema public
+grant select, insert, update, delete on tables to service_role;
+
+alter default privileges in schema public
+grant usage, select on sequences to service_role;
+
 -- ================
 -- Entitlements table privileges (clients must not UPDATE plan/limits directly)
 -- ================
 
 revoke all on table public.entitlements from authenticated;
 grant select on table public.entitlements to authenticated;
+grant select, update on table public.entitlements to service_role;
