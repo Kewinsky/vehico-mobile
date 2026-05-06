@@ -644,7 +644,12 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
     return () => {
       alive = false;
     };
-  }, [fetchRevenueCatData, isRevenueCatReady, userId, ensureRevenueCatLoggedIn]);
+  }, [
+    fetchRevenueCatData,
+    isRevenueCatReady,
+    userId,
+    ensureRevenueCatLoggedIn,
+  ]);
 
   // Single-shot timer: when effective premium expiry (next 3:00 local) is reached,
   // tick state to force recompute of computed.isPremium.
@@ -721,9 +726,7 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       Number.isFinite(premiumUntilMs) &&
       premiumUntilMs <= entitlementsClockMs;
 
-    const isPremium = premiumUntilExpired
-      ? false
-      : isPremiumFromDb || isPremiumEntitlementActive(revenueCatCustomerInfo);
+    const isPremium = premiumUntilExpired ? false : isPremiumFromDb;
 
     const premiumEntitlement = getPremiumEntitlement(revenueCatCustomerInfo);
 
