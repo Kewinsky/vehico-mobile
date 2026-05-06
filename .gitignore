@@ -42,3 +42,6 @@ yarn-error.*
 
 # supabase
 supabase/.temp/
+
+# jest coverage output
+coverage/

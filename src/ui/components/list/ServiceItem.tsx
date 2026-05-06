@@ -40,9 +40,9 @@ export function ServiceItem({
   const formattedDate = formatShortDisplayDate(date, i18n.language);
   const mileageText =
     mileage != null
-      ? `${groupThousands(mileage, i18n.language)} ${distanceUnitLabel}`
+      ? `${groupThousands(mileage)} ${distanceUnitLabel}`
       : "—";
-  const costMain = cost != null ? groupThousands(cost, i18n.language) : "—";
+  const costMain = cost != null ? groupThousands(cost) : "—";
   const hasCost = cost != null;
 
   const content = (

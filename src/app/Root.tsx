@@ -19,6 +19,7 @@ import { ThemeProvider, useTheme } from "../ui/ThemeProvider";
 import { ErrorBoundary } from "../ui/components/common/ErrorBoundary";
 import { AppToasts } from "../ui/toast/AppToasts";
 import { setThemeColorsGetter } from "../ui/toast/toast";
+import { parseMagicLinkError } from "../services/auth/magicLinkDeepLink";
 import { supabase } from "../services/supabase/client";
 
 function AppContent() {
@@ -79,26 +80,6 @@ function AppContent() {
 
   // Handle deep linking for magic link authentication
   useEffect(() => {
-    const parseMagicLinkError = (url: string): null | "expired" => {
-      // Supabase can put errors in fragment (#...) or query (?...)
-      const hashIndex = url.indexOf("#");
-      const fragment = hashIndex >= 0 ? url.substring(hashIndex + 1) : "";
-      const queryIndex = url.indexOf("?");
-      const query = queryIndex >= 0 ? url.substring(queryIndex + 1) : "";
-      const params = new URLSearchParams(fragment || query);
-
-      const error = params.get("error") ?? "";
-      const errorCode = params.get("error_code") ?? "";
-      const errorDesc = params.get("error_description") ?? "";
-      const haystack = `${error} ${errorCode} ${errorDesc}`.toLowerCase();
-
-      if (!haystack) return null;
-      if (haystack.includes("expired")) return "expired";
-      if (haystack.includes("invalid") && haystack.includes("token"))
-        return "expired";
-      return "expired";
-    };
-
     const openAuthErrorModal = (error: "expired") => {
       const navigate = () =>
         navigationRef.navigate("Auth", { magicLinkError: error });
