@@ -88,7 +88,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       try {
         const e = await getFuelingEntry(entryId);
         setDate(e.date);
-        setDistance(String(e.distance));
+        setDistance(e.distance != null ? String(e.distance) : "");
         setFuelAmount(String(e.fuel_amount));
         setFuelCost(String(e.fuel_cost));
         setFuelType(e.fuel_type ?? null);
@@ -102,11 +102,10 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const canSave = useMemo(() => {
     return (
       isValidDate(date) &&
-      isPositiveNumber(distance) &&
       isPositiveNumber(fuelAmount) &&
       isPositiveNumber(fuelCost)
     );
-  }, [date, distance, fuelAmount, fuelCost]);
+  }, [date, fuelAmount, fuelCost]);
 
   function confirmDelete() {
     if (!entryId) return;
@@ -181,17 +180,20 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         return;
       }
       if (
-        !isPositiveNumber(distance) ||
         !isPositiveNumber(fuelAmount) ||
         !isPositiveNumber(fuelCost)
       ) {
         toastError(t("validation.positiveRequired"));
         return;
       }
+      if (distance.trim().length > 0 && !isPositiveNumber(distance)) {
+        toastError(t("validation.positiveRequired"));
+        return;
+      }
       const payload = {
         vehicle_id: vehicleId,
         date: date.trim(),
-        distance: Number(distance),
+        distance: distance.trim().length > 0 ? Number(distance) : null,
         fuel_amount: Number(fuelAmount),
         fuel_cost: Number(fuelCost),
         fuel_type: fuelType,

@@ -137,7 +137,7 @@ create table public.fueling_entries (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   date date not null,
-  distance numeric not null,
+  distance numeric,
   fuel_amount numeric not null,
   fuel_cost numeric not null,
   fuel_type text check (fuel_type is null or fuel_type in ('95', '98', '100', 'on', 'lpg')),
@@ -2166,6 +2166,22 @@ $$;
 grant execute on function public.create_reminder(
   uuid, date, integer, integer, text, text, text, boolean, boolean, boolean, integer, text, integer, integer
 ) to authenticated;
+
+-- ================
+-- Table privileges for PostgREST roles
+-- NOTE: RLS policies still decide which rows are accessible.
+-- These grants prevent "permission denied for table ..." when RLS exists.
+-- ================
+
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant usage, select on all sequences in schema public to authenticated;
+
+alter default privileges in schema public
+grant select, insert, update, delete on tables to authenticated;
+
+alter default privileges in schema public
+grant usage, select on sequences to authenticated;
 
 -- ================
 -- Entitlements table privileges (clients must not UPDATE plan/limits directly)

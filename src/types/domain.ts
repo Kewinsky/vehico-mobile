@@ -211,7 +211,7 @@ export type FuelingEntry = {
   id: string;
   vehicle_id: string;
   date: string; // YYYY-MM-DD
-  distance: number;
+  distance: number | null;
   fuel_amount: number;
   fuel_cost: number;
   fuel_type: FuelGrade | null;
