@@ -350,7 +350,7 @@ export function AuthScreen({ navigation, route }: Props) {
 
   return (
     <ModalLayout cancel={stackCancel} footer={legalFooter}>
-      <FormScreen noLayout>
+      <FormScreen noLayout scrollEnabled={false}>
         <NativeHeaderScrollView>
           <View style={styles.brandHeader}>
             <Logo width={72} height={72} />
