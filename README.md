@@ -17,7 +17,7 @@ A React Native mobile application for tracking vehicle maintenance, fuel consump
 
 ## Tech Stack
 
-- **Framework**: React Native with Expo (~54.0.31)
+- **Framework**: React Native with Expo (~54.0.32)
 - **Language**: TypeScript
 - **Navigation**: React Navigation (Native Stack)
 - **Backend**: Supabase (PostgreSQL, Storage, Auth)
@@ -29,7 +29,7 @@ A React Native mobile application for tracking vehicle maintenance, fuel consump
 
 - Node.js (v18 or higher)
 - npm or yarn
-- Expo CLI (`npm install -g expo-cli`)
+- Expo (via `npx expo ...`)
 - iOS Simulator (for iOS development) or Android Emulator (for Android development)
 - Supabase account and project
 
@@ -123,6 +123,20 @@ vehico/
 - `npm run android` - Run on Android emulator
 - `npm run web` - Run in web browser
 - `npm run typecheck` - Run TypeScript type checking
+- `npm test` - Run Jest tests
+- `npm run test:coverage` - Run Jest with coverage report
+- `npm run test:watch` - Run Jest in watch mode
+
+## Testing and CI
+
+- Unit/integration tests use Jest (`jest-expo`) and focus on `src/services`, `src/utils`, and `src/config`.
+- Coverage scope is configured in `jest.config.js` (`collectCoverageFrom`) to measure logic-heavy layers rather than UI-only files.
+- CI is defined in `.github/workflows/ci.yml` and runs:
+  - install (`npm ci`)
+  - typecheck (`npm run typecheck`)
+  - lint (`npm run lint --if-present`)
+  - tests (`npm test -- --ci --runInBand`)
+  - coverage (`npm run test:coverage -- --ci --runInBand`)
 
 ## Configuration
 
@@ -149,12 +163,15 @@ The application uses Supabase (PostgreSQL) with the following main tables:
 - `vehicles` - Vehicle information
 - `service_entries` - Service history entries
 - `fueling_entries` - Fuel consumption records
-- `expense_entries` - Expense records
 - `reminders` - Maintenance reminders
-- `attachments` - File attachments
 - `photos` - Vehicle photos
+- `reports` - Public report snapshots
+- `posts` - Marketplace post snapshots
+- `workshops` - User workshops
+- `tires` / `wheels` - Wheel and tire sets
+- `entitlements` - Plan/limits and monetization state
 - User preferences (appearance, units, language) — **AsyncStorage** on device (`UserSettingsProvider`), not a Postgres table
-- `reports` — public report snapshots (linked from the app; web reads via `get_public_report_by_id`)
+- Attachments and vehicle documents — **local-first** (SQLite + file system), not primary Supabase tables
 
 See `supabase/schema.sql` for the complete schema with RLS policies.
 
