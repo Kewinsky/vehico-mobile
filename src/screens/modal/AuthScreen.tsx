@@ -68,6 +68,14 @@ export function AuthScreen({ navigation, route }: Props) {
     () => emailTrimmed.length > 0 && isValidEmail && !isSubmitting,
     [emailTrimmed, isValidEmail, isSubmitting],
   );
+  const legalFooter = (
+    <View style={styles.bottomLegalFooter}>
+      <LegalLinksRow
+        termsUrl={`${ENV.WEB_APP_URL}/terms`}
+        privacyUrl={`${ENV.WEB_APP_URL}/privacy`}
+      />
+    </View>
+  );
 
   async function sendMagicLink() {
     try {
@@ -251,7 +259,7 @@ export function AuthScreen({ navigation, route }: Props) {
 
   if (magicLinkError === "expired") {
     return (
-      <ModalLayout>
+      <ModalLayout footer={legalFooter}>
         <FormScreen noLayout scrollEnabled={false}>
           <View style={styles.magicLinkContainer}>
             <View style={styles.iconContainer}>
@@ -282,12 +290,6 @@ export function AuthScreen({ navigation, route }: Props) {
             >
               {t("common.back")}
             </Button>
-            <View style={styles.legalFooter}>
-              <LegalLinksRow
-                termsUrl={`${ENV.WEB_APP_URL}/terms`}
-                privacyUrl={`${ENV.WEB_APP_URL}/privacy`}
-              />
-            </View>
           </View>
         </FormScreen>
       </ModalLayout>
@@ -301,7 +303,7 @@ export function AuthScreen({ navigation, route }: Props) {
     const emailIdx = email.length ? magicLinkBody.indexOf(email) : -1;
 
     return (
-      <ModalLayout cancel={stackCancel}>
+      <ModalLayout cancel={stackCancel} footer={legalFooter}>
         <FormScreen noLayout scrollEnabled={false}>
           <View style={styles.magicLinkContainer}>
             <View style={styles.iconContainer}>
@@ -340,12 +342,6 @@ export function AuthScreen({ navigation, route }: Props) {
             >
               {t("auth.sendAnotherLink")}
             </Button>
-            <View style={styles.legalFooter}>
-              <LegalLinksRow
-                termsUrl={`${ENV.WEB_APP_URL}/terms`}
-                privacyUrl={`${ENV.WEB_APP_URL}/privacy`}
-              />
-            </View>
           </View>
         </FormScreen>
       </ModalLayout>
@@ -353,7 +349,7 @@ export function AuthScreen({ navigation, route }: Props) {
   }
 
   return (
-    <ModalLayout cancel={stackCancel}>
+    <ModalLayout cancel={stackCancel} footer={legalFooter}>
       <FormScreen noLayout>
         <NativeHeaderScrollView>
           <View style={styles.brandHeader}>
@@ -511,13 +507,6 @@ export function AuthScreen({ navigation, route }: Props) {
               </Button>
             </>
           )}
-
-          <View style={styles.legalFooter}>
-            <LegalLinksRow
-              termsUrl={`${ENV.WEB_APP_URL}/terms`}
-              privacyUrl={`${ENV.WEB_APP_URL}/privacy`}
-            />
-          </View>
         </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
@@ -635,9 +624,7 @@ const makeStyles = (theme: any) =>
     bodyEmail: {
       fontWeight: theme.typography.fontWeight.bold,
     },
-    legalFooter: {
-      marginTop: theme.spacing.xl * 2,
-      paddingBottom: theme.spacing.lg,
+    bottomLegalFooter: {
       alignItems: "center",
     },
   });
