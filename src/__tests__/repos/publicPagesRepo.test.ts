@@ -53,6 +53,32 @@ describe("publicPagesRepo", () => {
     expect(out).toEqual(snapshot);
   });
 
+  it("generatePublicPageWithOptions throws RPC error", async () => {
+    supabase.rpc.mockResolvedValue({
+      data: null,
+      error: { message: "rpc failed" },
+    });
+    await expect(
+      generatePublicPageWithOptions(
+        "v1",
+        [],
+        [],
+        {
+          include_technical_data: true,
+          include_insurance: true,
+          include_inspection: true,
+          include_notes: true,
+          include_wheels: false,
+          include_tires: false,
+          include_service_history: false,
+          include_service_stats: false,
+          include_fueling_stats: false,
+          include_photos: true,
+        },
+      ),
+    ).rejects.toEqual(expect.objectContaining({ message: "rpc failed" }));
+  });
+
   it("listPublicPages selects reports for vehicle", async () => {
     const rows = [{ id: "r1" }];
     supabase.from.mockImplementation(() =>
@@ -60,6 +86,15 @@ describe("publicPagesRepo", () => {
     );
     await expect(listPublicPages("v1")).resolves.toEqual(rows);
     expect(supabase.from).toHaveBeenCalledWith("reports");
+  });
+
+  it("listPublicPages throws on query error", async () => {
+    supabase.from.mockImplementation(() =>
+      createPostgrestChain({ data: null, error: { message: "select failed" } }),
+    );
+    await expect(listPublicPages("v1")).rejects.toEqual(
+      expect.objectContaining({ message: "select failed" }),
+    );
   });
 
   it("updatePublicReportTempPhotos calls RPC", async () => {
@@ -79,6 +114,16 @@ describe("publicPagesRepo", () => {
     expect(out).toEqual(snapshot);
   });
 
+  it("updatePublicReportTempPhotos throws RPC error", async () => {
+    supabase.rpc.mockResolvedValue({
+      data: null,
+      error: { message: "temp photos failed" },
+    });
+    await expect(updatePublicReportTempPhotos("rep1", [])).rejects.toEqual(
+      expect.objectContaining({ message: "temp photos failed" }),
+    );
+  });
+
   it("updatePublicReportTitle patches reports row", async () => {
     supabase.from.mockImplementation(() =>
       createPostgrestChain({ data: null, error: null }),
@@ -86,5 +131,14 @@ describe("publicPagesRepo", () => {
     await expect(
       updatePublicReportTitle("rep1", "Title"),
     ).resolves.toBeUndefined();
+  });
+
+  it("updatePublicReportTitle throws on update error", async () => {
+    supabase.from.mockImplementation(() =>
+      createPostgrestChain({ data: null, error: { message: "update failed" } }),
+    );
+    await expect(updatePublicReportTitle("rep1", "Title")).rejects.toEqual(
+      expect.objectContaining({ message: "update failed" }),
+    );
   });
 });

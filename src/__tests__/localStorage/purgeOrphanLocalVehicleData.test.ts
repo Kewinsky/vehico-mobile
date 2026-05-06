@@ -18,6 +18,7 @@ jest.mock("../../services/localStorage/localFiles", () => ({
 
 import { supabase } from "../../test/supabaseMock";
 import { purgeOrphanLocalVehicleData } from "../../services/localStorage/purgeOrphanLocalVehicleData";
+import * as FileSystem from "expo-file-system/legacy";
 import {
   deleteLocalAttachment,
   deleteLocalVehicleDocument,
@@ -27,6 +28,10 @@ import {
 import { deleteLocalFile } from "../../services/localStorage/localFiles";
 
 describe("purgeOrphanLocalVehicleData", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("deletes all local rows when there are no valid vehicles", async () => {
     (listAllLocalAttachmentRows as any).mockResolvedValue([
       { id: "a1", service_entry_id: "se1", local_path: "/x/a1" },
@@ -44,5 +49,65 @@ describe("purgeOrphanLocalVehicleData", () => {
     // No server fetch on empty list
     expect(supabase.from).not.toHaveBeenCalledWith("service_entries");
   });
+
+  it("fetches service entry ids and keeps matching attachment rows", async () => {
+    (listAllLocalAttachmentRows as any).mockResolvedValue([
+      { id: "a1", service_entry_id: "se-keep", local_path: "/x/a1" },
+      { id: "a2", service_entry_id: "se-drop", local_path: "/x/a2" },
+    ]);
+    (listAllLocalVehicleDocumentRows as any).mockResolvedValue([]);
+
+    const rangeMock = jest
+      .fn()
+      .mockResolvedValueOnce({
+        data: Array.from({ length: 1000 }).map(() => ({ id: "se-keep" })),
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: [{ id: "se-keep" }], error: null });
+    supabase.from.mockImplementation(() => ({
+      select: jest.fn(() => ({
+        in: jest.fn(() => ({
+          range: rangeMock,
+        })),
+      })),
+    }));
+
+    await purgeOrphanLocalVehicleData(["v1"]);
+
+    expect(rangeMock).toHaveBeenCalledWith(0, 999);
+    expect(rangeMock).toHaveBeenCalledWith(1000, 1999);
+    expect(deleteLocalAttachment).toHaveBeenCalledWith("a2");
+    expect(deleteLocalAttachment).not.toHaveBeenCalledWith("a1");
+  });
+
+  it("removes orphan local folders for invalid vehicle ids", async () => {
+    (listAllLocalAttachmentRows as any).mockResolvedValue([]);
+    (listAllLocalVehicleDocumentRows as any).mockResolvedValue([]);
+    supabase.from.mockImplementation(() => ({
+      select: jest.fn(() => ({
+        in: jest.fn(() => ({
+          range: jest.fn(async () => ({ data: [], error: null })),
+        })),
+      })),
+    }));
+    (FileSystem.getInfoAsync as jest.Mock)
+      .mockResolvedValueOnce({ exists: true, isDirectory: true }) // local_attachments
+      .mockResolvedValueOnce({ exists: true, isDirectory: true }); // local_vehicle_documents
+    (FileSystem.readDirectoryAsync as jest.Mock)
+      .mockResolvedValueOnce(["v-keep", "v-drop-a"])
+      .mockResolvedValueOnce(["v-drop-b"]);
+
+    await purgeOrphanLocalVehicleData(["v-keep"]);
+
+    expect(FileSystem.deleteAsync).toHaveBeenCalledWith(
+      "file:///docs/local_attachments/v-drop-a",
+      { idempotent: true },
+    );
+    expect(FileSystem.deleteAsync).toHaveBeenCalledWith(
+      "file:///docs/local_vehicle_documents/v-drop-b",
+      { idempotent: true },
+    );
+  });
+
 });
 
