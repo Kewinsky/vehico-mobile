@@ -43,15 +43,22 @@ jobs:
 
   deploy-functions:
     needs: quality
+<<<<<<< HEAD
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+=======
+    if: github.event_name == 'push'
+>>>>>>> develop
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment: ${{ github.ref == 'refs/heads/main' && 'PROD' || 'DEV' }}
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+<<<<<<< HEAD
 
       - name: Deploy edge functions (prod)
         if: github.ref == 'refs/heads/main'
@@ -69,9 +76,11 @@ jobs:
         environment: DEV
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+=======
+      - name: Deploy edge functions
+>>>>>>> develop
         run: |
           supabase functions deploy revenuecat-webhook --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
           supabase functions deploy retention-cleanup --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
           supabase functions deploy delete-account --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
           supabase functions deploy generate-marketplace-post --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-
