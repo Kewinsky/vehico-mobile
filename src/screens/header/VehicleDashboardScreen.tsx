@@ -446,12 +446,12 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     const now = new Date();
     const currentMileage = vehicle?.mileage ?? null;
     return reminders
-      .filter(
-        (reminder) =>
-          reminder.status === "active" &&
-          !isReminderOverdue(reminder, currentMileage),
-      )
+      .filter((reminder) => reminder.status === "active")
       .sort((a, b) => {
+        const aOverdue = isReminderOverdue(a, currentMileage);
+        const bOverdue = isReminderOverdue(b, currentMileage);
+        if (aOverdue !== bOverdue) return aOverdue ? -1 : 1;
+
         const aProgress = getReminderProgressPercent(a, currentMileage, now);
         const bProgress = getReminderProgressPercent(b, currentMileage, now);
         if (aProgress !== bProgress) return bProgress - aProgress;
