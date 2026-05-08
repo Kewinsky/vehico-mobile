@@ -152,7 +152,7 @@ export function AuthScreen({ navigation, route }: Props) {
     }
   }
 
-  async function signInWithOAuth(provider: "google" | "facebook") {
+  async function signInWithOAuth(provider: "google" | "apple") {
     try {
       setIsSocialLoading(provider);
 
@@ -205,8 +205,8 @@ export function AuthScreen({ navigation, route }: Props) {
     return signInWithOAuth("google");
   }
 
-  async function signInWithFacebook() {
-    return signInWithOAuth("facebook");
+  async function signInWithApple() {
+    return signInWithOAuth("apple");
   }
 
   async function signInWithTestAccount() {
@@ -427,28 +427,27 @@ export function AuthScreen({ navigation, route }: Props) {
           <View style={styles.socialSection}>
             <View style={styles.socialButtons}>
               <Pressable
-                onPress={signInWithFacebook}
+                onPress={signInWithApple}
                 disabled={!!isSocialLoading}
                 style={({ pressed }) => [
                   styles.socialButton,
                   {
                     backgroundColor: theme.colors.card,
-                    opacity:
-                      isSocialLoading === "facebook" || pressed ? 0.7 : 1,
+                    opacity: isSocialLoading === "apple" || pressed ? 0.7 : 1,
                   },
                 ]}
               >
                 <Ionicons
-                  name="logo-facebook"
+                  name="logo-apple"
                   size={20}
                   color={theme.colors.fg}
                 />
                 <Text
                   style={[styles.socialButtonText, { color: theme.colors.fg }]}
                 >
-                  {isSocialLoading === "facebook"
+                  {isSocialLoading === "apple"
                     ? t("common.loading")
-                    : t("auth.facebook")}
+                    : t("auth.apple")}
                 </Text>
               </Pressable>
               <Pressable

@@ -93,6 +93,7 @@ export const pl = {
     signInWithFacebook: "Zaloguj się przez Facebook",
     google: "Google",
     facebook: "Facebook",
+    apple: "Apple",
     signedInSuccessfully: "Zalogowano pomyślnie",
     sessionExpired: "Sesja wygasła. Zaloguj się ponownie.",
     magicLinkSent: "Link magiczny wysłany",
