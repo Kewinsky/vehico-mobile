@@ -124,6 +124,7 @@ export async function applyRevenueCatEntitlementUpdate(
   preferredFreePlanVehicleId: string | null,
 ): Promise<{ error: { message: string } | null }> {
   const now = new Date().toISOString();
+  let freePlanVehicleIdForRecompute: string | null = null;
 
   const dbUpdate: Record<string, unknown> = {
     plan: update.plan,
@@ -144,6 +145,7 @@ export async function applyRevenueCatEntitlementUpdate(
       userId,
       preferredFreePlanVehicleId,
     );
+    freePlanVehicleIdForRecompute = freePlanSelections.freePlanVehicleId;
     dbUpdate.downgraded_at = now;
     dbUpdate.free_plan_vehicle_id = freePlanSelections.freePlanVehicleId;
     dbUpdate.free_plan_workshop_ids = freePlanSelections.freePlanWorkshopIds;
@@ -167,6 +169,20 @@ export async function applyRevenueCatEntitlementUpdate(
   if (error) {
     return { error: { message: error.message } };
   }
+
+  if (update.plan === "free" && freePlanVehicleIdForRecompute) {
+    // Enforce DB-side canonical ordering: active first, then done, oldest first.
+    const { error: recomputeError } = await supabase.rpc(
+      "entitlements_recompute_free_plan_reminder_ids_for_vehicle",
+      {
+        p_vehicle_id: freePlanVehicleIdForRecompute,
+      },
+    );
+    if (recomputeError) {
+      return { error: { message: recomputeError.message } };
+    }
+  }
+
   return { error: null };
 }
 
