@@ -23,7 +23,8 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Vehico needs camera access to capture and upload vehicle photos and attachments.",
         "NSPhotoLibraryUsageDescription": "Vehico needs photo library access to select and upload vehicle photos and attachments.",
-        "NSPhotoLibraryAddUsageDescription": "Vehico may save exported images to your photo library when you choose to do so."
+        "NSPhotoLibraryAddUsageDescription": "Vehico may save exported images to your photo library when you choose to do so.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
