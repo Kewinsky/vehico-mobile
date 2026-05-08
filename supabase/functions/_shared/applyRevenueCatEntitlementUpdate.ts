@@ -35,6 +35,8 @@ async function buildFreePlanSelections(
   userId: string,
   preferredVehicleId: string | null,
 ): Promise<FreePlanSelections> {
+  console.log("[buildFreePlanSelections] preferredVehicleId:", preferredVehicleId);
+
   const { data: workshopRows, error: workshopError } = await supabase
     .from("workshops")
     .select("id")
@@ -42,6 +44,7 @@ async function buildFreePlanSelections(
     .order("created_at", { ascending: true })
     .limit(FREE_TIER_ENTITLEMENT_LIMITS.workshops_limit);
   if (workshopError) throw workshopError;
+  console.log("[buildFreePlanSelections] workshops found:", workshopRows?.length ?? 0);
 
   let freePlanVehicleId = preferredVehicleId;
   if (freePlanVehicleId) {
@@ -54,6 +57,7 @@ async function buildFreePlanSelections(
         .limit(1);
     if (preferredVehicleError) throw preferredVehicleError;
     freePlanVehicleId = preferredVehicleRows?.[0]?.id ?? null;
+    console.log("[buildFreePlanSelections] preferred vehicle resolved:", freePlanVehicleId);
   }
 
   if (!freePlanVehicleId) {
@@ -64,10 +68,12 @@ async function buildFreePlanSelections(
       .order("created_at", { ascending: true })
       .limit(2);
     if (vehicleError) throw vehicleError;
+    console.log("[buildFreePlanSelections] vehicle fallback — total vehicles found:", vehicleRows?.length ?? 0, "ids:", vehicleRows?.map((v: { id: string }) => v.id));
     freePlanVehicleId =
       vehicleRows != null && vehicleRows.length === 1
         ? (vehicleRows[0]?.id ?? null)
         : null;
+    console.log("[buildFreePlanSelections] fallback vehicle resolved:", freePlanVehicleId);
   }
 
   return {
@@ -86,6 +92,8 @@ export async function applyRevenueCatEntitlementUpdate(
 ): Promise<{ error: { message: string } | null }> {
   const now = new Date().toISOString();
   let freePlanVehicleIdForRecompute: string | null = null;
+
+  console.log("[applyRevenueCatEntitlementUpdate] userId:", userId, "plan:", update.plan, "preferredFreePlanVehicleId:", preferredFreePlanVehicleId);
 
   const dbUpdate: Record<string, unknown> = {
     plan: update.plan,
@@ -107,6 +115,7 @@ export async function applyRevenueCatEntitlementUpdate(
       preferredFreePlanVehicleId,
     );
     freePlanVehicleIdForRecompute = freePlanSelections.freePlanVehicleId;
+    console.log("[applyRevenueCatEntitlementUpdate] freePlanVehicleIdForRecompute:", freePlanVehicleIdForRecompute);
     dbUpdate.downgraded_at = now;
     dbUpdate.free_plan_vehicle_id = freePlanSelections.freePlanVehicleId;
     dbUpdate.free_plan_workshop_ids = freePlanSelections.freePlanWorkshopIds;
@@ -122,19 +131,22 @@ export async function applyRevenueCatEntitlementUpdate(
     dbUpdate.free_plan_wheel_id = null;
   }
 
+  console.log("[applyRevenueCatEntitlementUpdate] writing dbUpdate keys:", Object.keys(dbUpdate));
+
   const { error } = await supabase
     .from("entitlements")
     .update(dbUpdate)
     .eq("user_id", userId);
 
   if (error) {
+    console.error("[applyRevenueCatEntitlementUpdate] dbUpdate error:", error.message);
     return { error: { message: error.message } };
   }
+  console.log("[applyRevenueCatEntitlementUpdate] dbUpdate ok");
 
   if (update.plan === "free") {
     if (freePlanVehicleIdForRecompute) {
-      // SQL is the sole writer for reminder/tire/wheel free-plan fields.
-      // All three sync functions read live DB and apply the canonical selection logic.
+      console.log("[applyRevenueCatEntitlementUpdate] calling SQL recompute for vehicle:", freePlanVehicleIdForRecompute);
       const [reminderResult, tireResult, wheelResult] = await Promise.all([
         supabase.rpc("entitlements_recompute_free_plan_reminder_ids_for_vehicle", {
           p_vehicle_id: freePlanVehicleIdForRecompute,
@@ -146,13 +158,16 @@ export async function applyRevenueCatEntitlementUpdate(
           p_vehicle_id: freePlanVehicleIdForRecompute,
         }),
       ]);
+      console.log("[applyRevenueCatEntitlementUpdate] sync results — reminder:", reminderResult.error?.message ?? "ok", "tire:", tireResult.error?.message ?? "ok", "wheel:", wheelResult.error?.message ?? "ok");
       const syncError =
         reminderResult.error ?? tireResult.error ?? wheelResult.error;
       if (syncError) {
+        console.error("[applyRevenueCatEntitlementUpdate] sync error:", syncError.message);
         return { error: { message: syncError.message } };
       }
+      console.log("[applyRevenueCatEntitlementUpdate] all SQL syncs completed successfully");
     } else {
-      // No vehicle resolved → explicitly clear so stale IDs never persist.
+      console.log("[applyRevenueCatEntitlementUpdate] no vehicle resolved — clearing reminder/tire/wheel fields");
       const { error: clearError } = await supabase
         .from("entitlements")
         .update({
@@ -163,8 +178,10 @@ export async function applyRevenueCatEntitlementUpdate(
         })
         .eq("user_id", userId);
       if (clearError) {
+        console.error("[applyRevenueCatEntitlementUpdate] clear error:", clearError.message);
         return { error: { message: clearError.message } };
       }
+      console.log("[applyRevenueCatEntitlementUpdate] fields cleared");
     }
   }
 

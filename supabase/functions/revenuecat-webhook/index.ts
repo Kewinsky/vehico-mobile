@@ -244,7 +244,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     );
   }
 
+  console.log("[webhook] received event type:", event.type, "| product_id:", event.product_id ?? "n/a", "| env:", event.environment ?? "n/a", "| expiration_at_ms:", event.expiration_at_ms ?? "n/a", "| entitlement_ids:", JSON.stringify(event.entitlement_ids ?? []));
+
   const userId = getTargetUserId(event);
+  console.log("[webhook] resolved userId:", userId ?? "null");
   if (!userId) {
     return new Response(
       JSON.stringify({
@@ -259,6 +262,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   const update = getEntitlementsUpdate(event);
+  console.log("[webhook] resolved entitlementsUpdate:", update ? JSON.stringify({ plan: update.plan, premium_until: update.premium_until, product_id: update.product_id }) : "null (skipping)");
   if (!update) {
     return new Response(
       JSON.stringify({
@@ -287,7 +291,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const { data: currentEntitlements, error: currentEntitlementsError } =
     await supabase
       .from("entitlements")
-      .select("free_plan_vehicle_id")
+      .select("plan, free_plan_vehicle_id, free_plan_reminder_ids")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -306,6 +310,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   if (!currentEntitlements) {
+    console.log("[webhook] no entitlements row found for userId:", userId);
     return new Response(
       JSON.stringify({
         received: true,
@@ -317,6 +322,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
       },
     );
   }
+
+  console.log("[webhook] current entitlements — plan:", currentEntitlements.plan, "| free_plan_vehicle_id:", currentEntitlements.free_plan_vehicle_id ?? "null", "| free_plan_reminder_ids:", JSON.stringify(currentEntitlements.free_plan_reminder_ids ?? []));
 
   const { error: applyError } = await applyRevenueCatEntitlementUpdate(
     supabase,
@@ -335,6 +342,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
       },
     );
   }
+
+  console.log("[webhook] done — userId:", userId, "plan:", update.plan);
 
   return new Response(
     JSON.stringify({
