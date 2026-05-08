@@ -291,7 +291,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const { data: currentEntitlements, error: currentEntitlementsError } =
     await supabase
       .from("entitlements")
-      .select("plan, free_plan_vehicle_id, free_plan_reminder_ids")
+      .select("plan, free_plan_vehicle_id")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -323,7 +323,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     );
   }
 
-  console.log("[webhook] current entitlements — plan:", currentEntitlements.plan, "| free_plan_vehicle_id:", currentEntitlements.free_plan_vehicle_id ?? "null", "| free_plan_reminder_ids:", JSON.stringify(currentEntitlements.free_plan_reminder_ids ?? []));
+  console.log("[webhook] current entitlements — plan:", currentEntitlements.plan, "| free_plan_vehicle_id:", currentEntitlements.free_plan_vehicle_id ?? "null");
 
   const { error: applyError } = await applyRevenueCatEntitlementUpdate(
     supabase,

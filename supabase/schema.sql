@@ -867,11 +867,13 @@ end;
 $$;
 
 create or replace function public.entitlements_recompute_free_plan_reminder_ids_for_vehicle(p_vehicle_id uuid)
-returns void
+returns integer
 language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  v_rows integer;
 begin
   update public.entitlements e
   set free_plan_reminder_ids = public.pick_free_plan_reminder_ids_for_vehicle(p_vehicle_id),
@@ -879,8 +881,9 @@ begin
   from public.vehicles v
   where v.id = p_vehicle_id
     and v.owner_id = e.user_id
-    and e.plan = 'free'
-    and e.free_plan_vehicle_id is not distinct from p_vehicle_id;
+    and e.plan = 'free';
+  get diagnostics v_rows = row_count;
+  return v_rows;
 end;
 $$;
 
@@ -907,7 +910,8 @@ begin
   update public.entitlements
   set free_plan_vehicle_id = p_vehicle_id, free_plan_reminder_ids = coalesce(v_reminder_ids, '{}'),
       free_plan_tire_id = v_tire_id, free_plan_wheel_id = v_wheel_id, updated_at = now()
-  where user_id = v_user_id;
+  where user_id = v_user_id
+    and plan = 'free';
 end;
 $$;
 
@@ -971,10 +975,13 @@ create trigger after_workshop_insert_entitlements after insert on public.worksho
 
 create or replace function public.entitlements_append_reminder_on_insert()
 returns trigger language plpgsql security definer set search_path = public as $$
-declare v_plan text; v_vehicle_id uuid;
+declare v_vehicle_id uuid;
 begin
-  select e.plan, e.free_plan_vehicle_id into v_plan, v_vehicle_id from public.entitlements e join public.vehicles v on v.owner_id = e.user_id where v.id = new.vehicle_id;
-  if v_plan is null or v_plan not in ('free') or v_vehicle_id is distinct from new.vehicle_id then return new; end if;
+  select e.free_plan_vehicle_id into v_vehicle_id
+    from public.entitlements e
+    join public.vehicles v on v.owner_id = e.user_id
+   where v.id = new.vehicle_id;
+  if v_vehicle_id is distinct from new.vehicle_id then return new; end if;
   perform public.entitlements_recompute_free_plan_reminder_ids_for_vehicle(new.vehicle_id);
   return new;
 end;
