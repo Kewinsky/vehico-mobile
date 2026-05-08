@@ -5,11 +5,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import {
-  pickFreePlanTireIdForVehicle,
-  pickFreePlanWheelIdForVehicle,
-} from "./freePlanTireWheel.ts";
-import { pickFreePlanReminderIds } from "./freePlanReminders.ts";
-import {
   FREE_TIER_ENTITLEMENT_LIMITS,
   PREMIUM_TIER_ENTITLEMENT_LIMITS,
 } from "./entitlementLimits.ts";
@@ -33,9 +28,6 @@ type SupabaseClient = ReturnType<typeof createClient>;
 type FreePlanSelections = {
   freePlanVehicleId: string | null;
   freePlanWorkshopIds: string[];
-  freePlanReminderIds: string[];
-  freePlanTireId: string | null;
-  freePlanWheelId: string | null;
 };
 
 async function buildFreePlanSelections(
@@ -78,42 +70,11 @@ async function buildFreePlanSelections(
         : null;
   }
 
-  if (!freePlanVehicleId) {
-    return {
-      freePlanVehicleId: null,
-      freePlanWorkshopIds: (workshopRows ?? []).map(
-        (row: { id: string }) => row.id,
-      ),
-      freePlanReminderIds: [],
-      freePlanTireId: null,
-      freePlanWheelId: null,
-    };
-  }
-
-  const [reminderFetch, freePlanTireId, freePlanWheelId] = await Promise.all([
-    supabase
-      .from("reminders")
-      .select("id,status,created_at")
-      .eq("vehicle_id", freePlanVehicleId),
-    pickFreePlanTireIdForVehicle(supabase, freePlanVehicleId),
-    pickFreePlanWheelIdForVehicle(supabase, freePlanVehicleId),
-  ]);
-
-  if (reminderFetch.error) throw reminderFetch.error;
-
-  const freePlanReminderIds = pickFreePlanReminderIds(
-    reminderFetch.data ?? [],
-    FREE_TIER_ENTITLEMENT_LIMITS.reminders_limit,
-  );
-
   return {
-    freePlanVehicleId,
+    freePlanVehicleId: freePlanVehicleId ?? null,
     freePlanWorkshopIds: (workshopRows ?? []).map(
       (row: { id: string }) => row.id,
     ),
-    freePlanReminderIds,
-    freePlanTireId,
-    freePlanWheelId,
   };
 }
 
@@ -149,9 +110,9 @@ export async function applyRevenueCatEntitlementUpdate(
     dbUpdate.downgraded_at = now;
     dbUpdate.free_plan_vehicle_id = freePlanSelections.freePlanVehicleId;
     dbUpdate.free_plan_workshop_ids = freePlanSelections.freePlanWorkshopIds;
-    dbUpdate.free_plan_reminder_ids = freePlanSelections.freePlanReminderIds;
-    dbUpdate.free_plan_tire_id = freePlanSelections.freePlanTireId;
-    dbUpdate.free_plan_wheel_id = freePlanSelections.freePlanWheelId;
+    // free_plan_reminder_ids, free_plan_tire_id, free_plan_wheel_id are NOT
+    // written here — owned exclusively by the SQL sync functions called below
+    // and by row-level triggers on `reminders`, `tires`, and `wheels`.
   } else {
     dbUpdate.free_plan_vehicle_id = null;
     dbUpdate.downgraded_at = null;
@@ -170,16 +131,40 @@ export async function applyRevenueCatEntitlementUpdate(
     return { error: { message: error.message } };
   }
 
-  if (update.plan === "free" && freePlanVehicleIdForRecompute) {
-    // Enforce DB-side canonical ordering: active first, then done, oldest first.
-    const { error: recomputeError } = await supabase.rpc(
-      "entitlements_recompute_free_plan_reminder_ids_for_vehicle",
-      {
-        p_vehicle_id: freePlanVehicleIdForRecompute,
-      },
-    );
-    if (recomputeError) {
-      return { error: { message: recomputeError.message } };
+  if (update.plan === "free") {
+    if (freePlanVehicleIdForRecompute) {
+      // SQL is the sole writer for reminder/tire/wheel free-plan fields.
+      // All three sync functions read live DB and apply the canonical selection logic.
+      const [reminderResult, tireResult, wheelResult] = await Promise.all([
+        supabase.rpc("entitlements_recompute_free_plan_reminder_ids_for_vehicle", {
+          p_vehicle_id: freePlanVehicleIdForRecompute,
+        }),
+        supabase.rpc("entitlements_sync_free_plan_tire_ids_for_vehicle", {
+          p_vehicle_id: freePlanVehicleIdForRecompute,
+        }),
+        supabase.rpc("entitlements_sync_free_plan_wheel_ids_for_vehicle", {
+          p_vehicle_id: freePlanVehicleIdForRecompute,
+        }),
+      ]);
+      const syncError =
+        reminderResult.error ?? tireResult.error ?? wheelResult.error;
+      if (syncError) {
+        return { error: { message: syncError.message } };
+      }
+    } else {
+      // No vehicle resolved → explicitly clear so stale IDs never persist.
+      const { error: clearError } = await supabase
+        .from("entitlements")
+        .update({
+          free_plan_reminder_ids: [],
+          free_plan_tire_id: null,
+          free_plan_wheel_id: null,
+          updated_at: now,
+        })
+        .eq("user_id", userId);
+      if (clearError) {
+        return { error: { message: clearError.message } };
+      }
     }
   }
 
