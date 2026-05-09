@@ -15,6 +15,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { CircleHelp, Fuel } from "lucide-react-native";
+import { AnimatedRollingNumber } from "react-native-animated-rolling-numbers";
 import Svg, {
   Circle,
   Line as SvgLine,
@@ -86,6 +87,9 @@ function StatTile({
   iconComponent,
   label,
   valueMain,
+  valueMainRollingValue,
+  valueMainRollingLocale,
+  valueMainRollingToFixed,
   valueSuffix,
   theme,
   styles,
@@ -99,6 +103,9 @@ function StatTile({
   iconComponent?: ReactNode;
   label?: ReactNode;
   valueMain: string;
+  valueMainRollingValue?: number;
+  valueMainRollingLocale?: string;
+  valueMainRollingToFixed?: number;
   valueSuffix?: string;
   theme: AppTheme;
   styles: ReturnType<typeof makeStyles>;
@@ -132,12 +139,27 @@ function StatTile({
       <View style={styles.tileIconLeadingRow}>
         <View style={styles.tileIconLeadingIcon}>{leadingIcon}</View>
         <View style={styles.tileIconLeadingValueGroup}>
-          <Text
-            style={[styles.tileValueMain, { color: theme.colors.fg }]}
-            numberOfLines={1}
-          >
-            {valueMain}
-          </Text>
+          {valueMainRollingValue != null ? (
+            <View style={styles.tileRollingNumberWrap}>
+              <AnimatedRollingNumber
+                value={valueMainRollingValue}
+                toFixed={
+                  valueMainRollingToFixed ?? (valueMainRollingValue >= 10 ? 0 : 1)
+                }
+                useGrouping
+                locale={valueMainRollingLocale}
+                spinningAnimationConfig={{ duration: 420 }}
+                textStyle={[styles.tileValueMain, { color: theme.colors.fg }]}
+              />
+            </View>
+          ) : (
+            <Text
+              style={[styles.tileValueMain, { color: theme.colors.fg }]}
+              numberOfLines={1}
+            >
+              {valueMain}
+            </Text>
+          )}
           {valueSuffix != null && valueSuffix !== "" ? (
             <Text
               style={[styles.tileValueSuffix, { color: theme.colors.muted }]}
@@ -196,12 +218,27 @@ function StatTile({
         </Text>
       </View>
       <View style={styles.tileValueRow}>
-        <Text
-          style={[styles.tileValueMain, { color: theme.colors.fg }]}
-          numberOfLines={1}
-        >
-          {valueMain}
-        </Text>
+        {valueMainRollingValue != null ? (
+          <View style={styles.tileRollingNumberWrap}>
+            <AnimatedRollingNumber
+              value={valueMainRollingValue}
+              toFixed={
+                valueMainRollingToFixed ?? (valueMainRollingValue >= 10 ? 0 : 1)
+              }
+              useGrouping
+              locale={valueMainRollingLocale}
+              spinningAnimationConfig={{ duration: 420 }}
+              textStyle={[styles.tileValueMain, { color: theme.colors.fg }]}
+            />
+          </View>
+        ) : (
+          <Text
+            style={[styles.tileValueMain, { color: theme.colors.fg }]}
+            numberOfLines={1}
+          >
+            {valueMain}
+          </Text>
+        )}
         {valueSuffix != null && valueSuffix !== "" ? (
           <Text
             style={[styles.tileValueSuffix, { color: theme.colors.muted }]}
@@ -1226,6 +1263,7 @@ export function StatisticsScreen(props: Props) {
     };
   }, [filtered.service, filtered.fueling]);
 
+
   const expensesByCategory = useMemo(() => {
     const acc: Record<string, number> = {};
     const add = (key: string, amount: number) => {
@@ -1714,29 +1752,14 @@ export function StatisticsScreen(props: Props) {
     </View>
   );
 
-  const totalMain =
-    totals.total > 0
-      ? groupThousands(
-          totals.total >= 10 ? Math.round(totals.total) : totals.total,
-          totals.total >= 10 ? 0 : 1,
-        )
+  const formatExpenseAmount = (value: number) =>
+    value > 0
+      ? groupThousands(value >= 10 ? Math.round(value) : value, value >= 10 ? 0 : 1)
       : "—";
-  const fuelMain =
-    totals.fuelCost > 0
-      ? groupThousands(
-          totals.fuelCost >= 10 ? Math.round(totals.fuelCost) : totals.fuelCost,
-          totals.fuelCost >= 10 ? 0 : 1,
-        )
-      : "—";
-  const serviceMain =
-    totals.serviceCost > 0
-      ? groupThousands(
-          totals.serviceCost >= 10
-            ? Math.round(totals.serviceCost)
-            : totals.serviceCost,
-          totals.serviceCost >= 10 ? 0 : 1,
-        )
-      : "—";
+  const totalMain = formatExpenseAmount(totals.total);
+  const fuelMain = formatExpenseAmount(totals.fuelCost);
+  const serviceMain = formatExpenseAmount(totals.serviceCost);
+  const rollingLocale = i18n.language === "pl" ? "pl-PL" : "en-US";
 
   const oilLifeStatusText = oilLife
     ? `${oilLife.progressPercent}% ${
@@ -1772,12 +1795,25 @@ export function StatisticsScreen(props: Props) {
               {t("dashboard.stats.metrics.totalExpenses")}
             </Text>
             <View style={styles.expensesHeroValueGroup}>
-              <Text
-                style={[styles.expensesHeroValue, { color: theme.colors.fg }]}
-                numberOfLines={1}
-              >
-                {totalMain}
-              </Text>
+              {totals.total > 0 ? (
+                <View style={styles.expensesHeroRollingWrap}>
+                  <AnimatedRollingNumber
+                    value={totals.total}
+                    toFixed={totals.total >= 10 ? 0 : 1}
+                    useGrouping
+                    locale={rollingLocale}
+                    spinningAnimationConfig={{ duration: 420 }}
+                    textStyle={[styles.expensesHeroValue, { color: theme.colors.fg }]}
+                  />
+                </View>
+              ) : (
+                <Text
+                  style={[styles.expensesHeroValue, { color: theme.colors.fg }]}
+                  numberOfLines={1}
+                >
+                  {totalMain}
+                </Text>
+              )}
               {totalMain !== "—" ? (
                 <Text
                   style={[
@@ -1802,6 +1838,8 @@ export function StatisticsScreen(props: Props) {
               <Fuel size={32} color={theme.colors.accent} />
             }
             valueMain={fuelMain}
+            valueMainRollingValue={totals.fuelCost > 0 ? totals.fuelCost : undefined}
+            valueMainRollingLocale={rollingLocale}
             valueSuffix={fuelMain !== "—" ? currency : undefined}
           />
           <StatTile
@@ -1811,6 +1849,10 @@ export function StatisticsScreen(props: Props) {
             accessibilityLabel={t("dashboard.tiles.serviceTitle")}
             icon="construct"
             valueMain={serviceMain}
+            valueMainRollingValue={
+              totals.serviceCost > 0 ? totals.serviceCost : undefined
+            }
+            valueMainRollingLocale={rollingLocale}
             valueSuffix={serviceMain !== "—" ? currency : undefined}
           />
         </View>
@@ -1903,6 +1945,13 @@ export function StatisticsScreen(props: Props) {
                 ? `${fuelUnitShort}/100 ${distanceUnitLabel}`
                 : undefined
             }
+            valueMainRollingValue={
+              Number.isFinite(totals.avgConsumptionPer100)
+                ? totals.avgConsumptionPer100
+                : undefined
+            }
+            valueMainRollingLocale={rollingLocale}
+            valueMainRollingToFixed={1}
           />
           <StatTile
             theme={theme}
@@ -1916,6 +1965,13 @@ export function StatisticsScreen(props: Props) {
             valueSuffix={
               Number.isFinite(totals.avgCostPerLiter) ? currency : undefined
             }
+            valueMainRollingValue={
+              Number.isFinite(totals.avgCostPerLiter)
+                ? totals.avgCostPerLiter
+                : undefined
+            }
+            valueMainRollingLocale={rollingLocale}
+            valueMainRollingToFixed={2}
           />
         </View>
         <View style={styles.tilesRow}>
@@ -1925,6 +1981,13 @@ export function StatisticsScreen(props: Props) {
             label={t("dashboard.stats.lastRefuel")}
             valueMain={lastRefuelValueMain}
             valueSuffix={lastRefuelValueSuffix}
+            valueMainRollingValue={
+              lastRefuelShowAmount && Number.isFinite(lastRefuelAmount)
+                ? lastRefuelAmount
+                : undefined
+            }
+            valueMainRollingLocale={rollingLocale}
+            valueMainRollingToFixed={0}
             onPress={
               canToggleLastRefuel
                 ? () => setLastRefuelShowAmount((p) => !p)
@@ -1942,6 +2005,9 @@ export function StatisticsScreen(props: Props) {
             valueSuffix={
               fuelStatsDistance != null ? distanceUnitLabel : undefined
             }
+            valueMainRollingValue={fuelStatsDistance ?? undefined}
+            valueMainRollingLocale={rollingLocale}
+            valueMainRollingToFixed={0}
           />
         </View>
       </View>
@@ -2492,6 +2558,9 @@ const makeStyles = (theme: any) =>
       fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.title,
     },
+    expensesHeroRollingWrap: {
+      justifyContent: "center",
+    },
     expensesHeroCurrency: {
       fontWeight: theme.typography.fontWeight.regular,
       fontSize: theme.typography.small,
@@ -2553,6 +2622,9 @@ const makeStyles = (theme: any) =>
     tileValueMain: {
       fontWeight: theme.typography.fontWeight.bold,
       fontSize: theme.typography.title,
+    },
+    tileRollingNumberWrap: {
+      justifyContent: "center",
     },
     tileValueSuffix: {
       fontWeight: theme.typography.fontWeight.regular,
