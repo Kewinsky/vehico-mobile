@@ -975,13 +975,10 @@ create trigger after_workshop_insert_entitlements after insert on public.worksho
 
 create or replace function public.entitlements_append_reminder_on_insert()
 returns trigger language plpgsql security definer set search_path = public as $$
-declare v_vehicle_id uuid;
+declare v_plan text; v_vehicle_id uuid;
 begin
-  select e.free_plan_vehicle_id into v_vehicle_id
-    from public.entitlements e
-    join public.vehicles v on v.owner_id = e.user_id
-   where v.id = new.vehicle_id;
-  if v_vehicle_id is distinct from new.vehicle_id then return new; end if;
+  select e.plan, e.free_plan_vehicle_id into v_plan, v_vehicle_id from public.entitlements e join public.vehicles v on v.owner_id = e.user_id where v.id = new.vehicle_id;
+  if v_plan is null or v_plan not in ('free') or v_vehicle_id is distinct from new.vehicle_id then return new; end if;
   perform public.entitlements_recompute_free_plan_reminder_ids_for_vehicle(new.vehicle_id);
   return new;
 end;
