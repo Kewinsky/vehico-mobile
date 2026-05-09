@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
@@ -10,7 +10,10 @@ import type {
   Workshop,
 } from "../../types/domain";
 import type { ServiceHistoryFiltersParams } from "../modal/ServiceHistoryFiltersScreen";
-import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
+import {
+  deleteServiceEntry,
+  listServiceEntries,
+} from "../../services/serviceEntries/serviceEntriesRepo";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -309,6 +312,27 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     [hasActiveFilters, navigation, openFilters, resetFilters, vehicleId],
   );
 
+  const handleDeleteEntry = useCallback(
+    (entry: ServiceEntry) => {
+      Alert.alert(t("entryDetail.deleteTitle"), t("entryDetail.deleteBody"), [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteServiceEntry(entry.id);
+              setItems((prev) => prev.filter((item) => item.id !== entry.id));
+            } catch (e: any) {
+              toastError(e?.message ?? t("common.error"));
+            }
+          },
+        },
+      ]);
+    },
+    [t],
+  );
+
   return (
     <HeaderLayout
       loading={loading}
@@ -351,6 +375,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
                     vehicleId,
                   })
                 }
+                onDelete={() => handleDeleteEntry(e)}
               />
             );
           }}

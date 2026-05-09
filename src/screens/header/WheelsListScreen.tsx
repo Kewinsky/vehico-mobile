@@ -7,7 +7,9 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { VehicleWheel } from "../../types/domain";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import {
+  deleteVehicleWheel,
   listVehicleWheels,
+  updateVehicleWheel,
 } from "../../services/wheels/wheelsRepo";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -90,6 +92,50 @@ export function WheelsListScreen({ route, navigation }: Props) {
     });
   }, [wheels]);
 
+  const handleToggleInUse = useCallback(
+    async (wheel: VehicleWheel) => {
+      try {
+        const updated = await updateVehicleWheel(wheel.id, {
+          is_currently_fitted: !wheel.is_currently_fitted,
+        });
+        setWheels((prev) =>
+          prev.map((item) => (item.id === wheel.id ? updated : item)),
+        );
+      } catch (e: any) {
+        if (e?.message === "FITTED_WHEEL_LIMIT_REACHED") {
+          Alert.alert(
+            t("limits.fittedWheelLimitReachedTitle"),
+            t("limits.fittedWheelLimitReachedBody"),
+          );
+          return;
+        }
+        toastError(e?.message ?? t("common.error"));
+      }
+    },
+    [t],
+  );
+
+  const handleDeleteWheel = useCallback(
+    (wheel: VehicleWheel) => {
+      Alert.alert(t("wheels.deleteWheelTitle"), t("wheels.deleteWheelBody"), [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteVehicleWheel(wheel.id);
+              setWheels((prev) => prev.filter((item) => item.id !== wheel.id));
+            } catch (e: any) {
+              toastError(e?.message ?? t("common.error"));
+            }
+          },
+        },
+      ]);
+    },
+    [t],
+  );
+
   function onAddWheelPress() {
     if (!isPremium && wheels.length >= wheelsPerVehicleLimit) {
       Alert.alert(
@@ -142,6 +188,8 @@ export function WheelsListScreen({ route, navigation }: Props) {
                   wheelId: item.id,
                 })
               }
+              onToggleInUse={() => void handleToggleInUse(item)}
+              onDelete={() => handleDeleteWheel(item)}
             />
           )}
           ListEmptyComponent={<EmptyState body={t("wheels.noWheels")} />}

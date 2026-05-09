@@ -1,5 +1,8 @@
+import { useRef } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Trash2, Undo2 } from "lucide-react-native";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 import { useTranslation } from "react-i18next";
 
 import type { VehicleTire } from "../../../types/domain";
@@ -10,12 +13,15 @@ import type { AppTheme } from "../../theme";
 export type TiresItemProps = {
   tire: VehicleTire;
   onPress?: () => void;
+  onToggleInUse?: () => void;
+  onDelete?: () => void;
 };
 
-export function TiresItem({ tire, onPress }: TiresItemProps) {
+export function TiresItem({ tire, onPress, onToggleInUse, onDelete }: TiresItemProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = makeStyles(theme);
+  const swipeableRef = useRef<Swipeable | null>(null);
   const subtitle = (() => {
     const dims = formatTireDimensions(
       tire.width_mm,
@@ -64,18 +70,61 @@ export function TiresItem({ tire, onPress }: TiresItemProps) {
     </View>
   );
 
-  if (onPress) {
-    return (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
-      >
-        {content}
-      </Pressable>
-    );
-  }
+  const baseContent = onPress ? (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+    >
+      {content}
+    </Pressable>
+  ) : (
+    content
+  );
 
-  return content;
+  if (!onToggleInUse && !onDelete) return baseContent;
+
+  return (
+    <Swipeable
+      ref={swipeableRef}
+      rightThreshold={32}
+      renderRightActions={() => (
+        <View style={styles.swipeActionsWrap}>
+          {onToggleInUse ? (
+            <Pressable
+              onPress={() => {
+                swipeableRef.current?.close();
+                onToggleInUse();
+              }}
+              style={[
+                styles.swipeActionBtn,
+                {
+                  backgroundColor: tire.is_currently_fitted
+                    ? theme.colors.muted
+                    : theme.colors.accent,
+                },
+              ]}
+            >
+              {tire.is_currently_fitted ? (
+                <Undo2 size={22} color="#000000" />
+              ) : (
+                <Ionicons name="checkmark" size={24} color="#000000" />
+              )}
+            </Pressable>
+          ) : null}
+          {onDelete ? (
+            <Pressable
+              onPress={onDelete}
+              style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+            >
+              <Trash2 size={20} color="#000000" />
+            </Pressable>
+          ) : null}
+        </View>
+      )}
+    >
+      {baseContent}
+    </Swipeable>
+  );
 }
 
 const makeStyles = (theme: AppTheme) =>
@@ -133,5 +182,17 @@ const makeStyles = (theme: AppTheme) =>
     },
     badgeWrap: {
       flexShrink: 0,
+    },
+    swipeActionsWrap: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      marginLeft: theme.spacing.xs,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+    },
+    swipeActionBtn: {
+      width: 72,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });

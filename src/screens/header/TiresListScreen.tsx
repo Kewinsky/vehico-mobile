@@ -6,7 +6,11 @@ import { useCallback, useMemo, useState } from "react";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { VehicleTire, TireType } from "../../types/domain";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
-import { listVehicleTires } from "../../services/tires/tiresRepo";
+import {
+  deleteVehicleTire,
+  listVehicleTires,
+  updateVehicleTire,
+} from "../../services/tires/tiresRepo";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { EmptyState } from "../../ui/components/common/EmptyState";
@@ -103,6 +107,48 @@ export function TiresListScreen({ route, navigation }: Props) {
     });
   }, [tires, tireTypeFilter]);
 
+  const handleToggleInUse = useCallback(
+    async (tire: VehicleTire) => {
+      try {
+        const updated = await updateVehicleTire(tire.id, {
+          is_currently_fitted: !tire.is_currently_fitted,
+        });
+        setTires((prev) => prev.map((item) => (item.id === tire.id ? updated : item)));
+      } catch (e: any) {
+        if (e?.message === "FITTED_TIRE_LIMIT_REACHED") {
+          Alert.alert(
+            t("limits.fittedTireLimitReachedTitle"),
+            t("limits.fittedTireLimitReachedBody"),
+          );
+          return;
+        }
+        toastError(e?.message ?? t("common.error"));
+      }
+    },
+    [t],
+  );
+
+  const handleDeleteTire = useCallback(
+    (tire: VehicleTire) => {
+      Alert.alert(t("wheels.deleteTireTitle"), t("wheels.deleteTireBody"), [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteVehicleTire(tire.id);
+              setTires((prev) => prev.filter((item) => item.id !== tire.id));
+            } catch (e: any) {
+              toastError(e?.message ?? t("common.error"));
+            }
+          },
+        },
+      ]);
+    },
+    [t],
+  );
+
   function onAddTirePress() {
     if (!isPremium && tires.length >= tiresPerVehicleLimit) {
       Alert.alert(
@@ -185,6 +231,8 @@ export function TiresListScreen({ route, navigation }: Props) {
               onPress={() =>
                 navigation.navigate("TireForm", { vehicleId, tireId: item.id })
               }
+              onToggleInUse={() => void handleToggleInUse(item)}
+              onDelete={() => handleDeleteTire(item)}
             />
           )}
           ListEmptyComponent={<EmptyState body={t("wheels.noTires")} />}

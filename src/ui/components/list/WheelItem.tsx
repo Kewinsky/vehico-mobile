@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Weight } from "lucide-react-native";
+import { Trash2, Undo2, Weight } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 import { useTranslation } from "react-i18next";
 
 import type { VehicleWheel } from "../../../types/domain";
@@ -13,14 +14,17 @@ import { BoltTypeIcon } from "../icons/BoltTypeIcon";
 type WheelItemProps = {
   wheel: VehicleWheel;
   onPress?: () => void;
+  onToggleInUse?: () => void;
+  onDelete?: () => void;
 };
 
-export function WheelItem({ wheel, onPress }: WheelItemProps) {
+export function WheelItem({ wheel, onPress, onToggleInUse, onDelete }: WheelItemProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = makeStyles(theme);
   const [expanded, setExpanded] = useState(false);
   const chevronAnim = useRef(new Animated.Value(0)).current;
+  const swipeableRef = useRef<Swipeable | null>(null);
 
   useEffect(() => {
     Animated.timing(chevronAnim, {
@@ -153,18 +157,61 @@ export function WheelItem({ wheel, onPress }: WheelItemProps) {
     </View>
   );
 
-  if (onPress) {
-    return (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [{ opacity: pressed ? 0.94 : 1 }]}
-      >
-        {content}
-      </Pressable>
-    );
-  }
+  const baseContent = onPress ? (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [{ opacity: pressed ? 0.94 : 1 }]}
+    >
+      {content}
+    </Pressable>
+  ) : (
+    content
+  );
 
-  return content;
+  if (!onToggleInUse && !onDelete) return baseContent;
+
+  return (
+    <Swipeable
+      ref={swipeableRef}
+      rightThreshold={32}
+      renderRightActions={() => (
+        <View style={styles.swipeActionsWrap}>
+          {onToggleInUse ? (
+            <Pressable
+              onPress={() => {
+                swipeableRef.current?.close();
+                onToggleInUse();
+              }}
+              style={[
+                styles.swipeActionBtn,
+                {
+                  backgroundColor: wheel.is_currently_fitted
+                    ? theme.colors.muted
+                    : theme.colors.accent,
+                },
+              ]}
+            >
+              {wheel.is_currently_fitted ? (
+                <Undo2 size={22} color="#000000" />
+              ) : (
+                <Ionicons name="checkmark" size={24} color="#000000" />
+              )}
+            </Pressable>
+          ) : null}
+          {onDelete ? (
+            <Pressable
+              onPress={onDelete}
+              style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+            >
+              <Trash2 size={20} color="#000000" />
+            </Pressable>
+          ) : null}
+        </View>
+      )}
+    >
+      {baseContent}
+    </Swipeable>
+  );
 }
 
 const makeStyles = (theme: AppTheme) =>
@@ -245,5 +292,17 @@ const makeStyles = (theme: AppTheme) =>
       fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.medium,
       textAlign: "right",
+    },
+    swipeActionsWrap: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      marginLeft: theme.spacing.xs,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+    },
+    swipeActionBtn: {
+      width: 72,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });

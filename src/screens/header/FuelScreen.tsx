@@ -7,6 +7,7 @@ import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
+import { deleteFuelingEntry } from "../../services/fuel/fuelingEntriesRepo";
 import type { FuelingEntry, GasStation } from "../../types/domain";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -14,6 +15,7 @@ import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { FuelItem } from "../../ui/components/list/FuelItem";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
+import { Alert } from "react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
 
@@ -165,6 +167,31 @@ export function FuelScreen({ route, navigation }: Props) {
     return actions;
   }, [hasActiveFilters, openFilters, openAddEntry, resetFilters]);
 
+  const handleDeleteFueling = useCallback(
+    (entry: FuelingEntry) => {
+      Alert.alert(
+        t("fuelCosts.deleteFuelingTitle"),
+        t("fuelCosts.deleteFuelingBody"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("common.delete"),
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await deleteFuelingEntry(entry.id);
+                setFueling((prev) => prev.filter((item) => item.id !== entry.id));
+              } catch (e: any) {
+                toastError(e?.message ?? t("common.error"));
+              }
+            },
+          },
+        ],
+      );
+    },
+    [t],
+  );
+
   return (
     <HeaderLayout
       loading={loading}
@@ -204,6 +231,7 @@ export function FuelScreen({ route, navigation }: Props) {
                 entryId: entry.id,
               })
             }
+            onDelete={() => handleDeleteFueling(entry)}
           />
         )}
         ListEmptyComponent={<EmptyState body={t("fuelCosts.noFueling")} />}

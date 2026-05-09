@@ -1,4 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Trash2 } from "lucide-react-native";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "../../ThemeProvider";
@@ -14,6 +16,7 @@ type FuelItemProps = {
   cost: number;
   currency: string;
   onPress?: () => void;
+  onDelete?: () => void;
 };
 
 export function FuelItem({
@@ -25,6 +28,7 @@ export function FuelItem({
   cost,
   currency,
   onPress,
+  onDelete,
 }: FuelItemProps) {
   const { i18n } = useTranslation();
   const { theme } = useTheme();
@@ -58,18 +62,36 @@ export function FuelItem({
     </View>
   );
 
-  if (onPress) {
-    return (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
-      >
-        {content}
-      </Pressable>
-    );
-  }
+  const baseContent = onPress ? (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+    >
+      {content}
+    </Pressable>
+  ) : (
+    content
+  );
 
-  return content;
+  if (!onDelete) return baseContent;
+
+  return (
+    <Swipeable
+      rightThreshold={32}
+      renderRightActions={() => (
+        <View style={styles.swipeActionsWrap}>
+          <Pressable
+            onPress={onDelete}
+            style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+          >
+            <Trash2 size={20} color="#000000" />
+          </Pressable>
+        </View>
+      )}
+    >
+      {baseContent}
+    </Swipeable>
+  );
 }
 
 const makeStyles = (theme: AppTheme) =>
@@ -123,5 +145,17 @@ const makeStyles = (theme: AppTheme) =>
       alignItems: "baseline",
       minWidth: 0,
       flexShrink: 1,
+    },
+    swipeActionsWrap: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      marginLeft: theme.spacing.xs,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+    },
+    swipeActionBtn: {
+      width: 72,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });

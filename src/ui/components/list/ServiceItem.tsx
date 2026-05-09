@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Trash2 } from "lucide-react-native";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "../../ThemeProvider";
@@ -18,6 +20,7 @@ type ServiceItemProps = {
   icon?: ReactNode;
   iconBackgroundColor?: string;
   onPress?: () => void;
+  onDelete?: () => void;
 };
 
 export function ServiceItem({
@@ -31,6 +34,7 @@ export function ServiceItem({
   icon,
   iconBackgroundColor,
   onPress,
+  onDelete,
 }: ServiceItemProps) {
   const { i18n } = useTranslation();
   const { theme } = useTheme();
@@ -91,18 +95,36 @@ export function ServiceItem({
     </View>
   );
 
-  if (onPress) {
-    return (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
-      >
-        {content}
-      </Pressable>
-    );
-  }
+  const baseContent = onPress ? (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+    >
+      {content}
+    </Pressable>
+  ) : (
+    content
+  );
 
-  return content;
+  if (!onDelete) return baseContent;
+
+  return (
+    <Swipeable
+      rightThreshold={32}
+      renderRightActions={() => (
+        <View style={styles.swipeActionsWrap}>
+          <Pressable
+            onPress={onDelete}
+            style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+          >
+            <Trash2 size={20} color="#000000" />
+          </Pressable>
+        </View>
+      )}
+    >
+      {baseContent}
+    </Swipeable>
+  );
 }
 
 const makeStyles = (theme: AppTheme) =>
@@ -162,5 +184,17 @@ const makeStyles = (theme: AppTheme) =>
     costCurrency: {
       fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.regular,
+    },
+    swipeActionsWrap: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      marginLeft: theme.spacing.xs,
+      borderRadius: theme.radius.md,
+      overflow: "hidden",
+    },
+    swipeActionBtn: {
+      width: 72,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });
