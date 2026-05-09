@@ -481,6 +481,10 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
   const quickMetrics = useMemo(() => {
     const { fromYmd, toYmd } = quickMetricsWindowYmdBounds();
+    const now = new Date();
+    const oneYearAgo = new Date(now);
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const fromYmdYear = oneYearAgo.toISOString().slice(0, 10);
     const fuelInWindow = fuelingEntries.filter((x) => {
       const d = String(x.date).slice(0, 10);
       return d >= fromYmd && d <= toYmd;
@@ -489,31 +493,45 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       const d = String(x.service_date).slice(0, 10);
       return d >= fromYmd && d <= toYmd;
     });
+    const fuelInYearWindow = fuelingEntries.filter((x) => {
+      const d = String(x.date).slice(0, 10);
+      return d >= fromYmdYear && d <= toYmd;
+    });
+    const serviceInYearWindow = serviceEntries.filter((x) => {
+      const d = String(x.service_date).slice(0, 10);
+      return d >= fromYmdYear && d <= toYmd;
+    });
 
-    const distanceKmTotal = fuelInWindow.reduce(
+    const distanceKmTotalForConsumption = fuelInYearWindow.reduce(
       (sum, x) => sum + Number(x.distance ?? 0),
       0,
     );
-    const totalFuel = fuelInWindow.reduce(
+    const distanceKmTotalForDistance = fuelInWindow.reduce(
+      (sum, x) => sum + Number(x.distance ?? 0),
+      0,
+    );
+    const totalFuel = fuelInYearWindow.reduce(
       (sum, x) => sum + Number(x.fuel_amount ?? 0),
       0,
     );
     const avgConsumptionPer100 =
-      distanceKmTotal > 0 ? (totalFuel / distanceKmTotal) * 100 : Number.NaN;
+      distanceKmTotalForConsumption > 0
+        ? (totalFuel / distanceKmTotalForConsumption) * 100
+        : Number.NaN;
 
-    const fuelCost = fuelInWindow.reduce(
+    const fuelCost = fuelInYearWindow.reduce(
       (sum, x) => sum + Number(x.fuel_cost ?? 0),
       0,
     );
-    const serviceCost = serviceInWindow.reduce(
+    const serviceCost = serviceInYearWindow.reduce(
       (sum, x) => sum + Number(x.cost ?? 0),
       0,
     );
     const totalCost = fuelCost + serviceCost;
 
     const dates: string[] = [];
-    for (const f of fuelInWindow) dates.push(f.date.slice(0, 10));
-    for (const s of serviceInWindow)
+    for (const f of fuelInYearWindow) dates.push(f.date.slice(0, 10));
+    for (const s of serviceInYearWindow)
       dates.push(String(s.service_date).slice(0, 10));
 
     let daysSpan = 1;
@@ -539,11 +557,11 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     });
 
     let distanceNumber = groupThousands(0, 0);
-    if (distanceKmTotal > 0) {
+    if (distanceKmTotalForDistance > 0) {
       const dist =
         distanceUnit === "miles"
-          ? Math.round(distanceKmTotal * 0.621371)
-          : distanceKmTotal;
+          ? Math.round(distanceKmTotalForDistance * 0.621371)
+          : distanceKmTotalForDistance;
       if (dist >= 1000) {
         const thousands = Math.round((dist / 1000) * 10) / 10;
         distanceNumber = fmtOneDecimal.format(thousands);
@@ -564,7 +582,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     const costNumber = groupThousands(costRounded, 0);
     const costShowCurrency = costRounded !== 0;
 
-    const distanceShowUnit = distanceKmTotal > 0;
+    const distanceShowUnit = distanceKmTotalForDistance > 0;
 
     return {
       consumptionPrimary,
