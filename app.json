@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "vehico",
+    "name": "Vericar",
     "slug": "vehico",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -21,9 +21,9 @@
       "icon": "./assets/app-icon.png",
       "bundleIdentifier": "com.ktasoftware.vehico",
       "infoPlist": {
-        "NSCameraUsageDescription": "Vehico needs camera access to capture and upload vehicle photos and attachments.",
-        "NSPhotoLibraryUsageDescription": "Vehico needs photo library access to select and upload vehicle photos and attachments.",
-        "NSPhotoLibraryAddUsageDescription": "Vehico may save exported images to your photo library when you choose to do so.",
+        "NSCameraUsageDescription": "Vericar needs camera access to capture and upload vehicle photos and attachments.",
+        "NSPhotoLibraryUsageDescription": "Vericar needs photo library access to select and upload vehicle photos and attachments.",
+        "NSPhotoLibraryAddUsageDescription": "Vericar may save exported images to your photo library when you choose to do so.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },

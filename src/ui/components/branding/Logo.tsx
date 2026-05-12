@@ -12,9 +12,6 @@ import Svg, {
 
 type Props = { width?: number; height?: number };
 
-/**
- * Vehico logo (SVG from assets/logo.svg). Use for hero, onboarding, etc.
- */
 export function Logo({ width = 64, height = 64 }: Props) {
   return (
     <Svg width={width} height={height} viewBox="0 0 64 64" fill="none">
@@ -46,12 +43,7 @@ export function Logo({ width = 64, height = 64 }: Props) {
         </ClipPath>
       </Defs>
       <G clipPath="url(#clip0_5_62)">
-        <Circle
-          cx="46"
-          cy="21"
-          r="9"
-          fill="url(#paint0_linear_5_62)"
-        />
+        <Circle cx="46" cy="21" r="9" fill="url(#paint0_linear_5_62)" />
         <Path
           d="M19 21L32 48"
           stroke="url(#paint1_linear_5_62)"

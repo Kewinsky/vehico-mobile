@@ -1,6 +1,6 @@
 export const pl = {
   common: {
-    appName: "Vehico",
+    appName: "{{appName}}",
     continue: "Dalej",
     back: "Wstecz",
     next: "Dalej",
@@ -131,8 +131,8 @@ export const pl = {
   },
   onboarding: {
     welcome: {
-      title: "Witaj w Vehico",
-      heroTitle: "Witaj w Vehico!",
+      title: "Witaj w {{appName}}",
+      heroTitle: "Witaj w {{appName}}!",
       heroSubtitle: "Dodajmy Twój pierwszy pojazd, zajmie to zaledwie minutę.",
       subtitle:
         "Ustawmy Twój pierwszy pojazd. Zajmie to około minutę – opcjonalne pola możesz pominąć.",
@@ -566,7 +566,7 @@ export const pl = {
     oneTime: "Jednorazowy zakup",
     perMonth: "na miesiąc",
     perYear: "na rok",
-    unlockPremium: "Premium Vehico",
+    unlockPremium: "Premium {{appName}}",
     heroSubtitle: "Zapomnij o limitach. Dodawaj i generuj ile chcesz.",
     scrollForPricingHint: "Przewiń w dół, aby zobaczyć ceny",
     packsHeadline: "Kup paczki",
@@ -1070,7 +1070,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
   export: {
     title: "Eksport danych",
     subtitle: "Eksportuj dane pojazdu w różnych formatach.",
-    shareTitle: "Eksport Vehico",
+    shareTitle: "Eksport {{appName}}",
     jsonButton: "Eksport JSON (Wszystkie dane)",
     jsonDescription:
       "Eksportuje pojazd, wpisy serwisowe, tankowania i przypomnienia",
@@ -1279,19 +1279,19 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     lastUpdated: "Ostatnia aktualizacja",
     section1Title: "1. Akceptacja warunków",
     section1Content:
-      "Korzystając z Vehico, akceptujesz i zgadzasz się przestrzegać warunków niniejszej umowy. Jeśli nie zgadzasz się z tymi warunkami, prosimy nie korzystać z naszej usługi.",
+      "Korzystając z {{appName}}, akceptujesz i zgadzasz się przestrzegać warunków niniejszej umowy. Jeśli nie zgadzasz się z tymi warunkami, prosimy nie korzystać z naszej usługi.",
     section2Title: "2. Licencja użytkowania",
     section2Content:
-      "Udzielamy pozwolenia na tymczasowe korzystanie z Vehico wyłącznie do osobistego, niekomercyjnego przeglądania. Jest to udzielenie licencji, a nie przeniesienie tytułu własności, i w ramach tej licencji nie możesz: modyfikować ani kopiować materiałów; używać materiałów do celów komercyjnych; próbować dekompilować lub przeprowadzać inżynierię wsteczną oprogramowania; usuwać jakichkolwiek oznaczeń praw autorskich lub innych zastrzeżeń własnościowych z materiałów.",
+      "Udzielamy pozwolenia na tymczasowe korzystanie z {{appName}} wyłącznie do osobistego, niekomercyjnego przeglądania. Jest to udzielenie licencji, a nie przeniesienie tytułu własności, i w ramach tej licencji nie możesz: modyfikować ani kopiować materiałów; używać materiałów do celów komercyjnych; próbować dekompilować lub przeprowadzać inżynierię wsteczną oprogramowania; usuwać jakichkolwiek oznaczeń praw autorskich lub innych zastrzeżeń własnościowych z materiałów.",
     section3Title: "3. Konto użytkownika",
     section3Content:
       "Jesteś odpowiedzialny za zachowanie poufności swojego konta i hasła. Zgadzasz się przyjąć odpowiedzialność za wszystkie działania, które mają miejsce pod Twoim kontem. Musisz natychmiast powiadomić nas o jakimkolwiek nieautoryzowanym użyciu Twojego konta.",
     section4Title: "4. Dane i prywatność",
     section4Content:
-      "Twoje korzystanie z Vehico jest również regulowane przez naszą Politykę Prywatności. Prosimy o zapoznanie się z naszą Polityką Prywatności, aby zrozumieć nasze praktyki dotyczące gromadzenia i wykorzystywania Twoich danych osobowych.",
+      "Twoje korzystanie z {{appName}} jest również regulowane przez naszą Politykę Prywatności. Prosimy o zapoznanie się z naszą Polityką Prywatności, aby zrozumieć nasze praktyki dotyczące gromadzenia i wykorzystywania Twoich danych osobowych.",
     section5Title: "5. Ograniczenie odpowiedzialności",
     section5Content:
-      "W żadnym wypadku Vehico ani jego dostawcy nie ponoszą odpowiedzialności za jakiekolwiek szkody (w tym, bez ograniczeń, szkody związane z utratą danych lub zysków, lub z powodu przerwy w działalności) wynikające z użytkowania lub niemożności użytkowania Vehico, nawet jeśli Vehico lub upoważniony przedstawiciel Vehico został powiadomiony ustnie lub na piśmie o możliwości wystąpienia takich szkód.",
+      "W żadnym wypadku {{appName}} ani jej dostawcy nie ponoszą odpowiedzialności za jakiekolwiek szkody (w tym, bez ograniczeń, szkody związane z utratą danych lub zysków, lub z powodu przerwy w działalności) wynikające z użytkowania lub niemożności użytkowania {{appName}}, nawet jeśli {{appName}} lub upoważniony przedstawiciel {{appName}} został powiadomiony ustnie lub na piśmie o możliwości wystąpienia takich szkód.",
   },
   privacy: {
     title: "Polityka prywatności",

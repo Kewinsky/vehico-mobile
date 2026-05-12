@@ -8,7 +8,6 @@ import { hexToRgba } from "../common/ChoiceChip";
 
 type HeroIconName = React.ComponentProps<typeof Ionicons>["name"];
 
-/** Font family for app name "Vehico". Load via useFonts in Root. */
 export const BRAND_FONT_FAMILY = "ChironGoRoundTC";
 
 type Props = {

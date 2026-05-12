@@ -1,4 +1,3 @@
--- Seed data script for Vehico
 -- Usage: Replace 'YOUR_VEHICLE_ID_HERE' with your actual vehicle UUID before running
 
 -- ================

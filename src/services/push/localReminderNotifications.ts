@@ -1,5 +1,6 @@
 import * as Notifications from "expo-notifications";
 
+import { APP_DISPLAY_NAME } from "../../config/appBrand";
 import { i18n } from "../../i18n/i18n";
 import { formatLongMonthDisplayDate } from "../../utils/dateFormatting";
 
@@ -54,7 +55,7 @@ export async function scheduleLocalReminder(
 
   await cancelLocalReminder(reminder.id);
 
-  const title = "Vehico";
+  const title = APP_DISPLAY_NAME;
   const lang = i18n.language ?? "en";
   const reminderTitle =
     (reminder.title ?? "").trim() ||

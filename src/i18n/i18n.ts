@@ -2,6 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import * as Localization from 'expo-localization';
 
+import { APP_DISPLAY_NAME } from '../config/appBrand';
 import { en } from './resources/en';
 import { pl } from './resources/pl';
 
@@ -33,6 +34,9 @@ i18n.use(initReactI18next).init({
   },
   interpolation: {
     escapeValue: false,
+    defaultVariables: {
+      appName: APP_DISPLAY_NAME,
+    },
   },
 });
 

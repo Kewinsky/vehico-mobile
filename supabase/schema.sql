@@ -1,4 +1,3 @@
--- Vehico (MVP) schema for hosted Supabase
 -- Run this in Supabase Dashboard → SQL Editor to set up the database from scratch.
 
 -- ================
@@ -1462,7 +1461,6 @@ grant execute on function public.update_report_temp_photos(uuid, jsonb) to authe
 -- - images (must be PUBLIC) - vehicle photos only
 -- - report-photos (must be PUBLIC) - temporary photos added only to reports
 --
--- Vehico convention:
 -- - Vehicle photos: <vehicle_id>/<...>
 -- - Report photos: report-photos/<report_id>/<timestamp>-<randomId>.jpg
 -- - Documents and attachments: stored locally on device

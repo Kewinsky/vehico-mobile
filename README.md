@@ -1,4 +1,4 @@
-# Vehico
+# Vericar
 
 A React Native mobile application for tracking vehicle maintenance, fuel consumption, expenses, and service history. Built with Expo, TypeScript, and Supabase.
 

@@ -1,6 +1,6 @@
 export const en = {
   common: {
-    appName: "Vehico",
+    appName: "{{appName}}",
     continue: "Continue",
     back: "Back",
     next: "Next",
@@ -130,8 +130,8 @@ export const en = {
   },
   onboarding: {
     welcome: {
-      title: "Welcome to Vehico",
-      heroTitle: "Welcome to Vehico!",
+      title: "Welcome to {{appName}}",
+      heroTitle: "Welcome to {{appName}}!",
       heroSubtitle: "Let's add your first vehicle. It will only take a minute.",
       subtitle:
         "Let's set up your first vehicle. It takes about a minute – you can skip optional fields.",
@@ -561,7 +561,7 @@ export const en = {
     oneTime: "One-time purchase",
     perMonth: "per month",
     perYear: "per year",
-    unlockPremium: "Premium Vehico",
+    unlockPremium: "Premium {{appName}}",
     heroSubtitle: "Forget the limits. Add and generate as much as you want.",
     scrollForPricingHint: "Scroll down for pricing",
     packsHeadline: "Buy Packs",
@@ -1065,7 +1065,7 @@ Detailed report available at: https://report.vehico.app/report/example`,
   export: {
     title: "Export Data",
     subtitle: "Export your vehicle data in different formats.",
-    shareTitle: "Vehico export",
+    shareTitle: "{{appName}} export",
     jsonButton: "Export JSON (All Data)",
     jsonDescription:
       "Exports vehicle, service entries, fueling entries, and reminders",
@@ -1273,19 +1273,19 @@ Detailed report available at: https://report.vehico.app/report/example`,
     lastUpdated: "Last updated",
     section1Title: "1. Acceptance of Terms",
     section1Content:
-      "By accessing and using Vehico, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to these terms, please do not use our service.",
+      "By accessing and using {{appName}}, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to these terms, please do not use our service.",
     section2Title: "2. Use License",
     section2Content:
-      "Permission is granted to temporarily use Vehico for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not: modify or copy the materials; use the materials for any commercial purpose; attempt to decompile or reverse engineer any software; remove any copyright or other proprietary notations from the materials.",
+      "Permission is granted to temporarily use {{appName}} for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not: modify or copy the materials; use the materials for any commercial purpose; attempt to decompile or reverse engineer any software; remove any copyright or other proprietary notations from the materials.",
     section3Title: "3. User Account",
     section3Content:
       "You are responsible for maintaining the confidentiality of your account and password. You agree to accept responsibility for all activities that occur under your account. You must notify us immediately of any unauthorized use of your account.",
     section4Title: "4. Data and Privacy",
     section4Content:
-      "Your use of Vehico is also governed by our Privacy Policy. Please review our Privacy Policy to understand our practices regarding the collection and use of your personal information.",
+      "Your use of {{appName}} is also governed by our Privacy Policy. Please review our Privacy Policy to understand our practices regarding the collection and use of your personal information.",
     section5Title: "5. Limitation of Liability",
     section5Content:
-      "In no event shall Vehico or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use Vehico, even if Vehico or a Vehico authorized representative has been notified orally or in writing of the possibility of such damage.",
+      "In no event shall {{appName}} or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use {{appName}}, even if {{appName}} or a {{appName}} authorized representative has been notified orally or in writing of the possibility of such damage.",
   },
   privacy: {
     title: "Privacy Policy",
