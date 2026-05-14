@@ -206,9 +206,10 @@ export function AuthScreen({ navigation, route }: Props) {
     return signInWithOAuth("google");
   }
 
-  async function signInWithApple() {
-    return signInWithOAuth("apple");
-  }
+  // Apple sign-in temporarily disabled — uncomment button + this when OAuth is ready.
+  // async function signInWithApple() {
+  //   return signInWithOAuth("apple");
+  // }
 
   async function signInWithTestAccount() {
     return signInWithTestCredentials({
@@ -430,6 +431,7 @@ export function AuthScreen({ navigation, route }: Props) {
           {/* Social Auth Section */}
           <View style={styles.socialSection}>
             <View style={styles.socialButtons}>
+              {/* Apple sign-in temporarily disabled — uncomment when OAuth is ready.
               <Pressable
                 onPress={signInWithApple}
                 disabled={!!isSocialLoading}
@@ -454,6 +456,7 @@ export function AuthScreen({ navigation, route }: Props) {
                     : t("auth.apple")}
                 </Text>
               </Pressable>
+              */}
               <Pressable
                 onPress={signInWithGoogle}
                 disabled={!!isSocialLoading}
