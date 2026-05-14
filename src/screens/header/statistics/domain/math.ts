@@ -93,14 +93,23 @@ export function fmtPct(pct: number): string {
   return `${Math.round(pct)}%`;
 }
 
-export function fmtNumber(amount: number, digits = 1): string {
+export function fmtNumber(
+  amount: number,
+  digits = 1,
+  language?: string | null,
+): string {
   if (!Number.isFinite(amount)) return "—";
-  return groupThousands(amount, digits);
+  return groupThousands(amount, digits, language);
 }
 
-export function fmtMonths(value: number): string {
+export function fmtMonths(
+  value: number,
+  language?: string | null,
+): string {
   if (!Number.isFinite(value)) return "—";
-  return Number.isInteger(value) ? value.toString() : value.toFixed(1);
+  return Number.isInteger(value)
+    ? groupThousands(value, 0, language)
+    : groupThousands(value, 1, language);
 }
 
 export function fmtChartNumber(value: number): string {

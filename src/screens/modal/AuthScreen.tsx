@@ -16,6 +16,7 @@ import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { ENV } from "../../config/env";
+import { APP_DISPLAY_NAME } from "../../config/appBrand";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
 import { Logo } from "../../ui/components/branding/Logo";
@@ -354,14 +355,17 @@ export function AuthScreen({ navigation, route }: Props) {
         <NativeHeaderScrollView>
           <View style={styles.brandHeader}>
             <Logo width={72} height={72} />
-            <Text style={styles.brandMotto}>
-              <Text style={{ color: theme.colors.fg }}>
-                {t("auth.brandMottoLine1")}
-              </Text>
-              {"\n"}
-              <Text style={{ color: theme.colors.accent }}>
-                {t("auth.brandMottoLine2")}
-              </Text>
+            <Text
+              style={[styles.brandName, { color: theme.colors.accent }]}
+              numberOfLines={1}
+            >
+              {APP_DISPLAY_NAME}
+            </Text>
+            <Text
+              style={[styles.brandTagline, { color: theme.colors.fg }]}
+              numberOfLines={2}
+            >
+              {t("auth.brandMotto")}
             </Text>
           </View>
 
@@ -582,12 +586,19 @@ const makeStyles = (theme: any) =>
       marginTop: theme.spacing.lg,
       marginBottom: theme.spacing.xl,
     },
-    brandMotto: {
+    brandName: {
       fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,
       fontFamily: BRAND_FONT_FAMILY,
       textAlign: "center",
       lineHeight: theme.typography.largeTitle + 6,
+    },
+    brandTagline: {
+      fontSize: theme.typography.title,
+      fontWeight: theme.typography.fontWeight.semibold,
+      textAlign: "center",
+      lineHeight: theme.typography.title + 6,
+      paddingHorizontal: theme.spacing.sm,
     },
     magicLinkContainer: {
       flex: 1,

@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Trash2, Undo2 } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
+import { useTranslation } from "react-i18next";
 
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
@@ -44,6 +45,7 @@ export function ReminderItem({
   onToggleDone,
   onDelete,
 }: ReminderItemProps) {
+  const { i18n } = useTranslation();
   const { theme } = useTheme();
   const styles = makeStyles(theme);
   const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
@@ -97,7 +99,7 @@ export function ReminderItem({
 
   const remainingDistanceText =
     mileageRemaining != null
-      ? `${groupThousands(mileageRemaining)} ${distanceUnitLabel}`
+      ? `${groupThousands(mileageRemaining, 0, i18n.language)} ${distanceUnitLabel}`
       : "—";
   const estimatedTimeText =
     dateRemainingDays != null ? `${dateRemainingDays}d` : "—";

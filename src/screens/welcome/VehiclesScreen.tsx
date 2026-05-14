@@ -28,6 +28,7 @@ import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { normalizeDisplayName } from "../../utils/displayName";
+import { groupThousands } from "../../utils/numberFormatting";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { WelcomeHeaderLayout } from "../../layouts";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
@@ -177,7 +178,7 @@ function VehicleCardImage({
         >
           {item.production_year}
           {item.power_hp
-            ? ` · ${item.power_hp}${i18n.language === "pl" ? "KM" : "HP"}`
+            ? ` · ${item.power_hp} ${i18n.language === "pl" ? "KM" : "HP"}`
             : ""}
           {item.mileage ? ` · ${formatMileage(item.mileage)}` : ""}
         </Text>
@@ -218,7 +219,10 @@ function getFirstName(fullName: string | null | undefined): string {
   return parts[0] ?? "";
 }
 
-function pickDailyGreetingVariant(seedInput: string, variants: string[]): string {
+function pickDailyGreetingVariant(
+  seedInput: string,
+  variants: string[],
+): string {
   if (variants.length === 0) return "";
   let hash = 0;
   for (let i = 0; i < seedInput.length; i += 1) {
@@ -307,7 +311,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
     if (!mileage) return "";
     const value =
       distanceUnit === "miles" ? Math.round(mileage * 0.621371) : mileage;
-    return `${value.toLocaleString()} ${distanceUnitLabel}`;
+    return `${groupThousands(value, 0, i18n.language)} ${distanceUnitLabel}`;
   };
 
   const load = useCallback(

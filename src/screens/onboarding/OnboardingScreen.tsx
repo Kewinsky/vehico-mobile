@@ -41,6 +41,7 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { supabase } from "../../services/supabase/client";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
+import { groupThousands } from "../../utils/numberFormatting";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -60,7 +61,7 @@ const LAST_STEP_INDEX = TOTAL_STEPS - 1;
 const PROGRESS_STEPS = TOTAL_STEPS - 1; // don't count welcome step
 
 export function OnboardingScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme, mode } = useTheme();
   const insets = useSafeAreaInsets();
   const { user, signOut } = useAuth();
@@ -888,7 +889,7 @@ export function OnboardingScreen({ navigation }: Props) {
                           ]}
                         >
                           {mileage.trim().length
-                            ? `${Number(mileage.trim()).toLocaleString()} ${distanceUnitLabel}`
+                            ? `${groupThousands(Number(mileage.trim()), 0, i18n.language)} ${distanceUnitLabel}`
                             : "—"}
                         </Text>
                       </View>

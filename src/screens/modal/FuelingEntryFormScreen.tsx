@@ -217,6 +217,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         onPress: onSave,
         label: t("common.done"),
         disabled: !canSave || saving,
+        loading: saving,
       }}
       footer={
         entryId ? (

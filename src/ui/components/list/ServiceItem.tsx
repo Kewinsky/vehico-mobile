@@ -41,13 +41,26 @@ export function ServiceItem({
   const styles = makeStyles(theme);
   const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
 
-  const formattedDate = formatShortDisplayDate(date, i18n.language);
+  const formattedDate =
+    date != null && String(date).trim().length > 0
+      ? formatShortDisplayDate(date, i18n.language)
+      : null;
   const mileageText =
     mileage != null
-      ? `${groupThousands(mileage)} ${distanceUnitLabel}`
-      : "—";
-  const costMain = cost != null ? groupThousands(cost) : "—";
+      ? `${groupThousands(mileage, 0, i18n.language)} ${distanceUnitLabel}`
+      : null;
+  const costMain =
+    cost != null ? groupThousands(cost, 0, i18n.language) : "—";
   const hasCost = cost != null;
+
+  const metaParts: string[] = [];
+  if (formattedDate != null && formattedDate !== "—") {
+    metaParts.push(formattedDate);
+  }
+  if (mileageText != null) {
+    metaParts.push(mileageText);
+  }
+  const metaLine = metaParts.join(" · ");
 
   const content = (
     <View style={styles.card}>
@@ -72,12 +85,14 @@ export function ServiceItem({
           >
             {title}
           </Text>
-          <Text
-            style={[styles.meta, { color: theme.colors.muted }]}
-            numberOfLines={1}
-          >
-            {formattedDate} · {mileageText}
-          </Text>
+          {metaLine.length > 0 ? (
+            <Text
+              style={[styles.meta, { color: theme.colors.muted }]}
+              numberOfLines={1}
+            >
+              {metaLine}
+            </Text>
+          ) : null}
         </View>
 
         <View style={styles.costWrap}>

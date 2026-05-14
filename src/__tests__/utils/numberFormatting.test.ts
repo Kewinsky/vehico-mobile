@@ -14,6 +14,7 @@ describe("numberFormatting", () => {
   it("groupThousands formats integer and decimals", () => {
     expect(groupThousands(1234567)).toBe("1 234 567");
     expect(groupThousands(1234.56, 2)).toBe("1 234.56");
+    expect(groupThousands(1234.56, 2, "pl")).toBe("1 234,56");
   });
 
   it("groupThousands handles negative and non-finite", () => {

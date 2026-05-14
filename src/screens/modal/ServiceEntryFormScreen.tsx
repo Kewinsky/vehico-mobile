@@ -618,6 +618,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         onPress: onSave,
         label: t("common.done"),
         disabled: !canSave || saving || uploading,
+        loading: saving || uploading,
       }}
       footer={
         entryId ? (

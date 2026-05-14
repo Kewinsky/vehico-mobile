@@ -8,7 +8,15 @@ export function localeCodeFromLanguage(
   return normalizeLanguage(language).startsWith("pl") ? "pl-PL" : "en-GB";
 }
 
-export function groupThousands(value: number, fractionDigits = 0): string {
+function decimalSeparator(language?: string | null): string {
+  return normalizeLanguage(language).startsWith("pl") ? "," : ".";
+}
+
+export function groupThousands(
+  value: number,
+  fractionDigits = 0,
+  language?: string | null,
+): string {
   if (!Number.isFinite(value)) return "—";
   const sign = value < 0 ? "-" : "";
   const abs = Math.abs(value);
@@ -19,5 +27,6 @@ export function groupThousands(value: number, fractionDigits = 0): string {
     groupSeparator,
   );
   if (!fractionPart) return `${sign}${groupedInteger}`;
-  return `${sign}${groupedInteger}.${fractionPart}`;
+  const decSep = decimalSeparator(language);
+  return `${sign}${groupedInteger}${decSep}${fractionPart}`;
 }

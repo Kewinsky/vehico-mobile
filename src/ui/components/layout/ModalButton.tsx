@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Text } from "react-native";
+import { ActivityIndicator, Text } from "react-native";
 import { HeaderButton } from "@react-navigation/elements";
 import { Check, X } from "lucide-react-native";
 
@@ -10,6 +10,7 @@ type ModalButtonProps = {
   disabled?: boolean;
   variant?: "cancel" | "done";
   children?: ReactNode;
+  loading?: boolean;
 };
 
 export function ModalButton({
@@ -17,6 +18,7 @@ export function ModalButton({
   disabled = false,
   variant,
   children,
+  loading = false,
 }: ModalButtonProps) {
   const { theme } = useTheme();
   const iconSize = 20;
@@ -40,11 +42,15 @@ export function ModalButton({
     return (
       <HeaderButton
         onPress={onPress}
-        disabled={disabled}
+        disabled={disabled || loading}
         accessibilityLabel={a11yLabel}
         tintColor={theme.colors.accent}
       >
-        <Check size={iconSize} color={theme.colors.accent} />
+        {loading ? (
+          <ActivityIndicator size="small" color={theme.colors.accent} />
+        ) : (
+          <Check size={iconSize} color={theme.colors.accent} />
+        )}
       </HeaderButton>
     );
   }

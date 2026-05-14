@@ -42,6 +42,7 @@ import {
   formatDateDisplay,
   formatShortDisplayDate,
 } from "../../utils/dateFormatting";
+import { groupThousands } from "../../utils/numberFormatting";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportSummary">;
@@ -351,14 +352,16 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                   const licenseVal = val(vehicle.license_plate, dash);
                   const mileageVal =
                     vehicle.mileage != null
-                      ? `${vehicle.mileage.toLocaleString()} ${distanceUnitLabel}`
+                      ? `${groupThousands(vehicle.mileage, 0, i18n.language)} ${distanceUnitLabel}`
                       : dash;
                   const engineVal =
                     vehicle.engine_capacity != null
-                      ? `${vehicle.engine_capacity} cm³`
+                      ? `${groupThousands(vehicle.engine_capacity, 0, i18n.language)} cm³`
                       : dash;
                   const powerVal =
-                    vehicle.power_hp != null ? `${vehicle.power_hp} HP` : dash;
+                    vehicle.power_hp != null
+                      ? `${groupThousands(vehicle.power_hp, 0, i18n.language)} ${t("vehicleForm.powerOutputUnit")}`
+                      : dash;
                   const transVal =
                     vehicle.transmission != null
                       ? vehicle.transmission === "manual"

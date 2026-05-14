@@ -118,8 +118,7 @@ function StatTile({
   accessibilityLabel?: string;
 }) {
   const defaultA11yLabel =
-    accessibilityLabel ??
-    (typeof label === "string" ? label : undefined);
+    accessibilityLabel ?? (typeof label === "string" ? label : undefined);
 
   if (layout === "iconLeading") {
     const valueA11y = `${valueMain}${
@@ -144,7 +143,8 @@ function StatTile({
               <AnimatedRollingNumber
                 value={valueMainRollingValue}
                 toFixed={
-                  valueMainRollingToFixed ?? (valueMainRollingValue >= 10 ? 0 : 1)
+                  valueMainRollingToFixed ??
+                  (valueMainRollingValue >= 10 ? 0 : 1)
                 }
                 useGrouping
                 locale={valueMainRollingLocale}
@@ -1263,7 +1263,6 @@ export function StatisticsScreen(props: Props) {
     };
   }, [filtered.service, filtered.fueling]);
 
-
   const expensesByCategory = useMemo(() => {
     const acc: Record<string, number> = {};
     const add = (key: string, amount: number) => {
@@ -1470,16 +1469,6 @@ export function StatisticsScreen(props: Props) {
     lastOilChange?.service_date ?? null,
     i18n.language,
   );
-  const lastOilChangeMileageLabel =
-    lastOilChange?.mileage != null
-      ? `${fmtNumber(lastOilChange.mileage, 0)} ${distanceUnitLabel}`
-      : "—";
-  const oilIntervalAvgKmLabel = Number.isFinite(oilIntervals.avgKm)
-    ? `${fmtNumber(oilIntervals.avgKm, 0)} ${distanceUnitLabel}`
-    : "—";
-  const oilIntervalAvgMonthsLabel = Number.isFinite(oilIntervals.avgMonths)
-    ? `${fmtMonths(oilIntervals.avgMonths)} ${t("dashboard.stats.months")}`
-    : "—";
   const oilLife = useMemo(() => {
     if (!lastOilChange?.service_date) return null;
     const lastDate = parseDateLoose(lastOilChange.service_date);
@@ -1754,7 +1743,11 @@ export function StatisticsScreen(props: Props) {
 
   const formatExpenseAmount = (value: number) =>
     value > 0
-      ? groupThousands(value >= 10 ? Math.round(value) : value, value >= 10 ? 0 : 1)
+      ? groupThousands(
+          value >= 10 ? Math.round(value) : value,
+          value >= 10 ? 0 : 1,
+          i18n.language,
+        )
       : "—";
   const totalMain = formatExpenseAmount(totals.total);
   const fuelMain = formatExpenseAmount(totals.fuelCost);
@@ -1803,7 +1796,10 @@ export function StatisticsScreen(props: Props) {
                     useGrouping
                     locale={rollingLocale}
                     spinningAnimationConfig={{ duration: 420 }}
-                    textStyle={[styles.expensesHeroValue, { color: theme.colors.fg }]}
+                    textStyle={[
+                      styles.expensesHeroValue,
+                      { color: theme.colors.fg },
+                    ]}
                   />
                 </View>
               ) : (
@@ -1834,11 +1830,11 @@ export function StatisticsScreen(props: Props) {
             styles={styles}
             layout="iconLeading"
             accessibilityLabel={t("dashboard.stats.categories.fuel")}
-            iconComponent={
-              <Fuel size={32} color={theme.colors.accent} />
-            }
+            iconComponent={<Fuel size={32} color={theme.colors.accent} />}
             valueMain={fuelMain}
-            valueMainRollingValue={totals.fuelCost > 0 ? totals.fuelCost : undefined}
+            valueMainRollingValue={
+              totals.fuelCost > 0 ? totals.fuelCost : undefined
+            }
             valueMainRollingLocale={rollingLocale}
             valueSuffix={fuelMain !== "—" ? currency : undefined}
           />
@@ -1937,7 +1933,7 @@ export function StatisticsScreen(props: Props) {
             label={t("dashboard.stats.metrics.avgFuelConsumption")}
             valueMain={
               Number.isFinite(totals.avgConsumptionPer100)
-                ? fmtNumber(totals.avgConsumptionPer100, 1)
+                ? fmtNumber(totals.avgConsumptionPer100, 1, i18n.language)
                 : "—"
             }
             valueSuffix={
@@ -1959,7 +1955,7 @@ export function StatisticsScreen(props: Props) {
             label={t("dashboard.stats.avgCostPerUnit", { unit: fuelUnitShort })}
             valueMain={
               Number.isFinite(totals.avgCostPerLiter)
-                ? fmtNumber(totals.avgCostPerLiter, 2)
+                ? fmtNumber(totals.avgCostPerLiter, 2, i18n.language)
                 : "—"
             }
             valueSuffix={
@@ -2000,7 +1996,9 @@ export function StatisticsScreen(props: Props) {
             styles={styles}
             label={t("dashboard.stats.metrics.totalDistance")}
             valueMain={
-              fuelStatsDistance != null ? fmtNumber(fuelStatsDistance, 0) : "—"
+              fuelStatsDistance != null
+                ? fmtNumber(fuelStatsDistance, 0, i18n.language)
+                : "—"
             }
             valueSuffix={
               fuelStatsDistance != null ? distanceUnitLabel : undefined
@@ -2361,7 +2359,7 @@ export function StatisticsScreen(props: Props) {
               oilLastChangeShowDate
                 ? lastOilChangeDateLabel
                 : lastOilChange?.mileage != null
-                  ? fmtNumber(lastOilChange.mileage, 0)
+                  ? fmtNumber(lastOilChange.mileage, 0, i18n.language)
                   : "—"
             }
             valueSuffix={
@@ -2379,10 +2377,10 @@ export function StatisticsScreen(props: Props) {
             valueMain={
               oilAvgIntervalShowMonths
                 ? Number.isFinite(oilIntervals.avgMonths)
-                  ? fmtMonths(oilIntervals.avgMonths)
+                  ? fmtMonths(oilIntervals.avgMonths, i18n.language)
                   : "—"
                 : Number.isFinite(oilIntervals.avgKm)
-                  ? fmtNumber(oilIntervals.avgKm, 0)
+                  ? fmtNumber(oilIntervals.avgKm, 0, i18n.language)
                   : "—"
             }
             valueSuffix={
@@ -2421,7 +2419,7 @@ export function StatisticsScreen(props: Props) {
                   style={[styles.oilLifeMainValue, { color: theme.colors.fg }]}
                 >
                   {oilLife.remainingKm != null
-                    ? `${groupThousands(oilLife.remainingKm, 0)} ${distanceUnitLabel}`
+                    ? `${groupThousands(oilLife.remainingKm, 0, i18n.language)} ${distanceUnitLabel}`
                     : `${oilLife.remainingDays}d`}
                 </Text>
               </View>

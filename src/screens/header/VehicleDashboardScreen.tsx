@@ -108,10 +108,7 @@ import { StatisticsScreen } from "./StatisticsScreen";
 import { formatRelativeTimePast } from "../../utils/formatRelativeTimePast";
 import { isNonNegativeNumber } from "../../utils/validation";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
-import {
-  groupThousands,
-  localeCodeFromLanguage,
-} from "../../utils/numberFormatting";
+import { groupThousands } from "../../utils/numberFormatting";
 import { ButtonsPage } from "./vehicleDashboard/pages/ButtonsPage";
 import {
   formatTermsValue,
@@ -550,13 +547,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
     const consumptionUnitLine = `${fuelUnitShort}/100 ${distanceUnitLabel}`;
 
-    const locale = localeCodeFromLanguage(i18n.language);
-    const fmtOneDecimal = new Intl.NumberFormat(locale, {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    });
-
-    let distanceNumber = groupThousands(0, 0);
+    let distanceNumber = groupThousands(0, 0, i18n.language);
     if (distanceKmTotalForDistance > 0) {
       const dist =
         distanceUnit === "miles"
@@ -564,22 +555,22 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           : distanceKmTotalForDistance;
       if (dist >= 1000) {
         const thousands = Math.round((dist / 1000) * 10) / 10;
-        distanceNumber = fmtOneDecimal.format(thousands);
+        distanceNumber = groupThousands(thousands, 1, i18n.language);
       } else {
-        distanceNumber = groupThousands(dist, 0);
+        distanceNumber = groupThousands(dist, 0, i18n.language);
       }
     }
 
     const consumptionSecondary = consumptionUnitLine;
     const consumptionPrimary = Number.isFinite(avgConsumptionPer100)
-      ? groupThousands(avgConsumptionPer100, 1)
-      : groupThousands(0, 0);
+      ? groupThousands(avgConsumptionPer100, 1, i18n.language)
+      : groupThousands(0, 0, i18n.language);
 
     const costRounded =
       dates.length > 0 && Number.isFinite(costPerDay)
         ? Math.round(costPerDay)
         : 0;
-    const costNumber = groupThousands(costRounded, 0);
+    const costNumber = groupThousands(costRounded, 0, i18n.language);
     const costShowCurrency = costRounded !== 0;
 
     const distanceShowUnit = distanceKmTotalForDistance > 0;
@@ -1078,14 +1069,10 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               <View style={styles.detailsRow}>
                 <DetailItem
                   icon={<MaterialCommunityIcons name="progress-clock" size={detailIconSize} color={theme.colors.accent} />}
-                  label={
-                    i18n.language?.toLowerCase().startsWith("pl")
-                      ? "Poczt. przebieg"
-                      : t("vehicleForm.initialMileageLabel")
-                  }
+                  label={t("vehicleForm.initialMileageLabel")}
                   value={
                     vehicle?.initial_mileage != null
-                      ? `${groupThousands(vehicle.initial_mileage)} ${distanceUnitLabel}`
+                      ? `${groupThousands(vehicle.initial_mileage, 0, i18n.language)} ${distanceUnitLabel}`
                       : "—"
                   }
                 />
@@ -1094,7 +1081,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   label={t("vehicleForm.mileageLabel")}
                   value={
                     vehicle?.mileage != null
-                      ? `${groupThousands(vehicle.mileage)} ${distanceUnitLabel}`
+                      ? `${groupThousands(vehicle.mileage, 0, i18n.language)} ${distanceUnitLabel}`
                       : "—"
                   }
                 />
@@ -1102,17 +1089,21 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               <View style={styles.detailsRow}>
                 <DetailItem
                   icon={<MaterialCommunityIcons name="engine" size={detailIconSize} color={theme.colors.accent} />}
-                  label={
-                    i18n.language?.toLowerCase().startsWith("pl")
-                      ? "Poj. silnika"
-                      : t("vehicleForm.engineCapacityLabel")
+                  label={t("vehicleForm.engineCapacityLabel")}
+                  value={
+                    vehicle?.engine_capacity
+                      ? `${groupThousands(vehicle.engine_capacity, 0, i18n.language)} cm³`
+                      : "—"
                   }
-                  value={vehicle?.engine_capacity ? `${vehicle.engine_capacity} cm³` : "—"}
                 />
                 <DetailItem
                   icon={<Ionicons name="flash-outline" size={detailIconSize} color={theme.colors.accent} />}
                   label={t("vehicleForm.powerHpLabel")}
-                  value={vehicle?.power_hp ? `${vehicle.power_hp} HP` : "—"}
+                  value={
+                    vehicle?.power_hp
+                      ? `${groupThousands(vehicle.power_hp, 0, i18n.language)} ${t("vehicleForm.powerOutputUnit")}`
+                      : "—"
+                  }
                 />
               </View>
               <View style={styles.detailsRow}>

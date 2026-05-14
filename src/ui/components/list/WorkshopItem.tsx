@@ -172,30 +172,32 @@ export function WorkshopItem({
   function renderRightActions() {
     return (
       <View style={styles.swipeActionsWrap}>
-        <Pressable
-          disabled={!canNavigate}
-          onPress={() => void openNavigation()}
-          accessibilityLabel={navigateLabel}
-          style={({ pressed }) => [
-            styles.swipeActionBtn,
-            styles.swipeNavigateAction,
-            { opacity: !canNavigate ? 0.5 : pressed ? 0.85 : 1 },
-          ]}
-        >
-          <Navigation size={20} color="#000000" />
-        </Pressable>
-        <Pressable
-          disabled={!canCall}
-          onPress={() => void placeCall()}
-          accessibilityLabel={callLabel}
-          style={({ pressed }) => [
-            styles.swipeActionBtn,
-            styles.swipeCallAction,
-            { opacity: !canCall ? 0.5 : pressed ? 0.85 : 1 },
-          ]}
-        >
-          <Phone size={20} color="#000000" />
-        </Pressable>
+        {canNavigate ? (
+          <Pressable
+            onPress={() => void openNavigation()}
+            accessibilityLabel={navigateLabel}
+            style={({ pressed }) => [
+              styles.swipeActionBtn,
+              styles.swipeNavigateAction,
+              { opacity: pressed ? 0.85 : 1 },
+            ]}
+          >
+            <Navigation size={20} color="#000000" />
+          </Pressable>
+        ) : null}
+        {canCall ? (
+          <Pressable
+            onPress={() => void placeCall()}
+            accessibilityLabel={callLabel}
+            style={({ pressed }) => [
+              styles.swipeActionBtn,
+              styles.swipeCallAction,
+              { opacity: pressed ? 0.85 : 1 },
+            ]}
+          >
+            <Phone size={20} color="#000000" />
+          </Pressable>
+        ) : null}
       </View>
     );
   }

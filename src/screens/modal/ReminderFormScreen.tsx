@@ -54,6 +54,7 @@ import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 import { SquarePen } from "lucide-react-native";
 import { formatYmd, parseYmd } from "../../utils/dateYmd";
+import { groupThousands } from "../../utils/numberFormatting";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
 
@@ -65,7 +66,7 @@ const RECURRENCE_UNITS: { value: ReminderRecurrenceUnit; max: number }[] = [
 ];
 
 export function ReminderFormScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const { isPremium, remindersLimit, freePlanVehicleId, freePlanReminderIds } =
@@ -120,7 +121,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     if (preset.mileageRepeats && preset.recurrenceKm != null) {
       parts.push(
         t("reminderForm.presetsEveryKm", {
-          value: preset.recurrenceKm.toLocaleString(),
+          value: groupThousands(preset.recurrenceKm, 0, i18n.language),
         }),
       );
     }
@@ -379,6 +380,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         onPress: onSave,
         label: t("common.done"),
         disabled: !canSave || saving,
+        loading: saving,
       }}
       useHorizontalContentInset={false}
       footer={

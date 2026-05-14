@@ -44,6 +44,7 @@ import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
+import { groupThousands } from "../../utils/numberFormatting";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicle">;
 
@@ -180,7 +181,7 @@ function DetailItem({ icon, label, value }: DetailItemProps) {
 }
 
 export function ManageVehicleScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const {
@@ -387,7 +388,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       label={t("vehicleForm.mileageLabel")}
                       value={
                         vehicle.mileage
-                          ? `${vehicle.mileage.toLocaleString()} ${distanceUnitLabel}`
+                          ? `${groupThousands(vehicle.mileage, 0, i18n.language)} ${distanceUnitLabel}`
                           : "—"
                       }
                     />
@@ -430,7 +431,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       label={t("vehicleForm.engineCapacityLabel")}
                       value={
                         vehicle.engine_capacity
-                          ? `${vehicle.engine_capacity} cm³`
+                          ? `${groupThousands(vehicle.engine_capacity, 0, i18n.language)} cm³`
                           : "—"
                       }
                     />
@@ -443,7 +444,11 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                         />
                       }
                       label={t("vehicleForm.powerHpLabel")}
-                      value={vehicle.power_hp ? `${vehicle.power_hp} HP` : "—"}
+                      value={
+                        vehicle.power_hp
+                          ? `${groupThousands(vehicle.power_hp, 0, i18n.language)} ${t("vehicleForm.powerOutputUnit")}`
+                          : "—"
+                      }
                     />
                   </View>
 

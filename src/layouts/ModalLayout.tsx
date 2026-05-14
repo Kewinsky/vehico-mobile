@@ -17,6 +17,7 @@ export type ModalLayoutProps = PropsWithChildren<{
     onPress: () => void;
     label?: string;
     disabled?: boolean;
+    loading?: boolean;
   };
   loading?: boolean;
   ready?: boolean;
@@ -78,6 +79,7 @@ export function ModalLayout({
                 variant="done"
                 onPress={done.onPress}
                 disabled={done.disabled}
+                loading={done.loading}
                 {...(done.label ? { children: done.label } : {})}
               />
             )

@@ -589,7 +589,8 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       done={{
         onPress: onSave,
         label: t("common.done"),
-        disabled: !canSave || saving,
+        disabled: !canSave || saving || uploadingPhoto,
+        loading: saving || uploadingPhoto,
       }}
       loading={isEditMode && loading}
     >
