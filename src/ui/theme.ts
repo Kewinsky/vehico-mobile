@@ -109,3 +109,15 @@ export const darkTheme: AppTheme = {
 export function getTheme(mode: ThemeMode): AppTheme {
   return mode === "dark" ? darkTheme : lightTheme;
 }
+
+export type ThemePreference = "system" | "light" | "dark";
+
+export function resolveThemePreference(
+  value: unknown,
+  fallback: ThemePreference = "system",
+): ThemePreference {
+  if (value === "system" || value === "light" || value === "dark") {
+    return value;
+  }
+  return fallback;
+}

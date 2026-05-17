@@ -141,7 +141,7 @@ export type AppStackParamList = {
       include_photos: boolean;
       distance_unit?: "km" | "miles";
       fuel_unit?: "liters" | "gallons";
-      currency?: "PLN" | "USD";
+      currency?: import("../../types/domain").Currency;
     };
     selectedVehiclePhotoIds: string[];
     tempPhotos: Array<{

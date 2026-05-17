@@ -1,6 +1,6 @@
 import { supabase } from "../supabase/client";
 import { ENV } from "../../config/env";
-import type { PublicReportSnapshot } from "../../types/domain";
+import type { Currency, PublicReportSnapshot } from "../../types/domain";
 import type { TempReportPhoto } from "./uploadReportPhoto";
 
 export type ReportOptions = {
@@ -16,7 +16,7 @@ export type ReportOptions = {
   include_photos: boolean;
   distance_unit?: "km" | "miles";
   fuel_unit?: "liters" | "gallons";
-  currency?: "PLN" | "USD";
+  currency?: Currency;
 };
 
 /**

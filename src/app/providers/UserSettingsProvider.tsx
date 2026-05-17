@@ -12,19 +12,24 @@ import * as Localization from "expo-localization";
 import { i18n } from "../../i18n/i18n";
 import type { SupportedLanguage } from "../../i18n/i18n";
 import {
+  resolveAppCurrency,
+  type AppCurrency,
+} from "../../utils/currencies";
+import {
   getUnitGroupDefinition,
   resolveUnitGroupId,
   settingsPatchForUnitGroup,
   type UnitGroupId,
 } from "../../utils/unitGroups";
+import { resolveThemePreference, type ThemePreference } from "../../ui/theme";
 import { useAuth } from "./AuthProvider";
 
 export type UserSettings = {
-  currency: "PLN" | "USD";
+  currency: AppCurrency;
   unitGroup?: UnitGroupId;
   distanceUnit: "km" | "miles";
   fuelUnit: "liters" | "gallons";
-  theme: "system" | "light" | "dark";
+  theme: ThemePreference;
   language: SupportedLanguage;
 };
 
@@ -67,15 +72,11 @@ function normalizeUserSettings(
   return {
     ...DEFAULT_SETTINGS,
     ...(parsed ?? {}),
-    currency:
-      (parsed?.currency as UserSettings["currency"] | undefined) ??
-      DEFAULT_SETTINGS.currency,
+    currency: resolveAppCurrency(parsed?.currency, DEFAULT_SETTINGS.currency),
     unitGroup,
     distanceUnit: group.distanceUnit,
     fuelUnit: group.fuelUnit,
-    theme:
-      (parsed?.theme as UserSettings["theme"] | undefined) ??
-      DEFAULT_SETTINGS.theme,
+    theme: resolveThemePreference(parsed?.theme, DEFAULT_SETTINGS.theme),
     language:
       (parsed?.language as UserSettings["language"] | undefined) ??
       detectSystemLanguage(),

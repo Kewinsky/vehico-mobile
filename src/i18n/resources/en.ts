@@ -670,9 +670,12 @@ Detailed report available at: https://report.vehico.app/report/example`,
     fuelUnitLiters: "Liters",
     fuelUnitGallons: "Gallons",
     theme: "Theme",
+    themeSystem: "System",
     themeLight: "Light",
     themeDark: "Dark",
     language: "Language",
+    languagePl: "Polish",
+    languageEn: "English",
     unitGroupSection: "Unit system",
     unitGroups: {
       metric: {

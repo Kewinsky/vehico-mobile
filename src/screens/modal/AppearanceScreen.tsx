@@ -12,6 +12,7 @@ import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Card, CardRow } from "../../ui/components/common/Card";
+import { APP_CURRENCY_OPTIONS } from "../../utils/currencies";
 import {
   UNIT_GROUPS,
   resolveUnitGroupId,
@@ -30,11 +31,6 @@ type SettingItem = {
   options: Option<string>[];
 };
 
-function capitalizeFirst(value: string): string {
-  if (!value.length) return value;
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
 function buildCardConfig(t: TFunction): Array<{
   cardLabelKey: string;
   items: SettingItem[];
@@ -48,10 +44,7 @@ function buildCardConfig(t: TFunction): Array<{
           key: "currency",
           icon: "cash-outline",
           labelKey: "settings.currency",
-          options: [
-            { value: "PLN", label: capitalizeFirst("PLN") },
-            { value: "USD", label: capitalizeFirst("USD") },
-          ],
+          options: [...APP_CURRENCY_OPTIONS],
         },
       ],
       unitGroup: true,
@@ -64,8 +57,9 @@ function buildCardConfig(t: TFunction): Array<{
           icon: "sunny-outline",
           labelKey: "settings.theme",
           options: [
-            { value: "light", label: capitalizeFirst(t("settings.themeLight")) },
-            { value: "dark", label: capitalizeFirst(t("settings.themeDark")) },
+            { value: "system", label: t("settings.themeSystem") },
+            { value: "light", label: t("settings.themeLight") },
+            { value: "dark", label: t("settings.themeDark") },
           ],
         },
         {
@@ -73,8 +67,8 @@ function buildCardConfig(t: TFunction): Array<{
           icon: "language-outline",
           labelKey: "settings.language",
           options: [
-            { value: "pl", label: capitalizeFirst("PL") },
-            { value: "en", label: capitalizeFirst("EN") },
+            { value: "pl", label: t("settings.languagePl") },
+            { value: "en", label: t("settings.languageEn") },
           ],
         },
       ],
@@ -152,7 +146,11 @@ export function AppearanceScreen({ navigation }: Props) {
   }
 
   const themeIcon: React.ComponentProps<typeof Ionicons>["name"] =
-    mode === "dark" ? "moon-outline" : "sunny-outline";
+    settings?.theme === "system"
+      ? "phone-portrait-outline"
+      : mode === "dark"
+        ? "moon-outline"
+        : "sunny-outline";
 
   function labelForSetting(
     value: string,

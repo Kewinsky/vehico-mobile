@@ -159,7 +159,12 @@ export type PublicReportSnapshot = {
   created_at: string;
 };
 
-export type Currency = "PLN" | "USD";
+export type Currency =
+  | "PLN"
+  | "USD"
+  | "EUR"
+  | "GBP"
+  | "CHF";
 export type DistanceUnit = "km" | "miles";
 export type FuelUnit = "liters" | "gallons";
 export type ThemePreference = "system" | "light" | "dark";

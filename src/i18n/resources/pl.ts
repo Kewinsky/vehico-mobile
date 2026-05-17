@@ -674,9 +674,12 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     fuelUnitLiters: "Litry",
     fuelUnitGallons: "Galony",
     theme: "Motyw",
+    themeSystem: "Systemowy",
     themeLight: "Jasny",
     themeDark: "Ciemny",
     language: "Język",
+    languagePl: "Polski",
+    languageEn: "Angielski",
     unitGroupSection: "System jednostek",
     unitGroups: {
       metric: {
