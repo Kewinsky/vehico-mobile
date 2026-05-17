@@ -59,8 +59,8 @@ import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts"
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { Textarea } from "../../ui/components/common/Textarea";
 import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
-import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
-import { formatYmd, parseYmd } from "../../utils/dateYmd";
+import { FormDateRow } from "../../ui/components/common/FormDateRow";
+import { formatYmd } from "../../utils/dateYmd";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
 
@@ -98,10 +98,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
   const [notes, setNotes] = useState("");
   const [insuranceValidUntil, setInsuranceValidUntil] = useState("");
   const [inspectionValidUntil, setInspectionValidUntil] = useState("");
-  const [openDatePicker, setOpenDatePicker] = useState<
-    "insurance" | "inspection" | "firstRegistration" | null
-  >(null);
-  const [datePickerDraft, setDatePickerDraft] = useState<Date>(new Date());
   const [saving, setSaving] = useState(false);
   type PhotoFile = {
     uri: string;
@@ -188,19 +184,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       isNonNegativeNumber(powerHp)
     );
   }, [make, model, year, mileage, engineCapacity, powerHp]);
-
-  function openPicker(kind: "insurance" | "inspection" | "firstRegistration") {
-    const currentYmd =
-      kind === "insurance"
-        ? insuranceValidUntil
-        : kind === "inspection"
-          ? inspectionValidUntil
-          : firstRegistrationDate;
-    setDatePickerDraft(
-      parseYmd(currentYmd || new Date().toISOString().slice(0, 10)),
-    );
-    setOpenDatePicker(kind);
-  }
 
   function showPicker<T extends string>(opts: {
     title: string;
@@ -749,69 +732,34 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   }
                 />
 
-                <Pressable
-                  onPress={() => !saving && openPicker("firstRegistration")}
-                  style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-                >
-                  <CardRow>
-                    <View style={styles.rowLeft}>
-                      <CalendarCheck size={20} color={theme.colors.accent} />
-                      <Text
-                        style={[styles.label, { color: theme.colors.muted }]}
-                        numberOfLines={1}
-                      >
-                        {t("vehicleForm.firstRegistrationDateLabel")}
-                      </Text>
-                    </View>
-                    <View style={styles.rowRight}>
-                      <Text
-                        style={[
-                          styles.valueText,
-                          {
-                            color: firstRegistrationDate
-                              ? theme.colors.fg
-                              : theme.colors.muted,
-                            textAlign: "right",
-                          },
+                <FormDateRow
+                  iconComponent={
+                    <CalendarCheck size={20} color={theme.colors.accent} />
+                  }
+                  label={t("vehicleForm.firstRegistrationDateLabel")}
+                  value={firstRegistrationDate}
+                  onChange={setFirstRegistrationDate}
+                  placeholder={t("manageVehicle.selectDate")}
+                  disabled={saving}
+                  trailing={
+                    firstRegistrationDate ? (
+                      <Pressable
+                        onPress={() => setFirstRegistrationDate("")}
+                        hitSlop={10}
+                        style={({ pressed }) => [
+                          { opacity: pressed ? 0.7 : 1 },
                         ]}
-                        numberOfLines={1}
                       >
-                        {firstRegistrationDate || t("manageVehicle.selectDate")}
-                      </Text>
-                      {firstRegistrationDate ? (
-                        <Pressable
-                          onPress={(e) => {
-                            e?.stopPropagation?.();
-                            setFirstRegistrationDate("");
-                          }}
-                          hitSlop={10}
-                          style={({ pressed }) => [
-                            { opacity: pressed ? 0.7 : 1 },
-                          ]}
-                        >
-                          <Ionicons
-                            name="close-circle"
-                            size={20}
-                            color={theme.colors.muted}
-                            style={{ marginLeft: theme.spacing.xs }}
-                          />
-                        </Pressable>
-                      ) : null}
-                    </View>
-                  </CardRow>
-                </Pressable>
-                {openDatePicker === "firstRegistration" ? (
-                  <InlineDatePicker
-                    value={datePickerDraft}
-                    onChangeDraft={setDatePickerDraft}
-                    onCancel={() => setOpenDatePicker(null)}
-                    onConfirm={(picked) => {
-                      const ymd = formatYmd(picked);
-                      setFirstRegistrationDate(ymd);
-                      setOpenDatePicker(null);
-                    }}
-                  />
-                ) : null}
+                        <Ionicons
+                          name="close-circle"
+                          size={20}
+                          color={theme.colors.muted}
+                          style={{ marginLeft: theme.spacing.xs }}
+                        />
+                      </Pressable>
+                    ) : null
+                  }
+                />
                 <FormInputRow
                   iconComponent={<Hash size={20} color={theme.colors.accent} />}
                   label={t("vehicleForm.licensePlateLabel")}
@@ -1019,140 +967,58 @@ export function VehicleFormScreen({ navigation, route }: Props) {
               <View style={{ height: theme.spacing.sm }} />
 
               <Card>
-                <Pressable
-                  onPress={() => openPicker("insurance")}
-                  style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-                >
-                  <CardRow>
-                    <View style={styles.rowLeft}>
-                      <Ionicons
-                        name="shield-checkmark-outline"
-                        size={20}
-                        color={theme.colors.accent}
-                      />
-                      <Text
-                        style={[styles.label, { color: theme.colors.muted }]}
-                        numberOfLines={1}
-                      >
-                        {t("manageVehicle.insuranceLabel")}
-                      </Text>
-                    </View>
-                    <View style={styles.rowRight}>
-                      <Text
-                        style={[
-                          styles.valueText,
-                          {
-                            color: insuranceValidUntil
-                              ? theme.colors.fg
-                              : theme.colors.muted,
-                            textAlign: "right",
-                          },
+                <FormDateRow
+                  icon="shield-checkmark-outline"
+                  label={t("manageVehicle.insuranceLabel")}
+                  value={insuranceValidUntil}
+                  onChange={setInsuranceValidUntil}
+                  placeholder={t("manageVehicle.selectDate")}
+                  disabled={saving}
+                  trailing={
+                    insuranceValidUntil ? (
+                      <Pressable
+                        onPress={() => setInsuranceValidUntil("")}
+                        hitSlop={10}
+                        style={({ pressed }) => [
+                          { opacity: pressed ? 0.7 : 1 },
                         ]}
-                        numberOfLines={1}
                       >
-                        {insuranceValidUntil || t("manageVehicle.selectDate")}
-                      </Text>
-                      {insuranceValidUntil ? (
-                        <Pressable
-                          onPress={(e) => {
-                            e?.stopPropagation?.();
-                            setInsuranceValidUntil("");
-                          }}
-                          hitSlop={10}
-                          style={({ pressed }) => [
-                            { opacity: pressed ? 0.7 : 1 },
-                          ]}
-                        >
-                          <Ionicons
-                            name="close-circle"
-                            size={20}
-                            color={theme.colors.muted}
-                            style={{ marginLeft: theme.spacing.xs }}
-                          />
-                        </Pressable>
-                      ) : null}
-                    </View>
-                  </CardRow>
-                </Pressable>
-                {openDatePicker === "insurance" ? (
-                  <InlineDatePicker
-                    value={datePickerDraft}
-                    onChangeDraft={setDatePickerDraft}
-                    onCancel={() => setOpenDatePicker(null)}
-                    onConfirm={(picked) => {
-                      const ymd = formatYmd(picked);
-                      setInsuranceValidUntil(ymd);
-                      setOpenDatePicker(null);
-                    }}
-                  />
-                ) : null}
-                <Pressable
-                  onPress={() => openPicker("inspection")}
-                  style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-                >
-                  <CardRow>
-                    <View style={styles.rowLeft}>
-                      <Ionicons
-                        name="checkmark-done-outline"
-                        size={20}
-                        color={theme.colors.accent}
-                      />
-                      <Text
-                        style={[styles.label, { color: theme.colors.muted }]}
-                        numberOfLines={1}
-                      >
-                        {t("manageVehicle.inspectionLabel")}
-                      </Text>
-                    </View>
-                    <View style={styles.rowRight}>
-                      <Text
-                        style={[
-                          styles.valueText,
-                          {
-                            color: inspectionValidUntil
-                              ? theme.colors.fg
-                              : theme.colors.muted,
-                            textAlign: "right",
-                          },
+                        <Ionicons
+                          name="close-circle"
+                          size={20}
+                          color={theme.colors.muted}
+                          style={{ marginLeft: theme.spacing.xs }}
+                        />
+                      </Pressable>
+                    ) : null
+                  }
+                />
+                <FormDateRow
+                  icon="checkmark-done-outline"
+                  label={t("manageVehicle.inspectionLabel")}
+                  value={inspectionValidUntil}
+                  onChange={setInspectionValidUntil}
+                  placeholder={t("manageVehicle.selectDate")}
+                  disabled={saving}
+                  trailing={
+                    inspectionValidUntil ? (
+                      <Pressable
+                        onPress={() => setInspectionValidUntil("")}
+                        hitSlop={10}
+                        style={({ pressed }) => [
+                          { opacity: pressed ? 0.7 : 1 },
                         ]}
-                        numberOfLines={1}
                       >
-                        {inspectionValidUntil || t("manageVehicle.selectDate")}
-                      </Text>
-                      {inspectionValidUntil ? (
-                        <Pressable
-                          onPress={(e) => {
-                            e?.stopPropagation?.();
-                            setInspectionValidUntil("");
-                          }}
-                          hitSlop={10}
-                          style={({ pressed }) => [
-                            { opacity: pressed ? 0.7 : 1 },
-                          ]}
-                        >
-                          <Ionicons
-                            name="close-circle"
-                            size={20}
-                            color={theme.colors.muted}
-                            style={{ marginLeft: theme.spacing.xs }}
-                          />
-                        </Pressable>
-                      ) : null}
-                    </View>
-                  </CardRow>
-                </Pressable>
-                {openDatePicker === "inspection" ? (
-                  <InlineDatePicker
-                    value={datePickerDraft}
-                    onChangeDraft={setDatePickerDraft}
-                    onCancel={() => setOpenDatePicker(null)}
-                    onConfirm={(picked) => {
-                      const ymd = formatYmd(picked);
-                      setInspectionValidUntil(ymd);
-                      setOpenDatePicker(null);
-                    }}
-                  />
-                ) : null}
+                        <Ionicons
+                          name="close-circle"
+                          size={20}
+                          color={theme.colors.muted}
+                          style={{ marginLeft: theme.spacing.xs }}
+                        />
+                      </Pressable>
+                    ) : null
+                  }
+                />
               </Card>
 
               <View style={{ height: theme.spacing.sm }} />

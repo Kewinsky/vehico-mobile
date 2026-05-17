@@ -53,9 +53,8 @@ import {
 import { ModalLayout } from "../../layouts";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
-import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
+import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { SquarePen } from "lucide-react-native";
-import { formatYmd, parseYmd } from "../../utils/dateYmd";
 import { groupThousands } from "../../utils/numberFormatting";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
@@ -82,10 +81,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const [dateEnabled, setDateEnabled] = useState(false);
   const [dueDate, setDueDate] = useState(() =>
     new Date().toISOString().slice(0, 10),
-  );
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [datePickerDraft, setDatePickerDraft] = useState<Date>(
-    () => new Date(),
   );
   const [daysBefore, setDaysBefore] = useState("7");
   const [dateRepeats, setDateRepeats] = useState(false);
@@ -159,8 +154,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     setNotes("");
     setDateEnabled(false);
     setDueDate(new Date().toISOString().slice(0, 10));
-    setDatePickerOpen(false);
-    setDatePickerDraft(new Date());
     setDaysBefore("7");
     setDateRepeats(false);
     setRecurrenceValue("6");
@@ -238,11 +231,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     recurrenceKm,
     daysBefore,
   ]);
-
-  function openDatePicker() {
-    setDatePickerDraft(parseYmd(dueDate));
-    setDatePickerOpen(true);
-  }
 
   function confirmDelete() {
     if (!reminderId) return;
@@ -526,44 +514,12 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             </CardRow>
             {dateEnabled && (
               <>
-                <Pressable
-                  onPress={openDatePicker}
+                <FormDateRow
+                  label={t("reminderForm.dueDateLabel")}
+                  value={dueDate}
+                  onChange={setDueDate}
                   disabled={saving}
-                  style={({ pressed }) => [
-                    { opacity: pressed && !saving ? 0.85 : 1 },
-                  ]}
-                >
-                  <CardRow>
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("reminderForm.dueDateLabel")}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.valueText,
-                        { color: theme.colors.fg, textAlign: "right" },
-                      ]}
-                    >
-                      {dueDate}
-                    </Text>
-                  </CardRow>
-                </Pressable>
-
-                {datePickerOpen && <CardDivider />}
-
-                {datePickerOpen && (
-                  <InlineDatePicker
-                    value={datePickerDraft}
-                    onChangeDraft={setDatePickerDraft}
-                    onCancel={() => setDatePickerOpen(false)}
-                    onConfirm={(picked) => {
-                      setDueDate(formatYmd(picked));
-                      setDatePickerOpen(false);
-                    }}
-                  />
-                )}
+                />
 
                 <CardDivider />
 

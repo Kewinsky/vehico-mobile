@@ -42,6 +42,7 @@ import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -50,11 +51,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Textarea } from "../../ui/components/common/Textarea";
-import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { SquarePen, Trash2 } from "lucide-react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
-import { formatYmd, parseYmd } from "../../utils/dateYmd";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "maintenance",
@@ -85,10 +84,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [mode, setMode] = useState<FormMode>("single");
   const [serviceDate, setServiceDate] = useState(() =>
     new Date().toISOString().slice(0, 10),
-  );
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [datePickerDraft, setDatePickerDraft] = useState<Date>(
-    () => new Date(),
   );
   const [mileage, setMileage] = useState("");
   const [category, setCategory] = useState<ServiceEntryCategory | null>(null);
@@ -324,11 +319,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     );
   }, [serviceDate, category, entries, mileage]);
 
-  function openDatePicker() {
-    setDatePickerDraft(parseYmd(serviceDate));
-    setDatePickerOpen(true);
-  }
-
   function showPicker<T extends string>(opts: {
     title: string;
     value: T | null;
@@ -385,7 +375,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     setMode("single");
     const today = new Date().toISOString().slice(0, 10);
     setServiceDate(today);
-    setDatePickerDraft(parseYmd(today));
     setMileage("");
     setCategory(null);
     setEntries([{ title: "", cost: "" }]);
@@ -650,47 +639,13 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           ) : null}
 
           <Card>
-            <Pressable
-              onPress={openDatePicker}
-              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-            >
-              <CardRow>
-                <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("entryForm.serviceDate")}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    styles.valueText,
-                    { color: theme.colors.fg, textAlign: "right" },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {serviceDate}
-                </Text>
-              </CardRow>
-            </Pressable>
-
-            {datePickerOpen ? (
-              <InlineDatePicker
-                value={datePickerDraft}
-                onChangeDraft={setDatePickerDraft}
-                onCancel={() => setDatePickerOpen(false)}
-                onConfirm={(picked) => {
-                  setServiceDate(formatYmd(picked));
-                  setDatePickerOpen(false);
-                }}
-              />
-            ) : null}
+            <FormDateRow
+              icon="calendar-outline"
+              label={t("entryForm.serviceDate")}
+              value={serviceDate}
+              onChange={setServiceDate}
+              disabled={saving || uploading}
+            />
 
             <Pressable
               onPress={() =>

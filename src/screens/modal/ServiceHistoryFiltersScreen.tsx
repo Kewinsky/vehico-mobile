@@ -18,9 +18,8 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
-import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
+import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { ListFilter } from "lucide-react-native";
-import { formatYmd, parseYmd } from "../../utils/dateYmd";
 
 export type ServiceHistoryFiltersParams = {
   categoryFilter: "all" | ServiceEntryCategory;
@@ -60,10 +59,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
   >((params.categoryFilter as "all" | ServiceEntryCategory) ?? "all");
   const [dateFrom, setDateFrom] = useState(params.dateFrom ?? "");
   const [dateTo, setDateTo] = useState(params.dateTo ?? "");
-  const [openDatePicker, setOpenDatePicker] = useState<"from" | "to" | null>(
-    null,
-  );
-  const [datePickerDraft, setDatePickerDraft] = useState<Date>(new Date());
   const [minCost, setMinCost] = useState(params.minCost ?? "");
   const [maxCost, setMaxCost] = useState(params.maxCost ?? "");
   type SortOption =
@@ -114,15 +109,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
     setMinCost("");
     setMaxCost("");
     setSortOption("date-newest");
-    setOpenDatePicker(null);
-  }
-
-  function openPicker(kind: "from" | "to") {
-    const current = kind === "from" ? dateFrom : dateTo;
-    setDatePickerDraft(
-      parseYmd(current.trim().length === 10 ? current : formatYmd(new Date())),
-    );
-    setOpenDatePicker(kind);
   }
 
   function showCategoryPicker() {
@@ -343,83 +329,24 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
             </Text>
           </CardRow>
         </Pressable>
-        <Pressable
-          onPress={() => openPicker("from")}
-          style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-        >
-          <CardRow style={styles.rowSpread}>
-            <View style={styles.rowLeft}>
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("timeline.filterFrom")}
-              </Text>
-            </View>
-            <Text
-              style={[
-                styles.valueText,
-                { color: dateFrom ? theme.colors.fg : theme.colors.muted },
-              ]}
-              numberOfLines={1}
-            >
-              {dateFrom || t("timeline.filterFrom")}
-            </Text>
-          </CardRow>
-        </Pressable>
-        {openDatePicker === "from" ? (
-          <InlineDatePicker
-            value={datePickerDraft}
-            onChangeDraft={setDatePickerDraft}
-            onCancel={() => setOpenDatePicker(null)}
-            onConfirm={(picked) => {
-              const ymd = formatYmd(picked);
-              setDateFrom(ymd);
-              setOpenDatePicker(null);
-            }}
-          />
-        ) : null}
+        <FormDateRow
+          icon="calendar-outline"
+          label={t("timeline.filterFrom")}
+          value={dateFrom}
+          onChange={setDateFrom}
+          placeholder={t("timeline.filterFrom")}
+          rowStyle={styles.rowSpread}
+        />
 
-        <Pressable
-          onPress={() => openPicker("to")}
-          style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-        >
-          <CardRow style={styles.rowSpread}>
-            <View style={styles.rowLeft}>
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("timeline.filterTo")}
-              </Text>
-            </View>
-            <Text
-              style={[
-                styles.valueText,
-                { color: dateTo ? theme.colors.fg : theme.colors.muted },
-              ]}
-              numberOfLines={1}
-            >
-              {dateTo || t("timeline.filterTo")}
-            </Text>
-          </CardRow>
-        </Pressable>
-        {openDatePicker === "to" ? (
-          <InlineDatePicker
-            value={datePickerDraft}
-            onChangeDraft={setDatePickerDraft}
-            onCancel={() => setOpenDatePicker(null)}
-            onConfirm={(picked) => {
-              const ymd = formatYmd(picked);
-              setDateTo(ymd);
-              setOpenDatePicker(null);
-            }}
-          />
-        ) : null}
+        <FormDateRow
+          icon="calendar-outline"
+          label={t("timeline.filterTo")}
+          value={dateTo}
+          onChange={setDateTo}
+          placeholder={t("timeline.filterTo")}
+          rowStyle={styles.rowSpread}
+        />
+
         <FormInputRow
           icon="cash-outline"
           label={t("timeline.filterMinCost")}

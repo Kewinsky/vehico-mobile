@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { setPendingModalResult } from "../../app/pendingModalResult";
@@ -12,10 +12,8 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
-import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
-import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
-import { formatYmd, parseYmd } from "../../utils/dateYmd";
+import { Card, CardRow } from "../../ui/components/common/Card";
+import { FormDateRow } from "../../ui/components/common/FormDateRow";
 
 export type RemindersFiltersParams = {
   dateFrom: string;
@@ -29,19 +27,11 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
 
   const params = route.params;
 
   const [dateFrom, setDateFrom] = useState(params.dateFrom ?? "");
   const [dateTo, setDateTo] = useState(params.dateTo ?? "");
-  const [openDatePicker, setOpenDatePicker] = useState<"from" | "to" | null>(
-    null,
-  );
-  const [datePickerDraft, setDatePickerDraft] = useState<Date>(new Date());
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "done">(
     params.statusFilter ?? "all",
   );
@@ -50,15 +40,6 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
     setDateFrom("");
     setDateTo("");
     setStatusFilter("all");
-    setOpenDatePicker(null);
-  }
-
-  function openPicker(kind: "from" | "to") {
-    const current = kind === "from" ? dateFrom : dateTo;
-    setDatePickerDraft(
-      parseYmd(current.trim().length === 10 ? current : formatYmd(new Date())),
-    );
-    setOpenDatePicker(kind);
   }
 
   function applyFilters() {
@@ -108,71 +89,21 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
               </View>
             </CardRow>
 
-            <Pressable
-              onPress={() => openPicker("from")}
-              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-            >
-              <CardRow>
-                <Ionicons
-                  name="calendar-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[
-                    styles.valueText,
-                    { color: dateFrom ? theme.colors.fg : theme.colors.muted },
-                  ]}
-                >
-                  {dateFrom || t("timeline.filterFrom")}
-                </Text>
-              </CardRow>
-            </Pressable>
-            {openDatePicker === "from" ? (
-              <InlineDatePicker
-                value={datePickerDraft}
-                onChangeDraft={setDatePickerDraft}
-                onCancel={() => setOpenDatePicker(null)}
-                onConfirm={(picked) => {
-                  const ymd = formatYmd(picked);
-                  setDateFrom(ymd);
-                  setOpenDatePicker(null);
-                }}
-              />
-            ) : null}
+            <FormDateRow
+              icon="calendar-outline"
+              label={t("timeline.filterFrom")}
+              value={dateFrom}
+              onChange={setDateFrom}
+              placeholder={t("timeline.filterFrom")}
+            />
 
-            <Pressable
-              onPress={() => openPicker("to")}
-              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-            >
-              <CardRow>
-                <Ionicons
-                  name="calendar-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[
-                    styles.valueText,
-                    { color: dateTo ? theme.colors.fg : theme.colors.muted },
-                  ]}
-                >
-                  {dateTo || t("timeline.filterTo")}
-                </Text>
-              </CardRow>
-            </Pressable>
-            {openDatePicker === "to" ? (
-              <InlineDatePicker
-                value={datePickerDraft}
-                onChangeDraft={setDatePickerDraft}
-                onCancel={() => setOpenDatePicker(null)}
-                onConfirm={(picked) => {
-                  const ymd = formatYmd(picked);
-                  setDateTo(ymd);
-                  setOpenDatePicker(null);
-                }}
-              />
-            ) : null}
+            <FormDateRow
+              icon="calendar-outline"
+              label={t("timeline.filterTo")}
+              value={dateTo}
+              onChange={setDateTo}
+              placeholder={t("timeline.filterTo")}
+            />
           </Card>
         </NativeHeaderScrollView>
       </FormScreen>
@@ -185,28 +116,5 @@ const makeStyles = (theme: any) =>
     segmentWrap: {
       flex: 1,
       minWidth: 0,
-    },
-    valueText: { flex: 1, minWidth: 0, fontSize: theme.typography.body },
-    pickerWrap: {
-      borderTopWidth: 1,
-      paddingTop: theme.spacing.xs,
-      paddingBottom: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-    },
-    pickerActionsRow: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: theme.spacing.sm,
-      paddingTop: theme.spacing.sm,
-    },
-    pickerActionBtn: {
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.md,
-      borderRadius: 9999,
-      borderWidth: 1,
-    },
-    pickerActionText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
     },
   });

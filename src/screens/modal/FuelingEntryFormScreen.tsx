@@ -23,15 +23,14 @@ import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
-import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 import { Droplet, Fuel } from "lucide-react-native";
-import { formatYmd, parseYmd } from "../../utils/dateYmd";
 
 const FUEL_TYPE_OPTIONS: readonly FuelGrade[] = [
   "95",
@@ -63,21 +62,12 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const fuelUnitLabel = fuelUnitShort;
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [datePickerDraft, setDatePickerDraft] = useState<Date>(
-    () => new Date(),
-  );
   const [distance, setDistance] = useState("");
   const [fuelAmount, setFuelAmount] = useState("");
   const [fuelCost, setFuelCost] = useState("");
   const [fuelType, setFuelType] = useState<FuelGrade | null>(null);
   const [gasStation, setGasStation] = useState<GasStation | null>(null);
   const [saving, setSaving] = useState(false);
-
-  function openDatePicker() {
-    setDatePickerDraft(parseYmd(date));
-    setDatePickerOpen(true);
-  }
 
   useEffect(() => {
     if (!entryId) return;
@@ -231,47 +221,13 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       <FormScreen noLayout>
         <NativeHeaderScrollView>
           <Card>
-            <Pressable
-              onPress={openDatePicker}
-              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-            >
-              <CardRow>
-                <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("fuelingForm.date")}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    styles.valueText,
-                    { color: theme.colors.fg, textAlign: "right" },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {date}
-                </Text>
-              </CardRow>
-            </Pressable>
-
-            {datePickerOpen ? (
-              <InlineDatePicker
-                value={datePickerDraft}
-                onChangeDraft={setDatePickerDraft}
-                onCancel={() => setDatePickerOpen(false)}
-                onConfirm={(picked) => {
-                  setDate(formatYmd(picked));
-                  setDatePickerOpen(false);
-                }}
-              />
-            ) : null}
+            <FormDateRow
+              icon="calendar-outline"
+              label={t("fuelingForm.date")}
+              value={date}
+              onChange={setDate}
+              disabled={saving}
+            />
 
             <Pressable
               onPress={() =>
