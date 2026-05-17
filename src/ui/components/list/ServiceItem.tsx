@@ -4,6 +4,7 @@ import { Trash2 } from "lucide-react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import { useTranslation } from "react-i18next";
 
+import { useUnitDisplay } from "../../../app/hooks/useUnitDisplay";
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
 import { formatShortDisplayDate } from "../../../utils/dateFormatting";
@@ -13,7 +14,6 @@ type ServiceItemProps = {
   title: string;
   date?: string | null;
   mileage?: number | null;
-  distanceUnit: string;
   workshopName?: string | null;
   cost?: number | null;
   currency: string;
@@ -27,7 +27,6 @@ export function ServiceItem({
   title,
   date,
   mileage,
-  distanceUnit,
   workshopName,
   cost,
   currency,
@@ -38,8 +37,8 @@ export function ServiceItem({
 }: ServiceItemProps) {
   const { i18n } = useTranslation();
   const { theme } = useTheme();
+  const { distanceUnitLabel } = useUnitDisplay();
   const styles = makeStyles(theme);
-  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
 
   const formattedDate =
     date != null && String(date).trim().length > 0

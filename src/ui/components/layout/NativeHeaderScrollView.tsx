@@ -12,6 +12,7 @@ export function NativeHeaderScrollView({
   contentContainerStyle,
   style,
   paddingHorizontal = true,
+  keyboardShouldPersistTaps = "handled",
   ...rest
 }: NativeHeaderScrollViewProps & { paddingHorizontal?: boolean }) {
   const headerHeight = useHeaderHeight();
@@ -32,6 +33,7 @@ export function NativeHeaderScrollView({
   return (
     <AnimatedScrollView
       {...rest}
+      keyboardShouldPersistTaps={keyboardShouldPersistTaps}
       showsVerticalScrollIndicator={false}
       style={[
         {

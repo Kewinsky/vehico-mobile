@@ -4,7 +4,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -26,6 +25,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Card, CardRow } from "../../ui/components/common/Card";
+import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
@@ -208,32 +208,14 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       <FormScreen noLayout>
         <NativeHeaderScrollView>
           <Card>
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="business-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("workshopForm.name")}
-                </Text>
-              </View>
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                editable={!saving}
-                placeholder={t("workshopForm.placeholderName")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
+            <FormInputRow
+              icon="business-outline"
+              label={t("workshopForm.name")}
+              value={name}
+              onChangeText={setName}
+              editable={!saving}
+              placeholder={t("workshopForm.placeholderName")}
+            />
             <Pressable
               onPress={() =>
                 showPicker<WorkshopType>({
@@ -279,59 +261,23 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
                 </Text>
               </CardRow>
             </Pressable>
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="call-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("workshopForm.phoneNumber")}
-                </Text>
-              </View>
-              <TextInput
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                keyboardType="phone-pad"
-                editable={!saving}
-                placeholder={t("workshopForm.placeholderPhone")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="location-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("workshopForm.address")}
-                </Text>
-              </View>
-              <TextInput
-                value={address}
-                onChangeText={setAddress}
-                editable={!saving}
-                placeholder={t("workshopForm.placeholderAddress")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
+            <FormInputRow
+              icon="call-outline"
+              label={t("workshopForm.phoneNumber")}
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              keyboardType="phone-pad"
+              editable={!saving}
+              placeholder={t("workshopForm.placeholderPhone")}
+            />
+            <FormInputRow
+              icon="location-outline"
+              label={t("workshopForm.address")}
+              value={address}
+              onChangeText={setAddress}
+              editable={!saving}
+              placeholder={t("workshopForm.placeholderAddress")}
+            />
           </Card>
         </NativeHeaderScrollView>
       </FormScreen>

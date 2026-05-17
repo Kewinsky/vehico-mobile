@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Switch,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -36,6 +35,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Card, CardRow } from "../../ui/components/common/Card";
+import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
@@ -235,207 +235,93 @@ export function WheelFormScreen({ navigation, route }: Props) {
       <FormScreen noLayout>
         <NativeHeaderScrollView>
           <Card>
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="pricetag-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("wheelForm.name")}
-                </Text>
-              </View>
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                editable={!saving}
-                placeholder={t("wheelForm.placeholderName")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
-            <CardRow>
-              <View style={styles.rowLeft}>
+            <FormInputRow
+              icon="pricetag-outline"
+              label={t("wheelForm.name")}
+              value={name}
+              onChangeText={setName}
+              editable={!saving}
+              placeholder={t("wheelForm.placeholderName")}
+            />
+            <FormInputRow
+              iconComponent={
                 <AntDesign
                   name="column-width"
                   size={20}
                   color={theme.colors.accent}
                 />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("wheelForm.width")}
-                </Text>
-              </View>
-              <TextInput
-                value={width}
-                onChangeText={setWidth}
-                keyboardType="decimal-pad"
-                editable={!saving}
-                placeholder={t("wheelForm.placeholderWidth")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
-            <CardRow>
-              <View style={styles.rowLeft}>
+              }
+              label={t("wheelForm.width")}
+              value={width}
+              onChangeText={setWidth}
+              keyboardType="decimal-pad"
+              editable={!saving}
+              placeholder={t("wheelForm.placeholderWidth")}
+            />
+            <FormInputRow
+              iconComponent={
                 <MaterialCommunityIcons
                   name="diameter-variant"
                   size={20}
                   color={theme.colors.accent}
                 />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("wheelForm.diameter")}
-                </Text>
-              </View>
-              <TextInput
-                value={diameter}
-                onChangeText={setDiameter}
-                keyboardType="number-pad"
-                editable={!saving}
-                placeholder={t("wheelForm.placeholderDiameter")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
-            <CardRow>
-              <View style={styles.rowLeft}>
+              }
+              label={t("wheelForm.diameter")}
+              value={diameter}
+              onChangeText={setDiameter}
+              keyboardType="number-pad"
+              editable={!saving}
+              placeholder={t("wheelForm.placeholderDiameter")}
+            />
+            <FormInputRow
+              iconComponent={
                 <EtOffsetIcon
                   size={20}
                   color={theme.colors.accent}
                   dotColor={theme.colors.bg}
                 />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("wheelForm.etOffset")}
-                </Text>
-              </View>
-              <TextInput
-                value={etOffset}
-                onChangeText={setEtOffset}
-                keyboardType="number-pad"
-                editable={!saving}
-                placeholder={t("wheelForm.placeholderEtOffset")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <BoltPatternIcon size={20} color={theme.colors.accent} />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("wheelForm.boltPattern")}
-                </Text>
-              </View>
-              <TextInput
-                value={boltPattern}
-                onChangeText={setBoltPattern}
-                editable={!saving}
-                placeholder={t("wheelForm.placeholderBoltPattern")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="radio-button-on-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("wheelForm.centerBore")}
-                </Text>
-              </View>
-              <TextInput
-                value={centerBore}
-                onChangeText={setCenterBore}
-                keyboardType="decimal-pad"
-                editable={!saving}
-                placeholder={t("wheelForm.placeholderCenterBore")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <BoltTypeIcon size={20} color={theme.colors.accent} />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("wheelForm.boltType")}
-                </Text>
-              </View>
-              <TextInput
-                value={boltType}
-                onChangeText={setBoltType}
-                editable={!saving}
-                placeholder={t("wheelForm.placeholderBoltType")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <Weight size={20} color={theme.colors.accent} />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("wheelForm.weight")}
-                </Text>
-              </View>
-              <TextInput
-                value={weight}
-                onChangeText={setWeight}
-                keyboardType="decimal-pad"
-                editable={!saving}
-                placeholder={t("wheelForm.placeholderWeight")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
+              }
+              label={t("wheelForm.etOffset")}
+              value={etOffset}
+              onChangeText={setEtOffset}
+              keyboardType="number-pad"
+              editable={!saving}
+              placeholder={t("wheelForm.placeholderEtOffset")}
+            />
+            <FormInputRow
+              iconComponent={<BoltPatternIcon size={20} color={theme.colors.accent} />}
+              label={t("wheelForm.boltPattern")}
+              value={boltPattern}
+              onChangeText={setBoltPattern}
+              editable={!saving}
+              placeholder={t("wheelForm.placeholderBoltPattern")}
+            />
+            <FormInputRow
+              icon="radio-button-on-outline"
+              label={t("wheelForm.centerBore")}
+              value={centerBore}
+              onChangeText={setCenterBore}
+              keyboardType="decimal-pad"
+              editable={!saving}
+              placeholder={t("wheelForm.placeholderCenterBore")}
+            />
+            <FormInputRow
+              iconComponent={<BoltTypeIcon size={20} color={theme.colors.accent} />}
+              label={t("wheelForm.boltType")}
+              value={boltType}
+              onChangeText={setBoltType}
+              editable={!saving}
+              placeholder={t("wheelForm.placeholderBoltType")}
+            />
+            <FormInputRow
+              iconComponent={<Weight size={20} color={theme.colors.accent} />}
+              label={t("wheelForm.weight")}
+              value={weight}
+              onChangeText={setWeight}
+              keyboardType="decimal-pad"
+              editable={!saving}
+              placeholder={t("wheelForm.placeholderWeight")}
+            />
             <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons

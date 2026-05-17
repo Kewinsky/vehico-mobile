@@ -24,6 +24,7 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
+import { getUnitDisplay } from "../../utils/unitGroups";
 import { toastError } from "../../ui/toast/toast";
 
 const MAX_PHOTOS = 40;
@@ -285,8 +286,8 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         include_service_stats: includeServiceStats,
         include_fueling_stats: includeFuelingStats,
         include_photos: includePhotos,
-        distance_unit: settings?.distanceUnit ?? "km",
-        fuel_unit: settings?.fuelUnit ?? "liters",
+        distance_unit: getUnitDisplay(settings).distanceUnit,
+        fuel_unit: getUnitDisplay(settings).fuelUnit,
         currency: settings?.currency ?? "PLN",
       },
       selectedVehiclePhotoIds: includePhotos

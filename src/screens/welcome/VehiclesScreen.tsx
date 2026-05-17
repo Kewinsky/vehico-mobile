@@ -24,7 +24,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAuth } from "../../app/providers/AuthProvider";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
+import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { normalizeDisplayName } from "../../utils/displayName";
@@ -248,7 +248,6 @@ export function VehiclesScreen({ navigation, route }: Props) {
   const [initialVisualReady, setInitialVisualReady] = useState(false);
 
   const windowWidth = Dimensions.get("window").width;
-  const { settings } = useUserSettings();
   const {
     isPremium,
     vehiclesLimit,
@@ -259,8 +258,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
     isLoading: entitlementsLoading,
     refresh: refreshEntitlements,
   } = useEntitlements();
-  const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
+  const { distanceUnitLabel } = useUnitDisplay();
 
   const visibleVehicleId: string | null = isPremium
     ? null
@@ -306,12 +304,9 @@ export function VehiclesScreen({ navigation, route }: Props) {
     ? `${headerGreeting}, ${firstName}!`
     : `${headerGreeting}!`;
 
-  // Convert mileage from km to miles if needed
   const formatMileage = (mileage: number | null | undefined): string => {
     if (!mileage) return "";
-    const value =
-      distanceUnit === "miles" ? Math.round(mileage * 0.621371) : mileage;
-    return `${groupThousands(value, 0, i18n.language)} ${distanceUnitLabel}`;
+    return `${groupThousands(mileage, 0, i18n.language)} ${distanceUnitLabel}`;
   };
 
   const load = useCallback(

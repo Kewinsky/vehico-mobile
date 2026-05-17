@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Switch,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -31,6 +30,7 @@ import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -264,113 +264,59 @@ export function TireFormScreen({ navigation, route }: Props) {
       <FormScreen noLayout>
         <NativeHeaderScrollView>
           <Card>
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="pricetag-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("tireForm.name")}
-                </Text>
-              </View>
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                editable={!saving}
-                placeholder={t("tireForm.placeholderName")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
-            <CardRow>
-              <View style={styles.rowLeft}>
+            <FormInputRow
+              icon="pricetag-outline"
+              label={t("tireForm.name")}
+              value={name}
+              onChangeText={setName}
+              editable={!saving}
+              placeholder={t("tireForm.placeholderName")}
+            />
+            <FormInputRow
+              iconComponent={
                 <AntDesign
                   name="column-width"
                   size={20}
                   color={theme.colors.accent}
                 />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("tireForm.width")}
-                </Text>
-              </View>
-              <TextInput
-                value={width}
-                onChangeText={setWidth}
-                keyboardType="number-pad"
-                editable={!saving}
-                placeholder={t("tireForm.placeholderWidth")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
-            <CardRow>
-              <View style={styles.rowLeft}>
+              }
+              label={t("tireForm.width")}
+              value={width}
+              onChangeText={setWidth}
+              keyboardType="number-pad"
+              editable={!saving}
+              placeholder={t("tireForm.placeholderWidth")}
+            />
+            <FormInputRow
+              iconComponent={
                 <AntDesign
                   name="column-height"
                   size={20}
                   color={theme.colors.accent}
                 />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("tireForm.profile")}
-                </Text>
-              </View>
-              <TextInput
-                value={profile}
-                onChangeText={setProfile}
-                keyboardType="number-pad"
-                editable={!saving}
-                placeholder={t("tireForm.placeholderProfile")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
-            <CardRow>
-              <View style={styles.rowLeft}>
+              }
+              label={t("tireForm.profile")}
+              value={profile}
+              onChangeText={setProfile}
+              keyboardType="number-pad"
+              editable={!saving}
+              placeholder={t("tireForm.placeholderProfile")}
+            />
+            <FormInputRow
+              iconComponent={
                 <MaterialCommunityIcons
                   name="diameter-variant"
                   size={20}
                   color={theme.colors.accent}
                 />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("tireForm.diameter")}
-                </Text>
-              </View>
-              <TextInput
-                value={diameter}
-                onChangeText={setDiameter}
-                keyboardType="number-pad"
-                editable={!saving}
-                placeholder={t("tireForm.placeholderDiameter")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
+              }
+              label={t("tireForm.diameter")}
+              value={diameter}
+              onChangeText={setDiameter}
+              keyboardType="number-pad"
+              editable={!saving}
+              placeholder={t("tireForm.placeholderDiameter")}
+            />
             <Pressable
               onPress={() =>
                 showPicker<TireType>({
@@ -410,33 +356,15 @@ export function TireFormScreen({ navigation, route }: Props) {
                 </Text>
               </CardRow>
             </Pressable>
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("tireForm.dot")}
-                </Text>
-              </View>
-              <TextInput
-                value={dot}
-                onChangeText={setDot}
-                keyboardType="number-pad"
-                editable={!saving}
-                placeholder={t("tireForm.placeholderDot")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
+            <FormInputRow
+              icon="calendar-outline"
+              label={t("tireForm.dot")}
+              value={dot}
+              onChangeText={setDot}
+              keyboardType="number-pad"
+              editable={!saving}
+              placeholder={t("tireForm.placeholderDot")}
+            />
             <CardRow>
               <View style={styles.rowLeft}>
                 <Ionicons

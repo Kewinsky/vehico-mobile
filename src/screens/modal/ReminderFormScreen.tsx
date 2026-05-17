@@ -35,8 +35,9 @@ import {
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { Button } from "../../ui/components/common/Button";
+import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
+import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
@@ -51,6 +52,7 @@ import {
 } from "../reminderPresets";
 import { ModalLayout } from "../../layouts";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
 import { SquarePen } from "lucide-react-native";
 import { formatYmd, parseYmd } from "../../utils/dateYmd";
@@ -68,14 +70,13 @@ const RECURRENCE_UNITS: { value: ReminderRecurrenceUnit; max: number }[] = [
 export function ReminderFormScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
-  const { settings } = useUserSettings();
   const { isPremium, remindersLimit, freePlanVehicleId, freePlanReminderIds } =
     useEntitlements();
   const styles = makeStyles(theme);
   const { vehicleId, reminderId } = route.params;
-  const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
+  const { distanceUnitLabel } = useUnitDisplay();
 
+  const [status, setStatus] = useState<ReminderStatus>("active");
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [dateEnabled, setDateEnabled] = useState(false);
@@ -180,6 +181,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     void (async () => {
       try {
         const r = await getReminder(reminderId);
+        setStatus(r.status);
         setTitle(r.title ?? "");
         setNotes(r.notes ?? "");
         if (r.due_date != null) {
@@ -315,7 +317,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           dateEnabled && daysBefore.trim() ? Number(daysBefore) || null : null,
         title: title.trim(),
         notes: notes.trim().length ? notes.trim() : null,
-        status: "active" as ReminderStatus,
+        status,
         channel_email: true,
         channel_push: true,
         enabled: true,
@@ -459,35 +461,39 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             </>
           ) : null}
 
+          {reminderId ? (
+            <View style={styles.segmentTabs}>
+              <SegmentTabs
+                value={status}
+                variant="secondary"
+                options={[
+                  {
+                    value: "active" as ReminderStatus,
+                    label: t("reminderDetail.status.active"),
+                  },
+                  {
+                    value: "done" as ReminderStatus,
+                    label: t("reminderDetail.status.done"),
+                  },
+                ]}
+                onChange={setStatus}
+                size="md"
+              />
+              <View style={{ height: theme.spacing.sm }} />
+            </View>
+          ) : null}
+
           {/* Section 1: Title */}
           <Card style={styles.card}>
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("reminderForm.titleLabel")}
-                </Text>
-              </View>
-              <TextInput
-                value={title}
-                onChangeText={setTitle}
-                placeholder={t("reminderForm.placeholderTitle")}
-                placeholderTextColor={theme.colors.muted}
-                editable={!saving}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-                autoCorrect={false}
-              />
-            </CardRow>
+            <FormInputRow
+              icon="document-text-outline"
+              label={t("reminderForm.titleLabel")}
+              value={title}
+              onChangeText={setTitle}
+              placeholder={t("reminderForm.placeholderTitle")}
+              editable={!saving}
+              autoCorrect={false}
+            />
           </Card>
 
           <View style={{ height: theme.spacing.sm }} />
@@ -561,26 +567,14 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
                 <CardDivider />
 
-                <CardRow>
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("reminderForm.daysBefore")}
-                  </Text>
-                  <TextInput
-                    value={daysBefore}
-                    onChangeText={setDaysBefore}
-                    placeholder="7"
-                    placeholderTextColor={theme.colors.muted}
-                    keyboardType="number-pad"
-                    editable={!saving}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </CardRow>
+                <FormInputRow
+                  label={t("reminderForm.daysBefore")}
+                  value={daysBefore}
+                  onChangeText={setDaysBefore}
+                  placeholder="7"
+                  keyboardType="number-pad"
+                  editable={!saving}
+                />
                 <CardDivider />
                 <CardRow style={{ justifyContent: "space-between" }}>
                   <View style={styles.rowLeft}>
@@ -723,26 +717,14 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             </CardRow>
             {mileageEnabled && (
               <>
-                <CardRow>
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("reminderForm.dueMileage", { unit: distanceUnitLabel })}
-                  </Text>
-                  <TextInput
-                    value={dueMileage}
-                    onChangeText={setDueMileage}
-                    placeholder={t("reminderForm.placeholderDueMileage")}
-                    placeholderTextColor={theme.colors.muted}
-                    keyboardType="number-pad"
-                    editable={!saving}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </CardRow>
+                <FormInputRow
+                  label={t("reminderForm.dueMileage", { unit: distanceUnitLabel })}
+                  value={dueMileage}
+                  onChangeText={setDueMileage}
+                  placeholder={t("reminderForm.placeholderDueMileage")}
+                  keyboardType="number-pad"
+                  editable={!saving}
+                />
                 <CardDivider />
                 <CardRow style={{ justifyContent: "space-between" }}>
                   <View style={styles.rowLeft}>
@@ -770,26 +752,14 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                 </CardRow>
                 {mileageRepeats && <CardDivider />}
                 {mileageRepeats && (
-                  <CardRow>
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("reminderForm.everyKm")}
-                    </Text>
-                    <TextInput
-                      value={recurrenceKm}
-                      onChangeText={setRecurrenceKm}
-                      placeholder={t("reminderForm.placeholderEveryKm")}
-                      placeholderTextColor={theme.colors.muted}
-                      keyboardType="number-pad"
-                      editable={!saving}
-                      style={[
-                        styles.input,
-                        { color: theme.colors.fg, textAlign: "right" },
-                      ]}
-                    />
-                  </CardRow>
+                  <FormInputRow
+                    label={t("reminderForm.everyKm")}
+                    value={recurrenceKm}
+                    onChangeText={setRecurrenceKm}
+                    placeholder={t("reminderForm.placeholderEveryKm")}
+                    keyboardType="number-pad"
+                    editable={!saving}
+                  />
                 )}
               </>
             )}
@@ -889,6 +859,9 @@ const makeStyles = (theme: any) =>
       justifyContent: "flex-end",
       alignItems: "center",
       gap: theme.spacing.sm,
+    },
+    segmentTabs: {
+      marginHorizontal: theme.layout.contentPaddingHorizontal,
     },
     input: {
       flex: 1,

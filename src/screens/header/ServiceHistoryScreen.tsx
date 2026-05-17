@@ -45,7 +45,6 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const distanceUnit = settings?.distanceUnit ?? "km";
   const currency = settings?.currency ?? "PLN";
 
   const [query, setQuery] = useState("");
@@ -365,7 +364,6 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
                 iconBackgroundColor={SERVICE_CATEGORY_ICON_BACKGROUND[cat]}
                 date={e.service_date}
                 mileage={e.mileage}
-                distanceUnit={distanceUnit}
                 workshopName={e.workshop_id ? workshopsById[e.workshop_id]?.name : null}
                 cost={e.cost}
                 currency={currency}

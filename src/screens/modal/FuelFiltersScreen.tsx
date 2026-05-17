@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 
@@ -16,6 +15,7 @@ import { setPendingModalResult } from "../../app/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
 import { ModalFormScreen } from "../../ui/components/layout/ModalFormScreen";
 import { Card, CardRow } from "../../ui/components/common/Card";
+import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { InlineDatePicker } from "../../ui/components/common/InlineDatePicker";
@@ -239,52 +239,22 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
           />
         ) : null}
 
-        <CardRow style={styles.rowSpread}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="cash-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text style={[styles.label, { color: theme.colors.muted }]}>
-              {t("timeline.filterMinCost")}
-            </Text>
-          </View>
-          <TextInput
-            value={minCost}
-            onChangeText={setMinCost}
-            keyboardType="decimal-pad"
-            placeholder={t("timeline.placeholderMinCost")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </CardRow>
-        <CardRow style={styles.rowSpread}>
-          <View style={styles.rowLeft}>
-            <Ionicons
-              name="cash-outline"
-              size={20}
-              color={theme.colors.accent}
-            />
-            <Text style={[styles.label, { color: theme.colors.muted }]}>
-              {t("timeline.filterMaxCost")}
-            </Text>
-          </View>
-          <TextInput
-            value={maxCost}
-            onChangeText={setMaxCost}
-            keyboardType="decimal-pad"
-            placeholder={t("timeline.placeholderMaxCost")}
-            placeholderTextColor={theme.colors.muted}
-            style={[
-              styles.input,
-              { color: theme.colors.fg, textAlign: "right" },
-            ]}
-          />
-        </CardRow>
+        <FormInputRow
+          icon="cash-outline"
+          label={t("timeline.filterMinCost")}
+          value={minCost}
+          onChangeText={setMinCost}
+          keyboardType="decimal-pad"
+          placeholder={t("timeline.placeholderMinCost")}
+        />
+        <FormInputRow
+          icon="cash-outline"
+          label={t("timeline.filterMaxCost")}
+          value={maxCost}
+          onChangeText={setMaxCost}
+          keyboardType="decimal-pad"
+          placeholder={t("timeline.placeholderMaxCost")}
+        />
       </Card>
     </ModalFormScreen>
   );

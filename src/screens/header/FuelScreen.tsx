@@ -9,6 +9,7 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { deleteFuelingEntry } from "../../services/fuel/fuelingEntriesRepo";
 import type { FuelingEntry, GasStation } from "../../types/domain";
+import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
@@ -33,11 +34,7 @@ export function FuelScreen({ route, navigation }: Props) {
   const [maxCost, setMaxCost] = useState("");
 
   const currency = settings?.currency ?? "PLN";
-  const fuelUnit = settings?.fuelUnit ?? "liters";
-  const fuelUnitLabel =
-    fuelUnit === "liters"
-      ? t("dashboard.stats.units.liters")
-      : t("dashboard.stats.units.gallons");
+  const { fuelUnitShort: fuelUnitLabel } = useUnitDisplay();
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {

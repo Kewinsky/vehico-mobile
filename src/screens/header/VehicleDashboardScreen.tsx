@@ -89,6 +89,7 @@ import { getReminderProgressPercent } from "../../services/reminders/reminderPro
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { Button } from "../../ui/components/common/Button";
@@ -106,7 +107,7 @@ import { Logo } from "../../ui/components/branding/Logo";
 import { ReminderItem } from "../../ui/components/list/ReminderItem";
 import { StatisticsScreen } from "./StatisticsScreen";
 import { formatRelativeTimePast } from "../../utils/formatRelativeTimePast";
-import { isNonNegativeNumber } from "../../utils/validation";
+import { isNonNegativeNumber, isValidDate } from "../../utils/validation";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { groupThousands } from "../../utils/numberFormatting";
 import { ButtonsPage } from "./vehicleDashboard/pages/ButtonsPage";
@@ -267,6 +268,7 @@ type DashboardStatTileProps = {
   backgroundColor?: string;
   labelColor?: string;
   iconColor?: string;
+  onPress?: () => void;
 };
 
 function DetailItem({ icon, label, value }: DetailItemProps) {
@@ -294,10 +296,11 @@ function DashboardStatTile({
   backgroundColor,
   labelColor,
   iconColor,
+  onPress,
 }: DashboardStatTileProps) {
   const { theme } = useTheme();
   const styles = makeStyles(theme, { bottom: 0 });
-  return (
+  const content = (
     <View
       style={[
         styles.dashboardStatTile,
@@ -351,11 +354,29 @@ function DashboardStatTile({
       </View>
     </View>
   );
+
+  if (onPress) {
+    return (
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.dashboardStatTilePressable,
+          pressed && { opacity: 0.85 },
+        ]}
+        accessibilityRole="button"
+      >
+        {content}
+      </Pressable>
+    );
+  }
+
+  return content;
 }
 
 export function VehicleDashboardScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme, mode } = useTheme();
+  const units = useUnitDisplay();
   const { settings } = useUserSettings();
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, insets);
@@ -387,13 +408,12 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
   const pagerProgress = useSharedValue(1);
   const detailIconSize = 28;
-  const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
-  const fuelUnit = settings?.fuelUnit ?? "liters";
-  const fuelUnitShort =
-    fuelUnit === "liters"
-      ? t("dashboard.stats.units.litersShort")
-      : t("dashboard.stats.units.gallonsShort");
+  const {
+    distanceUnit,
+    distanceUnitLabel,
+    fuelUnitShort,
+    consumptionUnitLine,
+  } = units;
   const currency = settings?.currency ?? "PLN";
   const vehicleImageHeight = Math.min(Math.max(windowHeight * 0.34, 280), 360);
   const mileageStaleYmd = useMemo(() => {
@@ -545,14 +565,9 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     const costPerDay =
       dates.length > 0 && totalCost >= 0 ? totalCost / daysSpan : Number.NaN;
 
-    const consumptionUnitLine = `${fuelUnitShort}/100 ${distanceUnitLabel}`;
-
     let distanceNumber = groupThousands(0, 0, i18n.language);
     if (distanceKmTotalForDistance > 0) {
-      const dist =
-        distanceUnit === "miles"
-          ? Math.round(distanceKmTotalForDistance * 0.621371)
-          : distanceKmTotalForDistance;
+      const dist = distanceKmTotalForDistance;
       if (dist >= 1000) {
         const thousands = Math.round((dist / 1000) * 10) / 10;
         distanceNumber = groupThousands(thousands, 1, i18n.language);
@@ -587,9 +602,8 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   }, [
     fuelingEntries,
     serviceEntries,
-    distanceUnit,
+    consumptionUnitLine,
     distanceUnitLabel,
-    fuelUnitShort,
     currency,
     activeRemindersCount,
     i18n.language,
@@ -838,6 +852,75 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       vehicle?.mileage != null ? String(vehicle.mileage) : "",
     );
   }, [distanceUnitLabel, t, vehicle?.mileage, vehicleId]);
+
+  const saveFormalitiesDate = useCallback(
+    async (
+      field: "insurance_valid_until" | "inspection_valid_until",
+      value: string | null,
+    ) => {
+      if (value != null && value.length > 0 && !isValidDate(value)) {
+        toastError(t("validation.invalidDate"));
+        return;
+      }
+      try {
+        const updatedVehicle = await updateVehicle(vehicleId, {
+          [field]: value,
+        });
+        setVehicle(updatedVehicle);
+      } catch (e: any) {
+        toastError(e?.message ?? t("common.error"));
+      }
+    },
+    [t, vehicleId],
+  );
+
+  const openFormalitiesDateEditor = useCallback(
+    (
+      field: "insurance_valid_until" | "inspection_valid_until",
+      currentValue: string | null | undefined,
+      title: string,
+      prompt: string,
+    ) => {
+      Alert.alert(
+        title,
+        t("common.chooseOption"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("common.edit"),
+            onPress: () => {
+              Alert.prompt(
+                title,
+                prompt,
+                [
+                  { text: t("common.cancel"), style: "cancel" },
+                  {
+                    text: t("common.save"),
+                    onPress: (value: string | undefined) => {
+                      const trimmed = (value ?? "").trim();
+                      void saveFormalitiesDate(
+                        field,
+                        trimmed.length ? trimmed : null,
+                      );
+                    },
+                  },
+                ],
+                "plain-text",
+                currentValue?.slice(0, 10) ?? "",
+              );
+            },
+          },
+          {
+            text: t("dashboard.formalitiesUpdate.clearDate"),
+            style: "destructive",
+            onPress: () => void saveFormalitiesDate(field, null),
+          },
+        ],
+        { cancelable: true },
+      );
+    },
+    [saveFormalitiesDate, t],
+  );
 
   const tiles: DashboardTile[] = [
     {
@@ -1185,7 +1268,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   dueMileage={reminder.due_mileage}
                   currentMileage={vehicle?.mileage ?? null}
                   anchorMileage={reminder.recurrence_anchor_mileage}
-                  distanceUnit={distanceUnit}
                   remainingDistanceLabel={t("reminders.remainingDistance")}
                   estimatedTimeLabel={t("reminders.estimatedTime")}
                   onPress={() =>
@@ -1209,6 +1291,14 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           </Text>
           <View style={styles.termsTilesRow}>
             <DashboardStatTile
+              onPress={() =>
+                openFormalitiesDateEditor(
+                  "insurance_valid_until",
+                  vehicle?.insurance_valid_until,
+                  t("dashboard.stats.insurance"),
+                  t("dashboard.formalitiesUpdate.insurancePrompt"),
+                )
+              }
               iconComponent={
                 <ShieldCheck
                   size={20}
@@ -1248,6 +1338,14 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               }
             />
             <DashboardStatTile
+              onPress={() =>
+                openFormalitiesDateEditor(
+                  "inspection_valid_until",
+                  vehicle?.inspection_valid_until,
+                  t("dashboard.stats.inspection"),
+                  t("dashboard.formalitiesUpdate.inspectionPrompt"),
+                )
+              }
               iconComponent={
                 <CheckCheck
                   size={20}
@@ -1759,8 +1857,12 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     termsTilesRow: {
       flexDirection: "row",
-      gap: 12,
-      alignItems: "flex-start",
+      gap: theme.spacing.sm,
+      alignItems: "stretch",
+    },
+    dashboardStatTilePressable: {
+      flex: 1,
+      minWidth: 0,
     },
     infoCard: {
       borderRadius: theme.radius.md,

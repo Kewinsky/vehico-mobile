@@ -16,7 +16,6 @@ import {
   listReminders,
   updateReminder,
 } from "../../services/reminders/remindersRepo";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { ReminderItem } from "../../ui/components/list/ReminderItem";
@@ -29,7 +28,6 @@ type Props = NativeStackScreenProps<AppStackParamList, "Reminders">;
 
 export function RemindersScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
-  const { settings } = useUserSettings();
 
   const [items, setItems] = useState<Reminder[]>([]);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
@@ -40,7 +38,6 @@ export function RemindersScreen({ route, navigation }: Props) {
     "upcoming" | "overdue" | "completed"
   >("upcoming");
 
-  const distanceUnit = settings?.distanceUnit ?? "km";
   const vehicleId = route.params.vehicleId;
 
   const {
@@ -251,7 +248,6 @@ export function RemindersScreen({ route, navigation }: Props) {
               dueMileage={reminder.due_mileage}
               currentMileage={vehicle?.mileage ?? null}
               anchorMileage={reminder.recurrence_anchor_mileage}
-              distanceUnit={distanceUnit}
               remainingDistanceLabel={t("reminders.remainingDistance")}
               estimatedTimeLabel={t("reminders.estimatedTime")}
               onPress={() =>

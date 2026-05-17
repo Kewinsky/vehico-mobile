@@ -11,10 +11,17 @@ import * as Localization from "expo-localization";
 
 import { i18n } from "../../i18n/i18n";
 import type { SupportedLanguage } from "../../i18n/i18n";
+import {
+  getUnitGroupDefinition,
+  resolveUnitGroupId,
+  settingsPatchForUnitGroup,
+  type UnitGroupId,
+} from "../../utils/unitGroups";
 import { useAuth } from "./AuthProvider";
 
 export type UserSettings = {
   currency: "PLN" | "USD";
+  unitGroup?: UnitGroupId;
   distanceUnit: "km" | "miles";
   fuelUnit: "liters" | "gallons";
   theme: "system" | "light" | "dark";
@@ -27,13 +34,53 @@ function detectSystemLanguage(): SupportedLanguage {
   return systemLocale === "pl" ? "pl" : "en";
 }
 
+const DEFAULT_UNIT_GROUP: UnitGroupId = "european";
+
 const DEFAULT_SETTINGS: UserSettings = {
   currency: "PLN",
-  distanceUnit: "km",
-  fuelUnit: "liters",
+  unitGroup: DEFAULT_UNIT_GROUP,
+  ...settingsPatchForUnitGroup(DEFAULT_UNIT_GROUP),
   theme: "system",
   language: detectSystemLanguage(),
 };
+
+function normalizeUserSettings(
+  parsed: Record<string, unknown> | null,
+): UserSettings {
+  const distanceUnit =
+    (parsed?.distanceUnit as UserSettings["distanceUnit"] | undefined) ??
+    (parsed?.distance_unit as UserSettings["distanceUnit"] | undefined) ??
+    DEFAULT_SETTINGS.distanceUnit;
+  const fuelUnit =
+    (parsed?.fuelUnit as UserSettings["fuelUnit"] | undefined) ??
+    (parsed?.fuel_unit as UserSettings["fuelUnit"] | undefined) ??
+    DEFAULT_SETTINGS.fuelUnit;
+  const unitGroup = resolveUnitGroupId({
+    ...DEFAULT_SETTINGS,
+    ...(parsed ?? {}),
+    distanceUnit,
+    fuelUnit,
+    unitGroup: parsed?.unitGroup as UnitGroupId | undefined,
+  });
+  const group = getUnitGroupDefinition(unitGroup);
+
+  return {
+    ...DEFAULT_SETTINGS,
+    ...(parsed ?? {}),
+    currency:
+      (parsed?.currency as UserSettings["currency"] | undefined) ??
+      DEFAULT_SETTINGS.currency,
+    unitGroup,
+    distanceUnit: group.distanceUnit,
+    fuelUnit: group.fuelUnit,
+    theme:
+      (parsed?.theme as UserSettings["theme"] | undefined) ??
+      DEFAULT_SETTINGS.theme,
+    language:
+      (parsed?.language as UserSettings["language"] | undefined) ??
+      detectSystemLanguage(),
+  };
+}
 
 type UserSettingsContextValue = {
   settings: UserSettings | null;
@@ -91,26 +138,7 @@ export function UserSettingsProvider({ children }: PropsWithChildren) {
         // Migration note:
         // Older builds stored snake_case keys (distance_unit/fuel_unit). Keep reading them
         // to avoid silently resetting user preferences.
-        const merged: UserSettings = {
-          ...DEFAULT_SETTINGS,
-          ...(parsed ?? {}),
-          distanceUnit:
-            (parsed?.distanceUnit as
-              | UserSettings["distanceUnit"]
-              | undefined) ??
-            (parsed?.distance_unit as
-              | UserSettings["distanceUnit"]
-              | undefined) ??
-            DEFAULT_SETTINGS.distanceUnit,
-          fuelUnit:
-            (parsed?.fuelUnit as UserSettings["fuelUnit"] | undefined) ??
-            (parsed?.fuel_unit as UserSettings["fuelUnit"] | undefined) ??
-            DEFAULT_SETTINGS.fuelUnit,
-          // Use system language if no language is stored
-          language:
-            (parsed?.language as UserSettings["language"] | undefined) ??
-            detectSystemLanguage(),
-        };
+        const merged = normalizeUserSettings(parsed);
 
         if (alive) setSettingsState(merged);
         // Apply language immediately when loading settings
@@ -142,9 +170,14 @@ export function UserSettingsProvider({ children }: PropsWithChildren) {
       settings,
       isLoading,
       setSettings: async (patch) => {
+        const base = settings ?? DEFAULT_SETTINGS;
+        const unitPatch = patch.unitGroup
+          ? settingsPatchForUnitGroup(patch.unitGroup)
+          : {};
         const next: UserSettings = {
-          ...(settings ?? DEFAULT_SETTINGS),
+          ...base,
           ...patch,
+          ...unitPatch,
         };
         setSettingsState(next);
         await AsyncStorage.setItem(key, JSON.stringify(next));

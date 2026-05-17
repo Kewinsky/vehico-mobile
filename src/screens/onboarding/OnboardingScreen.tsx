@@ -9,7 +9,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
@@ -43,10 +42,12 @@ import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
 import { groupThousands } from "../../utils/numberFormatting";
 import { useAuth } from "../../app/providers/AuthProvider";
+import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { Logo } from "../../ui/components/branding/Logo";
-import { Card, CardRow } from "../../ui/components/common/Card";
+import { Card } from "../../ui/components/common/Card";
+import { FormInputRow } from "../../ui/components/common/FormInputRow";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Onboarding">;
 
@@ -68,8 +69,7 @@ export function OnboardingScreen({ navigation }: Props) {
   const { settings } = useUserSettings();
   const { vehiclesLimit, isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
-  const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
+  const { distanceUnitLabel } = useUnitDisplay();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [showValidation, setShowValidation] = useState(false);
@@ -390,33 +390,17 @@ export function OnboardingScreen({ navigation }: Props) {
                 backgroundColor: theme.colors.card,
               }}
             >
-              <CardRow>
-                <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="person-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("onboarding.name.label")}
-                  </Text>
-                </View>
-                <TextInput
-                  value={name}
-                  onChangeText={setName}
-                  placeholder={t("onboarding.name.placeholder")}
-                  placeholderTextColor={theme.colors.muted}
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  editable={!saving}
-                  autoFocus
-                  autoCapitalize="words"
-                  returnKeyType="done"
-                  style={[styles.input, { color: theme.colors.fg }]}
-                />
-              </CardRow>
+              <FormInputRow
+                icon="person-outline"
+                label={t("onboarding.name.label")}
+                value={name}
+                onChangeText={setName}
+                placeholder={t("onboarding.name.placeholder")}
+                editable={!saving}
+                autoFocus
+                autoCapitalize="words"
+                returnKeyType="done"
+              />
             </Card>
             {(() => {
               const n = name.trim();
@@ -533,123 +517,59 @@ export function OnboardingScreen({ navigation }: Props) {
           <View style={styles.step}>
             <ContentHeader title={t("onboarding.vehicle.makeModel.title")} />
             <Card>
-              <CardRow>
-                <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="pricetag-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("vehicleForm.makeLabel")}
-                  </Text>
-                </View>
-                <TextInput
-                  value={make}
-                  onChangeText={setMake}
-                  placeholder={
-                    vehicleType === "motorcycle"
-                      ? t("vehicleForm.placeholderMakeMotorcycle")
-                      : t("vehicleForm.placeholderMake")
-                  }
-                  placeholderTextColor={theme.colors.muted}
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  editable={!saving}
-                  autoCapitalize="words"
-                  style={[styles.input, { color: theme.colors.fg }]}
-                />
-              </CardRow>
-              <CardRow>
-                <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="layers-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("vehicleForm.modelLabel")}
-                  </Text>
-                </View>
-                <TextInput
-                  value={model}
-                  onChangeText={setModel}
-                  placeholder={
-                    vehicleType === "motorcycle"
-                      ? t("vehicleForm.placeholderModelMotorcycle")
-                      : t("vehicleForm.placeholderModel")
-                  }
-                  placeholderTextColor={theme.colors.muted}
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  editable={!saving}
-                  autoCapitalize="words"
-                  style={[styles.input, { color: theme.colors.fg }]}
-                />
-              </CardRow>
-              <CardRow>
-                <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("vehicleForm.yearLabel")}
-                  </Text>
-                </View>
-                <TextInput
-                  value={year}
-                  onChangeText={setYear}
-                  placeholder={
-                    vehicleType === "motorcycle"
-                      ? t("vehicleForm.placeholderYearMotorcycle")
-                      : t("vehicleForm.placeholderYear")
-                  }
-                  placeholderTextColor={theme.colors.muted}
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  editable={!saving}
-                  keyboardType="number-pad"
-                  maxLength={4}
-                  style={[styles.input, { color: theme.colors.fg }]}
-                />
-              </CardRow>
-              <CardRow>
-                <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="speedometer-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("vehicleForm.mileageLabel")}
-                  </Text>
-                </View>
-                <TextInput
-                  value={mileage}
-                  onChangeText={setMileage}
-                  placeholder={
-                    vehicleType === "motorcycle"
-                      ? t("vehicleForm.placeholderMileageMotorcycle")
-                      : t("vehicleForm.placeholderMileage")
-                  }
-                  placeholderTextColor={theme.colors.muted}
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  keyboardType="number-pad"
-                  editable={!saving}
-                  style={[styles.input, { color: theme.colors.fg }]}
-                />
-              </CardRow>
+              <FormInputRow
+                icon="pricetag-outline"
+                label={t("vehicleForm.makeLabel")}
+                value={make}
+                onChangeText={setMake}
+                placeholder={
+                  vehicleType === "motorcycle"
+                    ? t("vehicleForm.placeholderMakeMotorcycle")
+                    : t("vehicleForm.placeholderMake")
+                }
+                editable={!saving}
+                autoCapitalize="words"
+              />
+              <FormInputRow
+                icon="layers-outline"
+                label={t("vehicleForm.modelLabel")}
+                value={model}
+                onChangeText={setModel}
+                placeholder={
+                  vehicleType === "motorcycle"
+                    ? t("vehicleForm.placeholderModelMotorcycle")
+                    : t("vehicleForm.placeholderModel")
+                }
+                editable={!saving}
+                autoCapitalize="words"
+              />
+              <FormInputRow
+                icon="calendar-outline"
+                label={t("vehicleForm.yearLabel")}
+                value={year}
+                onChangeText={setYear}
+                placeholder={
+                  vehicleType === "motorcycle"
+                    ? t("vehicleForm.placeholderYearMotorcycle")
+                    : t("vehicleForm.placeholderYear")
+                }
+                editable={!saving}
+                keyboardType="number-pad"
+                maxLength={4}
+              />
+              <FormInputRow
+                icon="speedometer-outline"
+                label={`${t("vehicleForm.mileageLabel")} (${distanceUnitLabel})`}
+                value={mileage}
+                onChangeText={setMileage}
+                placeholder={
+                  vehicleType === "motorcycle"
+                    ? t("vehicleForm.placeholderMileageMotorcycle")
+                    : t("vehicleForm.placeholderMileage")
+                }
+                keyboardType="number-pad"
+                editable={!saving}
+              />
             </Card>
             {(() => {
               const makeInvalid =

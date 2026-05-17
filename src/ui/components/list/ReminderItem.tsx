@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import { useTranslation } from "react-i18next";
 
+import { useUnitDisplay } from "../../../app/hooks/useUnitDisplay";
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
 import { groupThousands } from "../../../utils/numberFormatting";
@@ -15,7 +16,6 @@ type ReminderItemProps = {
   dueMileage?: number | null;
   currentMileage?: number | null;
   anchorMileage?: number | null;
-  distanceUnit: string;
   remainingDistanceLabel: string;
   estimatedTimeLabel: string;
   dimmed?: boolean;
@@ -36,7 +36,6 @@ export function ReminderItem({
   dueMileage,
   currentMileage,
   anchorMileage,
-  distanceUnit,
   remainingDistanceLabel,
   estimatedTimeLabel,
   dimmed = false,
@@ -47,8 +46,8 @@ export function ReminderItem({
 }: ReminderItemProps) {
   const { i18n } = useTranslation();
   const { theme } = useTheme();
+  const { distanceUnitLabel } = useUnitDisplay();
   const styles = makeStyles(theme);
-  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
 
   const now = new Date();
 

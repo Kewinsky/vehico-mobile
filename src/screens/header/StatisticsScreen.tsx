@@ -26,6 +26,7 @@ import Svg, {
 } from "react-native-svg";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
@@ -1097,17 +1098,12 @@ export function StatisticsScreen(props: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const currency = settings?.currency ?? "PLN";
-  const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
-  const fuelUnit = settings?.fuelUnit ?? "liters";
-  const fuelUnitLabel =
-    fuelUnit === "liters"
-      ? t("dashboard.stats.units.liters")
-      : t("dashboard.stats.units.gallons");
-  const fuelUnitShort =
-    fuelUnit === "liters"
-      ? t("dashboard.stats.units.litersShort")
-      : t("dashboard.stats.units.gallonsShort");
+  const {
+    distanceUnitLabel,
+    fuelUnitShort,
+    consumptionUnitLine,
+  } = useUnitDisplay();
+  const fuelUnitLabel = fuelUnitShort;
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -1938,7 +1934,7 @@ export function StatisticsScreen(props: Props) {
             }
             valueSuffix={
               Number.isFinite(totals.avgConsumptionPer100)
-                ? `${fuelUnitShort}/100 ${distanceUnitLabel}`
+                ? consumptionUnitLine
                 : undefined
             }
             valueMainRollingValue={
@@ -2118,7 +2114,6 @@ export function StatisticsScreen(props: Props) {
                   iconBackgroundColor={SERVICE_CATEGORY_ICON_BACKGROUND[cat]}
                   date={entry.service_date}
                   mileage={entry.mileage}
-                  distanceUnit={distanceUnit}
                   workshopName={
                     entry.workshop_id
                       ? workshopsById[entry.workshop_id]?.name

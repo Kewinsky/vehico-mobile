@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 
@@ -24,7 +23,9 @@ import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
+import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
@@ -58,12 +59,8 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const { settings } = useUserSettings();
   const styles = makeStyles(theme);
   const { vehicleId, entryId } = route.params;
-  const distanceUnit = settings?.distanceUnit ?? "km";
-  const fuelUnit = settings?.fuelUnit ?? "liters";
-  const fuelUnitLabel =
-    fuelUnit === "liters"
-      ? t("dashboard.stats.units.liters")
-      : t("dashboard.stats.units.gallons");
+  const { distanceUnitLabel, fuelUnitShort } = useUnitDisplay();
+  const fuelUnitLabel = fuelUnitShort;
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -364,85 +361,35 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
           <View style={{ height: theme.spacing.sm }} />
 
           <Card>
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="speedometer-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("fuelingForm.distance", { unit: distanceUnit })}
-                </Text>
-              </View>
-              <TextInput
-                value={distance}
-                onChangeText={setDistance}
-                keyboardType="decimal-pad"
-                editable={!saving}
-                placeholder={t("fuelingForm.placeholderDistance")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
+            <FormInputRow
+              icon="speedometer-outline"
+              label={t("fuelingForm.distance", { unit: distanceUnitLabel })}
+              value={distance}
+              onChangeText={setDistance}
+              keyboardType="decimal-pad"
+              editable={!saving}
+              placeholder={t("fuelingForm.placeholderDistance")}
+            />
 
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <Droplet size={20} color={theme.colors.accent} />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("fuelingForm.fuelAmount", { unit: fuelUnitLabel })}
-                </Text>
-              </View>
-              <TextInput
-                value={fuelAmount}
-                onChangeText={setFuelAmount}
-                keyboardType="decimal-pad"
-                editable={!saving}
-                placeholder={t("fuelingForm.placeholderFuelAmount")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
+            <FormInputRow
+              iconComponent={<Droplet size={20} color={theme.colors.accent} />}
+              label={t("fuelingForm.fuelAmount", { unit: fuelUnitLabel })}
+              value={fuelAmount}
+              onChangeText={setFuelAmount}
+              keyboardType="decimal-pad"
+              editable={!saving}
+              placeholder={t("fuelingForm.placeholderFuelAmount")}
+            />
 
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="card-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("fuelingForm.cost")}
-                </Text>
-              </View>
-              <TextInput
-                value={fuelCost}
-                onChangeText={setFuelCost}
-                keyboardType="decimal-pad"
-                editable={!saving}
-                placeholder={t("fuelingForm.placeholderCost")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
+            <FormInputRow
+              icon="card-outline"
+              label={t("fuelingForm.cost")}
+              value={fuelCost}
+              onChangeText={setFuelCost}
+              keyboardType="decimal-pad"
+              editable={!saving}
+              placeholder={t("fuelingForm.placeholderCost")}
+            />
           </Card>
         </NativeHeaderScrollView>
       </FormScreen>

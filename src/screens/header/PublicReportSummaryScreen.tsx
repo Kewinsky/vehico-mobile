@@ -35,6 +35,7 @@ import {
 import { uploadReportPhotos } from "../../services/publicPages/uploadReportPhoto";
 import { Button } from "../../ui/components/common/Button";
 import { useTheme } from "../../ui/ThemeProvider";
+import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
@@ -88,8 +89,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId, reportOptions, selectedVehiclePhotoIds, tempPhotos } =
     route.params;
-  const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
+  const { distanceUnitLabel } = useUnitDisplay();
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [serviceEntriesCount, setServiceEntriesCount] = useState<number>(0);

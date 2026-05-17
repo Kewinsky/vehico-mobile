@@ -72,6 +72,7 @@ export function FormScreen({
             ref={effectiveScrollRef}
             scrollEnabled={scrollEnabled}
             nestedScrollEnabled={false}
+            keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               flexGrow: 1,

@@ -392,6 +392,11 @@ export const pl = {
       lastUpdated: "Ostatnia aktualizacja przebiegu {{relative}}.",
       cta: "Zaktualizuj przebieg",
     },
+    formalitiesUpdate: {
+      insurancePrompt: "Ubezpieczenie ważne do (RRRR-MM-DD)",
+      inspectionPrompt: "Przegląd ważny do (RRRR-MM-DD)",
+      clearDate: "Wyczyść datę",
+    },
     quickMetrics: {
       costSubtitle: "Koszt/dzień",
       distanceSubtitle: "Dystans",
@@ -702,6 +707,29 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     themeLight: "Jasny",
     themeDark: "Ciemny",
     language: "Język",
+    unitGroupSection: "System jednostek",
+    unitGroups: {
+      metric: {
+        title: "Metryczny ({{units}})",
+        units: "km, L, km/L",
+        regions: "Indie, Japonia, Korea, Azja Południowo-Wschodnia",
+      },
+      european: {
+        title: "Europejski ({{units}})",
+        units: "km, L, L/100km",
+        regions: "Europa, Australia, Kanada",
+      },
+      uk: {
+        title: "UK ({{units}})",
+        units: "mi, L, mpg",
+        regions: "Wielka Brytania, Irlandia",
+      },
+      imperial: {
+        title: "Imperialny ({{units}})",
+        units: "mi, gal, mpg",
+        regions: "Stany Zjednoczone",
+      },
+    },
   },
   documents: {
     title: "Dokumenty",
@@ -794,6 +822,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
   reminderForm: {
     addTitle: "Dodaj przypomnienie",
     editTitle: "Edytuj przypomnienie",
+    statusLabel: "Status",
     titleLabel: "Tytuł",
     notesLabel: "Notatki",
     dateReminder: "Przypomnienie na datę",

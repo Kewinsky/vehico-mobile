@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -35,6 +34,7 @@ import {
 } from "../../services/storage/openFileUrl";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
 import type { Workshop } from "../../types/domain";
+import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
@@ -42,6 +42,7 @@ import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
@@ -73,8 +74,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { settings } = useUserSettings();
   const { isPremium, workshopsLimit, freePlanWorkshopIds } = useEntitlements();
   const { vehicleId, entryId } = route.params as any;
-  const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
+  const { distanceUnitLabel } = useUnitDisplay();
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -791,33 +791,15 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               </CardRow>
             </Pressable>
 
-            <CardRow>
-              <View style={styles.rowLeft}>
-                <Ionicons
-                  name="speedometer-outline"
-                  size={20}
-                  color={theme.colors.accent}
-                />
-                <Text
-                  style={[styles.label, { color: theme.colors.muted }]}
-                  numberOfLines={1}
-                >
-                  {t("entryForm.mileage")} ({distanceUnitLabel})
-                </Text>
-              </View>
-              <TextInput
-                value={mileage}
-                onChangeText={setMileage}
-                keyboardType="number-pad"
-                editable={!saving && !uploading}
-                placeholder={t("entryForm.placeholderMileage")}
-                placeholderTextColor={theme.colors.muted}
-                style={[
-                  styles.input,
-                  { color: theme.colors.fg, textAlign: "right" },
-                ]}
-              />
-            </CardRow>
+            <FormInputRow
+              icon="speedometer-outline"
+              label={`${t("entryForm.mileage")} (${distanceUnitLabel})`}
+              value={mileage}
+              onChangeText={setMileage}
+              keyboardType="number-pad"
+              editable={!saving && !uploading}
+              placeholder={t("entryForm.placeholderMileage")}
+            />
           </Card>
 
           <View style={{ height: theme.spacing.sm }} />
@@ -827,75 +809,41 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               {entries.map((row, index) => (
                 <View key={index}>
                   <Card>
-                    <CardRow>
-                      <View style={styles.rowLeft}>
-                        <Ionicons
-                          name="document-text-outline"
-                          size={20}
-                          color={theme.colors.accent}
-                        />
-                        <Text
-                          style={[styles.label, { color: theme.colors.muted }]}
-                          numberOfLines={1}
-                        >
-                          {t("entryForm.entryTitle")}
-                        </Text>
-                      </View>
-                      <TextInput
-                        value={row.title}
-                        onChangeText={(text) =>
-                          updateEntry(index, { title: text })
-                        }
-                        editable={!saving && !uploading}
-                        placeholder={t("entryForm.placeholderTitle")}
-                        placeholderTextColor={theme.colors.muted}
-                        style={[
-                          styles.input,
-                          { color: theme.colors.fg, textAlign: "right" },
-                        ]}
-                      />
-                    </CardRow>
-                    <CardRow>
-                      <View style={styles.rowLeft}>
-                        <Ionicons
-                          name="cash-outline"
-                          size={20}
-                          color={theme.colors.accent}
-                        />
-                        <Text
-                          style={[styles.label, { color: theme.colors.muted }]}
-                          numberOfLines={1}
-                        >
-                          {t("entryForm.cost")}
-                        </Text>
-                      </View>
-                      <TextInput
-                        value={row.cost}
-                        onChangeText={(text) =>
-                          updateEntry(index, { cost: text })
-                        }
-                        keyboardType="decimal-pad"
-                        editable={!saving && !uploading}
-                        placeholder={t("entryForm.placeholderCost")}
-                        placeholderTextColor={theme.colors.muted}
-                        style={[
-                          styles.input,
-                          { color: theme.colors.fg, textAlign: "right" },
-                        ]}
-                      />
-                      {isMultipleRows && (!entryId || index > 0) ? (
-                        <Pressable
-                          onPress={() => removeEntry(index)}
-                          hitSlop={10}
-                          style={({ pressed }) => [
-                            styles.inlineTrash,
-                            pressed && { opacity: 0.75 },
-                          ]}
-                        >
-                          <Trash2 size={20} color={theme.colors.danger} />
-                        </Pressable>
-                      ) : null}
-                    </CardRow>
+                    <FormInputRow
+                      icon="document-text-outline"
+                      label={t("entryForm.entryTitle")}
+                      value={row.title}
+                      onChangeText={(text) =>
+                        updateEntry(index, { title: text })
+                      }
+                      editable={!saving && !uploading}
+                      placeholder={t("entryForm.placeholderTitle")}
+                    />
+                    <FormInputRow
+                      icon="cash-outline"
+                      label={t("entryForm.cost")}
+                      value={row.cost}
+                      onChangeText={(text) =>
+                        updateEntry(index, { cost: text })
+                      }
+                      keyboardType="decimal-pad"
+                      editable={!saving && !uploading}
+                      placeholder={t("entryForm.placeholderCost")}
+                      trailing={
+                        isMultipleRows && (!entryId || index > 0) ? (
+                          <Pressable
+                            onPress={() => removeEntry(index)}
+                            hitSlop={10}
+                            style={({ pressed }) => [
+                              styles.inlineTrash,
+                              pressed && { opacity: 0.75 },
+                            ]}
+                          >
+                            <Trash2 size={20} color={theme.colors.danger} />
+                          </Pressable>
+                        ) : null
+                      }
+                    />
                   </Card>
                   {index < entries.length - 1 ? (
                     <View style={{ height: theme.spacing.sm }} />
@@ -918,59 +866,23 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           ) : (
             <>
               <Card>
-                <CardRow>
-                  <View style={styles.rowLeft}>
-                    <Ionicons
-                      name="document-text-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("entryForm.entryTitle")}
-                    </Text>
-                  </View>
-                  <TextInput
-                    value={entries[0]?.title ?? ""}
-                    onChangeText={(text) => updateEntry(0, { title: text })}
-                    editable={!saving && !uploading}
-                    placeholder={t("entryForm.placeholderTitle")}
-                    placeholderTextColor={theme.colors.muted}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </CardRow>
-                <CardRow>
-                  <View style={styles.rowLeft}>
-                    <Ionicons
-                      name="cash-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("entryForm.cost")}
-                    </Text>
-                  </View>
-                  <TextInput
-                    value={entries[0]?.cost ?? ""}
-                    onChangeText={(text) => updateEntry(0, { cost: text })}
-                    keyboardType="decimal-pad"
-                    editable={!saving && !uploading}
-                    placeholder={t("entryForm.placeholderCost")}
-                    placeholderTextColor={theme.colors.muted}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </CardRow>
+                <FormInputRow
+                  icon="document-text-outline"
+                  label={t("entryForm.entryTitle")}
+                  value={entries[0]?.title ?? ""}
+                  onChangeText={(text) => updateEntry(0, { title: text })}
+                  editable={!saving && !uploading}
+                  placeholder={t("entryForm.placeholderTitle")}
+                />
+                <FormInputRow
+                  icon="cash-outline"
+                  label={t("entryForm.cost")}
+                  value={entries[0]?.cost ?? ""}
+                  onChangeText={(text) => updateEntry(0, { cost: text })}
+                  keyboardType="decimal-pad"
+                  editable={!saving && !uploading}
+                  placeholder={t("entryForm.placeholderCost")}
+                />
               </Card>
 
               <View style={{ height: theme.spacing.sm }} />

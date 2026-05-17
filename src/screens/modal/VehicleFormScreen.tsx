@@ -5,7 +5,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { Image } from "expo-image";
@@ -50,7 +49,9 @@ import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Hash, CalendarCheck, Fuel } from "lucide-react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
+import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
@@ -69,8 +70,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
   const { settings } = useUserSettings();
   const { vehiclesLimit, isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = makeStyles(theme);
-  const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
+  const { distanceUnitLabel } = useUnitDisplay();
   const vehicleId = route.params?.vehicleId;
   const isEditMode = !!vehicleId;
   const accentBg = useMemo(
@@ -666,197 +666,88 @@ export function VehicleFormScreen({ navigation, route }: Props) {
               <View style={{ height: theme.spacing.sm }} />
 
               <Card>
-                <CardRow>
-                  <View style={styles.rowLeft}>
-                    <Ionicons
-                      name="barcode-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("vehicleForm.vinLabel")}
-                    </Text>
-                  </View>
-                  <TextInput
-                    value={vin}
-                    onChangeText={setVin}
-                    autoCapitalize="characters"
-                    editable={!saving}
-                    placeholder={
-                      type === "motorcycle"
-                        ? t("vehicleForm.placeholderVinMotorcycle")
-                        : t("vehicleForm.placeholderVin")
-                    }
-                    placeholderTextColor={theme.colors.muted}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </CardRow>
+                <FormInputRow
+                  icon="barcode-outline"
+                  label={t("vehicleForm.vinLabel")}
+                  value={vin}
+                  onChangeText={setVin}
+                  autoCapitalize="characters"
+                  editable={!saving}
+                  placeholder={
+                    type === "motorcycle"
+                      ? t("vehicleForm.placeholderVinMotorcycle")
+                      : t("vehicleForm.placeholderVin")
+                  }
+                />
 
-                <CardRow>
-                  <View style={styles.rowLeft}>
-                    <Ionicons
-                      name="car-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("vehicleForm.makeLabel")}
-                    </Text>
-                  </View>
-                  <TextInput
-                    value={make}
-                    onChangeText={setMake}
-                    editable={!saving}
-                    placeholder={
-                      type === "motorcycle"
-                        ? t("vehicleForm.placeholderMakeMotorcycle")
-                        : t("vehicleForm.placeholderMake")
-                    }
-                    placeholderTextColor={theme.colors.muted}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </CardRow>
+                <FormInputRow
+                  icon="car-outline"
+                  label={t("vehicleForm.makeLabel")}
+                  value={make}
+                  onChangeText={setMake}
+                  editable={!saving}
+                  placeholder={
+                    type === "motorcycle"
+                      ? t("vehicleForm.placeholderMakeMotorcycle")
+                      : t("vehicleForm.placeholderMake")
+                  }
+                />
 
-                <CardRow>
-                  <View style={styles.rowLeft}>
-                    <Ionicons
-                      name="pricetag-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("vehicleForm.modelLabel")}
-                    </Text>
-                  </View>
-                  <TextInput
-                    value={model}
-                    onChangeText={setModel}
-                    editable={!saving}
-                    placeholder={
-                      type === "motorcycle"
-                        ? t("vehicleForm.placeholderModelMotorcycle")
-                        : t("vehicleForm.placeholderModel")
-                    }
-                    placeholderTextColor={theme.colors.muted}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </CardRow>
+                <FormInputRow
+                  icon="pricetag-outline"
+                  label={t("vehicleForm.modelLabel")}
+                  value={model}
+                  onChangeText={setModel}
+                  editable={!saving}
+                  placeholder={
+                    type === "motorcycle"
+                      ? t("vehicleForm.placeholderModelMotorcycle")
+                      : t("vehicleForm.placeholderModel")
+                  }
+                />
 
-                <CardRow>
-                  <View style={styles.rowLeft}>
-                    <Ionicons
-                      name="calendar-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("vehicleForm.yearLabel")}
-                    </Text>
-                  </View>
-                  <TextInput
-                    value={year}
-                    onChangeText={setYear}
-                    keyboardType="number-pad"
-                    maxLength={4}
-                    editable={!saving}
-                    placeholder={
-                      type === "motorcycle"
-                        ? t("vehicleForm.placeholderYearMotorcycle")
-                        : t("vehicleForm.placeholderYear")
-                    }
-                    placeholderTextColor={theme.colors.muted}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </CardRow>
+                <FormInputRow
+                  icon="calendar-outline"
+                  label={t("vehicleForm.yearLabel")}
+                  value={year}
+                  onChangeText={setYear}
+                  keyboardType="number-pad"
+                  maxLength={4}
+                  editable={!saving}
+                  placeholder={
+                    type === "motorcycle"
+                      ? t("vehicleForm.placeholderYearMotorcycle")
+                      : t("vehicleForm.placeholderYear")
+                  }
+                />
 
-                <CardRow>
-                  <View style={styles.rowLeft}>
-                    <Ionicons
-                      name="speedometer-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("vehicleForm.initialMileageLabel")} (
-                      {distanceUnitLabel})
-                    </Text>
-                  </View>
-                  <TextInput
-                    value={initialMileage}
-                    onChangeText={setInitialMileage}
-                    keyboardType="number-pad"
-                    editable={!saving}
-                    placeholder={
-                      type === "motorcycle"
-                        ? t("vehicleForm.placeholderInitialMileageMotorcycle")
-                        : t("vehicleForm.placeholderInitialMileage")
-                    }
-                    placeholderTextColor={theme.colors.muted}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </CardRow>
+                <FormInputRow
+                  icon="speedometer-outline"
+                  label={`${t("vehicleForm.initialMileageLabel")} (${distanceUnitLabel})`}
+                  value={initialMileage}
+                  onChangeText={setInitialMileage}
+                  keyboardType="number-pad"
+                  editable={!saving}
+                  placeholder={
+                    type === "motorcycle"
+                      ? t("vehicleForm.placeholderInitialMileageMotorcycle")
+                      : t("vehicleForm.placeholderInitialMileage")
+                  }
+                />
 
-                <CardRow>
-                  <View style={styles.rowLeft}>
-                    <Ionicons
-                      name="speedometer-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("vehicleForm.mileageLabel")} ({distanceUnitLabel})
-                    </Text>
-                  </View>
-                  <TextInput
-                    value={mileage}
-                    onChangeText={setMileage}
-                    keyboardType="number-pad"
-                    editable={!saving}
-                    placeholder={
-                      type === "motorcycle"
-                        ? t("vehicleForm.placeholderMileageMotorcycle")
-                        : t("vehicleForm.placeholderMileage")
-                    }
-                    placeholderTextColor={theme.colors.muted}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </CardRow>
+                <FormInputRow
+                  icon="speedometer-outline"
+                  label={`${t("vehicleForm.mileageLabel")} (${distanceUnitLabel})`}
+                  value={mileage}
+                  onChangeText={setMileage}
+                  keyboardType="number-pad"
+                  editable={!saving}
+                  placeholder={
+                    type === "motorcycle"
+                      ? t("vehicleForm.placeholderMileageMotorcycle")
+                      : t("vehicleForm.placeholderMileage")
+                  }
+                />
 
                 <Pressable
                   onPress={() => !saving && openPicker("firstRegistration")}
@@ -921,28 +812,14 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     }}
                   />
                 ) : null}
-                <CardRow>
-                  <View style={styles.rowLeft}>
-                    <Hash size={20} color={theme.colors.accent} />
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("vehicleForm.licensePlateLabel")}
-                    </Text>
-                  </View>
-                  <TextInput
-                    value={licensePlate}
-                    onChangeText={setLicensePlate}
-                    editable={!saving}
-                    placeholder={t("vehicleForm.placeholderLicensePlate")}
-                    placeholderTextColor={theme.colors.muted}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </CardRow>
+                <FormInputRow
+                  iconComponent={<Hash size={20} color={theme.colors.accent} />}
+                  label={t("vehicleForm.licensePlateLabel")}
+                  value={licensePlate}
+                  onChangeText={setLicensePlate}
+                  editable={!saving}
+                  placeholder={t("vehicleForm.placeholderLicensePlate")}
+                />
               </Card>
 
               <View style={{ height: theme.spacing.sm }} />
@@ -1011,69 +888,39 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   </CardRow>
                 </Pressable>
 
-                <CardRow>
-                  <View style={styles.rowLeft}>
+                <FormInputRow
+                  iconComponent={
                     <MaterialCommunityIcons
                       name="engine"
                       size={20}
                       color={theme.colors.accent}
                     />
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("vehicleForm.engineCapacityLabel")}
-                    </Text>
-                  </View>
-                  <TextInput
-                    value={engineCapacity}
-                    onChangeText={setEngineCapacity}
-                    keyboardType="number-pad"
-                    editable={!saving}
-                    placeholder={
-                      type === "motorcycle"
-                        ? t("vehicleForm.placeholderEngineCapacityMotorcycle")
-                        : t("vehicleForm.placeholderEngineCapacity")
-                    }
-                    placeholderTextColor={theme.colors.muted}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </CardRow>
+                  }
+                  label={t("vehicleForm.engineCapacityLabel")}
+                  value={engineCapacity}
+                  onChangeText={setEngineCapacity}
+                  keyboardType="number-pad"
+                  editable={!saving}
+                  placeholder={
+                    type === "motorcycle"
+                      ? t("vehicleForm.placeholderEngineCapacityMotorcycle")
+                      : t("vehicleForm.placeholderEngineCapacity")
+                  }
+                />
 
-                <CardRow>
-                  <View style={styles.rowLeft}>
-                    <Ionicons
-                      name="flash-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("vehicleForm.powerHpLabel")}
-                    </Text>
-                  </View>
-                  <TextInput
-                    value={powerHp}
-                    onChangeText={setPowerHp}
-                    keyboardType="number-pad"
-                    editable={!saving}
-                    placeholder={
-                      type === "motorcycle"
-                        ? t("vehicleForm.placeholderPowerHpMotorcycle")
-                        : t("vehicleForm.placeholderPowerHp")
-                    }
-                    placeholderTextColor={theme.colors.muted}
-                    style={[
-                      styles.input,
-                      { color: theme.colors.fg, textAlign: "right" },
-                    ]}
-                  />
-                </CardRow>
+                <FormInputRow
+                  icon="flash-outline"
+                  label={t("vehicleForm.powerHpLabel")}
+                  value={powerHp}
+                  onChangeText={setPowerHp}
+                  keyboardType="number-pad"
+                  editable={!saving}
+                  placeholder={
+                    type === "motorcycle"
+                      ? t("vehicleForm.placeholderPowerHpMotorcycle")
+                      : t("vehicleForm.placeholderPowerHp")
+                  }
+                />
               </Card>
 
               <View style={{ height: theme.spacing.sm }} />

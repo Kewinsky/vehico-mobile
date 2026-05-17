@@ -38,6 +38,7 @@ import { HeaderLayout } from "../../layouts";
 import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
+import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
@@ -191,8 +192,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   } = useEntitlements();
   const styles = makeStyles(theme);
   const { vehicleId } = route.params;
-  const distanceUnit = settings?.distanceUnit ?? "km";
-  const distanceUnitLabel = distanceUnit === "miles" ? "mi" : "km";
+  const { distanceUnitLabel } = useUnitDisplay();
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);

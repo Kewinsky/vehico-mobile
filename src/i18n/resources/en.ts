@@ -388,6 +388,11 @@ export const en = {
       lastUpdated: "Mileage last updated {{relative}}.",
       cta: "Update odometer",
     },
+    formalitiesUpdate: {
+      insurancePrompt: "Insurance valid until (YYYY-MM-DD)",
+      inspectionPrompt: "Inspection valid until (YYYY-MM-DD)",
+      clearDate: "Clear date",
+    },
     quickMetrics: {
       costSubtitle: "Cost/day",
       distanceSubtitle: "Distance",
@@ -697,6 +702,29 @@ Detailed report available at: https://report.vehico.app/report/example`,
     themeLight: "Light",
     themeDark: "Dark",
     language: "Language",
+    unitGroupSection: "Unit system",
+    unitGroups: {
+      metric: {
+        title: "Metric ({{units}})",
+        units: "km, L, km/L",
+        regions: "India, Japan, Korea, SE Asia",
+      },
+      european: {
+        title: "European ({{units}})",
+        units: "km, L, L/100km",
+        regions: "Europe, Australia, Canada",
+      },
+      uk: {
+        title: "UK ({{units}})",
+        units: "mi, L, mpg",
+        regions: "United Kingdom, Ireland",
+      },
+      imperial: {
+        title: "Imperial ({{units}})",
+        units: "mi, gal, mpg",
+        regions: "United States",
+      },
+    },
   },
   documents: {
     title: "Documents",
@@ -789,6 +817,7 @@ Detailed report available at: https://report.vehico.app/report/example`,
   reminderForm: {
     addTitle: "Add reminder",
     editTitle: "Edit reminder",
+    statusLabel: "Status",
     titleLabel: "Title",
     notesLabel: "Notes",
     dateReminder: "Date reminder",
