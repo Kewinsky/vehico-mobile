@@ -56,8 +56,7 @@ import { AppearanceScreen } from "../../screens/modal/AppearanceScreen";
 import { OnboardingScreen } from "../../screens/onboarding/OnboardingScreen";
 
 export type AppStackParamList = {
-  Auth: { magicLinkError?: "expired" } | undefined;
-  EmailConfirmation: { email?: string };
+  Auth: undefined;
   Onboarding: undefined;
   Vehicles: { showVehiclePicker?: boolean } | undefined;
   VehicleForm: { vehicleId?: string };

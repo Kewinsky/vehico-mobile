@@ -4,10 +4,15 @@ import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
+import * as AuthSession from "expo-auth-session";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import {
+  EMAIL_OTP_LENGTH,
+  isValidEmailOtpLength,
+  normalizeEmailOtpInput,
+} from "../../services/auth/emailOtp";
 import { supabase } from "../../services/supabase/client";
 import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
@@ -22,34 +27,49 @@ import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
 import { Logo } from "../../ui/components/branding/Logo";
 import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
 
-// Complete the auth session for better UX
 WebBrowser.maybeCompleteAuthSession();
 
 type Props = NativeStackScreenProps<AppStackParamList, "Auth">;
 
-export function AuthScreen({ navigation, route }: Props) {
+function isRateLimitError(message: string | undefined): boolean {
+  const msg = message?.toLowerCase() ?? "";
+  return (
+    msg.includes("rate limit") ||
+    msg.includes("too many") ||
+    msg.includes("429") ||
+    msg.includes("email rate limit")
+  );
+}
+
+function isOtpExpiredOrInvalid(message: string | undefined): boolean {
+  const msg = message?.toLowerCase() ?? "";
+  return (
+    msg.includes("expired") ||
+    msg.includes("invalid") ||
+    msg.includes("otp") ||
+    msg.includes("token")
+  );
+}
+
+export function AuthScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [email, setEmail] = useState("");
+  const [otpCode, setOtpCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null);
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
   const [sentEmail, setSentEmail] = useState("");
-  const [magicLinkError, setMagicLinkError] = useState<null | "expired">(null);
 
-  // Reset inputs when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       setEmail("");
-      setMagicLinkSent(false);
+      setOtpCode("");
+      setOtpSent(false);
       setSentEmail("");
-      setMagicLinkError(null);
-      if (route.params?.magicLinkError) {
-        setMagicLinkError(route.params.magicLinkError);
-        navigation.setParams({ magicLinkError: undefined });
-      }
-    }, [navigation, route.params?.magicLinkError]),
+    }, []),
   );
 
   const stackCancel =
@@ -58,17 +78,24 @@ export function AuthScreen({ navigation, route }: Props) {
       : undefined;
 
   const emailTrimmed = useMemo(() => email.trim(), [email]);
+  const otpTrimmed = useMemo(() => normalizeEmailOtpInput(otpCode), [otpCode]);
 
-  // Email validation regex
   const isValidEmail = useMemo(() => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(emailTrimmed);
   }, [emailTrimmed]);
 
-  const canSubmit = useMemo(
-    () => emailTrimmed.length > 0 && isValidEmail && !isSubmitting,
-    [emailTrimmed, isValidEmail, isSubmitting],
+  const canSendCode = useMemo(
+    () => emailTrimmed.length > 0 && isValidEmail && !isSubmitting && !isVerifying,
+    [emailTrimmed, isValidEmail, isSubmitting, isVerifying],
   );
+
+  const canVerifyOtp = useMemo(
+    () =>
+      isValidEmailOtpLength(otpTrimmed.length) && !isVerifying && !isSubmitting,
+    [otpTrimmed, isVerifying, isSubmitting],
+  );
+
   const legalFooter = (
     <View style={styles.bottomLegalFooter}>
       <LegalLinksRow
@@ -78,51 +105,100 @@ export function AuthScreen({ navigation, route }: Props) {
     </View>
   );
 
-  async function sendMagicLink() {
+  async function requestOtpForEmail(targetEmail: string, options?: { resend?: boolean }) {
+    const { error } = await supabase.auth.signInWithOtp({
+      email: targetEmail,
+      options: {
+        shouldCreateUser: true,
+      },
+    });
+
+    if (error) {
+      if (isRateLimitError(error.message)) {
+        toastError(
+          `${t("auth.rateLimitExceeded")}. ${t("auth.rateLimitMessage")}`,
+        );
+        return false;
+      }
+      throw error;
+    }
+
+    if (!options?.resend) {
+      setOtpSent(true);
+      setSentEmail(targetEmail);
+      setEmail("");
+    }
+    setOtpCode("");
+    toastSuccess(t("auth.otpSent"));
+    return true;
+  }
+
+  async function sendOtpCode() {
     try {
       setIsSubmitting(true);
-
-      // Use makeRedirectUri() which automatically handles Expo Go (exp://) and production (vehico://)
-      const emailRedirectTo = AuthSession.makeRedirectUri({
-        path: "auth/magic-link",
-      });
-
-      // Always allow user creation - Supabase will handle existing users automatically
-      const { error } = await supabase.auth.signInWithOtp({
-        email: emailTrimmed,
-        options: {
-          emailRedirectTo,
-          shouldCreateUser: true,
-        },
-      });
-
-      if (error) {
-        // Check for rate limit error (Supabase 429 / "too many" / "rate limit")
-        const msg = error.message?.toLowerCase() ?? "";
-        if (
-          msg.includes("rate limit") ||
-          msg.includes("too many") ||
-          msg.includes("429") ||
-          msg.includes("email rate limit")
-        ) {
-          toastError(
-            `${t("auth.rateLimitExceeded")}. ${t("auth.rateLimitMessage")}`,
-          );
-          return;
-        }
-        throw error;
-      }
-
-      // Magic link sent successfully
-      setMagicLinkSent(true);
-      setSentEmail(emailTrimmed);
-      setEmail("");
-      toastSuccess(t("auth.magicLinkSent"));
+      // Same API as magic link; Supabase sends OTP when the email template includes {{ .Token }}.
+      // https://supabase.com/docs/guides/auth/auth-email-passwordless#with-otp
+      await requestOtpForEmail(emailTrimmed);
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function resendOtpCode() {
+    if (!sentEmail.trim()) return;
+    try {
+      setIsSubmitting(true);
+      await requestOtpForEmail(sentEmail.trim(), { resend: true });
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function verifyOtpCode() {
+    try {
+      setIsVerifying(true);
+
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: sentEmail,
+        token: otpTrimmed,
+        type: "email",
+      });
+
+      if (error) {
+        if (isRateLimitError(error.message)) {
+          toastError(
+            `${t("auth.rateLimitExceeded")}. ${t("auth.rateLimitMessage")}`,
+          );
+          return;
+        }
+        if (isOtpExpiredOrInvalid(error.message)) {
+          toastError(t("auth.otpInvalid"));
+          return;
+        }
+        throw error;
+      }
+
+      if (!data.session) {
+        throw new Error(t("auth.otpInvalid"));
+      }
+
+      toastSuccess(t("auth.signedInSuccessfully"));
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    } finally {
+      setIsVerifying(false);
+    }
+  }
+
+  function resetOtpFlow() {
+    setOtpSent(false);
+    setSentEmail("");
+    setOtpCode("");
+    setEmail("");
   }
 
   async function handleOAuthCallback(callbackUrl: string) {
@@ -206,33 +282,6 @@ export function AuthScreen({ navigation, route }: Props) {
     return signInWithOAuth("google");
   }
 
-  // Apple sign-in temporarily disabled — uncomment button + this when OAuth is ready.
-  // async function signInWithApple() {
-  //   return signInWithOAuth("apple");
-  // }
-
-  async function signInWithTestAccount() {
-    return signInWithTestCredentials({
-      email: "test@user.com",
-      password: "testuser",
-    });
-  }
-
-  async function signInWithEmptyDataTestAccount() {
-    return signInWithTestCredentials({
-      email: "test-empty@user.com",
-      password: "testuser",
-    });
-  }
-
-  async function signInWithOnboardingResetTestAccount() {
-    return signInWithTestCredentials({
-      email: "test-onboarding@user.com",
-      password: "testuser",
-      forceOnboardingFalse: true,
-    });
-  }
-
   async function signInWithTestCredentials(input: {
     email: string;
     password: string;
@@ -259,92 +308,103 @@ export function AuthScreen({ navigation, route }: Props) {
     }
   }
 
-  if (magicLinkError === "expired") {
-    return (
-      <ModalLayout footer={legalFooter}>
-        <FormScreen noLayout scrollEnabled={false}>
-          <View style={styles.magicLinkContainer}>
-            <View style={styles.iconContainer}>
-              <Ionicons
-                name="time-outline"
-                size={56}
-                color={theme.colors.accent}
-              />
-            </View>
-
-            <View style={styles.content}>
-              <Text style={[styles.title, { color: theme.colors.fg }]}>
-                {t("auth.magicLinkExpiredTitle")}
-              </Text>
-              <Text style={[styles.body, { color: theme.colors.muted }]}>
-                {t("auth.magicLinkExpiredBody")}
-              </Text>
-            </View>
-
-            <Button
-              style={styles.magicLinkButton}
-              onPress={() => {
-                setMagicLinkError(null);
-                if (navigation.canGoBack()) {
-                  navigation.goBack();
-                }
-              }}
-            >
-              {t("common.back")}
-            </Button>
-          </View>
-        </FormScreen>
-      </ModalLayout>
-    );
-  }
-
-  // Show magic link sent confirmation
-  if (magicLinkSent) {
-    const email = sentEmail.trim();
-    const magicLinkBody = t("auth.magicLinkSentBody", { email });
-    const emailIdx = email.length ? magicLinkBody.indexOf(email) : -1;
+  if (otpSent) {
+    const displayEmail = sentEmail.trim();
+    const otpBody = t("auth.otpSentBody", {
+      email: displayEmail,
+      length: EMAIL_OTP_LENGTH,
+    });
+    const emailIdx = displayEmail.length ? otpBody.indexOf(displayEmail) : -1;
 
     return (
       <ModalLayout cancel={stackCancel} footer={legalFooter}>
         <FormScreen noLayout scrollEnabled={false}>
-          <View style={styles.magicLinkContainer}>
-            <View style={styles.iconContainer}>
-              <Ionicons
-                name="mail-outline"
-                size={56}
-                color={theme.colors.accent}
-              />
+          <NativeHeaderScrollView>
+            <View style={styles.otpContainer}>
+              <View style={styles.iconContainer}>
+                <Ionicons
+                  name="mail-outline"
+                  size={56}
+                  color={theme.colors.accent}
+                />
+              </View>
+
+              <View style={styles.content}>
+                <Text style={[styles.title, { color: theme.colors.fg }]}>
+                  {t("auth.otpSentTitle")}
+                </Text>
+
+                <Text style={[styles.body, { color: theme.colors.muted }]}>
+                  {emailIdx >= 0 ? (
+                    <>
+                      {otpBody.slice(0, emailIdx)}
+                      <Text style={styles.bodyEmail}>{displayEmail}</Text>
+                      {otpBody.slice(emailIdx + displayEmail.length)}
+                    </>
+                  ) : (
+                    otpBody
+                  )}
+                </Text>
+
+                <Text style={[styles.hint, { color: theme.colors.muted }]}>
+                  {t("auth.otpSentHint")}
+                </Text>
+              </View>
+
+              <Card>
+                <CardRow>
+                  <View style={styles.rowLeft}>
+                    <Ionicons
+                      name="keypad-outline"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
+                    <Text
+                      style={[styles.label, { color: theme.colors.muted }]}
+                      numberOfLines={1}
+                    >
+                      {t("auth.otpCodeLabel")}
+                    </Text>
+                  </View>
+                  <TextInput
+                    value={otpCode}
+                    onChangeText={(text) => setOtpCode(normalizeEmailOtpInput(text))}
+                    placeholder={t("auth.otpCodePlaceholder", {
+                      length: EMAIL_OTP_LENGTH,
+                    })}
+                    placeholderTextColor={theme.colors.muted}
+                    keyboardAppearance={mode === "dark" ? "dark" : "light"}
+                    keyboardType="number-pad"
+                    textContentType="oneTimeCode"
+                    autoComplete="one-time-code"
+                    maxLength={EMAIL_OTP_LENGTH}
+                    editable={!isVerifying && !isSubmitting}
+                    style={[styles.otpInput, { color: theme.colors.fg }]}
+                  />
+                </CardRow>
+              </Card>
+
+              <Button
+                onPress={verifyOtpCode}
+                disabled={!canVerifyOtp}
+                style={styles.primaryAction}
+              >
+                {isVerifying ? t("auth.otpVerifying") : t("auth.otpVerify")}
+              </Button>
+
+              <Button
+                variant="outlined"
+                onPress={resendOtpCode}
+                disabled={isSubmitting || isVerifying}
+              >
+                {isSubmitting ? t("auth.sendingCode") : t("auth.sendAnotherCode")}
+              </Button>
+
+              <Button variant="ghost" onPress={resetOtpFlow} disabled={isVerifying}>
+                {t("auth.changeEmail")}
+              </Button>
             </View>
-
-            <View style={styles.content}>
-              <Text style={[styles.title, { color: theme.colors.fg }]}>
-                {t("auth.magicLinkSentTitle")}
-              </Text>
-
-              <Text style={[styles.body, { color: theme.colors.muted }]}>
-                {emailIdx >= 0 ? (
-                  <>
-                    {magicLinkBody.slice(0, emailIdx)}
-                    <Text style={styles.bodyEmail}>{email}</Text>
-                    {magicLinkBody.slice(emailIdx + email.length)}
-                  </>
-                ) : (
-                  magicLinkBody
-                )}
-              </Text>
-            </View>
-
-            <Button
-              style={styles.magicLinkButton}
-              onPress={() => {
-                setMagicLinkSent(false);
-                setEmail("");
-                setSentEmail("");
-              }}
-            >
-              {t("auth.sendAnotherLink")}
-            </Button>
-          </View>
+          </NativeHeaderScrollView>
         </FormScreen>
       </ModalLayout>
     );
@@ -370,10 +430,7 @@ export function AuthScreen({ navigation, route }: Props) {
             </Text>
           </View>
 
-          {/* Magic Link Section */}
-          <View
-            style={[styles.magicLinkSection, { marginTop: theme.spacing.lg }]}
-          >
+          <View style={[styles.emailSection, { marginTop: theme.spacing.lg }]}>
             <Card>
               <CardRow>
                 <View style={styles.rowLeft}>
@@ -404,12 +461,11 @@ export function AuthScreen({ navigation, route }: Props) {
               </CardRow>
             </Card>
 
-            <Button onPress={sendMagicLink} disabled={!canSubmit}>
-              {isSubmitting ? t("auth.sendingLink") : t("common.continue")}
+            <Button onPress={sendOtpCode} disabled={!canSendCode}>
+              {isSubmitting ? t("auth.sendingCode") : t("common.continue")}
             </Button>
           </View>
 
-          {/* Divider */}
           <View style={styles.divider}>
             <View
               style={[
@@ -428,35 +484,8 @@ export function AuthScreen({ navigation, route }: Props) {
             />
           </View>
 
-          {/* Social Auth Section */}
           <View style={styles.socialSection}>
             <View style={styles.socialButtons}>
-              {/* Apple sign-in temporarily disabled — uncomment when OAuth is ready.
-              <Pressable
-                onPress={signInWithApple}
-                disabled={!!isSocialLoading}
-                style={({ pressed }) => [
-                  styles.socialButton,
-                  {
-                    backgroundColor: theme.colors.card,
-                    opacity: isSocialLoading === "apple" || pressed ? 0.7 : 1,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name="logo-apple"
-                  size={20}
-                  color={theme.colors.fg}
-                />
-                <Text
-                  style={[styles.socialButtonText, { color: theme.colors.fg }]}
-                >
-                  {isSocialLoading === "apple"
-                    ? t("common.loading")
-                    : t("auth.apple")}
-                </Text>
-              </Pressable>
-              */}
               <Pressable
                 onPress={signInWithGoogle}
                 disabled={!!isSocialLoading}
@@ -484,30 +513,46 @@ export function AuthScreen({ navigation, route }: Props) {
               </Pressable>
             </View>
           </View>
-          {/* Test account — only in development */}
+
           {ENV.APP_ENV === "development" && (
             <>
               <Button
-                onPress={signInWithTestAccount}
+                onPress={() =>
+                  signInWithTestCredentials({
+                    email: "test@user.com",
+                    password: "testuser",
+                  })
+                }
                 disabled={isSubmitting}
                 variant="ghost"
-                style={[{ marginTop: theme.spacing.md }]}
+                style={{ marginTop: theme.spacing.md }}
               >
                 {isSubmitting ? t("common.loading") : "👤 Test User"}
               </Button>
               <Button
-                onPress={signInWithEmptyDataTestAccount}
+                onPress={() =>
+                  signInWithTestCredentials({
+                    email: "test-empty@user.com",
+                    password: "testuser",
+                  })
+                }
                 disabled={isSubmitting}
                 variant="ghost"
-                style={[{ marginTop: theme.spacing.xs }]}
+                style={{ marginTop: theme.spacing.xs }}
               >
                 {isSubmitting ? t("common.loading") : "🗂️ Empty Data User"}
               </Button>
               <Button
-                onPress={signInWithOnboardingResetTestAccount}
+                onPress={() =>
+                  signInWithTestCredentials({
+                    email: "test-onboarding@user.com",
+                    password: "testuser",
+                    forceOnboardingFalse: true,
+                  })
+                }
                 disabled={isSubmitting}
                 variant="ghost"
-                style={[{ marginTop: theme.spacing.xs }]}
+                style={{ marginTop: theme.spacing.xs }}
               >
                 {isSubmitting ? t("common.loading") : "🔁 Onboarding User"}
               </Button>
@@ -521,11 +566,6 @@ export function AuthScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    authTitle: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: theme.typography.fontWeight.bold,
-      marginVertical: theme.spacing.md,
-    },
     rowLeft: {
       flexDirection: "row",
       alignItems: "center",
@@ -543,6 +583,15 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
       paddingVertical: 0,
       textAlign: "right",
+    },
+    otpInput: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: theme.typography.title,
+      fontWeight: theme.typography.fontWeight.bold,
+      paddingVertical: 0,
+      textAlign: "right",
+      letterSpacing: 4,
     },
     socialSection: {
       gap: theme.spacing.md,
@@ -579,7 +628,7 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.bold,
     },
-    magicLinkSection: {
+    emailSection: {
       gap: theme.spacing.md,
     },
     brandHeader: {
@@ -603,26 +652,21 @@ const makeStyles = (theme: any) =>
       lineHeight: theme.typography.title + 6,
       paddingHorizontal: theme.spacing.sm,
     },
-    magicLinkContainer: {
-      flex: 1,
+    otpContainer: {
       width: "100%",
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: theme.spacing.lg,
+      gap: theme.spacing.md,
+      paddingTop: theme.spacing.lg,
     },
     iconContainer: {
-      marginBottom: theme.spacing.lg,
-    },
-    icon: {
-      fontSize: theme.spacing.xl * 2,
+      alignItems: "center",
     },
     content: {
       alignItems: "center",
-      gap: theme.spacing.md,
+      gap: theme.spacing.sm,
       width: "100%",
     },
-    magicLinkButton: {
-      marginTop: theme.spacing.md,
+    primaryAction: {
+      marginTop: theme.spacing.xs,
     },
     title: {
       fontSize: theme.typography.title,
@@ -633,6 +677,11 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
       textAlign: "center",
       lineHeight: theme.typography.body + 6,
+    },
+    hint: {
+      fontSize: theme.typography.small,
+      textAlign: "center",
+      lineHeight: theme.typography.body,
     },
     bodyEmail: {
       fontWeight: theme.typography.fontWeight.bold,
