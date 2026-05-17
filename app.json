@@ -41,7 +41,15 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-localization",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": ["en", "pl"],
+            "android": ["en", "pl"]
+          }
+        }
+      ],
       "@react-native-community/datetimepicker",
       "expo-sqlite",
       [

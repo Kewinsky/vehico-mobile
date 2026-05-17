@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 
 import { useTheme } from "../../ThemeProvider";
 import { formatDateDisplay } from "../../../utils/dateFormatting";
+import { localeCodeFromLanguage } from "../../../utils/numberFormatting";
 import { formatYmd, parseYmd } from "../../../utils/dateYmd";
 import { CardRow } from "./Card";
 
@@ -56,6 +57,8 @@ export function FormDateRow({
   const displayText = hasValue
     ? formatDateDisplay(`${value}T12:00:00`, i18n.language)
     : (placeholder ?? label);
+
+  const pickerLocale = localeCodeFromLanguage(i18n.language);
 
   const showIosCompact =
     Platform.OS === "ios" && !disabled && (hasValue || iosPickerActive);
@@ -126,6 +129,7 @@ export function FormDateRow({
                 value={pickerDate}
                 mode="date"
                 display="compact"
+                locale={pickerLocale}
                 themeVariant={themeMode === "dark" ? "dark" : "light"}
                 onChange={handleChange}
                 style={styles.nativeDatePicker}
@@ -154,6 +158,7 @@ export function FormDateRow({
           value={pickerDate}
           mode="date"
           display="default"
+          locale={pickerLocale}
           onChange={handleChange}
         />
       ) : null}
