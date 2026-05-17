@@ -193,7 +193,6 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
     <HeaderContentScreen
       loading={loading}
       onBack={() => navigation.goBack()}
-      showProfileAvatar
       showShopIcon={!isPremium}
       title={t("wheels.title")}
     >

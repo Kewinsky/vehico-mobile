@@ -13,8 +13,6 @@ import { listReminders } from "../../services/reminders/remindersRepo";
 import { listVehicleWheels } from "../../services/wheels/wheelsRepo";
 import { listVehicleTires } from "../../services/tires/tiresRepo";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
-import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { Tile } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
@@ -78,15 +76,15 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
       t("dataPortability.exportFormatTitle"),
       t("dataPortability.exportFormatSubtitle"),
       [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("dataPortability.exportFormatJson"),
-        onPress: () => handleExportJson(),
-      },
-      {
-        text: t("dataPortability.exportFormatCsv"),
-        onPress: () => showCsvDataTypeAlert(),
-      },
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("dataPortability.exportFormatJson"),
+          onPress: () => handleExportJson(),
+        },
+        {
+          text: t("dataPortability.exportFormatCsv"),
+          onPress: () => showCsvDataTypeAlert(),
+        },
       ],
     );
   }
@@ -370,7 +368,6 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
   return (
     <HeaderContentScreen
       onBack={() => navigation.goBack()}
-      showProfileAvatar
       showShopIcon={!isPremium}
       title={t("dataPortability.title")}
     >

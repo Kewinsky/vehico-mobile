@@ -30,6 +30,7 @@ import {
   Database,
   Fuel,
   Hash,
+  Settings,
   ShieldCheck,
   Warehouse,
 } from "lucide-react-native";
@@ -1486,11 +1487,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         tintColor={theme.colors.fg}
         accessibilityLabel={undefined}
       >
-        <Ionicons
-          name="settings-outline"
-          size={theme.icons.headerButton}
-          color={theme.colors.accent}
-        />
+            <Settings size={theme.icons.headerButton} color={theme.colors.accent} />
       </HeaderButton>
     </View>
   );

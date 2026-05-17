@@ -4,8 +4,7 @@ import { Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HeaderButton } from "@react-navigation/elements";
-import { Ionicons } from "@expo/vector-icons";
-import { Crown } from "lucide-react-native";
+import { Crown, Settings } from "lucide-react-native";
 
 import { AppLayout } from "../ui/components/layout/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
@@ -69,8 +68,7 @@ export function WelcomeHeaderLayout({
             tintColor={theme.colors.accent}
             accessibilityLabel="Settings"
           >
-            <Ionicons
-              name="settings-outline"
+            <Settings
               size={theme.icons.headerButton}
               color={theme.colors.accent}
             />
