@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
@@ -15,6 +15,7 @@ import {
 } from "../../services/auth/emailOtp";
 import { supabase } from "../../services/supabase/client";
 import { Button } from "../../ui/components/common/Button";
+import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
@@ -22,7 +23,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { ENV } from "../../config/env";
 import { APP_DISPLAY_NAME } from "../../config/appBrand";
-import { Card, CardRow } from "../../ui/components/common/Card";
+import { Card } from "../../ui/components/common/Card";
 import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
 import { Logo } from "../../ui/components/branding/Logo";
 import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
@@ -53,7 +54,7 @@ function isOtpExpiredOrInvalid(message: string | undefined): boolean {
 
 export function AuthScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { theme, mode } = useTheme();
+  const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [email, setEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
@@ -352,36 +353,23 @@ export function AuthScreen({ navigation }: Props) {
               </View>
 
               <Card>
-                <CardRow>
-                  <View style={styles.rowLeft}>
-                    <Ionicons
-                      name="keypad-outline"
-                      size={20}
-                      color={theme.colors.accent}
-                    />
-                    <Text
-                      style={[styles.label, { color: theme.colors.muted }]}
-                      numberOfLines={1}
-                    >
-                      {t("auth.otpCodeLabel")}
-                    </Text>
-                  </View>
-                  <TextInput
-                    value={otpCode}
-                    onChangeText={(text) => setOtpCode(normalizeEmailOtpInput(text))}
-                    placeholder={t("auth.otpCodePlaceholder", {
-                      length: EMAIL_OTP_LENGTH,
-                    })}
-                    placeholderTextColor={theme.colors.muted}
-                    keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                    keyboardType="number-pad"
-                    textContentType="oneTimeCode"
-                    autoComplete="one-time-code"
-                    maxLength={EMAIL_OTP_LENGTH}
-                    editable={!isVerifying && !isSubmitting}
-                    style={[styles.otpInput, { color: theme.colors.fg }]}
-                  />
-                </CardRow>
+                <FormInputRow
+                  variant="otp"
+                  icon="keypad-outline"
+                  label={t("auth.otpCodeLabel")}
+                  value={otpCode}
+                  onChangeText={(text) =>
+                    setOtpCode(normalizeEmailOtpInput(text))
+                  }
+                  placeholder={t("auth.otpCodePlaceholder", {
+                    length: EMAIL_OTP_LENGTH,
+                  })}
+                  keyboardType="number-pad"
+                  textContentType="oneTimeCode"
+                  autoComplete="one-time-code"
+                  maxLength={EMAIL_OTP_LENGTH}
+                  editable={!isVerifying && !isSubmitting}
+                />
               </Card>
 
               <Button
@@ -432,33 +420,17 @@ export function AuthScreen({ navigation }: Props) {
 
           <View style={[styles.emailSection, { marginTop: theme.spacing.lg }]}>
             <Card>
-              <CardRow>
-                <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="mail-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("auth.emailLabel")}
-                  </Text>
-                </View>
-                <TextInput
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder={t("auth.emailPlaceholder")}
-                  placeholderTextColor={theme.colors.muted}
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="email-address"
-                  editable={!isSubmitting && !isSocialLoading}
-                  style={[styles.input, { color: theme.colors.fg }]}
-                />
-              </CardRow>
+              <FormInputRow
+                icon="mail-outline"
+                label={t("auth.emailLabel")}
+                value={email}
+                onChangeText={setEmail}
+                placeholder={t("auth.emailPlaceholder")}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                editable={!isSubmitting && !isSocialLoading}
+              />
             </Card>
 
             <Button onPress={sendOtpCode} disabled={!canSendCode}>
@@ -566,33 +538,6 @@ export function AuthScreen({ navigation }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    rowLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-      flex: 0,
-      flexShrink: 1,
-    },
-    label: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    input: {
-      flex: 1,
-      minWidth: 0,
-      fontSize: theme.typography.body,
-      paddingVertical: 0,
-      textAlign: "right",
-    },
-    otpInput: {
-      flex: 1,
-      minWidth: 0,
-      fontSize: theme.typography.title,
-      fontWeight: theme.typography.fontWeight.bold,
-      paddingVertical: 0,
-      textAlign: "right",
-      letterSpacing: 4,
-    },
     socialSection: {
       gap: theme.spacing.md,
     },

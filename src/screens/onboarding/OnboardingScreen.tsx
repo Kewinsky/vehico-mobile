@@ -991,7 +991,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     progressText: {
       fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.bold,
-      letterSpacing: 0.2,
     },
     content: {
       flexGrow: 1,
@@ -1015,7 +1014,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontWeight: "900",
       fontFamily: "ChironGoRoundTC",
       textAlign: "center",
-      letterSpacing: -0.8,
     },
     welcomeBody: {
       fontSize: theme.typography.body,
@@ -1041,35 +1039,9 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       lineHeight: theme.typography.body + 4,
       marginBottom: theme.spacing.xs,
     },
-    rowLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-      flex: 0,
-      flexShrink: 1,
-    },
-    rowTopAligned: {
-      alignItems: "flex-start",
-    },
-    input: {
-      flex: 1,
-      minWidth: 0,
-      fontSize: theme.typography.body,
-      paddingVertical: 0,
-      textAlign: "right",
-    },
-    label: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
     helper: {
       marginTop: theme.spacing.xs,
       fontSize: theme.typography.small,
-    },
-    valueText: {
-      flex: 1,
-      minWidth: 0,
-      fontSize: theme.typography.body,
     },
     segmentWrap: {
       flex: 1,
@@ -1137,71 +1109,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     photo: {
       width: "100%",
       height: 220,
-    },
-    summaryCard: {
-      marginTop: theme.spacing.md,
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
-      padding: theme.spacing.md,
-    },
-    summaryTitle: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    summaryMeta: {
-      marginTop: theme.spacing.xs / 2,
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    summaryImageContainer: {
-      width: "100%",
-      height: 180,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-      marginBottom: theme.spacing.md,
-    },
-    summaryImage: {
-      width: "100%",
-      height: "100%",
-    },
-    summaryImagePlaceholder: {
-      width: "100%",
-      height: "100%",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    summaryContent: {
-      gap: theme.spacing.sm,
-    },
-    summaryRows: {
-      gap: theme.spacing.sm,
-    },
-    summaryRow: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      gap: theme.spacing.sm,
-    },
-    summaryIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: theme.radius.sm,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    summaryRowContent: {
-      flex: 1,
-      minWidth: 0,
-      gap: 2,
-    },
-    summaryRowLabel: {
-      fontSize: theme.typography.xs,
-      fontWeight: theme.typography.fontWeight.bold,
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-    },
-    summaryRowValue: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
     },
     detailsCard: {
       borderRadius: theme.radius.md,
@@ -1272,8 +1179,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     detailLabel: {
       fontSize: theme.typography.xs,
       fontWeight: theme.typography.fontWeight.bold,
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
     },
     detailValue: {
       fontSize: theme.typography.body,

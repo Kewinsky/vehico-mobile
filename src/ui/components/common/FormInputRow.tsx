@@ -19,6 +19,8 @@ export type FormInputRowProps = TextInputProps & {
   label: string;
   trailing?: ReactNode;
   rowStyle?: ViewStyle;
+  /** OTP code field: larger type; letter spacing only while typing (not on placeholder). */
+  variant?: "default" | "otp";
 };
 
 export function FormInputRow({
@@ -29,12 +31,16 @@ export function FormInputRow({
   editable = true,
   style,
   rowStyle,
+  variant = "default",
+  value,
   ...inputProps
 }: FormInputRowProps) {
   const { theme, mode } = useTheme();
   const styles = makeStyles(theme);
   const inputRef = useRef<TextInput>(null);
   const isEditable = editable !== false;
+  const isOtp = variant === "otp";
+  const hasValue = value != null && String(value).length > 0;
 
   const focusInput = () => {
     if (isEditable) inputRef.current?.focus();
@@ -64,12 +70,19 @@ export function FormInputRow({
       <TextInput
         ref={inputRef}
         editable={editable}
+        value={value}
         placeholderTextColor={theme.colors.muted}
         keyboardAppearance={mode === "dark" ? "dark" : "light"}
         {...inputProps}
         style={[
           styles.input,
-          { color: theme.colors.fg, textAlign: "right" },
+          {
+            color: theme.colors.fg,
+            textAlign: "right",
+            letterSpacing: 0,
+          },
+          isOtp && styles.otpInput,
+          isOtp && hasValue && styles.otpInputTyped,
           style,
         ]}
       />
@@ -95,5 +108,12 @@ const makeStyles = (theme: any) =>
       minWidth: 0,
       fontSize: theme.typography.body,
       paddingVertical: 0,
+    },
+    otpInput: {
+      fontSize: theme.typography.title,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    otpInputTyped: {
+      letterSpacing: 4,
     },
   });
