@@ -352,6 +352,10 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                     vehicle.mileage != null
                       ? `${groupThousands(vehicle.mileage, 0, i18n.language)} ${distanceUnitLabel}`
                       : dash;
+                  const initialMileageVal =
+                    vehicle.initial_mileage != null
+                      ? `${groupThousands(vehicle.initial_mileage, 0, i18n.language)} ${distanceUnitLabel}`
+                      : dash;
                   const engineVal =
                     vehicle.engine_capacity != null
                       ? `${groupThousands(vehicle.engine_capacity, 0, i18n.language)} cm³`
@@ -487,6 +491,19 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                           ]}
                         >
                           {mileageVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.initialMileageLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(initialMileageVal) },
+                          ]}
+                        >
+                          {initialMileageVal}
                         </Text>
                       </View>
                       <View style={styles.dataRow}>
