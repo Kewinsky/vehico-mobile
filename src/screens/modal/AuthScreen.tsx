@@ -21,6 +21,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { isAppStoreReviewEmail } from "../../config/appStoreReview";
 import { ENV } from "../../config/env";
 import { APP_DISPLAY_NAME } from "../../config/appBrand";
 import { Card } from "../../ui/components/common/Card";
@@ -57,6 +58,7 @@ export function AuthScreen({ navigation }: Props) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -67,6 +69,7 @@ export function AuthScreen({ navigation }: Props) {
   useFocusEffect(
     React.useCallback(() => {
       setEmail("");
+      setPassword("");
       setOtpCode("");
       setOtpSent(false);
       setSentEmail("");
@@ -86,9 +89,22 @@ export function AuthScreen({ navigation }: Props) {
     return emailRegex.test(emailTrimmed);
   }, [emailTrimmed]);
 
+  const isReviewLogin = useMemo(
+    () => isAppStoreReviewEmail(emailTrimmed),
+    [emailTrimmed],
+  );
+
   const canSendCode = useMemo(
     () => emailTrimmed.length > 0 && isValidEmail && !isSubmitting && !isVerifying,
     [emailTrimmed, isValidEmail, isSubmitting, isVerifying],
+  );
+
+  const canReviewSignIn = useMemo(
+    () =>
+      canSendCode &&
+      password.length > 0 &&
+      !isSocialLoading,
+    [canSendCode, password.length, isSocialLoading],
   );
 
   const canVerifyOtp = useMemo(
@@ -283,7 +299,7 @@ export function AuthScreen({ navigation }: Props) {
     return signInWithOAuth("google");
   }
 
-  async function signInWithTestCredentials(input: {
+  async function signInWithPasswordCredentials(input: {
     email: string;
     password: string;
     forceOnboardingFalse?: boolean;
@@ -291,7 +307,7 @@ export function AuthScreen({ navigation }: Props) {
     try {
       setIsSubmitting(true);
       const { error } = await supabase.auth.signInWithPassword({
-        email: input.email,
+        email: input.email.trim(),
         password: input.password,
       });
 
@@ -302,11 +318,19 @@ export function AuthScreen({ navigation }: Props) {
         });
         if (updateError) throw updateError;
       }
+      toastSuccess(t("auth.signedInSuccessfully"));
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function signInWithReviewPassword() {
+    await signInWithPasswordCredentials({
+      email: emailTrimmed,
+      password,
+    });
   }
 
   if (otpSent) {
@@ -431,10 +455,35 @@ export function AuthScreen({ navigation }: Props) {
                 keyboardType="email-address"
                 editable={!isSubmitting && !isSocialLoading}
               />
+              {isReviewLogin ? (
+                <FormInputRow
+                  icon="lock-closed-outline"
+                  label={t("auth.passwordLabel")}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder={t("auth.passwordPlaceholder")}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  secureTextEntry
+                  textContentType="password"
+                  editable={!isSubmitting && !isSocialLoading}
+                />
+              ) : null}
             </Card>
 
-            <Button onPress={sendOtpCode} disabled={!canSendCode}>
-              {isSubmitting ? t("auth.sendingCode") : t("common.continue")}
+            <Button
+              onPress={
+                isReviewLogin
+                  ? () => void signInWithReviewPassword()
+                  : sendOtpCode
+              }
+              disabled={isReviewLogin ? !canReviewSignIn : !canSendCode}
+            >
+              {isSubmitting
+                ? t("common.loading")
+                : isReviewLogin
+                  ? t("auth.signIn")
+                  : t("common.continue")}
             </Button>
           </View>
 
@@ -490,7 +539,7 @@ export function AuthScreen({ navigation }: Props) {
             <>
               <Button
                 onPress={() =>
-                  signInWithTestCredentials({
+                  signInWithPasswordCredentials({
                     email: "test@user.com",
                     password: "testuser",
                   })
@@ -503,7 +552,7 @@ export function AuthScreen({ navigation }: Props) {
               </Button>
               <Button
                 onPress={() =>
-                  signInWithTestCredentials({
+                  signInWithPasswordCredentials({
                     email: "test-empty@user.com",
                     password: "testuser",
                   })
@@ -516,7 +565,7 @@ export function AuthScreen({ navigation }: Props) {
               </Button>
               <Button
                 onPress={() =>
-                  signInWithTestCredentials({
+                  signInWithPasswordCredentials({
                     email: "test-onboarding@user.com",
                     password: "testuser",
                     forceOnboardingFalse: true,
