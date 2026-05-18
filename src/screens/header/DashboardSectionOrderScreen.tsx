@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { Alert, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,7 @@ import { DraggableGrid } from "react-native-draggable-grid";
 import { GripVertical } from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { HeaderLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
@@ -31,6 +32,7 @@ const ROW_HEIGHT = 48;
 
 export function DashboardSectionOrderScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const { isPremium } = useEntitlements();
   const { theme } = useTheme();
   const headerHeight = useHeaderHeight();
   const { width: windowWidth } = useWindowDimensions();
@@ -52,6 +54,22 @@ export function DashboardSectionOrderScreen({ navigation }: Props) {
 
   const gridHeight = rows.length * itemHeight;
   const defaultIdList = useMemo(() => [...defaultIds], [defaultIds]);
+
+  useEffect(() => {
+    if (isPremium) return;
+    Alert.alert(
+      t("limits.premiumRequiredTitle"),
+      t("dashboard.sectionOrder.premiumRequiredBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("limits.upgradeToPremium"),
+          onPress: () => navigation.navigate("Shop"),
+        },
+      ],
+      { cancelable: true, onDismiss: () => navigation.goBack() },
+    );
+  }, [isPremium, navigation, t]);
   const isAtDefault = sectionOrdersEqual(
     rows.map((r) => r.key),
     defaultIdList,

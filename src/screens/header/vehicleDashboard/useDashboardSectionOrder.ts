@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 
+import { useEntitlements } from "../../../app/providers/EntitlementsProvider";
 import { useUserSettings } from "../../../app/providers/UserSettingsProvider";
 import { normalizeSectionOrder } from "../../../utils/dashboardSectionOrder";
 import {
@@ -32,23 +33,22 @@ export function useDashboardSectionOrder(
   panel: DashboardSectionPanel,
 ): OverviewOrderResult | StatsOrderResult {
   const { settings, setSettings } = useUserSettings();
+  const { isPremium } = useEntitlements();
+
+  const overviewStored = isPremium
+    ? settings?.dashboardOverviewSectionOrder
+    : undefined;
+  const statsStored = isPremium ? settings?.dashboardStatsSectionOrder : undefined;
 
   const overviewOrdered = useMemo(
     () =>
-      normalizeSectionOrder(
-        DASHBOARD_OVERVIEW_SECTION_IDS,
-        settings?.dashboardOverviewSectionOrder,
-      ),
-    [settings?.dashboardOverviewSectionOrder],
+      normalizeSectionOrder(DASHBOARD_OVERVIEW_SECTION_IDS, overviewStored),
+    [overviewStored],
   );
 
   const statsOrdered = useMemo(
-    () =>
-      normalizeSectionOrder(
-        DASHBOARD_STATS_SECTION_IDS,
-        settings?.dashboardStatsSectionOrder,
-      ),
-    [settings?.dashboardStatsSectionOrder],
+    () => normalizeSectionOrder(DASHBOARD_STATS_SECTION_IDS, statsStored),
+    [statsStored],
   );
 
   const saveOverviewOrder = useCallback(

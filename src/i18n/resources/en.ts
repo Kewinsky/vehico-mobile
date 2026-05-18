@@ -365,6 +365,8 @@ export const en = {
       saved: "Layout saved",
       reset: "Reset to default order",
       resetSuccess: "Default order restored",
+      premiumRequiredBody:
+        "Custom section layout is available with an active Premium plan.",
       quickMetrics: "Quick metrics",
       expenseSummary: "Expense summary",
     },

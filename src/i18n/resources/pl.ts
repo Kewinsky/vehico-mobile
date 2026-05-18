@@ -368,6 +368,8 @@ export const pl = {
       saved: "Zapisano układ",
       reset: "Przywróć domyślną kolejność",
       resetSuccess: "Przywrócono domyślną kolejność",
+      premiumRequiredBody:
+        "Własny układ sekcji jest dostępny w planie Premium.",
       quickMetrics: "Szybkie metryki",
       expenseSummary: "Podsumowanie kosztów",
     },

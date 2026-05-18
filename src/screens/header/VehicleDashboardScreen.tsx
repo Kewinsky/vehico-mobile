@@ -677,6 +677,25 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     );
   }
 
+  function handleSectionOrderPress() {
+    if (isPremium) {
+      navigation.navigate("DashboardSectionOrder");
+      return;
+    }
+
+    Alert.alert(
+      t("limits.premiumRequiredTitle"),
+      t("dashboard.sectionOrder.premiumRequiredBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("limits.upgradeToPremium"),
+          onPress: () => navigation.navigate("Shop"),
+        },
+      ],
+    );
+  }
+
   function openActions() {
     Alert.alert(t("dashboard.tiles.manageTitle"), t("common.chooseOption"), [
       { text: t("common.cancel"), style: "cancel" },
@@ -686,7 +705,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       },
       {
         text: t("dashboard.sectionOrder.menu"),
-        onPress: () => navigation.navigate("DashboardSectionOrder"),
+        onPress: handleSectionOrderPress,
       },
       {
         text: t("common.delete"),
