@@ -24,6 +24,15 @@ import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 
 type Props = NativeStackScreenProps<AppStackParamList, "TiresList">;
 
+const TIRE_TYPE_OPTIONS: TireType[] = [
+  "summer",
+  "winter",
+  "all_season",
+  "run_flat",
+  "uhp",
+  "suv_xl",
+];
+
 export function TiresListScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -56,14 +65,6 @@ export function TiresListScreen({ route, navigation }: Props) {
   const [tires, setTires] = useState<VehicleTire[]>([]);
   const [loading, setLoading] = useState(true);
   const [tireTypeFilter, setTireTypeFilter] = useState<TireType | "all">("all");
-  const TIRE_TYPE_OPTIONS: TireType[] = [
-    "summer",
-    "winter",
-    "all_season",
-    "run_flat",
-    "uhp",
-    "suv_xl",
-  ];
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
@@ -149,7 +150,7 @@ export function TiresListScreen({ route, navigation }: Props) {
     [t],
   );
 
-  function onAddTirePress() {
+  const onAddTirePress = useCallback(() => {
     if (!isPremium && tires.length >= tiresPerVehicleLimit) {
       Alert.alert(
         t("limits.tireLimitReachedTitle"),
@@ -165,14 +166,21 @@ export function TiresListScreen({ route, navigation }: Props) {
       return;
     }
     navigation.navigate("TireForm", { vehicleId });
-  }
+  }, [
+    isPremium,
+    navigation,
+    t,
+    tires.length,
+    tiresPerVehicleLimit,
+    vehicleId,
+  ]);
 
   const openFilters = useCallback(() => {
-    const buttons: Array<{
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: "cancel" | "default";
-    }> = [
+    }[] = [
       { text: t("common.cancel"), style: "cancel" },
       { text: t("common.all"), onPress: () => setTireTypeFilter("all") },
       ...TIRE_TYPE_OPTIONS.map((type) => ({

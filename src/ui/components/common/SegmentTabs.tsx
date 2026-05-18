@@ -11,7 +11,7 @@ type Option<T extends string> = {
 
 type Props<T extends string> = {
   value: T;
-  options: Array<Option<T>>;
+  options: Option<T>[];
   onChange: (next: T) => void;
   size?: "sm" | "md";
   variant?: Variant;

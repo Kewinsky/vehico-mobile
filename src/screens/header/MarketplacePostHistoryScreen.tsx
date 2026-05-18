@@ -11,9 +11,8 @@ import { SquarePen } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import type { MarketplacePost } from "../../types/domain";
+import type { MarketplacePost , Vehicle } from "../../types/domain";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
-import type { Vehicle } from "../../types/domain";
 import {
   listMarketplacePosts,
   updateMarketplacePostTitle,
@@ -59,11 +58,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
 
   const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
 
-  useEffect(() => {
-    void loadPosts();
-  }, []);
-
-  async function loadPosts() {
+  const loadPosts = useCallback(async () => {
     try {
       setLoading(true);
       const loaded = await listMarketplacePosts(vehicleId);
@@ -73,7 +68,11 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [vehicleId, t]);
+
+  useEffect(() => {
+    void loadPosts();
+  }, [loadPosts]);
 
   async function handleRefresh() {
     try {

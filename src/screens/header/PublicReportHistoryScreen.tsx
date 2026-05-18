@@ -11,9 +11,8 @@ import { SquarePen } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import type { PublicReportSnapshot } from "../../types/domain";
+import type { PublicReportSnapshot , Vehicle } from "../../types/domain";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
-import type { Vehicle } from "../../types/domain";
 import {
   listPublicPages,
   getPublicPageUrl,
@@ -56,11 +55,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
 
   const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
 
-  useEffect(() => {
-    void loadReports();
-  }, []);
-
-  async function loadReports() {
+  const loadReports = useCallback(async () => {
     try {
       setLoading(true);
       const loaded = await listPublicPages(vehicleId);
@@ -70,7 +65,11 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [vehicleId, t]);
+
+  useEffect(() => {
+    void loadReports();
+  }, [loadReports]);
 
   async function handleRefresh() {
     try {

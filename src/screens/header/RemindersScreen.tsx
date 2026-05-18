@@ -140,7 +140,7 @@ export function RemindersScreen({ route, navigation }: Props) {
     return sorted;
   }, [items, query, activeTab, vehicle?.mileage, isReminderOverdue]);
 
-  function onAddReminderPress() {
+  const onAddReminderPress = useCallback(() => {
     if (!isPremium && items.length >= remindersLimit) {
       Alert.alert(
         t("limits.reminderLimitReachedTitle"),
@@ -158,7 +158,14 @@ export function RemindersScreen({ route, navigation }: Props) {
     navigation.navigate("ReminderForm", {
       vehicleId: route.params.vehicleId,
     });
-  }
+  }, [
+    isPremium,
+    items.length,
+    remindersLimit,
+    navigation,
+    route.params.vehicleId,
+    t,
+  ]);
 
   async function handleToggleDone(reminder: Reminder) {
     try {

@@ -16,7 +16,7 @@ export function resolveAppCurrency(
   return isAppCurrency(value) ? value : fallback;
 }
 
-export const APP_CURRENCY_OPTIONS: ReadonlyArray<{
+export const APP_CURRENCY_OPTIONS: readonly {
   value: AppCurrency;
   label: string;
-}> = APP_CURRENCIES.map((code) => ({ value: code, label: code }));
+}[] = APP_CURRENCIES.map((code) => ({ value: code, label: code }));

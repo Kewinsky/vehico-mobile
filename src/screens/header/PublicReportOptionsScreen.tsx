@@ -26,7 +26,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "PublicReportOptions">;
 export function PublicReportOptionsScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme, mode]);
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { url, vehicleId, reportTitle, generatedAt } = route.params;
   const { width } = useWindowDimensions();
 

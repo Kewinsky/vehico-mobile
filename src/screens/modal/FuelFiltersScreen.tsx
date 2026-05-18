@@ -65,11 +65,11 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
   }
 
   function showStationPicker() {
-    const buttons: Array<{
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: "cancel" | "default";
-    }> = [
+    }[] = [
       { text: t("common.cancel"), style: "cancel" },
       { text: t("common.all"), onPress: () => setStationFilter(null) },
       ...GAS_STATION_OPTIONS.map((s) => ({

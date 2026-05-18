@@ -44,12 +44,12 @@ export function HeaderWithSearch({
   const openSearch = useCallback(() => {
     setSearchBarVisible(true);
     expandProgress.value = withTiming(1, { duration: 220 });
-  }, []);
+  }, [expandProgress]);
 
   const closeSearch = useCallback(() => {
     setSearchBarVisible(false);
     expandProgress.value = withTiming(0, { duration: 200 });
-  }, []);
+  }, [expandProgress]);
 
   useEffect(() => {
     if (searchBarVisible) {

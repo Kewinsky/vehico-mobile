@@ -29,8 +29,6 @@ const WORKSHOP_ICON_BACKGROUND: Record<WorkshopType, string> = {
   car_wash: "rgba(14,165,233,0.1)",
   other: "rgba(107,114,128,0.1)",
 };
-const NAVIGATE_ACTION_BLUE = "#3b82f6";
-
 function workshopIconBackground(type: WorkshopType | null | undefined): string {
   if (!type) return WORKSHOP_ICON_BACKGROUND.other;
   return WORKSHOP_ICON_BACKGROUND[type] ?? WORKSHOP_ICON_BACKGROUND.other;

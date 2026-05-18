@@ -128,14 +128,14 @@ export type PublicReportSnapshot = {
     vehicle: Vehicle;
     service_entries: ServiceEntry[];
     fueling_stats?: number | null;
-    vehicle_photos: Array<{
+    vehicle_photos: {
       id: string;
       storage_path: string;
       storage_bucket: "images" | "report-photos";
       source: "vehicle" | "report-temp";
       display_order: number;
       created_at: string;
-    }>;
+    }[];
     report_options?: {
       include_service_entries: boolean;
       include_notes: boolean;

@@ -18,9 +18,7 @@ import {
   getVehiclePhotoUrl,
 } from "../../services/vehicles/uploadPhoto";
 import type { Vehicle, VehiclePhoto } from "../../types/domain";
-import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
-import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
@@ -81,13 +79,13 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
     Set<string>
   >(new Set());
   const [tempPhotos, setTempPhotos] = useState<
-    Array<{
+    {
       id: string;
       fileUri: string;
       displayOrder: number;
       mimeType?: string | null;
       fileName?: string | null;
-    }>
+    }[]
   >([]);
   const [isDragging, setIsDragging] = useState(false);
 

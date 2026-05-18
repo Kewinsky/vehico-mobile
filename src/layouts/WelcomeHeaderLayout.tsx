@@ -1,5 +1,5 @@
 import type { PropsWithChildren, ReactNode } from "react";
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useMemo } from "react";
 import { Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -41,8 +41,9 @@ export function WelcomeHeaderLayout({
     >();
 
   const showSettingsIcon = showProfileAvatar && user;
-  const rightContent =
-    showShopIcon || showSettingsIcon || right !== undefined ? (
+  const rightContent = useMemo(
+    () =>
+      showShopIcon || showSettingsIcon || right !== undefined ? (
       <View
         style={{
           flexDirection: "row",
@@ -76,7 +77,17 @@ export function WelcomeHeaderLayout({
         )}
         {right}
       </View>
-    ) : null;
+    ) : null,
+    [
+      navigation,
+      right,
+      showSettingsIcon,
+      showShopIcon,
+      theme.colors.accent,
+      theme.icons.headerButton,
+      theme.spacing.sm,
+    ],
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -112,6 +123,7 @@ export function WelcomeHeaderLayout({
   }, [
     navigation,
     title,
+    rightContent,
     theme.colors.bg,
     theme.colors.fg,
     theme.typography.fontWeight.bold,

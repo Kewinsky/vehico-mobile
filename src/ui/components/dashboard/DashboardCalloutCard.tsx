@@ -82,11 +82,7 @@ export function DashboardCalloutCard({
   );
 }
 
-const makeStyles = (theme: {
-  spacing: { xs: number; sm: number; md: number };
-  typography: { body: number; small: number; fontWeight: { bold: string } };
-  radius: { md: number };
-}) =>
+const makeStyles = (theme: ReturnType<typeof useTheme>["theme"]) =>
   StyleSheet.create({
     card: {
       borderRadius: theme.radius.md,

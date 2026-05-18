@@ -1,9 +1,8 @@
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View , Share } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { Share } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
@@ -71,7 +70,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
 
   const [exporting, setExporting] = useState(false);
 
-  function showExportFormatAlert() {
+  const showExportFormatAlert = () => {
     Alert.alert(
       t("dataPortability.exportFormatTitle"),
       t("dataPortability.exportFormatSubtitle"),
@@ -87,7 +86,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
         },
       ],
     );
-  }
+  };
 
   function showCsvDataTypeAlert() {
     Alert.alert(
@@ -351,7 +350,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
         key: "export",
         title: t("dataPortability.exportButton"),
         icon: "share" as const,
-        onPress: showExportFormatAlert,
+        onPress: () => showExportFormatAlert(),
         disabled: exporting,
       },
       {
@@ -362,6 +361,7 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
         disabled: false,
       },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- export handlers read latest closure state
     [t, navigation, vehicleId, exporting],
   );
 

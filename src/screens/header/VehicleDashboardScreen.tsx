@@ -4,7 +4,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type ReactNode,
 } from "react";
 import {
   Alert,
@@ -15,25 +14,17 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HeaderButton } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
-import {
-  CalendarCheck,
-  CheckCheck,
-  Clock,
-  Copy,
-  Database,
-  Fuel,
-  Hash,
-  Settings,
-  ShieldCheck,
-  Warehouse,
-} from "lucide-react-native";
+import { Ionicons ,
+  MaterialCommunityIcons,
+  FontAwesome5,
+  MaterialIcons,
+} from "@expo/vector-icons";
+import { Settings, Warehouse } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import * as Font from "expo-font";
@@ -46,14 +37,8 @@ import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
-  withTiming,
   type SharedValue,
 } from "react-native-reanimated";
-import {
-  MaterialCommunityIcons,
-  FontAwesome5,
-  MaterialIcons,
-} from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type {
@@ -94,33 +79,25 @@ import {
 } from "../../services/serviceEntries/serviceEntriesRepo";
 import { getWorkshop } from "../../services/workshops/workshopsRepo";
 import { computeOilChangeDueState } from "../../utils/oilChangeDue";
-import { DashboardCalloutCard } from "../../ui/components/dashboard/DashboardCalloutCard";
-import { SERVICE_CATEGORY_COLORS } from "../../ui/theme/serviceCategoryColors";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
-import { Button } from "../../ui/components/common/Button";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
-import { Tile as TileCard } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { WheelsIcon } from "../../ui/components/icons/WheelsIcon";
-import { TireIcon } from "../../ui/components/icons/TireIcon";
-import { RimIcon } from "../../ui/components/icons/RimIcon";
 import { DashboardFab } from "../../ui/components/common/DashboardFab";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
-import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
 import { Logo } from "../../ui/components/branding/Logo";
-import { ReminderItem } from "../../ui/components/list/ReminderItem";
-import { StatisticsScreen } from "./StatisticsScreen";
 import { formatRelativeTimePast } from "../../utils/formatRelativeTimePast";
 import { isNonNegativeNumber, isValidDate } from "../../utils/validation";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { groupThousands } from "../../utils/numberFormatting";
 import { ButtonsPage } from "./vehicleDashboard/pages/ButtonsPage";
+import { StatsPanelPage } from "./vehicleDashboard/pages/StatsPanelPage";
+import { OverviewPanel } from "./vehicleDashboard/overview/OverviewPanel";
+import { useOverviewPanelStyles } from "./vehicleDashboard/overview/overviewStyles";
 import {
-  formatTermsValue,
   getDaysUntilDate,
   getMileageStaleYmd,
   isReminderOverdue,
@@ -260,128 +237,6 @@ function VehicleCarousel({
   );
 }
 
-type DetailItemProps = {
-  icon: ReactNode;
-  label: string;
-  value: ReactNode;
-};
-
-type DashboardStatTileProps = {
-  icon?: keyof typeof Ionicons.glyphMap;
-  iconComponent?: ReactNode;
-  label: string;
-  valueMain: ReactNode;
-  valueMainColor?: string;
-  valueSuffix?: string;
-  fullWidth?: boolean;
-  backgroundColor?: string;
-  labelColor?: string;
-  iconColor?: string;
-  onPress?: () => void;
-};
-
-function DetailItem({ icon, label, value }: DetailItemProps) {
-  const { theme } = useTheme();
-  const styles = makeStyles(theme, { bottom: 0 });
-  return (
-    <View style={styles.detailItem}>
-      {icon}
-      <View style={styles.detailContent}>
-        <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue}>{value}</Text>
-      </View>
-    </View>
-  );
-}
-
-function DashboardStatTile({
-  icon,
-  iconComponent,
-  label,
-  valueMain,
-  valueMainColor,
-  valueSuffix,
-  fullWidth,
-  backgroundColor,
-  labelColor,
-  iconColor,
-  onPress,
-}: DashboardStatTileProps) {
-  const { theme } = useTheme();
-  const styles = makeStyles(theme, { bottom: 0 });
-  const content = (
-    <View
-      style={[
-        styles.dashboardStatTile,
-        fullWidth && styles.dashboardStatTileFullWidth,
-        { backgroundColor: backgroundColor ?? theme.colors.card },
-      ]}
-    >
-      <View style={styles.dashboardStatTileTitleRow}>
-        {iconComponent ? (
-          iconComponent
-        ) : icon ? (
-          <Ionicons
-            name={icon}
-            size={20}
-            color={iconColor ?? theme.colors.accent}
-          />
-        ) : null}
-        <Text
-          style={[
-            styles.dashboardStatTileLabel,
-            { color: labelColor ?? theme.colors.accent },
-          ]}
-        >
-          {label}
-        </Text>
-      </View>
-      <View style={styles.dashboardStatTileValueRow}>
-        {typeof valueMain === "string" || typeof valueMain === "number" ? (
-          <Text
-            style={[
-              styles.dashboardStatTileValueMain,
-              { color: valueMainColor ?? theme.colors.fg },
-            ]}
-          >
-            {valueMain}
-          </Text>
-        ) : (
-          valueMain
-        )}
-        {valueSuffix ? (
-          <Text
-            style={[
-              styles.dashboardStatTileValueSuffix,
-              { color: theme.colors.muted },
-            ]}
-          >
-            {" "}
-            {valueSuffix}
-          </Text>
-        ) : null}
-      </View>
-    </View>
-  );
-
-  if (onPress) {
-    return (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [
-          styles.dashboardStatTilePressable,
-          pressed && { opacity: 0.85 },
-        ]}
-        accessibilityRole="button"
-      >
-        {content}
-      </Pressable>
-    );
-  }
-
-  return content;
-}
-
 export function VehicleDashboardScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme, mode } = useTheme();
@@ -417,11 +272,8 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const pagerRef = useRef<FlatList<number>>(null);
   const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
   const pagerProgress = useSharedValue(1);
-  const detailIconSize = 28;
   const {
-    distanceUnit,
     distanceUnitLabel,
-    fuelUnitShort,
     consumptionUnitLine,
   } = units;
   const currency = settings?.currency ?? "PLN";
@@ -574,10 +426,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       const d = String(x.date).slice(0, 10);
       return d >= fromYmd && d <= toYmd;
     });
-    const serviceInWindow = serviceEntries.filter((x) => {
-      const d = String(x.service_date).slice(0, 10);
-      return d >= fromYmd && d <= toYmd;
-    });
     const fuelInYearWindow = fuelingEntries.filter((x) => {
       const d = String(x.date).slice(0, 10);
       return d >= fromYmdYear && d <= toYmd;
@@ -671,8 +519,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     fuelingEntries,
     serviceEntries,
     consumptionUnitLine,
-    distanceUnitLabel,
-    currency,
     activeRemindersCount,
     i18n.language,
   ]);
@@ -1194,564 +1040,44 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
   const pageData = [0, 1, 2];
 
+  const overviewStyles = useOverviewPanelStyles();
+
   const technicalDataPage = (
-    <View style={[styles.page, { width: windowWidth }]}>
-      <View style={styles.vehicleHeaderRow}>
-        <View style={styles.vehicleHeaderText}>
-          <Text
-            style={[
-              styles.title,
-              { paddingBottom: vehicle?.vin ? 0 : theme.spacing.md },
-            ]}
-          >
-            {vehicle ? `${vehicle.make} ${vehicle.model}` : ""}
-          </Text>
-          {vehicle?.vin && (
-            <Pressable onPress={onCopyVin} style={styles.vinRow} hitSlop={10}>
-              <Text style={styles.vinText}>{vehicle.vin}</Text>
-              <Copy size={16} color={theme.colors.muted} strokeWidth={2} />
-            </Pressable>
-          )}
-        </View>
-        {isPremium && publicReportUrl ? (
-          <Pressable
-            onPress={openPublicReportShareActions}
-            style={styles.publicPageCircleButton}
-            hitSlop={10}
-          >
-            <Ionicons name="share-social" size={24} color="#000" />
-          </Pressable>
-        ) : null}
-      </View>
-
-      {mileageStaleTitle ? (
-        <DashboardCalloutCard
-          accentColor={SERVICE_CATEGORY_COLORS.maintenance}
-          buttonColor={SERVICE_CATEGORY_COLORS.maintenance}
-          icon={
-            <Clock
-              size={26}
-              color={SERVICE_CATEGORY_COLORS.maintenance}
-              strokeWidth={2}
-            />
-          }
-          title={mileageStaleTitle}
-          actions={[
-            {
-              label: t("dashboard.mileageUpdated.cta"),
-              onPress: handleQuickMileageEdit,
-            },
-          ]}
-        />
-      ) : null}
-      {insuranceCalloutCopy ? (
-        <DashboardCalloutCard
-          accentColor={theme.colors.accent}
-          buttonColor={theme.colors.accent}
-          icon={
-            <ShieldCheck
-              size={26}
-              color={theme.colors.accent}
-              strokeWidth={2}
-            />
-          }
-          title={insuranceCalloutCopy.title}
-          description={insuranceCalloutCopy.description}
-          actions={[
-            {
-              label: t("dashboard.insuranceBanner.cta"),
-              onPress: () =>
-                openFormalitiesDateEditor(
-                  "insurance_valid_until",
-                  vehicle?.insurance_valid_until,
-                  t("dashboard.stats.insurance"),
-                  t("dashboard.formalitiesUpdate.insurancePrompt"),
-                ),
-            },
-          ]}
-        />
-      ) : null}
-      {inspectionCalloutCopy ? (
-        <DashboardCalloutCard
-          accentColor={theme.colors.accent}
-          buttonColor={theme.colors.accent}
-          icon={
-            <CheckCheck
-              size={26}
-              color={theme.colors.accent}
-              strokeWidth={2}
-            />
-          }
-          title={inspectionCalloutCopy.title}
-          description={inspectionCalloutCopy.description}
-          actions={[
-            {
-              label: t("dashboard.inspectionBanner.cta"),
-              onPress: () =>
-                openFormalitiesDateEditor(
-                  "inspection_valid_until",
-                  vehicle?.inspection_valid_until,
-                  t("dashboard.stats.inspection"),
-                  t("dashboard.formalitiesUpdate.inspectionPrompt"),
-                ),
-            },
-          ]}
-        />
-      ) : null}
-      {oilChangeDueState.showBanner ? (
-        <DashboardCalloutCard
-          accentColor={SERVICE_CATEGORY_COLORS.oil_change}
-          buttonColor={SERVICE_CATEGORY_COLORS.oil_change}
-          icon={
-            <MaterialCommunityIcons
-              name="oil"
-              size={26}
-              color={SERVICE_CATEGORY_COLORS.oil_change}
-            />
-          }
-          title={oilBannerCopy.title}
-          description={oilBannerCopy.description}
-          meta={oilBannerCopy.meta}
-          actions={[
-            {
-              label: t("dashboard.oilBanner.done"),
-              onPress: handleOilChangeDone,
-            },
-            {
-              label: t("dashboard.oilBanner.book"),
-              onPress: () => void handleOilChangeBook(),
-              variant: "outlined",
-              disabled:
-                !oilChangeDueState.lastOilChange?.workshop_id || oilBookLoading,
-              loading: oilBookLoading,
-            },
-          ]}
-        />
-      ) : null}
-      <View style={styles.panelSections}>
-        <View style={styles.sectionBlock}>
-          <View
-            style={[styles.quickMetricsCard, { backgroundColor: theme.colors.card }]}
-          >
-            <View style={styles.quickMetricsRow}>
-              <View style={styles.quickMetricCell}>
-                <Text
-                  style={[styles.quickMetricPrimary, { color: theme.colors.fg }]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.6}
-                >
-                  {quickMetrics.consumptionPrimary}
-                </Text>
-                <Text
-                  style={[styles.quickMetricSecondary, { color: theme.colors.muted }]}
-                  numberOfLines={2}
-                >
-                  {quickMetrics.consumptionSecondary}
-                </Text>
-              </View>
-              <View style={styles.quickMetricCell}>
-                <Text
-                  style={[styles.quickMetricPrimary, { color: theme.colors.fg }]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.6}
-                >
-                  {quickMetrics.costNumber}
-                  {quickMetrics.costShowCurrency ? (
-                    <Text
-                      style={[
-                        styles.quickMetricInlineUnit,
-                        { color: theme.colors.muted },
-                      ]}
-                    >
-                      {` ${currency}`}
-                    </Text>
-                  ) : null}
-                </Text>
-                <Text
-                  style={[styles.quickMetricSecondary, { color: theme.colors.muted }]}
-                  numberOfLines={2}
-                >
-                  {t("dashboard.quickMetrics.costSubtitle")}
-                </Text>
-              </View>
-              <View style={styles.quickMetricCell}>
-                <Text
-                  style={[styles.quickMetricPrimary, { color: theme.colors.fg }]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.6}
-                >
-                  {quickMetrics.distanceNumber}
-                  {quickMetrics.distanceShowUnit ? (
-                    <Text
-                      style={[
-                        styles.quickMetricInlineUnit,
-                        { color: theme.colors.muted },
-                      ]}
-                    >
-                      {` ${distanceUnitLabel}`}
-                    </Text>
-                  ) : null}
-                </Text>
-                <Text
-                  style={[styles.quickMetricSecondary, { color: theme.colors.muted }]}
-                  numberOfLines={2}
-                >
-                  {t("dashboard.quickMetrics.distanceSubtitle")}
-                </Text>
-              </View>
-              <View style={styles.quickMetricCell}>
-                <Text
-                  style={[styles.quickMetricPrimary, { color: theme.colors.fg }]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.65}
-                >
-                  {quickMetrics.remindersPrimary}
-                </Text>
-                <Text
-                  style={[styles.quickMetricSecondary, { color: theme.colors.muted }]}
-                  numberOfLines={2}
-                >
-                  {t("dashboard.quickMetrics.alertsSubtitle")}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-        <View style={styles.sectionBlock}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-            {t("dashboard.specification")}
-          </Text>
-          <View style={[styles.infoCard, { backgroundColor: theme.colors.card }]}>
-            <View style={styles.detailsGrid}>
-              <View style={styles.detailsRow}>
-                <DetailItem
-                  icon={<Ionicons name="calendar-outline" size={detailIconSize} color={theme.colors.accent} />}
-                  label={t("vehicleForm.yearLabel")}
-                  value={vehicle ? String(vehicle.production_year) : "—"}
-                />
-                <DetailItem
-                  icon={<Fuel size={detailIconSize} color={theme.colors.accent} />}
-                  label={t("vehicleForm.fuelTypeLabel")}
-                  value={
-                    vehicle?.fuel_type
-                      ? t(
-                          `vehicleForm.fuelType${
-                            vehicle.fuel_type.charAt(0).toUpperCase() +
-                            vehicle.fuel_type.slice(1)
-                          }` as
-                            | "vehicleForm.fuelTypePetrol"
-                            | "vehicleForm.fuelTypeDiesel"
-                            | "vehicleForm.fuelTypeHybrid"
-                            | "vehicleForm.fuelTypeElectric"
-                            | "vehicleForm.fuelTypeLpg",
-                        )
-                      : "—"
-                  }
-                />
-              </View>
-              <View style={styles.detailsRow}>
-                <DetailItem
-                  icon={<MaterialCommunityIcons name="progress-clock" size={detailIconSize} color={theme.colors.accent} />}
-                  label={t("vehicleForm.initialMileageLabel")}
-                  value={
-                    vehicle?.initial_mileage != null
-                      ? `${groupThousands(vehicle.initial_mileage, 0, i18n.language)} ${distanceUnitLabel}`
-                      : "—"
-                  }
-                />
-                <DetailItem
-                  icon={<Ionicons name="speedometer-outline" size={detailIconSize} color={theme.colors.accent} />}
-                  label={t("vehicleForm.mileageLabel")}
-                  value={
-                    vehicle?.mileage != null
-                      ? `${groupThousands(vehicle.mileage, 0, i18n.language)} ${distanceUnitLabel}`
-                      : "—"
-                  }
-                />
-              </View>
-              <View style={styles.detailsRow}>
-                <DetailItem
-                  icon={<MaterialCommunityIcons name="engine" size={detailIconSize} color={theme.colors.accent} />}
-                  label={t("vehicleForm.engineCapacityLabel")}
-                  value={
-                    vehicle?.engine_capacity
-                      ? `${groupThousands(vehicle.engine_capacity, 0, i18n.language)} cm³`
-                      : "—"
-                  }
-                />
-                <DetailItem
-                  icon={<Ionicons name="flash-outline" size={detailIconSize} color={theme.colors.accent} />}
-                  label={t("vehicleForm.powerHpLabel")}
-                  value={
-                    vehicle?.power_hp
-                      ? `${groupThousands(vehicle.power_hp, 0, i18n.language)} ${t("vehicleForm.powerOutputUnit")}`
-                      : "—"
-                  }
-                />
-              </View>
-              <View style={styles.detailsRow}>
-                <DetailItem
-                  icon={<MaterialCommunityIcons name="car-shift-pattern" size={detailIconSize} color={theme.colors.accent} />}
-                  label={t("vehicleForm.transmissionLabel")}
-                  value={
-                    vehicle?.transmission
-                      ? t(
-                          `vehicleForm.transmission${
-                            vehicle.transmission.charAt(0).toUpperCase() +
-                            vehicle.transmission.slice(1)
-                          }` as
-                            | "vehicleForm.transmissionManual"
-                            | "vehicleForm.transmissionAutomatic",
-                        )
-                      : "—"
-                  }
-                />
-                <DetailItem
-                  icon={<DriveTypeIcon size={detailIconSize} color={theme.colors.accent} />}
-                  label={t("vehicleForm.driveTypeLabel")}
-                  value={vehicle?.drive_type || "—"}
-                />
-              </View>
-              <View style={styles.detailsRow}>
-                <DetailItem
-                  icon={<CalendarCheck size={detailIconSize} color={theme.colors.accent} />}
-                  label={t("vehicleForm.firstRegistrationDateLabel")}
-                  value={formatShortDisplayDate(vehicle?.first_registration_date ?? null, i18n.language)}
-                />
-                <DetailItem
-                  icon={<Hash size={detailIconSize} color={theme.colors.accent} />}
-                  label={t("vehicleForm.licensePlateLabel")}
-                  value={vehicle?.license_plate ?? "—"}
-                />
-              </View>
-            </View>
-          </View>
-        </View>
-        <View style={styles.sectionBlock}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-            {t("dashboard.quickActionsTitle", { defaultValue: "Quick actions" })}
-          </Text>
-          <View style={styles.quickActionsRow}>
-            <Pressable onPress={handleAddService} hitSlop={8} style={[styles.quickActionCard, { backgroundColor: theme.colors.card }]}>
-              <Ionicons name="construct" size={detailIconSize} color={theme.colors.accent} style={styles.quickActionIcon} />
-              <Text style={[styles.quickActionLabel, { color: theme.colors.fg }]}>{t("dashboard.quickActions.addService")}</Text>
-            </Pressable>
-            <Pressable onPress={handleAddFuel} hitSlop={8} style={[styles.quickActionCard, { backgroundColor: theme.colors.card }]}>
-              <Fuel size={detailIconSize} color={theme.colors.accent} style={styles.quickActionIcon} />
-              <Text style={[styles.quickActionLabel, { color: theme.colors.fg }]}>{t("dashboard.quickActions.addFuel")}</Text>
-            </Pressable>
-            <Pressable onPress={handleAddReminder} hitSlop={8} style={[styles.quickActionCard, { backgroundColor: theme.colors.card }]}>
-              <Ionicons name="notifications" size={detailIconSize} color={theme.colors.accent} style={styles.quickActionIcon} />
-              <Text style={[styles.quickActionLabel, { color: theme.colors.fg }]}>{t("dashboard.quickActions.addReminder")}</Text>
-            </Pressable>
-          </View>
-        </View>
-        <View style={styles.sectionBlock}>
-          <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t("reminders.tabUpcoming", { defaultValue: "Upcoming" })}
-            </Text>
-            <Pressable onPress={() => navigation.navigate("Reminders", { vehicleId })} hitSlop={8}>
-              <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
-                {t("dashboard.stats.viewAll")}
-              </Text>
-            </Pressable>
-          </View>
-          {upcomingReminders.length > 0 ? (
-            <View style={styles.upcomingRemindersList}>
-              {upcomingReminders.map((reminder) => (
-                <ReminderItem
-                  key={reminder.id}
-                  title={reminder.title ?? ""}
-                  createdAt={reminder.created_at}
-                  dueDate={reminder.due_date}
-                  dueMileage={reminder.due_mileage}
-                  currentMileage={vehicle?.mileage ?? null}
-                  anchorMileage={reminder.recurrence_anchor_mileage}
-                  remainingDistanceLabel={t("reminders.remainingDistance")}
-                  estimatedTimeLabel={t("reminders.estimatedTime")}
-                  onPress={() =>
-                    navigation.navigate("ReminderForm", {
-                      vehicleId,
-                      reminderId: reminder.id,
-                    })
-                  }
-                />
-              ))}
-            </View>
-          ) : (
-            <Text style={[styles.pageSubTitle, { color: theme.colors.muted }]}>
-              {t("reminders.noItems")}
-            </Text>
-          )}
-        </View>
-        <View style={styles.sectionBlock}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-            {t("dashboard.stats.formalities", { defaultValue: "Formalności" })}
-          </Text>
-          <View style={styles.termsTilesRow}>
-            <DashboardStatTile
-              onPress={() =>
-                openFormalitiesDateEditor(
-                  "insurance_valid_until",
-                  vehicle?.insurance_valid_until,
-                  t("dashboard.stats.insurance"),
-                  t("dashboard.formalitiesUpdate.insurancePrompt"),
-                )
-              }
-              iconComponent={
-                <ShieldCheck
-                  size={20}
-                  color={
-                    insuranceDaysUntil != null && insuranceDaysUntil <= 30
-                      ? theme.colors.danger
-                      : theme.colors.accent
-                  }
-                />
-              }
-              label={t("dashboard.stats.insurance")}
-              valueMain={formatTermsValue(
-                vehicle?.insurance_valid_until,
-                insuranceDaysUntil,
-                t,
-                i18n.language,
-              )}
-              valueMainColor={
-                insuranceDaysUntil != null && insuranceDaysUntil < 0
-                  ? theme.colors.danger
-                  : undefined
-              }
-              backgroundColor={
-                insuranceDaysUntil != null && insuranceDaysUntil <= 30
-                  ? hexToRgba(theme.colors.danger, 0.18)
-                  : undefined
-              }
-              labelColor={
-                insuranceDaysUntil != null && insuranceDaysUntil <= 30
-                  ? theme.colors.danger
-                  : undefined
-              }
-              iconColor={
-                insuranceDaysUntil != null && insuranceDaysUntil <= 30
-                  ? theme.colors.danger
-                  : undefined
-              }
-            />
-            <DashboardStatTile
-              onPress={() =>
-                openFormalitiesDateEditor(
-                  "inspection_valid_until",
-                  vehicle?.inspection_valid_until,
-                  t("dashboard.stats.inspection"),
-                  t("dashboard.formalitiesUpdate.inspectionPrompt"),
-                )
-              }
-              iconComponent={
-                <CheckCheck
-                  size={20}
-                  color={
-                    inspectionDaysUntil != null && inspectionDaysUntil <= 30
-                      ? theme.colors.danger
-                      : theme.colors.accent
-                  }
-                />
-              }
-              label={t("dashboard.stats.inspection")}
-              valueMain={formatTermsValue(
-                vehicle?.inspection_valid_until,
-                inspectionDaysUntil,
-                t,
-                i18n.language,
-              )}
-              valueMainColor={
-                inspectionDaysUntil != null && inspectionDaysUntil < 0
-                  ? theme.colors.danger
-                  : undefined
-              }
-              backgroundColor={
-                inspectionDaysUntil != null && inspectionDaysUntil <= 30
-                  ? hexToRgba(theme.colors.danger, 0.18)
-                  : undefined
-              }
-              labelColor={
-                inspectionDaysUntil != null && inspectionDaysUntil <= 30
-                  ? theme.colors.danger
-                  : undefined
-              }
-              iconColor={
-                inspectionDaysUntil != null && inspectionDaysUntil <= 30
-                  ? theme.colors.danger
-                  : undefined
-              }
-            />
-          </View>
-        </View>
-
-        <View style={styles.sectionBlock}>
-          <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {t("dashboard.stats.wheels")}
-            </Text>
-            <Pressable onPress={() => navigation.navigate("Wheels", { vehicleId })} hitSlop={8}>
-              <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
-                {t("dashboard.stats.viewAll")}
-              </Text>
-            </Pressable>
-          </View>
-          <DashboardStatTile
-            iconComponent={<TireIcon size={24} color={theme.colors.accent} />}
-            label={t("dashboard.stats.currentTire")}
-            valueMain={
-              <View style={styles.fittedSetsList}>
-                {fittedTiresLines.map((line, idx) => (
-                  <Text
-                    key={`fitted-tire-${idx}`}
-                    style={[styles.dashboardStatTileValueMain, { color: theme.colors.fg }]}
-                  >
-                    {line}
-                  </Text>
-                ))}
-              </View>
-            }
-            fullWidth
-          />
-          <DashboardStatTile
-            iconComponent={<RimIcon size={24} color={theme.colors.accent} />}
-            label={t("dashboard.stats.currentWheel")}
-            valueMain={
-              <View style={styles.fittedSetsList}>
-                {fittedWheelsLines.map((line, idx) => (
-                  <Text
-                    key={`fitted-wheel-${idx}`}
-                    style={[styles.dashboardStatTileValueMain, { color: theme.colors.fg }]}
-                  >
-                    {line}
-                  </Text>
-                ))}
-              </View>
-            }
-            fullWidth
-          />
-        </View>
-
-        {vehicle?.notes?.trim() ? (
-          <View style={styles.sectionBlock}>
-            <Text style={[styles.infoCardTitle, { color: theme.colors.fg }]}>
-              {t("manageVehicle.notesLabel")}
-            </Text>
-            <View style={[styles.infoCard, { backgroundColor: theme.colors.card }]}>
-              <Text style={[styles.notesText, { color: theme.colors.fg }]}>
-                {vehicle.notes.trim()}
-              </Text>
-            </View>
-          </View>
-        ) : null}
-      </View>
-    </View>
+    <OverviewPanel
+      windowWidth={windowWidth}
+      styles={overviewStyles}
+      vehicleId={vehicleId}
+      vehicle={vehicle}
+      navigation={navigation}
+      t={t}
+      language={i18n.language}
+      theme={theme}
+      isPremium={isPremium}
+      publicReportUrl={publicReportUrl}
+      onCopyVin={onCopyVin}
+      openPublicReportShareActions={openPublicReportShareActions}
+      mileageStaleTitle={mileageStaleTitle}
+      handleQuickMileageEdit={handleQuickMileageEdit}
+      insuranceCalloutCopy={insuranceCalloutCopy}
+      inspectionCalloutCopy={inspectionCalloutCopy}
+      oilChangeDueState={oilChangeDueState}
+      oilBannerCopy={oilBannerCopy}
+      handleOilChangeDone={handleOilChangeDone}
+      handleOilChangeBook={handleOilChangeBook}
+      oilBookLoading={oilBookLoading}
+      quickMetrics={quickMetrics}
+      currency={currency}
+      distanceUnitLabel={distanceUnitLabel}
+      handleAddService={handleAddService}
+      handleAddFuel={handleAddFuel}
+      handleAddReminder={handleAddReminder}
+      upcomingReminders={upcomingReminders}
+      insuranceDaysUntil={insuranceDaysUntil}
+      inspectionDaysUntil={inspectionDaysUntil}
+      openFormalitiesDateEditor={openFormalitiesDateEditor}
+      fittedTiresLines={fittedTiresLines}
+      fittedWheelsLines={fittedWheelsLines}
+    />
   );
 
   const buttonsPage = (
@@ -1765,9 +1091,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   );
 
   const statsPage = (
-    <View style={[styles.page, { width: windowWidth }]}>
-      <StatisticsScreen embedded vehicleId={vehicleId} />
-    </View>
+    <StatsPanelPage windowWidth={windowWidth} vehicleId={vehicleId} />
   );
 
   const pages = [buttonsPage, technicalDataPage, statsPage];

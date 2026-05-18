@@ -29,13 +29,12 @@ import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
-import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { SunSnowIcon } from "lucide-react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "TireForm">;
@@ -61,10 +60,6 @@ export function TireFormScreen({ navigation, route }: Props) {
     : freePlanVehicleId === vehicleId
       ? { freePlanTireId: freePlanTireId ?? null }
       : { limit: tiresPerVehicleLimit };
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
 
   const [name, setName] = useState("");
   const [width, setWidth] = useState("");
@@ -112,11 +107,11 @@ export function TireFormScreen({ navigation, route }: Props) {
     onChange: (v: T | null) => void;
     placeholderLabel?: string;
   }) {
-    const buttons: Array<{
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: "cancel" | "default" | "destructive";
-    }> = [{ text: t("common.cancel"), style: "cancel" }];
+    }[] = [{ text: t("common.cancel"), style: "cancel" }];
 
     if (opts.placeholderLabel) {
       buttons.push({

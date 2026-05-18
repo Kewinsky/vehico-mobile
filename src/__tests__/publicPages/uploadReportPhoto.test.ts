@@ -1,3 +1,11 @@
+import * as ImageManipulator from "expo-image-manipulator";
+import { fetchBlob, randomId } from "../../services/storage/uploadUtils";
+import { mockStorageBucket } from "../../test/supabaseMock";
+import {
+  uploadReportPhoto,
+  uploadReportPhotos,
+} from "../../services/publicPages/uploadReportPhoto";
+
 jest.mock("expo-image-manipulator", () => ({
   manipulateAsync: jest.fn(),
   SaveFormat: { JPEG: "jpeg" },
@@ -7,14 +15,6 @@ jest.mock("../../services/storage/uploadUtils", () => ({
   fetchBlob: jest.fn(),
   randomId: jest.fn(),
 }));
-
-import * as ImageManipulator from "expo-image-manipulator";
-import { fetchBlob, randomId } from "../../services/storage/uploadUtils";
-import { mockStorageBucket } from "../../test/supabaseMock";
-import {
-  uploadReportPhoto,
-  uploadReportPhotos,
-} from "../../services/publicPages/uploadReportPhoto";
 
 describe("uploadReportPhoto", () => {
   beforeEach(() => {

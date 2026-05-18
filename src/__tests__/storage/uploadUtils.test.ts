@@ -1,8 +1,3 @@
-jest.mock("expo-file-system/legacy", () => ({
-  readAsStringAsync: jest.fn(),
-  EncodingType: { Base64: "base64" },
-}));
-
 import {
   fetchBlob,
   inferContentType,
@@ -11,6 +6,11 @@ import {
   uuid,
 } from "../../services/storage/uploadUtils";
 import * as FileSystem from "expo-file-system/legacy";
+
+jest.mock("expo-file-system/legacy", () => ({
+  readAsStringAsync: jest.fn(),
+  EncodingType: { Base64: "base64" },
+}));
 
 describe("ids", () => {
   it("randomId returns non-empty string", () => {

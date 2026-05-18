@@ -20,7 +20,7 @@ import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { supabase } from "../../services/supabase/client";
-import { Card, CardDivider } from "../../ui/components/common/Card";
+import { Card } from "../../ui/components/common/Card";
 import { ENV } from "../../config/env";
 import { deleteAccount } from "../../services/account/deleteAccount";
 
@@ -109,20 +109,20 @@ export function SettingsScreen({ navigation }: Props) {
     );
   }
 
-  function onSignOut() {
+  const onSignOut = useCallback(() => {
     signOut().catch((e: any) => {
       toastError(e?.message ?? t("common.error"));
     });
-  }
+  }, [signOut, t]);
 
-  async function onSupport() {
+  const onSupport = useCallback(async () => {
     const url = `mailto:${encodeURIComponent(ENV.SUPPORT_EMAIL)}?subject=Support%20request`;
     try {
       await Linking.openURL(url);
     } catch {
       toastError(t("common.error"));
     }
-  }
+  }, [t]);
 
   async function handleDeleteAccount() {
     if (deletingAccount) return;
@@ -167,10 +167,10 @@ export function SettingsScreen({ navigation }: Props) {
         </HeaderButton>
       ),
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- openDeleteAccountMenu reads deletingAccount
   }, [
     deletingAccount,
     navigation,
-    openDeleteAccountMenu,
     t,
     theme.colors.accent,
     theme.colors.fg,
@@ -210,7 +210,7 @@ export function SettingsScreen({ navigation }: Props) {
         onPress: onSignOut,
       },
     ],
-    [t, navigation, theme.colors.accent],
+    [t, navigation, onSignOut, onSupport, theme.colors.accent, theme.colors.danger],
   );
 
   return (
@@ -260,11 +260,6 @@ export function SettingsScreen({ navigation }: Props) {
 
         <Card>
           {rows.map((row) => {
-            const isSignOut = row.id === "signout";
-            const iconColor = isSignOut
-              ? theme.colors.danger
-              : theme.colors.accent;
-
             return (
               <View key={row.id}>
                 <Pressable

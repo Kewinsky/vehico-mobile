@@ -20,7 +20,6 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { ServiceItem } from "../../ui/components/list/ServiceItem";
-import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { toastError } from "../../ui/toast/toast";
@@ -36,7 +35,6 @@ type Props = NativeStackScreenProps<AppStackParamList, "ServiceHistory">;
 
 export function ServiceHistoryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
   const { settings } = useUserSettings();
   const { vehicleId } = route.params;
   const [items, setItems] = useState<ServiceEntry[]>([]);
@@ -196,7 +194,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           );
       }
     },
-    [theme.colors.muted],
+    [],
   );
 
   const timelineRows = useMemo(() => {

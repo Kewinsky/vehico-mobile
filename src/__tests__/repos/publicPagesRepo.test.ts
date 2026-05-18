@@ -1,11 +1,3 @@
-jest.mock("../../config/env", () => ({
-  ENV: {
-    SUPABASE_URL: "https://supabase.test",
-    SUPABASE_ANON_KEY: "anon",
-    REPORTS_APP_URL: "https://reports.test",
-  },
-}));
-
 import {
   generatePublicPageWithOptions,
   getPublicPageUrl,
@@ -14,6 +6,14 @@ import {
   updatePublicReportTitle,
 } from "../../services/publicPages/publicPagesRepo";
 import { createPostgrestChain, supabase } from "../../test/supabaseMock";
+
+jest.mock("../../config/env", () => ({
+  ENV: {
+    SUPABASE_URL: "https://supabase.test",
+    SUPABASE_ANON_KEY: "anon",
+    REPORTS_APP_URL: "https://reports.test",
+  },
+}));
 
 describe("publicPagesRepo", () => {
   it("getPublicPageUrl builds reports app URL", async () => {

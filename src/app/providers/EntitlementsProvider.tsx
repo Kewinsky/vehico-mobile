@@ -25,7 +25,6 @@ import {
   createEmptyRevenueCatProducts,
   findPackageForProductId,
   getPremiumEntitlement,
-  isPremiumEntitlementActive,
   isRevenueCatProductId,
   isSubscriptionProduct,
   normalizeProductIdFromRC,

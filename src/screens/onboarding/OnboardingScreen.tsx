@@ -43,7 +43,6 @@ import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts"
 import { groupThousands } from "../../utils/numberFormatting";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { Logo } from "../../ui/components/branding/Logo";
 import { Card } from "../../ui/components/common/Card";
@@ -63,10 +62,9 @@ const PROGRESS_STEPS = TOTAL_STEPS - 1; // don't count welcome step
 
 export function OnboardingScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
-  const { theme, mode } = useTheme();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const { user, signOut } = useAuth();
-  const { settings } = useUserSettings();
   const { vehiclesLimit, isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const { distanceUnitLabel } = useUnitDisplay();
@@ -85,12 +83,6 @@ export function OnboardingScreen({ navigation }: Props) {
 
   const [saving, setSaving] = useState(false);
   const [createdVehicleId, setCreatedVehicleId] = useState<string | null>(null);
-
-  const vehicleTitle = useMemo(() => {
-    const y = year.trim();
-    const parts = [make.trim(), model.trim()].filter(Boolean).join(" ");
-    return [parts, y].filter(Boolean).join(", ");
-  }, [make, model, year]);
 
   const showProgress = currentStep > 0;
   const progressAnim = useRef(new Animated.Value(currentStep)).current;

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
-  Pressable,
   StyleSheet,
   Switch,
   Text,
@@ -39,7 +38,6 @@ import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { BoltPatternIcon } from "../../ui/components/icons/BoltPatternIcon";
 import { BoltTypeIcon } from "../../ui/components/icons/BoltTypeIcon";
 import { EtOffsetIcon } from "../../ui/components/icons/EtOffsetIcon";
@@ -62,10 +60,6 @@ export function WheelFormScreen({ navigation, route }: Props) {
     : freePlanVehicleId === vehicleId
       ? { freePlanWheelId: freePlanWheelId ?? null }
       : { limit: wheelsPerVehicleLimit };
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
 
   const [name, setName] = useState("");
   const [width, setWidth] = useState("");

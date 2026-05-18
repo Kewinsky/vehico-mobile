@@ -68,12 +68,12 @@ export async function uploadReportPhoto(params: {
  */
 export async function uploadReportPhotos(params: {
   reportId: string;
-  photos: Array<{
+  photos: {
     fileUri: string;
     displayOrder: number;
     mimeType?: string | null;
     fileName?: string | null;
-  }>;
+  }[];
 }): Promise<TempReportPhoto[]> {
   const uploadPromises = params.photos.map((photo) =>
     uploadReportPhoto({

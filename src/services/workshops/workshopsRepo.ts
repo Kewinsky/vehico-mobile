@@ -1,6 +1,5 @@
 import { supabase } from "../supabase/client";
 import type { Workshop, WorkshopType } from "../../types/domain";
-import type { ServiceEntry } from "../../types/domain";
 
 export type NewWorkshopInput = {
   name: string;

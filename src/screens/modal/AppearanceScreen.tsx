@@ -31,11 +31,11 @@ type SettingItem = {
   options: Option<string>[];
 };
 
-function buildCardConfig(t: TFunction): Array<{
+function buildCardConfig(t: TFunction): {
   cardLabelKey: string;
   items: SettingItem[];
   unitGroup?: boolean;
-}> {
+}[] {
   return [
     {
       cardLabelKey: "settings.tabUnits",
@@ -114,11 +114,11 @@ export function AppearanceScreen({ navigation }: Props) {
     options: readonly Option<V>[];
     onChange: (value: V) => void;
   }) {
-    const buttons: Array<{
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: "cancel" | "default" | "destructive";
-    }> = [{ text: t("common.cancel"), style: "cancel" }];
+    }[] = [{ text: t("common.cancel"), style: "cancel" }];
 
     opts.options.forEach((opt) => {
       buttons.push({

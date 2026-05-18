@@ -112,11 +112,11 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
   }
 
   function showCategoryPicker() {
-    const buttons: Array<{
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: "cancel" | "default";
-    }> = [
+    }[] = [
       { text: t("common.cancel"), style: "cancel" },
       { text: t("common.all"), onPress: () => setCategoryFilter("all") },
       ...CATEGORY_OPTIONS.map((c) => ({
@@ -135,11 +135,11 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
   }
 
   function showSortFieldPicker() {
-    const buttons: Array<{
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: "cancel" | "default";
-    }> = [
+    }[] = [
       { text: t("common.cancel"), style: "cancel" },
       {
         text: t("timeline.sortFieldDate"),
@@ -160,11 +160,11 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
   }
 
   function showSortOrderPicker() {
-    const baseButtons: Array<{
+    const baseButtons: {
       text: string;
       onPress?: () => void;
       style?: "cancel" | "default";
-    }> = [{ text: t("common.cancel"), style: "cancel" }];
+    }[] = [{ text: t("common.cancel"), style: "cancel" }];
 
     if (sortField === "date") {
       baseButtons.push(

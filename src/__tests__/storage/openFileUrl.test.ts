@@ -1,13 +1,13 @@
-jest.mock("../../services/localStorage/localFiles", () => ({
-  toFileUri: jest.fn((p: string) => `file://${p}`),
-}));
-
 import {
   getAttachmentOpenUrl,
   getFileNameFromItem,
   getVehicleDocumentOpenUrl,
 } from "../../services/storage/openFileUrl";
 import { toFileUri } from "../../services/localStorage/localFiles";
+
+jest.mock("../../services/localStorage/localFiles", () => ({
+  toFileUri: jest.fn((p: string) => `file://${p}`),
+}));
 
 describe("openFileUrl", () => {
   it("returns open URL for attachment local path", () => {

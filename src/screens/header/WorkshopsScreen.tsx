@@ -19,16 +19,17 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Workshops">;
 
+const WORKSHOP_TYPE_OPTIONS: WorkshopType[] = [
+  "mechanic",
+  "electrician",
+  "detailer",
+  "bodywork",
+  "car_wash",
+  "other",
+];
+
 export function WorkshopsScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const WORKSHOP_TYPE_OPTIONS: WorkshopType[] = [
-    "mechanic",
-    "electrician",
-    "detailer",
-    "bodywork",
-    "car_wash",
-    "other",
-  ];
 
   const [items, setItems] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,7 +91,7 @@ export function WorkshopsScreen({ navigation }: Props) {
 
   const hasActiveFilters = typeFilter !== "all";
 
-  function onAddWorkshopPress() {
+  const onAddWorkshopPress = useCallback(() => {
     if (!isPremium && items.length >= workshopsLimit) {
       Alert.alert(
         t("limits.workshopLimitReachedTitle"),
@@ -106,14 +107,14 @@ export function WorkshopsScreen({ navigation }: Props) {
       return;
     }
     navigation.navigate("WorkshopForm", {});
-  }
+  }, [isPremium, items.length, navigation, t, workshopsLimit]);
 
   const openFilters = useCallback(() => {
-    const buttons: Array<{
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: "cancel" | "default";
-    }> = [
+    }[] = [
       { text: t("common.cancel"), style: "cancel" },
       { text: t("workshops.typeAll"), onPress: () => setTypeFilter("all") },
       ...WORKSHOP_TYPE_OPTIONS.map((type) => ({

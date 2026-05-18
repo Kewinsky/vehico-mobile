@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 /** Shared Supabase client mock for repo/integration-style tests. */
 
 export type MockThenablePayload = {

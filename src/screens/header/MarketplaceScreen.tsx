@@ -1,6 +1,6 @@
 import { Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { CirclePlus, History } from "lucide-react-native";
 
@@ -21,7 +21,7 @@ export function MarketplaceScreen({ navigation, route }: Props) {
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  function onGeneratePress() {
+  const onGeneratePress = useCallback(() => {
     if (!isPremium) {
       Alert.alert(
         t("limits.premiumRequiredTitle"),
@@ -37,7 +37,7 @@ export function MarketplaceScreen({ navigation, route }: Props) {
       return;
     }
     navigation.navigate("MarketplaceConfigure", { vehicleId });
-  }
+  }, [isPremium, navigation, t, vehicleId]);
 
   const tiles = useMemo(
     () => [

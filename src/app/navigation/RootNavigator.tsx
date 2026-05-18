@@ -2,12 +2,6 @@ import React from "react";
 import { ActivityIndicator, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-const nativeHeaderScreenOptions = {
-  headerShown: true,
-  headerShadowVisible: false,
-  headerTransparent: true,
-} as const;
-
 import { useAuth } from "../providers/AuthProvider";
 import { AuthScreen } from "../../screens/modal/AuthScreen";
 import { VehiclesScreen } from "../../screens/welcome/VehiclesScreen";
@@ -54,6 +48,12 @@ import { ShopScreen } from "../../screens/modal/ShopScreen";
 import { ExampleListingScreen } from "../../screens/modal/ExampleListingScreen";
 import { AppearanceScreen } from "../../screens/modal/AppearanceScreen";
 import { OnboardingScreen } from "../../screens/onboarding/OnboardingScreen";
+
+const nativeHeaderScreenOptions = {
+  headerShown: true,
+  headerShadowVisible: false,
+  headerTransparent: true,
+} as const;
 
 export type AppStackParamList = {
   Auth: undefined;
@@ -144,12 +144,12 @@ export type AppStackParamList = {
       currency?: import("../../types/domain").Currency;
     };
     selectedVehiclePhotoIds: string[];
-    tempPhotos: Array<{
+    tempPhotos: {
       fileUri: string;
       displayOrder: number;
       mimeType?: string | null;
       fileName?: string | null;
-    }>;
+    }[];
   };
   PublicReportOptions: {
     url: string;

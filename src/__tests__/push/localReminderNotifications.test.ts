@@ -1,3 +1,10 @@
+import * as Notifications from "expo-notifications";
+import { i18n } from "../../i18n/i18n";
+import {
+  cancelLocalReminder,
+  scheduleLocalReminder,
+} from "../../services/push/localReminderNotifications";
+
 jest.mock("expo-notifications", () => ({
   getPermissionsAsync: jest.fn(),
   requestPermissionsAsync: jest.fn(),
@@ -23,13 +30,6 @@ jest.mock("../../i18n/i18n", () => ({
 jest.mock("../../utils/dateFormatting", () => ({
   formatLongMonthDisplayDate: jest.fn(() => "Jan 1, 2025"),
 }));
-
-import * as Notifications from "expo-notifications";
-import { i18n } from "../../i18n/i18n";
-import {
-  cancelLocalReminder,
-  scheduleLocalReminder,
-} from "../../services/push/localReminderNotifications";
 
 describe("localReminderNotifications", () => {
   beforeEach(() => {

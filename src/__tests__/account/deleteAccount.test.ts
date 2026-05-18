@@ -1,7 +1,3 @@
-jest.mock("@react-native-async-storage/async-storage", () => ({
-  removeItem: jest.fn(),
-}));
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { deleteAccount } from "../../services/account/deleteAccount";
@@ -10,6 +6,10 @@ import {
   mockStorageBucket,
   supabase,
 } from "../../test/supabaseMock";
+
+jest.mock("@react-native-async-storage/async-storage", () => ({
+  removeItem: jest.fn(),
+}));
 
 describe("deleteAccount", () => {
   beforeEach(() => {

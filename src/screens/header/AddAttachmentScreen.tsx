@@ -18,7 +18,6 @@ import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
-import { Ionicons } from "@expo/vector-icons";
 import { toastError } from "../../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "AddAttachment">;
@@ -65,9 +64,9 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
 
   const hasActiveFilters = sortOption !== "date-newest";
 
-  function openFilters() {
+  const openFilters = useCallback(() => {
     navigation.navigate("AddAttachmentFilters", { vehicleId, sortOption });
-  }
+  }, [navigation, sortOption, vehicleId]);
 
   const resetFilters = useCallback(() => {
     setSortOption("date-newest");

@@ -4,6 +4,11 @@ import { act, renderHook, waitFor } from "@testing-library/react-native";
 import { createPostgrestChain, supabase } from "../../test/supabaseMock";
 import Purchases from "react-native-purchases";
 
+import {
+  EntitlementsProvider,
+  useEntitlements,
+} from "../../app/providers/EntitlementsProvider";
+
 jest.mock("../../app/providers/AuthProvider", () => ({
   useAuth: () => ({
     user: {
@@ -13,11 +18,6 @@ jest.mock("../../app/providers/AuthProvider", () => ({
     },
   }),
 }));
-
-import {
-  EntitlementsProvider,
-  useEntitlements,
-} from "../../app/providers/EntitlementsProvider";
 
 function wrapper({ children }: { children: React.ReactNode }) {
   return <EntitlementsProvider>{children}</EntitlementsProvider>;

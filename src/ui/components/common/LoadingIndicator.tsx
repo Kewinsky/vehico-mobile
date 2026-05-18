@@ -1,5 +1,4 @@
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { useTranslation } from "react-i18next";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useTheme } from "../../ThemeProvider";
 
 type LoadingIndicatorProps = {
@@ -7,7 +6,6 @@ type LoadingIndicatorProps = {
 };
 
 export function LoadingIndicator({ size = "small" }: LoadingIndicatorProps) {
-  const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = makeStyles(theme);
 

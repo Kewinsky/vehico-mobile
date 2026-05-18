@@ -15,7 +15,7 @@ import * as DocumentPicker from "expo-document-picker";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { isValidDate, isNonNegativeNumber } from "../../utils/validation";
-import type { Attachment, ServiceEntryCategory } from "../../types/domain";
+import type { Attachment, ServiceEntryCategory , Workshop } from "../../types/domain";
 import {
   createServiceEntry,
   deleteServiceEntry,
@@ -33,15 +33,13 @@ import {
   getFileNameFromItem,
 } from "../../services/storage/openFileUrl";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
-import type { Workshop } from "../../types/domain";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
-import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
@@ -49,7 +47,6 @@ import { toastError } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { Ionicons } from "@expo/vector-icons";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Textarea } from "../../ui/components/common/Textarea";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { SquarePen, Trash2 } from "lucide-react-native";
@@ -70,14 +67,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { settings } = useUserSettings();
   const { isPremium, workshopsLimit, freePlanWorkshopIds } = useEntitlements();
   const { vehicleId, entryId } = route.params as any;
   const { distanceUnitLabel } = useUnitDisplay();
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
 
   type EntryRow = { title: string; cost: string };
   type FormMode = "single" | "multi";
@@ -327,11 +319,11 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     onChange: (v: T | null) => void;
     placeholderLabel?: string;
   }) {
-    const buttons: Array<{
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: "cancel" | "default" | "destructive";
-    }> = [{ text: t("common.cancel"), style: "cancel" }];
+    }[] = [{ text: t("common.cancel"), style: "cancel" }];
 
     if (opts.placeholderLabel) {
       buttons.push({

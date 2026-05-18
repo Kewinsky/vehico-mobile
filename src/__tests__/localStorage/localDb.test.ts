@@ -30,13 +30,13 @@ describe("localDb (SQLite)", () => {
   });
 
   it("runs migration when user_version differs, and caches db instance", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const SQLite = require("expo-sqlite");
     const db = createDbMock({ userVersion: 0 });
     SQLite.openDatabaseAsync.mockResolvedValue(db);
 
     // Use require() (CJS) so we don't need vm-modules for dynamic import.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const mod = require("../../services/localStorage/localDb");
 
     await mod.insertLocalAttachment({
@@ -62,12 +62,12 @@ describe("localDb (SQLite)", () => {
   });
 
   it("skips migration when user_version matches", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const SQLite = require("expo-sqlite");
     const db = createDbMock({ userVersion: 1 });
     SQLite.openDatabaseAsync.mockResolvedValue(db);
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const mod = require("../../services/localStorage/localDb");
     await mod.listAllLocalAttachmentRows();
 
@@ -79,13 +79,13 @@ describe("localDb (SQLite)", () => {
   });
 
   it("uses parameter binding for listAllLocalAttachmentsByVehicle", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const SQLite = require("expo-sqlite");
     const db = createDbMock({ userVersion: 1 });
     db.getAllAsync.mockResolvedValue([{ id: "a1" }]);
     SQLite.openDatabaseAsync.mockResolvedValue(db);
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const mod = require("../../services/localStorage/localDb");
     const rows = await mod.listAllLocalAttachmentsByVehicle(["se1", "se2"]);
 
@@ -97,11 +97,11 @@ describe("localDb (SQLite)", () => {
   });
 
   it("returns [] for listAllLocalAttachmentsByVehicle when ids empty", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const SQLite = require("expo-sqlite");
     const db = createDbMock({ userVersion: 1 });
     SQLite.openDatabaseAsync.mockResolvedValue(db);
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const mod = require("../../services/localStorage/localDb");
 
     await expect(mod.listAllLocalAttachmentsByVehicle([])).resolves.toEqual([]);
@@ -109,14 +109,14 @@ describe("localDb (SQLite)", () => {
   });
 
   it("covers attachment CRUD helpers", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const SQLite = require("expo-sqlite");
     const db = createDbMock({ userVersion: 1 });
     db.getFirstAsync
       .mockResolvedValueOnce({ user_version: 1 })
       .mockResolvedValueOnce({ id: "a1", service_entry_id: "se1" });
     SQLite.openDatabaseAsync.mockResolvedValue(db);
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const mod = require("../../services/localStorage/localDb");
 
     await mod.updateLocalAttachmentDisplayName("a1", "name");
@@ -136,7 +136,7 @@ describe("localDb (SQLite)", () => {
   });
 
   it("covers local vehicle documents CRUD helpers", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const SQLite = require("expo-sqlite");
     const db = createDbMock({ userVersion: 1 });
     db.getAllAsync.mockResolvedValueOnce([{ id: "d1", vehicle_id: "v1" }]);
@@ -144,7 +144,7 @@ describe("localDb (SQLite)", () => {
       .mockResolvedValueOnce({ user_version: 1 })
       .mockResolvedValueOnce({ id: "d1", vehicle_id: "v1" });
     SQLite.openDatabaseAsync.mockResolvedValue(db);
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const mod = require("../../services/localStorage/localDb");
 
     await mod.insertLocalVehicleDocument({
@@ -174,14 +174,14 @@ describe("localDb (SQLite)", () => {
   });
 
   it("covers listAllLocalAttachmentRows and listAllLocalVehicleDocumentRows", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const SQLite = require("expo-sqlite");
     const db = createDbMock({ userVersion: 1 });
     db.getAllAsync
       .mockResolvedValueOnce([{ id: "a1" }]) // attachments
       .mockResolvedValueOnce([{ id: "d1" }]); // docs
     SQLite.openDatabaseAsync.mockResolvedValue(db);
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const mod = require("../../services/localStorage/localDb");
 
     await expect(mod.listAllLocalAttachmentRows()).resolves.toEqual([{ id: "a1" }]);

@@ -1,0 +1,1 @@
+export const OVERVIEW_DETAIL_ICON_SIZE = 28;

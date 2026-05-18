@@ -57,11 +57,11 @@ export function TiresListFiltersScreen({ navigation, route }: Props) {
   }
 
   function showTireTypePicker() {
-    const buttons: Array<{
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: "cancel" | "default";
-    }> = [
+    }[] = [
       { text: t("common.cancel"), style: "cancel" },
       { text: t("common.all"), onPress: () => setTireTypeFilter("all") },
       ...TIRE_TYPES.filter((x) => x !== "all").map((tp) => ({

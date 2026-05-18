@@ -3,7 +3,6 @@ import {
   Linking,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -21,7 +20,6 @@ import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import type { Attachment, VehicleDocument } from "../../types/domain";
 import {
@@ -48,12 +46,11 @@ type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 export function DocumentsScreen({ route, navigation }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
-  const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [vehicleDocs, setVehicleDocs] = useState<VehicleDocument[]>([]);
   const [attachments, setAttachments] = useState<VehicleAttachment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
+  const [, setUploading] = useState(false);
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"documents" | "attachments">(
     "documents",
@@ -294,10 +291,11 @@ export function DocumentsScreen({ route, navigation }: Props) {
     () => [
       {
         type: "add",
-        onPress: openAddPicker,
+        onPress: () => openAddPicker(),
       },
     ],
-    [openAddPicker],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- openAddPicker uses stable route/t handlers
+    [t, navigation, route.params.vehicleId],
   );
 
   function renderDocumentRightActions(item: VehicleDocument) {

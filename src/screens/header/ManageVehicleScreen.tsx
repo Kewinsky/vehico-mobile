@@ -39,7 +39,6 @@ import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
@@ -184,7 +183,6 @@ function DetailItem({ icon, label, value }: DetailItemProps) {
 export function ManageVehicleScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
-  const { settings } = useUserSettings();
   const {
     isPremium,
     photosPerVehicleLimit,

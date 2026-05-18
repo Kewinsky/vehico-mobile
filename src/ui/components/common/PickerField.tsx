@@ -29,7 +29,7 @@ export function PickerField<T extends string>({
   const handlePress = () => {
     if (disabled) return;
 
-    const buttons: Array<{ text: string; onPress?: () => void; style?: "cancel" | "default" | "destructive" }> = [
+    const buttons: { text: string; onPress?: () => void; style?: "cancel" | "default" | "destructive" }[] = [
       { text: t("common.cancel"), style: "cancel" },
     ];
 

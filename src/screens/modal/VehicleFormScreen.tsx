@@ -45,16 +45,14 @@ import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Hash, CalendarCheck, Fuel } from "lucide-react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
+import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastError } from "../../ui/toast/toast";
 import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { Textarea } from "../../ui/components/common/Textarea";
@@ -67,16 +65,11 @@ type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
 export function VehicleFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { settings } = useUserSettings();
   const { vehiclesLimit, isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = makeStyles(theme);
   const { distanceUnitLabel } = useUnitDisplay();
   const vehicleId = route.params?.vehicleId;
   const isEditMode = !!vehicleId;
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
   const [loading, setLoading] = useState(isEditMode);
   const [initialPhotos, setInitialPhotos] = useState<VehiclePhoto[]>([]);
   const [type, setType] = useState<VehicleType>("car");
@@ -193,11 +186,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     onChange: (v: T | null) => void;
     placeholderLabel?: string;
   }) {
-    const buttons: Array<{
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: "cancel" | "default" | "destructive";
-    }> = [{ text: t("common.cancel"), style: "cancel" }];
+    }[] = [{ text: t("common.cancel"), style: "cancel" }];
 
     if (opts.placeholderLabel) {
       buttons.push({

@@ -136,7 +136,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
     [t],
   );
 
-  function onAddWheelPress() {
+  const onAddWheelPress = useCallback(() => {
     if (!isPremium && wheels.length >= wheelsPerVehicleLimit) {
       Alert.alert(
         t("limits.wheelLimitReachedTitle"),
@@ -152,7 +152,14 @@ export function WheelsListScreen({ route, navigation }: Props) {
       return;
     }
     navigation.navigate("WheelForm", { vehicleId });
-  }
+  }, [
+    isPremium,
+    navigation,
+    t,
+    vehicleId,
+    wheels.length,
+    wheelsPerVehicleLimit,
+  ]);
 
   const headerActions: HeaderAction[] = useMemo(
     () => [

@@ -1,3 +1,21 @@
+import {
+  deleteAttachment,
+  listAttachments,
+  listVehicleAttachments,
+  updateAttachmentDisplayName,
+  uploadAttachment,
+} from "../../services/attachments/attachmentsRepo";
+import {
+  deleteLocalAttachment,
+  insertLocalAttachment,
+  listAllLocalAttachmentsByVehicle,
+  listLocalAttachments,
+  updateLocalAttachmentDisplayName,
+} from "../../services/localStorage/localDb";
+import { deleteLocalFile, saveAttachmentFile } from "../../services/localStorage/localFiles";
+import { inferContentType, inferExtension, uuid } from "../../services/storage/uploadUtils";
+import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
+
 jest.mock("../../services/localStorage/localDb", () => ({
   deleteLocalAttachment: jest.fn(),
   insertLocalAttachment: jest.fn(),
@@ -20,24 +38,6 @@ jest.mock("../../services/storage/uploadUtils", () => ({
 jest.mock("../../services/serviceEntries/serviceEntriesRepo", () => ({
   listServiceEntries: jest.fn(),
 }));
-
-import {
-  deleteAttachment,
-  listAttachments,
-  listVehicleAttachments,
-  updateAttachmentDisplayName,
-  uploadAttachment,
-} from "../../services/attachments/attachmentsRepo";
-import {
-  deleteLocalAttachment,
-  insertLocalAttachment,
-  listAllLocalAttachmentsByVehicle,
-  listLocalAttachments,
-  updateLocalAttachmentDisplayName,
-} from "../../services/localStorage/localDb";
-import { deleteLocalFile, saveAttachmentFile } from "../../services/localStorage/localFiles";
-import { inferContentType, inferExtension, uuid } from "../../services/storage/uploadUtils";
-import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 
 describe("attachmentsRepo", () => {
   beforeEach(() => {

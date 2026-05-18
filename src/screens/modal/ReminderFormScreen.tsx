@@ -7,7 +7,7 @@ import {
   Text,
   TextInput,
   View,
-} from "react-native";
+ ScrollView } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
@@ -42,8 +42,6 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
 import { Ionicons } from "@expo/vector-icons";
-import { ScrollView } from "react-native";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Textarea } from "../../ui/components/common/Textarea";
 import {
   REMINDER_PRESETS,
@@ -164,10 +162,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     setRecurrenceKm("");
   }
 
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
 
   useEffect(() => {
     if (!reminderId) return;

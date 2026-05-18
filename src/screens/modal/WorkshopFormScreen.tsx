@@ -84,11 +84,11 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
     onChange: (v: T | null) => void;
     placeholderLabel?: string;
   }) {
-    const buttons: Array<{
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: "cancel" | "default" | "destructive";
-    }> = [{ text: t("common.cancel"), style: "cancel" }];
+    }[] = [{ text: t("common.cancel"), style: "cancel" }];
 
     if (opts.placeholderLabel) {
       buttons.push({

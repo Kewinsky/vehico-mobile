@@ -1,0 +1,2 @@
+export const OIL_CHANGE_INTERVAL_KM = 10_000;
+export const OIL_CHANGE_INTERVAL_DAYS = 365;

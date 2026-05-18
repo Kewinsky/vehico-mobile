@@ -1,3 +1,14 @@
+import { supabase } from "../../test/supabaseMock";
+import { purgeOrphanLocalVehicleData } from "../../services/localStorage/purgeOrphanLocalVehicleData";
+import * as FileSystem from "expo-file-system/legacy";
+import {
+  deleteLocalAttachment,
+  deleteLocalVehicleDocument,
+  listAllLocalAttachmentRows,
+  listAllLocalVehicleDocumentRows,
+} from "../../services/localStorage/localDb";
+import { deleteLocalFile } from "../../services/localStorage/localFiles";
+
 jest.mock("expo-file-system/legacy", () => ({
   documentDirectory: "file:///docs/",
   getInfoAsync: jest.fn(async () => ({ exists: false, isDirectory: false })),
@@ -15,17 +26,6 @@ jest.mock("../../services/localStorage/localDb", () => ({
 jest.mock("../../services/localStorage/localFiles", () => ({
   deleteLocalFile: jest.fn(),
 }));
-
-import { supabase } from "../../test/supabaseMock";
-import { purgeOrphanLocalVehicleData } from "../../services/localStorage/purgeOrphanLocalVehicleData";
-import * as FileSystem from "expo-file-system/legacy";
-import {
-  deleteLocalAttachment,
-  deleteLocalVehicleDocument,
-  listAllLocalAttachmentRows,
-  listAllLocalVehicleDocumentRows,
-} from "../../services/localStorage/localDb";
-import { deleteLocalFile } from "../../services/localStorage/localFiles";
 
 describe("purgeOrphanLocalVehicleData", () => {
   beforeEach(() => {

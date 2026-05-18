@@ -1,6 +1,6 @@
 import { Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { CirclePlus, History } from "lucide-react-native";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -20,7 +20,7 @@ export function PublicReportScreen({ navigation, route }: Props) {
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  function onGeneratePress() {
+  const onGeneratePress = useCallback(() => {
     if (!isPremium) {
       Alert.alert(
         t("limits.premiumRequiredTitle"),
@@ -36,7 +36,7 @@ export function PublicReportScreen({ navigation, route }: Props) {
       return;
     }
     navigation.navigate("PublicReportConfigure", { vehicleId });
-  }
+  }, [isPremium, navigation, t, vehicleId]);
 
   const tiles = useMemo(
     () => [

@@ -1,13 +1,3 @@
-jest.mock("expo-image-manipulator", () => ({
-  manipulateAsync: jest.fn(),
-  SaveFormat: { JPEG: "jpeg" },
-}));
-
-jest.mock("../../services/storage/uploadUtils", () => ({
-  fetchBlob: jest.fn(),
-  randomId: jest.fn(),
-}));
-
 import {
   uploadVehiclePhoto,
   deleteVehiclePhoto,
@@ -20,6 +10,16 @@ import { createPostgrestChain, mockStorageBucket, supabase } from "../../test/su
 import * as ImageManipulator from "expo-image-manipulator";
 import { fetchBlob, randomId } from "../../services/storage/uploadUtils";
 import type { VehiclePhoto } from "../../types/domain";
+
+jest.mock("expo-image-manipulator", () => ({
+  manipulateAsync: jest.fn(),
+  SaveFormat: { JPEG: "jpeg" },
+}));
+
+jest.mock("../../services/storage/uploadUtils", () => ({
+  fetchBlob: jest.fn(),
+  randomId: jest.fn(),
+}));
 
 describe("uploadPhoto (storage + photos table)", () => {
   beforeEach(() => {

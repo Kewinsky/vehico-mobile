@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Pressable, StyleSheet, Text, View , Alert } from "react-native";
 import { Image } from "expo-image";
 import { useIsFocused } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -17,7 +17,6 @@ import {
   listVehiclePhotosForVehicles,
   getVehiclePhotoUrl,
 } from "../../services/vehicles/uploadPhoto";
-import { Alert } from "react-native";
 import { Button } from "../../ui/components/common/Button";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
@@ -289,7 +288,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
       return raw as string[];
     }
     return ["Hi", "Hello", "Hey", "Welcome", "Good to see you", "Let's go"];
-  }, [t, i18n.language]);
+  }, [t]);
 
   const headerGreeting = useMemo(() => {
     // Stable per day for a given user (changes once daily).

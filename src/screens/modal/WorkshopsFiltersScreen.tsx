@@ -56,11 +56,11 @@ export function WorkshopsFiltersScreen({ navigation, route }: Props) {
   }
 
   function showTypePicker() {
-    const buttons: Array<{
+    const buttons: {
       text: string;
       onPress?: () => void;
       style?: "cancel" | "default";
-    }> = [
+    }[] = [
       { text: t("common.cancel"), style: "cancel" },
       { text: t("workshops.typeAll"), onPress: () => setTypeFilter("all") },
       ...WORKSHOP_TYPES.filter((x) => x !== "all").map((tp) => ({

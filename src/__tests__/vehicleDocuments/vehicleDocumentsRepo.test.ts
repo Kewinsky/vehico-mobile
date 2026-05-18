@@ -1,3 +1,19 @@
+import {
+  deleteVehicleDocument,
+  listVehicleDocuments,
+  updateVehicleDocument,
+  uploadVehicleDocument,
+} from "../../services/vehicleDocuments/vehicleDocumentsRepo";
+import {
+  deleteLocalVehicleDocument,
+  getLocalVehicleDocument,
+  insertLocalVehicleDocument,
+  listLocalVehicleDocuments,
+  updateLocalVehicleDocumentDescription,
+} from "../../services/localStorage/localDb";
+import { deleteLocalFile, saveVehicleDocumentFile } from "../../services/localStorage/localFiles";
+import { inferContentType, inferExtension, uuid } from "../../services/storage/uploadUtils";
+
 jest.mock("../../services/localStorage/localDb", () => ({
   deleteLocalVehicleDocument: jest.fn(),
   getLocalVehicleDocument: jest.fn(),
@@ -16,22 +32,6 @@ jest.mock("../../services/storage/uploadUtils", () => ({
   inferExtension: jest.fn(),
   uuid: jest.fn(),
 }));
-
-import {
-  deleteVehicleDocument,
-  listVehicleDocuments,
-  updateVehicleDocument,
-  uploadVehicleDocument,
-} from "../../services/vehicleDocuments/vehicleDocumentsRepo";
-import {
-  deleteLocalVehicleDocument,
-  getLocalVehicleDocument,
-  insertLocalVehicleDocument,
-  listLocalVehicleDocuments,
-  updateLocalVehicleDocumentDescription,
-} from "../../services/localStorage/localDb";
-import { deleteLocalFile, saveVehicleDocumentFile } from "../../services/localStorage/localFiles";
-import { inferContentType, inferExtension, uuid } from "../../services/storage/uploadUtils";
 
 describe("vehicleDocumentsRepo", () => {
   beforeEach(() => {

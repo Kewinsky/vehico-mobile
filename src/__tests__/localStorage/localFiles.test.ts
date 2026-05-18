@@ -1,3 +1,13 @@
+import * as FileSystem from "expo-file-system/legacy";
+import { randomId } from "../../services/storage/uploadUtils";
+import {
+  deleteLocalFile,
+  saveAttachmentFile,
+  saveLocalFile,
+  saveVehicleDocumentFile,
+  toFileUri,
+} from "../../services/localStorage/localFiles";
+
 jest.mock("expo-file-system/legacy", () => ({
   documentDirectory: "file:///docs/",
   getInfoAsync: jest.fn(),
@@ -9,16 +19,6 @@ jest.mock("expo-file-system/legacy", () => ({
 jest.mock("../../services/storage/uploadUtils", () => ({
   randomId: jest.fn(),
 }));
-
-import * as FileSystem from "expo-file-system/legacy";
-import { randomId } from "../../services/storage/uploadUtils";
-import {
-  deleteLocalFile,
-  saveAttachmentFile,
-  saveLocalFile,
-  saveVehicleDocumentFile,
-  toFileUri,
-} from "../../services/localStorage/localFiles";
 
 describe("localFiles", () => {
   beforeEach(() => {
