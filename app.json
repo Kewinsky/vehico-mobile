@@ -18,6 +18,7 @@
     },
     "ios": {
       "supportsTablet": true,
+      "usesAppleSignIn": true,
       "icon": "./assets/app-icon.png",
       "bundleIdentifier": "com.ktasoftware.vehico",
       "infoPlist": {

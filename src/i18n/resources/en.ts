@@ -81,6 +81,7 @@ export const en = {
     passwordPlaceholder: "Your password",
     signIn: "Sign in",
     orContinueWith: "Or continue with",
+    apple: "Apple",
     google: "Google",
     signedInSuccessfully: "Signed in successfully",
     sessionExpired: "Your session has expired. Please sign in again.",

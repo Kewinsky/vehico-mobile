@@ -81,6 +81,7 @@ export const pl = {
     passwordPlaceholder: "Twoje hasło",
     signIn: "Zaloguj się",
     orContinueWith: "Lub kontynuuj z",
+    apple: "Apple",
     google: "Google",
     signedInSuccessfully: "Zalogowano pomyślnie",
     sessionExpired: "Sesja wygasła. Zaloguj się ponownie.",

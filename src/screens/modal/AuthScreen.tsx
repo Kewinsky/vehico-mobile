@@ -299,6 +299,10 @@ export function AuthScreen({ navigation }: Props) {
     return signInWithOAuth("google");
   }
 
+  async function signInWithApple() {
+    return signInWithOAuth("apple");
+  }
+
   async function signInWithPasswordCredentials(input: {
     email: string;
     password: string;
@@ -507,6 +511,27 @@ export function AuthScreen({ navigation }: Props) {
 
           <View style={styles.socialSection}>
             <View style={styles.socialButtons}>
+              <Pressable
+                onPress={signInWithApple}
+                disabled={!!isSocialLoading}
+                style={({ pressed }) => [
+                  styles.socialButton,
+                  {
+                    backgroundColor: theme.colors.card,
+                    borderColor: theme.colors.border,
+                    opacity: isSocialLoading === "apple" || pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Ionicons name="logo-apple" size={20} color={theme.colors.fg} />
+                <Text
+                  style={[styles.socialButtonText, { color: theme.colors.fg }]}
+                >
+                  {isSocialLoading === "apple"
+                    ? t("common.loading")
+                    : t("auth.apple")}
+                </Text>
+              </Pressable>
               <Pressable
                 onPress={signInWithGoogle}
                 disabled={!!isSocialLoading}
