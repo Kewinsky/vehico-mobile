@@ -129,8 +129,8 @@ function getCategoryLabel(category: string, lang: "en" | "pl"): string {
     maintenance: { en: "Maintenance", pl: "Serwis" },
     repair: { en: "Repair", pl: "Naprawa" },
     inspection: { en: "Inspection", pl: "Przegląd" },
-    upgrade: { en: "Upgrade", pl: "Ulepszenie " },
-    oil_engine: { en: "Oil", pl: "Olej" },
+    upgrade: { en: "Upgrade", pl: "Ulepszenie" },
+    oil_change: { en: "Oil change", pl: "Wymiana oleju" },
     other: { en: "Other", pl: "Inne" },
   };
   return labels[category]?.[lang] || category;
@@ -178,7 +178,8 @@ function formatServiceHistory(
       const mileage = entry.mileage
         ? `${entry.mileage.toLocaleString()} km`
         : "";
-      return [date, title, mileage].filter(Boolean).join(" | ");
+      const head = [date, title].filter(Boolean).join(" ");
+      return mileage ? `${head}, ${mileage}` : head;
     })
     .join("\n");
 }
@@ -362,7 +363,7 @@ function formatServiceStats(
     repair: { en: "Repair", pl: "Naprawa" },
     inspection: { en: "Inspection", pl: "Przegląd" },
     upgrade: { en: "Upgrade", pl: "Ulepszenie" },
-    oil_engine: { en: "Oil", pl: "Olej" },
+    oil_change: { en: "Oil change", pl: "Wymiana oleju" },
     other: { en: "Other", pl: "Inne" },
   };
   const categories = Object.entries(stats.byCategory)
@@ -390,7 +391,7 @@ function formatServiceStats(
 
 function getOilChangeData(entries: ServiceEntry[]): OilChangeData {
   const oilEntries = entries
-    .filter((e) => (e.category ?? "other") === "oil_engine")
+    .filter((e) => (e.category ?? "other") === "oil_change")
     .sort(
       (a, b) =>
         new Date(a.service_date).getTime() - new Date(b.service_date).getTime()
@@ -455,7 +456,7 @@ function formatWheelsAndTiresSection(
           : " (currently fitted)"
         : "";
       const dot = t.dot ? ` DOT ${t.dot}` : "";
-      lines.push(`  ${t.name || dim} – ${dim} ${typeLabel}${dot}${current}`);
+      lines.push(`- ${t.name || dim} – ${dim} ${typeLabel}${dot}${current}`);
     });
   }
   if (wheels.length > 0) {
@@ -474,7 +475,7 @@ function formatWheelsAndTiresSection(
           ? " (aktualnie na aucie)"
           : " (currently fitted)"
         : "";
-      lines.push(`  ${w.name || dim} – ${parts.join(" ")}${current}`);
+      lines.push(`- ${w.name || dim} – ${parts.join(" ")}${current}`);
     });
   }
   return lines.join("\n");
