@@ -1,6 +1,6 @@
 import { View } from "react-native";
 
-import { DASHBOARD_OVERVIEW_SECTION_IDS } from "../sections/sectionIds";
+import { useDashboardSectionOrder } from "../useDashboardSectionOrder";
 import { OverviewCallouts } from "./OverviewCallouts";
 import { OverviewVehicleHeader } from "./OverviewVehicleHeader";
 import { FormalitiesSection } from "./sections/FormalitiesSection";
@@ -14,6 +14,7 @@ import type { OverviewPanelProps } from "./types";
 
 export function OverviewPanel(props: OverviewPanelProps) {
   const { windowWidth, styles } = props;
+  const { orderedIds } = useDashboardSectionOrder("overview");
 
   const sectionRenderers = {
     quickMetrics: () => <QuickMetricsSection {...props} />,
@@ -54,7 +55,7 @@ export function OverviewPanel(props: OverviewPanelProps) {
       />
 
       <View style={styles.panelSections}>
-        {DASHBOARD_OVERVIEW_SECTION_IDS.map((sectionId) => {
+        {orderedIds.map((sectionId) => {
           const render = sectionRenderers[sectionId];
           return <View key={sectionId}>{render()}</View>;
         })}

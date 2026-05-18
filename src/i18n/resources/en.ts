@@ -355,6 +355,19 @@ export const en = {
   dashboard: {
     backToVehicles: "Back to vehicles",
     specification: "Specification",
+    quickActionsTitle: "Quick actions",
+    sectionOrder: {
+      menu: "Section layout",
+      title: "Section layout",
+      tabOverview: "Overview",
+      tabStats: "Statistics",
+      hint: "Drag to reorder sections. The header and banners always stay at the top.",
+      saved: "Layout saved",
+      reset: "Reset to default order",
+      resetSuccess: "Default order restored",
+      quickMetrics: "Quick metrics",
+      expenseSummary: "Expense summary",
+    },
     mileageUpdated: {
       lastUpdated: "Mileage last updated {{relative}}.",
       cta: "Update odometer",

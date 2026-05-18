@@ -47,6 +47,7 @@ import { WorkshopFormScreen } from "../../screens/modal/WorkshopFormScreen";
 import { ShopScreen } from "../../screens/modal/ShopScreen";
 import { ExampleListingScreen } from "../../screens/modal/ExampleListingScreen";
 import { AppearanceScreen } from "../../screens/modal/AppearanceScreen";
+import { DashboardSectionOrderScreen } from "../../screens/header/DashboardSectionOrderScreen";
 import { OnboardingScreen } from "../../screens/onboarding/OnboardingScreen";
 
 const nativeHeaderScreenOptions = {
@@ -62,6 +63,7 @@ export type AppStackParamList = {
   VehicleForm: { vehicleId?: string };
   Settings: undefined;
   Appearance: undefined;
+  DashboardSectionOrder: undefined;
   VehicleDashboard: { vehicleId: string };
   ServiceHistory: { vehicleId: string };
   ServiceHistoryFilters: {
@@ -268,6 +270,11 @@ export function RootNavigator() {
               headerShown: true,
               headerShadowVisible: false,
             }}
+          />
+          <Stack.Screen
+            name="DashboardSectionOrder"
+            component={DashboardSectionOrderScreen}
+            options={nativeHeaderScreenOptions}
           />
           <Stack.Screen
             name="VehicleDashboard"

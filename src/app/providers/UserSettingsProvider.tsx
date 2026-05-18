@@ -31,6 +31,10 @@ export type UserSettings = {
   fuelUnit: "liters" | "gallons";
   theme: ThemePreference;
   language: SupportedLanguage;
+  /** Dashboard overview (middle pager) section display order. */
+  dashboardOverviewSectionOrder?: string[];
+  /** Dashboard statistics panel section display order. */
+  dashboardStatsSectionOrder?: string[];
 };
 
 // Detect system language for default settings

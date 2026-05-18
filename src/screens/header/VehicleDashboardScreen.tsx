@@ -685,6 +685,10 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         onPress: () => navigation.navigate("VehicleForm", { vehicleId }),
       },
       {
+        text: t("dashboard.sectionOrder.menu"),
+        onPress: () => navigation.navigate("DashboardSectionOrder"),
+      },
+      {
         text: t("common.delete"),
         style: "destructive",
         onPress: onDeleteVehicle,

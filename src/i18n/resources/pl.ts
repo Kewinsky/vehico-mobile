@@ -359,6 +359,18 @@ export const pl = {
     backToVehicles: "Wróć do pojazdów",
     specification: "Specyfikacja",
     quickActionsTitle: "Szybkie akcje",
+    sectionOrder: {
+      menu: "Układ sekcji",
+      title: "Układ sekcji",
+      tabOverview: "Przegląd",
+      tabStats: "Statystyki",
+      hint: "Przeciągnij, aby zmienić kolejność. Nagłówek i banery zawsze pozostają na górze.",
+      saved: "Zapisano układ",
+      reset: "Przywróć domyślną kolejność",
+      resetSuccess: "Przywrócono domyślną kolejność",
+      quickMetrics: "Szybkie metryki",
+      expenseSummary: "Podsumowanie kosztów",
+    },
     mileageUpdated: {
       lastUpdated: "Ostatnia aktualizacja przebiegu {{relative}}.",
       cta: "Zaktualizuj przebieg",

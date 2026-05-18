@@ -1,6 +1,6 @@
 import { View } from "react-native";
 
-import { DASHBOARD_STATS_SECTION_IDS } from "../sections/sectionIds";
+import { useDashboardSectionOrder } from "../useDashboardSectionOrder";
 import { ConsumptionVsFuelPriceChartSection } from "./sections/ConsumptionVsFuelPriceChartSection";
 import { CostPerKmChartSection } from "./sections/CostPerKmChartSection";
 import { ExpenseSummarySection } from "./sections/ExpenseSummarySection";
@@ -12,6 +12,8 @@ import { RecentServiceSection } from "./sections/RecentServiceSection";
 import type { StatisticsPanelProps } from "./types";
 
 export function StatisticsPanelContent(props: StatisticsPanelProps) {
+  const { orderedIds } = useDashboardSectionOrder("stats");
+
   const sectionRenderers = {
     expenseSummary: () => <ExpenseSummarySection {...props} />,
     costPerKmChart: () => <CostPerKmChartSection {...props} />,
@@ -27,7 +29,7 @@ export function StatisticsPanelContent(props: StatisticsPanelProps) {
 
   return (
     <View>
-      {DASHBOARD_STATS_SECTION_IDS.map((sectionId) => (
+      {orderedIds.map((sectionId) => (
         <View key={sectionId}>{sectionRenderers[sectionId]()}</View>
       ))}
     </View>
