@@ -53,7 +53,7 @@ import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { Textarea } from "../../ui/components/common/Textarea";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { SquarePen, Trash2 } from "lucide-react-native";
-import Swipeable from "react-native-gesture-handler/Swipeable";
+import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "maintenance",
@@ -899,7 +899,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     <View style={{ height: theme.spacing.sm }} />
                   )}
                   renderItem={({ item }) => (
-                    <Swipeable
+                    <ExclusiveSwipeable
                       renderRightActions={() => renderAttachmentRightActions(item)}
                       rightThreshold={32}
                     >
@@ -925,7 +925,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                         })()}
                         onPress={() => void openAttachment(item)}
                       />
-                    </Swipeable>
+                    </ExclusiveSwipeable>
                   )}
                   ListEmptyComponent={
                     attachmentsLoading ? (
@@ -949,7 +949,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     <View style={{ height: theme.spacing.sm }} />
                   )}
                   renderItem={({ item, index }) => (
-                    <Swipeable
+                    <ExclusiveSwipeable
                       renderRightActions={() =>
                         renderPendingAttachmentRightActions(index, item)
                       }
@@ -961,7 +961,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                           t("attachments.attachmentLabel")
                         }
                       />
-                    </Swipeable>
+                    </ExclusiveSwipeable>
                   )}
                 />
               )}

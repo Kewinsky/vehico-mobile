@@ -88,7 +88,14 @@ import {
 import { listReminders } from "../../services/reminders/remindersRepo";
 import { getReminderProgressPercent } from "../../services/reminders/reminderProgress";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
-import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
+import {
+  createServiceEntry,
+  listServiceEntries,
+} from "../../services/serviceEntries/serviceEntriesRepo";
+import { getWorkshop } from "../../services/workshops/workshopsRepo";
+import { computeOilChangeDueState } from "../../utils/oilChangeDue";
+import { DashboardCalloutCard } from "../../ui/components/dashboard/DashboardCalloutCard";
+import { SERVICE_CATEGORY_COLORS } from "../../ui/theme/serviceCategoryColors";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
@@ -118,6 +125,7 @@ import {
   getMileageStaleYmd,
   isReminderOverdue,
   quickMetricsWindowYmdBounds,
+  shouldShowFormalityCallout,
 } from "./vehicleDashboard/domain/terms";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
@@ -403,6 +411,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const [isPublicQrVisible, setIsPublicQrVisible] = useState(false);
   const [activePage, setActivePage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [oilBookLoading, setOilBookLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollOffsetYRef = useRef(0);
   const pagerRef = useRef<FlatList<number>>(null);
@@ -420,6 +429,10 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const mileageStaleYmd = useMemo(() => {
     return getMileageStaleYmd(vehicle?.mileage, vehicle?.mileage_updated_at);
   }, [vehicle?.mileage, vehicle?.mileage_updated_at]);
+  const oilChangeDueState = useMemo(
+    () => computeOilChangeDueState(serviceEntries, vehicle?.mileage ?? null),
+    [serviceEntries, vehicle?.mileage],
+  );
   const fittedTires = useMemo(
     () =>
       tires.filter((item) => {
@@ -496,6 +509,60 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     () => getDaysUntilDate(vehicle?.inspection_valid_until),
     [vehicle?.inspection_valid_until],
   );
+  const showInsuranceCallout = shouldShowFormalityCallout(insuranceDaysUntil);
+  const showInspectionCallout = shouldShowFormalityCallout(inspectionDaysUntil);
+
+  const insuranceCalloutCopy = useMemo(() => {
+    if (!showInsuranceCallout || insuranceDaysUntil == null) return null;
+    const date = formatShortDisplayDate(
+      vehicle?.insurance_valid_until,
+      i18n.language,
+    );
+    const title =
+      insuranceDaysUntil < 0
+        ? t("dashboard.insuranceBanner.titleOverdue")
+        : insuranceDaysUntil === 0
+          ? t("dashboard.insuranceBanner.titleDueToday")
+          : t("dashboard.insuranceBanner.titleDueSoon", {
+              days: insuranceDaysUntil,
+            });
+    return {
+      title,
+      description: t("dashboard.insuranceBanner.validUntil", { date }),
+    };
+  }, [
+    showInsuranceCallout,
+    insuranceDaysUntil,
+    vehicle?.insurance_valid_until,
+    i18n.language,
+    t,
+  ]);
+
+  const inspectionCalloutCopy = useMemo(() => {
+    if (!showInspectionCallout || inspectionDaysUntil == null) return null;
+    const date = formatShortDisplayDate(
+      vehicle?.inspection_valid_until,
+      i18n.language,
+    );
+    const title =
+      inspectionDaysUntil < 0
+        ? t("dashboard.inspectionBanner.titleOverdue")
+        : inspectionDaysUntil === 0
+          ? t("dashboard.inspectionBanner.titleDueToday")
+          : t("dashboard.inspectionBanner.titleDueSoon", {
+              days: inspectionDaysUntil,
+            });
+    return {
+      title,
+      description: t("dashboard.inspectionBanner.validUntil", { date }),
+    };
+  }, [
+    showInspectionCallout,
+    inspectionDaysUntil,
+    vehicle?.inspection_valid_until,
+    i18n.language,
+    t,
+  ]);
 
   const quickMetrics = useMemo(() => {
     const { fromYmd, toYmd } = quickMetricsWindowYmdBounds();
@@ -854,6 +921,157 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     );
   }, [distanceUnitLabel, t, vehicle?.mileage, vehicleId]);
 
+  const oilBannerCopy = useMemo(() => {
+    const { lastOilChange, isOverdue, remainingDays, remainingKm } =
+      oilChangeDueState;
+    const title = !lastOilChange
+      ? t("dashboard.oilBanner.titleNoRecord")
+      : isOverdue
+        ? t("dashboard.oilBanner.titleOverdue")
+        : t("dashboard.oilBanner.titleDueSoon");
+
+    let description: string | undefined;
+    if (lastOilChange) {
+      if (
+        remainingDays != null &&
+        remainingKm != null &&
+        !isOverdue
+      ) {
+        description = t("dashboard.oilBanner.remainingBoth", {
+          days: remainingDays,
+          km: groupThousands(remainingKm, 0, i18n.language),
+        });
+      } else if (remainingDays != null && !isOverdue) {
+        description = t("dashboard.oilBanner.remainingDays", {
+          days: remainingDays,
+        });
+      } else if (remainingKm != null && !isOverdue) {
+        description = t("dashboard.oilBanner.remainingKm", {
+          km: groupThousands(remainingKm, 0, i18n.language),
+        });
+      }
+    }
+
+    let meta: string | undefined;
+    if (lastOilChange) {
+      const dateLabel = formatShortDisplayDate(
+        lastOilChange.service_date,
+        i18n.language,
+      );
+      const parts = [
+        t("dashboard.oilBanner.lastChangeDate", { date: dateLabel }),
+      ];
+      if (lastOilChange.mileage != null) {
+        parts.push(
+          t("dashboard.oilBanner.lastChangeMileage", {
+            mileage: `${groupThousands(lastOilChange.mileage, 0, i18n.language)} ${distanceUnitLabel}`,
+          }),
+        );
+      }
+      const workshopName =
+        lastOilChange.workshop_snapshot?.trim() ||
+        null;
+      if (workshopName) {
+        parts.push(
+          t("dashboard.oilBanner.lastChangeWorkshop", {
+            workshop: workshopName,
+          }),
+        );
+      }
+      meta = parts.join(" · ");
+    }
+
+    return { title, description, meta };
+  }, [oilChangeDueState, t, i18n.language, distanceUnitLabel]);
+
+  const handleOilChangeDone = useCallback(() => {
+    Alert.prompt(
+      t("dashboard.oilBanner.donePromptTitle"),
+      t("dashboard.oilBanner.donePromptMessage", {
+        unit: distanceUnitLabel,
+      }),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.save"),
+          onPress: async (value: string | undefined) => {
+            const mileageRaw = (value ?? "").trim();
+            const mileage =
+              mileageRaw.length > 0
+                ? isNonNegativeNumber(mileageRaw)
+                  ? Number(mileageRaw)
+                  : null
+                : null;
+            if (mileageRaw.length > 0 && mileage == null) {
+              toastError(t("validation.nonNegativeRequired"));
+              return;
+            }
+            try {
+              const today = new Date().toISOString().slice(0, 10);
+              const last = oilChangeDueState.lastOilChange;
+              const created = await createServiceEntry({
+                vehicle_id: vehicleId,
+                service_date: today,
+                mileage,
+                category: "oil_change",
+                title: t("dashboard.oilBanner.defaultEntryTitle"),
+                description: "",
+                cost: null,
+                workshop_id: last?.workshop_id ?? null,
+                workshop_snapshot: last?.workshop_snapshot ?? null,
+              });
+              setServiceEntries((prev) => [created, ...prev]);
+              if (
+                mileage != null &&
+                (vehicle?.mileage == null || mileage > vehicle.mileage)
+              ) {
+                const updatedVehicle = await updateVehicle(vehicleId, {
+                  mileage,
+                  mileage_updated_at: today,
+                });
+                setVehicle(updatedVehicle);
+              }
+              toastSuccess(t("dashboard.oilBanner.doneSuccess"));
+            } catch (e: any) {
+              toastError(e?.message ?? t("common.error"));
+            }
+          },
+        },
+      ],
+      "plain-text",
+      vehicle?.mileage != null ? String(vehicle.mileage) : "",
+    );
+  }, [
+    distanceUnitLabel,
+    oilChangeDueState.lastOilChange,
+    t,
+    vehicle?.mileage,
+    vehicleId,
+  ]);
+
+  const handleOilChangeBook = useCallback(async () => {
+    const workshopId = oilChangeDueState.lastOilChange?.workshop_id;
+    if (!workshopId) {
+      toastError(t("dashboard.oilBanner.bookNoPhone"));
+      return;
+    }
+    setOilBookLoading(true);
+    try {
+      const workshop = await getWorkshop(workshopId);
+      const phone = workshop.phone_number?.trim() ?? "";
+      if (!phone.length) {
+        toastError(t("dashboard.oilBanner.bookNoPhone"));
+        return;
+      }
+      const telHref = `tel:${phone.replace(/[^\d+#*;,.]/g, "")}`;
+      await Linking.openURL(telHref);
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    } finally {
+      setOilBookLoading(false);
+    }
+  }, [oilChangeDueState.lastOilChange?.workshop_id, t]);
+
   const saveFormalitiesDate = useCallback(
     async (
       field: "insurance_valid_until" | "inspection_valid_until",
@@ -1007,23 +1225,108 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       </View>
 
       {mileageStaleTitle ? (
-        <View
-          style={[
-            styles.mileageStaleCard,
-            { backgroundColor: hexToRgba(theme.colors.accent, 0.14) },
+        <DashboardCalloutCard
+          accentColor={SERVICE_CATEGORY_COLORS.maintenance}
+          buttonColor={SERVICE_CATEGORY_COLORS.maintenance}
+          icon={
+            <Clock
+              size={26}
+              color={SERVICE_CATEGORY_COLORS.maintenance}
+              strokeWidth={2}
+            />
+          }
+          title={mileageStaleTitle}
+          actions={[
+            {
+              label: t("dashboard.mileageUpdated.cta"),
+              onPress: handleQuickMileageEdit,
+            },
           ]}
-          accessibilityLabel={mileageStaleTitle ?? undefined}
-        >
-          <View style={styles.mileageStaleCardTop}>
-            <Clock size={26} color={theme.colors.accent} strokeWidth={2} />
-            <Text style={[styles.mileageStaleCardTitle, { color: theme.colors.fg }]}>
-              {mileageStaleTitle}
-            </Text>
-          </View>
-          <Button onPress={handleQuickMileageEdit}>
-            {t("dashboard.mileageUpdated.cta")}
-          </Button>
-        </View>
+        />
+      ) : null}
+      {insuranceCalloutCopy ? (
+        <DashboardCalloutCard
+          accentColor={theme.colors.accent}
+          buttonColor={theme.colors.accent}
+          icon={
+            <ShieldCheck
+              size={26}
+              color={theme.colors.accent}
+              strokeWidth={2}
+            />
+          }
+          title={insuranceCalloutCopy.title}
+          description={insuranceCalloutCopy.description}
+          actions={[
+            {
+              label: t("dashboard.insuranceBanner.cta"),
+              onPress: () =>
+                openFormalitiesDateEditor(
+                  "insurance_valid_until",
+                  vehicle?.insurance_valid_until,
+                  t("dashboard.stats.insurance"),
+                  t("dashboard.formalitiesUpdate.insurancePrompt"),
+                ),
+            },
+          ]}
+        />
+      ) : null}
+      {inspectionCalloutCopy ? (
+        <DashboardCalloutCard
+          accentColor={theme.colors.accent}
+          buttonColor={theme.colors.accent}
+          icon={
+            <CheckCheck
+              size={26}
+              color={theme.colors.accent}
+              strokeWidth={2}
+            />
+          }
+          title={inspectionCalloutCopy.title}
+          description={inspectionCalloutCopy.description}
+          actions={[
+            {
+              label: t("dashboard.inspectionBanner.cta"),
+              onPress: () =>
+                openFormalitiesDateEditor(
+                  "inspection_valid_until",
+                  vehicle?.inspection_valid_until,
+                  t("dashboard.stats.inspection"),
+                  t("dashboard.formalitiesUpdate.inspectionPrompt"),
+                ),
+            },
+          ]}
+        />
+      ) : null}
+      {oilChangeDueState.showBanner ? (
+        <DashboardCalloutCard
+          accentColor={SERVICE_CATEGORY_COLORS.oil_change}
+          buttonColor={SERVICE_CATEGORY_COLORS.oil_change}
+          icon={
+            <MaterialCommunityIcons
+              name="oil"
+              size={26}
+              color={SERVICE_CATEGORY_COLORS.oil_change}
+            />
+          }
+          title={oilBannerCopy.title}
+          description={oilBannerCopy.description}
+          meta={oilBannerCopy.meta}
+          actions={[
+            {
+              label: t("dashboard.oilBanner.done"),
+              onPress: handleOilChangeDone,
+            },
+            {
+              label: t("dashboard.oilBanner.book"),
+              onPress: () => void handleOilChangeBook(),
+              variant: "outlined",
+              disabled:
+                !oilChangeDueState.lastOilChange?.workshop_id || oilBookLoading,
+              loading: oilBookLoading,
+            },
+          ]}
+        />
       ) : null}
       <View style={styles.panelSections}>
         <View style={styles.sectionBlock}>

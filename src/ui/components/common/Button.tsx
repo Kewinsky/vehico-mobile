@@ -1,5 +1,12 @@
 import type { PropsWithChildren } from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { useTheme } from "../../ThemeProvider";
 
@@ -7,6 +14,9 @@ type ButtonProps = PropsWithChildren<{
   onPress: () => void;
   disabled?: boolean;
   variant?: "primary" | "ghost" | "destructive" | "outlined";
+  /** Primary/outlined fill and border; defaults to theme accent. */
+  color?: string;
+  loading?: boolean;
   style?: any;
 }>;
 
@@ -14,30 +24,38 @@ export function Button({
   onPress,
   disabled,
   variant = "primary",
+  color,
+  loading = false,
   children,
   style,
 }: ButtonProps) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
+  const accent = color ?? theme.colors.accent;
+  const isDisabled = disabled || loading;
+  const spinnerColor =
+    variant === "primary" || variant === "destructive" ? "#000000" : accent;
   return (
     <Pressable
       onPress={onPress}
-      disabled={disabled}
+      disabled={isDisabled}
       style={({ pressed }) => [
         styles.base,
         variant === "primary"
-          ? styles.primary
+          ? [styles.primary, { backgroundColor: accent, borderColor: accent }]
           : variant === "destructive"
             ? styles.destructive
             : variant === "outlined"
-              ? styles.outlined
+              ? [styles.outlined, { borderColor: accent }]
               : styles.ghost,
-        disabled && styles.disabled,
-        pressed && !disabled && styles.pressed,
+        isDisabled && styles.disabled,
+        pressed && !isDisabled && styles.pressed,
         style,
       ]}
     >
-      {typeof children === "string" || typeof children === "number" ? (
+      {loading ? (
+        <ActivityIndicator size="small" color={spinnerColor} />
+      ) : typeof children === "string" || typeof children === "number" ? (
         <Text
           style={[
             styles.text,
@@ -46,7 +64,7 @@ export function Button({
               : variant === "destructive"
                 ? styles.textDestructive
                 : variant === "outlined"
-                  ? styles.textOutlined
+                  ? [styles.textOutlined, { color: accent }]
                   : styles.textGhost,
           ]}
         >
@@ -71,8 +89,6 @@ const makeStyles = (theme: any) =>
       width: "100%",
     },
     primary: {
-      backgroundColor: theme.colors.accent,
-      borderColor: theme.colors.accent,
       ...(Platform.OS === "ios"
         ? {
             elevation: 4,
@@ -86,7 +102,6 @@ const makeStyles = (theme: any) =>
     },
     outlined: {
       backgroundColor: "transparent",
-      borderColor: theme.colors.accent,
     },
     destructive: {
       backgroundColor: theme.colors.danger,
@@ -111,9 +126,7 @@ const makeStyles = (theme: any) =>
     textGhost: {
       color: theme.colors.fg,
     },
-    textOutlined: {
-      color: theme.colors.accent,
-    },
+    textOutlined: {},
     textDestructive: {
       color: "#000000",
     },

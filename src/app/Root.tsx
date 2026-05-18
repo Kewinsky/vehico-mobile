@@ -15,6 +15,7 @@ import { AuthProvider } from "./providers/AuthProvider";
 import { UserSettingsProvider } from "./providers/UserSettingsProvider";
 import { EntitlementsProvider } from "./providers/EntitlementsProvider";
 import { ThemeProvider, useTheme } from "../ui/ThemeProvider";
+import { ExclusiveSwipeProvider } from "../ui/components/common/ExclusiveSwipeable";
 import { ErrorBoundary } from "../ui/components/common/ErrorBoundary";
 import { AppToasts } from "../ui/toast/AppToasts";
 import { setThemeColorsGetter } from "../ui/toast/toast";
@@ -108,9 +109,11 @@ export function Root() {
           <UserSettingsProvider>
             <EntitlementsProvider>
               <ThemeProvider>
-                <ErrorBoundary>
-                  <AppContent />
-                </ErrorBoundary>
+                <ExclusiveSwipeProvider>
+                  <ErrorBoundary>
+                    <AppContent />
+                  </ErrorBoundary>
+                </ExclusiveSwipeProvider>
               </ThemeProvider>
             </EntitlementsProvider>
           </UserSettingsProvider>

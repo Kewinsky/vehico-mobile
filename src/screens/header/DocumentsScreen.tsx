@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { useCallback, useMemo, useState } from "react";
-import Swipeable from "react-native-gesture-handler/Swipeable";
+import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 import { SquarePen, Trash2 } from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -379,7 +379,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
             })
             .map((item) => (
               <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
-                <Swipeable
+                <ExclusiveSwipeable
                   renderRightActions={() => renderDocumentRightActions(item)}
                   rightThreshold={32}
                 >
@@ -398,7 +398,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
                     })()}
                     onPress={() => void openVehicleDocument(item)}
                   />
-                </Swipeable>
+                </ExclusiveSwipeable>
               </View>
             ))}
           {vehicleDocs.filter((d) => {
@@ -421,7 +421,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
             })
             .map((item) => (
               <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
-                <Swipeable
+                <ExclusiveSwipeable
                   renderRightActions={() => renderAttachmentRightActions(item)}
                   rightThreshold={32}
                 >
@@ -444,7 +444,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
                     })()}
                     onPress={() => void openAttachment(item)}
                   />
-                </Swipeable>
+                </ExclusiveSwipeable>
               </View>
             ))}
           {attachments.filter((a) => {

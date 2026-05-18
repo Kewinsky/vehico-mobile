@@ -35,6 +35,8 @@ interface VehicleData {
   make: string;
   model: string;
   production_year: number;
+  mileage?: number | null;
+  initial_mileage?: number | null;
   engine_capacity: number | null;
   power_hp: number | null;
   fuel_type: "petrol" | "diesel" | "hybrid" | "electric" | "lpg" | null;
@@ -503,10 +505,11 @@ function generateMarketplacePostForLang(
 ): string {
   const isPL = language === "pl";
 
-  const lastMileage =
+  const lastServiceMileage =
     serviceEntries
       .filter((e) => e.mileage !== null)
       .sort((a, b) => (b.mileage || 0) - (a.mileage || 0))[0]?.mileage || null;
+  const currentMileage = vehicle.mileage ?? lastServiceMileage;
 
   const sections: string[] = [];
 
@@ -553,8 +556,12 @@ ${isPL ? "Skrzynia biegów" : "Transmission"}: ${getTransmissionLabel(
     language
   )}
 ${isPL ? "Przebieg" : "Mileage"}: ${formatValue(
-    lastMileage,
+    currentMileage,
     isPL ? "przebieg" : "mileage"
+  )} km
+${isPL ? "Przebieg początkowy" : "Initial mileage"}: ${formatValue(
+    vehicle.initial_mileage,
+    isPL ? "przebieg_poczatkowy" : "initial_mileage"
   )} km`;
   const insuranceLine =
     options.includeInsurance && vehicle.insurance_valid_until

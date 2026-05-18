@@ -8,7 +8,7 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { SquarePen } from "lucide-react-native";
-import Swipeable from "react-native-gesture-handler/Swipeable";
+import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { MarketplacePost } from "../../types/domain";
@@ -156,7 +156,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
             <EmptyState body={t("marketplace.noSavedPosts")} />
           }
           renderItem={({ item }) => (
-            <Swipeable
+            <ExclusiveSwipeable
               renderRightActions={() => renderRightActions(item)}
               rightThreshold={32}
             >
@@ -165,7 +165,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
                 subtitle={`${t("marketplace.generatedOn")} ${formatShortDisplayDate(item.created_at, i18n.language)}`}
                 onPress={() => handlePostPress(item)}
               />
-            </Swipeable>
+            </ExclusiveSwipeable>
           )}
           ItemSeparatorComponent={() => (
             <View style={{ height: theme.spacing.sm }} />

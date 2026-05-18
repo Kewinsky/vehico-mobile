@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Trash2 } from "lucide-react-native";
-import Swipeable from "react-native-gesture-handler/Swipeable";
+import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "../../ThemeProvider";
@@ -76,7 +76,7 @@ export function FuelItem({
   if (!onDelete) return baseContent;
 
   return (
-    <Swipeable
+    <ExclusiveSwipeable
       rightThreshold={32}
       renderRightActions={() => (
         <View style={styles.swipeActionsWrap}>
@@ -90,7 +90,7 @@ export function FuelItem({
       )}
     >
       {baseContent}
-    </Swipeable>
+    </ExclusiveSwipeable>
   );
 }
 

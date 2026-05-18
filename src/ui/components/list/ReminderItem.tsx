@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Trash2, Undo2 } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Swipeable from "react-native-gesture-handler/Swipeable";
+import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
 import { useTranslation } from "react-i18next";
 
 import { useUnitDisplay } from "../../../app/hooks/useUnitDisplay";
@@ -159,7 +159,7 @@ export function ReminderItem({
   if (!onToggleDone && !onDelete) return baseContent;
 
   return (
-    <Swipeable
+    <ExclusiveSwipeable
       rightThreshold={32}
       renderRightActions={() => (
         <View style={styles.swipeActionsWrap}>
@@ -194,7 +194,7 @@ export function ReminderItem({
       )}
     >
       {baseContent}
-    </Swipeable>
+    </ExclusiveSwipeable>
   );
 }
 

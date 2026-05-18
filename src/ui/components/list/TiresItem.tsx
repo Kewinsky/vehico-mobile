@@ -2,7 +2,8 @@ import { useRef } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Trash2, Undo2 } from "lucide-react-native";
-import Swipeable from "react-native-gesture-handler/Swipeable";
+import type Swipeable from "react-native-gesture-handler/Swipeable";
+import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
 import { useTranslation } from "react-i18next";
 
 import type { VehicleTire } from "../../../types/domain";
@@ -84,7 +85,7 @@ export function TiresItem({ tire, onPress, onToggleInUse, onDelete }: TiresItemP
   if (!onToggleInUse && !onDelete) return baseContent;
 
   return (
-    <Swipeable
+    <ExclusiveSwipeable
       ref={swipeableRef}
       rightThreshold={32}
       renderRightActions={() => (
@@ -123,7 +124,7 @@ export function TiresItem({ tire, onPress, onToggleInUse, onDelete }: TiresItemP
       )}
     >
       {baseContent}
-    </Swipeable>
+    </ExclusiveSwipeable>
   );
 }
 

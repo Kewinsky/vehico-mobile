@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
-import Swipeable from "react-native-gesture-handler/Swipeable";
+import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
 
 import type { Workshop, WorkshopType } from "../../../types/domain";
 import { useTheme } from "../../ThemeProvider";
@@ -203,9 +203,9 @@ export function WorkshopItem({
   }
 
   return (
-    <Swipeable renderRightActions={renderRightActions} rightThreshold={32}>
+    <ExclusiveSwipeable renderRightActions={renderRightActions} rightThreshold={32}>
       {rowContent}
-    </Swipeable>
+    </ExclusiveSwipeable>
   );
 }
 
