@@ -16,6 +16,7 @@ import { EmptyState } from "../../ui/components/common/EmptyState";
 import { WorkshopItem } from "../../ui/components/list/WorkshopItem";
 import { toastError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Workshops">;
 
@@ -96,13 +97,7 @@ export function WorkshopsScreen({ navigation }: Props) {
       Alert.alert(
         t("limits.workshopLimitReachedTitle"),
         t("limits.workshopLimitReachedBody", { limit: workshopsLimit }),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("limits.upgradeToPremium"),
-            onPress: () => navigation.navigate("Shop"),
-          },
-        ],
+        getPremiumUpgradeAlertButtons(t, navigation),
       );
       return;
     }

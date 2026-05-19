@@ -1,24 +1,15 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Easing,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import * as WebBrowser from "expo-web-browser";
+import React, { useCallback, useMemo, useState } from "react";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import Purchases from "react-native-purchases";
-import RevenueCatUI from "react-native-purchases-ui";
+import { AnimatedRollingNumber } from "react-native-animated-rolling-numbers";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as WebBrowser from "expo-web-browser";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { Card } from "../../ui/components/common/Card";
 import { Button } from "../../ui/components/common/Button";
 import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
 import { ModalLayout } from "../../layouts";
@@ -30,32 +21,39 @@ import type { RevenueCatProductId } from "../../services/payments/revenuecat";
 import { ENV } from "../../config/env";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
-import { DecorativeBackground } from "../../ui/components/branding/DecorativeBackground";
 import { Logo } from "../../ui/components/branding/Logo";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getSubscriptionDisclosure } from "../../utils/subscriptionDisclosure";
+import { getCurrencySymbol } from "../../utils/currencyDisplay";
+import { TireIcon } from "../../ui/components/icons/TireIcon";
+import {
+  getShopComparisonRows,
+  type ShopCompareIcon,
+  type ShopCompareRow,
+} from "./shopComparison";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Shop">;
+
+const PLANS: RevenueCatProductId[] = ["monthly", "yearly", "lifetime"];
 const DEFAULT_SUBSCRIPTION: RevenueCatProductId = "yearly";
-type HeroIconName = React.ComponentProps<typeof Ionicons>["name"];
 
-const HERO_ICONS: HeroIconName[] = [
-  "sparkles-outline",
-  "car-sport-outline",
-  "document-text-outline",
-  "notifications-outline",
-];
+type PlanBadge = { label: string; tone: "save" | "deal" | "monthly" };
 
-const HERO_ICON_POSITIONS = [
-  { top: 10, left: 10, rotation: "-8deg" },
-  { top: 14, right: 8, rotation: "10deg" },
-  { bottom: 16, left: 22, rotation: "8deg" },
-  { bottom: 10, right: 14, rotation: "-9deg" },
-] as const;
+function CompareRowIcon({
+  icon,
+  color,
+}: {
+  icon: ShopCompareIcon;
+  color: string;
+}) {
+  if (icon.type === "tire") {
+    return <TireIcon size={18} color={color} />;
+  }
+  return <Ionicons name={icon.name} size={18} color={color} />;
+}
 
 export function ShopScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const {
@@ -65,29 +63,70 @@ export function ShopScreen({ navigation }: Props) {
     revenueCatProducts,
     purchaseRevenueCatProduct,
     restoreRevenueCatPurchases,
+    presentRevenueCatCustomerCenter,
   } = useEntitlements();
   const [purchasing, setPurchasing] = useState<RevenueCatProductId | null>(
     null,
   );
-  const [actionLoading, setActionLoading] = useState<"restore" | null>(null);
-  const [customerCenterVisible, setCustomerCenterVisible] = useState(false);
+  const [actionLoading, setActionLoading] = useState<
+    "restore" | "customerCenter" | null
+  >(null);
   const [selectedSubscription, setSelectedSubscription] =
     useState<RevenueCatProductId>(DEFAULT_SUBSCRIPTION);
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const rollingLocale = i18n.language === "pl" ? "pl-PL" : "en-US";
 
   const selectedId = isPremium
     ? (currentPlanProductId ?? DEFAULT_SUBSCRIPTION)
     : selectedSubscription;
 
-  const selectedDisclosure = useMemo(
-    () =>
-      getSubscriptionDisclosure(
-        selectedId,
-        revenueCatProducts[selectedId],
-        t,
-      ),
-    [revenueCatProducts, selectedId, t],
+  const exampleReportUrl = `${ENV.REPORTS_APP_URL}/report/example`;
+  const comparisonRows = useMemo(
+    () => getShopComparisonRows(t, { exampleReportUrl }),
+    [exampleReportUrl, t],
   );
+
+  const selectedProduct = revenueCatProducts[selectedId];
+  const selectedPriceString = selectedProduct?.priceString ?? "—";
+
+  const selectedDisclosure = useMemo(
+    () => getSubscriptionDisclosure(selectedId, selectedProduct, t),
+    [selectedId, selectedProduct, t],
+  );
+
+  const priceRollingValue = useMemo(() => {
+    const raw = selectedProduct?.price;
+    if (raw == null || !Number.isFinite(raw) || raw <= 0) return null;
+    if (selectedId === "yearly") return raw / 12;
+    return raw;
+  }, [selectedId, selectedProduct?.price]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refresh();
+    }, [refresh]),
+  );
+
+  const yearlySavePercent = useMemo(() => {
+    const monthly = revenueCatProducts.monthly?.price;
+    const yearly = revenueCatProducts.yearly?.price;
+    if (
+      monthly == null ||
+      yearly == null ||
+      monthly <= 0 ||
+      yearly <= 0
+    ) {
+      return null;
+    }
+    const pct = Math.round((1 - yearly / (monthly * 12)) * 100);
+    return pct > 0 ? pct : null;
+  }, [revenueCatProducts.monthly?.price, revenueCatProducts.yearly?.price]);
+
+  const planLabels: Record<RevenueCatProductId, string> = {
+    monthly: t("shop.subCards.monthly"),
+    yearly: t("shop.subCards.yearly"),
+    lifetime: t("shop.subCards.lifetime"),
+  };
 
   async function handlePurchase(productId: RevenueCatProductId) {
     if (purchasing) return;
@@ -109,14 +148,16 @@ export function ShopScreen({ navigation }: Props) {
     }
   }
 
-  function handleOpenCustomerCenter() {
+  async function handleOpenCustomerCenter() {
     if (actionLoading || purchasing) return;
-    setCustomerCenterVisible(true);
-  }
-
-  function handleCustomerCenterDismiss() {
-    setCustomerCenterVisible(false);
-    void refresh();
+    try {
+      setActionLoading("customerCenter");
+      await presentRevenueCatCustomerCenter();
+    } catch (e: any) {
+      toastError(e?.message ?? t("common.error"));
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   async function handleRestorePurchases() {
@@ -144,601 +185,464 @@ export function ShopScreen({ navigation }: Props) {
     void handlePurchase(productId);
   }
 
-  const accentBg = useMemo(
-    () => hexToRgba(theme.colors.accent, 0.15),
-    [theme.colors.accent],
-  );
-
-  function getProductPrice(productId: RevenueCatProductId): string {
-    return revenueCatProducts[productId]?.priceString ?? "—";
-  }
-
-  const exampleReportUrl = `${ENV.REPORTS_APP_URL}/report/example`;
-  const premiumFeatures = [
-    {
-      icon: "car-sport-outline" as const,
-      text: t("shop.premiumFeatures.unlimitedVehicles"),
-    },
-    {
-      icon: "document-text-outline" as const,
-      text: t("shop.premiumFeatures.onlineReports"),
-      link: {
-        label: t("shop.premiumFeatures.onlineReportsLink"),
-        url: exampleReportUrl,
-      },
-    },
-    {
-      icon: "megaphone-outline" as const,
-      text: t("shop.premiumFeatures.marketplaceListings"),
-      link: {
-        label: t("shop.premiumFeatures.marketplaceListingsLink"),
-        onPress: () => navigation.navigate("ExampleListing"),
-      },
-    },
-    {
-      icon: "notifications-outline" as const,
-      text: t("shop.premiumFeatures.remindersWorkshops"),
-    },
-  ];
-
-  function FeatureRow({
-    icon,
-    text,
-    link,
-  }: {
-    icon: HeroIconName;
-    text: string;
-    link?: {
-      label: string;
-      url?: string;
-      onPress?: () => void;
-    };
-  }) {
-    async function handleLinkPress() {
-      if (!link) return;
-      if (link.onPress) {
-        link.onPress();
-        return;
-      }
-      if (link.url) {
-        try {
-          await WebBrowser.openBrowserAsync(link.url);
-        } catch {
-          toastError(t("common.error"));
-        }
-      }
-    }
-    return (
-      <View style={styles.featureCard}>
-        <View
-          style={[
-            styles.featureIconWrap,
-            { backgroundColor: hexToRgba(theme.colors.accent, 0.14) },
-          ]}
-        >
-          <Ionicons name={icon} size={26} color={theme.colors.accent} />
-        </View>
-        <View style={styles.featureTextWrap}>
-          <Text style={[styles.featureText, { color: theme.colors.fg }]}>
-            {text}
-          </Text>
-          {link ? (
-            <Pressable
-              onPress={() => void handleLinkPress()}
-              hitSlop={8}
-              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-            >
-              <Text
-                style={[styles.featureLink, { color: theme.colors.accent }]}
-              >
-                {link.label}
-              </Text>
-            </Pressable>
-          ) : null}
-        </View>
-      </View>
-    );
-  }
-
-  function PriceCard({
-    productId,
-    planLabel,
-    unitLabel,
-    primaryValue,
-  }: {
-    productId: RevenueCatProductId;
-    planLabel: string;
-    unitLabel: string;
-    primaryValue: string;
-  }) {
-    const selected = selectedId === productId;
-    const disabled = isPremium || purchasing !== null || actionLoading !== null;
-    const grayedOut = isPremium && !selected;
-    const price = getProductPrice(productId);
-
-    return (
-      <Pressable
-        key={productId}
-        disabled={disabled}
-        onPress={() => {
-          if (!isPremium) setSelectedSubscription(productId);
-        }}
-        accessibilityRole="button"
-        accessibilityState={{ selected, disabled }}
-        style={({ pressed }) => [
-          styles.tierPressable,
-          { opacity: grayedOut ? 0.6 : pressed && !disabled ? 0.9 : 1 },
-        ]}
-      >
-        <Card
-          style={[
-            styles.tierCard,
-            {
-              backgroundColor: selected ? accentBg : theme.colors.card,
-              borderColor: selected ? theme.colors.accent : theme.colors.border,
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.tierPlanName,
-              { color: grayedOut ? theme.colors.muted : theme.colors.fg },
-            ]}
-            numberOfLines={2}
-          >
-            {planLabel}
-          </Text>
-          <View style={styles.tierTopRow}>
-            <Text
-              style={[
-                styles.tierValue,
-                { color: grayedOut ? theme.colors.muted : theme.colors.fg },
-              ]}
-            >
-              {primaryValue}
-            </Text>
-          </View>
-          <Text
-            style={[
-              styles.tierUnit,
-              { color: grayedOut ? theme.colors.muted : theme.colors.muted },
-            ]}
-          >
-            {unitLabel}
-          </Text>
-          <View style={styles.tierPriceRow}>
-            {purchasing === productId ? (
-              <ActivityIndicator size="small" color={theme.colors.accent} />
-            ) : (
-              <Text
-                style={[
-                  styles.tierPrice,
-                  { color: grayedOut ? theme.colors.muted : theme.colors.fg },
-                ]}
-              >
-                {price}
-              </Text>
-            )}
-          </View>
-        </Card>
-      </Pressable>
-    );
-  }
-
   const canPurchase =
     purchasing === null && actionLoading === null && !isPremium;
 
-  const subs: Record<"left" | "middle" | "right", RevenueCatProductId> = {
-    left: "monthly" as const,
-    middle: "yearly" as const,
-    right: "lifetime" as const,
-  };
+  const showPerMonthSuffix = selectedId !== "lifetime";
+
+  const priceCurrencySymbol = useMemo(
+    () =>
+      getCurrencySymbol(selectedProduct?.currencyCode, rollingLocale) ||
+      selectedProduct?.currencyCode ||
+      "",
+    [rollingLocale, selectedProduct?.currencyCode],
+  );
+
+  async function openExampleLink(row: ShopCompareRow) {
+    const link = row.exampleLink;
+    if (!link) return;
+    try {
+      if (link.kind === "exampleListing") {
+        navigation.navigate("ExampleListing");
+        return;
+      }
+      await WebBrowser.openBrowserAsync(link.url);
+    } catch {
+      toastError(t("common.error"));
+    }
+  }
+
+  function planBadge(productId: RevenueCatProductId): PlanBadge | null {
+    if (productId === "monthly") {
+      return { label: t("shop.monthlyBadge"), tone: "monthly" };
+    }
+    if (productId === "yearly" && yearlySavePercent != null) {
+      return {
+        label: t("shop.saveBadge", { percent: yearlySavePercent }),
+        tone: "save",
+      };
+    }
+    if (productId === "lifetime") {
+      return { label: t("shop.lifetimeBadge"), tone: "deal" };
+    }
+    return null;
+  }
+
+  function badgeColor(badge: PlanBadge, selected: boolean) {
+    if (selected) return "#000";
+    if (badge.tone === "deal") return theme.colors.accent;
+    if (badge.tone === "monthly") return theme.colors.muted;
+    return "#22c55e";
+  }
 
   return (
     <ModalLayout
       title={t("shop.title")}
       cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
-      background={<DecorativeBackground variant="landing" />}
-      useHorizontalContentInset={false}
+      useHorizontalContentInset
     >
-      <View style={styles.screenRoot}>
-        <NativeHeaderScrollView
-          contentContainerStyle={{
-            paddingBottom: theme.spacing.md,
-          }}
-        >
-          <View style={styles.container}>
-            <View style={styles.heroSection}>
-              <PremiumHero theme={theme} />
-              <View style={styles.heroCopy}>
-                <Text style={[styles.heroTitle, { color: theme.colors.fg }]}>
-                  {t("shop.unlockPremium")}
-                </Text>
-                <Text
-                  style={[styles.heroSubtitle, { color: theme.colors.muted }]}
-                  numberOfLines={2}
-                >
-                  {t("shop.heroSubtitle")}
-                </Text>
-              </View>
-            </View>
+      <NativeHeaderScrollView
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + theme.spacing.xl,
+          gap: theme.spacing.lg,
+        }}
+      >
+        <View style={styles.logoWrap}>
+          <Logo width={88} height={88} />
+        </View>
 
-            <View style={styles.featuresGrid}>
-              {premiumFeatures.map((feature) => (
-                <FeatureRow
-                  key={feature.text}
-                  icon={feature.icon}
-                  text={feature.text}
-                  link={feature.link}
-                />
-              ))}
-            </View>
-          </View>
-        </NativeHeaderScrollView>
+        <View style={styles.headerCopy}>
+          <Text style={[styles.pageTitle, { color: theme.colors.fg }]}>
+            {t("shop.pageTitle")}
+          </Text>
+          <Text style={[styles.pageSubtitle, { color: theme.colors.muted }]}>
+            {t("shop.pageSubtitle")}
+          </Text>
+        </View>
 
         <View
           style={[
-            styles.footerPanel,
+            styles.compareCard,
             {
-              backgroundColor: hexToRgba(theme.colors.accent, 0.1),
-              paddingBottom: insets.bottom + theme.spacing.sm,
+              backgroundColor: theme.colors.card,
+              borderColor: theme.colors.border,
             },
           ]}
         >
-          <Text style={[styles.subscriptionsHeading, { color: theme.colors.fg }]}>
-            {t("shop.subscriptions")}
-          </Text>
-
-          <View style={styles.pricingRow}>
-            <PriceCard
-              productId={subs.left}
-              planLabel={t("shop.subCards.monthly")}
-              unitLabel={t("shop.subCards.dailyUnit")}
-              primaryValue="30"
-            />
-            <PriceCard
-              productId={subs.middle}
-              planLabel={t("shop.subCards.yearly")}
-              unitLabel={t("shop.subCards.monthlyUnit")}
-              primaryValue="12"
-            />
-            <PriceCard
-              productId={subs.right}
-              planLabel={t("shop.subCards.lifetime")}
-              unitLabel={t("shop.subCards.lifetimeUnit")}
-              primaryValue="∞"
-            />
-          </View>
-
-          <View
-            style={[
-              styles.disclosureCard,
-              { backgroundColor: theme.colors.card, borderColor: theme.colors.border },
-            ]}
-          >
-            <Text style={[styles.disclosureLabel, { color: theme.colors.muted }]}>
-              {t("shop.selectedPlanLabel")}
-            </Text>
-            <Text style={[styles.disclosureTitle, { color: theme.colors.fg }]}>
-              {selectedDisclosure.title}
-            </Text>
-            <Text style={[styles.disclosureLine, { color: theme.colors.fg }]}>
-              {selectedDisclosure.length}
-            </Text>
-            <Text style={[styles.disclosureLine, { color: theme.colors.accent }]}>
-              {selectedDisclosure.price}
-            </Text>
-            {selectedDisclosure.pricePerUnit ? (
-              <Text style={[styles.disclosureLine, { color: theme.colors.muted }]}>
-                {selectedDisclosure.pricePerUnit}
-              </Text>
-            ) : null}
-            {selectedDisclosure.isAutoRenewable ? (
-              <Text style={[styles.disclosureFinePrint, { color: theme.colors.muted }]}>
-                {t("shop.autoRenewDisclaimer")}
-              </Text>
-            ) : null}
-          </View>
-
-          <View style={styles.footerButtons}>
-            <Button
-              onPress={() =>
-                isPremium
-                  ? void handleOpenCustomerCenter()
-                  : startPurchase(selectedId)
-              }
-              disabled={isPremium ? actionLoading !== null : !canPurchase}
+          <View style={[styles.compareHeaderRow, styles.compareRow]}>
+            <View style={styles.compareFeatureCol} />
+            <Text
+              style={[styles.compareHeaderCell, { color: theme.colors.muted }]}
             >
-              {isPremium
-                ? t("shop.manageSubscription")
-                : purchasing
-                  ? t("common.loading")
-                  : t("common.continue")}
-            </Button>
+              {t("shop.compare.columnFree")}
+            </Text>
+            <Text
+              style={[
+                styles.compareHeaderCell,
+                styles.comparePremiumHeader,
+                { color: theme.colors.accent },
+              ]}
+            >
+              {t("shop.compare.columnPremium")}
+            </Text>
           </View>
 
-          <LegalLinksRow
-            termsUrl={`${ENV.WEB_APP_URL}/terms`}
-            privacyUrl={`${ENV.WEB_APP_URL}/privacy`}
-            onRestorePurchases={() => void handleRestorePurchases()}
-            restoreLoading={actionLoading === "restore"}
-          />
+          {comparisonRows.map((row, index) => (
+            <View
+              key={row.id}
+              style={[
+                styles.compareRow,
+                index < comparisonRows.length - 1 && styles.compareRowBorder,
+                { borderBottomColor: theme.colors.border },
+              ]}
+            >
+              <View style={styles.compareFeatureCol}>
+                <View style={styles.compareIcon}>
+                  <CompareRowIcon icon={row.icon} color={theme.colors.accent} />
+                </View>
+                <View style={styles.compareLabelWrap}>
+                  <Text
+                    style={[
+                      styles.compareFeatureLabel,
+                      { color: theme.colors.fg },
+                    ]}
+                  >
+                    {row.label}
+                  </Text>
+                  {row.exampleLink ? (
+                    <Pressable
+                      onPress={() => void openExampleLink(row)}
+                      hitSlop={8}
+                      style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                    >
+                      <Text
+                        style={[
+                          styles.compareExampleLink,
+                          { color: theme.colors.accent },
+                        ]}
+                      >
+                        {t("shop.seeExample")}
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                </View>
+              </View>
+              <Text
+                style={[styles.compareValue, { color: theme.colors.muted }]}
+                numberOfLines={2}
+              >
+                {row.free}
+              </Text>
+              <Text
+                style={[
+                  styles.compareValue,
+                  styles.comparePremiumValue,
+                  { color: theme.colors.accent },
+                ]}
+                numberOfLines={2}
+              >
+                {row.premium}
+              </Text>
+            </View>
+          ))}
         </View>
 
-        <Modal
-          visible={customerCenterVisible}
-          animationType="slide"
-          presentationStyle="fullScreen"
-          onRequestClose={handleCustomerCenterDismiss}
-        >
+        <View style={styles.planSection}>
           <View
             style={[
-              styles.customerCenterModal,
-              { backgroundColor: theme.colors.bg },
+              styles.planTabs,
+              { backgroundColor: hexToRgba(theme.colors.accent, 0.08) },
             ]}
           >
-            <RevenueCatUI.CustomerCenterView
-              style={styles.customerCenterView}
-              onDismiss={handleCustomerCenterDismiss}
-            />
+            {PLANS.map((planId) => {
+              const selected = selectedId === planId;
+              const badge = planBadge(planId);
+              return (
+                <Pressable
+                  key={planId}
+                  disabled={isPremium || purchasing !== null}
+                  onPress={() => setSelectedSubscription(planId)}
+                  style={({ pressed }) => [
+                    styles.planTab,
+                    selected && {
+                      backgroundColor: theme.colors.accent,
+                    },
+                    pressed && !isPremium && { opacity: 0.85 },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                >
+                  <Text
+                    style={[
+                      styles.planTabLabel,
+                      {
+                        color: selected ? "#000" : theme.colors.fg,
+                      },
+                    ]}
+                  >
+                    {planLabels[planId]}
+                  </Text>
+                  {badge ? (
+                    <Text
+                      style={[
+                        styles.planTabBadge,
+                        { color: badgeColor(badge, selected) },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {badge.label}
+                    </Text>
+                  ) : (
+                    <View style={styles.planTabBadgeSpacer} />
+                  )}
+                </Pressable>
+              );
+            })}
           </View>
-        </Modal>
-      </View>
+
+          <View style={styles.priceBlock}>
+            {priceRollingValue != null ? (
+              <View style={styles.priceRollingRow}>
+                <AnimatedRollingNumber
+                  value={priceRollingValue}
+                  toFixed={2}
+                  useGrouping
+                  locale={rollingLocale}
+                  spinningAnimationConfig={{ duration: 480 }}
+                  textStyle={[styles.priceRollingNumber, { color: theme.colors.fg }]}
+                />
+                {priceCurrencySymbol ? (
+                  <Text
+                    style={[styles.priceCurrency, { color: theme.colors.fg }]}
+                  >
+                    {priceCurrencySymbol}
+                  </Text>
+                ) : null}
+                {showPerMonthSuffix ? (
+                  <Text
+                    style={[styles.pricePeriod, { color: theme.colors.muted }]}
+                  >
+                    {t("shop.perMonth")}
+                  </Text>
+                ) : null}
+              </View>
+            ) : (
+              <Text style={[styles.priceFallback, { color: theme.colors.fg }]}>
+                {selectedPriceString}
+                {showPerMonthSuffix ? ` ${t("shop.perMonth")}` : ""}
+              </Text>
+            )}
+            <Text style={[styles.priceSubline, { color: theme.colors.muted }]}>
+              {selectedId === "lifetime"
+                ? `${selectedDisclosure.length} · ${selectedPriceString}`
+                : `${selectedDisclosure.length} · ${selectedPriceString}${
+                    selectedId === "yearly" ? ` ${t("shop.perYear")}` : ""
+                  }`}
+            </Text>
+          </View>
+
+          <Button
+            onPress={() =>
+              isPremium
+                ? void handleOpenCustomerCenter()
+                : startPurchase(selectedId)
+            }
+            disabled={isPremium ? actionLoading !== null : !canPurchase}
+            loading={
+              isPremium
+                ? actionLoading === "customerCenter"
+                : purchasing !== null
+            }
+          >
+            {isPremium
+              ? t("shop.manageSubscription")
+              : t("shop.subscribeCta", {
+                  plan: planLabels[selectedId],
+                })}
+          </Button>
+
+          <Text style={[styles.subscribeSubtitle, { color: theme.colors.muted }]}>
+            {t("shop.subscribeSubtitle")}
+          </Text>
+
+          {selectedDisclosure.isAutoRenewable ? (
+            <Text style={[styles.autoRenewNote, { color: theme.colors.muted }]}>
+              {t("shop.autoRenewDisclaimer")}
+            </Text>
+          ) : null}
+        </View>
+
+        <LegalLinksRow
+          termsUrl={`${ENV.WEB_APP_URL}/terms`}
+          privacyUrl={`${ENV.WEB_APP_URL}/privacy`}
+          onRestorePurchases={() => void handleRestorePurchases()}
+          restoreLoading={actionLoading === "restore"}
+        />
+      </NativeHeaderScrollView>
     </ModalLayout>
   );
 }
 
-export function PremiumHero({ theme }: { theme: AppTheme }) {
-  const floats = React.useRef(HERO_ICONS.map(() => new Animated.Value(0))).current;
-
-  useEffect(() => {
-    const loops = floats.map((value, index) =>
-      Animated.loop(
-        Animated.sequence([
-          Animated.delay(index * 180),
-          Animated.timing(value, {
-            toValue: 1,
-            duration: 1800,
-            easing: Easing.inOut(Easing.sin),
-            useNativeDriver: true,
-          }),
-          Animated.timing(value, {
-            toValue: 0,
-            duration: 1800,
-            easing: Easing.inOut(Easing.sin),
-            useNativeDriver: true,
-          }),
-        ]),
-      ),
-    );
-    loops.forEach((loop) => loop.start());
-    return () => loops.forEach((loop) => loop.stop());
-  }, [floats]);
-
-  return (
-    <View style={stylesStatic.logoStage}>
-      <View
-        style={[
-          stylesStatic.logoHalo,
-          { backgroundColor: hexToRgba(theme.colors.accent, 0.14) },
-        ]}
-      />
-      <Logo width={118} height={118} />
-      {HERO_ICONS.map((iconName, index) => {
-        const position = HERO_ICON_POSITIONS[index];
-        const { rotation, ...placement } = position;
-        const translateY = floats[index].interpolate({
-          inputRange: [0, 0.5, 1],
-          outputRange: [0, -10, 0],
-        });
-        const scale = floats[index].interpolate({
-          inputRange: [0, 0.5, 1],
-          outputRange: [1, 1.05, 1],
-        });
-
-        return (
-          <Animated.View
-            key={`${iconName}-${index}`}
-            style={[
-              stylesStatic.floatingBadge,
-              placement,
-              {
-                backgroundColor: hexToRgba(theme.colors.accent, 0.1),
-                borderColor: hexToRgba(theme.colors.accent, 0.28),
-                transform: [{ translateY }, { scale }, { rotate: rotation }],
-              },
-            ]}
-          >
-            <Ionicons name={iconName} size={18} color={theme.colors.accent} />
-          </Animated.View>
-        );
-      })}
-    </View>
-  );
-}
-
-const stylesStatic = StyleSheet.create({
-  logoStage: {
-    width: 216,
-    height: 188,
-    justifyContent: "center",
-    alignItems: "center",
-    alignSelf: "center",
-  },
-  logoHalo: {
-    position: "absolute",
-    width: 144,
-    height: 144,
-    borderRadius: 999,
-  },
-  floatingBadge: {
-    position: "absolute",
-    width: 42,
-    height: 42,
-    borderRadius: 999,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-  },
-});
-
 function makeStyles(theme: AppTheme) {
   const { spacing, typography, radius } = theme;
   return StyleSheet.create({
-    screenRoot: {
-      flex: 1,
+    logoWrap: {
+      alignItems: "center",
+      paddingTop: spacing.sm,
     },
-    container: {
-      flexGrow: 1,
-      paddingTop: spacing.md,
-      paddingBottom: spacing.xs,
-      paddingHorizontal: spacing.md,
-      gap: spacing.md,
-    },
-    heroSection: {
-      gap: spacing.sm,
-    },
-    heroCopy: {
+    headerCopy: {
       alignItems: "center",
       gap: spacing.xs,
     },
-    heroTitle: {
+    pageTitle: {
       fontSize: typography.largeTitle,
       fontFamily: BRAND_FONT_FAMILY,
       textAlign: "center",
-      letterSpacing: -0.6,
+      letterSpacing: -0.5,
     },
-    heroSubtitle: {
+    pageSubtitle: {
       fontSize: typography.body,
-      lineHeight: typography.body + 7,
-      textAlign: "center",
-      maxWidth: 360,
-    },
-    featuresGrid: {
-      gap: spacing.sm,
-    },
-    featureCard: {
-      backgroundColor: theme.colors.card,
-      flexDirection: "row",
-      alignItems: "center",
-      padding: spacing.md,
-      borderRadius: radius.lg,
-    },
-    featureIconWrap: {
-      width: 42,
-      height: 42,
-      borderRadius: 999,
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: spacing.md,
-    },
-    featureTextWrap: {
-      flex: 1,
-      gap: spacing.xs / 2,
-    },
-    featureText: {
-      fontSize: typography.body,
-      fontWeight: typography.fontWeight.bold,
       lineHeight: typography.body + 6,
+      textAlign: "center",
+      maxWidth: 340,
     },
-    featureLink: {
-      fontSize: typography.small,
-      fontWeight: typography.fontWeight.bold,
-    },
-    subscriptionsHeading: {
-      fontSize: typography.body,
-      fontWeight: typography.fontWeight.bold,
-      marginBottom: spacing.xs,
-    },
-    pricingRow: {
-      flexDirection: "row",
-      gap: spacing.sm,
-    },
-    disclosureCard: {
+    compareCard: {
+      borderRadius: radius.lg,
       borderWidth: 1,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      gap: spacing.xs / 2,
+      overflow: "hidden",
     },
-    disclosureLabel: {
-      fontSize: typography.small,
-      fontWeight: typography.fontWeight.medium,
-      textTransform: "uppercase",
-      letterSpacing: 0.6,
+    compareHeaderRow: {
+      paddingTop: spacing.sm,
     },
-    disclosureTitle: {
-      fontSize: typography.body,
-      fontWeight: typography.fontWeight.bold,
+    compareRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.sm,
+      gap: spacing.xs,
     },
-    disclosureLine: {
-      fontSize: typography.body,
-      lineHeight: typography.body + 4,
+    compareRowBorder: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
     },
-    disclosureFinePrint: {
-      fontSize: typography.small,
-      lineHeight: typography.small + 5,
-      marginTop: spacing.xs,
-    },
-    tierPressable: {
-      flex: 1,
-      aspectRatio: 1,
+    compareFeatureCol: {
+      flex: 1.35,
+      flexDirection: "row",
+      alignItems: "center",
       minWidth: 0,
     },
-    tierCard: {
-      flex: 1,
-      width: "100%",
-      borderRadius: radius.md + 12,
-      borderWidth: 1,
-      paddingVertical: spacing.xs,
-      paddingHorizontal: spacing.xs,
+    compareIcon: {
+      marginRight: spacing.xs,
+      width: 18,
       alignItems: "center",
-      justifyContent: "center",
+    },
+    compareLabelWrap: {
+      flex: 1,
+      minWidth: 0,
       gap: 2,
     },
-    tierPlanName: {
+    compareFeatureLabel: {
+      fontSize: typography.small,
+      fontWeight: typography.fontWeight.medium,
+      lineHeight: typography.small + 4,
+    },
+    compareExampleLink: {
+      fontSize: typography.small - 1,
+      fontWeight: typography.fontWeight.bold,
+    },
+    compareHeaderCell: {
+      width: 72,
       fontSize: typography.small,
       fontWeight: typography.fontWeight.bold,
       textAlign: "center",
-      marginBottom: 2,
     },
-    tierTopRow: {
+    comparePremiumHeader: {
+      textTransform: "uppercase",
+      letterSpacing: 0.4,
+    },
+    compareValue: {
+      width: 72,
+      fontSize: typography.small,
+      textAlign: "center",
+      lineHeight: typography.small + 3,
+    },
+    comparePremiumValue: {
+      fontWeight: typography.fontWeight.bold,
+    },
+    planSection: {
+      gap: spacing.md,
+    },
+    planTabs: {
+      flexDirection: "row",
+      borderRadius: radius.lg,
+      padding: 4,
+      gap: 4,
+    },
+    planTab: {
+      flex: 1,
       alignItems: "center",
       justifyContent: "center",
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.xs,
+      borderRadius: radius.md,
+      minHeight: 56,
     },
-    tierValue: {
+    planTabLabel: {
+      fontSize: typography.small,
+      fontWeight: typography.fontWeight.bold,
+    },
+    planTabBadge: {
+      marginTop: 4,
+      fontSize: 9,
+      fontWeight: typography.fontWeight.bold,
+      letterSpacing: 0.3,
+      textAlign: "center",
+    },
+    planTabBadgeSpacer: {
+      height: 14,
+    },
+    priceBlock: {
+      alignItems: "center",
+      gap: spacing.xs,
+    },
+    priceRollingRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "center",
+      gap: spacing.xs,
+    },
+    priceRollingNumber: {
+      fontSize: 40,
+      fontWeight: typography.fontWeight.bold,
+      lineHeight: 44,
+    },
+    priceCurrency: {
       fontSize: typography.title,
       fontWeight: typography.fontWeight.bold,
+      marginBottom: 6,
     },
-    tierUnit: {
-      fontSize: typography.small,
+    pricePeriod: {
+      fontSize: typography.title,
       fontWeight: typography.fontWeight.medium,
-      letterSpacing: 1.2,
-      textTransform: "uppercase",
+      marginBottom: 4,
     },
-    tierPriceRow: {
-      marginTop: 4,
-    },
-    tierPrice: {
-      fontSize: typography.body,
+    priceFallback: {
+      fontSize: typography.title,
       fontWeight: typography.fontWeight.bold,
+      textAlign: "center",
     },
-    footerPanel: {
-      paddingTop: spacing.sm,
-      paddingHorizontal: spacing.sm,
-      gap: spacing.sm,
-      borderTopLeftRadius: radius.lg,
-      borderTopRightRadius: radius.lg,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: theme.colors.border,
+    priceSubline: {
+      fontSize: typography.small,
+      textAlign: "center",
+      lineHeight: typography.small + 4,
     },
-    footerButtons: {
-      gap: spacing.sm,
+    subscribeSubtitle: {
+      fontSize: typography.small,
+      textAlign: "center",
     },
-    customerCenterModal: {
-      flex: 1,
-    },
-    customerCenterView: {
-      flex: 1,
+    autoRenewNote: {
+      fontSize: 11,
+      lineHeight: 15,
+      textAlign: "center",
     },
   });
 }

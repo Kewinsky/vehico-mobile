@@ -40,7 +40,10 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
-import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
+import {
+  getPremiumUpgradeAlertButtons,
+  handleAndShowLimitErrorAlert,
+} from "../../ui/limits/entitlementAlerts";
 import { Ionicons } from "@expo/vector-icons";
 import { Textarea } from "../../ui/components/common/Textarea";
 import {
@@ -279,13 +282,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           Alert.alert(
             t("limits.reminderLimitReachedTitle"),
             t("limits.reminderLimitReachedBody", { limit: remindersLimit }),
-            [
-              { text: t("common.cancel"), style: "cancel" },
-              {
-                text: t("limits.upgradeToPremium"),
-                onPress: () => navigation.navigate("Shop"),
-              },
-            ],
+            getPremiumUpgradeAlertButtons(t, navigation),
           );
           return;
         }

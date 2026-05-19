@@ -1,4 +1,4 @@
-import { Alert } from "react-native";
+import { Alert, type AlertOptions } from "react-native";
 import type { TFunction } from "i18next";
 import { getLimitErrorMessage, isLimitError } from "./limitErrorClassifier";
 
@@ -6,21 +6,50 @@ type MinimalNavigation = {
   navigate: (screen: any, params?: any) => void;
 };
 
+export function getPremiumUpgradeAlertButtons(
+  t: TFunction,
+  navigation: MinimalNavigation,
+) {
+  return [
+    {
+      text: t("limits.upgradeToPremium"),
+      onPress: () => navigation.navigate("Shop"),
+    },
+    { text: t("common.cancel"), style: "cancel" as const },
+  ];
+}
+
+export function showPremiumRequiredAlert(
+  t: TFunction,
+  navigation: MinimalNavigation,
+  options?: {
+    title?: string;
+    message?: string;
+    alertOptions?: AlertOptions;
+  },
+) {
+  Alert.alert(
+    options?.title ?? t("limits.premiumRequiredTitle"),
+    options?.message ?? t("limits.premiumRequiredBody"),
+    getPremiumUpgradeAlertButtons(t, navigation),
+    options?.alertOptions,
+  );
+}
+
+export function showLimitReachedAlertWithTitle(
+  t: TFunction,
+  navigation: MinimalNavigation,
+  title: string,
+  message: string,
+) {
+  Alert.alert(title, message, getPremiumUpgradeAlertButtons(t, navigation));
+}
+
 export function showUpgradeToPremiumAlert(
   t: TFunction,
   navigation: MinimalNavigation,
 ) {
-  Alert.alert(
-    t("limits.premiumRequiredTitle"),
-    t("limits.premiumRequiredBody"),
-    [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("limits.upgradeToPremium"),
-        onPress: () => navigation.navigate("Shop"),
-      },
-    ],
-  );
+  showPremiumRequiredAlert(t, navigation);
 }
 
 export function showLimitReachedAlert(
@@ -31,13 +60,7 @@ export function showLimitReachedAlert(
   Alert.alert(
     t("limits.limitReachedTitle"),
     reason && reason.trim() ? reason : t("limits.limitReachedBody"),
-    [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("limits.upgradeToPremium"),
-        onPress: () => navigation.navigate("Shop"),
-      },
-    ],
+    getPremiumUpgradeAlertButtons(t, navigation),
   );
 }
 

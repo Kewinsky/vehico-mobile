@@ -37,7 +37,10 @@ import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
-import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
+import {
+  getPremiumUpgradeAlertButtons,
+  handleAndShowLimitErrorAlert,
+} from "../../ui/limits/entitlementAlerts";
 import { BoltPatternIcon } from "../../ui/components/icons/BoltPatternIcon";
 import { BoltTypeIcon } from "../../ui/components/icons/BoltTypeIcon";
 import { EtOffsetIcon } from "../../ui/components/icons/EtOffsetIcon";
@@ -158,13 +161,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
           Alert.alert(
             t("limits.wheelLimitReachedTitle"),
             t("limits.wheelLimitReachedBody", { limit: wheelsPerVehicleLimit }),
-            [
-              { text: t("common.cancel"), style: "cancel" },
-              {
-                text: t("limits.upgradeToPremium"),
-                onPress: () => navigation.navigate("Shop"),
-              },
-            ],
+            getPremiumUpgradeAlertButtons(t, navigation),
           );
           return;
         }

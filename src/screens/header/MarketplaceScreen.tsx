@@ -11,6 +11,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { Tile } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Marketplace">;
 
@@ -26,13 +27,7 @@ export function MarketplaceScreen({ navigation, route }: Props) {
       Alert.alert(
         t("limits.premiumRequiredTitle"),
         t("limits.premiumRequiredBody"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("limits.upgradeToPremium"),
-            onPress: () => navigation.navigate("Shop"),
-          },
-        ],
+        getPremiumUpgradeAlertButtons(t, navigation),
       );
       return;
     }

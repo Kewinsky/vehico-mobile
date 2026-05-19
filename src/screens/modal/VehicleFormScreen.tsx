@@ -53,7 +53,10 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
-import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
+import {
+  getPremiumUpgradeAlertButtons,
+  handleAndShowLimitErrorAlert,
+} from "../../ui/limits/entitlementAlerts";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { Textarea } from "../../ui/components/common/Textarea";
 import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
@@ -513,13 +516,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
           Alert.alert(
             t("limits.vehicleLimitReachedTitle"),
             t("limits.vehicleLimitReachedBody", { limit: vehiclesLimit }),
-            [
-              { text: t("common.cancel"), style: "cancel" },
-              {
-                text: t("limits.upgradeToPremium"),
-                onPress: () => navigation.navigate("Shop"),
-              },
-            ],
+            getPremiumUpgradeAlertButtons(t, navigation),
           );
           return;
         }

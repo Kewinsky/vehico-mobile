@@ -17,6 +17,7 @@ import {
   updateReminder,
 } from "../../services/reminders/remindersRepo";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { toastError } from "../../ui/toast/toast";
 import { ReminderItem } from "../../ui/components/list/ReminderItem";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
@@ -145,13 +146,7 @@ export function RemindersScreen({ route, navigation }: Props) {
       Alert.alert(
         t("limits.reminderLimitReachedTitle"),
         t("limits.reminderLimitReachedBody", { limit: remindersLimit }),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("limits.upgradeToPremium"),
-            onPress: () => navigation.navigate("Shop"),
-          },
-        ],
+        getPremiumUpgradeAlertButtons(t, navigation),
       );
       return;
     }

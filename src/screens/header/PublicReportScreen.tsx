@@ -1,4 +1,4 @@
-import { Alert, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,6 +10,7 @@ import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { Tile } from "../../ui/components/common/Tile";
+import { showPremiumRequiredAlert } from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReport">;
 
@@ -22,17 +23,7 @@ export function PublicReportScreen({ navigation, route }: Props) {
 
   const onGeneratePress = useCallback(() => {
     if (!isPremium) {
-      Alert.alert(
-        t("limits.premiumRequiredTitle"),
-        t("limits.premiumRequiredBody"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("limits.upgradeToPremium"),
-            onPress: () => navigation.navigate("Shop"),
-          },
-        ],
-      );
+      showPremiumRequiredAlert(t, navigation);
       return;
     }
     navigation.navigate("PublicReportConfigure", { vehicleId });

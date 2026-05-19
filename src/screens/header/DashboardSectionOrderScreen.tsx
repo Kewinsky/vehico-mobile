@@ -21,6 +21,7 @@ import {
   type DashboardSectionPanel,
 } from "./vehicleDashboard/sections/sectionLabels";
 import { useDashboardSectionOrder } from "./vehicleDashboard/useDashboardSectionOrder";
+import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "DashboardSectionOrder">;
 
@@ -60,13 +61,7 @@ export function DashboardSectionOrderScreen({ navigation }: Props) {
     Alert.alert(
       t("limits.premiumRequiredTitle"),
       t("dashboard.sectionOrder.premiumRequiredBody"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("limits.upgradeToPremium"),
-          onPress: () => navigation.navigate("Shop"),
-        },
-      ],
+      getPremiumUpgradeAlertButtons(t, navigation),
       { cancelable: true, onDismiss: () => navigation.goBack() },
     );
   }, [isPremium, navigation, t]);
