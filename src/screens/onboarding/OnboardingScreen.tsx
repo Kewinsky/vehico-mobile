@@ -3,13 +3,9 @@ import {
   Alert,
   Animated,
   Easing,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -22,6 +18,7 @@ import * as Notifications from "expo-notifications";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { OnboardingLayout } from "../../layouts";
+import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Button } from "../../ui/components/common/Button";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
@@ -517,6 +514,7 @@ export function OnboardingScreen({ navigation }: Props) {
                     : t("vehicleForm.placeholderMake")
                 }
                 editable={!saving}
+                autoFocus
                 autoCapitalize="words"
               />
               <FormInputRow
@@ -927,15 +925,9 @@ export function OnboardingScreen({ navigation }: Props) {
         )
       }
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={[styles.content, { flex: 1 }]}>{renderStep()}</View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+      <FormScreen noLayout scrollEnabled>
+        <View style={styles.content}>{renderStep()}</View>
+      </FormScreen>
     </OnboardingLayout>
   );
 }
