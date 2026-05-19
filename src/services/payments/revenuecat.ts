@@ -7,7 +7,10 @@ import type {
 } from "react-native-purchases";
 
 import { ENV } from "../../config/env";
-import type { IapProductId } from "../../../shared/payments/iapProducts";
+import {
+  createEmptyIapProductsMap,
+  type IapProductId,
+} from "../../../shared/payments/iapProducts";
 
 export {
   IAP_ALL_PRODUCT_IDS as REVENUECAT_ALL_PRODUCT_IDS,
@@ -16,7 +19,6 @@ export {
   IAP_PLAN_ORDER as REVENUECAT_PLAN_ORDER,
   IAP_PRODUCT_IDS as REVENUECAT_PRODUCT_IDS,
   IAP_SUBSCRIPTION_PRODUCT_IDS as REVENUECAT_SUBSCRIPTION_PRODUCT_IDS,
-  createEmptyIapProductsMap as createEmptyRevenueCatProducts,
   isIapProductId as isRevenueCatProductId,
   isSubscriptionIapProduct as isSubscriptionProduct,
   isLifetimeIapProduct as isLifetimeProduct,
@@ -34,6 +36,10 @@ export type RevenueCatProductsMap = Record<
   IapProductId,
   PurchasesStoreProduct | null
 >;
+
+export function createEmptyRevenueCatProducts(): RevenueCatProductsMap {
+  return createEmptyIapProductsMap<PurchasesStoreProduct | null>();
+}
 
 export function getPremiumEntitlement(
   customerInfo: CustomerInfo | null,
