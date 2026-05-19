@@ -65,7 +65,7 @@ export function FormalitiesSection({
           }
           backgroundColor={
             insuranceDaysUntil != null && insuranceDaysUntil <= 30
-              ? hexToRgba(theme.colors.danger, 0.18)
+              ? hexToRgba(theme.colors.danger, 0.15)
               : undefined
           }
           labelColor={
@@ -112,7 +112,7 @@ export function FormalitiesSection({
           }
           backgroundColor={
             inspectionDaysUntil != null && inspectionDaysUntil <= 30
-              ? hexToRgba(theme.colors.danger, 0.18)
+              ? hexToRgba(theme.colors.danger, 0.15)
               : undefined
           }
           labelColor={

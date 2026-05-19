@@ -41,23 +41,24 @@ export function DashboardCalloutCard({
 
   return (
     <View
-      style={[
-        styles.card,
-        { backgroundColor: hexToRgba(accent, 0.14) },
-      ]}
+      style={[styles.card, { backgroundColor: hexToRgba(accent, 0.15) }]}
       accessibilityRole="summary"
     >
       <View style={styles.top}>
         {icon}
         <View style={styles.textBlock}>
-          <Text style={[styles.title, { color: theme.colors.fg }]}>{title}</Text>
+          <Text style={[styles.title, { color: theme.colors.fg }]}>
+            {title}
+          </Text>
           {description ? (
             <Text style={[styles.description, { color: theme.colors.muted }]}>
               {description}
             </Text>
           ) : null}
           {meta ? (
-            <Text style={[styles.meta, { color: theme.colors.muted }]}>{meta}</Text>
+            <Text style={[styles.meta, { color: theme.colors.muted }]}>
+              {meta}
+            </Text>
           ) : null}
         </View>
       </View>

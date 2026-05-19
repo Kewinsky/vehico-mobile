@@ -19,7 +19,6 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Logo } from "../../ui/components/branding/Logo";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportOptions">;
 
@@ -95,44 +94,29 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
       <NativeHeaderScrollView contentContainerStyle={styles.scrollContent}>
         <ContentHeader title={layoutTitle} subtitle={generatedAt} />
         <View style={styles.qrCenterWrap}>
-          <View
-            style={[
-              styles.qrCard,
-              {
-                backgroundColor: theme.colors.card,
-                borderColor: hexToRgba(
-                  theme.colors.accent,
-                  mode === "dark" ? 0.32 : 0.2,
-                ),
-                shadowColor: hexToRgba(theme.colors.accent, 0.45),
-              },
-            ]}
-          >
-            <View style={[styles.qrInner, { width: qrSize, height: qrSize }]}>
-              <QRCode
-                value={url}
-                size={qrSize}
-                color={mode === "dark" ? "#ffffff" : "#000000"}
-                backgroundColor={theme.colors.bg}
-                ecl="H"
-              />
+          <View style={[styles.qrInner, { width: qrSize, height: qrSize }]}>
+            <QRCode
+              value={url}
+              size={qrSize}
+              color={mode === "dark" ? "#ffffff" : "#000000"}
+              backgroundColor={theme.colors.bg}
+              ecl="H"
+            />
+            <View
+              style={styles.qrLogoOverlay}
+              pointerEvents="none"
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            >
               <View
-                style={styles.qrLogoOverlay}
-                pointerEvents="none"
-                accessibilityElementsHidden
-                importantForAccessibility="no-hide-descendants"
+                style={[
+                  styles.qrLogoBadge,
+                  {
+                    backgroundColor: theme.colors.card,
+                  },
+                ]}
               >
-                <View
-                  style={[
-                    styles.qrLogoBadge,
-                    {
-                      backgroundColor: theme.colors.card,
-                      borderColor: hexToRgba(theme.colors.accent, 0.28),
-                    },
-                  ]}
-                >
-                  <Logo width={qrLogoSize} height={qrLogoSize} />
-                </View>
+                <Logo width={qrLogoSize} height={qrLogoSize} />
               </View>
             </View>
           </View>
@@ -152,11 +136,6 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
       alignItems: "center",
       paddingBottom: theme.spacing.md,
-    },
-    qrCard: {
-      borderWidth: 1,
-      borderRadius: theme.radius.lg,
-      padding: theme.spacing.md,
     },
     qrInner: {
       position: "relative",

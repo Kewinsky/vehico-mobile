@@ -424,7 +424,7 @@ export function OnboardingScreen({ navigation }: Props) {
                         : theme.colors.border,
                     backgroundColor:
                       vehicleType === "car"
-                        ? hexToRgba(theme.colors.accent, 0.12)
+                        ? hexToRgba(theme.colors.accent, 0.15)
                         : theme.colors.card,
                   },
                   pressed && { transform: [{ scale: 0.985 }] },
@@ -468,7 +468,7 @@ export function OnboardingScreen({ navigation }: Props) {
                         : theme.colors.border,
                     backgroundColor:
                       vehicleType === "motorcycle"
-                        ? hexToRgba(theme.colors.accent, 0.12)
+                        ? hexToRgba(theme.colors.accent, 0.15)
                         : theme.colors.card,
                   },
                   pressed && { transform: [{ scale: 0.985 }] },

@@ -47,12 +47,7 @@ export function AppToasts() {
         borderRadius: 999,
         backgroundColor: "transparent",
         borderWidth: 1,
-        borderColor: hexToRgba(theme.colors.accent, 0.28),
-        shadowColor: hexToRgba(theme.colors.accent, 0.65),
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: mode === "dark" ? 0.34 : 0.2,
-        shadowRadius: 18,
-        elevation: 10,
+        borderColor: hexToRgba(theme.colors.accent, 0.3),
       }}
       icons={{
         success: (

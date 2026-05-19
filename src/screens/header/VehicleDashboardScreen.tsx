@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -19,7 +13,8 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HeaderButton } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
-import { Ionicons ,
+import {
+  Ionicons,
   MaterialCommunityIcons,
   FontAwesome5,
   MaterialIcons,
@@ -83,7 +78,6 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
-import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
@@ -273,10 +267,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const pagerRef = useRef<FlatList<number>>(null);
   const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
   const pagerProgress = useSharedValue(1);
-  const {
-    distanceUnitLabel,
-    consumptionUnitLine,
-  } = units;
+  const { distanceUnitLabel, consumptionUnitLine } = units;
   const currency = settings?.currency ?? "PLN";
   const vehicleImageHeight = Math.min(Math.max(windowHeight * 0.34, 280), 360);
   const mileageStaleYmd = useMemo(() => {
@@ -784,11 +775,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
     let description: string | undefined;
     if (lastOilChange) {
-      if (
-        remainingDays != null &&
-        remainingKm != null &&
-        !isOverdue
-      ) {
+      if (remainingDays != null && remainingKm != null && !isOverdue) {
         description = t("dashboard.oilBanner.remainingBoth", {
           days: remainingDays,
           km: groupThousands(remainingKm, 0, i18n.language),
@@ -820,9 +807,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           }),
         );
       }
-      const workshopName =
-        lastOilChange.workshop_snapshot?.trim() ||
-        null;
+      const workshopName = lastOilChange.workshop_snapshot?.trim() || null;
       if (workshopName) {
         parts.push(
           t("dashboard.oilBanner.lastChangeWorkshop", {
@@ -1120,7 +1105,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         tintColor={theme.colors.fg}
         accessibilityLabel={undefined}
       >
-            <Settings size={theme.icons.headerButton} color={theme.colors.accent} />
+        <Settings size={theme.icons.headerButton} color={theme.colors.accent} />
       </HeaderButton>
     </View>
   );
@@ -1273,7 +1258,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                       styles.qrLogoBadge,
                       {
                         backgroundColor: theme.colors.card,
-                        borderColor: hexToRgba(theme.colors.accent, 0.28),
                       },
                     ]}
                   >

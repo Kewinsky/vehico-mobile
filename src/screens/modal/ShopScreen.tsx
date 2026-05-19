@@ -1,12 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  Alert,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -19,6 +12,7 @@ import * as WebBrowser from "expo-web-browser";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { Button } from "../../ui/components/common/Button";
+import { Card } from "../../ui/components/common/Card";
 import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
 import { ModalLayout } from "../../layouts";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
@@ -87,9 +81,7 @@ export function ShopScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const rollingLocale = i18n.language === "pl" ? "pl-PL" : "en-US";
 
-  const selectedId = isPremium
-    ? (currentPlanProductId ?? REVENUECAT_DEFAULT_SUBSCRIPTION)
-    : selectedSubscription;
+  const selectedId = selectedSubscription;
 
   const exampleReportUrl = `${ENV.REPORTS_APP_URL}/report/example`;
   const comparisonRows = useMemo(
@@ -147,6 +139,21 @@ export function ShopScreen({ navigation }: Props) {
     [t],
   );
 
+  const activePlanDisclosure = useMemo(() => {
+    if (!isPremium || !currentPlanProductId) return null;
+    return getSubscriptionDisclosure(
+      currentPlanProductId,
+      revenueCatProducts[currentPlanProductId],
+      t,
+    );
+  }, [currentPlanProductId, isPremium, revenueCatProducts, t]);
+
+  const activePlanLabel = useMemo(() => {
+    if (!isPremium) return null;
+    if (currentPlanProductId) return planLabels[currentPlanProductId];
+    return t("shop.premiumActive");
+  }, [currentPlanProductId, isPremium, planLabels, t]);
+
   async function handlePurchase(productId: RevenueCatProductId) {
     if (purchasing) return;
     try {
@@ -193,12 +200,6 @@ export function ShopScreen({ navigation }: Props) {
 
   function startPurchase(productId: RevenueCatProductId) {
     if (purchasing) return;
-    if (isPremium) {
-      Alert.alert(t("shop.premiumIsActive"), t("shop.premiumIsActiveBody"), [
-        { text: "OK" },
-      ]);
-      return;
-    }
     void handlePurchase(productId);
   }
 
@@ -278,13 +279,7 @@ export function ShopScreen({ navigation }: Props) {
         </View>
 
         <View
-          style={[
-            styles.compareCard,
-            {
-              backgroundColor: theme.colors.card,
-              borderColor: theme.colors.border,
-            },
-          ]}
+          style={[styles.compareCard, { backgroundColor: theme.colors.card }]}
         >
           <View style={[styles.compareHeaderRow, styles.compareRow]}>
             <View style={styles.compareFeatureCol} />
@@ -365,124 +360,202 @@ export function ShopScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.planSection}>
-          <View
-            style={[
-              styles.planTabs,
-              { backgroundColor: hexToRgba(theme.colors.accent, 0.08) },
-            ]}
-          >
-            {REVENUECAT_PLAN_ORDER.map((planId) => {
-              const selected = selectedId === planId;
-              const badge = planBadge(planId);
-              return (
-                <Pressable
-                  key={planId}
-                  disabled={isPremium || purchasing !== null}
-                  onPress={() => setSelectedSubscription(planId)}
-                  style={({ pressed }) => [
-                    styles.planTab,
-                    selected && {
-                      backgroundColor: theme.colors.accent,
-                    },
-                    pressed && !isPremium && { opacity: 0.85 },
-                  ]}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                >
-                  <Text
-                    style={[
-                      styles.planTabLabel,
-                      {
-                        color: selected ? "#000" : theme.colors.fg,
-                      },
-                    ]}
-                  >
-                    {planLabels[planId]}
-                  </Text>
-                  {badge ? (
+          {isPremium ? (
+            <>
+              <Card
+                withoutDividers
+                style={[
+                  styles.currentPlanCard,
+                  {
+                    backgroundColor: hexToRgba(theme.colors.accent, 0.15),
+                    borderColor: hexToRgba(theme.colors.accent, 0.35),
+                  },
+                ]}
+              >
+                <View style={styles.currentPlanCardInner}>
+                  <View style={styles.currentPlanHeader}>
                     <Text
                       style={[
-                        styles.planTabBadge,
-                        { color: badgeColor(badge, selected) },
+                        styles.currentPlanEyebrow,
+                        { color: theme.colors.muted },
                       ]}
-                      numberOfLines={1}
                     >
-                      {badge.label}
+                      {t("shop.currentPlan")}
                     </Text>
-                  ) : (
-                    <View style={styles.planTabBadgeSpacer} />
-                  )}
-                </Pressable>
-              );
-            })}
-          </View>
+                    <View
+                      style={[
+                        styles.currentPlanBadge,
+                        { backgroundColor: theme.colors.accent },
+                      ]}
+                    >
+                      <Text style={styles.currentPlanBadgeText}>
+                        {t("shop.planActive")}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text
+                    style={[styles.currentPlanName, { color: theme.colors.fg }]}
+                  >
+                    {activePlanLabel}
+                  </Text>
+                  {activePlanDisclosure?.length ? (
+                    <Text
+                      style={[
+                        styles.currentPlanDetail,
+                        { color: theme.colors.muted },
+                      ]}
+                    >
+                      {activePlanDisclosure.length}
+                    </Text>
+                  ) : null}
+                </View>
+              </Card>
 
-          <View style={styles.priceBlock}>
-            {priceRollingValue != null ? (
-              <View style={styles.priceRollingRow}>
-                <AnimatedRollingNumber
-                  value={priceRollingValue}
-                  toFixed={2}
-                  useGrouping
-                  locale={rollingLocale}
-                  spinningAnimationConfig={{ duration: 480 }}
-                  textStyle={[styles.priceRollingNumber, { color: theme.colors.fg }]}
-                />
-                {priceCurrencySymbol ? (
-                  <Text
-                    style={[styles.priceCurrency, { color: theme.colors.fg }]}
-                  >
-                    {priceCurrencySymbol}
-                  </Text>
-                ) : null}
-                {showPerMonthSuffix ? (
-                  <Text
-                    style={[styles.pricePeriod, { color: theme.colors.muted }]}
-                  >
-                    {t("shop.perMonth")}
-                  </Text>
-                ) : null}
+              <Button
+                onPress={() => void handleOpenCustomerCenter()}
+                disabled={actionLoading !== null}
+              >
+                {t("shop.manageSubscription")}
+              </Button>
+            </>
+          ) : (
+            <>
+              <View
+                style={[
+                  styles.planTabs,
+                  { backgroundColor: hexToRgba(theme.colors.accent, 0.15) },
+                ]}
+              >
+                {REVENUECAT_PLAN_ORDER.map((planId) => {
+                  const selected = selectedId === planId;
+                  const badge = planBadge(planId);
+                  return (
+                    <Pressable
+                      key={planId}
+                      disabled={purchasing !== null}
+                      onPress={() => setSelectedSubscription(planId)}
+                      style={({ pressed }) => [
+                        styles.planTab,
+                        selected && {
+                          backgroundColor: theme.colors.accent,
+                        },
+                        pressed && { opacity: 0.85 },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                    >
+                      <Text
+                        style={[
+                          styles.planTabLabel,
+                          {
+                            color: selected ? "#000" : theme.colors.fg,
+                          },
+                        ]}
+                      >
+                        {planLabels[planId]}
+                      </Text>
+                      {badge ? (
+                        <Text
+                          style={[
+                            styles.planTabBadge,
+                            { color: badgeColor(badge, selected) },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {badge.label}
+                        </Text>
+                      ) : (
+                        <View style={styles.planTabBadgeSpacer} />
+                      )}
+                    </Pressable>
+                  );
+                })}
               </View>
-            ) : (
-              <Text style={[styles.priceFallback, { color: theme.colors.fg }]}>
-                {selectedPriceString}
-                {showPerMonthSuffix ? ` ${t("shop.perMonth")}` : ""}
-              </Text>
-            )}
-            <Text style={[styles.priceSubline, { color: theme.colors.muted }]}>
-              {isLifetimeProduct(selectedId)
-                ? `${selectedDisclosure.length} · ${selectedPriceString}`
-                : `${selectedDisclosure.length} · ${selectedPriceString}${
-                    isYearlyProduct(selectedId) ? ` ${t("shop.perYear")}` : ""
-                  }`}
-            </Text>
-          </View>
 
-          <Button
-            onPress={() =>
-              isPremium
-                ? void handleOpenCustomerCenter()
-                : startPurchase(selectedId)
-            }
-            disabled={isPremium ? actionLoading !== null : !canPurchase}
-            loading={purchasing !== null}
-          >
-            {isPremium
-              ? t("shop.manageSubscription")
-              : t("shop.subscribeCta", {
+              <View style={styles.priceBlock}>
+                {priceRollingValue != null ? (
+                  <View style={styles.priceRollingRow}>
+                    <AnimatedRollingNumber
+                      value={priceRollingValue}
+                      toFixed={2}
+                      useGrouping
+                      locale={rollingLocale}
+                      spinningAnimationConfig={{ duration: 480 }}
+                      textStyle={[
+                        styles.priceRollingNumber,
+                        { color: theme.colors.fg },
+                      ]}
+                    />
+                    {priceCurrencySymbol ? (
+                      <Text
+                        style={[
+                          styles.priceCurrency,
+                          { color: theme.colors.fg },
+                        ]}
+                      >
+                        {priceCurrencySymbol}
+                      </Text>
+                    ) : null}
+                    {showPerMonthSuffix ? (
+                      <Text
+                        style={[
+                          styles.pricePeriod,
+                          { color: theme.colors.muted },
+                        ]}
+                      >
+                        {t("shop.perMonth")}
+                      </Text>
+                    ) : null}
+                  </View>
+                ) : (
+                  <Text
+                    style={[styles.priceFallback, { color: theme.colors.fg }]}
+                  >
+                    {selectedPriceString}
+                    {showPerMonthSuffix ? ` ${t("shop.perMonth")}` : ""}
+                  </Text>
+                )}
+                <Text
+                  style={[styles.priceSubline, { color: theme.colors.muted }]}
+                >
+                  {isLifetimeProduct(selectedId)
+                    ? `${selectedDisclosure.length} · ${selectedPriceString}`
+                    : `${selectedDisclosure.length} · ${selectedPriceString}${
+                        isYearlyProduct(selectedId)
+                          ? ` ${t("shop.perYear")}`
+                          : ""
+                      }`}
+                </Text>
+              </View>
+
+              <Button
+                onPress={() => startPurchase(selectedId)}
+                disabled={!canPurchase}
+                loading={purchasing !== null}
+              >
+                {t("shop.subscribeCta", {
                   plan: planLabels[selectedId],
                 })}
-          </Button>
+              </Button>
 
-          <Text style={[styles.subscribeSubtitle, { color: theme.colors.muted }]}>
-            {t("shop.subscribeSubtitle")}
-          </Text>
+              <Text
+                style={[
+                  styles.subscribeSubtitle,
+                  { color: theme.colors.muted },
+                ]}
+              >
+                {t("shop.subscribeSubtitle")}
+              </Text>
 
-          {selectedDisclosure.isAutoRenewable ? (
-            <Text style={[styles.autoRenewNote, { color: theme.colors.muted }]}>
-              {t("shop.autoRenewDisclaimer")}
-            </Text>
-          ) : null}
+              {selectedDisclosure.isAutoRenewable ? (
+                <Text
+                  style={[styles.autoRenewNote, { color: theme.colors.muted }]}
+                >
+                  {t("shop.autoRenewDisclaimer")}
+                </Text>
+              ) : null}
+            </>
+          )}
         </View>
 
         <LegalLinksRow
@@ -543,7 +616,6 @@ function makeStyles(theme: AppTheme) {
     },
     compareCard: {
       borderRadius: radius.lg,
-      borderWidth: 1,
       overflow: "hidden",
     },
     compareHeaderRow: {
@@ -605,6 +677,43 @@ function makeStyles(theme: AppTheme) {
     },
     planSection: {
       gap: spacing.md,
+    },
+    currentPlanCard: {
+      borderWidth: 1,
+    },
+    currentPlanCardInner: {
+      padding: spacing.md,
+      gap: spacing.xs,
+    },
+    currentPlanHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm,
+    },
+    currentPlanEyebrow: {
+      fontSize: typography.small,
+      fontWeight: typography.fontWeight.medium,
+      textTransform: "uppercase",
+      letterSpacing: 0.6,
+    },
+    currentPlanBadge: {
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 4,
+      borderRadius: radius.lg,
+    },
+    currentPlanBadgeText: {
+      fontSize: typography.small - 1,
+      fontWeight: typography.fontWeight.bold,
+      color: "#000",
+    },
+    currentPlanName: {
+      fontSize: typography.title,
+      fontWeight: typography.fontWeight.bold,
+    },
+    currentPlanDetail: {
+      fontSize: typography.small,
+      lineHeight: typography.small + 4,
     },
     planTabs: {
       flexDirection: "row",

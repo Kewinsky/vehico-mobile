@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Dimensions, Pressable, StyleSheet, Text, View , Alert } from "react-native";
+import {
+  Dimensions,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  Alert,
+} from "react-native";
 import { Image } from "expo-image";
 import { useIsFocused } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -156,7 +163,7 @@ function VehicleCardImage({
           <Ionicons
             name="lock-closed"
             size={48}
-            color={hexToRgba(theme.colors.accent, 0.7)}
+            color={hexToRgba(theme.colors.accent, 0.5)}
           />
         </View>
       )}
