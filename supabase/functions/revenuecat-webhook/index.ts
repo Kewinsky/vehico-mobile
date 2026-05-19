@@ -8,7 +8,7 @@
  * Required env (Supabase Edge Function secrets):
  *   REVENUECAT_WEBHOOK_AUTHORIZATION  – secret that must match the header RevenueCat sends.
  *
- * Product IDs and entitlement must match app config (services/payments/revenuecat.ts).
+ * Product IDs: shared/payments/iapProducts.ts (single source of truth).
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -19,11 +19,14 @@ import {
   PREMIUM_TIER_ENTITLEMENT_LIMITS,
   FREE_TIER_ENTITLEMENT_LIMITS,
 } from "../_shared/applyRevenueCatEntitlementUpdate.ts";
+import {
+  IAP_PRODUCT_IDS,
+  IAP_SUBSCRIPTION_PRODUCT_IDS,
+  isSubscriptionIapProduct,
+  normalizeIapProductId,
+} from "../../../shared/payments/iapProducts.ts";
 
-// Must match RevenueCat dashboard and vehico-mobile src/services/payments/revenuecat.ts
 const PREMIUM_ENTITLEMENT_ID = "vehico Premium";
-const PRODUCT_ID_LIFETIME = "lifetime";
-const PRODUCT_IDS_SUBSCRIPTION = ["monthly", "yearly"] as const;
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -53,16 +56,14 @@ interface RevenueCatWebhookBody {
 }
 
 function isLifetimeProduct(productId: string | undefined): boolean {
-  if (!productId) return false;
-  return (
-    productId === PRODUCT_ID_LIFETIME ||
-    productId.toLowerCase().includes("lifetime")
-  );
+  return normalizeIapProductId(productId) === IAP_PRODUCT_IDS.lifetime;
 }
 
 function isSubscriptionProduct(productId: string | undefined): boolean {
   if (!productId) return false;
-  return PRODUCT_IDS_SUBSCRIPTION.some(
+  const normalized = normalizeIapProductId(productId);
+  if (normalized != null && isSubscriptionIapProduct(normalized)) return true;
+  return IAP_SUBSCRIPTION_PRODUCT_IDS.some(
     (id) => productId === id || productId.startsWith(`${id}:`),
   );
 }
@@ -74,14 +75,8 @@ function getTargetUserId(event: RevenueCatWebhookEvent): string | null {
   return null;
 }
 
-/** Normalize RevenueCat product_id to our enum (monthly | yearly | lifetime). */
 function normalizeProductId(productId: string | undefined): string | null {
-  if (!productId) return null;
-  const lower = productId.toLowerCase();
-  if (lower === "lifetime" || lower.includes("lifetime")) return "lifetime";
-  if (lower === "monthly" || lower.startsWith("monthly")) return "monthly";
-  if (lower === "yearly" || lower.startsWith("yearly")) return "yearly";
-  return null;
+  return normalizeIapProductId(productId);
 }
 
 /** Build entitlements update from event type and payload. */
@@ -108,7 +103,7 @@ function getEntitlementsUpdate(
         return {
           plan: "lifetime",
           premium_until: null,
-          product_id: normalizedProduct ?? "lifetime",
+          product_id: normalizedProduct ?? IAP_PRODUCT_IDS.lifetime,
           ...PREMIUM_TIER_ENTITLEMENT_LIMITS,
         };
       }
@@ -170,7 +165,7 @@ function getEntitlementsUpdate(
         return {
           plan: "lifetime",
           premium_until: null,
-          product_id: normalized ?? "lifetime",
+          product_id: normalized ?? IAP_PRODUCT_IDS.lifetime,
           ...PREMIUM_TIER_ENTITLEMENT_LIMITS,
         };
       }

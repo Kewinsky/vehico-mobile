@@ -123,7 +123,7 @@ export function SettingsScreen({ navigation }: Props) {
     }
   }, [t]);
 
-  async function handleDeleteAccount() {
+  const handleDeleteAccount = useCallback(async () => {
     if (deletingAccount) return;
     try {
       setDeletingAccount(true);
@@ -135,9 +135,9 @@ export function SettingsScreen({ navigation }: Props) {
     } finally {
       setDeletingAccount(false);
     }
-  }
+  }, [deletingAccount, signOut, t]);
 
-  function openDeleteAccountMenu() {
+  const openDeleteAccountMenu = useCallback(() => {
     if (deletingAccount) return;
     Alert.alert(t("profile.deleteAccountConfirmTitle"), t("profile.deleteAccountConfirmBody"), [
       { text: t("common.cancel"), style: "cancel" },
@@ -147,7 +147,7 @@ export function SettingsScreen({ navigation }: Props) {
         onPress: () => void handleDeleteAccount(),
       },
     ]);
-  }
+  }, [deletingAccount, handleDeleteAccount, t]);
 
   const rows: RowItem[] = useMemo(
     (): RowItem[] => [

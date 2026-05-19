@@ -8,6 +8,7 @@ import {
   EntitlementsProvider,
   useEntitlements,
 } from "../../app/providers/EntitlementsProvider";
+import { IAP_PRODUCT_IDS } from "../../../shared/payments/iapProducts";
 
 jest.mock("../../app/providers/AuthProvider", () => ({
   useAuth: () => ({
@@ -100,7 +101,7 @@ describe("EntitlementsProvider (Supabase entitlements + computed limits)", () =>
           workshops_limit: 3,
           reminders_limit: 5,
           premium_until: null,
-          product_id: "monthly",
+          product_id: IAP_PRODUCT_IDS.monthly,
           free_plan_vehicle_id: "v1",
           downgraded_at: null,
           free_plan_workshop_ids: ["w1"],
@@ -125,7 +126,7 @@ describe("EntitlementsProvider (Supabase entitlements + computed limits)", () =>
     expect(result.current.freePlanReminderIds).toEqual([]);
     expect(result.current.freePlanTireId).toBeNull();
     expect(result.current.freePlanWheelId).toBeNull();
-    expect(result.current.currentPlanProductId).toBe("monthly");
+    expect(result.current.currentPlanProductId).toBe(IAP_PRODUCT_IDS.monthly);
   });
 
   it("setFreePlanVehicleId calls RPC and refreshes entitlements", async () => {

@@ -1,14 +1,15 @@
 import type { TFunction } from "i18next";
 import type { PurchasesStoreProduct } from "react-native-purchases";
 
-import type { RevenueCatProductId } from "../services/payments/revenuecat";
-import { isSubscriptionProduct } from "../services/payments/revenuecat";
-
-const PRODUCT_I18N_KEY: Record<RevenueCatProductId, string> = {
-  monthly: "premium_monthly",
-  yearly: "premium_yearly",
-  lifetime: "lifetime",
-};
+import {
+  getIapProductKind,
+  IAP_PRODUCT_NAME_I18N_KEY,
+  IAP_SUBSCRIPTION_PERIOD_I18N_KEY,
+  isMonthlyIapProduct,
+  isSubscriptionIapProduct,
+  isYearlyIapProduct,
+  type IapProductId,
+} from "../../shared/payments/iapProducts";
 
 export type SubscriptionDisclosureLines = {
   title: string;
@@ -19,18 +20,22 @@ export type SubscriptionDisclosureLines = {
 };
 
 export function getSubscriptionDisclosure(
-  productId: RevenueCatProductId,
+  productId: IapProductId,
   product: PurchasesStoreProduct | null | undefined,
   t: TFunction,
 ): SubscriptionDisclosureLines {
-  const i18nKey = PRODUCT_I18N_KEY[productId];
+  const kind = getIapProductKind(productId);
+  const i18nKey = IAP_PRODUCT_NAME_I18N_KEY[productId];
   const title = t(`shop.products.${i18nKey}.name`);
-  const length = t(`shop.subscriptionPeriod.${productId}`);
+  const length =
+    kind != null
+      ? t(`shop.subscriptionPeriod.${IAP_SUBSCRIPTION_PERIOD_I18N_KEY[kind]}`)
+      : "";
   const price = product?.priceString?.trim() || "—";
-  const isAutoRenewable = isSubscriptionProduct(productId);
+  const isAutoRenewable = isSubscriptionIapProduct(productId);
 
   let pricePerUnit: string | null = null;
-  if (productId === "yearly" && product?.price != null && product.price > 0) {
+  if (isYearlyIapProduct(productId) && product?.price != null && product.price > 0) {
     const perMonth = product.price / 12;
     const formatted = new Intl.NumberFormat(undefined, {
       style: "currency",
@@ -39,7 +44,7 @@ export function getSubscriptionDisclosure(
       maximumFractionDigits: 2,
     }).format(perMonth);
     pricePerUnit = t("shop.pricePerMonth", { price: formatted });
-  } else if (productId === "monthly" && price !== "—") {
+  } else if (isMonthlyIapProduct(productId) && price !== "—") {
     pricePerUnit = t("shop.billedMonthly", { price });
   }
 

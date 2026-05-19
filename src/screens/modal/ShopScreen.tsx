@@ -25,7 +25,15 @@ import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import type { AppTheme } from "../../ui/theme";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import type { RevenueCatProductId } from "../../services/payments/revenuecat";
+import {
+  isLifetimeProduct,
+  isMonthlyProduct,
+  isYearlyProduct,
+  REVENUECAT_DEFAULT_SUBSCRIPTION,
+  REVENUECAT_PLAN_ORDER,
+  REVENUECAT_PRODUCT_IDS,
+  type RevenueCatProductId,
+} from "../../services/payments/revenuecat";
 import { ENV } from "../../config/env";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
@@ -41,9 +49,6 @@ import {
 } from "./shopComparison";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Shop">;
-
-const PLANS: RevenueCatProductId[] = ["monthly", "yearly", "lifetime"];
-const DEFAULT_SUBSCRIPTION: RevenueCatProductId = "yearly";
 
 type PlanBadge = { label: string; tone: "save" | "deal" | "monthly" };
 
@@ -78,12 +83,12 @@ export function ShopScreen({ navigation }: Props) {
   const [actionLoading, setActionLoading] = useState<"restore" | null>(null);
   const [customerCenterVisible, setCustomerCenterVisible] = useState(false);
   const [selectedSubscription, setSelectedSubscription] =
-    useState<RevenueCatProductId>(DEFAULT_SUBSCRIPTION);
+    useState<RevenueCatProductId>(REVENUECAT_DEFAULT_SUBSCRIPTION);
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const rollingLocale = i18n.language === "pl" ? "pl-PL" : "en-US";
 
   const selectedId = isPremium
-    ? (currentPlanProductId ?? DEFAULT_SUBSCRIPTION)
+    ? (currentPlanProductId ?? REVENUECAT_DEFAULT_SUBSCRIPTION)
     : selectedSubscription;
 
   const exampleReportUrl = `${ENV.REPORTS_APP_URL}/report/example`;
@@ -103,7 +108,7 @@ export function ShopScreen({ navigation }: Props) {
   const priceRollingValue = useMemo(() => {
     const raw = selectedProduct?.price;
     if (raw == null || !Number.isFinite(raw) || raw <= 0) return null;
-    if (selectedId === "yearly") return raw / 12;
+    if (isYearlyProduct(selectedId)) return raw / 12;
     return raw;
   }, [selectedId, selectedProduct?.price]);
 
@@ -113,26 +118,34 @@ export function ShopScreen({ navigation }: Props) {
     }, [refresh]),
   );
 
+  const monthlyPremiumPrice =
+    revenueCatProducts[REVENUECAT_PRODUCT_IDS.monthly]?.price;
+  const yearlyPremiumPrice =
+    revenueCatProducts[REVENUECAT_PRODUCT_IDS.yearly]?.price;
+
   const yearlySavePercent = useMemo(() => {
-    const monthly = revenueCatProducts.monthly?.price;
-    const yearly = revenueCatProducts.yearly?.price;
     if (
-      monthly == null ||
-      yearly == null ||
-      monthly <= 0 ||
-      yearly <= 0
+      monthlyPremiumPrice == null ||
+      yearlyPremiumPrice == null ||
+      monthlyPremiumPrice <= 0 ||
+      yearlyPremiumPrice <= 0
     ) {
       return null;
     }
-    const pct = Math.round((1 - yearly / (monthly * 12)) * 100);
+    const pct = Math.round(
+      (1 - yearlyPremiumPrice / (monthlyPremiumPrice * 12)) * 100,
+    );
     return pct > 0 ? pct : null;
-  }, [revenueCatProducts.monthly?.price, revenueCatProducts.yearly?.price]);
+  }, [monthlyPremiumPrice, yearlyPremiumPrice]);
 
-  const planLabels: Record<RevenueCatProductId, string> = {
-    monthly: t("shop.subCards.monthly"),
-    yearly: t("shop.subCards.yearly"),
-    lifetime: t("shop.subCards.lifetime"),
-  };
+  const planLabels: Record<RevenueCatProductId, string> = useMemo(
+    () => ({
+      [REVENUECAT_PRODUCT_IDS.monthly]: t("shop.subCards.monthly"),
+      [REVENUECAT_PRODUCT_IDS.yearly]: t("shop.subCards.yearly"),
+      [REVENUECAT_PRODUCT_IDS.lifetime]: t("shop.subCards.lifetime"),
+    }),
+    [t],
+  );
 
   async function handlePurchase(productId: RevenueCatProductId) {
     if (purchasing) return;
@@ -192,7 +205,7 @@ export function ShopScreen({ navigation }: Props) {
   const canPurchase =
     purchasing === null && actionLoading === null && !isPremium;
 
-  const showPerMonthSuffix = selectedId !== "lifetime";
+  const showPerMonthSuffix = !isLifetimeProduct(selectedId);
 
   const priceCurrencySymbol = useMemo(
     () =>
@@ -217,16 +230,16 @@ export function ShopScreen({ navigation }: Props) {
   }
 
   function planBadge(productId: RevenueCatProductId): PlanBadge | null {
-    if (productId === "monthly") {
+    if (isMonthlyProduct(productId)) {
       return { label: t("shop.monthlyBadge"), tone: "monthly" };
     }
-    if (productId === "yearly" && yearlySavePercent != null) {
+    if (isYearlyProduct(productId) && yearlySavePercent != null) {
       return {
         label: t("shop.saveBadge", { percent: yearlySavePercent }),
         tone: "save",
       };
     }
-    if (productId === "lifetime") {
+    if (isLifetimeProduct(productId)) {
       return { label: t("shop.lifetimeBadge"), tone: "deal" };
     }
     return null;
@@ -358,7 +371,7 @@ export function ShopScreen({ navigation }: Props) {
               { backgroundColor: hexToRgba(theme.colors.accent, 0.08) },
             ]}
           >
-            {PLANS.map((planId) => {
+            {REVENUECAT_PLAN_ORDER.map((planId) => {
               const selected = selectedId === planId;
               const badge = planBadge(planId);
               return (
@@ -437,10 +450,10 @@ export function ShopScreen({ navigation }: Props) {
               </Text>
             )}
             <Text style={[styles.priceSubline, { color: theme.colors.muted }]}>
-              {selectedId === "lifetime"
+              {isLifetimeProduct(selectedId)
                 ? `${selectedDisclosure.length} · ${selectedPriceString}`
                 : `${selectedDisclosure.length} · ${selectedPriceString}${
-                    selectedId === "yearly" ? ` ${t("shop.perYear")}` : ""
+                    isYearlyProduct(selectedId) ? ` ${t("shop.perYear")}` : ""
                   }`}
             </Text>
           </View>
