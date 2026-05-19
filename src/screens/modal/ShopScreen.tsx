@@ -1,10 +1,18 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import Purchases from "react-native-purchases";
+import RevenueCatUI from "react-native-purchases-ui";
 import { AnimatedRollingNumber } from "react-native-animated-rolling-numbers";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as WebBrowser from "expo-web-browser";
@@ -63,14 +71,12 @@ export function ShopScreen({ navigation }: Props) {
     revenueCatProducts,
     purchaseRevenueCatProduct,
     restoreRevenueCatPurchases,
-    presentRevenueCatCustomerCenter,
   } = useEntitlements();
   const [purchasing, setPurchasing] = useState<RevenueCatProductId | null>(
     null,
   );
-  const [actionLoading, setActionLoading] = useState<
-    "restore" | "customerCenter" | null
-  >(null);
+  const [actionLoading, setActionLoading] = useState<"restore" | null>(null);
+  const [customerCenterVisible, setCustomerCenterVisible] = useState(false);
   const [selectedSubscription, setSelectedSubscription] =
     useState<RevenueCatProductId>(DEFAULT_SUBSCRIPTION);
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -148,16 +154,14 @@ export function ShopScreen({ navigation }: Props) {
     }
   }
 
-  async function handleOpenCustomerCenter() {
+  function handleOpenCustomerCenter() {
     if (actionLoading || purchasing) return;
-    try {
-      setActionLoading("customerCenter");
-      await presentRevenueCatCustomerCenter();
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
-    } finally {
-      setActionLoading(null);
-    }
+    setCustomerCenterVisible(true);
+  }
+
+  function handleCustomerCenterDismiss() {
+    setCustomerCenterVisible(false);
+    void refresh();
   }
 
   async function handleRestorePurchases() {
@@ -448,11 +452,7 @@ export function ShopScreen({ navigation }: Props) {
                 : startPurchase(selectedId)
             }
             disabled={isPremium ? actionLoading !== null : !canPurchase}
-            loading={
-              isPremium
-                ? actionLoading === "customerCenter"
-                : purchasing !== null
-            }
+            loading={purchasing !== null}
           >
             {isPremium
               ? t("shop.manageSubscription")
@@ -479,6 +479,28 @@ export function ShopScreen({ navigation }: Props) {
           restoreLoading={actionLoading === "restore"}
         />
       </NativeHeaderScrollView>
+
+      <Modal
+        visible={customerCenterVisible}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={handleCustomerCenterDismiss}
+      >
+        <View
+          style={[
+            styles.customerCenterModal,
+            { backgroundColor: theme.colors.bg },
+          ]}
+        >
+          <RevenueCatUI.CustomerCenterView
+            style={styles.customerCenterView}
+            onDismiss={handleCustomerCenterDismiss}
+            onRestoreCompleted={() => {
+              void refresh();
+            }}
+          />
+        </View>
+      </Modal>
     </ModalLayout>
   );
 }
@@ -643,6 +665,12 @@ function makeStyles(theme: AppTheme) {
       fontSize: 11,
       lineHeight: 15,
       textAlign: "center",
+    },
+    customerCenterModal: {
+      flex: 1,
+    },
+    customerCenterView: {
+      flex: 1,
     },
   });
 }
