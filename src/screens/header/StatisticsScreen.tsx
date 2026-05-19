@@ -762,6 +762,7 @@ export function StatisticsScreen(props: Props) {
     period,
     vehicleId,
     embedded,
+    isPremium,
     navigation,
     onServiceEntryPress,
     totals,

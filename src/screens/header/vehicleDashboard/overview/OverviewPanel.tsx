@@ -41,6 +41,7 @@ export function OverviewPanel(props: OverviewPanelProps) {
       <OverviewCallouts
         t={props.t}
         theme={props.theme}
+        isPremium={props.isPremium}
         vehicle={props.vehicle}
         mileageStaleTitle={props.mileageStaleTitle}
         handleQuickMileageEdit={props.handleQuickMileageEdit}

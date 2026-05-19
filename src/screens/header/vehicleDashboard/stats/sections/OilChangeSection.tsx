@@ -1,11 +1,33 @@
 import { Pressable, Text, View } from "react-native";
 import { CircleHelp } from "lucide-react-native";
 
+import { PremiumFeatureGate } from "../../../../../ui/limits/PremiumFeatureGate";
 import { StatTile } from "../components/StatTile";
 import type { StatisticsPanelProps } from "../types";
 
 export function OilChangeSection({
-  styles, theme, t, i18n, distanceUnitLabel, oilLastChangeShowDate, setOilLastChangeShowDate, lastOilChangeDateLabel, lastOilChange, oilAvgIntervalShowMonths, setOilAvgIntervalShowMonths, oilIntervals, showOilSectionInfo, oilLife, oilLifeStatusText, oilLifeProgressPercent, oilLifeOverlayTextWidthPercent, fmtNumber, fmtMonths, groupThousands,
+  styles,
+  theme,
+  t,
+  isPremium,
+  navigation,
+  i18n,
+  distanceUnitLabel,
+  oilLastChangeShowDate,
+  setOilLastChangeShowDate,
+  lastOilChangeDateLabel,
+  lastOilChange,
+  oilAvgIntervalShowMonths,
+  setOilAvgIntervalShowMonths,
+  oilIntervals,
+  showOilSectionInfo,
+  oilLife,
+  oilLifeStatusText,
+  oilLifeProgressPercent,
+  oilLifeOverlayTextWidthPercent,
+  fmtNumber,
+  fmtMonths,
+  groupThousands,
 }: StatisticsPanelProps) {
   return (
       <View style={styles.section}>
@@ -19,10 +41,12 @@ export function OilChangeSection({
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel={t("dashboard.stats.chartInfo.openOilSection")}
+            disabled={!isPremium}
           >
             <CircleHelp size={18} color={theme.colors.muted} />
           </Pressable>
         </View>
+        <PremiumFeatureGate isPremium={isPremium} navigation={navigation}>
         <View style={styles.tilesRow}>
           <StatTile
             theme={theme}
@@ -148,6 +172,7 @@ export function OilChangeSection({
             </View>
           </View>
         ) : null}
+        </PremiumFeatureGate>
       </View>
   );
 }

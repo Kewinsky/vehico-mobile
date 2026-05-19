@@ -22,6 +22,7 @@ export type StatisticsPanelProps = {
   period: PeriodKey;
   vehicleId: string;
   embedded: boolean;
+  isPremium: boolean;
   navigation: NativeStackNavigationProp<AppStackParamList>;
   onServiceEntryPress: (entryId: string) => void;
   totals: {

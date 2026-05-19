@@ -10,6 +10,7 @@ import type { OilChangeDueState } from "../../../../utils/oilChangeDue";
 type OverviewCalloutsProps = {
   t: TFunction;
   theme: { colors: { accent: string } };
+  isPremium: boolean;
   vehicle: Vehicle | null;
   mileageStaleTitle: string | null;
   handleQuickMileageEdit: () => void;
@@ -31,6 +32,7 @@ type OverviewCalloutsProps = {
 export function OverviewCallouts({
   t,
   theme,
+  isPremium,
   vehicle,
   mileageStaleTitle,
   handleQuickMileageEdit,
@@ -65,7 +67,7 @@ export function OverviewCallouts({
           ]}
         />
       ) : null}
-      {insuranceCalloutCopy ? (
+      {isPremium && insuranceCalloutCopy ? (
         <DashboardCalloutCard
           accentColor={theme.colors.accent}
           buttonColor={theme.colors.accent}
@@ -92,7 +94,7 @@ export function OverviewCallouts({
           ]}
         />
       ) : null}
-      {inspectionCalloutCopy ? (
+      {isPremium && inspectionCalloutCopy ? (
         <DashboardCalloutCard
           accentColor={theme.colors.accent}
           buttonColor={theme.colors.accent}
@@ -119,7 +121,7 @@ export function OverviewCallouts({
           ]}
         />
       ) : null}
-      {oilChangeDueState.showBanner ? (
+      {isPremium && oilChangeDueState.showBanner ? (
         <DashboardCalloutCard
           accentColor={SERVICE_CATEGORY_COLORS.oil_change}
           buttonColor={SERVICE_CATEGORY_COLORS.oil_change}
