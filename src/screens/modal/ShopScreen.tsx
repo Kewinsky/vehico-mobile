@@ -5,7 +5,6 @@ import {
   Animated,
   Easing,
   Modal,
-  type LayoutChangeEvent,
   Pressable,
   StyleSheet,
   Text,
@@ -35,6 +34,7 @@ import { DecorativeBackground } from "../../ui/components/branding/DecorativeBac
 import { Logo } from "../../ui/components/branding/Logo";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getSubscriptionDisclosure } from "../../utils/subscriptionDisclosure";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Shop">;
 const DEFAULT_SUBSCRIPTION: RevenueCatProductId = "yearly";
@@ -53,12 +53,6 @@ const HERO_ICON_POSITIONS = [
   { bottom: 16, left: 22, rotation: "8deg" },
   { bottom: 10, right: 14, rotation: "-9deg" },
 ] as const;
-/** Pixels before the end of the scroll where the pricing sheet animates in */
-const FOOTER_REVEAL_DISTANCE = 100;
-/** Fallback hide distance before we measure the real sheet height */
-const FOOTER_HIDE_FALLBACK = 360;
-/** Space under scroll content so the last rows clear the sheet when it is shown */
-const FOOTER_SCROLL_CLEARANCE = 228;
 
 export function ShopScreen({ navigation }: Props) {
   const { t } = useTranslation();
@@ -79,126 +73,21 @@ export function ShopScreen({ navigation }: Props) {
   const [customerCenterVisible, setCustomerCenterVisible] = useState(false);
   const [selectedSubscription, setSelectedSubscription] =
     useState<RevenueCatProductId>(DEFAULT_SUBSCRIPTION);
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const [scrollViewHeight, setScrollViewHeight] = useState(0);
-  const [scrollContentHeight, setScrollContentHeight] = useState(0);
-  const [footerSheetHeight, setFooterSheetHeight] = useState(0);
   const styles = useMemo(() => makeStyles(theme), [theme]);
-
-  const maxScrollY = Math.max(scrollContentHeight - scrollViewHeight, 0);
-  const footerHideOffset =
-    Math.max(footerSheetHeight, FOOTER_HIDE_FALLBACK) + 24;
-
-  const footerTranslateY = useMemo(() => {
-    if (maxScrollY <= 0) {
-      return scrollY.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 0],
-        extrapolate: "clamp",
-      });
-    }
-    const revealStart = Math.max(maxScrollY - FOOTER_REVEAL_DISTANCE, 0);
-    if (revealStart <= 0) {
-      return scrollY.interpolate({
-        inputRange: [0, maxScrollY],
-        outputRange: [footerHideOffset, 0],
-        extrapolate: "clamp",
-      });
-    }
-    return scrollY.interpolate({
-      inputRange: [0, revealStart, maxScrollY],
-      outputRange: [footerHideOffset, footerHideOffset, 0],
-      extrapolate: "clamp",
-    });
-  }, [footerHideOffset, maxScrollY, scrollY]);
-
-  const footerOpacity = useMemo(() => {
-    if (maxScrollY <= 0) {
-      return scrollY.interpolate({
-        inputRange: [0, 1],
-        outputRange: [1, 1],
-        extrapolate: "clamp",
-      });
-    }
-    const revealStart = Math.max(maxScrollY - FOOTER_REVEAL_DISTANCE, 0);
-    if (revealStart <= 0) {
-      return scrollY.interpolate({
-        inputRange: [0, maxScrollY],
-        outputRange: [0, 1],
-        extrapolate: "clamp",
-      });
-    }
-    return scrollY.interpolate({
-      inputRange: [0, revealStart, maxScrollY],
-      outputRange: [0, 0, 1],
-      extrapolate: "clamp",
-    });
-  }, [maxScrollY, scrollY]);
-
-  const scrollHintOpacity = useMemo(() => {
-    if (maxScrollY <= 0) {
-      return scrollY.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 0],
-        extrapolate: "clamp",
-      });
-    }
-    const revealStart = Math.max(maxScrollY - FOOTER_REVEAL_DISTANCE, 0);
-    if (revealStart <= 0) {
-      return scrollY.interpolate({
-        inputRange: [0, maxScrollY * 0.5],
-        outputRange: [1, 0],
-        extrapolate: "clamp",
-      });
-    }
-    const pFade = Math.max(revealStart - 52, revealStart * 0.15);
-    const p1 = Math.min(pFade, revealStart - 0.01);
-    return scrollY.interpolate({
-      inputRange: [0, p1, revealStart],
-      outputRange: [1, 0.42, 0],
-      extrapolate: "clamp",
-    });
-  }, [maxScrollY, scrollY]);
-
-  const chevronBounce = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(chevronBounce, {
-          toValue: 1,
-          duration: 700,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(chevronBounce, {
-          toValue: 0,
-          duration: 700,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [chevronBounce]);
-  const chevronTranslateY = chevronBounce.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 7],
-    extrapolate: "clamp",
-  });
-
-  function handleScrollLayout(event: LayoutChangeEvent) {
-    setScrollViewHeight(event.nativeEvent.layout.height);
-  }
-
-  function handleFooterSheetLayout(event: LayoutChangeEvent) {
-    const next = Math.round(event.nativeEvent.layout.height);
-    setFooterSheetHeight((prev) => (prev === next ? prev : next));
-  }
 
   const selectedId = isPremium
     ? (currentPlanProductId ?? DEFAULT_SUBSCRIPTION)
     : selectedSubscription;
+
+  const selectedDisclosure = useMemo(
+    () =>
+      getSubscriptionDisclosure(
+        selectedId,
+        revenueCatProducts[selectedId],
+        t,
+      ),
+    [revenueCatProducts, selectedId, t],
+  );
 
   async function handlePurchase(productId: RevenueCatProductId) {
     if (purchasing) return;
@@ -353,10 +242,12 @@ export function ShopScreen({ navigation }: Props) {
 
   function PriceCard({
     productId,
+    planLabel,
     unitLabel,
     primaryValue,
   }: {
     productId: RevenueCatProductId;
+    planLabel: string;
     unitLabel: string;
     primaryValue: string;
   }) {
@@ -372,6 +263,8 @@ export function ShopScreen({ navigation }: Props) {
         onPress={() => {
           if (!isPremium) setSelectedSubscription(productId);
         }}
+        accessibilityRole="button"
+        accessibilityState={{ selected, disabled }}
         style={({ pressed }) => [
           styles.tierPressable,
           { opacity: grayedOut ? 0.6 : pressed && !disabled ? 0.9 : 1 },
@@ -386,6 +279,15 @@ export function ShopScreen({ navigation }: Props) {
             },
           ]}
         >
+          <Text
+            style={[
+              styles.tierPlanName,
+              { color: grayedOut ? theme.colors.muted : theme.colors.fg },
+            ]}
+            numberOfLines={2}
+          >
+            {planLabel}
+          </Text>
           <View style={styles.tierTopRow}>
             <Text
               style={[
@@ -439,18 +341,10 @@ export function ShopScreen({ navigation }: Props) {
       background={<DecorativeBackground variant="landing" />}
       useHorizontalContentInset={false}
     >
-      <View style={{ flex: 1 }}>
+      <View style={styles.screenRoot}>
         <NativeHeaderScrollView
-          onLayout={handleScrollLayout}
-          onContentSizeChange={(_, height) => setScrollContentHeight(height)}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true },
-          )}
-          scrollEventThrottle={16}
           contentContainerStyle={{
-            paddingBottom:
-              theme.spacing.sm + FOOTER_SCROLL_CLEARANCE + insets.bottom,
+            paddingBottom: theme.spacing.md,
           }}
         >
           <View style={styles.container}>
@@ -482,57 +376,68 @@ export function ShopScreen({ navigation }: Props) {
           </View>
         </NativeHeaderScrollView>
 
-        <Animated.View
-          pointerEvents="none"
-          accessibilityRole="none"
-          accessibilityLabel={t("shop.scrollForPricingHint")}
-          style={[
-            styles.scrollDownHint,
-            {
-              bottom: insets.bottom - 10,
-              opacity: scrollHintOpacity,
-            },
-          ]}
-        >
-          <Animated.View
-            style={{ transform: [{ translateY: chevronTranslateY }] }}
-          >
-            <Ionicons
-              name="chevron-down"
-              size={30}
-              color={hexToRgba(theme.colors.accent, 0.85)}
-            />
-          </Animated.View>
-        </Animated.View>
-
-        <Animated.View
-          onLayout={handleFooterSheetLayout}
+        <View
           style={[
             styles.footerPanel,
             {
               backgroundColor: hexToRgba(theme.colors.accent, 0.1),
-              paddingBottom: insets.bottom,
-              opacity: footerOpacity,
-              transform: [{ translateY: footerTranslateY }],
+              paddingBottom: insets.bottom + theme.spacing.sm,
             },
           ]}
         >
+          <Text style={[styles.subscriptionsHeading, { color: theme.colors.fg }]}>
+            {t("shop.subscriptions")}
+          </Text>
+
           <View style={styles.pricingRow}>
             <PriceCard
               productId={subs.left}
+              planLabel={t("shop.subCards.monthly")}
               unitLabel={t("shop.subCards.dailyUnit")}
               primaryValue="30"
             />
             <PriceCard
               productId={subs.middle}
+              planLabel={t("shop.subCards.yearly")}
               unitLabel={t("shop.subCards.monthlyUnit")}
               primaryValue="12"
             />
             <PriceCard
               productId={subs.right}
+              planLabel={t("shop.subCards.lifetime")}
               unitLabel={t("shop.subCards.lifetimeUnit")}
               primaryValue="∞"
             />
+          </View>
+
+          <View
+            style={[
+              styles.disclosureCard,
+              { backgroundColor: theme.colors.card, borderColor: theme.colors.border },
+            ]}
+          >
+            <Text style={[styles.disclosureLabel, { color: theme.colors.muted }]}>
+              {t("shop.selectedPlanLabel")}
+            </Text>
+            <Text style={[styles.disclosureTitle, { color: theme.colors.fg }]}>
+              {selectedDisclosure.title}
+            </Text>
+            <Text style={[styles.disclosureLine, { color: theme.colors.fg }]}>
+              {selectedDisclosure.length}
+            </Text>
+            <Text style={[styles.disclosureLine, { color: theme.colors.accent }]}>
+              {selectedDisclosure.price}
+            </Text>
+            {selectedDisclosure.pricePerUnit ? (
+              <Text style={[styles.disclosureLine, { color: theme.colors.muted }]}>
+                {selectedDisclosure.pricePerUnit}
+              </Text>
+            ) : null}
+            {selectedDisclosure.isAutoRenewable ? (
+              <Text style={[styles.disclosureFinePrint, { color: theme.colors.muted }]}>
+                {t("shop.autoRenewDisclaimer")}
+              </Text>
+            ) : null}
           </View>
 
           <View style={styles.footerButtons}>
@@ -558,7 +463,7 @@ export function ShopScreen({ navigation }: Props) {
             onRestorePurchases={() => void handleRestorePurchases()}
             restoreLoading={actionLoading === "restore"}
           />
-        </Animated.View>
+        </View>
 
         <Modal
           visible={customerCenterVisible}
@@ -584,7 +489,7 @@ export function ShopScreen({ navigation }: Props) {
 }
 
 export function PremiumHero({ theme }: { theme: AppTheme }) {
-  const floats = useRef(HERO_ICONS.map(() => new Animated.Value(0))).current;
+  const floats = React.useRef(HERO_ICONS.map(() => new Animated.Value(0))).current;
 
   useEffect(() => {
     const loops = floats.map((value, index) =>
@@ -680,6 +585,9 @@ const stylesStatic = StyleSheet.create({
 function makeStyles(theme: AppTheme) {
   const { spacing, typography, radius } = theme;
   return StyleSheet.create({
+    screenRoot: {
+      flex: 1,
+    },
     container: {
       flexGrow: 1,
       paddingTop: spacing.md,
@@ -737,9 +645,39 @@ function makeStyles(theme: AppTheme) {
       fontSize: typography.small,
       fontWeight: typography.fontWeight.bold,
     },
+    subscriptionsHeading: {
+      fontSize: typography.body,
+      fontWeight: typography.fontWeight.bold,
+      marginBottom: spacing.xs,
+    },
     pricingRow: {
       flexDirection: "row",
       gap: spacing.sm,
+    },
+    disclosureCard: {
+      borderWidth: 1,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.xs / 2,
+    },
+    disclosureLabel: {
+      fontSize: typography.small,
+      fontWeight: typography.fontWeight.medium,
+      textTransform: "uppercase",
+      letterSpacing: 0.6,
+    },
+    disclosureTitle: {
+      fontSize: typography.body,
+      fontWeight: typography.fontWeight.bold,
+    },
+    disclosureLine: {
+      fontSize: typography.body,
+      lineHeight: typography.body + 4,
+    },
+    disclosureFinePrint: {
+      fontSize: typography.small,
+      lineHeight: typography.small + 5,
+      marginTop: spacing.xs,
     },
     tierPressable: {
       flex: 1,
@@ -756,6 +694,12 @@ function makeStyles(theme: AppTheme) {
       alignItems: "center",
       justifyContent: "center",
       gap: 2,
+    },
+    tierPlanName: {
+      fontSize: typography.small,
+      fontWeight: typography.fontWeight.bold,
+      textAlign: "center",
+      marginBottom: 2,
     },
     tierTopRow: {
       alignItems: "center",
@@ -778,29 +722,14 @@ function makeStyles(theme: AppTheme) {
       fontSize: typography.body,
       fontWeight: typography.fontWeight.bold,
     },
-    scrollDownHint: {
-      position: "absolute",
-      left: 0,
-      right: 0,
-      alignItems: "center",
-      zIndex: 1,
-    },
     footerPanel: {
-      position: "absolute",
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 2,
       paddingTop: spacing.sm,
       paddingHorizontal: spacing.sm,
       gap: spacing.sm,
       borderTopLeftRadius: radius.lg,
       borderTopRightRadius: radius.lg,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: -6 },
-      shadowOpacity: 0.12,
-      shadowRadius: 16,
-      elevation: 14,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: theme.colors.border,
     },
     footerButtons: {
       gap: spacing.sm,

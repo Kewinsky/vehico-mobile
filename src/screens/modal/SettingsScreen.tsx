@@ -1,16 +1,15 @@
-import { useCallback, useLayoutEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Linking from "expo-linking";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { HeaderButton } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
 import {
   Crown,
   LogOut,
   MessageCircleQuestionMark,
   SquarePen,
   SlidersHorizontal,
+  Trash2,
 } from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -150,33 +149,6 @@ export function SettingsScreen({ navigation }: Props) {
     ]);
   }
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <HeaderButton
-          onPress={openDeleteAccountMenu}
-          tintColor={theme.colors.fg}
-          disabled={deletingAccount}
-          accessibilityLabel={t("profile.deleteAccount")}
-        >
-          <Ionicons
-            name="ellipsis-horizontal"
-            size={theme.icons.headerButton}
-            color={theme.colors.accent}
-          />
-        </HeaderButton>
-      ),
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- openDeleteAccountMenu reads deletingAccount
-  }, [
-    deletingAccount,
-    navigation,
-    t,
-    theme.colors.accent,
-    theme.colors.fg,
-    theme.icons.headerButton,
-  ]);
-
   const rows: RowItem[] = useMemo(
     (): RowItem[] => [
       {
@@ -203,6 +175,13 @@ export function SettingsScreen({ navigation }: Props) {
         onPress: onSupport,
       },
       {
+        id: "deleteAccount",
+        icon: <Trash2 size={22} color={theme.colors.danger} />,
+        title: t("profile.deleteAccount"),
+        subtitle: t("settings.deleteAccountSubtitle"),
+        onPress: openDeleteAccountMenu,
+      },
+      {
         id: "signout",
         icon: <LogOut size={22} color={theme.colors.danger} />,
         title: t("profile.signOut"),
@@ -210,7 +189,15 @@ export function SettingsScreen({ navigation }: Props) {
         onPress: onSignOut,
       },
     ],
-    [t, navigation, onSignOut, onSupport, theme.colors.accent, theme.colors.danger],
+    [
+      t,
+      navigation,
+      onSignOut,
+      onSupport,
+      openDeleteAccountMenu,
+      theme.colors.accent,
+      theme.colors.danger,
+    ],
   );
 
   return (
@@ -264,6 +251,7 @@ export function SettingsScreen({ navigation }: Props) {
               <View key={row.id}>
                 <Pressable
                   onPress={row.onPress}
+                  disabled={row.id === "deleteAccount" && deletingAccount}
                   style={({ pressed }) => [
                     styles.row,
                     pressed && styles.rowPressed,
