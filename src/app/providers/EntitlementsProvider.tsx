@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Platform } from "react-native";
+import { InteractionManager, Platform } from "react-native";
 import Purchases, {
   type CustomerInfo,
   type PurchasesEntitlementInfo,
@@ -528,9 +528,18 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
   ]);
 
   const presentRevenueCatCustomerCenter = useCallback(async () => {
-    if (!IS_REVENUECAT_PLATFORM || !isRevenueCatReady) return;
+    if (!IS_REVENUECAT_PLATFORM) {
+      throw new Error("RevenueCat Customer Center is only available on mobile.");
+    }
+    if (!isRevenueCatReady) {
+      throw new Error("RevenueCat is still initializing. Please try again.");
+    }
 
     await ensureRevenueCatLoggedIn();
+
+    await new Promise<void>((resolve) => {
+      InteractionManager.runAfterInteractions(() => resolve());
+    });
 
     await RevenueCatUI.presentCustomerCenter({
       callbacks: {
@@ -725,9 +734,11 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       Number.isFinite(premiumUntilMs) &&
       premiumUntilMs <= entitlementsClockMs;
 
-    const isPremium = premiumUntilExpired ? false : isPremiumFromDb;
-
     const premiumEntitlement = getPremiumEntitlement(revenueCatCustomerInfo);
+
+    const isPremium = premiumUntilExpired
+      ? false
+      : isPremiumFromDb || premiumEntitlement?.isActive === true;
 
     const currentPlanProductId: RevenueCatProductId | null = isPremium
       ? ((entitlements.product_id &&

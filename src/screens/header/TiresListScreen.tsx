@@ -17,6 +17,7 @@ import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import { TiresItem } from "../../ui/components/list/TiresItem";
@@ -155,13 +156,7 @@ export function TiresListScreen({ route, navigation }: Props) {
       Alert.alert(
         t("limits.tireLimitReachedTitle"),
         t("limits.tireLimitReachedBody", { limit: tiresPerVehicleLimit }),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("limits.upgradeToPremium"),
-            onPress: () => navigation.navigate("Shop"),
-          },
-        ],
+        getPremiumUpgradeAlertButtons(t, navigation),
       );
       return;
     }

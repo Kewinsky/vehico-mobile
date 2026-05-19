@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import * as AppleAuthentication from "expo-apple-authentication";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
@@ -63,8 +64,14 @@ export function AuthScreen({ navigation }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null);
+  const [appleSignInAvailable, setAppleSignInAvailable] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [sentEmail, setSentEmail] = useState("");
+
+  useEffect(() => {
+    if (Platform.OS !== "ios") return;
+    void AppleAuthentication.isAvailableAsync().then(setAppleSignInAvailable);
+  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -299,7 +306,63 @@ export function AuthScreen({ navigation }: Props) {
     return signInWithOAuth("google");
   }
 
+  async function signInWithAppleNative() {
+    try {
+      setIsSocialLoading("apple");
+
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      if (!credential.identityToken) {
+        throw new Error("No identity token from Apple");
+      }
+
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: "apple",
+        token: credential.identityToken,
+      });
+      if (error) throw error;
+
+      if (credential.fullName) {
+        const nameParts: string[] = [];
+        if (credential.fullName.givenName) {
+          nameParts.push(credential.fullName.givenName);
+        }
+        if (credential.fullName.middleName) {
+          nameParts.push(credential.fullName.middleName);
+        }
+        if (credential.fullName.familyName) {
+          nameParts.push(credential.fullName.familyName);
+        }
+        const fullName = nameParts.join(" ").trim();
+        if (fullName) {
+          await supabase.auth.updateUser({
+            data: {
+              full_name: fullName,
+              given_name: credential.fullName.givenName ?? undefined,
+              family_name: credential.fullName.familyName ?? undefined,
+            },
+          });
+        }
+      }
+
+      toastSuccess(t("auth.signedInSuccessfully"));
+    } catch (e: any) {
+      if (e?.code === "ERR_REQUEST_CANCELED") return;
+      toastError(e?.message ?? t("common.error"));
+    } finally {
+      setIsSocialLoading(null);
+    }
+  }
+
   async function signInWithApple() {
+    if (Platform.OS === "ios" && appleSignInAvailable) {
+      return signInWithAppleNative();
+    }
     return signInWithOAuth("apple");
   }
 
@@ -511,8 +574,9 @@ export function AuthScreen({ navigation }: Props) {
 
           <View style={styles.socialSection}>
             <View style={styles.socialButtons}>
+              {(Platform.OS === "ios" ? appleSignInAvailable : true) ? (
               <Pressable
-                onPress={signInWithApple}
+                onPress={() => void signInWithApple()}
                 disabled={!!isSocialLoading}
                 style={({ pressed }) => [
                   styles.socialButton,
@@ -532,8 +596,9 @@ export function AuthScreen({ navigation }: Props) {
                     : t("auth.apple")}
                 </Text>
               </Pressable>
+              ) : null}
               <Pressable
-                onPress={signInWithGoogle}
+                onPress={() => void signInWithGoogle()}
                 disabled={!!isSocialLoading}
                 style={({ pressed }) => [
                   styles.socialButton,

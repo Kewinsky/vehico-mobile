@@ -28,7 +28,10 @@ import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
-import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
+import {
+  getPremiumUpgradeAlertButtons,
+  handleAndShowLimitErrorAlert,
+} from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WorkshopForm">;
 
@@ -147,13 +150,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
           Alert.alert(
             t("limits.workshopLimitReachedTitle"),
             t("limits.workshopLimitReachedBody", { limit: workshopsLimit }),
-            [
-              { text: t("common.cancel"), style: "cancel" },
-              {
-                text: t("limits.upgradeToPremium"),
-                onPress: () => navigation.navigate("Shop"),
-              },
-            ],
+            getPremiumUpgradeAlertButtons(t, navigation),
           );
           return;
         }

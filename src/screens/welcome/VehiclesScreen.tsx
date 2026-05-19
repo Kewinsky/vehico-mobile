@@ -31,6 +31,10 @@ import { groupThousands } from "../../utils/numberFormatting";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { WelcomeHeaderLayout } from "../../layouts";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
+import {
+  getPremiumUpgradeAlertButtons,
+  showPremiumRequiredAlert,
+} from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 
@@ -434,17 +438,10 @@ export function VehiclesScreen({ navigation, route }: Props) {
 
   const handleLockedVehiclePress = () => {
     const days = daysUntilHiddenDataDeletion ?? 0;
-    Alert.alert(
-      t("vehicles.lockedVehicleAlertTitle"),
-      t("vehicles.lockedVehicleAlertBody", { days }),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("vehicles.lockedVehicleAlertCTA"),
-          onPress: () => navigation.navigate("Shop"),
-        },
-      ],
-    );
+    showPremiumRequiredAlert(t, navigation, {
+      title: t("vehicles.lockedVehicleAlertTitle"),
+      message: t("vehicles.lockedVehicleAlertBody", { days }),
+    });
   };
 
   const handleAddVehicle = () => {
@@ -456,13 +453,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
       Alert.alert(
         t("limits.vehicleLimitReachedTitle"),
         t("limits.vehicleLimitReachedBody", { limit: vehiclesLimit }),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("limits.upgradeToPremium"),
-            onPress: () => navigation.navigate("Shop"),
-          },
-        ],
+        getPremiumUpgradeAlertButtons(t, navigation),
       );
       return;
     }

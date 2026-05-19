@@ -86,6 +86,7 @@ import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { DashboardFab } from "../../ui/components/common/DashboardFab";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { Logo } from "../../ui/components/branding/Logo";
@@ -602,13 +603,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     Alert.alert(
       t("limits.premiumRequiredTitle"),
       t("limits.premiumRequiredBody"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("limits.upgradeToPremium"),
-          onPress: () => navigation.navigate("Shop"),
-        },
-      ],
+      getPremiumUpgradeAlertButtons(t, navigation),
     );
   }
 
@@ -686,13 +681,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     Alert.alert(
       t("limits.premiumRequiredTitle"),
       t("dashboard.sectionOrder.premiumRequiredBody"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("limits.upgradeToPremium"),
-          onPress: () => navigation.navigate("Shop"),
-        },
-      ],
+      getPremiumUpgradeAlertButtons(t, navigation),
     );
   }
 
@@ -730,13 +719,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         Alert.alert(
           t("limits.reminderLimitReachedTitle"),
           t("limits.reminderLimitReachedBody", { limit: remindersLimit }),
-          [
-            { text: t("common.cancel"), style: "cancel" },
-            {
-              text: t("limits.upgradeToPremium"),
-              onPress: () => navigation.navigate("Shop"),
-            },
-          ],
+          getPremiumUpgradeAlertButtons(t, navigation),
         );
         return;
       }

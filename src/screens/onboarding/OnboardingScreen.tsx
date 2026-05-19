@@ -39,7 +39,10 @@ import { uploadVehiclePhoto } from "../../services/vehicles/uploadPhoto";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { supabase } from "../../services/supabase/client";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
+import {
+  getPremiumUpgradeAlertButtons,
+  handleAndShowLimitErrorAlert,
+} from "../../ui/limits/entitlementAlerts";
 import { groupThousands } from "../../utils/numberFormatting";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
@@ -183,13 +186,7 @@ export function OnboardingScreen({ navigation }: Props) {
         Alert.alert(
           t("limits.vehicleLimitReachedTitle"),
           t("limits.vehicleLimitReachedBody", { limit: vehiclesLimit }),
-          [
-            { text: t("common.cancel"), style: "cancel" },
-            {
-              text: t("limits.upgradeToPremium"),
-              onPress: () => navigation.navigate("Shop"),
-            },
-          ],
+          getPremiumUpgradeAlertButtons(t, navigation),
         );
         return null;
       }

@@ -34,7 +34,10 @@ import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
-import { handleAndShowLimitErrorAlert } from "../../ui/limits/entitlementAlerts";
+import {
+  getPremiumUpgradeAlertButtons,
+  handleAndShowLimitErrorAlert,
+} from "../../ui/limits/entitlementAlerts";
 import { SunSnowIcon } from "lucide-react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "TireForm">;
@@ -190,13 +193,7 @@ export function TireFormScreen({ navigation, route }: Props) {
           Alert.alert(
             t("limits.tireLimitReachedTitle"),
             t("limits.tireLimitReachedBody", { limit: tiresPerVehicleLimit }),
-            [
-              { text: t("common.cancel"), style: "cancel" },
-              {
-                text: t("limits.upgradeToPremium"),
-                onPress: () => navigation.navigate("Shop"),
-              },
-            ],
+            getPremiumUpgradeAlertButtons(t, navigation),
           );
           return;
         }
