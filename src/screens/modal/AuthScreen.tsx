@@ -251,6 +251,7 @@ export function AuthScreen({ navigation }: Props) {
     if (!sessionData.session) {
       throw new Error("Session was not created");
     }
+
   }
 
   async function signInWithOAuth(provider: "google" | "apple") {
@@ -312,7 +313,6 @@ export function AuthScreen({ navigation }: Props) {
 
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
       });
@@ -326,29 +326,6 @@ export function AuthScreen({ navigation }: Props) {
         token: credential.identityToken,
       });
       if (error) throw error;
-
-      if (credential.fullName) {
-        const nameParts: string[] = [];
-        if (credential.fullName.givenName) {
-          nameParts.push(credential.fullName.givenName);
-        }
-        if (credential.fullName.middleName) {
-          nameParts.push(credential.fullName.middleName);
-        }
-        if (credential.fullName.familyName) {
-          nameParts.push(credential.fullName.familyName);
-        }
-        const fullName = nameParts.join(" ").trim();
-        if (fullName) {
-          await supabase.auth.updateUser({
-            data: {
-              full_name: fullName,
-              given_name: credential.fullName.givenName ?? undefined,
-              family_name: credential.fullName.familyName ?? undefined,
-            },
-          });
-        }
-      }
 
       toastSuccess(t("auth.signedInSuccessfully"));
     } catch (e: any) {

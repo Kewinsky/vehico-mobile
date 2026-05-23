@@ -297,7 +297,7 @@ export function OnboardingScreen({ navigation }: Props) {
       // Create vehicle when entering confirmation step (so step text is true).
       await ensureVehicleCreated();
 
-      const normalizedName = normalizeDisplayName(name);
+      const normalizedName = normalizeDisplayName(name.trim());
       const existing = (freshSession.user.user_metadata ?? {}) as Record<
         string,
         any

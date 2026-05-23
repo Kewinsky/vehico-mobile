@@ -114,10 +114,10 @@ export const en = {
     },
     name: {
       title: "How should we address you?",
-      label: "Name",
+      label: "Display name",
       placeholder: "e.g. Alex",
-      required: "Please enter your name.",
-      minLength: "Name must be at least 2 characters.",
+      required: "Choose a name to use in the app.",
+      minLength: "Display name must be at least 2 characters.",
     },
     vehicle: {
       type: {

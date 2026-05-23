@@ -12,4 +12,3 @@ describe("normalizeDisplayName", () => {
     expect(normalizeDisplayName("ądam")).toBe("Ądam");
   });
 });
-

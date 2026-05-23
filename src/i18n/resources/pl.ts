@@ -115,10 +115,10 @@ export const pl = {
     },
     name: {
       title: "Jak mamy się do Ciebie zwracać?",
-      label: "Imię",
+      label: "Nazwa",
       placeholder: "np. Alex",
-      required: "Wpisz swoje imię.",
-      minLength: "Imię musi mieć co najmniej 2 znaki.",
+      required: "Podaj nazwę, którą chcesz używać w aplikacji.",
+      minLength: "Nazwa musi mieć co najmniej 2 znaki.",
     },
     vehicle: {
       type: {
