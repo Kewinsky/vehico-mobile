@@ -550,36 +550,6 @@ export function StatisticsScreen(props: Props) {
       : undefined
     : undefined;
 
-  const renderServiceIcon = useCallback(
-    (cat: ServiceEntryCategory) => {
-      const color = SERVICE_CATEGORY_COLORS[cat];
-      switch (cat) {
-        case "maintenance":
-          return <Ionicons name="build-outline" size={22} color={color} />;
-        case "repair":
-          return <Ionicons name="construct-outline" size={22} color={color} />;
-        case "inspection":
-          return <Ionicons name="search-outline" size={22} color={color} />;
-        case "upgrade":
-          return (
-            <Ionicons name="trending-up-outline" size={22} color={color} />
-          );
-        case "oil_change":
-          return <Ionicons name="water-outline" size={22} color={color} />;
-        case "other":
-        default:
-          return (
-            <Ionicons
-              name="information-circle-outline"
-              size={22}
-              color={color}
-            />
-          );
-      }
-    },
-    [],
-  );
-
   const navigateToServiceHistory = useCallback(() => {
     if (embedded) {
       navigation.navigate("ServiceHistory", { vehicleId });
@@ -794,7 +764,6 @@ export function StatisticsScreen(props: Props) {
     dualLineChartWidth,
     navigateToFuel,
     recentServiceEntries,
-    renderServiceIcon,
     workshopsById,
     navigateToServiceHistory,
     categorySeries,

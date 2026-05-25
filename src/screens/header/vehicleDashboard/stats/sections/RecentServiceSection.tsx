@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from "react-native";
 
 import { SERVICE_CATEGORY_ICON_BACKGROUND } from "../../../../../ui/theme/serviceCategoryColors";
+import { ServiceCategoryIcon } from "../../../../../ui/components/service/ServiceCategoryIcon";
 import { ServiceItem } from "../../../../../ui/components/list/ServiceItem";
 import type { ServiceEntryCategory } from "../../../../../types/domain";
 import type { StatisticsPanelProps } from "../types";
@@ -11,7 +12,6 @@ export function RecentServiceSection({
   t,
   currency,
   recentServiceEntries,
-  renderServiceIcon,
   workshopsById,
   navigateToServiceHistory,
   onServiceEntryPress,
@@ -36,7 +36,7 @@ export function RecentServiceSection({
                 <ServiceItem
                   key={entry.id}
                   title={entry.title}
-                  icon={renderServiceIcon(cat)}
+                  icon={<ServiceCategoryIcon category={cat} />}
                   iconBackgroundColor={SERVICE_CATEGORY_ICON_BACKGROUND[cat]}
                   date={entry.service_date}
                   mileage={entry.mileage}

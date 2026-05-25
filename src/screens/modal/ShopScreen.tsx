@@ -35,29 +35,15 @@ import { Logo } from "../../ui/components/branding/Logo";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { getSubscriptionDisclosure } from "../../utils/subscriptionDisclosure";
 import { getCurrencySymbol } from "../../utils/currencyDisplay";
-import { TireIcon } from "../../ui/components/icons/TireIcon";
+import { ShopCompareRowIcon } from "../../ui/components/shop/ShopCompareRowIcon";
 import {
   getShopComparisonRows,
-  type ShopCompareIcon,
   type ShopCompareRow,
 } from "./shopComparison";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Shop">;
 
 type PlanBadge = { label: string; tone: "save" | "deal" | "monthly" };
-
-function CompareRowIcon({
-  icon,
-  color,
-}: {
-  icon: ShopCompareIcon;
-  color: string;
-}) {
-  if (icon.type === "tire") {
-    return <TireIcon size={18} color={color} />;
-  }
-  return <Ionicons name={icon.name} size={18} color={color} />;
-}
 
 export function ShopScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
@@ -310,7 +296,10 @@ export function ShopScreen({ navigation }: Props) {
             >
               <View style={styles.compareFeatureCol}>
                 <View style={styles.compareIcon}>
-                  <CompareRowIcon icon={row.icon} color={theme.colors.accent} />
+                  <ShopCompareRowIcon
+                    icon={row.icon}
+                    color={theme.colors.accent}
+                  />
                 </View>
                 <View style={styles.compareLabelWrap}>
                   <Text

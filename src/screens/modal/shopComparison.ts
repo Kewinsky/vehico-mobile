@@ -16,7 +16,8 @@ export type ShopCompareRowId =
 
 export type ShopCompareIcon =
   | { type: "ionicons"; name: ComponentProps<typeof Ionicons>["name"] }
-  | { type: "tire" };
+  | { type: "tire" }
+  | { type: "rim" };
 
 export type ShopCompareExampleLink =
   | { kind: "url"; url: string }
@@ -74,7 +75,7 @@ export function getShopComparisonRows(
     },
     {
       id: "wheels",
-      icon: { type: "ionicons", name: "disc-outline" },
+      icon: { type: "rim" },
       label: t("shop.compare.wheels"),
       free: t("shop.compare.freePerVehicle", { count: FREE_LIMITS.wheelSets }),
       premium: t("shop.compare.unlimited"),

@@ -1,5 +1,5 @@
 import type { TFunction , i18n as I18nInstance } from "i18next";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { AppStackParamList } from "../../../../app/navigation/RootNavigator";
@@ -75,7 +75,6 @@ export type StatisticsPanelProps = {
   dualLineChartWidth: number;
   navigateToFuel: () => void;
   recentServiceEntries: ServiceEntry[];
-  renderServiceIcon: (cat: ServiceEntryCategory) => ReactNode;
   workshopsById: Record<string, Workshop>;
   navigateToServiceHistory: () => void;
   categorySeries: {
