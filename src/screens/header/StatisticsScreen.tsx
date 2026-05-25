@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackNavigationProp , NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
 import { useCallback, useMemo, useState } from "react";

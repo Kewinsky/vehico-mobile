@@ -1,14 +1,10 @@
-import type { TFunction , i18n as I18nInstance } from "i18next";
+import type { TFunction, i18n as I18nInstance } from "i18next";
 import type { Dispatch, SetStateAction } from "react";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { AppStackParamList } from "../../../../app/navigation/RootNavigator";
 import type { AppTheme } from "../../../../ui/theme";
-import type {
-  ServiceEntry,
-  ServiceEntryCategory,
-  Workshop,
-} from "../../../../types/domain";
+import type { ServiceEntry, Workshop } from "../../../../types/domain";
 import type { StatsPanelStyles } from "./statsPanelStyles";
 
 export type PeriodKey = "1m" | "3m" | "6m" | "1y" | "all";

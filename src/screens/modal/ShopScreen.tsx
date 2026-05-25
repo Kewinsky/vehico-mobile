@@ -3,7 +3,6 @@ import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Ionicons } from "@expo/vector-icons";
 import Purchases from "react-native-purchases";
 import RevenueCatUI from "react-native-purchases-ui";
 import { AnimatedRollingNumber } from "react-native-animated-rolling-numbers";
