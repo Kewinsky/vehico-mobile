@@ -22,6 +22,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { persistOAuthDisplayName } from "../../services/auth/signInProviders";
 import { isAppStoreReviewEmail } from "../../config/appStoreReview";
 import { ENV } from "../../config/env";
 import { APP_DISPLAY_NAME } from "../../config/appBrand";
@@ -67,7 +68,6 @@ export function AuthScreen({ navigation }: Props) {
   const [appleSignInAvailable, setAppleSignInAvailable] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [sentEmail, setSentEmail] = useState("");
-
   useEffect(() => {
     if (Platform.OS !== "ios") return;
     void AppleAuthentication.isAvailableAsync().then(setAppleSignInAvailable);
@@ -102,15 +102,13 @@ export function AuthScreen({ navigation }: Props) {
   );
 
   const canSendCode = useMemo(
-    () => emailTrimmed.length > 0 && isValidEmail && !isSubmitting && !isVerifying,
+    () =>
+      emailTrimmed.length > 0 && isValidEmail && !isSubmitting && !isVerifying,
     [emailTrimmed, isValidEmail, isSubmitting, isVerifying],
   );
 
   const canReviewSignIn = useMemo(
-    () =>
-      canSendCode &&
-      password.length > 0 &&
-      !isSocialLoading,
+    () => canSendCode && password.length > 0 && !isSocialLoading,
     [canSendCode, password.length, isSocialLoading],
   );
 
@@ -129,7 +127,10 @@ export function AuthScreen({ navigation }: Props) {
     </View>
   );
 
-  async function requestOtpForEmail(targetEmail: string, options?: { resend?: boolean }) {
+  async function requestOtpForEmail(
+    targetEmail: string,
+    options?: { resend?: boolean },
+  ) {
     const { error } = await supabase.auth.signInWithOtp({
       email: targetEmail,
       options: {
@@ -252,6 +253,7 @@ export function AuthScreen({ navigation }: Props) {
       throw new Error("Session was not created");
     }
 
+    await persistOAuthDisplayName();
   }
 
   async function signInWithOAuth(provider: "google" | "apple") {
@@ -313,6 +315,7 @@ export function AuthScreen({ navigation }: Props) {
 
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
       });
@@ -326,6 +329,8 @@ export function AuthScreen({ navigation }: Props) {
         token: credential.identityToken,
       });
       if (error) throw error;
+
+      await persistOAuthDisplayName({ appleFullName: credential.fullName });
 
       toastSuccess(t("auth.signedInSuccessfully"));
     } catch (e: any) {
@@ -453,10 +458,16 @@ export function AuthScreen({ navigation }: Props) {
                 onPress={resendOtpCode}
                 disabled={isSubmitting || isVerifying}
               >
-                {isSubmitting ? t("auth.sendingCode") : t("auth.sendAnotherCode")}
+                {isSubmitting
+                  ? t("auth.sendingCode")
+                  : t("auth.sendAnotherCode")}
               </Button>
 
-              <Button variant="ghost" onPress={resetOtpFlow} disabled={isVerifying}>
+              <Button
+                variant="ghost"
+                onPress={resetOtpFlow}
+                disabled={isVerifying}
+              >
                 {t("auth.changeEmail")}
               </Button>
             </View>
@@ -552,27 +563,34 @@ export function AuthScreen({ navigation }: Props) {
           <View style={styles.socialSection}>
             <View style={styles.socialButtons}>
               {(Platform.OS === "ios" ? appleSignInAvailable : true) ? (
-              <Pressable
-                onPress={() => void signInWithApple()}
-                disabled={!!isSocialLoading}
-                style={({ pressed }) => [
-                  styles.socialButton,
-                  {
-                    backgroundColor: theme.colors.card,
-                    borderColor: theme.colors.border,
-                    opacity: isSocialLoading === "apple" || pressed ? 0.7 : 1,
-                  },
-                ]}
-              >
-                <Ionicons name="logo-apple" size={20} color={theme.colors.fg} />
-                <Text
-                  style={[styles.socialButtonText, { color: theme.colors.fg }]}
+                <Pressable
+                  onPress={() => void signInWithApple()}
+                  disabled={!!isSocialLoading}
+                  style={({ pressed }) => [
+                    styles.socialButton,
+                    {
+                      backgroundColor: theme.colors.card,
+                      borderColor: theme.colors.border,
+                      opacity: isSocialLoading === "apple" || pressed ? 0.7 : 1,
+                    },
+                  ]}
                 >
-                  {isSocialLoading === "apple"
-                    ? t("common.loading")
-                    : t("auth.apple")}
-                </Text>
-              </Pressable>
+                  <Ionicons
+                    name="logo-apple"
+                    size={20}
+                    color={theme.colors.fg}
+                  />
+                  <Text
+                    style={[
+                      styles.socialButtonText,
+                      { color: theme.colors.fg },
+                    ]}
+                  >
+                    {isSocialLoading === "apple"
+                      ? t("common.loading")
+                      : t("auth.apple")}
+                  </Text>
+                </Pressable>
               ) : null}
               <Pressable
                 onPress={() => void signInWithGoogle()}

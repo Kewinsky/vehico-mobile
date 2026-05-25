@@ -23,6 +23,10 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { Button } from "../../ui/components/common/Button";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import type { VehicleType } from "../../types/domain";
+import {
+  resolveOAuthUserDisplayName,
+  shouldPromptDisplayNameInOnboarding,
+} from "../../services/auth/signInProviders";
 import { normalizeDisplayName } from "../../utils/displayName";
 import {
   isNonNegativeNumber,
@@ -69,6 +73,12 @@ export function OnboardingScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const { distanceUnitLabel } = useUnitDisplay();
 
+  const promptDisplayName = shouldPromptDisplayNameInOnboarding(user);
+  const skipNameStep = !promptDisplayName;
+  const progressSegmentCount = skipNameStep
+    ? PROGRESS_STEPS - 1
+    : PROGRESS_STEPS;
+
   const [currentStep, setCurrentStep] = useState(0);
   const [showValidation, setShowValidation] = useState(false);
 
@@ -85,16 +95,27 @@ export function OnboardingScreen({ navigation }: Props) {
   const [createdVehicleId, setCreatedVehicleId] = useState<string | null>(null);
 
   const showProgress = currentStep > 0;
-  const progressAnim = useRef(new Animated.Value(currentStep)).current;
+  const progressStep = useMemo(() => {
+    if (currentStep <= 0) return 0;
+    if (skipNameStep && currentStep > 1) return currentStep - 1;
+    return currentStep;
+  }, [currentStep, skipNameStep]);
+  const progressAnim = useRef(new Animated.Value(progressStep)).current;
+
+  useEffect(() => {
+    if (skipNameStep) {
+      setName(resolveOAuthUserDisplayName(user));
+    }
+  }, [skipNameStep, user]);
 
   useEffect(() => {
     Animated.timing(progressAnim, {
-      toValue: currentStep,
+      toValue: progressStep,
       duration: 420,
       easing: Easing.inOut(Easing.cubic),
       useNativeDriver: false,
     }).start();
-  }, [currentStep, progressAnim]);
+  }, [progressStep, progressAnim]);
 
   useEffect(() => {
     setShowValidation(false);
@@ -121,9 +142,19 @@ export function OnboardingScreen({ navigation }: Props) {
     return t("common.next");
   }, [currentStep, t]);
 
+  function nextStepIndex(step: number): number {
+    if (step === 0) return skipNameStep ? 2 : 1;
+    return Math.min(LAST_STEP_INDEX, step + 1);
+  }
+
+  function previousStepIndex(step: number): number {
+    if (step === 2 && skipNameStep) return 0;
+    return Math.max(0, step - 1);
+  }
+
   function onBack() {
     if (!canGoBack) return;
-    setCurrentStep((s) => Math.max(0, s - 1));
+    setCurrentStep((s) => previousStepIndex(s));
   }
 
   async function pickPhotoFromGallery() {
@@ -241,7 +272,7 @@ export function OnboardingScreen({ navigation }: Props) {
     }
 
     try {
-      setCurrentStep((s) => Math.min(LAST_STEP_INDEX, s + 1));
+      setCurrentStep((s) => nextStepIndex(s));
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -297,7 +328,9 @@ export function OnboardingScreen({ navigation }: Props) {
       // Create vehicle when entering confirmation step (so step text is true).
       await ensureVehicleCreated();
 
-      const normalizedName = normalizeDisplayName(name.trim());
+      const normalizedName = skipNameStep
+        ? resolveOAuthUserDisplayName(freshSession.user)
+        : normalizeDisplayName(name.trim());
       const existing = (freshSession.user.user_metadata ?? {}) as Record<
         string,
         any
@@ -827,7 +860,7 @@ export function OnboardingScreen({ navigation }: Props) {
           {showProgress ? (
             <View style={styles.progressWrap}>
               <View style={styles.progressSegmentsRow}>
-                {Array.from({ length: PROGRESS_STEPS }).map((_, i) => {
+                {Array.from({ length: progressSegmentCount }).map((_, i) => {
                   const w = progressAnim.interpolate({
                     inputRange: [i, i + 1],
                     outputRange: ["0%", "100%"],
