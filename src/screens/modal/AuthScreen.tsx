@@ -22,7 +22,10 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
-import { persistOAuthDisplayName } from "../../services/auth/signInProviders";
+import {
+  persistOAuthDisplayName,
+  shouldShowSignedInSuccessToastForCurrentUser,
+} from "../../services/auth/signInProviders";
 import { isAppStoreReviewEmail } from "../../config/appStoreReview";
 import { ENV } from "../../config/env";
 import { APP_DISPLAY_NAME } from "../../config/appBrand";
@@ -183,6 +186,12 @@ export function AuthScreen({ navigation }: Props) {
     }
   }
 
+  async function toastSignedInIfReturningUser() {
+    if (await shouldShowSignedInSuccessToastForCurrentUser()) {
+      toastSuccess(t("auth.signedInSuccessfully"));
+    }
+  }
+
   async function verifyOtpCode() {
     try {
       setIsVerifying(true);
@@ -211,7 +220,7 @@ export function AuthScreen({ navigation }: Props) {
         throw new Error(t("auth.otpInvalid"));
       }
 
-      toastSuccess(t("auth.signedInSuccessfully"));
+      await toastSignedInIfReturningUser();
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -254,6 +263,7 @@ export function AuthScreen({ navigation }: Props) {
     }
 
     await persistOAuthDisplayName();
+    await toastSignedInIfReturningUser();
   }
 
   async function signInWithOAuth(provider: "google" | "apple") {
@@ -332,7 +342,7 @@ export function AuthScreen({ navigation }: Props) {
 
       await persistOAuthDisplayName({ appleFullName: credential.fullName });
 
-      toastSuccess(t("auth.signedInSuccessfully"));
+      await toastSignedInIfReturningUser();
     } catch (e: any) {
       if (e?.code === "ERR_REQUEST_CANCELED") return;
       toastError(e?.message ?? t("common.error"));
@@ -367,7 +377,7 @@ export function AuthScreen({ navigation }: Props) {
         });
         if (updateError) throw updateError;
       }
-      toastSuccess(t("auth.signedInSuccessfully"));
+      await toastSignedInIfReturningUser();
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {

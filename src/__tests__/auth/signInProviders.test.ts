@@ -4,6 +4,7 @@ import {
   displayNameFromIdentityData,
   resolveOAuthUserDisplayName,
   shouldPromptDisplayNameInOnboarding,
+  shouldShowSignedInSuccessToast,
   userSignedInWithOAuth,
 } from "../../services/auth/signInProviders";
 
@@ -55,6 +56,22 @@ describe("displayNameFromAppleFullName", () => {
       }),
     ).toBe("Jan");
   });
+
+});
+
+describe("shouldShowSignedInSuccessToast", () => {
+  it("shows toast only after onboarding is complete", () => {
+    expect(
+      shouldShowSignedInSuccessToast({
+        user_metadata: { has_completed_onboarding: false },
+      } as any),
+    ).toBe(false);
+    expect(
+      shouldShowSignedInSuccessToast({
+        user_metadata: { has_completed_onboarding: true },
+      } as any),
+    ).toBe(true);
+  });
 });
 
 describe("displayNameFromIdentityData", () => {
@@ -99,4 +116,5 @@ describe("resolveOAuthUserDisplayName", () => {
       } as any),
     ).toBe("Ada");
   });
+
 });

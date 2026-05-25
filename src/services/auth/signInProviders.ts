@@ -46,6 +46,24 @@ export function displayNameFromAppleFullName(
   return displayNameFromGivenName(fullName.givenName);
 }
 
+/** Success toast only for users who already finished onboarding. */
+export function shouldShowSignedInSuccessToast(
+  user: User | null | undefined,
+): boolean {
+  if (!user) return false;
+  const metadata = (user.user_metadata ?? {}) as Record<string, unknown>;
+  return metadata.has_completed_onboarding === true;
+}
+
+export async function shouldShowSignedInSuccessToastForCurrentUser(): Promise<boolean> {
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+  if (error) throw error;
+  return shouldShowSignedInSuccessToast(user);
+}
+
 function readMetadataDisplayName(
   metadata: Record<string, unknown> | null | undefined,
 ): string | null {
