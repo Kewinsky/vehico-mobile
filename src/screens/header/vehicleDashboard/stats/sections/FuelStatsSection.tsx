@@ -4,7 +4,7 @@ import { StatTile } from "../components/StatTile";
 import type { StatisticsPanelProps } from "../types";
 
 export function FuelStatsSection({
-  styles, theme, t, i18n, totals, rollingLocale, currency, consumptionUnitLine, fuelUnitShort, fuelUnitLabel, distanceUnitLabel, lastRefuelShowAmount, setLastRefuelShowAmount, canToggleLastRefuel, lastRefuelAmount, lastRefuelValueMain, lastRefuelValueSuffix, fuelStatsDistance, navigateToFuel, fmtNumber,
+  styles, theme, t, totals, currency, consumptionUnitLine, fuelUnitShort, fuelUnitLabel, distanceUnitLabel, lastRefuelShowAmount, setLastRefuelShowAmount, canToggleLastRefuel, lastRefuelAmount, lastRefuelValueMain, lastRefuelValueSuffix, fuelStatsDistance, navigateToFuel, formatStatNumber,
 }: StatisticsPanelProps) {
   return (
       <View style={styles.section}>
@@ -25,7 +25,7 @@ export function FuelStatsSection({
             label={t("dashboard.stats.metrics.avgFuelConsumption")}
             valueMain={
               Number.isFinite(totals.avgConsumptionPer100)
-                ? fmtNumber(totals.avgConsumptionPer100, 1, i18n.language)
+                ? formatStatNumber(totals.avgConsumptionPer100, 1)
                 : "—"
             }
             valueSuffix={
@@ -38,8 +38,6 @@ export function FuelStatsSection({
                 ? totals.avgConsumptionPer100
                 : undefined
             }
-            valueMainRollingLocale={rollingLocale}
-            valueMainRollingToFixed={1}
           />
           <StatTile
             theme={theme}
@@ -47,7 +45,7 @@ export function FuelStatsSection({
             label={t("dashboard.stats.avgCostPerUnit", { unit: fuelUnitShort })}
             valueMain={
               Number.isFinite(totals.avgCostPerLiter)
-                ? fmtNumber(totals.avgCostPerLiter, 2, i18n.language)
+                ? formatStatNumber(totals.avgCostPerLiter, 2)
                 : "—"
             }
             valueSuffix={
@@ -58,8 +56,6 @@ export function FuelStatsSection({
                 ? totals.avgCostPerLiter
                 : undefined
             }
-            valueMainRollingLocale={rollingLocale}
-            valueMainRollingToFixed={2}
           />
         </View>
         <View style={styles.tilesRow}>
@@ -74,8 +70,6 @@ export function FuelStatsSection({
                 ? lastRefuelAmount
                 : undefined
             }
-            valueMainRollingLocale={rollingLocale}
-            valueMainRollingToFixed={0}
             onPress={
               canToggleLastRefuel
                 ? () => setLastRefuelShowAmount((p) => !p)
@@ -89,15 +83,13 @@ export function FuelStatsSection({
             label={t("dashboard.stats.metrics.totalDistance")}
             valueMain={
               fuelStatsDistance != null
-                ? fmtNumber(fuelStatsDistance, 0, i18n.language)
+                ? formatStatNumber(fuelStatsDistance, 0)
                 : "—"
             }
             valueSuffix={
               fuelStatsDistance != null ? distanceUnitLabel : undefined
             }
             valueMainRollingValue={fuelStatsDistance ?? undefined}
-            valueMainRollingLocale={rollingLocale}
-            valueMainRollingToFixed={0}
           />
         </View>
       </View>

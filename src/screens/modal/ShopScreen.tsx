@@ -37,6 +37,7 @@ import {
   getStoreCurrencyAffixes,
   getStoreFormattingLocale,
 } from "../../utils/currencyDisplay";
+import { formatRollingGroupedNumber } from "../../utils/numberFormatting";
 import { ShopCompareRowIcon } from "../../ui/components/shop/ShopCompareRowIcon";
 import {
   getShopComparisonRows,
@@ -91,6 +92,11 @@ export function ShopScreen({ navigation }: Props) {
     if (isYearlyProduct(selectedId)) return raw / 12;
     return raw;
   }, [selectedId, selectedProduct?.price]);
+
+  const priceRollingFormattedText = useMemo(() => {
+    if (priceRollingValue == null) return undefined;
+    return formatRollingGroupedNumber(priceRollingValue, 2);
+  }, [priceRollingValue]);
 
   useFocusEffect(
     useCallback(() => {
@@ -485,9 +491,7 @@ export function ShopScreen({ navigation }: Props) {
                     ) : null}
                     <AnimatedRollingNumber
                       value={priceRollingValue}
-                      toFixed={priceCurrencyDisplay?.fractionDigits ?? 2}
-                      useGrouping
-                      locale={storeLocale}
+                      formattedText={priceRollingFormattedText}
                       spinningAnimationConfig={{ duration: 480 }}
                       textStyle={[
                         styles.priceRollingNumber,

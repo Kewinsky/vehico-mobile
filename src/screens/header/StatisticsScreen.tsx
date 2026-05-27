@@ -511,8 +511,24 @@ export function StatisticsScreen(props: Props) {
   const fuelStatsDistance =
     totals.totalDistance > 0 ? totals.totalDistance : null;
   const lastRefuelAmount = Number(lastFueling?.fuel_amount ?? Number.NaN);
+  const formatStatNumber = useCallback(
+    (value: number, fractionDigits: number) => {
+      if (!Number.isFinite(value)) return "—";
+      const sign = value < 0 ? "-" : "";
+      const abs = Math.abs(value);
+      const [integerPart, fractionPart] = abs.toFixed(fractionDigits).split(".");
+      const isPolish = i18n.language.startsWith("pl");
+      const groupedInteger = integerPart.replace(
+        /\B(?=(\d{3})+(?!\d))/g,
+        ",",
+      );
+      if (!fractionPart) return `${sign}${groupedInteger}`;
+      return `${sign}${groupedInteger}${isPolish ? "," : "."}${fractionPart}`;
+    },
+    [i18n.language],
+  );
   const lastRefuelAmountMain = Number.isFinite(lastRefuelAmount)
-    ? String(Math.round(lastRefuelAmount))
+    ? formatStatNumber(lastRefuelAmount, 0)
     : "—";
   const daysSinceLastRefuel = useMemo(() => {
     if (!lastFueling?.date) return null;
@@ -689,16 +705,11 @@ export function StatisticsScreen(props: Props) {
 
   const formatExpenseAmount = (value: number) =>
     value > 0
-      ? groupThousands(
-          value >= 10 ? Math.round(value) : value,
-          value >= 10 ? 0 : 1,
-          i18n.language,
-        )
+      ? formatStatNumber(value >= 10 ? Math.round(value) : value, value >= 10 ? 0 : 1)
       : "—";
   const totalMain = formatExpenseAmount(totals.total);
   const fuelMain = formatExpenseAmount(totals.fuelCost);
   const serviceMain = formatExpenseAmount(totals.serviceCost);
-  const rollingLocale = i18n.language === "pl" ? "pl-PL" : "en-US";
 
   const oilLifeStatusText = oilLife
     ? `${oilLife.progressPercent}% ${
@@ -735,7 +746,7 @@ export function StatisticsScreen(props: Props) {
     navigation,
     onServiceEntryPress,
     totals,
-    rollingLocale,
+    formatStatNumber,
     totalMain,
     fuelMain,
     serviceMain,

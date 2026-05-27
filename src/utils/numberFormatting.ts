@@ -30,3 +30,19 @@ export function groupThousands(
   const decSep = decimalSeparator(language);
   return `${sign}${groupedInteger}${decSep}${fractionPart}`;
 }
+
+/**
+ * Thousands grouping for AnimatedRollingNumber. Uses comma (en-US) because the
+ * library treats whitespace separators as digit "0" (Number(" ") === 0).
+ */
+export function formatRollingGroupedNumber(
+  value: number,
+  fractionDigits = 0,
+): string {
+  if (!Number.isFinite(value)) return "—";
+  return value.toLocaleString("en-US", {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+    useGrouping: true,
+  });
+}

@@ -6,7 +6,7 @@ import { StatTile } from "../components/StatTile";
 import type { StatisticsPanelProps } from "../types";
 
 export function ExpenseSummarySection({
-  styles, theme, t, totals, rollingLocale, totalMain, fuelMain, serviceMain, currency,
+  styles, theme, t, totals, totalMain, fuelMain, serviceMain, currency,
 }: StatisticsPanelProps) {
   return (
       <View style={styles.section}>
@@ -29,9 +29,7 @@ export function ExpenseSummarySection({
                 <View style={styles.expensesHeroRollingWrap}>
                   <AnimatedRollingNumber
                     value={totals.total}
-                    toFixed={totals.total >= 10 ? 0 : 1}
-                    useGrouping
-                    locale={rollingLocale}
+                    formattedText={totalMain}
                     spinningAnimationConfig={{ duration: 420 }}
                     textStyle={[
                       styles.expensesHeroValue,
@@ -72,7 +70,6 @@ export function ExpenseSummarySection({
             valueMainRollingValue={
               totals.fuelCost > 0 ? totals.fuelCost : undefined
             }
-            valueMainRollingLocale={rollingLocale}
             valueSuffix={fuelMain !== "—" ? currency : undefined}
           />
           <StatTile
@@ -85,7 +82,6 @@ export function ExpenseSummarySection({
             valueMainRollingValue={
               totals.serviceCost > 0 ? totals.serviceCost : undefined
             }
-            valueMainRollingLocale={rollingLocale}
             valueSuffix={serviceMain !== "—" ? currency : undefined}
           />
         </View>

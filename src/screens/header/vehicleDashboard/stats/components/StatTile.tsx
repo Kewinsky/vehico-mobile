@@ -12,8 +12,6 @@ export type StatTileProps = {
   label?: ReactNode;
   valueMain: string;
   valueMainRollingValue?: number;
-  valueMainRollingLocale?: string;
-  valueMainRollingToFixed?: number;
   valueSuffix?: string;
   theme: AppTheme;
   styles: StatsPanelStyles;
@@ -30,8 +28,6 @@ export function StatTile({
   label,
   valueMain,
   valueMainRollingValue,
-  valueMainRollingLocale,
-  valueMainRollingToFixed,
   valueSuffix,
   theme,
   styles,
@@ -66,12 +62,7 @@ export function StatTile({
             <View style={styles.tileRollingNumberWrap}>
               <AnimatedRollingNumber
                 value={valueMainRollingValue}
-                toFixed={
-                  valueMainRollingToFixed ??
-                  (valueMainRollingValue >= 10 ? 0 : 1)
-                }
-                useGrouping
-                locale={valueMainRollingLocale}
+                formattedText={valueMain}
                 spinningAnimationConfig={{ duration: 420 }}
                 textStyle={[styles.tileValueMain, { color: theme.colors.fg }]}
               />
@@ -146,11 +137,7 @@ export function StatTile({
           <View style={styles.tileRollingNumberWrap}>
             <AnimatedRollingNumber
               value={valueMainRollingValue}
-              toFixed={
-                valueMainRollingToFixed ?? (valueMainRollingValue >= 10 ? 0 : 1)
-              }
-              useGrouping
-              locale={valueMainRollingLocale}
+              formattedText={valueMain}
               spinningAnimationConfig={{ duration: 420 }}
               textStyle={[styles.tileValueMain, { color: theme.colors.fg }]}
             />

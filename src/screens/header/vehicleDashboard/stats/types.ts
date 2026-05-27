@@ -28,7 +28,7 @@ export type StatisticsPanelProps = {
     avgConsumptionPer100: number;
     avgCostPerLiter: number;
   };
-  rollingLocale: string;
+  formatStatNumber: (value: number, fractionDigits: number) => string;
   totalMain: string;
   fuelMain: string;
   serviceMain: string;
