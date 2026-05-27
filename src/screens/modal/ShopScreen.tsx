@@ -33,7 +33,10 @@ import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
 import { Logo } from "../../ui/components/branding/Logo";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { getSubscriptionDisclosure } from "../../utils/subscriptionDisclosure";
-import { getCurrencySymbol } from "../../utils/currencyDisplay";
+import {
+  getStoreCurrencyAffixes,
+  getStoreFormattingLocale,
+} from "../../utils/currencyDisplay";
 import { ShopCompareRowIcon } from "../../ui/components/shop/ShopCompareRowIcon";
 import {
   getShopComparisonRows,
@@ -45,7 +48,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "Shop">;
 type PlanBadge = { label: string; tone: "save" | "deal" | "monthly" };
 
 export function ShopScreen({ navigation }: Props) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const {
@@ -64,7 +67,7 @@ export function ShopScreen({ navigation }: Props) {
   const [selectedSubscription, setSelectedSubscription] =
     useState<RevenueCatProductId>(REVENUECAT_DEFAULT_SUBSCRIPTION);
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const rollingLocale = i18n.language === "pl" ? "pl-PL" : "en-US";
+  const storeLocale = useMemo(() => getStoreFormattingLocale(), []);
 
   const selectedId = selectedSubscription;
 
@@ -193,13 +196,22 @@ export function ShopScreen({ navigation }: Props) {
 
   const showPerMonthSuffix = !isLifetimeProduct(selectedId);
 
-  const priceCurrencySymbol = useMemo(
-    () =>
-      getCurrencySymbol(selectedProduct?.currencyCode, rollingLocale) ||
-      selectedProduct?.currencyCode ||
-      "",
-    [rollingLocale, selectedProduct?.currencyCode],
-  );
+  const priceCurrencyDisplay = useMemo(() => {
+    if (priceRollingValue == null || !selectedProduct?.currencyCode) {
+      return null;
+    }
+    return getStoreCurrencyAffixes(
+      priceRollingValue,
+      selectedProduct.currencyCode,
+      storeLocale,
+      selectedProduct.priceString,
+    );
+  }, [
+    priceRollingValue,
+    selectedProduct?.currencyCode,
+    selectedProduct?.priceString,
+    storeLocale,
+  ]);
 
   async function openExampleLink(row: ShopCompareRow) {
     const link = row.exampleLink;
@@ -463,25 +475,35 @@ export function ShopScreen({ navigation }: Props) {
               <View style={styles.priceBlock}>
                 {priceRollingValue != null ? (
                   <View style={styles.priceRollingRow}>
-                    <AnimatedRollingNumber
-                      value={priceRollingValue}
-                      toFixed={2}
-                      useGrouping
-                      locale={rollingLocale}
-                      spinningAnimationConfig={{ duration: 480 }}
-                      textStyle={[
-                        styles.priceRollingNumber,
-                        { color: theme.colors.fg },
-                      ]}
-                    />
-                    {priceCurrencySymbol ? (
+                    {priceCurrencyDisplay?.prefix ? (
                       <Text
                         style={[
                           styles.priceCurrency,
                           { color: theme.colors.fg },
                         ]}
                       >
-                        {priceCurrencySymbol}
+                        {priceCurrencyDisplay.prefix}
+                      </Text>
+                    ) : null}
+                    <AnimatedRollingNumber
+                      value={priceRollingValue}
+                      toFixed={priceCurrencyDisplay?.fractionDigits ?? 2}
+                      useGrouping
+                      locale={storeLocale}
+                      spinningAnimationConfig={{ duration: 480 }}
+                      textStyle={[
+                        styles.priceRollingNumber,
+                        { color: theme.colors.fg },
+                      ]}
+                    />
+                    {priceCurrencyDisplay?.suffix ? (
+                      <Text
+                        style={[
+                          styles.priceCurrency,
+                          { color: theme.colors.fg },
+                        ]}
+                      >
+                        {priceCurrencyDisplay.suffix}
                       </Text>
                     ) : null}
                     {showPerMonthSuffix ? (

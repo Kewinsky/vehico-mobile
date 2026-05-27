@@ -10,6 +10,10 @@ import {
   isYearlyIapProduct,
   type IapProductId,
 } from "../../shared/payments/iapProducts";
+import {
+  formatStoreCurrency,
+  getStoreFormattingLocale,
+} from "./currencyDisplay";
 
 export type SubscriptionDisclosureLines = {
   title: string;
@@ -35,14 +39,18 @@ export function getSubscriptionDisclosure(
   const isAutoRenewable = isSubscriptionIapProduct(productId);
 
   let pricePerUnit: string | null = null;
-  if (isYearlyIapProduct(productId) && product?.price != null && product.price > 0) {
+  if (
+    isYearlyIapProduct(productId) &&
+    product?.price != null &&
+    product.price > 0 &&
+    product.currencyCode
+  ) {
     const perMonth = product.price / 12;
-    const formatted = new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency: product.currencyCode ?? "PLN",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(perMonth);
+    const formatted = formatStoreCurrency(
+      perMonth,
+      product.currencyCode,
+      getStoreFormattingLocale(),
+    );
     pricePerUnit = t("shop.pricePerMonth", { price: formatted });
   } else if (isMonthlyIapProduct(productId) && price !== "—") {
     pricePerUnit = t("shop.billedMonthly", { price });
