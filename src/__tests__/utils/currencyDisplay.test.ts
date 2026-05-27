@@ -43,24 +43,4 @@ describe("currencyDisplay (store prices)", () => {
     expect(pln.prefix).toBe("");
     expect(pln.suffix).toMatch(/zł|PLN/i);
   });
-
-  it("prefers storefront affixes from RevenueCat priceString", () => {
-    const usdFromStorefront = getStoreCurrencyAffixes(
-      9.99,
-      "USD",
-      "pl-PL",
-      "$9.99",
-    );
-    expect(usdFromStorefront.prefix).toBe("$");
-    expect(usdFromStorefront.suffix).toBe("");
-
-    const plnFromStorefront = getStoreCurrencyAffixes(
-      9.99,
-      "PLN",
-      "en-US",
-      "9,99 zł",
-    );
-    expect(plnFromStorefront.prefix).toBe("");
-    expect(plnFromStorefront.suffix).toBe(" zł");
-  });
 });

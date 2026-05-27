@@ -204,12 +204,10 @@ export function ShopScreen({ navigation }: Props) {
       priceRollingValue,
       selectedProduct.currencyCode,
       storeLocale,
-      selectedProduct.priceString,
     );
   }, [
     priceRollingValue,
     selectedProduct?.currencyCode,
-    selectedProduct?.priceString,
     storeLocale,
   ]);
 

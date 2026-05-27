@@ -57,41 +57,10 @@ const NUMERIC_PART_TYPES = new Set([
   "infinity",
 ]);
 
-function getAffixesFromPriceString(
-  priceString: string | undefined,
-): { prefix: string; suffix: string } | null {
-  if (!priceString) return null;
-
-  let firstDigitIndex = -1;
-  let lastDigitIndex = -1;
-
-  for (let index = 0; index < priceString.length; index += 1) {
-    if (/\d/.test(priceString[index])) {
-      firstDigitIndex = index;
-      break;
-    }
-  }
-
-  for (let index = priceString.length - 1; index >= 0; index -= 1) {
-    if (/\d/.test(priceString[index])) {
-      lastDigitIndex = index;
-      break;
-    }
-  }
-
-  if (firstDigitIndex === -1 || lastDigitIndex === -1) return null;
-
-  return {
-    prefix: priceString.slice(0, firstDigitIndex),
-    suffix: priceString.slice(lastDigitIndex + 1),
-  };
-}
-
 export function getStoreCurrencyAffixes(
   amount: number,
   currencyCode: string | undefined,
   locale: string = getStoreFormattingLocale(),
-  storefrontPriceString?: string,
 ): { prefix: string; suffix: string; fractionDigits: number } {
   if (!currencyCode || !Number.isFinite(amount)) {
     return { prefix: "", suffix: "", fractionDigits: 2 };
@@ -105,10 +74,6 @@ export function getStoreCurrencyAffixes(
     const parts = formatter.formatToParts(amount);
     const fractionDigits =
       formatter.resolvedOptions().maximumFractionDigits ?? 2;
-    const storefrontAffixes = getAffixesFromPriceString(storefrontPriceString);
-    if (storefrontAffixes) {
-      return { ...storefrontAffixes, fractionDigits };
-    }
     const firstNumericIndex = parts.findIndex((part) =>
       NUMERIC_PART_TYPES.has(part.type),
     );
