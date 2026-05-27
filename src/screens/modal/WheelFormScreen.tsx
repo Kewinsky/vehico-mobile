@@ -98,9 +98,11 @@ export function WheelFormScreen({ navigation, route }: Props) {
   }, [wheelId, t]);
 
   const canSave = useMemo(() => {
+    const parsedWidth = parseDecimal(width);
     return (
       name.trim().length > 0 &&
-      isPositiveNumber(width) &&
+      parsedWidth != null &&
+      parsedWidth > 0 &&
       isPositiveNumber(diameter) &&
       isValidEt(etOffset)
     );
@@ -140,9 +142,9 @@ export function WheelFormScreen({ navigation, route }: Props) {
   async function onSave() {
     try {
       setSaving(true);
-      const widthNum = Number(width.trim());
+      const widthNum = parseDecimal(width);
       const diameterNum = Number(diameter.trim());
-      if (!Number.isFinite(widthNum) || widthNum <= 0) {
+      if (widthNum == null || widthNum <= 0) {
         toastError(t("validation.positiveRequired"));
         return;
       }

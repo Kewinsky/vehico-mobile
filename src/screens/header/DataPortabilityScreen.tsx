@@ -24,7 +24,7 @@ function csvEscape(value: unknown): string {
   const raw = value == null ? "" : String(value);
   if (
     raw.includes('"') ||
-    raw.includes(",") ||
+    raw.includes(";") ||
     raw.includes("\n") ||
     raw.includes("\r")
   ) {
@@ -32,6 +32,8 @@ function csvEscape(value: unknown): string {
   }
   return raw;
 }
+
+const CSV_DELIMITER = ";";
 
 type CsvDataType =
   | "service_entries"
@@ -188,8 +190,8 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           csvEscape(e.cost ?? ""),
         ]);
         const csvText = [
-          header.join(","),
-          ...lines.map((r) => r.join(",")),
+          header.join(CSV_DELIMITER),
+          ...lines.map((r) => r.join(CSV_DELIMITER)),
         ].join("\n");
         await Share.share({
           title: t("export.shareTitle"),
@@ -220,8 +222,8 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           ),
         ]);
         const csvText = [
-          header.join(","),
-          ...lines.map((r) => r.join(",")),
+          header.join(CSV_DELIMITER),
+          ...lines.map((r) => r.join(CSV_DELIMITER)),
         ].join("\n");
         await Share.share({
           title: t("export.shareTitle"),
@@ -252,8 +254,8 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           csvEscape(e.recurrence_anchor_mileage ?? ""),
         ]);
         const csvText = [
-          header.join(","),
-          ...lines.map((r) => r.join(",")),
+          header.join(CSV_DELIMITER),
+          ...lines.map((r) => r.join(CSV_DELIMITER)),
         ].join("\n");
         await Share.share({
           title: t("export.shareTitle"),
@@ -284,8 +286,8 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           csvEscape(e.is_currently_fitted ?? false),
         ]);
         const csvText = [
-          header.join(","),
-          ...lines.map((r) => r.join(",")),
+          header.join(CSV_DELIMITER),
+          ...lines.map((r) => r.join(CSV_DELIMITER)),
         ].join("\n");
         await Share.share({
           title: t("export.shareTitle"),
@@ -312,8 +314,8 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           csvEscape(e.is_currently_fitted ?? false),
         ]);
         const csvText = [
-          header.join(","),
-          ...lines.map((r) => r.join(",")),
+          header.join(CSV_DELIMITER),
+          ...lines.map((r) => r.join(CSV_DELIMITER)),
         ].join("\n");
         await Share.share({
           title: t("export.shareTitle"),
@@ -329,8 +331,8 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
           csvEscape(e.address ?? ""),
         ]);
         const csvText = [
-          header.join(","),
-          ...lines.map((r) => r.join(",")),
+          header.join(CSV_DELIMITER),
+          ...lines.map((r) => r.join(CSV_DELIMITER)),
         ].join("\n");
         await Share.share({
           title: t("export.shareTitle"),
