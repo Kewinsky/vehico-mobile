@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { ChevronRight } from "lucide-react-native";
 
 import { useTheme } from "../../../../ui/ThemeProvider";
 
@@ -59,6 +60,12 @@ export function DashboardStatTile({
         >
           {label}
         </Text>
+        {onPress ? (
+          <ChevronRight
+            size={18}
+            color={iconColor ?? theme.colors.muted}
+          />
+        ) : null}
       </View>
       <View style={styles.dashboardStatTileValueRow}>
         {typeof valueMain === "string" || typeof valueMain === "number" ? (
