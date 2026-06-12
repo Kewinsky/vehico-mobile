@@ -405,6 +405,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     insuranceDaysUntil,
     vehicle?.insurance_valid_until,
     i18n.language,
+    t,
   ]);
 
   const inspectionCalloutCopy = useMemo(() => {
@@ -435,6 +436,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     inspectionDaysUntil,
     vehicle?.inspection_valid_until,
     i18n.language,
+    t,
   ]);
 
   const quickMetrics = useMemo(() => {
