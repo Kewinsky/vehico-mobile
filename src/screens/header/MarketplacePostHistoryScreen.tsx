@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { SquarePen } from "lucide-react-native";
+import { SquarePen, Trash2 } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -16,6 +16,7 @@ import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import {
   listMarketplacePosts,
   updateMarketplacePostTitle,
+  deleteMarketplacePost,
 } from "../../services/marketplace/marketplaceRepo";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -86,6 +87,29 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
     }
   }
 
+  function confirmDeletePost(post: MarketplacePost) {
+    Alert.alert(
+      t("marketplace.deletePostTitle"),
+      t("marketplace.deletePostBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.remove"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteMarketplacePost(post.id);
+              setPosts((prev) => prev.filter((p) => p.id !== post.id));
+              toastSuccess(t("marketplace.deleted"));
+            } catch (e: any) {
+              toastError(e?.message ?? t("common.error"));
+            }
+          },
+        },
+      ],
+    );
+  }
+
   function handleEditTitle(post: MarketplacePost) {
     Alert.prompt(
       t("marketplace.editTitleTitle"),
@@ -131,6 +155,12 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
           style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
         >
           <SquarePen size={22} color="#000000" />
+        </Pressable>
+        <Pressable
+          onPress={() => confirmDeletePost(item)}
+          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+        >
+          <Trash2 size={22} color="#000000" />
         </Pressable>
       </View>
     );

@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { SquarePen } from "lucide-react-native";
+import { SquarePen, Trash2 } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -17,6 +17,7 @@ import {
   listPublicPages,
   getPublicPageUrl,
   updatePublicReportTitle,
+  deletePublicReport,
 } from "../../services/publicPages/publicPagesRepo";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -83,6 +84,25 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
     }
   }
 
+  function confirmDeleteReport(report: PublicReportSnapshot) {
+    Alert.alert(t("share.deleteReportTitle"), t("share.deleteReportBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("common.remove"),
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deletePublicReport(report.id);
+            setReports((prev) => prev.filter((r) => r.id !== report.id));
+            toastSuccess(t("share.reportDeleted"));
+          } catch (e: any) {
+            toastError(e?.message ?? t("common.error"));
+          }
+        },
+      },
+    ]);
+  }
+
   function handleEditTitle(report: PublicReportSnapshot) {
     Alert.prompt(
       t("publicReport.editTitleTitle"),
@@ -133,6 +153,12 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
           style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
         >
           <SquarePen size={22} color="#000000" />
+        </Pressable>
+        <Pressable
+          onPress={() => confirmDeleteReport(item)}
+          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+        >
+          <Trash2 size={22} color="#000000" />
         </Pressable>
       </View>
     );

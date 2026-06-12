@@ -5,6 +5,7 @@ import {
   updateMarketplacePost,
   updateMarketplacePostTitle,
   getMarketplacePost,
+  deleteMarketplacePost,
 } from "../../services/marketplace/marketplaceRepo";
 import { createPostgrestChain, supabase } from "../../test/supabaseMock";
 
@@ -150,5 +151,22 @@ describe("marketplaceRepo", () => {
     await expect(
       updateMarketplacePostTitle("p1", "My title"),
     ).resolves.toBeUndefined();
+  });
+
+  it("deleteMarketplacePost deletes post row", async () => {
+    supabase.from.mockImplementation(() =>
+      createPostgrestChain({ data: null, error: null }),
+    );
+    await expect(deleteMarketplacePost("p1")).resolves.toBeUndefined();
+    expect(supabase.from).toHaveBeenCalledWith("posts");
+  });
+
+  it("deleteMarketplacePost throws on delete error", async () => {
+    supabase.from.mockImplementation(() =>
+      createPostgrestChain({ data: null, error: { message: "delete failed" } }),
+    );
+    await expect(deleteMarketplacePost("p1")).rejects.toEqual(
+      expect.objectContaining({ message: "delete failed" }),
+    );
   });
 });

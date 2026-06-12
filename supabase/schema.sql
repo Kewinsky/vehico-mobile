@@ -391,6 +391,19 @@ with check (
   )
 );
 
+-- Delete: authenticated can delete their own reports
+create policy reports_delete_own
+on public.reports for delete
+to authenticated
+using (
+  exists (
+    select 1
+    from public.vehicles v
+    where v.id = reports.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
 -- Fueling entries: allowed if vehicle belongs to user
 create policy fueling_entries_select_own_vehicle
 on public.fueling_entries for select
@@ -632,6 +645,11 @@ on public.posts for update
 to authenticated
 using (user_id = auth.uid())
 with check (user_id = auth.uid());
+
+create policy posts_delete_own
+on public.posts for delete
+to authenticated
+using (user_id = auth.uid());
 
 -- ================
 -- Entitlements (monetization)

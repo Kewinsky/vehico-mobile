@@ -4,8 +4,13 @@ import {
   listPublicPages,
   updatePublicReportPhotos,
   updatePublicReportTitle,
+  deletePublicReport,
 } from "../../services/publicPages/publicPagesRepo";
-import { createPostgrestChain, supabase } from "../../test/supabaseMock";
+import {
+  createPostgrestChain,
+  mockStorageBucket,
+  supabase,
+} from "../../test/supabaseMock";
 
 jest.mock("../../config/env", () => ({
   ENV: {
@@ -131,6 +136,35 @@ describe("publicPagesRepo", () => {
     );
     await expect(updatePublicReportTitle("rep1", "Title")).rejects.toEqual(
       expect.objectContaining({ message: "update failed" }),
+    );
+  });
+
+  it("deletePublicReport removes report photos then deletes report row", async () => {
+    mockStorageBucket.list.mockResolvedValue({
+      data: [{ name: "photo.jpg" }],
+      error: null,
+    });
+    mockStorageBucket.remove.mockResolvedValue({ data: null, error: null });
+    supabase.from.mockImplementation(() =>
+      createPostgrestChain({ data: null, error: null }),
+    );
+
+    await expect(deletePublicReport("rep1")).resolves.toBeUndefined();
+
+    expect(mockStorageBucket.list).toHaveBeenCalledWith("rep1");
+    expect(mockStorageBucket.remove).toHaveBeenCalledWith([
+      "rep1/photo.jpg",
+    ]);
+    expect(supabase.from).toHaveBeenCalledWith("reports");
+  });
+
+  it("deletePublicReport throws when report delete fails", async () => {
+    mockStorageBucket.list.mockResolvedValue({ data: [], error: null });
+    supabase.from.mockImplementation(() =>
+      createPostgrestChain({ data: null, error: { message: "delete failed" } }),
+    );
+    await expect(deletePublicReport("rep1")).rejects.toEqual(
+      expect.objectContaining({ message: "delete failed" }),
     );
   });
 });

@@ -40,6 +40,7 @@ export function createPostgrestChain(final: MockThenablePayload) {
 export const mockStorageBucket = {
   upload: jest.fn(),
   remove: jest.fn(),
+  list: jest.fn(),
   getPublicUrl: jest.fn(() => ({
     data: { publicUrl: "https://example.test/storage-public" },
   })),
@@ -84,6 +85,7 @@ export function resetSupabaseMock() {
 
   mockStorageBucket.upload.mockReset();
   mockStorageBucket.remove.mockReset();
+  mockStorageBucket.list.mockReset();
   mockStorageBucket.getPublicUrl.mockReset();
   mockStorageBucket.getPublicUrl.mockImplementation(() => ({
     data: { publicUrl: "https://example.test/storage-public" },

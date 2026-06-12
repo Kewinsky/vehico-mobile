@@ -3,6 +3,8 @@ import { ENV } from "../../config/env";
 import type { Currency, PublicReportSnapshot } from "../../types/domain";
 import type { ReportPhotoUpload } from "./uploadReportPhoto";
 
+const REPORT_PHOTOS_BUCKET = "report-photos";
+
 export type ReportOptions = {
   include_technical_data: boolean;
   include_insurance: boolean;
@@ -73,5 +75,29 @@ export async function updatePublicReportTitle(
     .from("reports")
     .update({ title })
     .eq("id", snapshotId);
+  if (error) throw error;
+}
+
+async function deleteReportPhotosStorage(reportId: string): Promise<void> {
+  const { data: files, error: listError } = await supabase.storage
+    .from(REPORT_PHOTOS_BUCKET)
+    .list(reportId);
+  if (listError) return;
+
+  const pathsToRemove = (files ?? [])
+    .filter((f) => f.name)
+    .map((f) => `${reportId}/${f.name}`);
+  if (pathsToRemove.length === 0) return;
+
+  const { error: removeError } = await supabase.storage
+    .from(REPORT_PHOTOS_BUCKET)
+    .remove(pathsToRemove);
+  if (removeError) throw removeError;
+}
+
+export async function deletePublicReport(reportId: string): Promise<void> {
+  await deleteReportPhotosStorage(reportId);
+
+  const { error } = await supabase.from("reports").delete().eq("id", reportId);
   if (error) throw error;
 }

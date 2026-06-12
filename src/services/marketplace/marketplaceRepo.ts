@@ -165,3 +165,8 @@ export async function updateMarketplacePostTitle(
     .eq("id", postId);
   if (error) throw error;
 }
+
+export async function deleteMarketplacePost(postId: string): Promise<void> {
+  const { error } = await supabase.from("posts").delete().eq("id", postId);
+  if (error) throw error;
+}
