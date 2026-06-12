@@ -344,6 +344,7 @@ export const pl = {
     workshop: "Warsztat",
     workshopPlaceholder: "Wybierz warsztat",
     categoryPlaceholder: "Wybierz kategorię",
+    presetsTitle: "Szybkie wpisy",
   },
   entryDetail: {
     title: "Wpis serwisowy",

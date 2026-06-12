@@ -3,6 +3,7 @@ import {
   Alert,
   FlatList,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -33,6 +34,11 @@ import {
   openLocalFile,
 } from "../../services/storage/openLocalFile";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
+import { getVehicle } from "../../services/vehicles/vehiclesRepo";
+import {
+  SERVICE_ENTRY_PRESETS,
+  type ServiceEntryPreset,
+} from "../serviceEntryPresets";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
@@ -91,6 +97,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [workshopId, setWorkshopId] = useState<string | null>(null);
   const [workshopSnapshot, setWorkshopSnapshot] = useState<string | null>(null);
+  const [defaultMileage, setDefaultMileage] = useState("");
 
   const checkAndUpload = useCallback(
     async (params: {
@@ -119,6 +126,21 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     const options = isPremium ? undefined : { freePlanWorkshopIds };
     listWorkshops(options).then(setWorkshops);
   }, [isPremium, workshopsLimit, freePlanWorkshopIds]);
+
+  useEffect(() => {
+    if (entryId) return;
+    void (async () => {
+      try {
+        const vehicle = await getVehicle(vehicleId);
+        const mileageValue =
+          vehicle.mileage != null ? String(vehicle.mileage) : "";
+        setDefaultMileage(mileageValue);
+        setMileage((prev) => (prev.trim().length ? prev : mileageValue));
+      } catch (err: any) {
+        toastError(err?.message ?? t("common.error"));
+      }
+    })();
+  }, [vehicleId, entryId, t]);
 
   useEffect(() => {
     if (!entryId) return;
@@ -370,11 +392,25 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     ]);
   }
 
+  function applyPreset(preset: ServiceEntryPreset) {
+    if (mode !== "single") {
+      setFormMode("single");
+    }
+    setCategory(preset.category);
+    setEntries([{ title: t(`reminderForm.${preset.titleKey}`), cost: "" }]);
+    setMileage(defaultMileage);
+    setServiceDate(new Date().toISOString().slice(0, 10));
+    setDescription("");
+    setWorkshopId(null);
+    setWorkshopSnapshot(null);
+    setPendingFiles([]);
+  }
+
   function clearForm() {
     setMode("single");
     const today = new Date().toISOString().slice(0, 10);
     setServiceDate(today);
-    setMileage("");
+    setMileage(defaultMileage);
     setCategory(null);
     setEntries([{ title: "", cost: "" }]);
     setDescription("");
@@ -608,36 +644,95 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         disabled: !canSave || saving || uploading,
         loading: saving || uploading,
       }}
+      useHorizontalContentInset={false}
       footer={
-        entryId ? (
-          <Button variant="destructive" onPress={confirmDeleteEntry}>
-            {t("common.delete")}
-          </Button>
-        ) : (
-          <Button variant="outlined" onPress={clearForm} disabled={saving}>
-            {t("common.clearButton")}
-          </Button>
-        )
+        <View style={styles.footerAction}>
+          {entryId ? (
+            <Button variant="destructive" onPress={confirmDeleteEntry}>
+              {t("common.delete")}
+            </Button>
+          ) : (
+            <Button variant="outlined" onPress={clearForm} disabled={saving}>
+              {t("common.clearButton")}
+            </Button>
+          )}
+        </View>
       }
     >
       <FormScreen noLayout>
         <NativeHeaderScrollView>
           {!entryId ? (
             <>
-              <SegmentTabs<"single" | "multi">
-                variant="secondary"
-                value={mode}
-                options={[
-                  { value: "single", label: t("entryForm.modeSingle") },
-                  { value: "multi", label: t("entryForm.modeMulti") },
-                ]}
-                onChange={setFormMode}
-              />
+              <View style={styles.segmentTabs}>
+                <SegmentTabs<"single" | "multi">
+                  variant="secondary"
+                  value={mode}
+                  options={[
+                    { value: "single", label: t("entryForm.modeSingle") },
+                    { value: "multi", label: t("entryForm.modeMulti") },
+                  ]}
+                  onChange={setFormMode}
+                />
+              </View>
               <View style={{ height: theme.spacing.sm }} />
+
+              {!isMulti ? (
+                <>
+                  <Text
+                    style={[
+                      styles.presetsSectionLabel,
+                      { color: theme.colors.muted },
+                    ]}
+                  >
+                    {t("entryForm.presetsTitle")}
+                  </Text>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.presetsScrollContent}
+                    style={styles.presetsScroll}
+                  >
+                    {SERVICE_ENTRY_PRESETS.map((preset) => (
+                      <Pressable
+                        key={preset.titleKey}
+                        onPress={() => applyPreset(preset)}
+                        style={({ pressed }) => [
+                          styles.presetChip,
+                          pressed && { opacity: 0.85 },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.presetChipTitle,
+                            { color: theme.colors.fg },
+                          ]}
+                          numberOfLines={2}
+                        >
+                          {t(`reminderForm.${preset.titleKey}`)}
+                        </Text>
+                        <View style={styles.presetChipSummaryWrap}>
+                          <Text
+                            style={[
+                              styles.presetChipSummary,
+                              { color: theme.colors.muted },
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {t(
+                              `entryForm.categories.${preset.category}` as any,
+                            )}
+                          </Text>
+                        </View>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                  <View style={{ height: theme.spacing.sm }} />
+                </>
+              ) : null}
             </>
           ) : null}
 
-          <Card>
+          <Card style={styles.card}>
             <FormDateRow
               icon="calendar-outline"
               label={t("entryForm.serviceDate")}
@@ -762,7 +857,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             <>
               {entries.map((row, index) => (
                 <View key={index}>
-                  <Card>
+                  <Card style={styles.card}>
                     <FormInputRow
                       icon="document-text-outline"
                       label={t("entryForm.entryTitle")}
@@ -806,20 +901,24 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               ))}
 
               <View style={{ height: theme.spacing.sm }} />
-              <Button
-                onPress={addEntry}
-                variant="ghost"
-                disabled={saving || uploading}
-              >
-                {t("entryForm.addAnotherEntry")}
-              </Button>
-              <Text style={[styles.noticeText, { color: theme.colors.muted }]}>
-                {t("entryForm.multiModeInfo")}
-              </Text>
+              <View style={styles.insetContent}>
+                <Button
+                  onPress={addEntry}
+                  variant="ghost"
+                  disabled={saving || uploading}
+                >
+                  {t("entryForm.addAnotherEntry")}
+                </Button>
+                <Text
+                  style={[styles.noticeText, { color: theme.colors.muted }]}
+                >
+                  {t("entryForm.multiModeInfo")}
+                </Text>
+              </View>
             </>
           ) : (
             <>
-              <Card>
+              <Card style={styles.card}>
                 <FormInputRow
                   icon="document-text-outline"
                   label={t("entryForm.entryTitle")}
@@ -840,7 +939,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               </Card>
 
               <View style={{ height: theme.spacing.sm }} />
-              <Card>
+              <Card style={styles.card}>
                 <View
                   style={{
                     paddingVertical: theme.spacing.md,
@@ -872,7 +971,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               </Card>
 
               <View style={{ height: theme.spacing.xl }} />
-              <View style={styles.sectionHeader}>
+              <View style={[styles.sectionHeader, styles.insetContent]}>
                 <Text style={styles.h2}>
                   {t("attachments.titleWithCount", {
                     count: entryId ? attachments.length : pendingFiles.length,
@@ -880,13 +979,15 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 </Text>
               </View>
               <View style={{ height: theme.spacing.sm }} />
-              <Button
-                onPress={pickAttachment}
-                variant="ghost"
-                disabled={saving || uploading}
-              >
-                {t("entryForm.addAttachment")}
-              </Button>
+              <View style={styles.insetContent}>
+                <Button
+                  onPress={pickAttachment}
+                  variant="ghost"
+                  disabled={saving || uploading}
+                >
+                  {t("entryForm.addAttachment")}
+                </Button>
+              </View>
               <View style={{ height: theme.spacing.sm }} />
 
               {entryId ? (
@@ -898,11 +999,14 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     <View style={{ height: theme.spacing.sm }} />
                   )}
                   renderItem={({ item }) => (
-                    <ExclusiveSwipeable
-                      renderRightActions={() => renderAttachmentRightActions(item)}
-                      rightThreshold={32}
-                    >
-                      <ListRowWithActions
+                    <View style={styles.listRowWrap}>
+                      <ExclusiveSwipeable
+                        renderRightActions={() =>
+                          renderAttachmentRightActions(item)
+                        }
+                        rightThreshold={32}
+                      >
+                        <ListRowWithActions
                         title={
                           item.display_name?.trim() ||
                           t("attachments.attachmentLabel")
@@ -923,8 +1027,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                           return `${t("documents.added")} ${formattedDate} · ${ext}`;
                         })()}
                         onPress={() => void openAttachment(item)}
-                      />
-                    </ExclusiveSwipeable>
+                        />
+                      </ExclusiveSwipeable>
+                    </View>
                   )}
                   ListEmptyComponent={
                     attachmentsLoading ? (
@@ -932,7 +1037,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                         <LoadingIndicator />
                       </View>
                     ) : !uploading && attachments.length === 0 ? (
-                      <Text style={styles.muted}>
+                      <Text style={[styles.muted, styles.insetContent]}>
                         {t("entryForm.attachmentsEmpty")}
                       </Text>
                     ) : null
@@ -948,19 +1053,21 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     <View style={{ height: theme.spacing.sm }} />
                   )}
                   renderItem={({ item, index }) => (
-                    <ExclusiveSwipeable
-                      renderRightActions={() =>
-                        renderPendingAttachmentRightActions(index, item)
-                      }
-                      rightThreshold={32}
-                    >
-                      <ListRowWithActions
-                        title={
-                          item.fileName?.trim() ||
-                          t("attachments.attachmentLabel")
+                    <View style={styles.listRowWrap}>
+                      <ExclusiveSwipeable
+                        renderRightActions={() =>
+                          renderPendingAttachmentRightActions(index, item)
                         }
-                      />
-                    </ExclusiveSwipeable>
+                        rightThreshold={32}
+                      >
+                        <ListRowWithActions
+                          title={
+                            item.fileName?.trim() ||
+                            t("attachments.attachmentLabel")
+                          }
+                        />
+                      </ExclusiveSwipeable>
+                    </View>
                   )}
                 />
               )}
@@ -975,6 +1082,50 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
+    segmentTabs: {
+      marginHorizontal: theme.layout.contentPaddingHorizontal,
+    },
+    presetsSectionLabel: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.semibold,
+      marginBottom: theme.spacing.sm,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+    },
+    presetsScroll: {
+      maxHeight: 90,
+    },
+    presetsScrollContent: {
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      gap: theme.spacing.sm,
+    },
+    presetChip: {
+      borderRadius: theme.radius.md,
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md,
+      backgroundColor: theme.colors.card,
+    },
+    presetChipTitle: {
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    presetChipSummaryWrap: {
+      marginTop: theme.spacing.sm,
+    },
+    presetChipSummary: {
+      fontSize: theme.typography.small,
+    },
+    card: {
+      marginHorizontal: theme.layout.contentPaddingHorizontal,
+    },
+    insetContent: {
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+    },
+    listRowWrap: {
+      marginHorizontal: theme.layout.contentPaddingHorizontal,
+    },
+    footerAction: {
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+    },
     h1: {
       fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,

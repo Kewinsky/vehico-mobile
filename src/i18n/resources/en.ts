@@ -341,6 +341,7 @@ export const en = {
     workshop: "Workshop",
     workshopPlaceholder: "Select workshop",
     categoryPlaceholder: "Select category",
+    presetsTitle: "Quick entries",
   },
   entryDetail: {
     title: "Service entry",
