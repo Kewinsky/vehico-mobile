@@ -419,6 +419,14 @@ export const pl = {
       inspectionPrompt: "Przegląd ważny do (RRRR-MM-DD)",
       clearDate: "Wyczyść datę",
     },
+    formalityNotification: {
+      insuranceBefore:
+        "{{vehicle}} — ubezpieczenie wygasa za {{days}} dni ({{date}})",
+      insuranceToday: "{{vehicle}} — ubezpieczenie wygasa dziś",
+      inspectionBefore:
+        "{{vehicle}} — przegląd wygasa za {{days}} dni ({{date}})",
+      inspectionToday: "{{vehicle}} — przegląd wygasa dziś",
+    },
     quickMetrics: {
       costSubtitle: "Koszt/dzień",
       distanceSubtitle: "Dystans",

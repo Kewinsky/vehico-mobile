@@ -1,6 +1,14 @@
 import { supabase } from "../supabase/client";
+import {
+  cancelVehicleFormalityNotifications,
+  rescheduleVehicleFormalityNotifications,
+} from "../push/localFormalityNotifications";
 import { listVehiclePhotos } from "./uploadPhoto";
 import type { Vehicle, VehicleType } from "../../types/domain";
+
+function syncFormalityNotifications(vehicle: Vehicle): void {
+  void rescheduleVehicleFormalityNotifications(vehicle);
+}
 
 type NewVehicleInput = {
   type: VehicleType;
@@ -65,7 +73,9 @@ export async function createVehicle(input: NewVehicleInput): Promise<Vehicle> {
     p_inspection_valid_until: input.inspection_valid_until ?? null,
   });
   if (error) throw error;
-  return data as Vehicle;
+  const vehicle = data as Vehicle;
+  syncFormalityNotifications(vehicle);
+  return vehicle;
 }
 
 export async function updateVehicle(
@@ -79,7 +89,9 @@ export async function updateVehicle(
     .select("*")
     .single();
   if (error) throw error;
-  return data as Vehicle;
+  const vehicle = data as Vehicle;
+  syncFormalityNotifications(vehicle);
+  return vehicle;
 }
 
 /** When a service entry has a higher odometer reading, bump the vehicle mileage. */
@@ -103,6 +115,8 @@ export async function syncVehicleMileageIfHigher(
 }
 
 export async function deleteVehicle(vehicleId: string): Promise<void> {
+  await cancelVehicleFormalityNotifications(vehicleId);
+
   // Delete vehicle photo files via Storage API before removing DB rows.
   const photos = await listVehiclePhotos(vehicleId);
   const pathsByBucket = new Map<string, string[]>();

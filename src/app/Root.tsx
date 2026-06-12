@@ -19,6 +19,8 @@ import { ExclusiveSwipeProvider } from "../ui/components/common/ExclusiveSwipeab
 import { ErrorBoundary } from "../ui/components/common/ErrorBoundary";
 import { AppToasts } from "../ui/toast/AppToasts";
 import { setThemeColorsGetter } from "../ui/toast/toast";
+import { FormalityNotificationsBootstrap } from "./FormalityNotificationsBootstrap";
+
 function AppContent() {
   const { theme } = useTheme();
 
@@ -27,11 +29,19 @@ function AppContent() {
     const navigateFromNotification = (data: {
       reminderId?: string;
       vehicleId?: string;
+      formalityKind?: "insurance" | "inspection";
     }) => {
-      if (data?.reminderId && data?.vehicleId && navigationRef.isReady()) {
+      if (!data?.vehicleId || !navigationRef.isReady()) return;
+      if (data.reminderId) {
         navigationRef.navigate("ReminderForm", {
           vehicleId: data.vehicleId,
           reminderId: data.reminderId,
+        });
+        return;
+      }
+      if (data.formalityKind) {
+        navigationRef.navigate("VehicleDashboard", {
+          vehicleId: data.vehicleId,
         });
       }
     };
@@ -39,7 +49,11 @@ function AppContent() {
     const sub = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         const data = response.notification.request.content.data as
-          | { reminderId?: string; vehicleId?: string }
+          | {
+              reminderId?: string;
+              vehicleId?: string;
+              formalityKind?: "insurance" | "inspection";
+            }
           | undefined;
         navigateFromNotification(data ?? {});
       },
@@ -48,7 +62,11 @@ function AppContent() {
     Notifications.getLastNotificationResponseAsync().then((response) => {
       if (!response?.notification.request.content.data) return;
       const data = response.notification.request.content.data as
-        | { reminderId?: string; vehicleId?: string }
+        | {
+            reminderId?: string;
+            vehicleId?: string;
+            formalityKind?: "insurance" | "inspection";
+          }
         | undefined;
       const id = setInterval(() => {
         if (navigationRef.isReady()) {
@@ -84,6 +102,7 @@ function AppContent() {
 
   return (
     <>
+      <FormalityNotificationsBootstrap />
       <NavigationContainer ref={navigationRef} linking={linking}>
         <RootNavigator />
         <PremiumDowngradeHandler />

@@ -416,6 +416,14 @@ export const en = {
       inspectionPrompt: "Inspection valid until (YYYY-MM-DD)",
       clearDate: "Clear date",
     },
+    formalityNotification: {
+      insuranceBefore:
+        "{{vehicle}} — insurance expires in {{days}} days ({{date}})",
+      insuranceToday: "{{vehicle}} — insurance expires today",
+      inspectionBefore:
+        "{{vehicle}} — inspection due in {{days}} days ({{date}})",
+      inspectionToday: "{{vehicle}} — inspection due today",
+    },
     quickMetrics: {
       costSubtitle: "Cost/day",
       distanceSubtitle: "Distance",
