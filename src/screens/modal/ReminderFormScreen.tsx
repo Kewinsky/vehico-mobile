@@ -37,6 +37,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { Button } from "../../ui/components/common/Button";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { useTheme } from "../../ui/ThemeProvider";
+import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
@@ -152,22 +153,6 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     );
   }
 
-  function clearForm() {
-    setTitle("");
-    setNotes("");
-    setDateEnabled(false);
-    setDueDate(new Date().toISOString().slice(0, 10));
-    setDaysBefore("7");
-    setDateRepeats(false);
-    setRecurrenceValue("6");
-    setRecurrenceUnit("months");
-    setMileageEnabled(false);
-    setDueMileage("");
-    setMileageRepeats(false);
-    setRecurrenceKm("");
-  }
-
-
   useEffect(() => {
     if (!reminderId) return;
     void (async () => {
@@ -232,6 +217,35 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     daysBefore,
   ]);
 
+  const { fieldError, validateBeforeSave, resetFieldErrors } =
+    useFormFieldErrors(canSave);
+
+  const recurrenceInvalid = useMemo(() => {
+    if (!dateRepeats) return false;
+    const max =
+      RECURRENCE_UNITS.find((u) => u.value === recurrenceUnit)?.max ?? 12;
+    const v = parseInt(recurrenceValue, 10);
+    return !Number.isInteger(v) || v < 1 || v > max;
+  }, [dateRepeats, recurrenceValue, recurrenceUnit]);
+
+  const noReminderType = !dateEnabled && !mileageEnabled;
+
+  function clearForm() {
+    resetFieldErrors();
+    setTitle("");
+    setNotes("");
+    setDateEnabled(false);
+    setDueDate(new Date().toISOString().slice(0, 10));
+    setDaysBefore("7");
+    setDateRepeats(false);
+    setRecurrenceValue("6");
+    setRecurrenceUnit("months");
+    setMileageEnabled(false);
+    setDueMileage("");
+    setMileageRepeats(false);
+    setRecurrenceKm("");
+  }
+
   function confirmDelete() {
     if (!reminderId) return;
     Alert.alert(
@@ -257,24 +271,9 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   }
 
   async function onSave() {
+    if (!validateBeforeSave()) return;
     try {
       setSaving(true);
-      if (!dateEnabled && !mileageEnabled) {
-        toastError(t("validation.invalidDate"));
-        return;
-      }
-      if (dateEnabled && !isValidDate(dueDate)) {
-        toastError(t("validation.invalidDate"));
-        return;
-      }
-      if (mileageEnabled && !isPositiveNumber(dueMileage)) {
-        toastError(t("validation.positiveRequired"));
-        return;
-      }
-      if (daysBefore.trim() && !isNonNegativeNumber(daysBefore)) {
-        toastError(t("validation.nonNegativeRequired"));
-        return;
-      }
       if (!reminderId && !isPremium) {
         const options =
           freePlanVehicleId === vehicleId
@@ -375,7 +374,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       done={{
         onPress: onSave,
         label: t("common.done"),
-        disabled: !canSave || saving,
+        disabled: saving,
         loading: saving,
       }}
       useHorizontalContentInset={false}
@@ -487,6 +486,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
               placeholder={t("reminderForm.placeholderTitle")}
               editable={!saving}
               autoCorrect={false}
+              error={fieldError(!title.trim())}
             />
           </Card>
 
@@ -494,7 +494,10 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
           {/* Section 2: Date reminder */}
           <Card style={styles.card}>
-            <CardRow style={{ justifyContent: "space-between" }}>
+            <CardRow
+              style={{ justifyContent: "space-between" }}
+              error={fieldError(noReminderType)}
+            >
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="calendar-outline"
@@ -525,6 +528,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                   value={dueDate}
                   onChange={setDueDate}
                   disabled={saving}
+                  error={fieldError(!isValidDate(dueDate))}
                 />
 
                 <CardDivider />
@@ -536,6 +540,10 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                   placeholder="7"
                   keyboardType="number-pad"
                   editable={!saving}
+                  error={fieldError(
+                    daysBefore.trim().length > 0 &&
+                      !isNonNegativeNumber(daysBefore),
+                  )}
                 />
                 <CardDivider />
                 <CardRow style={{ justifyContent: "space-between" }}>
@@ -564,7 +572,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                 </CardRow>
                 {dateRepeats && <CardDivider />}
                 {dateRepeats && (
-                  <CardRow>
+                  <CardRow error={fieldError(recurrenceInvalid)}>
                     <View style={styles.rowLeft}>
                       <Text
                         style={[styles.label, { color: theme.colors.muted }]}
@@ -653,7 +661,10 @@ export function ReminderFormScreen({ navigation, route }: Props) {
 
           {/* Section 3: Mileage reminder */}
           <Card style={styles.card}>
-            <CardRow style={{ justifyContent: "space-between" }}>
+            <CardRow
+              style={{ justifyContent: "space-between" }}
+              error={fieldError(noReminderType)}
+            >
               <View style={styles.rowLeft}>
                 <Ionicons
                   name="speedometer-outline"
@@ -686,6 +697,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                   placeholder={t("reminderForm.placeholderDueMileage")}
                   keyboardType="number-pad"
                   editable={!saving}
+                  error={fieldError(!isPositiveNumber(dueMileage))}
                 />
                 <CardDivider />
                 <CardRow style={{ justifyContent: "space-between" }}>
@@ -721,6 +733,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                     placeholder={t("reminderForm.placeholderEveryKm")}
                     keyboardType="number-pad"
                     editable={!saving}
+                    error={fieldError(!isPositiveNumber(recurrenceKm))}
                   />
                 )}
               </>

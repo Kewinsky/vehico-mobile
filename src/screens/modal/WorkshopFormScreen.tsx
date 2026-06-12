@@ -26,6 +26,7 @@ import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
+import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import {
@@ -78,6 +79,9 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   const canSave = useMemo(() => {
     return name.trim().length > 0 && workshopType != null;
   }, [name, workshopType]);
+
+  const { fieldError, validateBeforeSave, resetFieldErrors } =
+    useFormFieldErrors(canSave);
 
   function showPicker<T extends string>(opts: {
     title: string;
@@ -132,6 +136,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   }
 
   function clearForm() {
+    resetFieldErrors();
     setName("");
     setWorkshopType(null);
     setPhoneNumber("");
@@ -139,6 +144,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   }
 
   async function onSave() {
+    if (!validateBeforeSave()) return;
     try {
       setSaving(true);
       // Check workshop limit (only for new workshops)
@@ -185,7 +191,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       done={{
         onPress: onSave,
         label: t("common.done"),
-        disabled: !canSave || saving,
+        disabled: saving,
         loading: saving,
       }}
       footer={
@@ -212,6 +218,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
               onChangeText={setName}
               editable={!saving}
               placeholder={t("workshopForm.placeholderName")}
+              error={fieldError(!name.trim())}
             />
             <Pressable
               onPress={() =>
@@ -226,7 +233,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
               }
               style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              <CardRow>
+              <CardRow error={fieldError(!workshopType)}>
                 <View style={styles.rowLeft}>
                   <Ionicons
                     name="pricetag-outline"

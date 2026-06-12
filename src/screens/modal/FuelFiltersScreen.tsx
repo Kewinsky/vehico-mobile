@@ -152,7 +152,7 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
           label={t("timeline.filterFrom")}
           value={dateFrom}
           onChange={setDateFrom}
-          placeholder={t("timeline.filterFrom")}
+          placeholder={t("common.chooseOption")}
           rowStyle={styles.rowSpread}
         />
 
@@ -161,7 +161,7 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
           label={t("timeline.filterTo")}
           value={dateTo}
           onChange={setDateTo}
-          placeholder={t("timeline.filterTo")}
+          placeholder={t("common.chooseOption")}
           rowStyle={styles.rowSpread}
         />
 

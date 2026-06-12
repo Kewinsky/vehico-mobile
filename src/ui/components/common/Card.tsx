@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Children, useMemo } from "react";
 
 import { useTheme } from "../../ThemeProvider";
+import { hexToRgba } from "./ChoiceChip";
 
 type CardProps = ViewProps & {
   style?: ViewStyle | ViewStyle[];
@@ -67,12 +68,22 @@ export function CardDivider() {
 
 type CardRowProps = ViewProps & {
   style?: ViewStyle | ViewStyle[];
+  error?: boolean;
 };
 
-export function CardRow({ style, ...rest }: CardRowProps) {
+export function CardRow({ style, error = false, ...rest }: CardRowProps) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  return <View {...rest} style={[styles.row, style]} />;
+  return (
+    <View
+      {...rest}
+      style={[
+        styles.row,
+        error && { backgroundColor: hexToRgba(theme.colors.danger, 0.15) },
+        style,
+      ]}
+    />
+  );
 }
 
 const makeStyles = (theme: any) =>

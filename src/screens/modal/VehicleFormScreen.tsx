@@ -50,6 +50,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
+import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -175,11 +176,14 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       make.trim().length > 0 &&
       model.trim().length > 0 &&
       isValidProductionYear(year) &&
+      isNonNegativeNumber(initialMileage) &&
       isNonNegativeNumber(mileage) &&
       isNonNegativeNumber(engineCapacity) &&
       isNonNegativeNumber(powerHp)
     );
-  }, [make, model, year, mileage, engineCapacity, powerHp]);
+  }, [make, model, year, initialMileage, mileage, engineCapacity, powerHp]);
+
+  const { fieldError, validateBeforeSave } = useFormFieldErrors(canSave);
 
   function showPicker<T extends string>(opts: {
     title: string;
@@ -398,31 +402,10 @@ export function VehicleFormScreen({ navigation, route }: Props) {
   };
 
   async function onSave() {
+    if (!validateBeforeSave()) return;
     try {
       setSaving(true);
-      if (!isValidProductionYear(year)) {
-        toastError(
-          t("validation.invalidYear", { max: new Date().getFullYear() + 2 }),
-        );
-        return;
-      }
       const production_year = Number(year.trim());
-      if (initialMileage.trim() && !isNonNegativeNumber(initialMileage)) {
-        toastError(t("validation.nonNegativeRequired"));
-        return;
-      }
-      if (mileage.trim() && !isNonNegativeNumber(mileage)) {
-        toastError(t("validation.nonNegativeRequired"));
-        return;
-      }
-      if (engineCapacity.trim() && !isNonNegativeNumber(engineCapacity)) {
-        toastError(t("validation.nonNegativeRequired"));
-        return;
-      }
-      if (powerHp.trim() && !isNonNegativeNumber(powerHp)) {
-        toastError(t("validation.nonNegativeRequired"));
-        return;
-      }
 
       const payload = {
         type,
@@ -562,7 +545,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       done={{
         onPress: onSave,
         label: t("common.done"),
-        disabled: !canSave || saving || uploadingPhoto,
+        disabled: saving || uploadingPhoto,
         loading: saving || uploadingPhoto,
       }}
       loading={isEditMode && loading}
@@ -664,6 +647,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderMakeMotorcycle")
                       : t("vehicleForm.placeholderMake")
                   }
+                  error={fieldError(!make.trim())}
                 />
 
                 <FormInputRow
@@ -677,6 +661,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderModelMotorcycle")
                       : t("vehicleForm.placeholderModel")
                   }
+                  error={fieldError(!model.trim())}
                 />
 
                 <FormInputRow
@@ -692,6 +677,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderYearMotorcycle")
                       : t("vehicleForm.placeholderYear")
                   }
+                  error={fieldError(!isValidProductionYear(year))}
                 />
 
                 <FormInputRow
@@ -706,6 +692,10 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderInitialMileageMotorcycle")
                       : t("vehicleForm.placeholderInitialMileage")
                   }
+                  error={fieldError(
+                    initialMileage.trim().length > 0 &&
+                      !isNonNegativeNumber(initialMileage),
+                  )}
                 />
 
                 <FormInputRow
@@ -720,6 +710,9 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderMileageMotorcycle")
                       : t("vehicleForm.placeholderMileage")
                   }
+                  error={fieldError(
+                    mileage.trim().length > 0 && !isNonNegativeNumber(mileage),
+                  )}
                 />
 
                 <FormDateRow
@@ -844,6 +837,10 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderEngineCapacityMotorcycle")
                       : t("vehicleForm.placeholderEngineCapacity")
                   }
+                  error={fieldError(
+                    engineCapacity.trim().length > 0 &&
+                      !isNonNegativeNumber(engineCapacity),
+                  )}
                 />
 
                 <FormInputRow
@@ -858,6 +855,9 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderPowerHpMotorcycle")
                       : t("vehicleForm.placeholderPowerHp")
                   }
+                  error={fieldError(
+                    powerHp.trim().length > 0 && !isNonNegativeNumber(powerHp),
+                  )}
                 />
               </Card>
 

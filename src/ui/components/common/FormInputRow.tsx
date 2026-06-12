@@ -19,6 +19,7 @@ export type FormInputRowProps = TextInputProps & {
   label: string;
   trailing?: ReactNode;
   rowStyle?: ViewStyle;
+  error?: boolean;
   /** OTP code field: larger type; letter spacing only while typing (not on placeholder). */
   variant?: "default" | "otp";
 };
@@ -31,6 +32,7 @@ export function FormInputRow({
   editable = true,
   style,
   rowStyle,
+  error = false,
   variant = "default",
   value,
   ...inputProps
@@ -47,7 +49,7 @@ export function FormInputRow({
   };
 
   return (
-    <CardRow style={rowStyle}>
+    <CardRow style={rowStyle} error={error}>
       <Pressable
         onPress={focusInput}
         disabled={!isEditable}

@@ -39,6 +39,7 @@ import {
   SERVICE_ENTRY_PRESETS,
   type ServiceEntryPreset,
 } from "../serviceEntryPresets";
+import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
@@ -340,6 +341,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     );
   }, [serviceDate, category, entries, mileage]);
 
+  const { fieldError, validateBeforeSave, resetFieldErrors } =
+    useFormFieldErrors(canSave);
+
   function showPicker<T extends string>(opts: {
     title: string;
     value: T | null;
@@ -408,6 +412,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
   function clearForm() {
     setMode("single");
+    resetFieldErrors();
     const today = new Date().toISOString().slice(0, 10);
     setServiceDate(today);
     setMileage(defaultMileage);
@@ -547,28 +552,14 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }
 
   async function onSave() {
+    if (!validateBeforeSave()) return;
     try {
       setSaving(true);
-      if (!category) throw new Error(t("entryForm.categoryRequired"));
-      if (!isValidDate(serviceDate)) {
-        toastError(t("validation.invalidDate"));
-        return;
-      }
-      if (!isNonNegativeNumber(mileage)) {
-        toastError(t("validation.nonNegativeRequired"));
-        return;
-      }
-      for (const e of entries) {
-        if (!isNonNegativeNumber(e.cost)) {
-          toastError(t("validation.nonNegativeRequired"));
-          return;
-        }
-      }
       const basePayload = {
         vehicle_id: vehicleId,
         service_date: serviceDate.trim(),
         mileage: mileage.trim().length ? Number(mileage) : null,
-        category,
+        category: category!,
         workshop_id: workshopId || null,
         workshop_snapshot:
           workshopId != null
@@ -641,7 +632,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       done={{
         onPress: onSave,
         label: t("common.done"),
-        disabled: !canSave || saving || uploading,
+        disabled: saving || uploading,
         loading: saving || uploading,
       }}
       useHorizontalContentInset={false}
@@ -739,6 +730,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               value={serviceDate}
               onChange={setServiceDate}
               disabled={saving || uploading}
+              error={fieldError(!isValidDate(serviceDate))}
             />
 
             <Pressable
@@ -754,7 +746,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               }
               style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              <CardRow>
+              <CardRow error={fieldError(!category)}>
                 <View style={styles.rowLeft}>
                   <Ionicons
                     name="pricetag-outline"
@@ -848,6 +840,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               keyboardType="number-pad"
               editable={!saving && !uploading}
               placeholder={t("entryForm.placeholderMileage")}
+              error={fieldError(!isNonNegativeNumber(mileage))}
             />
           </Card>
 
@@ -867,6 +860,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       }
                       editable={!saving && !uploading}
                       placeholder={t("entryForm.placeholderTitle")}
+                      error={fieldError(!row.title.trim())}
                     />
                     <FormInputRow
                       icon="cash-outline"
@@ -878,6 +872,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       keyboardType="decimal-pad"
                       editable={!saving && !uploading}
                       placeholder={t("entryForm.placeholderCost")}
+                      error={fieldError(!isNonNegativeNumber(row.cost))}
                       trailing={
                         isMultipleRows && (!entryId || index > 0) ? (
                           <Pressable
@@ -926,6 +921,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   onChangeText={(text) => updateEntry(0, { title: text })}
                   editable={!saving && !uploading}
                   placeholder={t("entryForm.placeholderTitle")}
+                  error={fieldError(!entries[0]?.title.trim())}
                 />
                 <FormInputRow
                   icon="cash-outline"
@@ -935,6 +931,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   keyboardType="decimal-pad"
                   editable={!saving && !uploading}
                   placeholder={t("entryForm.placeholderCost")}
+                  error={fieldError(!isNonNegativeNumber(entries[0]?.cost ?? ""))}
                 />
               </Card>
 

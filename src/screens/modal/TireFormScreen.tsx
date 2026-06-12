@@ -32,6 +32,7 @@ import { ModalLayout } from "../../layouts";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
+import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import {
@@ -102,6 +103,9 @@ export function TireFormScreen({ navigation, route }: Props) {
     );
   }, [name, width, profile, diameter, tireType, dot]);
 
+  const { fieldError, validateBeforeSave, resetFieldErrors } =
+    useFormFieldErrors(canSave);
+
   function showPicker<T extends string>(opts: {
     title: string;
     value: T | null;
@@ -155,6 +159,7 @@ export function TireFormScreen({ navigation, route }: Props) {
   }
 
   function clearForm() {
+    resetFieldErrors();
     setName("");
     setWidth("");
     setProfile("");
@@ -165,27 +170,12 @@ export function TireFormScreen({ navigation, route }: Props) {
   }
 
   async function onSave() {
+    if (!validateBeforeSave()) return;
     try {
       setSaving(true);
       const widthNum = Number(width.trim());
       const profileNum = Number(profile.trim());
       const diameterNum = Number(diameter.trim());
-      if (!Number.isFinite(widthNum) || widthNum <= 0) {
-        toastError(t("validation.positiveRequired"));
-        return;
-      }
-      if (!Number.isFinite(profileNum) || profileNum <= 0) {
-        toastError(t("validation.positiveRequired"));
-        return;
-      }
-      if (!Number.isFinite(diameterNum) || diameterNum <= 0) {
-        toastError(t("validation.positiveRequired"));
-        return;
-      }
-      if (!isValidDot(dot)) {
-        toastError(t("validation.dotInvalid"));
-        return;
-      }
       // Check tire limit (only for new tires)
       if (!tireId && !isPremium) {
         const tires = await listVehicleTires(vehicleId, tireOptions);
@@ -238,7 +228,7 @@ export function TireFormScreen({ navigation, route }: Props) {
       done={{
         onPress: onSave,
         label: t("common.done"),
-        disabled: !canSave || saving,
+        disabled: saving,
         loading: saving,
       }}
       footer={
@@ -263,6 +253,7 @@ export function TireFormScreen({ navigation, route }: Props) {
               onChangeText={setName}
               editable={!saving}
               placeholder={t("tireForm.placeholderName")}
+              error={fieldError(!name.trim())}
             />
             <FormInputRow
               iconComponent={
@@ -278,6 +269,7 @@ export function TireFormScreen({ navigation, route }: Props) {
               keyboardType="number-pad"
               editable={!saving}
               placeholder={t("tireForm.placeholderWidth")}
+              error={fieldError(!isPositiveNumber(width))}
             />
             <FormInputRow
               iconComponent={
@@ -293,6 +285,7 @@ export function TireFormScreen({ navigation, route }: Props) {
               keyboardType="number-pad"
               editable={!saving}
               placeholder={t("tireForm.placeholderProfile")}
+              error={fieldError(!isPositiveNumber(profile))}
             />
             <FormInputRow
               iconComponent={
@@ -308,6 +301,7 @@ export function TireFormScreen({ navigation, route }: Props) {
               keyboardType="number-pad"
               editable={!saving}
               placeholder={t("tireForm.placeholderDiameter")}
+              error={fieldError(!isPositiveNumber(diameter))}
             />
             <Pressable
               onPress={() =>
@@ -322,7 +316,7 @@ export function TireFormScreen({ navigation, route }: Props) {
               }
               style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              <CardRow>
+              <CardRow error={fieldError(!tireType)}>
                 <View style={styles.rowLeft}>
                   <SunSnowIcon size={20} color={theme.colors.accent} />
                   <Text
@@ -356,6 +350,7 @@ export function TireFormScreen({ navigation, route }: Props) {
               keyboardType="number-pad"
               editable={!saving}
               placeholder={t("tireForm.placeholderDot")}
+              error={fieldError(!isValidDot(dot))}
             />
             <CardRow>
               <View style={styles.rowLeft}>

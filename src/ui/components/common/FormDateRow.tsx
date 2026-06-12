@@ -31,6 +31,7 @@ export type FormDateRowProps = {
   disabled?: boolean;
   rowStyle?: ViewStyle;
   trailing?: ReactNode;
+  error?: boolean;
 };
 
 export function FormDateRow({
@@ -43,6 +44,7 @@ export function FormDateRow({
   disabled = false,
   rowStyle,
   trailing,
+  error = false,
 }: FormDateRowProps) {
   const { theme, mode: themeMode } = useTheme();
   const { i18n } = useTranslation();
@@ -87,7 +89,7 @@ export function FormDateRow({
 
   return (
     <>
-      <CardRow style={rowStyle}>
+      <CardRow style={rowStyle} error={error}>
         <Pressable
           onPress={openPicker}
           disabled={
@@ -96,8 +98,7 @@ export function FormDateRow({
           style={({ pressed }) => [
             styles.pressableRow,
             {
-              opacity:
-                pressed && !disabled && Platform.OS !== "ios" ? 0.75 : 1,
+              opacity: pressed && !disabled && Platform.OS !== "ios" ? 0.75 : 1,
             },
           ]}
         >
@@ -117,7 +118,10 @@ export function FormDateRow({
           )}
           {!icon && !iconComponent ? (
             <Text
-              style={[styles.label, { color: theme.colors.muted, flexShrink: 1 }]}
+              style={[
+                styles.label,
+                { color: theme.colors.muted, flexShrink: 1 },
+              ]}
               numberOfLines={1}
             >
               {label}

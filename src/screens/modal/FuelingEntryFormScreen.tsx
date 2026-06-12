@@ -26,6 +26,7 @@ import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
+import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
@@ -88,9 +89,13 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     return (
       isValidDate(date) &&
       isPositiveNumber(fuelAmount) &&
-      isPositiveNumber(fuelCost)
+      isPositiveNumber(fuelCost) &&
+      (distance.trim().length === 0 || isPositiveNumber(distance))
     );
-  }, [date, fuelAmount, fuelCost]);
+  }, [date, fuelAmount, fuelCost, distance]);
+
+  const { fieldError, validateBeforeSave, resetFieldErrors } =
+    useFormFieldErrors(canSave);
 
   function confirmDelete() {
     if (!entryId) return;
@@ -116,6 +121,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   }
 
   function clearForm() {
+    resetFieldErrors();
     setDate(new Date().toISOString().slice(0, 10));
     setDistance("");
     setFuelAmount("");
@@ -158,23 +164,9 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   }
 
   async function onSave() {
+    if (!validateBeforeSave()) return;
     try {
       setSaving(true);
-      if (!isValidDate(date)) {
-        toastError(t("validation.invalidDate"));
-        return;
-      }
-      if (
-        !isPositiveNumber(fuelAmount) ||
-        !isPositiveNumber(fuelCost)
-      ) {
-        toastError(t("validation.positiveRequired"));
-        return;
-      }
-      if (distance.trim().length > 0 && !isPositiveNumber(distance)) {
-        toastError(t("validation.positiveRequired"));
-        return;
-      }
       const payload = {
         vehicle_id: vehicleId,
         date: date.trim(),
@@ -201,7 +193,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       done={{
         onPress: onSave,
         label: t("common.done"),
-        disabled: !canSave || saving,
+        disabled: saving,
         loading: saving,
       }}
       footer={
@@ -225,6 +217,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               value={date}
               onChange={setDate}
               disabled={saving}
+              error={fieldError(!isValidDate(date))}
             />
 
             <Pressable
@@ -323,6 +316,9 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               keyboardType="decimal-pad"
               editable={!saving}
               placeholder={t("fuelingForm.placeholderDistance")}
+              error={fieldError(
+                distance.trim().length > 0 && !isPositiveNumber(distance),
+              )}
             />
 
             <FormInputRow
@@ -333,6 +329,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               keyboardType="decimal-pad"
               editable={!saving}
               placeholder={t("fuelingForm.placeholderFuelAmount")}
+              error={fieldError(!isPositiveNumber(fuelAmount))}
             />
 
             <FormInputRow
@@ -343,6 +340,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               keyboardType="decimal-pad"
               editable={!saving}
               placeholder={t("fuelingForm.placeholderCost")}
+              error={fieldError(!isPositiveNumber(fuelCost))}
             />
           </Card>
         </NativeHeaderScrollView>
