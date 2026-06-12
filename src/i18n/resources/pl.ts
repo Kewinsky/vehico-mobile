@@ -417,6 +417,7 @@ export const pl = {
     formalitiesUpdate: {
       insurancePrompt: "Ubezpieczenie ważne do (RRRR-MM-DD)",
       inspectionPrompt: "Przegląd ważny do (RRRR-MM-DD)",
+      changeDate: "Zmień datę",
       clearDate: "Wyczyść datę",
     },
     formalityNotification: {
@@ -566,7 +567,6 @@ export const pl = {
       addService: "Serwis",
       addFuel: "Paliwo",
       addReminder: "Alert",
-      selectVehicle: "Wybierz pojazd, aby dodać wpisy",
     },
     publicLinkTitle: "Link publiczny",
     publicLinkBody: "Public ID: {{id}}",
@@ -1138,7 +1138,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     removePhotoConfirm: "Czy na pewno chcesz usunąć to zdjęcie?",
     insuranceLabel: "Ubezpieczenie",
     inspectionLabel: "Przegląd",
-    selectDate: "Wybierz datę",
+    selectDate: "Wybierz",
   },
   attachments: {
     title: "Załączniki",

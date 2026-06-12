@@ -17,6 +17,7 @@ type DashboardStatTileProps = {
   labelColor?: string;
   iconColor?: string;
   onPress?: () => void;
+  showChevron?: boolean;
 };
 
 export function DashboardStatTile({
@@ -31,6 +32,7 @@ export function DashboardStatTile({
   labelColor,
   iconColor,
   onPress,
+  showChevron = false,
 }: DashboardStatTileProps) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
@@ -60,7 +62,7 @@ export function DashboardStatTile({
         >
           {label}
         </Text>
-        {onPress ? (
+        {onPress || showChevron ? (
           <ChevronRight
             size={18}
             color={iconColor ?? theme.colors.muted}
@@ -115,6 +117,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>["theme"]) =>
   StyleSheet.create({
     dashboardStatTile: {
       flex: 1,
+      width: "100%",
       borderRadius: theme.radius.md,
       padding: theme.spacing.md,
       justifyContent: "space-between",

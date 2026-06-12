@@ -414,6 +414,7 @@ export const en = {
     formalitiesUpdate: {
       insurancePrompt: "Insurance valid until (YYYY-MM-DD)",
       inspectionPrompt: "Inspection valid until (YYYY-MM-DD)",
+      changeDate: "Change date",
       clearDate: "Clear date",
     },
     formalityNotification: {

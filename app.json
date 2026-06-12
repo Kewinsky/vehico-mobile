@@ -52,7 +52,17 @@
         }
       ],
       "expo-apple-authentication",
-      "@react-native-community/datetimepicker",
+      [
+        "@react-native-community/datetimepicker",
+        {
+          "android": {
+            "datePicker": {
+              "colorAccent": { "light": "#FFB803", "dark": "#FFB803" },
+              "colorControlActivated": { "light": "#FFB803", "dark": "#FFB803" }
+            }
+          }
+        }
+      ],
       "expo-sqlite",
       [
         "expo-notifications",

@@ -134,6 +134,7 @@ export function FormDateRow({
                 mode="date"
                 display="compact"
                 locale={pickerLocale}
+                accentColor={theme.colors.accent}
                 themeVariant={themeMode === "dark" ? "dark" : "light"}
                 onChange={handleChange}
                 style={styles.nativeDatePicker}

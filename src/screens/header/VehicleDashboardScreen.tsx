@@ -5,11 +5,14 @@ import {
   FlatList,
   Linking,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
+  Text,
   View,
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HeaderButton } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
@@ -82,12 +85,17 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { DashboardFab } from "../../ui/components/common/DashboardFab";
+import { openAndroidNativeDatePicker } from "../../ui/components/common/NativeDateTrigger";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { Logo } from "../../ui/components/branding/Logo";
 import { formatRelativeTimePast } from "../../utils/formatRelativeTimePast";
 import { isNonNegativeNumber, isValidDate } from "../../utils/validation";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
-import { groupThousands } from "../../utils/numberFormatting";
+import { formatYmd, parseYmd } from "../../utils/dateYmd";
+import {
+  groupThousands,
+  localeCodeFromLanguage,
+} from "../../utils/numberFormatting";
 import { ButtonsPage } from "./vehicleDashboard/pages/ButtonsPage";
 import { StatsPanelPage } from "./vehicleDashboard/pages/StatsPanelPage";
 import { OverviewPanel } from "./vehicleDashboard/overview/OverviewPanel";
@@ -262,6 +270,11 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const [activePage, setActivePage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [oilBookLoading, setOilBookLoading] = useState(false);
+  const [formalityOverlay, setFormalityOverlay] = useState<{
+    field: "insurance_valid_until" | "inspection_valid_until";
+    value: string;
+    title: string;
+  } | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollOffsetYRef = useRef(0);
   const pagerRef = useRef<FlatList<number>>(null);
@@ -935,47 +948,19 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       field: "insurance_valid_until" | "inspection_valid_until",
       currentValue: string | null | undefined,
       title: string,
-      prompt: string,
+      _prompt: string,
     ) => {
-      Alert.alert(
-        title,
-        t("common.chooseOption"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("common.edit"),
-            onPress: () => {
-              Alert.prompt(
-                title,
-                prompt,
-                [
-                  { text: t("common.cancel"), style: "cancel" },
-                  {
-                    text: t("common.save"),
-                    onPress: (value: string | undefined) => {
-                      const trimmed = (value ?? "").trim();
-                      void saveFormalitiesDate(
-                        field,
-                        trimmed.length ? trimmed : null,
-                      );
-                    },
-                  },
-                ],
-                "plain-text",
-                currentValue?.slice(0, 10) ?? "",
-              );
-            },
-          },
-          {
-            text: t("dashboard.formalitiesUpdate.clearDate"),
-            style: "destructive",
-            onPress: () => void saveFormalitiesDate(field, null),
-          },
-        ],
-        { cancelable: true },
-      );
+      const ymd = currentValue?.slice(0, 10) ?? "";
+      if (Platform.OS === "android") {
+        openAndroidNativeDatePicker(
+          ymd,
+          (nextYmd) => void saveFormalitiesDate(field, nextYmd),
+        );
+        return;
+      }
+      setFormalityOverlay({ field, value: ymd, title });
     },
-    [saveFormalitiesDate, t],
+    [saveFormalitiesDate],
   );
 
   const tiles: DashboardTile[] = [
@@ -1332,6 +1317,83 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
           onAddReminder={handleAddReminder}
         />
       )}
+
+      {formalityOverlay && Platform.OS === "ios" ? (
+        <Modal
+          transparent
+          visible
+          animationType="fade"
+          onRequestClose={() => setFormalityOverlay(null)}
+        >
+          <Pressable
+            style={styles.datePickerOverlay}
+            onPress={() => setFormalityOverlay(null)}
+          >
+            <Pressable
+              style={[
+                styles.datePickerCard,
+                { backgroundColor: theme.colors.card },
+              ]}
+              onPress={(event) => event.stopPropagation()}
+            >
+              <DateTimePicker
+                value={parseYmd(
+                  formalityOverlay.value.length === 10
+                    ? formalityOverlay.value
+                    : formatYmd(new Date()),
+                )}
+                mode="date"
+                display="inline"
+                locale={localeCodeFromLanguage(i18n.language)}
+                accentColor={theme.colors.accent}
+                themeVariant={mode === "dark" ? "dark" : "light"}
+                onChange={(_, selectedDate) => {
+                  if (!selectedDate) return;
+                  setFormalityOverlay((prev) =>
+                    prev ? { ...prev, value: formatYmd(selectedDate) } : prev,
+                  );
+                }}
+              />
+              <View style={styles.datePickerActions}>
+                <Pressable
+                  onPress={() => setFormalityOverlay(null)}
+                  hitSlop={8}
+                >
+                  <Text
+                    style={[
+                      styles.datePickerActionText,
+                      { color: theme.colors.muted },
+                    ]}
+                  >
+                    {t("common.cancel")}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    void saveFormalitiesDate(
+                      formalityOverlay.field,
+                      formalityOverlay.value.length === 10
+                        ? formalityOverlay.value
+                        : formatYmd(new Date()),
+                    );
+                    setFormalityOverlay(null);
+                  }}
+                  hitSlop={8}
+                >
+                  <Text
+                    style={[
+                      styles.datePickerActionText,
+                      { color: theme.colors.accent },
+                    ]}
+                  >
+                    {t("common.save")}
+                  </Text>
+                </Pressable>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      ) : null}
     </HeaderLayout>
   );
 }
@@ -1677,6 +1739,29 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.95)",
       justifyContent: "center",
+    },
+    datePickerOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.55)",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+    },
+    datePickerCard: {
+      width: "100%",
+      maxWidth: 380,
+      borderRadius: theme.radius.lg,
+      padding: theme.spacing.md,
+      gap: theme.spacing.sm,
+    },
+    datePickerActions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: theme.spacing.xl,
+    },
+    datePickerActionText: {
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
     },
     qrModalOverlay: {
       flex: 1,

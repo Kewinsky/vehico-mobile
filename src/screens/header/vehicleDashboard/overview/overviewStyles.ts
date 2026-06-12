@@ -150,6 +150,11 @@ export function useOverviewPanelStyles() {
     tilesRow: {
       flexDirection: "row",
       gap: theme.spacing.sm,
+      alignItems: "stretch",
+    },
+    formalityTileTrigger: {
+      flex: 1,
+      alignSelf: "stretch",
     },
     notesText: {
       fontSize: theme.typography.body,
