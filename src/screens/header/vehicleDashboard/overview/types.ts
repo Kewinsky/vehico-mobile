@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { TFunction } from "i18next";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -40,10 +41,20 @@ export type OverviewPanelProps = {
   openPublicReportShareActions: () => void;
   mileageStaleTitle: string | null;
   handleQuickMileageEdit: () => void;
-  insuranceCalloutCopy: { title: string; description: string } | null;
-  inspectionCalloutCopy: { title: string; description: string } | null;
+  insuranceCalloutCopy: {
+    title: string;
+    description?: ReactNode;
+  } | null;
+  inspectionCalloutCopy: {
+    title: string;
+    description?: ReactNode;
+  } | null;
   oilChangeDueState: OilChangeDueState;
-  oilBannerCopy: { title: string; description?: string; meta?: string };
+  oilBannerCopy: {
+    title: string;
+    description?: ReactNode;
+    meta?: ReactNode;
+  };
   handleOilChangeDone: () => void;
   handleOilChangeBook: () => void | Promise<void>;
   oilBookLoading: boolean;

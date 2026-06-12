@@ -90,6 +90,7 @@ export function formatTermsValue(
   if (!dateYmd) return "–";
   if (daysUntil == null) return formatTermsDate(dateYmd, language);
   if (daysUntil < 0) return translate("dashboard.stats.statusOverdue");
+  if (daysUntil === 0) return translate("dashboard.stats.dueToday");
   if (daysUntil <= 30)
     return translate("dashboard.stats.dueInDaysShort", { days: daysUntil });
   return formatTermsDate(dateYmd, language);

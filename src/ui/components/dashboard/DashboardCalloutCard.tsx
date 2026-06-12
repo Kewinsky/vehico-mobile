@@ -14,10 +14,10 @@ export type DashboardCalloutAction = {
 };
 
 type DashboardCalloutCardProps = {
-  icon: ReactNode;
+  icon?: ReactNode;
   title: string;
-  description?: string;
-  meta?: string;
+  description?: ReactNode;
+  meta?: ReactNode;
   actions: DashboardCalloutAction[];
   /** Card tint and default button color. */
   accentColor?: string;
@@ -45,20 +45,28 @@ export function DashboardCalloutCard({
       accessibilityRole="summary"
     >
       <View style={styles.top}>
-        {icon}
+        {icon ?? null}
         <View style={styles.textBlock}>
           <Text style={[styles.title, { color: theme.colors.fg }]}>
             {title}
           </Text>
           {description ? (
-            <Text style={[styles.description, { color: theme.colors.muted }]}>
-              {description}
-            </Text>
+            typeof description === "string" ? (
+              <Text style={[styles.description, { color: theme.colors.muted }]}>
+                {description}
+              </Text>
+            ) : (
+              description
+            )
           ) : null}
           {meta ? (
-            <Text style={[styles.meta, { color: theme.colors.muted }]}>
-              {meta}
-            </Text>
+            typeof meta === "string" ? (
+              <Text style={[styles.meta, { color: theme.colors.muted }]}>
+                {meta}
+              </Text>
+            ) : (
+              meta
+            )
           ) : null}
         </View>
       </View>

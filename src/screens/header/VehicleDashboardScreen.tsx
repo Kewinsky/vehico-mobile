@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   Alert,
   Dimensions,
@@ -85,6 +92,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { DashboardFab } from "../../ui/components/common/DashboardFab";
+import { RichCalloutText } from "../../ui/components/dashboard/RichCalloutText";
 import { openAndroidNativeDatePicker } from "../../ui/components/common/NativeDateTrigger";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { Logo } from "../../ui/components/branding/Logo";
@@ -385,14 +393,18 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             });
     return {
       title,
-      description: t("dashboard.insuranceBanner.validUntil", { date }),
+      description: (
+        <RichCalloutText
+          i18nKey="dashboard.insuranceBanner.validUntil"
+          values={{ date }}
+        />
+      ),
     };
   }, [
     showInsuranceCallout,
     insuranceDaysUntil,
     vehicle?.insurance_valid_until,
     i18n.language,
-    t,
   ]);
 
   const inspectionCalloutCopy = useMemo(() => {
@@ -411,14 +423,18 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             });
     return {
       title,
-      description: t("dashboard.inspectionBanner.validUntil", { date }),
+      description: (
+        <RichCalloutText
+          i18nKey="dashboard.inspectionBanner.validUntil"
+          values={{ date }}
+        />
+      ),
     };
   }, [
     showInspectionCallout,
     inspectionDaysUntil,
     vehicle?.inspection_valid_until,
     i18n.language,
-    t,
   ]);
 
   const quickMetrics = useMemo(() => {
@@ -786,53 +802,85 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         ? t("dashboard.oilBanner.titleOverdue")
         : t("dashboard.oilBanner.titleDueSoon");
 
-    let description: string | undefined;
+    let description: ReactNode | undefined;
     if (lastOilChange) {
       if (remainingDays != null && remainingKm != null && !isOverdue) {
-        description = t("dashboard.oilBanner.remainingBoth", {
-          days: remainingDays,
-          km: groupThousands(remainingKm, 0, i18n.language),
-        });
+        description = (
+          <RichCalloutText
+            i18nKey="dashboard.oilBanner.remainingBoth"
+            values={{
+              days: remainingDays,
+              km: groupThousands(remainingKm, 0, i18n.language),
+            }}
+          />
+        );
       } else if (remainingDays != null && !isOverdue) {
-        description = t("dashboard.oilBanner.remainingDays", {
-          days: remainingDays,
-        });
+        description = (
+          <RichCalloutText
+            i18nKey="dashboard.oilBanner.remainingDays"
+            values={{ days: remainingDays }}
+          />
+        );
       } else if (remainingKm != null && !isOverdue) {
-        description = t("dashboard.oilBanner.remainingKm", {
-          km: groupThousands(remainingKm, 0, i18n.language),
-        });
+        description = (
+          <RichCalloutText
+            i18nKey="dashboard.oilBanner.remainingKm"
+            values={{
+              km: groupThousands(remainingKm, 0, i18n.language),
+            }}
+          />
+        );
       }
     }
 
-    let meta: string | undefined;
+    let meta: ReactNode | undefined;
     if (lastOilChange) {
       const dateLabel = formatShortDisplayDate(
         lastOilChange.service_date,
         i18n.language,
       );
-      const parts = [
-        t("dashboard.oilBanner.lastChangeDate", { date: dateLabel }),
-      ];
-      if (lastOilChange.mileage != null) {
-        parts.push(
-          t("dashboard.oilBanner.lastChangeMileage", {
-            mileage: `${groupThousands(lastOilChange.mileage, 0, i18n.language)} ${distanceUnitLabel}`,
-          }),
-        );
-      }
       const workshopName = lastOilChange.workshop_snapshot?.trim() || null;
-      if (workshopName) {
-        parts.push(
-          t("dashboard.oilBanner.lastChangeWorkshop", {
-            workshop: workshopName,
-          }),
-        );
-      }
-      meta = parts.join(" · ");
+      meta = (
+        <Text
+          style={{
+            fontSize: theme.typography.small,
+            lineHeight: theme.typography.small + 4,
+            color: theme.colors.muted,
+          }}
+        >
+          <RichCalloutText
+            variant="inline"
+            i18nKey="dashboard.oilBanner.lastChangeDate"
+            values={{ date: dateLabel }}
+          />
+          {lastOilChange.mileage != null ? (
+            <>
+              {" · "}
+              <RichCalloutText
+                variant="inline"
+                i18nKey="dashboard.oilBanner.lastChangeMileage"
+                values={{
+                  mileage: `${groupThousands(lastOilChange.mileage, 0, i18n.language)} ${distanceUnitLabel}`,
+                }}
+              />
+            </>
+          ) : null}
+          {workshopName ? (
+            <>
+              {" · "}
+              <RichCalloutText
+                variant="inline"
+                i18nKey="dashboard.oilBanner.lastChangeWorkshop"
+                values={{ workshop: workshopName }}
+              />
+            </>
+          ) : null}
+        </Text>
+      );
     }
 
     return { title, description, meta };
-  }, [oilChangeDueState, t, i18n.language, distanceUnitLabel]);
+  }, [oilChangeDueState, t, i18n.language, distanceUnitLabel, theme]);
 
   const handleOilChangeDone = useCallback(() => {
     Alert.prompt(

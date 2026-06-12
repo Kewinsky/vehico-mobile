@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import type { ReactNode } from "react";
 import { CheckCheck, Clock, ShieldCheck } from "lucide-react-native";
 import type { TFunction } from "i18next";
 
@@ -14,10 +14,20 @@ type OverviewCalloutsProps = {
   vehicle: Vehicle | null;
   mileageStaleTitle: string | null;
   handleQuickMileageEdit: () => void;
-  insuranceCalloutCopy: { title: string; description: string } | null;
-  inspectionCalloutCopy: { title: string; description: string } | null;
+  insuranceCalloutCopy: {
+    title: string;
+    description?: ReactNode;
+  } | null;
+  inspectionCalloutCopy: {
+    title: string;
+    description?: ReactNode;
+  } | null;
   oilChangeDueState: OilChangeDueState;
-  oilBannerCopy: { title: string; description?: string; meta?: string };
+  oilBannerCopy: {
+    title: string;
+    description?: ReactNode;
+    meta?: ReactNode;
+  };
   handleOilChangeDone: () => void;
   handleOilChangeBook: () => void | Promise<void>;
   oilBookLoading: boolean;
@@ -125,13 +135,6 @@ export function OverviewCallouts({
         <DashboardCalloutCard
           accentColor={SERVICE_CATEGORY_COLORS.oil_change}
           buttonColor={SERVICE_CATEGORY_COLORS.oil_change}
-          icon={
-            <MaterialCommunityIcons
-              name="oil"
-              size={26}
-              color={SERVICE_CATEGORY_COLORS.oil_change}
-            />
-          }
           title={oilBannerCopy.title}
           description={oilBannerCopy.description}
           meta={oilBannerCopy.meta}
