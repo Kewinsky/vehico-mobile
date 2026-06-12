@@ -39,7 +39,8 @@ import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { toastError } from "../../ui/toast/toast";
+import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { promptAddServiceEntryFromReminder } from "../../services/reminders/reminderServiceEntryPrompt";
 import {
   getPremiumUpgradeAlertButtons,
   handleAndShowLimitErrorAlert,
@@ -95,6 +96,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const [recurrenceKm, setRecurrenceKm] = useState("");
 
   const [saving, setSaving] = useState(false);
+  const [initialStatus, setInitialStatus] = useState<ReminderStatus>("active");
 
   function getPresetRecurrenceParts(preset: ReminderPreset): string[] {
     const parts: string[] = [];
@@ -172,6 +174,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       try {
         const r = await getReminder(reminderId);
         setStatus(r.status);
+        setInitialStatus(r.status);
         setTitle(r.title ?? "");
         setNotes(r.notes ?? "");
         if (r.due_date != null) {
@@ -327,7 +330,19 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       } else {
         await scheduleLocalReminder(saved);
       }
-      navigation.goBack();
+
+      const markedDoneNow =
+        saved.status === "done" && initialStatus !== "done";
+      if (markedDoneNow) {
+        promptAddServiceEntryFromReminder(saved, t, {
+          onCreated: () =>
+            toastSuccess(t("reminders.serviceEntryFromReminderCreated")),
+          onError: (message) => toastError(message),
+          onDismiss: () => navigation.goBack(),
+        });
+      } else {
+        navigation.goBack();
+      }
     } catch (e: unknown) {
       if (handleAndShowLimitErrorAlert(e, t, navigation)) return;
       toastError((e as Error)?.message ?? t("common.error"));

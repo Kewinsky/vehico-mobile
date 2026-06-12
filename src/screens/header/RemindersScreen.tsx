@@ -18,7 +18,8 @@ import {
 } from "../../services/reminders/remindersRepo";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
-import { toastError } from "../../ui/toast/toast";
+import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { promptAddServiceEntryFromReminder } from "../../services/reminders/reminderServiceEntryPrompt";
 import { ReminderItem } from "../../ui/components/list/ReminderItem";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
@@ -165,8 +166,16 @@ export function RemindersScreen({ route, navigation }: Props) {
   async function handleToggleDone(reminder: Reminder) {
     try {
       const nextStatus = reminder.status === "done" ? "active" : "done";
+      const markingDone = nextStatus === "done";
       const saved = await updateReminder(reminder.id, { status: nextStatus });
       setItems((prev) => prev.map((item) => (item.id === reminder.id ? saved : item)));
+      if (markingDone) {
+        promptAddServiceEntryFromReminder(reminder, t, {
+          onCreated: () =>
+            toastSuccess(t("reminders.serviceEntryFromReminderCreated")),
+          onError: (message) => toastError(message),
+        });
+      }
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     }

@@ -869,6 +869,10 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
       onDueDay: "{{title}} — termin {{date}}",
       daysBefore: "{{title}} — {{when}} ({{date}})",
     },
+    addServiceFromReminderTitle: "Dodać wpis serwisowy?",
+    addServiceFromReminderBody:
+      "Czy chcesz dodać wpis serwisowy „{{title}}” na podstawie tego przypomnienia?",
+    serviceEntryFromReminderCreated: "Wpis serwisowy dodany",
   },
   reminderDetail: {
     title: "Przypomnienie",

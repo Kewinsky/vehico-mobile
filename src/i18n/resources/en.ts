@@ -863,6 +863,10 @@ Detailed report available at: https://report.vehico.app/report/example`,
       onDueDay: "{{title}} — due on {{date}}",
       daysBefore: "{{title}} — {{when}} ({{date}})",
     },
+    addServiceFromReminderTitle: "Add service entry?",
+    addServiceFromReminderBody:
+      'Do you want to add a service entry for "{{title}}" based on this reminder?',
+    serviceEntryFromReminderCreated: "Service entry added",
   },
   reminderDetail: {
     title: "Reminder",
