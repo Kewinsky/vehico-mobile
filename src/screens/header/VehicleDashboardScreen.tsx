@@ -1798,15 +1798,14 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     datePickerCard: {
-      width: "100%",
-      maxWidth: 380,
       borderRadius: theme.radius.lg,
       padding: theme.spacing.md,
-      gap: theme.spacing.sm,
     },
     datePickerActions: {
       flexDirection: "row",
       justifyContent: "flex-end",
+      paddingRight: theme.spacing.md,
+      paddingBottom: theme.spacing.md,
       gap: theme.spacing.xl,
     },
     datePickerActionText: {
