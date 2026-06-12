@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
-import type { Vehicle } from "../../types/domain";
+import type { Vehicle, VehiclePhoto } from "../../types/domain";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listVehicleTires } from "../../services/tires/tiresRepo";
@@ -30,9 +30,9 @@ import {
 import {
   generatePublicPageWithOptions,
   getPublicPageUrl,
-  updatePublicReportTempPhotos,
+  updatePublicReportPhotos,
 } from "../../services/publicPages/publicPagesRepo";
-import { uploadReportPhotos } from "../../services/publicPages/uploadReportPhoto";
+import { uploadAllReportPhotos } from "../../services/publicPages/uploadReportPhoto";
 import { Button } from "../../ui/components/common/Button";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
@@ -85,8 +85,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId, reportOptions, selectedVehiclePhotoIds, tempPhotos } =
-    route.params;
+  const { vehicleId, reportOptions, reportPhotos } = route.params;
   const { distanceUnitLabel } = useUnitDisplay();
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
@@ -102,6 +101,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const [photosCarouselWidth, setPhotosCarouselWidth] = useState(0);
   const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
 
+  const [vehiclePhotos, setVehiclePhotos] = useState<VehiclePhoto[]>([]);
   const [vehiclePhotoUrls, setVehiclePhotoUrls] = useState<Map<string, string>>(
     new Map(),
   );
@@ -109,7 +109,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [v, serviceEntries, fuelingEntries, vehiclePhotos, tires, wheels] =
+      const [v, serviceEntries, fuelingEntries, photos, tires, wheels] =
         await Promise.all([
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
@@ -123,10 +123,16 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
       setFuelingEntriesCount(fuelingEntries.length);
       setTiresCount(tires.length);
       setWheelsCount(wheels.length);
+      setVehiclePhotos(photos);
 
+      const selectedIds = new Set(
+        reportPhotos
+          .filter((p) => p.kind === "vehicle" && p.vehiclePhotoId)
+          .map((p) => p.vehiclePhotoId as string),
+      );
       const urlMap = new Map<string, string>();
-      vehiclePhotos
-        .filter((p) => selectedVehiclePhotoIds.includes(p.id))
+      photos
+        .filter((p) => selectedIds.has(p.id))
         .forEach((photo) => {
           urlMap.set(photo.id, getVehiclePhotoUrl(photo));
         });
@@ -136,7 +142,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [vehicleId, selectedVehiclePhotoIds, t]);
+  }, [vehicleId, reportPhotos, t]);
 
   useEffect(() => {
     void load();
@@ -157,19 +163,37 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
     try {
       setGenerating(true);
 
-      const report = await generatePublicPageWithOptions(
-        vehicleId,
-        selectedVehiclePhotoIds,
-        [],
-        reportOptions,
-      );
+      const report = await generatePublicPageWithOptions(vehicleId, reportOptions);
 
-      if (tempPhotos.length > 0) {
-        const uploadedTempPhotos = await uploadReportPhotos({
+      if (reportOptions.include_photos && reportPhotos.length > 0) {
+        const photoById = new Map(vehiclePhotos.map((p) => [p.id, p]));
+        const uploadedPhotos = await uploadAllReportPhotos({
           reportId: report.id,
-          photos: tempPhotos,
+          items: reportPhotos.map((item) => {
+            if (item.kind === "vehicle" && item.vehiclePhotoId) {
+              const vehiclePhoto = photoById.get(item.vehiclePhotoId);
+              if (!vehiclePhoto) {
+                throw new Error(t("attachments.noFileSelected"));
+              }
+              return {
+                kind: "vehicle" as const,
+                vehiclePhoto,
+                displayOrder: item.displayOrder,
+              };
+            }
+            if (!item.fileUri) {
+              throw new Error(t("attachments.noFileSelected"));
+            }
+            return {
+              kind: "local" as const,
+              fileUri: item.fileUri,
+              displayOrder: item.displayOrder,
+              mimeType: item.mimeType,
+              fileName: item.fileName,
+            };
+          }),
         });
-        await updatePublicReportTempPhotos(report.id, uploadedTempPhotos);
+        await updatePublicReportPhotos(report.id, uploadedPhotos);
       }
 
       const url = await getPublicPageUrl(report.public_id);
@@ -204,14 +228,18 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   }
 
   const allPhotoUrls = useMemo(() => {
-    const urls: string[] = [];
-    selectedVehiclePhotoIds.forEach((id) => {
-      const url = vehiclePhotoUrls.get(id);
-      if (url) urls.push(url);
-    });
-    tempPhotos.forEach((photo) => urls.push(photo.fileUri));
-    return urls;
-  }, [selectedVehiclePhotoIds, vehiclePhotoUrls, tempPhotos]);
+    const sorted = [...reportPhotos].sort(
+      (a, b) => a.displayOrder - b.displayOrder,
+    );
+    return sorted
+      .map((item) => {
+        if (item.kind === "vehicle" && item.vehiclePhotoId) {
+          return vehiclePhotoUrls.get(item.vehiclePhotoId);
+        }
+        return item.fileUri;
+      })
+      .filter((url): url is string => Boolean(url));
+  }, [reportPhotos, vehiclePhotoUrls]);
 
   const photoCount = allPhotoUrls.length;
 

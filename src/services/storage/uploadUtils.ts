@@ -39,8 +39,11 @@ export async function fetchBlob(fileUri: string): Promise<Blob | ArrayBuffer> {
       if (!res.ok) {
         throw new Error(`Failed to read file for upload (HTTP ${res.status})`);
       }
-      // For remote URIs, we can use blob() which works in web environments
-      return await res.blob();
+      const buffer = await res.arrayBuffer();
+      if (buffer.byteLength === 0) {
+        throw new Error("Failed to read file for upload (empty response)");
+      }
+      return buffer;
     }
     throw new Error(
       `Failed to read file: ${error instanceof Error ? error.message : String(error)}`

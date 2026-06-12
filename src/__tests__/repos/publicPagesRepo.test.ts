@@ -2,7 +2,7 @@ import {
   generatePublicPageWithOptions,
   getPublicPageUrl,
   listPublicPages,
-  updatePublicReportTempPhotos,
+  updatePublicReportPhotos,
   updatePublicReportTitle,
 } from "../../services/publicPages/publicPagesRepo";
 import { createPostgrestChain, supabase } from "../../test/supabaseMock";
@@ -26,28 +26,24 @@ describe("publicPagesRepo", () => {
     const snapshot = { id: "rep1", public_id: "pub1" };
     supabase.rpc.mockResolvedValue({ data: snapshot, error: null });
 
-    const out = await generatePublicPageWithOptions(
-      "v1",
-      ["photo-1"],
-      [{ storage_path: "x.jpg", display_order: 0 }],
-      {
-        include_technical_data: true,
-        include_insurance: true,
-        include_inspection: true,
-        include_notes: false,
-        include_wheels: false,
-        include_tires: false,
-        include_service_history: true,
-        include_service_stats: false,
-        include_fueling_stats: false,
-        include_photos: true,
-      },
-    );
+    const out = await generatePublicPageWithOptions("v1", {
+      include_technical_data: true,
+      include_insurance: true,
+      include_inspection: true,
+      include_notes: false,
+      include_wheels: false,
+      include_tires: false,
+      include_service_history: true,
+      include_service_stats: false,
+      include_fueling_stats: false,
+      include_photos: true,
+    });
 
     expect(supabase.rpc).toHaveBeenCalledWith(
       "create_report_snapshot",
       expect.objectContaining({
         p_vehicle_id: "v1",
+        p_report_options: expect.objectContaining({ include_photos: true }),
       }),
     );
     expect(out).toEqual(snapshot);
@@ -59,23 +55,18 @@ describe("publicPagesRepo", () => {
       error: { message: "rpc failed" },
     });
     await expect(
-      generatePublicPageWithOptions(
-        "v1",
-        [],
-        [],
-        {
-          include_technical_data: true,
-          include_insurance: true,
-          include_inspection: true,
-          include_notes: true,
-          include_wheels: false,
-          include_tires: false,
-          include_service_history: false,
-          include_service_stats: false,
-          include_fueling_stats: false,
-          include_photos: true,
-        },
-      ),
+      generatePublicPageWithOptions("v1", {
+        include_technical_data: true,
+        include_insurance: true,
+        include_inspection: true,
+        include_notes: true,
+        include_wheels: false,
+        include_tires: false,
+        include_service_history: false,
+        include_service_stats: false,
+        include_fueling_stats: false,
+        include_photos: true,
+      }),
     ).rejects.toEqual(expect.objectContaining({ message: "rpc failed" }));
   });
 
@@ -97,30 +88,31 @@ describe("publicPagesRepo", () => {
     );
   });
 
-  it("updatePublicReportTempPhotos calls RPC", async () => {
+  it("updatePublicReportPhotos calls RPC", async () => {
     const snapshot = { id: "rep1" };
     supabase.rpc.mockResolvedValue({ data: snapshot, error: null });
 
-    const out = await updatePublicReportTempPhotos("rep1", [
-      { storage_path: "t.jpg", display_order: 1 },
+    const out = await updatePublicReportPhotos("rep1", [
+      { storage_path: "rep1/t.jpg", display_order: 1 },
     ]);
 
     expect(supabase.rpc).toHaveBeenCalledWith(
-      "update_report_temp_photos",
+      "update_report_photos",
       expect.objectContaining({
         p_report_id: "rep1",
+        p_photos_data: [{ storage_path: "rep1/t.jpg", display_order: 1 }],
       }),
     );
     expect(out).toEqual(snapshot);
   });
 
-  it("updatePublicReportTempPhotos throws RPC error", async () => {
+  it("updatePublicReportPhotos throws RPC error", async () => {
     supabase.rpc.mockResolvedValue({
       data: null,
-      error: { message: "temp photos failed" },
+      error: { message: "photos failed" },
     });
-    await expect(updatePublicReportTempPhotos("rep1", [])).rejects.toEqual(
-      expect.objectContaining({ message: "temp photos failed" }),
+    await expect(updatePublicReportPhotos("rep1", [])).rejects.toEqual(
+      expect.objectContaining({ message: "photos failed" }),
     );
   });
 

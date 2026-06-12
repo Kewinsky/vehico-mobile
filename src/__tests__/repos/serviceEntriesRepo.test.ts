@@ -5,10 +5,10 @@ import {
   listServiceEntries,
   updateServiceEntry,
 } from "../../services/serviceEntries/serviceEntriesRepo";
-import { deleteAttachmentsForServiceEntry } from "../../services/attachments/attachmentsRepo";
+import { deleteAttachmentsForServiceEntry } from "../../services/attachments/serviceEntryAttachmentsCleanup";
 import { createPostgrestChain, supabase } from "../../test/supabaseMock";
 
-jest.mock("../../services/attachments/attachmentsRepo", () => ({
+jest.mock("../../services/attachments/serviceEntryAttachmentsCleanup", () => ({
   deleteAttachmentsForServiceEntry: jest.fn(),
 }));
 

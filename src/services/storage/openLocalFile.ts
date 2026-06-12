@@ -4,7 +4,6 @@ import * as Sharing from "expo-sharing";
 
 import { toFileUri } from "../localStorage/localFiles";
 
-/** Thrown when the SQLite row exists but the file on disk is missing. */
 export class LocalFileNotFoundError extends Error {
   constructor() {
     super("LOCAL_FILE_NOT_FOUND");
@@ -19,10 +18,6 @@ async function shareLocalFile(uri: string): Promise<void> {
   await Sharing.shareAsync(uri);
 }
 
-/**
- * Open a locally stored attachment/document.
- * Verifies the file exists before attempting to open (stale DB paths fail fast).
- */
 export async function openLocalFile(localPath: string): Promise<void> {
   const info = await FileSystem.getInfoAsync(localPath);
   if (!info.exists) {
@@ -31,7 +26,6 @@ export async function openLocalFile(localPath: string): Promise<void> {
 
   const uri = toFileUri(localPath);
 
-  // iOS: Linking.openURL(file://…) is unreliable for HEIC/PDF in sandbox; share sheet works.
   if (Platform.OS === "ios") {
     await shareLocalFile(uri);
     return;

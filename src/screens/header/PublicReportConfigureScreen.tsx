@@ -29,12 +29,20 @@ const MAX_PHOTOS = 40;
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportConfigure">;
 
+type LocalReportPhoto = {
+  id: string;
+  fileUri: string;
+  displayOrder: number;
+  mimeType?: string | null;
+  fileName?: string | null;
+};
+
 type PhotoItem = {
   key: string;
+  kind: "vehicle" | "local";
   photoId?: string;
-  tempId?: string;
+  localId?: string;
   url: string;
-  isVehiclePhoto: boolean;
   displayOrder: number;
 };
 
@@ -78,15 +86,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   const [selectedVehiclePhotoIds, setSelectedVehiclePhotoIds] = useState<
     Set<string>
   >(new Set());
-  const [tempPhotos, setTempPhotos] = useState<
-    {
-      id: string;
-      fileUri: string;
-      displayOrder: number;
-      mimeType?: string | null;
-      fileName?: string | null;
-    }[]
-  >([]);
+  const [localPhotos, setLocalPhotos] = useState<LocalReportPhoto[]>([]);
   const [isDragging, setIsDragging] = useState(false);
 
   const load = useCallback(async () => {
@@ -126,23 +126,23 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       .forEach((photo) => {
         items.push({
           key: `vehicle-${photo.id}`,
+          kind: "vehicle",
           photoId: photo.id,
           url: getVehiclePhotoUrl(photo),
-          isVehiclePhoto: true,
           displayOrder: photo.display_order,
         });
       });
-    tempPhotos.forEach((photo) => {
+    localPhotos.forEach((photo) => {
       items.push({
-        key: `temp-${photo.id}`,
-        tempId: photo.id,
+        key: `local-${photo.id}`,
+        kind: "local",
+        localId: photo.id,
         url: photo.fileUri,
-        isVehiclePhoto: false,
         displayOrder: photo.displayOrder,
       });
     });
     return items.sort((a, b) => a.displayOrder - b.displayOrder);
-  }, [vehiclePhotos, selectedVehiclePhotoIds, tempPhotos]);
+  }, [vehiclePhotos, selectedVehiclePhotoIds, localPhotos]);
 
   const totalPhotoCount = allPhotos.length;
 
@@ -196,14 +196,14 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           mimeType: asset.mimeType ?? null,
           fileName: asset.fileName ?? null,
         }));
-      setTempPhotos([...tempPhotos, ...newPhotos]);
+      setLocalPhotos([...localPhotos, ...newPhotos]);
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     }
   }
 
-  function removeTempPhoto(id: string) {
-    setTempPhotos(tempPhotos.filter((p) => p.id !== id));
+  function removeLocalPhoto(id: string) {
+    setLocalPhotos(localPhotos.filter((p) => p.id !== id));
   }
 
   function toggleVehiclePhoto(photoId: string) {
@@ -223,27 +223,27 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   function handleDragRelease(data: PhotoItem[]) {
     setIsDragging(false);
     const vehiclePhotoMap = new Map(vehiclePhotos.map((p) => [p.id, p]));
-    const tempPhotoMap = new Map(tempPhotos.map((p) => [p.id, p]));
+    const localPhotoMap = new Map(localPhotos.map((p) => [p.id, p]));
     const newVehiclePhotos = [...vehiclePhotos];
-    const newTempPhotos = [...tempPhotos];
+    const newLocalPhotos = [...localPhotos];
     data.forEach((item, index) => {
-      if (item.isVehiclePhoto && item.photoId) {
+      if (item.kind === "vehicle" && item.photoId) {
         const photo = vehiclePhotoMap.get(item.photoId);
         if (photo) {
           const idx = newVehiclePhotos.findIndex((p) => p.id === photo.id);
           if (idx >= 0)
             newVehiclePhotos[idx] = { ...photo, display_order: index };
         }
-      } else if (!item.isVehiclePhoto && item.tempId) {
-        const photo = tempPhotoMap.get(item.tempId);
+      } else if (item.kind === "local" && item.localId) {
+        const photo = localPhotoMap.get(item.localId);
         if (photo) {
-          const idx = newTempPhotos.findIndex((p) => p.id === photo.id);
-          if (idx >= 0) newTempPhotos[idx] = { ...photo, displayOrder: index };
+          const idx = newLocalPhotos.findIndex((p) => p.id === photo.id);
+          if (idx >= 0) newLocalPhotos[idx] = { ...photo, displayOrder: index };
         }
       }
     });
     setVehiclePhotos(newVehiclePhotos);
-    setTempPhotos(newTempPhotos);
+    setLocalPhotos(newLocalPhotos);
   }
 
   const renderPhotoItem = (item: PhotoItem) => (
@@ -257,9 +257,9 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         />
         <Pressable
           onPress={() =>
-            item.isVehiclePhoto
+            item.kind === "vehicle"
               ? item.photoId && toggleVehiclePhoto(item.photoId)
-              : item.tempId && removeTempPhoto(item.tempId)
+              : item.localId && removeLocalPhoto(item.localId)
           }
           style={styles.photoCloseButton}
           hitSlop={5}
@@ -288,16 +288,24 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         fuel_unit: getUnitDisplay(settings).fuelUnit,
         currency: settings?.currency ?? "PLN",
       },
-      selectedVehiclePhotoIds: includePhotos
-        ? Array.from(selectedVehiclePhotoIds)
-        : [],
-      tempPhotos: includePhotos
-        ? tempPhotos.map((p) => ({
-            fileUri: p.fileUri,
-            displayOrder: p.displayOrder,
-            mimeType: p.mimeType,
-            fileName: p.fileName,
-          }))
+      reportPhotos: includePhotos
+        ? allPhotos.map((item, index) => {
+            if (item.kind === "vehicle" && item.photoId) {
+              return {
+                kind: "vehicle" as const,
+                vehiclePhotoId: item.photoId,
+                displayOrder: index,
+              };
+            }
+            const local = localPhotos.find((p) => p.id === item.localId);
+            return {
+              kind: "local" as const,
+              fileUri: local?.fileUri ?? item.url,
+              displayOrder: index,
+              mimeType: local?.mimeType,
+              fileName: local?.fileName,
+            };
+          })
         : [],
     });
   }

@@ -1074,12 +1074,13 @@ grant execute on function public.get_public_report_by_id(text) to anon;
 grant execute on function public.get_public_report_by_id(text) to authenticated;
 
 
--- Internal: builds snapshot JSON only; used by create_report_snapshot and update_report_temp_photos (not exposed to clients; no GRANT)
+drop function if exists public.create_report_snapshot(uuid, jsonb, jsonb, jsonb);
+drop function if exists public.generate_vehicle_snapshot(uuid, jsonb, jsonb, jsonb);
+drop function if exists public.update_report_temp_photos(uuid, jsonb);
+
 create or replace function public.generate_vehicle_snapshot(
   p_vehicle_id uuid,
-  p_selected_vehicle_photo_ids jsonb, -- array of UUIDs, empty = all
-  p_temp_photos_data jsonb, -- array of {storage_path, display_order}
-  p_report_options jsonb -- {include_service_entries, include_notes, include_fueling_stats, include_service_stats, include_wheels_tires}
+  p_report_options jsonb
 )
 returns jsonb
 language plpgsql
@@ -1092,7 +1093,6 @@ declare
   v_service_entries jsonb;
   v_avg_fueling numeric;
   v_vehicle_photos jsonb;
-  v_temp_photos jsonb;
   v_vehicle_tires jsonb;
   v_vehicle_wheels jsonb;
   v_include_service_history boolean;
@@ -1103,21 +1103,18 @@ declare
   v_include_wheels boolean;
   v_include_tires boolean;
   v_include_fueling_stats boolean;
-  v_include_photos boolean;
   v_distance_unit text := 'km';
   v_fuel_unit text := 'liters';
   v_currency text := 'PLN';
 begin
-  -- Extract options (new format + backward compat with old keys)
-  v_include_service_history := coalesce((p_report_options->>'include_service_history')::boolean, (p_report_options->>'include_service_entries')::boolean, false);
+  v_include_service_history := coalesce((p_report_options->>'include_service_history')::boolean, false);
   v_include_service_stats := coalesce((p_report_options->>'include_service_stats')::boolean, false);
   v_include_notes := coalesce((p_report_options->>'include_notes')::boolean, false);
   v_include_insurance := coalesce((p_report_options->>'include_insurance')::boolean, true);
   v_include_inspection := coalesce((p_report_options->>'include_inspection')::boolean, true);
-  v_include_wheels := coalesce((p_report_options->>'include_wheels')::boolean, (p_report_options->>'include_wheels_tires')::boolean, false);
-  v_include_tires := coalesce((p_report_options->>'include_tires')::boolean, (p_report_options->>'include_wheels_tires')::boolean, false);
+  v_include_wheels := coalesce((p_report_options->>'include_wheels')::boolean, false);
+  v_include_tires := coalesce((p_report_options->>'include_tires')::boolean, false);
   v_include_fueling_stats := coalesce((p_report_options->>'include_fueling_stats')::boolean, false);
-  v_include_photos := coalesce((p_report_options->>'include_photos')::boolean, true);
   v_distance_unit := coalesce((p_report_options->>'distance_unit')::text, 'km');
   v_fuel_unit := coalesce((p_report_options->>'fuel_unit')::text, 'liters');
   v_currency := coalesce((p_report_options->>'currency')::text, 'PLN');
@@ -1130,8 +1127,6 @@ begin
   if v_vehicle is null then
     raise exception 'Vehicle not found: %', p_vehicle_id;
   end if;
-
-  -- Units come from report options captured at generation time.
 
   -- Strip optional vehicle fields when not included
   if not v_include_notes then
@@ -1218,66 +1213,7 @@ begin
     v_vehicle_wheels := '[]'::jsonb;
   end if;
 
-  -- Get selected vehicle photos (skip when include_photos is false)
-  if v_include_photos and jsonb_array_length(p_selected_vehicle_photo_ids) > 0 then
-    -- Only selected photos
-    select coalesce(jsonb_agg(
-      jsonb_build_object(
-        'id', vp.id,
-        'storage_path', vp.storage_path,
-        'storage_bucket', vp.storage_bucket,
-        'source', 'vehicle',
-        'display_order', vp.display_order,
-        'created_at', vp.created_at
-      ) order by vp.display_order, vp.created_at
-    ), '[]'::jsonb) into v_vehicle_photos
-    from public.photos vp
-    where vp.vehicle_id = p_vehicle_id
-      and vp.id::text = any(select jsonb_array_elements_text(p_selected_vehicle_photo_ids));
-  elsif v_include_photos then
-    -- All photos (backward compatibility when no selection)
-    select coalesce(jsonb_agg(
-      jsonb_build_object(
-        'id', vp.id,
-        'storage_path', vp.storage_path,
-        'storage_bucket', vp.storage_bucket,
-        'source', 'vehicle',
-        'display_order', vp.display_order,
-        'created_at', vp.created_at
-      ) order by vp.display_order, vp.created_at
-    ), '[]'::jsonb) into v_vehicle_photos
-    from public.photos vp
-    where vp.vehicle_id = p_vehicle_id;
-  else
-    v_vehicle_photos := '[]'::jsonb;
-  end if;
-
-  -- Process temp photos (from report-photos bucket) - only when photos included
-  if v_include_photos and jsonb_array_length(p_temp_photos_data) > 0 then
-    v_temp_photos := jsonb_build_array();
-    for i in 0..jsonb_array_length(p_temp_photos_data) - 1 loop
-      v_temp_photos := v_temp_photos || jsonb_build_object(
-        'id', gen_random_uuid()::text, -- Generate ID for temp photo
-        'storage_path', p_temp_photos_data->i->>'storage_path',
-        'storage_bucket', 'report-photos',
-        'source', 'report-temp',
-        'display_order', (p_temp_photos_data->i->>'display_order')::integer,
-        'created_at', now()::text
-      );
-    end loop;
-  else
-    v_temp_photos := '[]'::jsonb;
-  end if;
-
-  -- Merge vehicle photos and temp photos (when include_photos, v_vehicle_photos and v_temp_photos already set above), sort by display_order
-  v_vehicle_photos := (
-    select coalesce(jsonb_agg(photo order by (photo->>'display_order')::integer), '[]'::jsonb)
-    from (
-      select jsonb_array_elements(v_vehicle_photos) as photo
-      union all
-      select jsonb_array_elements(v_temp_photos) as photo
-    ) as all_photos
-  );
+  v_vehicle_photos := '[]'::jsonb;
 
   -- Build complete snapshot
   v_snapshot := jsonb_build_object(
@@ -1307,11 +1243,8 @@ begin
 end;
 $$;
 
--- RPC: create immutable report snapshot (vehicle + options + optional temp photos metadata)
 create or replace function public.create_report_snapshot(
   p_vehicle_id uuid,
-  p_selected_vehicle_photo_ids jsonb,
-  p_temp_photos_data jsonb,
   p_report_options jsonb
 )
 returns public.reports
@@ -1323,9 +1256,7 @@ declare
   v_snapshot public.reports;
   v_snapshot_data jsonb;
   v_can_generate jsonb;
-  v_photo_count integer;
 begin
-  -- Verify user owns the vehicle
   if not exists (
     select 1
     from public.vehicles v
@@ -1335,39 +1266,16 @@ begin
     raise exception 'Vehicle not found or access denied';
   end if;
 
-  -- Check if user can generate a report (entitlements check)
   v_can_generate := public.check_premium_feature('report');
   if not (v_can_generate->>'allowed')::boolean then
     raise exception '%', coalesce(v_can_generate->>'reason', 'Cannot generate report');
   end if;
 
-  -- Limit photos in report to 40 total (vehicle photos + temp photos)
-  v_photo_count := jsonb_array_length(p_selected_vehicle_photo_ids) + jsonb_array_length(p_temp_photos_data);
-  if v_photo_count > 40 then
-    -- Trim to 40: keep all vehicle photos, then temp photos up to limit
-    declare
-      v_vehicle_count integer := jsonb_array_length(p_selected_vehicle_photo_ids);
-      v_max_temp integer := greatest(0, 40 - v_vehicle_count);
-    begin
-      if jsonb_array_length(p_temp_photos_data) > v_max_temp then
-        p_temp_photos_data := (
-          select jsonb_agg(elem)
-          from jsonb_array_elements(p_temp_photos_data) with ordinality as t(elem, idx)
-          where idx <= v_max_temp
-        );
-      end if;
-    end;
-  end if;
-
-  -- Generate snapshot with options
   v_snapshot_data := public.generate_vehicle_snapshot(
     p_vehicle_id,
-    p_selected_vehicle_photo_ids,
-    p_temp_photos_data,
     p_report_options
   );
 
-  -- Create snapshot with public_id
   insert into public.reports (vehicle_id, snapshot_data)
   values (p_vehicle_id, v_snapshot_data)
   returning * into v_snapshot;
@@ -1376,13 +1284,11 @@ begin
 end;
 $$;
 
-grant execute on function public.create_report_snapshot(uuid, jsonb, jsonb, jsonb) to authenticated;
+grant execute on function public.create_report_snapshot(uuid, jsonb) to authenticated;
 
--- Update existing report snapshot with temp photos (called after upload to report-photos bucket)
--- Flow: 1) create report (temp_photos=[]), 2) upload temp photos, 3) call this to merge into snapshot
-create or replace function public.update_report_temp_photos(
+create or replace function public.update_report_photos(
   p_report_id uuid,
-  p_temp_photos_data jsonb
+  p_photos_data jsonb
 )
 returns public.reports
 language plpgsql
@@ -1393,10 +1299,8 @@ declare
   v_report public.reports;
   v_snapshot_data jsonb;
   v_vehicle_photos jsonb;
-  v_temp_photos jsonb;
   i integer;
 begin
-  -- Get report and verify ownership
   select * into v_report
   from public.reports
   where id = p_report_id;
@@ -1410,35 +1314,26 @@ begin
     raise exception 'Access denied';
   end if;
 
-  if jsonb_array_length(p_temp_photos_data) = 0 then
+  if jsonb_array_length(p_photos_data) > 40 then
+    raise exception 'Maximum 40 photos per report';
+  end if;
+
+  if jsonb_array_length(p_photos_data) = 0 then
     return v_report;
   end if;
 
   v_snapshot_data := v_report.snapshot_data;
-  v_vehicle_photos := coalesce(v_snapshot_data->'vehicle_photos', '[]'::jsonb);
 
-  -- Build temp photos with same structure as generate_vehicle_snapshot
-  v_temp_photos := jsonb_build_array();
-  for i in 0..jsonb_array_length(p_temp_photos_data) - 1 loop
-    v_temp_photos := v_temp_photos || jsonb_build_object(
+  v_vehicle_photos := jsonb_build_array();
+  for i in 0..jsonb_array_length(p_photos_data) - 1 loop
+    v_vehicle_photos := v_vehicle_photos || jsonb_build_object(
       'id', gen_random_uuid()::text,
-      'storage_path', p_temp_photos_data->i->>'storage_path',
+      'storage_path', p_photos_data->i->>'storage_path',
       'storage_bucket', 'report-photos',
-      'source', 'report-temp',
-      'display_order', (p_temp_photos_data->i->>'display_order')::integer,
+      'display_order', (p_photos_data->i->>'display_order')::integer,
       'created_at', now()::text
     );
   end loop;
-
-  -- Merge and sort
-  v_vehicle_photos := (
-    select coalesce(jsonb_agg(photo order by (photo->>'display_order')::integer), '[]'::jsonb)
-    from (
-      select jsonb_array_elements(v_vehicle_photos) as photo
-      union all
-      select jsonb_array_elements(v_temp_photos) as photo
-    ) as all_photos
-  );
 
   v_snapshot_data := v_snapshot_data || jsonb_build_object('vehicle_photos', v_vehicle_photos);
 
@@ -1451,7 +1346,7 @@ begin
 end;
 $$;
 
-grant execute on function public.update_report_temp_photos(uuid, jsonb) to authenticated;
+grant execute on function public.update_report_photos(uuid, jsonb) to authenticated;
 
 -- ================
 -- Storage (buckets + policies)
@@ -1459,7 +1354,7 @@ grant execute on function public.update_report_temp_photos(uuid, jsonb) to authe
 -- NOTE: Creating buckets is often easiest in the Dashboard (Storage → New bucket).
 -- Buckets required by the app:
 -- - images (must be PUBLIC) - vehicle photos only
--- - report-photos (must be PUBLIC) - temporary photos added only to reports
+-- - report-photos (must be PUBLIC) - all photos embedded in public reports (copies + new picks)
 --
 -- - Vehicle photos: <vehicle_id>/<...>
 -- - Report photos: report-photos/<report_id>/<timestamp>-<randomId>.jpg
@@ -1487,9 +1382,6 @@ using (
   )
 );
 
--- Read: anon can read images bucket (public access for public reports)
--- Note: Bucket must be set to PUBLIC in Supabase Dashboard → Storage → Buckets → images → Edit → Public bucket
--- This allows Next.js app to display vehicle photos from snapshots
 create policy "storage_images_read_public"
 on storage.objects for select
 to anon

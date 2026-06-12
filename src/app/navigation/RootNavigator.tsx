@@ -145,9 +145,10 @@ export type AppStackParamList = {
       fuel_unit?: "liters" | "gallons";
       currency?: import("../../types/domain").Currency;
     };
-    selectedVehiclePhotoIds: string[];
-    tempPhotos: {
-      fileUri: string;
+    reportPhotos: {
+      kind: "vehicle" | "local";
+      vehiclePhotoId?: string;
+      fileUri?: string;
       displayOrder: number;
       mimeType?: string | null;
       fileName?: string | null;

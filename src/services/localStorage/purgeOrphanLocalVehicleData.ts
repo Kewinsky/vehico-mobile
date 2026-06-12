@@ -13,7 +13,6 @@ import {
 
 const CHUNK = 80;
 
-/** All service entry IDs still on the server for the given vehicles (paginated). */
 async function fetchServiceEntryIdsForVehicles(
   vehicleIds: string[],
 ): Promise<Set<string>> {
@@ -49,13 +48,6 @@ function hasAttachmentsForValidVehicles(
   });
 }
 
-/**
- * Remove SQLite rows + files for vehicles / service entries that no longer exist on Supabase
- * (e.g. retention job deleted hidden vehicles).
- *
- * Also deletes orphan directories under `local_attachments/<vehicleId>/` and
- * `local_vehicle_documents/<vehicleId>/` when the vehicle is gone from the server.
- */
 export async function purgeOrphanLocalVehicleData(
   validVehicleIds: string[],
 ): Promise<void> {
@@ -68,8 +60,6 @@ export async function purgeOrphanLocalVehicleData(
 
   const attachmentRows = await listAllLocalAttachmentRows();
 
-  // Avoid mass-deleting attachments when the server returned zero service entries
-  // but we still have files for valid vehicles (incomplete fetch / transient API issue).
   const skipServiceEntryPurge =
     validVehicleIds.length > 0 &&
     validServiceEntries.size === 0 &&

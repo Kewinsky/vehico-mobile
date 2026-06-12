@@ -1,9 +1,10 @@
 import * as ImageManipulator from "expo-image-manipulator";
 import { fetchBlob, randomId } from "../../services/storage/uploadUtils";
-import { mockStorageBucket } from "../../test/supabaseMock";
+import { mockStorageBucket, supabase } from "../../test/supabaseMock";
 import {
+  copyVehiclePhotoToReport,
+  uploadAllReportPhotos,
   uploadReportPhoto,
-  uploadReportPhotos,
 } from "../../services/publicPages/uploadReportPhoto";
 
 jest.mock("expo-image-manipulator", () => ({
@@ -19,6 +20,9 @@ jest.mock("../../services/storage/uploadUtils", () => ({
 describe("uploadReportPhoto", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(supabase.storage.from).mockImplementation(
+      () => mockStorageBucket as any,
+    );
     jest.spyOn(Date, "now").mockReturnValue(1700000000000);
     (randomId as jest.Mock).mockReturnValue("rid");
     (ImageManipulator.manipulateAsync as jest.Mock).mockResolvedValue({
@@ -83,18 +87,64 @@ describe("uploadReportPhoto", () => {
     ).rejects.toEqual(expect.objectContaining({ message: "permission denied" }));
   });
 
-  it("uploadReportPhotos uploads all photos preserving display order", async () => {
-    const out = await uploadReportPhotos({
+  it("copyVehiclePhotoToReport fetches public image url and uploads ArrayBuffer", async () => {
+    mockStorageBucket.getPublicUrl.mockReturnValue({
+      data: { publicUrl: "https://cdn.test/v1/photo.jpg" },
+    });
+    const buffer = new Uint8Array([1, 2, 3]).buffer;
+    (fetchBlob as jest.Mock).mockResolvedValueOnce(buffer);
+
+    const out = await copyVehiclePhotoToReport({
       reportId: "rep1",
-      photos: [
-        { fileUri: "file:///1", displayOrder: 1 },
-        { fileUri: "file:///2", displayOrder: 3 },
+      photo: { storage_bucket: "images", storage_path: "v1/photo.jpg" },
+      displayOrder: 0,
+    });
+
+    expect(mockStorageBucket.getPublicUrl).toHaveBeenCalledWith("v1/photo.jpg");
+    expect(fetchBlob).toHaveBeenCalledWith("https://cdn.test/v1/photo.jpg");
+    expect(mockStorageBucket.upload).toHaveBeenCalledWith(
+      "rep1/1700000000000-rid.jpg",
+      buffer,
+      { contentType: "image/jpeg", upsert: false },
+    );
+    expect(out.storage_path).toBe("rep1/1700000000000-rid.jpg");
+  });
+
+  it("uploadAllReportPhotos copies vehicle photos and uploads local photos", async () => {
+    mockStorageBucket.getPublicUrl.mockReturnValue({
+      data: { publicUrl: "https://cdn.test/v1/a.jpg" },
+    });
+    (fetchBlob as jest.Mock)
+      .mockResolvedValueOnce(new Uint8Array([1]).buffer)
+      .mockResolvedValueOnce("blob-data");
+
+    const out = await uploadAllReportPhotos({
+      reportId: "rep1",
+      items: [
+        {
+          kind: "vehicle",
+          vehiclePhoto: {
+            id: "p1",
+            vehicle_id: "v1",
+            storage_bucket: "images",
+            storage_path: "v1/a.jpg",
+            display_order: 0,
+            created_at: "2025-01-01",
+          },
+          displayOrder: 0,
+        },
+        {
+          kind: "local",
+          fileUri: "file:///2",
+          displayOrder: 1,
+        },
       ],
     });
 
     expect(out).toHaveLength(2);
-    expect(out.map((p) => p.display_order)).toEqual([1, 3]);
+    expect(fetchBlob).toHaveBeenCalledWith("https://cdn.test/v1/a.jpg");
     expect(mockStorageBucket.upload).toHaveBeenCalledTimes(2);
   });
+
 });
 

@@ -45,16 +45,19 @@ describe("fetchBlob", () => {
     atobSpy.mockRestore();
   });
 
-  it("falls back to fetch() for remote url", async () => {
+  it("falls back to fetch() for remote url and returns ArrayBuffer", async () => {
     (FileSystem.readAsStringAsync as jest.Mock).mockRejectedValue(
       new Error("local read fail"),
     );
-    const blob = new Blob(["abc"]);
-    const fetchMock = jest
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValue({ ok: true, blob: async () => blob } as Response);
+    const buffer = new Uint8Array([97, 98, 99]).buffer;
+    const fetchMock = jest.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => buffer,
+    } as Response);
 
-    await expect(fetchBlob("https://example.com/x.jpg")).resolves.toBe(blob);
+    const out = await fetchBlob("https://example.com/x.jpg");
+    expect(out).toBeInstanceOf(ArrayBuffer);
+    expect((out as ArrayBuffer).byteLength).toBe(3);
     fetchMock.mockRestore();
   });
 

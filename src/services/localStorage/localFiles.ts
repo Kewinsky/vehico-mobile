@@ -6,7 +6,6 @@ const VEHICLE_DOCS_DIR = "local_vehicle_documents";
 
 const LOCAL_ATTACHMENT_VEHICLE_RE = /local_attachments\/([^/]+)\//;
 
-/** Extract vehicle UUID from a saved attachment path. */
 export function parseVehicleIdFromLocalAttachmentPath(
   localPath: string,
 ): string | null {
@@ -18,7 +17,6 @@ function getBaseDir(): string {
   return FileSystem.documentDirectory ?? "";
 }
 
-/** Save a file to local storage. Returns the full local path. */
 export async function saveLocalFile(params: {
   sourceUri: string;
   vehicleId: string;
@@ -37,7 +35,6 @@ export async function saveLocalFile(params: {
   return destPath;
 }
 
-/** Save attachment file (service entry). */
 export async function saveAttachmentFile(params: {
   sourceUri: string;
   vehicleId: string;
@@ -52,7 +49,6 @@ export async function saveAttachmentFile(params: {
   });
 }
 
-/** Save vehicle document file. */
 export async function saveVehicleDocumentFile(params: {
   sourceUri: string;
   vehicleId: string;
@@ -70,7 +66,6 @@ export async function saveVehicleDocumentFile(params: {
   return destPath;
 }
 
-/** Delete a file by its local path. */
 export async function deleteLocalFile(localPath: string): Promise<void> {
   const exists = await FileSystem.getInfoAsync(localPath);
   if (exists.exists) {
@@ -78,7 +73,6 @@ export async function deleteLocalFile(localPath: string): Promise<void> {
   }
 }
 
-/** Get a file URI suitable for Linking.openURL. On mobile, file:// is used. */
 export function toFileUri(localPath: string): string {
   if (localPath.startsWith("file://")) return localPath;
   return `file://${localPath}`;

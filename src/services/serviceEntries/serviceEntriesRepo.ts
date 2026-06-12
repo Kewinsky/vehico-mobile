@@ -1,5 +1,5 @@
 import { supabase } from "../supabase/client";
-import { deleteAttachmentsForServiceEntry } from "../attachments/attachmentsRepo";
+import { deleteAttachmentsForServiceEntry } from "../attachments/serviceEntryAttachmentsCleanup";
 import type { ServiceEntry, ServiceEntryCategory } from "../../types/domain";
 
 type NewServiceEntryInput = {
