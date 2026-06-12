@@ -1,5 +1,6 @@
 import { supabase } from "../supabase/client";
 import { deleteAttachmentsForServiceEntry } from "../attachments/serviceEntryAttachmentsCleanup";
+import { syncVehicleMileageIfHigher } from "../vehicles/vehiclesRepo";
 import type { ServiceEntry, ServiceEntryCategory } from "../../types/domain";
 
 type NewServiceEntryInput = {
@@ -37,7 +38,13 @@ export async function createServiceEntry(
     .select("*")
     .single();
   if (error) throw error;
-  return data as ServiceEntry;
+  const entry = data as ServiceEntry;
+  await syncVehicleMileageIfHigher(
+    input.vehicle_id,
+    input.mileage,
+    input.service_date,
+  );
+  return entry;
 }
 
 export async function getServiceEntry(id: string): Promise<ServiceEntry> {
@@ -61,7 +68,15 @@ export async function updateServiceEntry(
     .select("*")
     .single();
   if (error) throw error;
-  return data as ServiceEntry;
+  const entry = data as ServiceEntry;
+  if (patch.mileage !== undefined) {
+    await syncVehicleMileageIfHigher(
+      entry.vehicle_id,
+      patch.mileage,
+      patch.service_date ?? entry.service_date,
+    );
+  }
+  return entry;
 }
 
 export async function deleteServiceEntry(id: string): Promise<void> {

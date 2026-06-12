@@ -6,11 +6,20 @@ import {
   updateServiceEntry,
 } from "../../services/serviceEntries/serviceEntriesRepo";
 import { deleteAttachmentsForServiceEntry } from "../../services/attachments/serviceEntryAttachmentsCleanup";
+import { syncVehicleMileageIfHigher } from "../../services/vehicles/vehiclesRepo";
 import { createPostgrestChain, supabase } from "../../test/supabaseMock";
 
 jest.mock("../../services/attachments/serviceEntryAttachmentsCleanup", () => ({
   deleteAttachmentsForServiceEntry: jest.fn(),
 }));
+
+jest.mock("../../services/vehicles/vehiclesRepo", () => {
+  const actual = jest.requireActual("../../services/vehicles/vehiclesRepo");
+  return {
+    ...actual,
+    syncVehicleMileageIfHigher: jest.fn(),
+  };
+});
 
 describe("serviceEntriesRepo", () => {
   it("listServiceEntries scopes to vehicle and orders", async () => {
@@ -40,6 +49,11 @@ describe("serviceEntriesRepo", () => {
     });
 
     expect(out).toEqual(row);
+    expect(syncVehicleMileageIfHigher).toHaveBeenCalledWith(
+      "v1",
+      1000,
+      "2025-05-01",
+    );
   });
 
   it("getServiceEntry loads single", async () => {
@@ -50,14 +64,24 @@ describe("serviceEntriesRepo", () => {
     await expect(getServiceEntry("se1")).resolves.toEqual(row);
   });
 
-  it("updateServiceEntry patches row", async () => {
-    const row = { id: "se1", title: "Brakes" };
+  it("updateServiceEntry patches row and syncs mileage when provided", async () => {
+    const row = {
+      id: "se1",
+      title: "Brakes",
+      vehicle_id: "v1",
+      service_date: "2025-06-01",
+    };
     supabase.from.mockImplementation(() =>
       createPostgrestChain({ data: row, error: null }),
     );
     await expect(
-      updateServiceEntry("se1", { title: "Brakes" }),
+      updateServiceEntry("se1", { title: "Brakes", mileage: 120_000 }),
     ).resolves.toEqual(row);
+    expect(syncVehicleMileageIfHigher).toHaveBeenCalledWith(
+      "v1",
+      120_000,
+      "2025-06-01",
+    );
   });
 
   it("deleteServiceEntry deletes local attachments then server row", async () => {

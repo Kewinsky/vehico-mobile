@@ -82,6 +82,26 @@ export async function updateVehicle(
   return data as Vehicle;
 }
 
+/** When a service entry has a higher odometer reading, bump the vehicle mileage. */
+export async function syncVehicleMileageIfHigher(
+  vehicleId: string,
+  entryMileage: number | null,
+  serviceDate?: string | null,
+): Promise<boolean> {
+  if (entryMileage == null || !Number.isFinite(entryMileage)) return false;
+
+  const vehicle = await getVehicle(vehicleId);
+  if (vehicle.mileage != null && entryMileage <= vehicle.mileage) return false;
+
+  const mileageUpdatedAt =
+    serviceDate?.trim().slice(0, 10) || new Date().toISOString().slice(0, 10);
+  await updateVehicle(vehicleId, {
+    mileage: entryMileage,
+    mileage_updated_at: mileageUpdatedAt,
+  });
+  return true;
+}
+
 export async function deleteVehicle(vehicleId: string): Promise<void> {
   // Delete vehicle photo files via Storage API before removing DB rows.
   const photos = await listVehiclePhotos(vehicleId);

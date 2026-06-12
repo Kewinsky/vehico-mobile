@@ -3,6 +3,7 @@ import {
   deleteVehicle,
   getVehicle,
   listVehicles,
+  syncVehicleMileageIfHigher,
   updateVehicle,
 } from "../../services/vehicles/vehiclesRepo";
 import {
@@ -68,6 +69,42 @@ describe("vehiclesRepo", () => {
     );
 
     await expect(updateVehicle("v1", { notes: "x" })).resolves.toEqual(row);
+  });
+
+  it("syncVehicleMileageIfHigher updates vehicle when entry mileage is higher", async () => {
+    jest
+      .mocked(supabase.from)
+      .mockImplementationOnce(() =>
+        createPostgrestChain({
+          data: { id: "v1", mileage: 100_000 },
+          error: null,
+        }),
+      )
+      .mockImplementationOnce(() =>
+        createPostgrestChain({
+          data: { id: "v1", mileage: 105_000, mileage_updated_at: "2025-06-01" },
+          error: null,
+        }),
+      );
+
+    await expect(
+      syncVehicleMileageIfHigher("v1", 105_000, "2025-06-01"),
+    ).resolves.toBe(true);
+    expect(supabase.from).toHaveBeenCalledTimes(2);
+  });
+
+  it("syncVehicleMileageIfHigher skips when entry mileage is not higher", async () => {
+    supabase.from.mockImplementation(() =>
+      createPostgrestChain({
+        data: { id: "v1", mileage: 120_000 },
+        error: null,
+      }),
+    );
+
+    await expect(
+      syncVehicleMileageIfHigher("v1", 110_000, "2025-06-01"),
+    ).resolves.toBe(false);
+    expect(supabase.from).toHaveBeenCalledTimes(1);
   });
 
   it("deleteVehicle removes photo objects then deletes vehicle", async () => {
