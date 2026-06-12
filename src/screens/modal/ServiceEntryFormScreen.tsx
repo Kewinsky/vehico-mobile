@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
-  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -28,10 +27,11 @@ import {
   updateAttachmentDisplayName,
   uploadAttachment,
 } from "../../services/attachments/attachmentsRepo";
+import { getFileNameFromItem } from "../../services/storage/openFileUrl";
 import {
-  getAttachmentOpenUrl,
-  getFileNameFromItem,
-} from "../../services/storage/openFileUrl";
+  LocalFileNotFoundError,
+  openLocalFile,
+} from "../../services/storage/openLocalFile";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -170,12 +170,19 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     setMode(next);
   }
 
-  function openAttachment(att: Attachment) {
+  async function openAttachment(att: Attachment) {
+    if (!att.local_path) {
+      toastError(t("common.error"));
+      return;
+    }
     try {
-      const url = getAttachmentOpenUrl(att);
-      void Linking.openURL(url);
+      await openLocalFile(att.local_path);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastError(
+        e instanceof LocalFileNotFoundError
+          ? t("documents.fileNotFound")
+          : (e?.message ?? t("common.error")),
+      );
     }
   }
 

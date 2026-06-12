@@ -822,6 +822,7 @@ Detailed report available at: https://report.vehico.app/report/example`,
     editDescriptionTitle: "Edit description",
     editDescriptionBody: "Enter a description for this document:",
     descriptionUpdated: "Description updated",
+    fileNotFound: "The file is no longer on this device.",
   },
   fuelCosts: {
     title: "Fuel",

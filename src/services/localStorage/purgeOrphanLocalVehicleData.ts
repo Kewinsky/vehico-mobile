@@ -6,7 +6,10 @@ import {
   listAllLocalAttachmentRows,
   listAllLocalVehicleDocumentRows,
 } from "./localDb";
-import { deleteLocalFile } from "./localFiles";
+import {
+  deleteLocalFile,
+  parseVehicleIdFromLocalAttachmentPath,
+} from "./localFiles";
 
 const CHUNK = 80;
 
@@ -36,6 +39,16 @@ async function fetchServiceEntryIdsForVehicles(
   return ids;
 }
 
+function hasAttachmentsForValidVehicles(
+  attachmentRows: { local_path: string }[],
+  validVehicles: Set<string>,
+): boolean {
+  return attachmentRows.some((row) => {
+    const vehicleId = parseVehicleIdFromLocalAttachmentPath(row.local_path);
+    return vehicleId != null && validVehicles.has(vehicleId);
+  });
+}
+
 /**
  * Remove SQLite rows + files for vehicles / service entries that no longer exist on Supabase
  * (e.g. retention job deleted hidden vehicles).
@@ -54,9 +67,31 @@ export async function purgeOrphanLocalVehicleData(
       : await fetchServiceEntryIdsForVehicles(validVehicleIds);
 
   const attachmentRows = await listAllLocalAttachmentRows();
+
+  // Avoid mass-deleting attachments when the server returned zero service entries
+  // but we still have files for valid vehicles (incomplete fetch / transient API issue).
+  const skipServiceEntryPurge =
+    validVehicleIds.length > 0 &&
+    validServiceEntries.size === 0 &&
+    hasAttachmentsForValidVehicles(attachmentRows, validVehicles);
+
   for (const row of attachmentRows) {
-    const keep =
-      validVehicleIds.length > 0 && validServiceEntries.has(row.service_entry_id);
+    if (validVehicleIds.length === 0) {
+      await deleteLocalFile(row.local_path);
+      await deleteLocalAttachment(row.id);
+      continue;
+    }
+
+    const vehicleId = parseVehicleIdFromLocalAttachmentPath(row.local_path);
+    if (vehicleId != null && !validVehicles.has(vehicleId)) {
+      await deleteLocalFile(row.local_path);
+      await deleteLocalAttachment(row.id);
+      continue;
+    }
+
+    if (skipServiceEntryPurge) continue;
+
+    const keep = validServiceEntries.has(row.service_entry_id);
     if (!keep) {
       await deleteLocalFile(row.local_path);
       await deleteLocalAttachment(row.id);

@@ -2,6 +2,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import { randomId } from "../../services/storage/uploadUtils";
 import {
   deleteLocalFile,
+  parseVehicleIdFromLocalAttachmentPath,
   saveAttachmentFile,
   saveLocalFile,
   saveVehicleDocumentFile,
@@ -94,6 +95,15 @@ describe("localFiles", () => {
   it("toFileUri keeps file:// and adds prefix otherwise", () => {
     expect(toFileUri("file:///tmp/a")).toBe("file:///tmp/a");
     expect(toFileUri("/tmp/a")).toBe("file:///tmp/a");
+  });
+
+  it("parseVehicleIdFromLocalAttachmentPath extracts vehicle id", () => {
+    expect(
+      parseVehicleIdFromLocalAttachmentPath(
+        "file:///docs/local_attachments/v1/se1/a.heic",
+      ),
+    ).toBe("v1");
+    expect(parseVehicleIdFromLocalAttachmentPath("/tmp/other")).toBeNull();
   });
 });
 

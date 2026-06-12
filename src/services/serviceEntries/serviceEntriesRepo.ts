@@ -1,4 +1,5 @@
 import { supabase } from "../supabase/client";
+import { deleteAttachmentsForServiceEntry } from "../attachments/attachmentsRepo";
 import type { ServiceEntry, ServiceEntryCategory } from "../../types/domain";
 
 type NewServiceEntryInput = {
@@ -64,6 +65,7 @@ export async function updateServiceEntry(
 }
 
 export async function deleteServiceEntry(id: string): Promise<void> {
+  await deleteAttachmentsForServiceEntry(id);
   const { error } = await supabase
     .from("service_entries")
     .delete()

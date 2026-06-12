@@ -1,10 +1,4 @@
-import {
-  Alert,
-  Linking,
-  Pressable,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
@@ -27,11 +21,11 @@ import {
   listVehicleAttachments,
   type VehicleAttachment,
 } from "../../services/attachments/attachmentsRepo";
+import { getFileNameFromItem } from "../../services/storage/openFileUrl";
 import {
-  getAttachmentOpenUrl,
-  getVehicleDocumentOpenUrl,
-  getFileNameFromItem,
-} from "../../services/storage/openFileUrl";
+  LocalFileNotFoundError,
+  openLocalFile,
+} from "../../services/storage/openLocalFile";
 import {
   deleteVehicleDocument,
   listVehicleDocuments,
@@ -81,21 +75,35 @@ export function DocumentsScreen({ route, navigation }: Props) {
     onFocusReload: () => load({ showLoading: false }),
   });
 
-  function openVehicleDocument(doc: VehicleDocument) {
+  async function openVehicleDocument(doc: VehicleDocument) {
+    if (!doc.local_path) {
+      toastError(t("common.error"));
+      return;
+    }
     try {
-      const url = getVehicleDocumentOpenUrl(doc);
-      void Linking.openURL(url);
+      await openLocalFile(doc.local_path);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastError(
+        e instanceof LocalFileNotFoundError
+          ? t("documents.fileNotFound")
+          : (e?.message ?? t("common.error")),
+      );
     }
   }
 
-  function openAttachment(att: Attachment) {
+  async function openAttachment(att: Attachment) {
+    if (!att.local_path) {
+      toastError(t("common.error"));
+      return;
+    }
     try {
-      const url = getAttachmentOpenUrl(att);
-      void Linking.openURL(url);
+      await openLocalFile(att.local_path);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastError(
+        e instanceof LocalFileNotFoundError
+          ? t("documents.fileNotFound")
+          : (e?.message ?? t("common.error")),
+      );
     }
   }
 

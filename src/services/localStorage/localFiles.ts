@@ -4,6 +4,16 @@ import { randomId } from "../storage/uploadUtils";
 const DOCUMENTS_DIR = "local_attachments";
 const VEHICLE_DOCS_DIR = "local_vehicle_documents";
 
+const LOCAL_ATTACHMENT_VEHICLE_RE = /local_attachments\/([^/]+)\//;
+
+/** Extract vehicle UUID from a saved attachment path. */
+export function parseVehicleIdFromLocalAttachmentPath(
+  localPath: string,
+): string | null {
+  const match = localPath.match(LOCAL_ATTACHMENT_VEHICLE_RE);
+  return match?.[1] ?? null;
+}
+
 function getBaseDir(): string {
   return FileSystem.documentDirectory ?? "";
 }

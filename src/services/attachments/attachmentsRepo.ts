@@ -106,6 +106,17 @@ export async function deleteAttachment(att: Attachment): Promise<void> {
   await deleteLocalAttachment(att.id);
 }
 
+/** Remove all local attachments (files + SQLite rows) for a service entry. */
+export async function deleteAttachmentsForServiceEntry(
+  serviceEntryId: string,
+): Promise<void> {
+  const rows = await listLocalAttachments(serviceEntryId);
+  for (const row of rows) {
+    await deleteLocalFile(row.local_path);
+    await deleteLocalAttachment(row.id);
+  }
+}
+
 /** List all attachments for a vehicle (local only). */
 export async function listVehicleAttachments(
   vehicleId: string

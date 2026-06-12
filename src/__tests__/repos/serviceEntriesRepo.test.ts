@@ -5,7 +5,12 @@ import {
   listServiceEntries,
   updateServiceEntry,
 } from "../../services/serviceEntries/serviceEntriesRepo";
+import { deleteAttachmentsForServiceEntry } from "../../services/attachments/attachmentsRepo";
 import { createPostgrestChain, supabase } from "../../test/supabaseMock";
+
+jest.mock("../../services/attachments/attachmentsRepo", () => ({
+  deleteAttachmentsForServiceEntry: jest.fn(),
+}));
 
 describe("serviceEntriesRepo", () => {
   it("listServiceEntries scopes to vehicle and orders", async () => {
@@ -55,10 +60,11 @@ describe("serviceEntriesRepo", () => {
     ).resolves.toEqual(row);
   });
 
-  it("deleteServiceEntry deletes by id", async () => {
+  it("deleteServiceEntry deletes local attachments then server row", async () => {
     supabase.from.mockImplementation(() =>
       createPostgrestChain({ data: null, error: null }),
     );
     await expect(deleteServiceEntry("se1")).resolves.toBeUndefined();
+    expect(deleteAttachmentsForServiceEntry).toHaveBeenCalledWith("se1");
   });
 });
