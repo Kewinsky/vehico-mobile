@@ -39,10 +39,7 @@ import {
 } from "../../utils/currencyDisplay";
 import { formatRollingGroupedNumber } from "../../utils/numberFormatting";
 import { ShopCompareRowIcon } from "../../ui/components/shop/ShopCompareRowIcon";
-import {
-  getShopComparisonRows,
-  type ShopCompareRow,
-} from "./shopComparison";
+import { getShopComparisonRows, type ShopCompareRow } from "./shopComparison";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Shop">;
 
@@ -79,7 +76,7 @@ export function ShopScreen({ navigation }: Props) {
   );
 
   const selectedProduct = revenueCatProducts[selectedId];
-  const selectedPriceString = selectedProduct?.priceString ?? "—";
+  const selectedPriceString = selectedProduct?.priceString ?? "–";
 
   const selectedDisclosure = useMemo(
     () => getSubscriptionDisclosure(selectedId, selectedProduct, t),
@@ -211,11 +208,7 @@ export function ShopScreen({ navigation }: Props) {
       selectedProduct.currencyCode,
       storeLocale,
     );
-  }, [
-    priceRollingValue,
-    selectedProduct?.currencyCode,
-    storeLocale,
-  ]);
+  }, [priceRollingValue, selectedProduct?.currencyCode, storeLocale]);
 
   async function openExampleLink(row: ShopCompareRow) {
     const link = row.exampleLink;

@@ -1,6 +1,6 @@
 import { getLocales } from "expo-localization";
 
-/** Device locale — closest match to App Store / Play regional price formatting. */
+/** Device locale – closest match to App Store / Play regional price formatting. */
 export function getStoreFormattingLocale(): string {
   return getLocales()[0]?.languageTag ?? "en-US";
 }
@@ -105,7 +105,7 @@ export function getStoreCurrencyAffixes(
   }
 }
 
-/** @deprecated Prefer formatStoreCurrency — kept for narrow symbol use. */
+/** @deprecated Prefer formatStoreCurrency – kept for narrow symbol use. */
 export function getCurrencySymbol(
   currencyCode: string | undefined,
   locale: string,

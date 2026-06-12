@@ -39,7 +39,10 @@ function localYmd(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-export function quickMetricsWindowYmdBounds(): { fromYmd: string; toYmd: string } {
+export function quickMetricsWindowYmdBounds(): {
+  fromYmd: string;
+  toYmd: string;
+} {
   const end = new Date();
   end.setHours(12, 0, 0, 0);
   const start = new Date(end);
@@ -51,9 +54,9 @@ function formatTermsDate(
   dateYmd: string | null | undefined,
   language: string,
 ): string {
-  if (!dateYmd) return "—";
+  if (!dateYmd) return "–";
   const date = parseYmd(dateYmd);
-  if (!date) return "—";
+  if (!date) return "–";
   return formatShortDisplayDate(date, language);
 }
 
@@ -84,7 +87,7 @@ export function formatTermsValue(
   translate: (key: string, options?: Record<string, unknown>) => string,
   language: string,
 ): string {
-  if (!dateYmd) return "—";
+  if (!dateYmd) return "–";
   if (daysUntil == null) return formatTermsDate(dateYmd, language);
   if (daysUntil < 0) return translate("dashboard.stats.statusOverdue");
   if (daysUntil <= 30)

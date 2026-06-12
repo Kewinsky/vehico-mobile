@@ -383,21 +383,21 @@ export const pl = {
       cta: "Zaktualizuj przebieg",
     },
     insuranceBanner: {
-      titleOverdue: "Ubezpieczenie — termin minął",
+      titleOverdue: "Ubezpieczenie – termin minął",
       titleDueSoon: "Ubezpieczenie wygasa za {{days}} dni",
       titleDueToday: "Ubezpieczenie wygasa dziś",
       validUntil: "Ważne do: {{date}}",
       cta: "Zaktualizuj ubezpieczenie",
     },
     inspectionBanner: {
-      titleOverdue: "Przegląd — termin minął",
+      titleOverdue: "Przegląd – termin minął",
       titleDueSoon: "Przegląd wygasa za {{days}} dni",
       titleDueToday: "Przegląd wygasa dziś",
       validUntil: "Ważny do: {{date}}",
       cta: "Zaktualizuj przegląd",
     },
     oilBanner: {
-      titleOverdue: "Wymiana oleju — termin minął",
+      titleOverdue: "Wymiana oleju – termin minął",
       titleDueSoon: "Wymiana oleju wkrótce",
       titleNoRecord: "Brak zapisanej wymiany oleju",
       remainingBoth: "Pozostało ok. {{days}} dni lub {{km}} km do terminu.",
@@ -421,11 +421,11 @@ export const pl = {
     },
     formalityNotification: {
       insuranceBefore:
-        "{{vehicle}} — ubezpieczenie wygasa za {{days}} dni ({{date}})",
-      insuranceToday: "{{vehicle}} — ubezpieczenie wygasa dziś",
+        "{{vehicle}} – ubezpieczenie wygasa za {{days}} dni ({{date}})",
+      insuranceToday: "{{vehicle}} – ubezpieczenie wygasa dziś",
       inspectionBefore:
-        "{{vehicle}} — przegląd wygasa za {{days}} dni ({{date}})",
-      inspectionToday: "{{vehicle}} — przegląd wygasa dziś",
+        "{{vehicle}} – przegląd wygasa za {{days}} dni ({{date}})",
+      inspectionToday: "{{vehicle}} – przegląd wygasa dziś",
     },
     quickMetrics: {
       costSubtitle: "Koszt/dzień",
@@ -874,8 +874,8 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     filterAll: "Wszystkie",
     localNotification: {
       defaultTitle: "Przypomnienie",
-      onDueDay: "{{title}} — termin {{date}}",
-      daysBefore: "{{title}} — {{when}} ({{date}})",
+      onDueDay: "{{title}} – termin {{date}}",
+      daysBefore: "{{title}} – {{when}} ({{date}})",
     },
     addServiceFromReminderTitle: "Dodać wpis serwisowy?",
     addServiceFromReminderBody:

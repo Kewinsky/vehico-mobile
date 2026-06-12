@@ -9,13 +9,16 @@
  * - Removes all objects under `images/<vehicle_id>/` (vehicle photos).
  * - For each report of that vehicle, removes all objects under `report-photos/<report_id>/`.
  *
- * Then deletes vehicle rows — CASCADE removes DB rows (service_entries, reports, photos, …).
+ * Then deletes vehicle rows – CASCADE removes DB rows (service_entries, reports, photos, …).
  * DB trigger on `photos` may no-op if storage already empty.
  *
  * Local SQLite on user devices is purged when the app next loads the vehicle list
  * (see `purgeOrphanLocalVehicleData` in the mobile app).
  */
-import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  createClient,
+  type SupabaseClient,
+} from "https://esm.sh/@supabase/supabase-js@2";
 
 const RETENTION_DAYS = 90;
 const corsHeaders = {
@@ -59,7 +62,12 @@ async function deleteStorageTree(
   const directFiles: string[] = [];
 
   for (;;) {
-    const { data: entries, error } = await listPathPage(admin, bucket, path, offset);
+    const { data: entries, error } = await listPathPage(
+      admin,
+      bucket,
+      path,
+      offset,
+    );
     if (error) {
       errors.push(`${bucket}/${path || "(root)"}: list: ${error.message}`);
       return removed;
@@ -80,7 +88,9 @@ async function deleteStorageTree(
   }
 
   if (directFiles.length > 0) {
-    const { error: rmErr } = await admin.storage.from(bucket).remove(directFiles);
+    const { error: rmErr } = await admin.storage
+      .from(bucket)
+      .remove(directFiles);
     if (rmErr) {
       errors.push(`${bucket}/${path || "(root)"}: remove: ${rmErr.message}`);
     } else {
@@ -100,7 +110,12 @@ async function deleteStorageForVehicles(
   let reportPhotosRemoved = 0;
 
   for (const vehicleId of vehicleIds) {
-    imagesRemoved += await deleteStorageTree(admin, "images", vehicleId, errors);
+    imagesRemoved += await deleteStorageTree(
+      admin,
+      "images",
+      vehicleId,
+      errors,
+    );
 
     const { data: reports, error: repErr } = await admin
       .from("reports")
@@ -133,17 +148,12 @@ Deno.serve(async (req) => {
 
   const cronSecret = Deno.env.get("CRON_SECRET");
   const authHeader = req.headers.get("Authorization");
-  const bearer = authHeader?.startsWith("Bearer ")
-    ? authHeader.slice(7)
-    : null;
+  const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
   if (cronSecret && bearer !== cronSecret) {
-    return new Response(
-      JSON.stringify({ error: "Unauthorized" }),
-      {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -165,8 +175,14 @@ Deno.serve(async (req) => {
 
     if (selectError) {
       return new Response(
-        JSON.stringify({ error: "entitlements select failed", details: selectError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({
+          error: "entitlements select failed",
+          details: selectError.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -186,7 +202,9 @@ Deno.serve(async (req) => {
         .neq("id", keepVehicleId);
 
       if (listError) {
-        errors.push(`user ${userId}: list vehicles failed: ${listError.message}`);
+        errors.push(
+          `user ${userId}: list vehicles failed: ${listError.message}`,
+        );
         continue;
       }
 
@@ -225,12 +243,9 @@ Deno.serve(async (req) => {
       },
     );
   } catch (e) {
-    return new Response(
-      JSON.stringify({ error: String(e) }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return new Response(JSON.stringify({ error: String(e) }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

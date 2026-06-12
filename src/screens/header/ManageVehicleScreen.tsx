@@ -387,7 +387,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       value={
                         vehicle.mileage
                           ? `${groupThousands(vehicle.mileage, 0, i18n.language)} ${distanceUnitLabel}`
-                          : "—"
+                          : "–"
                       }
                     />
                   </View>
@@ -402,7 +402,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                         />
                       }
                       label={t("vehicleForm.firstRegistrationDateLabel")}
-                      value={vehicle.first_registration_date ?? "—"}
+                      value={vehicle.first_registration_date ?? "–"}
                     />
                     <DetailItem
                       icon={
@@ -412,7 +412,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                         />
                       }
                       label={t("vehicleForm.licensePlateLabel")}
-                      value={vehicle.license_plate ?? "—"}
+                      value={vehicle.license_plate ?? "–"}
                     />
                   </View>
 
@@ -430,7 +430,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       value={
                         vehicle.engine_capacity
                           ? `${groupThousands(vehicle.engine_capacity, 0, i18n.language)} cm³`
-                          : "—"
+                          : "–"
                       }
                     />
                     <DetailItem
@@ -445,7 +445,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                       value={
                         vehicle.power_hp
                           ? `${groupThousands(vehicle.power_hp, 0, i18n.language)} ${t("vehicleForm.powerOutputUnit")}`
-                          : "—"
+                          : "–"
                       }
                     />
                   </View>
@@ -471,7 +471,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                                 | "vehicleForm.transmissionManual"
                                 | "vehicleForm.transmissionAutomatic",
                             )
-                          : "—"
+                          : "–"
                       }
                     />
                     <DetailItem
@@ -482,7 +482,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                         />
                       }
                       label={t("vehicleForm.driveTypeLabel")}
-                      value={vehicle.drive_type || "—"}
+                      value={vehicle.drive_type || "–"}
                     />
                   </View>
 
@@ -490,7 +490,10 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                   <View style={styles.detailsRow}>
                     <DetailItem
                       icon={
-                        <Fuel size={detailIconSize} color={theme.colors.accent} />
+                        <Fuel
+                          size={detailIconSize}
+                          color={theme.colors.accent}
+                        />
                       }
                       label={t("vehicleForm.fuelTypeLabel")}
                       value={
@@ -506,7 +509,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                                 | "vehicleForm.fuelTypeElectric"
                                 | "vehicleForm.fuelTypeLpg",
                             )
-                          : "—"
+                          : "–"
                       }
                     />
                     <DetailItem
@@ -523,7 +526,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                           ? vehicle.notes.length > 30
                             ? `${vehicle.notes.substring(0, 30)}...`
                             : vehicle.notes
-                          : "—"
+                          : "–"
                       }
                     />
                   </View>

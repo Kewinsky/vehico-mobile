@@ -24,7 +24,7 @@ import { FormalityNotificationsBootstrap } from "./FormalityNotificationsBootstr
 function AppContent() {
   const { theme } = useTheme();
 
-  // Handle tap on local notification (reminder) — navigate to ReminderForm (edit)
+  // Handle tap on local notification (reminder) – navigate to ReminderForm (edit)
   useEffect(() => {
     const navigateFromNotification = (data: {
       reminderId?: string;

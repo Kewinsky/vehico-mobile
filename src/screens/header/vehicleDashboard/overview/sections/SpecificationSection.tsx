@@ -38,7 +38,7 @@ export function SpecificationSection({
                 />
               }
               label={t("vehicleForm.yearLabel")}
-              value={vehicle ? String(vehicle.production_year) : "—"}
+              value={vehicle ? String(vehicle.production_year) : "–"}
             />
             <DetailItem
               icon={<Fuel size={iconSize} color={accent} />}
@@ -56,7 +56,7 @@ export function SpecificationSection({
                         | "vehicleForm.fuelTypeElectric"
                         | "vehicleForm.fuelTypeLpg",
                     )
-                  : "—"
+                  : "–"
               }
             />
           </View>
@@ -73,7 +73,7 @@ export function SpecificationSection({
               value={
                 vehicle?.initial_mileage != null
                   ? `${groupThousands(vehicle.initial_mileage, 0, language)} ${distanceUnitLabel}`
-                  : "—"
+                  : "–"
               }
             />
             <DetailItem
@@ -88,7 +88,7 @@ export function SpecificationSection({
               value={
                 vehicle?.mileage != null
                   ? `${groupThousands(vehicle.mileage, 0, language)} ${distanceUnitLabel}`
-                  : "—"
+                  : "–"
               }
             />
           </View>
@@ -105,7 +105,7 @@ export function SpecificationSection({
               value={
                 vehicle?.engine_capacity
                   ? `${groupThousands(vehicle.engine_capacity, 0, language)} cm³`
-                  : "—"
+                  : "–"
               }
             />
             <DetailItem
@@ -116,7 +116,7 @@ export function SpecificationSection({
               value={
                 vehicle?.power_hp
                   ? `${groupThousands(vehicle.power_hp, 0, language)} ${t("vehicleForm.powerOutputUnit")}`
-                  : "—"
+                  : "–"
               }
             />
           </View>
@@ -140,13 +140,13 @@ export function SpecificationSection({
                         | "vehicleForm.transmissionManual"
                         | "vehicleForm.transmissionAutomatic",
                     )
-                  : "—"
+                  : "–"
               }
             />
             <DetailItem
               icon={<DriveTypeIcon size={iconSize} color={accent} />}
               label={t("vehicleForm.driveTypeLabel")}
-              value={vehicle?.drive_type || "—"}
+              value={vehicle?.drive_type || "–"}
             />
           </View>
           <View style={styles.detailsRow}>
@@ -161,7 +161,7 @@ export function SpecificationSection({
             <DetailItem
               icon={<Hash size={iconSize} color={accent} />}
               label={t("vehicleForm.licensePlateLabel")}
-              value={vehicle?.license_plate ?? "—"}
+              value={vehicle?.license_plate ?? "–"}
             />
           </View>
         </View>

@@ -19,8 +19,7 @@ describe("numberFormatting", () => {
 
   it("groupThousands handles negative and non-finite", () => {
     expect(groupThousands(-1500)).toBe("-1 500");
-    expect(groupThousands(Number.NaN)).toBe("—");
-    expect(groupThousands(Number.POSITIVE_INFINITY)).toBe("—");
+    expect(groupThousands(Number.NaN)).toBe("–");
+    expect(groupThousands(Number.POSITIVE_INFINITY)).toBe("–");
   });
 });
-

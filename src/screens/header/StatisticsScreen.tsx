@@ -1,4 +1,7 @@
-import type { NativeStackNavigationProp , NativeStackScreenProps } from "@react-navigation/native-stack";
+import type {
+  NativeStackNavigationProp,
+  NativeStackScreenProps,
+} from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -41,7 +44,10 @@ import {
   parseDateLoose,
 } from "./statistics/domain/math";
 import { StatisticsPanelContent } from "./vehicleDashboard/stats/StatisticsPanelContent";
-import type { PeriodKey, StatisticsPanelProps } from "./vehicleDashboard/stats/types";
+import type {
+  PeriodKey,
+  StatisticsPanelProps,
+} from "./vehicleDashboard/stats/types";
 import {
   OIL_CHANGE_INTERVAL_DAYS,
   OIL_CHANGE_INTERVAL_KM,
@@ -65,7 +71,6 @@ type Props = ScreenProps | EmbeddedProps;
 function isEmbeddedProps(props: Props): props is EmbeddedProps {
   return "embedded" in props && props.embedded === true;
 }
-
 
 export function StatisticsScreen(props: Props) {
   const { t, i18n } = useTranslation();
@@ -99,11 +104,8 @@ export function StatisticsScreen(props: Props) {
   const styles = useStatsPanelStyles();
 
   const currency = settings?.currency ?? "PLN";
-  const {
-    distanceUnitLabel,
-    fuelUnitShort,
-    consumptionUnitLine,
-  } = useUnitDisplay();
+  const { distanceUnitLabel, fuelUnitShort, consumptionUnitLine } =
+    useUnitDisplay();
   const fuelUnitLabel = fuelUnitShort;
 
   const load = useCallback(
@@ -513,15 +515,14 @@ export function StatisticsScreen(props: Props) {
   const lastRefuelAmount = Number(lastFueling?.fuel_amount ?? Number.NaN);
   const formatStatNumber = useCallback(
     (value: number, fractionDigits: number) => {
-      if (!Number.isFinite(value)) return "—";
+      if (!Number.isFinite(value)) return "–";
       const sign = value < 0 ? "-" : "";
       const abs = Math.abs(value);
-      const [integerPart, fractionPart] = abs.toFixed(fractionDigits).split(".");
+      const [integerPart, fractionPart] = abs
+        .toFixed(fractionDigits)
+        .split(".");
       const isPolish = i18n.language.startsWith("pl");
-      const groupedInteger = integerPart.replace(
-        /\B(?=(\d{3})+(?!\d))/g,
-        ",",
-      );
+      const groupedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
       if (!fractionPart) return `${sign}${groupedInteger}`;
       return `${sign}${groupedInteger}${isPolish ? "," : "."}${fractionPart}`;
     },
@@ -529,7 +530,7 @@ export function StatisticsScreen(props: Props) {
   );
   const lastRefuelAmountMain = Number.isFinite(lastRefuelAmount)
     ? formatStatNumber(lastRefuelAmount, 0)
-    : "—";
+    : "–";
   const daysSinceLastRefuel = useMemo(() => {
     if (!lastFueling?.date) return null;
     const parsed = parseDateLoose(lastFueling.date);
@@ -558,7 +559,7 @@ export function StatisticsScreen(props: Props) {
     Number.isFinite(lastRefuelAmount) && lastRefuelHint != null;
   const lastRefuelValueMain = lastRefuelShowAmount
     ? lastRefuelAmountMain
-    : (lastRefuelHint ?? "—");
+    : (lastRefuelHint ?? "–");
   const lastRefuelValueSuffix = lastRefuelShowAmount
     ? Number.isFinite(lastRefuelAmount)
       ? fuelUnitLabel
@@ -705,8 +706,11 @@ export function StatisticsScreen(props: Props) {
 
   const formatExpenseAmount = (value: number) =>
     value > 0
-      ? formatStatNumber(value >= 10 ? Math.round(value) : value, value >= 10 ? 0 : 1)
-      : "—";
+      ? formatStatNumber(
+          value >= 10 ? Math.round(value) : value,
+          value >= 10 ? 0 : 1,
+        )
+      : "–";
   const totalMain = formatExpenseAmount(totals.total);
   const fuelMain = formatExpenseAmount(totals.fuelCost);
   const serviceMain = formatExpenseAmount(totals.serviceCost);
@@ -838,4 +842,3 @@ export function StatisticsScreen(props: Props) {
     </HeaderLayout>
   );
 }
-

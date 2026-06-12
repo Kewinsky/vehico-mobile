@@ -11,7 +11,12 @@ function monthKeyFromYyyyMm(yyyyMm: string): Date | null {
   if (!match) return null;
   const year = Number(match[1]);
   const month = Number(match[2]);
-  if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12)
+  if (
+    !Number.isFinite(year) ||
+    !Number.isFinite(month) ||
+    month < 1 ||
+    month > 12
+  )
     return null;
   return new Date(year, month - 1, 1);
 }
@@ -89,7 +94,7 @@ export function generateNiceTicks(max: number): number[] {
 }
 
 export function fmtPct(pct: number): string {
-  if (!Number.isFinite(pct)) return "—";
+  if (!Number.isFinite(pct)) return "–";
   return `${Math.round(pct)}%`;
 }
 
@@ -98,28 +103,25 @@ export function fmtNumber(
   digits = 1,
   language?: string | null,
 ): string {
-  if (!Number.isFinite(amount)) return "—";
+  if (!Number.isFinite(amount)) return "–";
   return groupThousands(amount, digits, language);
 }
 
-export function fmtMonths(
-  value: number,
-  language?: string | null,
-): string {
-  if (!Number.isFinite(value)) return "—";
+export function fmtMonths(value: number, language?: string | null): string {
+  if (!Number.isFinite(value)) return "–";
   return Number.isInteger(value)
     ? groupThousands(value, 0, language)
     : groupThousands(value, 1, language);
 }
 
 export function fmtChartNumber(value: number): string {
-  if (!Number.isFinite(value)) return "—";
+  if (!Number.isFinite(value)) return "–";
   if (Number.isInteger(value)) return Math.round(value).toString();
   return value >= 10 ? Math.round(value).toString() : value.toFixed(1);
 }
 
 export function formatChartYAxisLabel(value: number): string {
-  if (!Number.isFinite(value)) return "—";
+  if (!Number.isFinite(value)) return "–";
   if (value >= 1000) {
     const inThousands = value / 1000;
     return Number.isInteger(inThousands)

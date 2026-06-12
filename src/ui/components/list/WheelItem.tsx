@@ -19,7 +19,12 @@ type WheelItemProps = {
   onDelete?: () => void;
 };
 
-export function WheelItem({ wheel, onPress, onToggleInUse, onDelete }: WheelItemProps) {
+export function WheelItem({
+  wheel,
+  onPress,
+  onToggleInUse,
+  onDelete,
+}: WheelItemProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = makeStyles(theme);
@@ -57,19 +62,19 @@ export function WheelItem({ wheel, onPress, onToggleInUse, onDelete }: WheelItem
         ),
         label: t("wheelForm.centerBore"),
         value:
-          wheel.center_bore_mm != null ? `${wheel.center_bore_mm} mm` : "—",
+          wheel.center_bore_mm != null ? `${wheel.center_bore_mm} mm` : "–",
       },
       {
         key: "bolt_type",
         icon: <BoltTypeIcon size={16} color={theme.colors.muted} />,
         label: t("wheelForm.boltType"),
-        value: wheel.bolt_type?.trim() || "—",
+        value: wheel.bolt_type?.trim() || "–",
       },
       {
         key: "weight",
         icon: <Weight size={16} color={theme.colors.muted} />,
         label: t("wheelForm.weight"),
-        value: wheel.weight_kg != null ? `${wheel.weight_kg} kg` : "—",
+        value: wheel.weight_kg != null ? `${wheel.weight_kg} kg` : "–",
       },
     ],
     [t, theme.colors.muted, wheel],
@@ -202,7 +207,10 @@ export function WheelItem({ wheel, onPress, onToggleInUse, onDelete }: WheelItem
           {onDelete ? (
             <Pressable
               onPress={onDelete}
-              style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+              style={[
+                styles.swipeActionBtn,
+                { backgroundColor: theme.colors.danger },
+              ]}
             >
               <Trash2 size={20} color="#000000" />
             </Pressable>

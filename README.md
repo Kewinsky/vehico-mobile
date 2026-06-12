@@ -170,8 +170,8 @@ The application uses Supabase (PostgreSQL) with the following main tables:
 - `workshops` - User workshops
 - `tires` / `wheels` - Wheel and tire sets
 - `entitlements` - Plan/limits and monetization state
-- User preferences (appearance, units, language) — **AsyncStorage** on device (`UserSettingsProvider`), not a Postgres table
-- Attachments and vehicle documents — **local-first** (SQLite + file system), not primary Supabase tables
+- User preferences (appearance, units, language) – **AsyncStorage** on device (`UserSettingsProvider`), not a Postgres table
+- Attachments and vehicle documents – **local-first** (SQLite + file system), not primary Supabase tables
 
 See `supabase/schema.sql` for the complete schema with RLS policies.
 

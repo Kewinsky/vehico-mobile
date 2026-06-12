@@ -23,7 +23,7 @@ export async function deleteAccount(): Promise<void> {
     .eq("owner_id", uid);
   const vids = (vehicleIds ?? []).map((r) => r.id);
   if (vids.length === 0) {
-    // No vehicles — still delete workshops, clear local prefs, auth
+    // No vehicles – still delete workshops, clear local prefs, auth
   } else {
     const { data: vehiclePhotos, error: vehiclePhotosError } = await supabase
       .from("photos")

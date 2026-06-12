@@ -64,8 +64,8 @@ function InfoCard({
         : count != null
           ? t("publicReport.includedWithCount", { count })
           : t("publicReport.included")
-      : "—";
-  const valueColor = value === "—" ? theme.colors.muted : theme.colors.accent;
+      : "–";
+  const valueColor = value === "–" ? theme.colors.muted : theme.colors.accent;
 
   return (
     <View style={[styles.dataRow, isLast && styles.dataRowLast]}>
@@ -132,7 +132,10 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
       toastError(t("marketplace.confirmationRequired"));
       return;
     }
-    if (includePrice && (price == null || !Number.isFinite(price) || price <= 0)) {
+    if (
+      includePrice &&
+      (price == null || !Number.isFinite(price) || price <= 0)
+    ) {
       toastError(t("marketplace.priceRequired"));
       return;
     }
@@ -248,259 +251,259 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                 {t("publicReport.technicalData")}
               </Text>
               <View style={styles.sectionCard}>
-              {(() => {
-                const dash = "—";
-                const val = (
-                  v: string | number | null | undefined,
-                  fallback: string,
-                ) =>
-                  v != null && String(v).trim() !== ""
-                    ? String(v).trim()
-                    : fallback;
-                const typeVal =
-                  vehicle.type === "car"
-                    ? t("vehicleForm.car")
-                    : t("vehicleForm.motorcycle");
-                const makeVal = val(vehicle.make, dash);
-                const modelVal = val(vehicle.model, dash);
-                const yearVal =
-                  vehicle.production_year != null
-                    ? String(vehicle.production_year)
-                    : dash;
-                const vinVal = val(vehicle.vin, dash);
-                const firstRegVal = vehicle.first_registration_date
-                  ? formatDateDisplay(
-                      vehicle.first_registration_date,
-                      i18n.language,
-                    )
-                  : dash;
-                const licenseVal = val(vehicle.license_plate, dash);
-                const mileageVal =
-                  vehicle.mileage != null
-                    ? `${groupThousands(vehicle.mileage, 0, i18n.language)} ${distanceUnitLabel}`
-                    : dash;
-                const initialMileageVal =
-                  vehicle.initial_mileage != null
-                    ? `${groupThousands(vehicle.initial_mileage, 0, i18n.language)} ${distanceUnitLabel}`
-                    : dash;
-                const engineVal =
-                  vehicle.engine_capacity != null
-                    ? `${groupThousands(vehicle.engine_capacity, 0, i18n.language)} cm³`
-                    : dash;
-                const powerVal =
-                  vehicle.power_hp != null
-                    ? `${groupThousands(vehicle.power_hp, 0, i18n.language)} ${t("vehicleForm.powerOutputUnit")}`
-                    : dash;
-                const transVal =
-                  vehicle.transmission != null
-                    ? vehicle.transmission === "manual"
-                      ? t("vehicleForm.transmissionManual")
-                      : t("vehicleForm.transmissionAutomatic")
-                    : dash;
-                const driveVal = vehicle.drive_type ?? dash;
-                const fuelVal =
-                  vehicle.fuel_type != null
-                    ? t(
-                        `vehicleForm.fuelType${
-                          vehicle.fuel_type.charAt(0).toUpperCase() +
-                          vehicle.fuel_type.slice(1)
-                        }` as
-                          | "vehicleForm.fuelTypePetrol"
-                          | "vehicleForm.fuelTypeDiesel"
-                          | "vehicleForm.fuelTypeHybrid"
-                          | "vehicleForm.fuelTypeElectric"
-                          | "vehicleForm.fuelTypeLpg",
+                {(() => {
+                  const dash = "–";
+                  const val = (
+                    v: string | number | null | undefined,
+                    fallback: string,
+                  ) =>
+                    v != null && String(v).trim() !== ""
+                      ? String(v).trim()
+                      : fallback;
+                  const typeVal =
+                    vehicle.type === "car"
+                      ? t("vehicleForm.car")
+                      : t("vehicleForm.motorcycle");
+                  const makeVal = val(vehicle.make, dash);
+                  const modelVal = val(vehicle.model, dash);
+                  const yearVal =
+                    vehicle.production_year != null
+                      ? String(vehicle.production_year)
+                      : dash;
+                  const vinVal = val(vehicle.vin, dash);
+                  const firstRegVal = vehicle.first_registration_date
+                    ? formatDateDisplay(
+                        vehicle.first_registration_date,
+                        i18n.language,
                       )
                     : dash;
-                const valueColor = (v: string) =>
-                  v === dash ? theme.colors.muted : theme.colors.accent;
-                return (
-                  <>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.type")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: theme.colors.accent },
-                        ]}
-                      >
-                        {typeVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.makeLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(makeVal) },
-                        ]}
-                      >
-                        {makeVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.modelLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(modelVal) },
-                        ]}
-                      >
-                        {modelVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.yearLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(yearVal) },
-                        ]}
-                      >
-                        {yearVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.vinLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(vinVal) },
-                        ]}
-                      >
-                        {vinVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.firstRegistrationDateLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(firstRegVal) },
-                        ]}
-                      >
-                        {firstRegVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.licensePlateLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(licenseVal) },
-                        ]}
-                      >
-                        {licenseVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.mileageLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(mileageVal) },
-                        ]}
-                      >
-                        {mileageVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.initialMileageLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(initialMileageVal) },
-                        ]}
-                      >
-                        {initialMileageVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.engineCapacityLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(engineVal) },
-                        ]}
-                      >
-                        {engineVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.powerHpLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(powerVal) },
-                        ]}
-                      >
-                        {powerVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.transmissionLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(transVal) },
-                        ]}
-                      >
-                        {transVal}
-                      </Text>
-                    </View>
-                    <View style={styles.dataRow}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.driveTypeLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(driveVal) },
-                        ]}
-                      >
-                        {driveVal}
-                      </Text>
-                    </View>
-                    <View style={[styles.dataRow, styles.dataRowLast]}>
-                      <Text style={styles.dataLabel}>
-                        {t("vehicleForm.fuelTypeLabel")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.dataValue,
-                          { color: valueColor(fuelVal) },
-                        ]}
-                      >
-                        {fuelVal}
-                      </Text>
-                    </View>
-                  </>
-                );
-              })()}
+                  const licenseVal = val(vehicle.license_plate, dash);
+                  const mileageVal =
+                    vehicle.mileage != null
+                      ? `${groupThousands(vehicle.mileage, 0, i18n.language)} ${distanceUnitLabel}`
+                      : dash;
+                  const initialMileageVal =
+                    vehicle.initial_mileage != null
+                      ? `${groupThousands(vehicle.initial_mileage, 0, i18n.language)} ${distanceUnitLabel}`
+                      : dash;
+                  const engineVal =
+                    vehicle.engine_capacity != null
+                      ? `${groupThousands(vehicle.engine_capacity, 0, i18n.language)} cm³`
+                      : dash;
+                  const powerVal =
+                    vehicle.power_hp != null
+                      ? `${groupThousands(vehicle.power_hp, 0, i18n.language)} ${t("vehicleForm.powerOutputUnit")}`
+                      : dash;
+                  const transVal =
+                    vehicle.transmission != null
+                      ? vehicle.transmission === "manual"
+                        ? t("vehicleForm.transmissionManual")
+                        : t("vehicleForm.transmissionAutomatic")
+                      : dash;
+                  const driveVal = vehicle.drive_type ?? dash;
+                  const fuelVal =
+                    vehicle.fuel_type != null
+                      ? t(
+                          `vehicleForm.fuelType${
+                            vehicle.fuel_type.charAt(0).toUpperCase() +
+                            vehicle.fuel_type.slice(1)
+                          }` as
+                            | "vehicleForm.fuelTypePetrol"
+                            | "vehicleForm.fuelTypeDiesel"
+                            | "vehicleForm.fuelTypeHybrid"
+                            | "vehicleForm.fuelTypeElectric"
+                            | "vehicleForm.fuelTypeLpg",
+                        )
+                      : dash;
+                  const valueColor = (v: string) =>
+                    v === dash ? theme.colors.muted : theme.colors.accent;
+                  return (
+                    <>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.type")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: theme.colors.accent },
+                          ]}
+                        >
+                          {typeVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.makeLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(makeVal) },
+                          ]}
+                        >
+                          {makeVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.modelLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(modelVal) },
+                          ]}
+                        >
+                          {modelVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.yearLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(yearVal) },
+                          ]}
+                        >
+                          {yearVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.vinLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(vinVal) },
+                          ]}
+                        >
+                          {vinVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.firstRegistrationDateLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(firstRegVal) },
+                          ]}
+                        >
+                          {firstRegVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.licensePlateLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(licenseVal) },
+                          ]}
+                        >
+                          {licenseVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.mileageLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(mileageVal) },
+                          ]}
+                        >
+                          {mileageVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.initialMileageLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(initialMileageVal) },
+                          ]}
+                        >
+                          {initialMileageVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.engineCapacityLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(engineVal) },
+                          ]}
+                        >
+                          {engineVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.powerHpLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(powerVal) },
+                          ]}
+                        >
+                          {powerVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.transmissionLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(transVal) },
+                          ]}
+                        >
+                          {transVal}
+                        </Text>
+                      </View>
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.driveTypeLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(driveVal) },
+                          ]}
+                        >
+                          {driveVal}
+                        </Text>
+                      </View>
+                      <View style={[styles.dataRow, styles.dataRowLast]}>
+                        <Text style={styles.dataLabel}>
+                          {t("vehicleForm.fuelTypeLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.dataValue,
+                            { color: valueColor(fuelVal) },
+                          ]}
+                        >
+                          {fuelVal}
+                        </Text>
+                      </View>
+                    </>
+                  );
+                })()}
               </View>
             </View>
           )}
@@ -511,131 +514,132 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
               {t("publicReport.includedData")}
             </Text>
             <View style={styles.sectionCard}>
-            <InfoCard
-              title={t("publicReport.insurance")}
-              status={
-                reportOptions.include_insurance
-                  ? hasInsurance
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.inspection")}
-              status={
-                reportOptions.include_inspection
-                  ? hasInspection
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.notes")}
-              status={
-                reportOptions.include_notes
-                  ? hasNotes
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.wheels")}
-              status={
-                reportOptions.include_wheels
-                  ? wheelsCount > 0
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.tires")}
-              status={
-                reportOptions.include_tires
-                  ? tiresCount > 0
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.serviceHistory")}
-              status={
-                reportOptions.include_service_history
-                  ? serviceEntriesCount > 0
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              count={
-                reportOptions.include_service_history && serviceEntriesCount > 0
-                  ? serviceEntriesCount
-                  : undefined
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.serviceStats")}
-              status={
-                reportOptions.include_service_stats
-                  ? serviceEntriesCount > 0
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("publicReport.fuelingStats")}
-              status={
-                reportOptions.include_fueling_stats
-                  ? fuelingEntriesCount > 0
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("marketplace.optionPrice")}
-              status={includePrice ? "included" : "notIncluded"}
-              value={
-                includePrice && price != null && price > 0
-                  ? `${groupThousands(price, 0, i18n.language)} ${currency}`
-                  : undefined
-              }
-              theme={theme}
-              styles={styles}
-            />
-            <InfoCard
-              title={t("marketplace.optionPublicReport")}
-              status={
-                includePublicReport
-                  ? selectedReportId
-                    ? "included"
-                    : "noData"
-                  : "notIncluded"
-              }
-              theme={theme}
-              styles={styles}
-              isLast
-            />
+              <InfoCard
+                title={t("publicReport.insurance")}
+                status={
+                  reportOptions.include_insurance
+                    ? hasInsurance
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.inspection")}
+                status={
+                  reportOptions.include_inspection
+                    ? hasInspection
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.notes")}
+                status={
+                  reportOptions.include_notes
+                    ? hasNotes
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.wheels")}
+                status={
+                  reportOptions.include_wheels
+                    ? wheelsCount > 0
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.tires")}
+                status={
+                  reportOptions.include_tires
+                    ? tiresCount > 0
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.serviceHistory")}
+                status={
+                  reportOptions.include_service_history
+                    ? serviceEntriesCount > 0
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                count={
+                  reportOptions.include_service_history &&
+                  serviceEntriesCount > 0
+                    ? serviceEntriesCount
+                    : undefined
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.serviceStats")}
+                status={
+                  reportOptions.include_service_stats
+                    ? serviceEntriesCount > 0
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("publicReport.fuelingStats")}
+                status={
+                  reportOptions.include_fueling_stats
+                    ? fuelingEntriesCount > 0
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("marketplace.optionPrice")}
+                status={includePrice ? "included" : "notIncluded"}
+                value={
+                  includePrice && price != null && price > 0
+                    ? `${groupThousands(price, 0, i18n.language)} ${currency}`
+                    : undefined
+                }
+                theme={theme}
+                styles={styles}
+              />
+              <InfoCard
+                title={t("marketplace.optionPublicReport")}
+                status={
+                  includePublicReport
+                    ? selectedReportId
+                      ? "included"
+                      : "noData"
+                    : "notIncluded"
+                }
+                theme={theme}
+                styles={styles}
+                isLast
+              />
             </View>
           </View>
 
@@ -665,9 +669,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                 <Ionicons
                   name={confirmed ? "checkbox" : "square-outline"}
                   size={26}
-                  color={
-                    confirmed ? theme.colors.accent : theme.colors.muted
-                  }
+                  color={confirmed ? theme.colors.accent : theme.colors.muted}
                 />
                 <Text style={styles.checkboxLabel}>
                   {t("marketplace.confirmationCheckbox")}

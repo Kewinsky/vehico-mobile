@@ -111,7 +111,7 @@ export async function applyRevenueCatEntitlementUpdate(
     dbUpdate.free_plan_vehicle_id = freePlanSelections.freePlanVehicleId;
     dbUpdate.free_plan_workshop_ids = freePlanSelections.freePlanWorkshopIds;
     // free_plan_reminder_ids, free_plan_tire_id, free_plan_wheel_id are NOT
-    // written here — owned exclusively by the SQL sync functions called below
+    // written here – owned exclusively by the SQL sync functions called below
     // and by row-level triggers on `reminders`, `tires`, and `wheels`.
   } else {
     dbUpdate.free_plan_vehicle_id = null;

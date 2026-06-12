@@ -418,11 +418,11 @@ export const en = {
     },
     formalityNotification: {
       insuranceBefore:
-        "{{vehicle}} — insurance expires in {{days}} days ({{date}})",
-      insuranceToday: "{{vehicle}} — insurance expires today",
+        "{{vehicle}} – insurance expires in {{days}} days ({{date}})",
+      insuranceToday: "{{vehicle}} – insurance expires today",
       inspectionBefore:
-        "{{vehicle}} — inspection due in {{days}} days ({{date}})",
-      inspectionToday: "{{vehicle}} — inspection due today",
+        "{{vehicle}} – inspection due in {{days}} days ({{date}})",
+      inspectionToday: "{{vehicle}} – inspection due today",
     },
     quickMetrics: {
       costSubtitle: "Cost/day",
@@ -868,8 +868,8 @@ Detailed report available at: https://report.vehico.app/report/example`,
     filterAll: "All",
     localNotification: {
       defaultTitle: "Reminder",
-      onDueDay: "{{title}} — due on {{date}}",
-      daysBefore: "{{title}} — {{when}} ({{date}})",
+      onDueDay: "{{title}} – due on {{date}}",
+      daysBefore: "{{title}} – {{when}} ({{date}})",
     },
     addServiceFromReminderTitle: "Add service entry?",
     addServiceFromReminderBody:

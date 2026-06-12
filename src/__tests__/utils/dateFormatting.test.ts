@@ -25,8 +25,8 @@ describe("dateFormatting utils", () => {
   });
 
   it("formatShortDisplayDate handles null and invalid", () => {
-    expect(formatShortDisplayDate(null, "en")).toBe("—");
-    expect(formatShortDisplayDate("not-a-date", "en")).toBe("—");
+    expect(formatShortDisplayDate(null, "en")).toBe("–");
+    expect(formatShortDisplayDate("not-a-date", "en")).toBe("–");
   });
 
   it("formatShortDisplayDate formats valid date", () => {
@@ -46,4 +46,3 @@ describe("dateFormatting utils", () => {
     expect(formatMonthYearPL("2025-01-01")).toBe("Styczeń 2025");
   });
 });
-

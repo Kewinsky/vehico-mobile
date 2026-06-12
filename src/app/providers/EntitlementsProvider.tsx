@@ -68,8 +68,8 @@ const IS_REVENUECAT_PLATFORM =
 
 /**
  * Monetization (see `supabase/functions/revenuecat-webhook`):
- * - RevenueCat SDK — immediate entitlement for UI (`CustomerInfo`).
- * - Webhook — writes plan/limits on `public.entitlements` (RPCs / RLS read the row).
+ * - RevenueCat SDK – immediate entitlement for UI (`CustomerInfo`).
+ * - Webhook – writes plan/limits on `public.entitlements` (RPCs / RLS read the row).
  * - After store actions we re-fetch that row once; DB may still lag the webhook briefly.
  */
 
@@ -529,7 +529,9 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
 
   const presentRevenueCatCustomerCenter = useCallback(async () => {
     if (!IS_REVENUECAT_PLATFORM) {
-      throw new Error("RevenueCat Customer Center is only available on mobile.");
+      throw new Error(
+        "RevenueCat Customer Center is only available on mobile.",
+      );
     }
     if (!isRevenueCatReady) {
       throw new Error("RevenueCat is still initializing. Please try again.");

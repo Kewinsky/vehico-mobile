@@ -298,22 +298,22 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     [wheels, isPremium, freePlanVehicleId, vehicleId, freePlanWheelId],
   );
   const fittedTiresLines = useMemo(() => {
-    if (fittedTires.length === 0) return ["—"];
+    if (fittedTires.length === 0) return ["–"];
     return fittedTires.map(
       (item) =>
         `${formatTireDimensions(
           item.width_mm,
           item.aspect_ratio,
           item.diameter_inch,
-        )} · ${(item.name ?? "").trim() || "—"}`,
+        )} · ${(item.name ?? "").trim() || "–"}`,
     );
   }, [fittedTires]);
   const fittedWheelsLines = useMemo(() => {
-    if (fittedWheels.length === 0) return ["—"];
+    if (fittedWheels.length === 0) return ["–"];
     return fittedWheels.map(
       (item) =>
         `${formatWheelDimensions(item.width_inch, item.diameter_inch)} · ${
-          (item.name ?? "").trim() || "—"
+          (item.name ?? "").trim() || "–"
         }`,
     );
   }, [fittedWheels]);

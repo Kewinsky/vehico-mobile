@@ -17,7 +17,7 @@ export function groupThousands(
   fractionDigits = 0,
   language?: string | null,
 ): string {
-  if (!Number.isFinite(value)) return "—";
+  if (!Number.isFinite(value)) return "–";
   const sign = value < 0 ? "-" : "";
   const abs = Math.abs(value);
   const [integerPart, fractionPart] = abs.toFixed(fractionDigits).split(".");
@@ -39,7 +39,7 @@ export function formatRollingGroupedNumber(
   value: number,
   fractionDigits = 0,
 ): string {
-  if (!Number.isFinite(value)) return "—";
+  if (!Number.isFinite(value)) return "–";
   return value.toLocaleString("en-US", {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,

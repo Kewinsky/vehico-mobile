@@ -37,7 +37,7 @@ export type ReminderForSchedule = {
  * Does nothing if no due_date or push disabled / reminder not active.
  */
 export async function scheduleLocalReminder(
-  reminder: ReminderForSchedule
+  reminder: ReminderForSchedule,
 ): Promise<void> {
   if (!reminder.due_date) return;
   if (
@@ -74,10 +74,10 @@ export async function scheduleLocalReminder(
   todayStart.setHours(0, 0, 0, 0);
   if (due.getTime() <= now) {
     if (due.getTime() >= todayStart.getTime()) {
-      // Due date is today but 9:00 already passed — schedule in 1 min so user still gets notified
+      // Due date is today but 9:00 already passed – schedule in 1 min so user still gets notified
       due.setTime(now + 60 * 1000);
     } else {
-      // Due date is in the past (before today) — don't schedule
+      // Due date is in the past (before today) – don't schedule
       return;
     }
   }
@@ -129,10 +129,10 @@ export async function scheduleLocalReminder(
 export async function cancelLocalReminder(reminderId: string): Promise<void> {
   try {
     await Notifications.cancelScheduledNotificationAsync(
-      `${PREFIX}${reminderId}`
+      `${PREFIX}${reminderId}`,
     );
     await Notifications.cancelScheduledNotificationAsync(
-      `${PREFIX_BEFORE}${reminderId}`
+      `${PREFIX_BEFORE}${reminderId}`,
     );
   } catch {
     // ignore if not found

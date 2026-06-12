@@ -68,8 +68,8 @@ function InfoCard({
       ? count != null
         ? t("publicReport.includedWithCount", { count })
         : t("publicReport.included")
-      : "—";
-  const valueColor = value === "—" ? theme.colors.muted : theme.colors.accent;
+      : "–";
+  const valueColor = value === "–" ? theme.colors.muted : theme.colors.accent;
 
   return (
     <View style={[styles.dataRow, isLast && styles.dataRowLast]}>
@@ -163,7 +163,10 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
     try {
       setGenerating(true);
 
-      const report = await generatePublicPageWithOptions(vehicleId, reportOptions);
+      const report = await generatePublicPageWithOptions(
+        vehicleId,
+        reportOptions,
+      );
 
       if (reportOptions.include_photos && reportPhotos.length > 0) {
         const photoById = new Map(vehiclePhotos.map((p) => [p.id, p]));
@@ -350,7 +353,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
               </Text>
               <View style={styles.sectionCard}>
                 {(() => {
-                  const dash = "—";
+                  const dash = "–";
                   const val = (
                     v: string | number | null | undefined,
                     fallback: string,
@@ -783,11 +786,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
             onPress={() => setFullScreenIndex(null)}
             hitSlop={12}
           >
-            <Ionicons
-              name="close"
-              size={28}
-              color="#FFFFFF"
-            />
+            <Ionicons name="close" size={28} color="#FFFFFF" />
           </Pressable>
           {fullScreenIndex !== null && allPhotoUrls.length > 0 && (
             <FlatList

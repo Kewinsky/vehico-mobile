@@ -48,12 +48,11 @@ export function ServiceItem({
     mileage != null
       ? `${groupThousands(mileage, 0, i18n.language)} ${distanceUnitLabel}`
       : null;
-  const costMain =
-    cost != null ? groupThousands(cost, 0, i18n.language) : "—";
+  const costMain = cost != null ? groupThousands(cost, 0, i18n.language) : "–";
   const hasCost = cost != null;
 
   const metaParts: string[] = [];
-  if (formattedDate != null && formattedDate !== "—") {
+  if (formattedDate != null && formattedDate !== "–") {
     metaParts.push(formattedDate);
   }
   if (mileageText != null) {
@@ -129,7 +128,10 @@ export function ServiceItem({
         <View style={styles.swipeActionsWrap}>
           <Pressable
             onPress={onDelete}
-            style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+            style={[
+              styles.swipeActionBtn,
+              { backgroundColor: theme.colors.danger },
+            ]}
           >
             <Trash2 size={20} color="#000000" />
           </Pressable>

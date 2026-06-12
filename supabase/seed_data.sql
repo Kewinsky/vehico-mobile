@@ -31,7 +31,7 @@ BEGIN
   END IF;
 
 -- ================
--- WORKSHOPS (PL: nazwy, adresy, numery — fikcyjne)
+-- WORKSHOPS (PL: nazwy, adresy, numery – fikcyjne)
 -- ================
 -- workshop_type: mechanic, electrician, detailer, bodywork, car_wash, other
 INSERT INTO public.workshops (owner_id, name, workshop_type, phone_number, address) VALUES
@@ -43,7 +43,7 @@ INSERT INTO public.workshops (owner_id, name, workshop_type, phone_number, addre
 RETURNING id INTO w_detailer;
 
 INSERT INTO public.workshops (owner_id, name, workshop_type, phone_number, address) VALUES
-(v_owner_id, 'Opony i Felgi — Mariusz K.', 'other', '+48 61 902 44 17', 'ul. Głogowska 256, 60-111 Poznań')
+(v_owner_id, 'Opony i Felgi – Mariusz K.', 'other', '+48 61 902 44 17', 'ul. Głogowska 256, 60-111 Poznań')
 RETURNING id INTO w_opony;
 
 INSERT INTO public.workshops (owner_id, name, workshop_type, phone_number, address) VALUES
@@ -120,7 +120,7 @@ INSERT INTO public.service_entries (vehicle_id, service_date, mileage, category,
 -- November 2025
 INSERT INTO public.service_entries (vehicle_id, service_date, mileage, category, title, description, cost, workshop_id) VALUES
 (vehicle_id, '2025-11-05', m0 + 9000, 'oil_change', 'Wymiana oleju', 'Olej + filtr', 275.00, w_mechanic),
-(vehicle_id, '2025-11-12', m0 + 9200, 'repair', 'Nagrzewnica — nieszczelność', 'Demontaż kokpitu, wymiana nagrzewnicy', 720.00, w_mechanic);
+(vehicle_id, '2025-11-12', m0 + 9200, 'repair', 'Nagrzewnica – nieszczelność', 'Demontaż kokpitu, wymiana nagrzewnicy', 720.00, w_mechanic);
 
 -- December 2025
 INSERT INTO public.service_entries (vehicle_id, service_date, mileage, category, title, description, cost, workshop_id) VALUES
@@ -131,7 +131,7 @@ INSERT INTO public.service_entries (vehicle_id, service_date, mileage, category,
 -- January 2026
 INSERT INTO public.service_entries (vehicle_id, service_date, mileage, category, title, description, cost, workshop_id) VALUES
 (vehicle_id, '2026-01-05', m0 + 10500, 'oil_change', 'Wymiana oleju', 'Interwał zgodny z książką', 280.00, w_mechanic),
-(vehicle_id, '2026-01-12', m0 + 10700, 'repair', 'Rozrusznik — regeneracja', 'Demontaż, szczotki, test', 480.00, w_elektryk);
+(vehicle_id, '2026-01-12', m0 + 10700, 'repair', 'Rozrusznik – regeneracja', 'Demontaż, szczotki, test', 480.00, w_elektryk);
 
 -- ================
 -- FUELING ENTRIES (odległości między tankowaniami ~380 km, sensowne dla PL)

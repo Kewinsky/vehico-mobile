@@ -35,7 +35,7 @@ export function getSubscriptionDisclosure(
     kind != null
       ? t(`shop.subscriptionPeriod.${IAP_SUBSCRIPTION_PERIOD_I18N_KEY[kind]}`)
       : "";
-  const price = product?.priceString?.trim() || "—";
+  const price = product?.priceString?.trim() || "–";
   const isAutoRenewable = isSubscriptionIapProduct(productId);
 
   let pricePerUnit: string | null = null;
@@ -52,7 +52,7 @@ export function getSubscriptionDisclosure(
       getStoreFormattingLocale(),
     );
     pricePerUnit = t("shop.pricePerMonth", { price: formatted });
-  } else if (isMonthlyIapProduct(productId) && price !== "—") {
+  } else if (isMonthlyIapProduct(productId) && price !== "–") {
     pricePerUnit = t("shop.billedMonthly", { price });
   }
 

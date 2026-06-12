@@ -37,9 +37,9 @@ export function formatShortDisplayDate(
   input: string | Date | null | undefined,
   language?: string | null,
 ): string {
-  if (!input) return "—";
+  if (!input) return "–";
   const date = input instanceof Date ? input : new Date(String(input));
-  if (Number.isNaN(date.getTime())) return "—";
+  if (Number.isNaN(date.getTime())) return "–";
   const localeCode = (language ?? "en").toLowerCase().startsWith("pl")
     ? "pl-PL"
     : "en-GB";

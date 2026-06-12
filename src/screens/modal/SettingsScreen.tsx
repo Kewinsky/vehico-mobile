@@ -61,7 +61,7 @@ export function SettingsScreen({ navigation }: Props) {
     user?.user_metadata?.full_name as string | undefined,
   );
   const email = user?.email ?? "";
-  const displayLabel = displayNameFromUser || email || "—";
+  const displayLabel = displayNameFromUser || email || "–";
 
   const [saving, setSaving] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -139,14 +139,18 @@ export function SettingsScreen({ navigation }: Props) {
 
   const openDeleteAccountMenu = useCallback(() => {
     if (deletingAccount) return;
-    Alert.alert(t("profile.deleteAccountConfirmTitle"), t("profile.deleteAccountConfirmBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("profile.deleteAccount"),
-        style: "destructive",
-        onPress: () => void handleDeleteAccount(),
-      },
-    ]);
+    Alert.alert(
+      t("profile.deleteAccountConfirmTitle"),
+      t("profile.deleteAccountConfirmBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("profile.deleteAccount"),
+          style: "destructive",
+          onPress: () => void handleDeleteAccount(),
+        },
+      ],
+    );
   }, [deletingAccount, handleDeleteAccount, t]);
 
   const rows: RowItem[] = useMemo(

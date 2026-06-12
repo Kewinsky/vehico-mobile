@@ -64,7 +64,10 @@ export function ReminderItem({
     const remainingMs = due.getTime() - now.getTime();
     const coveredMs = totalMs - Math.max(0, remainingMs);
     dateProgress = clamp(coveredMs / totalMs, 0, 1);
-    dateRemainingDays = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24)));
+    dateRemainingDays = Math.max(
+      0,
+      Math.ceil(remainingMs / (1000 * 60 * 60 * 24)),
+    );
     dateRemainingFraction = clamp(Math.max(0, remainingMs) / totalMs, 0, 1);
   }
 
@@ -88,26 +91,29 @@ export function ReminderItem({
     ? (dateProgress ?? mileageProgress ?? 0)
     : (mileageProgress ?? dateProgress ?? 0);
   const progressPercent = Math.round(clamp(progress, 0, 1) * 100);
-  const progressColor =
-    dimmed
-      ? theme.colors.muted
-      : progressPercent > 85
-        ? theme.colors.danger
-        : theme.colors.accent;
+  const progressColor = dimmed
+    ? theme.colors.muted
+    : progressPercent > 85
+      ? theme.colors.danger
+      : theme.colors.accent;
   const primaryTextColor = dimmed ? theme.colors.muted : theme.colors.fg;
 
   const remainingDistanceText =
     mileageRemaining != null
       ? `${groupThousands(mileageRemaining, 0, i18n.language)} ${distanceUnitLabel}`
-      : "—";
+      : "–";
   const estimatedTimeText =
-    dateRemainingDays != null ? `${dateRemainingDays}d` : "—";
+    dateRemainingDays != null ? `${dateRemainingDays}d` : "–";
 
   const content = (
     <View style={styles.card}>
       <View style={styles.titleRow}>
         <Text
-          style={[styles.title, { color: primaryTextColor }, dimmed ? styles.dimmedText : null]}
+          style={[
+            styles.title,
+            { color: primaryTextColor },
+            dimmed ? styles.dimmedText : null,
+          ]}
           numberOfLines={1}
         >
           {title}
@@ -149,7 +155,10 @@ export function ReminderItem({
   );
 
   const baseContent = onPress ? (
-    <Pressable onPress={onPress} style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+    >
       {content}
     </Pressable>
   ) : (
@@ -185,7 +194,10 @@ export function ReminderItem({
           {onDelete ? (
             <Pressable
               onPress={onDelete}
-              style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+              style={[
+                styles.swipeActionBtn,
+                { backgroundColor: theme.colors.danger },
+              ]}
             >
               <Trash2 size={20} color="#000000" />
             </Pressable>

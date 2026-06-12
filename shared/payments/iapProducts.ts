@@ -1,6 +1,6 @@
 /**
  * Single source of truth for App Store / RevenueCat product identifiers.
- * Change store IDs here only — app, webhook, and tests import from this module.
+ * Change store IDs here only – app, webhook, and tests import from this module.
  */
 
 /** App Store Connect product identifiers (must match RevenueCat + ASC). */
@@ -13,8 +13,13 @@ export const IAP_PRODUCT_IDS = {
 export type IapProductKind = keyof typeof IAP_PRODUCT_IDS;
 export type IapProductId = (typeof IAP_PRODUCT_IDS)[IapProductKind];
 
-export const IAP_SUBSCRIPTION_KINDS = ["monthly", "yearly"] as const satisfies readonly IapProductKind[];
-export const IAP_ONE_TIME_KINDS = ["lifetime"] as const satisfies readonly IapProductKind[];
+export const IAP_SUBSCRIPTION_KINDS = [
+  "monthly",
+  "yearly",
+] as const satisfies readonly IapProductKind[];
+export const IAP_ONE_TIME_KINDS = [
+  "lifetime",
+] as const satisfies readonly IapProductKind[];
 
 export const IAP_SUBSCRIPTION_PRODUCT_IDS: readonly IapProductId[] =
   IAP_SUBSCRIPTION_KINDS.map((kind) => IAP_PRODUCT_IDS[kind]);
@@ -42,11 +47,12 @@ export const IAP_PRODUCT_NAME_I18N_KEY: Record<IapProductId, string> = {
 };
 
 /** `shop.subscriptionPeriod.*` i18n suffix (semantic, independent of store id). */
-export const IAP_SUBSCRIPTION_PERIOD_I18N_KEY: Record<IapProductKind, string> = {
-  monthly: "monthly",
-  yearly: "yearly",
-  lifetime: "lifetime",
-};
+export const IAP_SUBSCRIPTION_PERIOD_I18N_KEY: Record<IapProductKind, string> =
+  {
+    monthly: "monthly",
+    yearly: "yearly",
+    lifetime: "lifetime",
+  };
 
 const NORMALIZE_RULES: ReadonlyArray<{
   kind: IapProductKind;
@@ -71,7 +77,9 @@ export function getIapProductKind(
 }
 
 export function isSubscriptionIapProduct(productId: IapProductId): boolean {
-  return (IAP_SUBSCRIPTION_PRODUCT_IDS as readonly string[]).includes(productId);
+  return (IAP_SUBSCRIPTION_PRODUCT_IDS as readonly string[]).includes(
+    productId,
+  );
 }
 
 export function isMonthlyIapProduct(productId: IapProductId): boolean {
@@ -99,9 +107,7 @@ export function normalizeIapProductId(
   return null;
 }
 
-export function createEmptyIapProductsMap<
-  T = null,
->(): Record<IapProductId, T> {
+export function createEmptyIapProductsMap<T = null>(): Record<IapProductId, T> {
   return Object.fromEntries(
     IAP_ALL_PRODUCT_IDS.map((id) => [id, null as T]),
   ) as Record<IapProductId, T>;

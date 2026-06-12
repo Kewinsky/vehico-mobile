@@ -30,23 +30,23 @@ export function OilChangeSection({
   groupThousands,
 }: StatisticsPanelProps) {
   return (
-      <View style={styles.section}>
-        <View style={styles.sectionHeaderInline}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-            {t("dashboard.stats.oilChange")}
-          </Text>
-          <Pressable
-            style={styles.infoIconButton}
-            onPress={showOilSectionInfo}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={t("dashboard.stats.chartInfo.openOilSection")}
-            disabled={!isPremium}
-          >
-            <CircleHelp size={18} color={theme.colors.muted} />
-          </Pressable>
-        </View>
-        <PremiumFeatureGate isPremium={isPremium} navigation={navigation}>
+    <View style={styles.section}>
+      <View style={styles.sectionHeaderInline}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
+          {t("dashboard.stats.oilChange")}
+        </Text>
+        <Pressable
+          style={styles.infoIconButton}
+          onPress={showOilSectionInfo}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t("dashboard.stats.chartInfo.openOilSection")}
+          disabled={!isPremium}
+        >
+          <CircleHelp size={18} color={theme.colors.muted} />
+        </Pressable>
+      </View>
+      <PremiumFeatureGate isPremium={isPremium} navigation={navigation}>
         <View style={styles.tilesRow}>
           <StatTile
             theme={theme}
@@ -57,7 +57,7 @@ export function OilChangeSection({
                 ? lastOilChangeDateLabel
                 : lastOilChange?.mileage != null
                   ? fmtNumber(lastOilChange.mileage, 0, i18n.language)
-                  : "—"
+                  : "–"
             }
             valueSuffix={
               !oilLastChangeShowDate && lastOilChange?.mileage != null
@@ -75,10 +75,10 @@ export function OilChangeSection({
               oilAvgIntervalShowMonths
                 ? Number.isFinite(oilIntervals.avgMonths)
                   ? fmtMonths(oilIntervals.avgMonths, i18n.language)
-                  : "—"
+                  : "–"
                 : Number.isFinite(oilIntervals.avgKm)
                   ? fmtNumber(oilIntervals.avgKm, 0, i18n.language)
-                  : "—"
+                  : "–"
             }
             valueSuffix={
               oilAvgIntervalShowMonths
@@ -172,7 +172,7 @@ export function OilChangeSection({
             </View>
           </View>
         ) : null}
-        </PremiumFeatureGate>
-      </View>
+      </PremiumFeatureGate>
+    </View>
   );
 }

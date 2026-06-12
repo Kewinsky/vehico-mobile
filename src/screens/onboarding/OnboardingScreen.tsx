@@ -198,7 +198,7 @@ export function OnboardingScreen({ navigation }: Props) {
       return null;
     }
     if (!isValidProductionYear(year)) {
-      // Not enough data — just skip auto creation.
+      // Not enough data – just skip auto creation.
       return null;
     }
 
@@ -761,7 +761,7 @@ export function OnboardingScreen({ navigation }: Props) {
               </View>
               <View style={styles.detailsContent}>
                 <Text style={[styles.detailsTitle, { color: theme.colors.fg }]}>
-                  {[make.trim(), model.trim()].filter(Boolean).join(" ") || "—"}
+                  {[make.trim(), model.trim()].filter(Boolean).join(" ") || "–"}
                 </Text>
               </View>
 
@@ -796,7 +796,7 @@ export function OnboardingScreen({ navigation }: Props) {
                             { color: theme.colors.fg },
                           ]}
                         >
-                          {isValidProductionYear(year) ? year.trim() : "—"}
+                          {isValidProductionYear(year) ? year.trim() : "–"}
                         </Text>
                       </View>
                     </View>
@@ -830,7 +830,7 @@ export function OnboardingScreen({ navigation }: Props) {
                         >
                           {mileage.trim().length
                             ? `${groupThousands(Number(mileage.trim()), 0, i18n.language)} ${distanceUnitLabel}`
-                            : "—"}
+                            : "–"}
                         </Text>
                       </View>
                     </View>

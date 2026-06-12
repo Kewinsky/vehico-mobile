@@ -35,7 +35,8 @@ export function FuelItem({
   const styles = makeStyles(theme);
   const formattedDate = formatShortDisplayDate(date, i18n.language);
   const details =
-    [formattedDate, fuelTypeLabel, stationLabel].filter(Boolean).join(" · ") || "—";
+    [formattedDate, fuelTypeLabel, stationLabel].filter(Boolean).join(" · ") ||
+    "–";
 
   const content = (
     <View style={styles.card}>
@@ -82,7 +83,10 @@ export function FuelItem({
         <View style={styles.swipeActionsWrap}>
           <Pressable
             onPress={onDelete}
-            style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
+            style={[
+              styles.swipeActionBtn,
+              { backgroundColor: theme.colors.danger },
+            ]}
           >
             <Trash2 size={20} color="#000000" />
           </Pressable>
