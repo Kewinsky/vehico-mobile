@@ -1290,9 +1290,12 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         onRequestClose={() => setIsPublicQrVisible(false)}
       >
         <View style={styles.qrModalOverlay}>
-          <View
-            style={[styles.qrModalCard, { backgroundColor: theme.colors.card }]}
-          >
+          <View style={styles.qrModalCard}>
+            <BlurView
+              intensity={mode === "dark" ? 45 : 70}
+              tint={mode === "dark" ? "dark" : "light"}
+              style={StyleSheet.absoluteFill}
+            />
             <Pressable
               style={styles.qrModalClose}
               onPress={() => setIsPublicQrVisible(false)}
@@ -1310,14 +1313,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                   ecl="H"
                 />
                 <View style={styles.qrLogoOverlay} pointerEvents="none">
-                  <View
-                    style={[
-                      styles.qrLogoBadge,
-                      {
-                        backgroundColor: theme.colors.card,
-                      },
-                    ]}
-                  >
+                  <View style={[styles.qrLogoBadge]}>
                     <Logo width={34} height={34} />
                   </View>
                 </View>
@@ -1884,6 +1880,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       justifyContent: "center",
     },
     qrLogoBadge: {
+      backgroundColor: theme.mode === "dark" ? "#FFFFFF" : "#000000",
       borderRadius: 999,
       padding: theme.spacing.xs,
       alignItems: "center",

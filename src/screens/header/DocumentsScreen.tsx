@@ -1,10 +1,11 @@
-import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { Alert, Animated, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { useCallback, useMemo, useState } from "react";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
+import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
 import { SquarePen, Trash2 } from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -306,44 +307,44 @@ export function DocumentsScreen({ route, navigation }: Props) {
     [t, navigation, route.params.vehicleId],
   );
 
-  function renderDocumentRightActions(item: VehicleDocument) {
+  function renderDocumentRightActions(
+    item: VehicleDocument,
+    progress: Animated.AnimatedInterpolation<number>,
+  ) {
     return (
-      <View style={styles.swipeActionsWrap}>
-        <Pressable
-          onPress={() => void editDocumentDescription(item)}
-          style={[
-            styles.swipeActionBtn,
-            { backgroundColor: theme.colors.accent },
-          ]}
-        >
-          <SquarePen size={22} color="#000000" />
-        </Pressable>
-        <Pressable
-          onPress={() => confirmDeleteVehicleDoc(item)}
-          style={[
-            styles.swipeActionBtn,
-            { backgroundColor: theme.colors.danger },
-          ]}
-        >
-          <Trash2 size={22} color="#000000" />
-        </Pressable>
-      </View>
+      <SwipeActionsRow
+        progress={progress}
+        actions={[
+          {
+            onPress: () => void editDocumentDescription(item),
+            color: theme.colors.accent,
+            icon: <SquarePen size={22} color="#000000" />,
+          },
+          {
+            onPress: () => confirmDeleteVehicleDoc(item),
+            color: theme.colors.danger,
+            icon: <Trash2 size={22} color="#000000" />,
+          },
+        ]}
+      />
     );
   }
 
-  function renderAttachmentRightActions(item: Attachment) {
+  function renderAttachmentRightActions(
+    item: Attachment,
+    progress: Animated.AnimatedInterpolation<number>,
+  ) {
     return (
-      <View style={styles.swipeActionsWrap}>
-        <Pressable
-          onPress={() => confirmDeleteAttachment(item)}
-          style={[
-            styles.swipeActionBtn,
-            { backgroundColor: theme.colors.danger },
-          ]}
-        >
-          <Trash2 size={22} color="#000000" />
-        </Pressable>
-      </View>
+      <SwipeActionsRow
+        progress={progress}
+        actions={[
+          {
+            onPress: () => confirmDeleteAttachment(item),
+            color: theme.colors.danger,
+            icon: <Trash2 size={22} color="#000000" />,
+          },
+        ]}
+      />
     );
   }
 
@@ -386,7 +387,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
             .map((item) => (
               <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
                 <ExclusiveSwipeable
-                  renderRightActions={() => renderDocumentRightActions(item)}
+                  renderRightActions={(progress) =>
+                    renderDocumentRightActions(item, progress)
+                  }
                   rightThreshold={32}
                 >
                   <ListRowWithActions
@@ -428,7 +431,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
             .map((item) => (
               <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
                 <ExclusiveSwipeable
-                  renderRightActions={() => renderAttachmentRightActions(item)}
+                  renderRightActions={(progress) =>
+                    renderAttachmentRightActions(item, progress)
+                  }
                   rightThreshold={32}
                 >
                   <ListRowWithActions
@@ -501,18 +506,6 @@ const makeStyles = (theme: any) =>
       width: theme.spacing.xl + theme.spacing.sm,
       height: theme.spacing.xl + theme.spacing.sm,
       borderRadius: theme.radius.sm,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    swipeActionsWrap: {
-      flexDirection: "row",
-      alignItems: "stretch",
-      marginLeft: theme.spacing.xs,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    swipeActionBtn: {
-      width: 72,
       alignItems: "center",
       justifyContent: "center",
     },

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import type Swipeable from "react-native-gesture-handler/Swipeable";
 import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
+import { SwipeActionsRow } from "../common/SwipeActions";
 import { useTranslation } from "react-i18next";
 
 import type { VehicleWheel } from "../../../types/domain";
@@ -176,46 +177,42 @@ export function WheelItem({
 
   if (!onToggleInUse && !onDelete) return baseContent;
 
+  const swipeActions = [
+    ...(onToggleInUse
+      ? [
+          {
+            onPress: () => {
+              swipeableRef.current?.close();
+              onToggleInUse();
+            },
+            color: wheel.is_currently_fitted
+              ? theme.colors.muted
+              : theme.colors.accent,
+            icon: wheel.is_currently_fitted ? (
+              <Undo2 size={22} color="#000000" />
+            ) : (
+              <Ionicons name="checkmark" size={24} color="#000000" />
+            ),
+          },
+        ]
+      : []),
+    ...(onDelete
+      ? [
+          {
+            onPress: onDelete,
+            color: theme.colors.danger,
+            icon: <Trash2 size={20} color="#000000" />,
+          },
+        ]
+      : []),
+  ];
+
   return (
     <ExclusiveSwipeable
       ref={swipeableRef}
       rightThreshold={32}
-      renderRightActions={() => (
-        <View style={styles.swipeActionsWrap}>
-          {onToggleInUse ? (
-            <Pressable
-              onPress={() => {
-                swipeableRef.current?.close();
-                onToggleInUse();
-              }}
-              style={[
-                styles.swipeActionBtn,
-                {
-                  backgroundColor: wheel.is_currently_fitted
-                    ? theme.colors.muted
-                    : theme.colors.accent,
-                },
-              ]}
-            >
-              {wheel.is_currently_fitted ? (
-                <Undo2 size={22} color="#000000" />
-              ) : (
-                <Ionicons name="checkmark" size={24} color="#000000" />
-              )}
-            </Pressable>
-          ) : null}
-          {onDelete ? (
-            <Pressable
-              onPress={onDelete}
-              style={[
-                styles.swipeActionBtn,
-                { backgroundColor: theme.colors.danger },
-              ]}
-            >
-              <Trash2 size={20} color="#000000" />
-            </Pressable>
-          ) : null}
-        </View>
+      renderRightActions={(progress) => (
+        <SwipeActionsRow progress={progress} actions={swipeActions} />
       )}
     >
       {baseContent}
@@ -301,17 +298,5 @@ const makeStyles = (theme: AppTheme) =>
       fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.medium,
       textAlign: "right",
-    },
-    swipeActionsWrap: {
-      flexDirection: "row",
-      alignItems: "stretch",
-      marginLeft: theme.spacing.xs,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    swipeActionBtn: {
-      width: 72,
-      alignItems: "center",
-      justifyContent: "center",
     },
   });

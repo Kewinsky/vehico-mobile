@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Trash2 } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
+import { SwipeActionsRow } from "../common/SwipeActions";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "../../ThemeProvider";
@@ -79,18 +80,17 @@ export function FuelItem({
   return (
     <ExclusiveSwipeable
       rightThreshold={32}
-      renderRightActions={() => (
-        <View style={styles.swipeActionsWrap}>
-          <Pressable
-            onPress={onDelete}
-            style={[
-              styles.swipeActionBtn,
-              { backgroundColor: theme.colors.danger },
-            ]}
-          >
-            <Trash2 size={20} color="#000000" />
-          </Pressable>
-        </View>
+      renderRightActions={(progress) => (
+        <SwipeActionsRow
+          progress={progress}
+          actions={[
+            {
+              onPress: onDelete,
+              color: theme.colors.danger,
+              icon: <Trash2 size={20} color="#000000" />,
+            },
+          ]}
+        />
       )}
     >
       {baseContent}
@@ -149,17 +149,5 @@ const makeStyles = (theme: AppTheme) =>
       alignItems: "baseline",
       minWidth: 0,
       flexShrink: 1,
-    },
-    swipeActionsWrap: {
-      flexDirection: "row",
-      alignItems: "stretch",
-      marginLeft: theme.spacing.xs,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    swipeActionBtn: {
-      width: 72,
-      alignItems: "center",
-      justifyContent: "center",
     },
   });

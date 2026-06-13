@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
+  Animated,
   FlatList,
   Pressable,
   ScrollView,
@@ -58,6 +59,7 @@ import { Textarea } from "../../ui/components/common/Textarea";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { SquarePen, Trash2 } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
+import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
 
 const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "maintenance",
@@ -288,46 +290,52 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     );
   }
 
-  function renderAttachmentRightActions(item: Attachment) {
+  function renderAttachmentRightActions(
+    item: Attachment,
+    progress: Animated.AnimatedInterpolation<number>,
+  ) {
     return (
-      <View style={styles.swipeActionsWrap}>
-        <Pressable
-          onPress={() => handleEditAttachmentName(item)}
-          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
-        >
-          <SquarePen size={20} color="#000000" />
-        </Pressable>
-        <Pressable
-          onPress={() => confirmDeleteAttachment(item)}
-          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
-        >
-          <Trash2 size={20} color="#000000" />
-        </Pressable>
-      </View>
+      <SwipeActionsRow
+        progress={progress}
+        actions={[
+          {
+            onPress: () => handleEditAttachmentName(item),
+            color: theme.colors.accent,
+            icon: <SquarePen size={20} color="#000000" />,
+          },
+          {
+            onPress: () => confirmDeleteAttachment(item),
+            color: theme.colors.danger,
+            icon: <Trash2 size={20} color="#000000" />,
+          },
+        ]}
+      />
     );
   }
 
   function renderPendingAttachmentRightActions(
     index: number,
     item: { uri: string; mimeType?: string | null; fileName?: string | null },
+    progress: Animated.AnimatedInterpolation<number>,
   ) {
     return (
-      <View style={styles.swipeActionsWrap}>
-        <Pressable
-          onPress={() => handleEditPendingFileName(index, item.fileName)}
-          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
-        >
-          <SquarePen size={20} color="#000000" />
-        </Pressable>
-        <Pressable
-          onPress={() => {
-            setPendingFiles((prev) => prev.filter((_, i) => i !== index));
-          }}
-          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
-        >
-          <Trash2 size={20} color="#000000" />
-        </Pressable>
-      </View>
+      <SwipeActionsRow
+        progress={progress}
+        actions={[
+          {
+            onPress: () => handleEditPendingFileName(index, item.fileName),
+            color: theme.colors.accent,
+            icon: <SquarePen size={20} color="#000000" />,
+          },
+          {
+            onPress: () => {
+              setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+            },
+            color: theme.colors.danger,
+            icon: <Trash2 size={20} color="#000000" />,
+          },
+        ]}
+      />
     );
   }
 
@@ -998,8 +1006,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   renderItem={({ item }) => (
                     <View style={styles.listRowWrap}>
                       <ExclusiveSwipeable
-                        renderRightActions={() =>
-                          renderAttachmentRightActions(item)
+                        renderRightActions={(progress) =>
+                          renderAttachmentRightActions(item, progress)
                         }
                         rightThreshold={32}
                       >
@@ -1052,8 +1060,12 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   renderItem={({ item, index }) => (
                     <View style={styles.listRowWrap}>
                       <ExclusiveSwipeable
-                        renderRightActions={() =>
-                          renderPendingAttachmentRightActions(index, item)
+                        renderRightActions={(progress) =>
+                          renderPendingAttachmentRightActions(
+                            index,
+                            item,
+                            progress,
+                          )
                         }
                         rightThreshold={32}
                       >
@@ -1180,18 +1192,6 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
     },
     inlineTrash: { paddingLeft: theme.spacing.sm / 2, paddingVertical: 2 },
-    swipeActionsWrap: {
-      flexDirection: "row",
-      alignItems: "stretch",
-      marginLeft: theme.spacing.xs,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    swipeActionBtn: {
-      width: 72,
-      alignItems: "center",
-      justifyContent: "center",
-    },
     cardRow: {
       flexDirection: "row",
       alignItems: "center",

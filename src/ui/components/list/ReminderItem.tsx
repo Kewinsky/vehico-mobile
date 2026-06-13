@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Trash2, Undo2 } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
+import { SwipeActionsRow } from "../common/SwipeActions";
 import { useTranslation } from "react-i18next";
 
 import { useUnitDisplay } from "../../../app/hooks/useUnitDisplay";
@@ -167,42 +168,36 @@ export function ReminderItem({
 
   if (!onToggleDone && !onDelete) return baseContent;
 
+  const swipeActions = [
+    ...(onToggleDone
+      ? [
+          {
+            onPress: onToggleDone,
+            color: done ? theme.colors.muted : theme.colors.accent,
+            icon: done ? (
+              <Undo2 size={22} color="#000000" />
+            ) : (
+              <Ionicons name="checkmark" size={24} color="#000000" />
+            ),
+          },
+        ]
+      : []),
+    ...(onDelete
+      ? [
+          {
+            onPress: onDelete,
+            color: theme.colors.danger,
+            icon: <Trash2 size={20} color="#000000" />,
+          },
+        ]
+      : []),
+  ];
+
   return (
     <ExclusiveSwipeable
       rightThreshold={32}
-      renderRightActions={() => (
-        <View style={styles.swipeActionsWrap}>
-          {onToggleDone ? (
-            <Pressable
-              onPress={onToggleDone}
-              style={[
-                styles.swipeActionBtn,
-                {
-                  backgroundColor: done
-                    ? theme.colors.muted
-                    : theme.colors.accent,
-                },
-              ]}
-            >
-              {done ? (
-                <Undo2 size={22} color="#000000" />
-              ) : (
-                <Ionicons name="checkmark" size={24} color="#000000" />
-              )}
-            </Pressable>
-          ) : null}
-          {onDelete ? (
-            <Pressable
-              onPress={onDelete}
-              style={[
-                styles.swipeActionBtn,
-                { backgroundColor: theme.colors.danger },
-              ]}
-            >
-              <Trash2 size={20} color="#000000" />
-            </Pressable>
-          ) : null}
-        </View>
+      renderRightActions={(progress) => (
+        <SwipeActionsRow progress={progress} actions={swipeActions} />
       )}
     >
       {baseContent}
@@ -271,17 +266,5 @@ const makeStyles = (theme: AppTheme) =>
     metaText: {
       fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.medium,
-    },
-    swipeActionsWrap: {
-      flexDirection: "row",
-      alignItems: "stretch",
-      marginLeft: theme.spacing.xs,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    swipeActionBtn: {
-      width: 72,
-      alignItems: "center",
-      justifyContent: "center",
     },
   });

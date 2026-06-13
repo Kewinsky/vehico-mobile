@@ -108,14 +108,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
             >
-              <View
-                style={[
-                  styles.qrLogoBadge,
-                  {
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
+              <View style={[styles.qrLogoBadge]}>
                 <Logo width={qrLogoSize} height={qrLogoSize} />
               </View>
             </View>
@@ -148,6 +141,8 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
     },
     qrLogoBadge: {
+      backgroundColor: theme.mode === "dark" ? "#FFFFFF" : "#000000",
+
       borderRadius: 999,
       padding: theme.spacing.xs,
       alignItems: "center",

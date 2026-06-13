@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
+import { SwipeActionsRow } from "../common/SwipeActions";
 
 import type { Workshop, WorkshopType } from "../../../types/domain";
 import { useTheme } from "../../ThemeProvider";
@@ -167,41 +168,36 @@ export function WorkshopItem({
 
   if (!canCall && !canNavigate) return rowContent;
 
-  function renderRightActions() {
-    return (
-      <View style={styles.swipeActionsWrap}>
-        {canNavigate ? (
-          <Pressable
-            onPress={() => void openNavigation()}
-            accessibilityLabel={navigateLabel}
-            style={({ pressed }) => [
-              styles.swipeActionBtn,
-              styles.swipeNavigateAction,
-              { opacity: pressed ? 0.85 : 1 },
-            ]}
-          >
-            <Navigation size={20} color="#000000" />
-          </Pressable>
-        ) : null}
-        {canCall ? (
-          <Pressable
-            onPress={() => void placeCall()}
-            accessibilityLabel={callLabel}
-            style={({ pressed }) => [
-              styles.swipeActionBtn,
-              styles.swipeCallAction,
-              { opacity: pressed ? 0.85 : 1 },
-            ]}
-          >
-            <Phone size={20} color="#000000" />
-          </Pressable>
-        ) : null}
-      </View>
-    );
-  }
+  const swipeActions = [
+    ...(canNavigate
+      ? [
+          {
+            onPress: () => void openNavigation(),
+            color: theme.colors.muted,
+            icon: <Navigation size={20} color="#000000" />,
+            accessibilityLabel: navigateLabel,
+          },
+        ]
+      : []),
+    ...(canCall
+      ? [
+          {
+            onPress: () => void placeCall(),
+            color: theme.colors.accent,
+            icon: <Phone size={20} color="#000000" />,
+            accessibilityLabel: callLabel,
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <ExclusiveSwipeable renderRightActions={renderRightActions} rightThreshold={32}>
+    <ExclusiveSwipeable
+      renderRightActions={(progress) => (
+        <SwipeActionsRow progress={progress} actions={swipeActions} />
+      )}
+      rightThreshold={32}
+    >
       {rowContent}
     </ExclusiveSwipeable>
   );
@@ -240,23 +236,5 @@ const makeStyles = (theme: AppTheme) =>
     subtitle: {
       fontSize: theme.typography.small,
       lineHeight: theme.typography.body + 2,
-    },
-    swipeActionsWrap: {
-      flexDirection: "row",
-      alignItems: "stretch",
-      marginLeft: theme.spacing.xs,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    swipeActionBtn: {
-      width: 72,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    swipeNavigateAction: {
-      backgroundColor: theme.colors.muted,
-    },
-    swipeCallAction: {
-      backgroundColor: theme.colors.accent,
     },
   });

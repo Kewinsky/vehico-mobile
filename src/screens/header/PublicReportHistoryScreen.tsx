@@ -1,17 +1,18 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
 import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  View,
-} from "react-native";
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+} from "react";
+import { Alert, Animated, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { SquarePen, Trash2 } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
+import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import type { PublicReportSnapshot , Vehicle } from "../../types/domain";
+import type { PublicReportSnapshot, Vehicle } from "../../types/domain";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import {
   listPublicPages,
@@ -145,22 +146,26 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
     }
   }
 
-  function renderRightActions(item: PublicReportSnapshot) {
+  function renderRightActions(
+    item: PublicReportSnapshot,
+    progress: Animated.AnimatedInterpolation<number>,
+  ) {
     return (
-      <View style={styles.swipeActionsWrap}>
-        <Pressable
-          onPress={() => handleEditTitle(item)}
-          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.accent }]}
-        >
-          <SquarePen size={22} color="#000000" />
-        </Pressable>
-        <Pressable
-          onPress={() => confirmDeleteReport(item)}
-          style={[styles.swipeActionBtn, { backgroundColor: theme.colors.danger }]}
-        >
-          <Trash2 size={22} color="#000000" />
-        </Pressable>
-      </View>
+      <SwipeActionsRow
+        progress={progress}
+        actions={[
+          {
+            onPress: () => handleEditTitle(item),
+            color: theme.colors.accent,
+            icon: <SquarePen size={22} color="#000000" />,
+          },
+          {
+            onPress: () => confirmDeleteReport(item),
+            color: theme.colors.danger,
+            icon: <Trash2 size={22} color="#000000" />,
+          },
+        ]}
+      />
     );
   }
 
@@ -182,7 +187,9 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
           ListEmptyComponent={<EmptyState body={t("share.noReports")} />}
           renderItem={({ item }) => (
             <ExclusiveSwipeable
-              renderRightActions={() => renderRightActions(item)}
+              renderRightActions={(progress) =>
+                renderRightActions(item, progress)
+              }
               rightThreshold={32}
             >
               <ListRowWithActions
@@ -221,17 +228,5 @@ const makeStyles = (theme: any) =>
     },
     reportDate: {
       fontSize: theme.typography.small,
-    },
-    swipeActionsWrap: {
-      flexDirection: "row",
-      alignItems: "stretch",
-      marginLeft: theme.spacing.xs,
-      borderRadius: theme.radius.md,
-      overflow: "hidden",
-    },
-    swipeActionBtn: {
-      width: 72,
-      alignItems: "center",
-      justifyContent: "center",
     },
   });
