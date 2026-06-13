@@ -1402,12 +1402,14 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             onPress={() => setFormalityOverlay(null)}
           >
             <Pressable
-              style={[
-                styles.datePickerCard,
-                { backgroundColor: theme.colors.card },
-              ]}
+              style={[styles.datePickerCard]}
               onPress={(event) => event.stopPropagation()}
             >
+              <BlurView
+                intensity={mode === "dark" ? 45 : 70}
+                tint={mode === "dark" ? "dark" : "light"}
+                style={StyleSheet.absoluteFill}
+              />
               <DateTimePicker
                 value={parseYmd(
                   formalityOverlay.value.length === 10
@@ -1828,6 +1830,8 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     datePickerCard: {
       borderRadius: theme.radius.lg,
       padding: theme.spacing.md,
+      backgroundColor: "transparent",
+      overflow: "hidden",
     },
     datePickerActions: {
       flexDirection: "row",
