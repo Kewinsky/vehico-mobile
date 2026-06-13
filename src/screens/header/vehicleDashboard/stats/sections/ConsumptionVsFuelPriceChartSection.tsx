@@ -3,7 +3,6 @@ import { CircleHelp } from "lucide-react-native";
 
 import { CHART_LINE_HEIGHT, ChartYAxis, SimpleDualLineChart } from "../charts/charts";
 import { fmtChartNumber } from "../../../statistics/domain/math";
-import { PremiumFeatureGate } from "../../../../../ui/limits/PremiumFeatureGate";
 import type { StatisticsPanelProps } from "../types";
 
 export function ConsumptionVsFuelPriceChartSection({
@@ -11,7 +10,6 @@ export function ConsumptionVsFuelPriceChartSection({
   theme,
   t,
   isPremium,
-  navigation,
   period,
   fuelVsConsumptionSeries,
   fuelComparisonScale,
@@ -20,6 +18,8 @@ export function ConsumptionVsFuelPriceChartSection({
   formatChartMonth,
   showChartInfo,
 }: StatisticsPanelProps) {
+  if (!isPremium) return null;
+
   return (
       <View style={styles.section}>
         <View style={styles.sectionHeaderInline}>
@@ -32,12 +32,10 @@ export function ConsumptionVsFuelPriceChartSection({
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel={t("dashboard.stats.chartInfo.open")}
-            disabled={!isPremium}
           >
             <CircleHelp size={18} color={theme.colors.muted} />
           </Pressable>
         </View>
-        <PremiumFeatureGate isPremium={isPremium} navigation={navigation}>
         <View style={styles.legendInline}>
           <View style={styles.legendInlineItem}>
             <View
@@ -104,7 +102,6 @@ export function ConsumptionVsFuelPriceChartSection({
             </View>
           )}
         </View>
-        </PremiumFeatureGate>
       </View>
   );
 }

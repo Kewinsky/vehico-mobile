@@ -27,11 +27,20 @@ export function ButtonsPage({
   tiles,
   activeRemindersCount,
 }: ButtonsPageProps) {
+  const tileWidth =
+    (windowWidth -
+      theme.layout.contentPaddingHorizontal * 2 -
+      theme.spacing.sm) /
+    2;
+
   return (
     <View style={[styles.page, { width: windowWidth }]}>
       <View style={styles.tilesWrap}>
         {tiles.map((item) => (
-          <View key={item.key} style={styles.tileWrapper}>
+          <View
+            key={item.key}
+            style={[styles.tileWrapper, { width: tileWidth }]}
+          >
             <TileCard
               onPress={item.onPress}
               minHeight={110}
@@ -53,7 +62,9 @@ export function ButtonsPage({
                     {activeRemindersCount > 0 ? (
                       <View style={styles.reminderBadge}>
                         <Text style={styles.reminderBadgeText}>
-                          {activeRemindersCount > 99 ? "99+" : activeRemindersCount}
+                          {activeRemindersCount > 99
+                            ? "99+"
+                            : activeRemindersCount}
                         </Text>
                       </View>
                     ) : null}

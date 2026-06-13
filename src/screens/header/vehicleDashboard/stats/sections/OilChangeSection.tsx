@@ -1,7 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 import { CircleHelp } from "lucide-react-native";
 
-import { PremiumFeatureGate } from "../../../../../ui/limits/PremiumFeatureGate";
 import { StatTile } from "../components/StatTile";
 import type { StatisticsPanelProps } from "../types";
 
@@ -10,7 +9,6 @@ export function OilChangeSection({
   theme,
   t,
   isPremium,
-  navigation,
   i18n,
   distanceUnitLabel,
   oilLastChangeShowDate,
@@ -29,6 +27,8 @@ export function OilChangeSection({
   fmtMonths,
   groupThousands,
 }: StatisticsPanelProps) {
+  if (!isPremium) return null;
+
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeaderInline}>
@@ -41,13 +41,11 @@ export function OilChangeSection({
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={t("dashboard.stats.chartInfo.openOilSection")}
-          disabled={!isPremium}
         >
           <CircleHelp size={18} color={theme.colors.muted} />
         </Pressable>
       </View>
-      <PremiumFeatureGate isPremium={isPremium} navigation={navigation}>
-        <View style={styles.tilesRow}>
+      <View style={styles.tilesRow}>
           <StatTile
             theme={theme}
             styles={styles}
@@ -172,7 +170,6 @@ export function OilChangeSection({
             </View>
           </View>
         ) : null}
-      </PremiumFeatureGate>
     </View>
   );
 }

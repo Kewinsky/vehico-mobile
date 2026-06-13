@@ -20,6 +20,7 @@ export type WelcomeHeaderLayoutProps = PropsWithChildren<{
   ready?: boolean;
   minLoadingMs?: number;
   footer?: ReactNode;
+  background?: ReactNode;
 }>;
 
 export function WelcomeHeaderLayout({
@@ -32,6 +33,7 @@ export function WelcomeHeaderLayout({
   ready = true,
   minLoadingMs = 0,
   footer,
+  background,
 }: WelcomeHeaderLayoutProps) {
   const { theme } = useTheme();
   const { user } = useAuth();
@@ -144,6 +146,7 @@ export function WelcomeHeaderLayout({
       minLoadingMs={minLoadingMs}
       useNativeHeader
       footer={footer}
+      background={background}
     >
       {children}
     </AppLayout>

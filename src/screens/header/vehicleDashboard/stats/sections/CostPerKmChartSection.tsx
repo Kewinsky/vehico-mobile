@@ -2,7 +2,6 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { CircleHelp } from "lucide-react-native";
 
 import { CHART_LINE_HEIGHT, ChartYAxis, SimpleLineChart } from "../charts/charts";
-import { PremiumFeatureGate } from "../../../../../ui/limits/PremiumFeatureGate";
 import type { StatisticsPanelProps } from "../types";
 
 export function CostPerKmChartSection({
@@ -10,7 +9,6 @@ export function CostPerKmChartSection({
   theme,
   t,
   isPremium,
-  navigation,
   period,
   costPerDistanceSeries,
   lineChartScale,
@@ -21,6 +19,8 @@ export function CostPerKmChartSection({
   formatChartYAxisLabel,
   showChartInfo,
 }: StatisticsPanelProps) {
+  if (!isPremium) return null;
+
   return (
       <View style={styles.section}>
         <View style={styles.sectionHeaderInline}>
@@ -33,12 +33,10 @@ export function CostPerKmChartSection({
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel={t("dashboard.stats.chartInfo.open")}
-            disabled={!isPremium}
           >
             <CircleHelp size={18} color={theme.colors.muted} />
           </Pressable>
         </View>
-        <PremiumFeatureGate isPremium={isPremium} navigation={navigation}>
         <View style={styles.chartContainer} key={`distance-chart-${period}`}>
           {costPerDistanceSeries.length === 0 ? (
             <Text style={[styles.empty, { color: theme.colors.muted }]}>
@@ -81,7 +79,6 @@ export function CostPerKmChartSection({
             </View>
           )}
         </View>
-        </PremiumFeatureGate>
       </View>
   );
 }

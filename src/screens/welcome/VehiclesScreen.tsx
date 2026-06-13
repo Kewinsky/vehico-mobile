@@ -39,11 +39,20 @@ import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { WelcomeHeaderLayout } from "../../layouts";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import {
+  CarouselGlow,
+  GLOW_SHAPES,
+  type GlowPalette,
+} from "../../ui/components/dashboard/CarouselGlow";
+import {
   getPremiumUpgradeAlertButtons,
   showPremiumRequiredAlert,
 } from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
+
+const VEHICLE_IMAGE_HEIGHT = 220;
+
+const VEHICLES_GLOW_PALETTE: GlowPalette = ["#FFB803", "#FF8A00", "#FFC93C"];
 
 type VehicleCarouselProps = {
   photoUrls: string[];
@@ -244,7 +253,7 @@ function pickDailyGreetingVariant(
 
 export function VehiclesScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
@@ -258,6 +267,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
   const [initialVisualReady, setInitialVisualReady] = useState(false);
 
   const windowWidth = Dimensions.get("window").width;
+  const windowHeight = Dimensions.get("window").height;
   const {
     isPremium,
     vehiclesLimit,
@@ -474,6 +484,16 @@ export function VehiclesScreen({ navigation, route }: Props) {
       showShopIcon={!isPremium}
       loading={loading}
       ready={initialVisualReady}
+      background={
+        <CarouselGlow
+          width={windowWidth}
+          height={Math.round(windowHeight * 0.55)}
+          mode={mode}
+          colors={VEHICLES_GLOW_PALETTE}
+          shape={GLOW_SHAPES[2]}
+          style={styles.backgroundGlow}
+        />
+      }
       footer={
         <Button onPress={handleAddVehicle}>{t("vehicles.addVehicle")}</Button>
       }
@@ -625,11 +645,15 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     body: {
       flex: 1,
     },
+    backgroundGlow: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+    },
     vehicleCard: {
       borderRadius: theme.radius.md,
       overflow: "hidden",
       backgroundColor: theme.colors.card,
-
       elevation: 4,
     },
     vehicleCardPressed: {
@@ -637,7 +661,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     vehicleImageContainer: {
       position: "relative",
-      height: 220,
+      height: VEHICLE_IMAGE_HEIGHT,
       width: "100%",
       overflow: "hidden",
     },

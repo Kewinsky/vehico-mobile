@@ -1,5 +1,12 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -39,16 +46,24 @@ import {
 } from "../../utils/currencyDisplay";
 import { formatRollingGroupedNumber } from "../../utils/numberFormatting";
 import { ShopCompareRowIcon } from "../../ui/components/shop/ShopCompareRowIcon";
+import {
+  CarouselGlow,
+  GLOW_SHAPES,
+  type GlowPalette,
+} from "../../ui/components/dashboard/CarouselGlow";
 import { getShopComparisonRows, type ShopCompareRow } from "./shopComparison";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Shop">;
+
+const SHOP_GLOW_PALETTE: GlowPalette = ["#FFB803", "#FF8A00", "#FFC93C"];
 
 type PlanBadge = { label: string; tone: "save" | "deal" | "monthly" };
 
 export function ShopScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const insets = useSafeAreaInsets();
+  const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
   const {
     refresh,
     isPremium,
@@ -252,6 +267,16 @@ export function ShopScreen({ navigation }: Props) {
       title={t("shop.title")}
       cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
       useHorizontalContentInset
+      background={
+        <CarouselGlow
+          width={windowWidth}
+          height={Math.round(windowHeight * 0.55)}
+          mode={mode}
+          colors={SHOP_GLOW_PALETTE}
+          shape={GLOW_SHAPES[1]}
+          style={styles.backgroundGlow}
+        />
+      }
     >
       <NativeHeaderScrollView
         contentContainerStyle={{
@@ -599,6 +624,11 @@ export function ShopScreen({ navigation }: Props) {
 function makeStyles(theme: AppTheme) {
   const { spacing, typography, radius } = theme;
   return StyleSheet.create({
+    backgroundGlow: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+    },
     logoWrap: {
       alignItems: "center",
       paddingTop: spacing.sm,

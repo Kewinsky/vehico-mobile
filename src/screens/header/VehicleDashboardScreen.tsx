@@ -93,6 +93,10 @@ import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { DashboardFab } from "../../ui/components/common/DashboardFab";
 import { RichCalloutText } from "../../ui/components/dashboard/RichCalloutText";
+import {
+  CarouselGlowStack,
+  type GlowPalette,
+} from "../../ui/components/dashboard/CarouselGlow";
 import { openAndroidNativeDatePicker } from "../../ui/components/common/NativeDateTrigger";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { Logo } from "../../ui/components/branding/Logo";
@@ -120,6 +124,13 @@ type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
 /** Set to true to show the floating action button (add service/fuel/reminder). */
 const SHOW_DASHBOARD_FAB = false;
+
+/** Per-section glow palettes, ordered to match the dashboard pages. */
+const GLOW_PALETTES: GlowPalette[] = [
+  ["#FFB803", "#FF8A00", "#FFC93C"], // buttons – brand amber, full saturation
+  ["#FFCA4D", "#FF9F2E", "#FFE066"], // overview – lighter, softer gold
+  ["#CC8F00", "#B85C00", "#DBA820"], // stats – deeper, muted honey-orange
+];
 
 type DashboardTile = {
   key: string;
@@ -1146,12 +1157,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   );
 
   useEffect(() => {
-    if (activePage <= 1 && scrollOffsetYRef.current > 4) {
-      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-    }
-  }, [activePage]);
-
-  useEffect(() => {
     const loadIconFonts = async () => {
       await Font.loadAsync({
         ...Ionicons.font,
@@ -1168,6 +1173,12 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       pagerProgress.value = event.contentOffset.x / windowWidth;
     },
   });
+
+  useEffect(() => {
+    if (activePage <= 1 && scrollOffsetYRef.current > 4) {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    }
+  }, [activePage]);
 
   return (
     <HeaderLayout
@@ -1189,6 +1200,17 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         }}
         contentContainerStyle={styles.scrollContent}
       >
+        <CarouselGlowStack
+          width={windowWidth}
+          height={Math.round(vehicleImageHeight * 1.05)}
+          mode={mode}
+          progress={pagerProgress}
+          palettes={GLOW_PALETTES}
+          style={[
+            styles.carouselGlow,
+            { top: vehicleImageHeight - theme.spacing.xl * 2 },
+          ]}
+        />
         <View
           style={[styles.vehicleImageContainer, { height: vehicleImageHeight }]}
         >
@@ -1491,6 +1513,12 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
         theme.spacing.xl * 3,
         insets.bottom + theme.spacing.xl * 2,
       ),
+    },
+    carouselGlow: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      zIndex: 0,
     },
     vehicleImageContainer: {
       position: "relative",
