@@ -41,7 +41,7 @@ import { Card } from "../../ui/components/common/Card";
 import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
 import { Logo } from "../../ui/components/branding/Logo";
 import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
-import { Glow, GLOW_SHAPES } from "../../ui/components/dashboard/Glow";
+import { Glow } from "../../ui/components/dashboard/Glow";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -78,7 +78,6 @@ export function AuthScreen({ navigation }: Props) {
       width={windowWidth}
       height={Math.round(windowHeight * 0.55)}
       mode={mode}
-      shape={GLOW_SHAPES[1]}
       style={styles.backgroundGlow}
     />
   );
@@ -731,7 +730,7 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
       gap: theme.spacing.sm,
       height: theme.spacing.lg * 2,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     socialButtonText: {

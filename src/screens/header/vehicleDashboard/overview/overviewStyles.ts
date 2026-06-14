@@ -39,7 +39,7 @@ export function useOverviewPanelStyles() {
     publicPageCircleButton: {
       width: 44,
       height: 44,
-      borderRadius: 22,
+      borderRadius: 999,
       backgroundColor: theme.colors.accent,
       alignItems: "center",
       justifyContent: "center",
@@ -70,7 +70,7 @@ export function useOverviewPanelStyles() {
       fontSize: theme.typography.small,
     },
     quickMetricsCard: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.sm,
     },
@@ -105,7 +105,7 @@ export function useOverviewPanelStyles() {
       width: "100%",
     },
     infoCard: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       gap: theme.spacing.md,
     },
@@ -129,7 +129,7 @@ export function useOverviewPanelStyles() {
     quickActionCard: {
       flex: 1,
       aspectRatio: 1,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       alignItems: "center",
       justifyContent: "center",
       gap: theme.spacing.xs,

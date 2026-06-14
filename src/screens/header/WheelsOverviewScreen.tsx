@@ -209,7 +209,7 @@ function makeStyles(theme: any) {
       marginBottom: theme.spacing.sm,
     },
     card: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       overflow: "hidden",
       backgroundColor: theme.colors.card,
     },

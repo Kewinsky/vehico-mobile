@@ -160,7 +160,7 @@ const makeStyles = (theme: any) =>
       flexDirection: "row",
       alignItems: "center",
       height: 36,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       borderWidth: 1,
       paddingLeft: theme.spacing.sm,
     },

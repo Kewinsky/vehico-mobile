@@ -485,7 +485,7 @@ const makeStyles = (theme: any) =>
       marginBottom: theme.spacing.sm,
     },
     card: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.sm,
       backgroundColor: theme.colors.card,
     },

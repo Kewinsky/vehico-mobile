@@ -222,7 +222,7 @@ function makeStyles(theme: any) {
     fab: {
       width: theme.spacing.xl + theme.spacing.sm,
       height: theme.spacing.xl + theme.spacing.sm,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       alignItems: "center" as const,
       justifyContent: "center" as const,
       borderWidth: 1,
@@ -236,7 +236,7 @@ function makeStyles(theme: any) {
       bottom: 60,
       right: 0,
       minWidth: 200,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       borderWidth: 1,
       paddingVertical: theme.spacing.xs,
       elevation: 8,

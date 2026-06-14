@@ -1,10 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import {
-  Alert,
-  Animated,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Alert, Animated, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { SquarePen, Trash2 } from "lucide-react-native";
@@ -12,7 +7,7 @@ import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeabl
 import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import type { MarketplacePost , Vehicle } from "../../types/domain";
+import type { MarketplacePost, Vehicle } from "../../types/domain";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import {
   listMarketplacePosts,
@@ -191,7 +186,9 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
           }
           renderItem={({ item }) => (
             <ExclusiveSwipeable
-              renderRightActions={(progress) => renderRightActions(item, progress)}
+              renderRightActions={(progress) =>
+                renderRightActions(item, progress)
+              }
               rightThreshold={32}
             >
               <ListRowWithActions
@@ -218,7 +215,7 @@ const makeStyles = (theme: any) =>
       paddingBottom: theme.spacing.md,
     },
     postCard: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.sm,
     },
     cardRow: {

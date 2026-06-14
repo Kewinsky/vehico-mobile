@@ -81,7 +81,7 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     base: {
       height: theme.spacing.lg * 2,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,

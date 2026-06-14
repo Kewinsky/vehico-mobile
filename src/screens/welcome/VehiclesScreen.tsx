@@ -38,11 +38,7 @@ import { groupThousands } from "../../utils/numberFormatting";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { WelcomeHeaderLayout } from "../../layouts";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
-import {
-  Glow,
-  GLOW_SHAPES,
-  type GlowPalette,
-} from "../../ui/components/dashboard/Glow";
+import { Glow } from "../../ui/components/dashboard/Glow";
 import {
   getPremiumUpgradeAlertButtons,
   showPremiumRequiredAlert,
@@ -52,7 +48,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 
 const VEHICLE_IMAGE_HEIGHT = 220;
 
-const VEHICLES_GLOW_PALETTE: GlowPalette = ["#FFB803", "#FF8A00", "#FFC93C"];
+const VEHICLES_GLOW_ANGLE = 135;
 
 type VehicleCarouselProps = {
   photoUrls: string[];
@@ -217,11 +213,11 @@ function VehicleCardImage({
             data={photoUrls.map((url) => ({ url }))}
             dotStyle={{
               backgroundColor: "rgba(255,255,255,0.5)",
-              borderRadius: 50,
+              borderRadius: 999,
             }}
             activeDotStyle={{
               backgroundColor: theme.colors.accent,
-              borderRadius: 50,
+              borderRadius: 999,
             }}
             containerStyle={{ gap: 5 }}
           />
@@ -489,8 +485,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
           width={windowWidth}
           height={Math.round(windowHeight * 0.55)}
           mode={mode}
-          colors={VEHICLES_GLOW_PALETTE}
-          shape={GLOW_SHAPES[2]}
+          angle={VEHICLES_GLOW_ANGLE}
           style={styles.backgroundGlow}
         />
       }
@@ -651,7 +646,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       left: 0,
     },
     vehicleCard: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       overflow: "hidden",
       backgroundColor: theme.colors.card,
       elevation: 4,

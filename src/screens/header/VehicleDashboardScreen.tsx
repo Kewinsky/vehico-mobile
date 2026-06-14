@@ -93,10 +93,7 @@ import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { DashboardFab } from "../../ui/components/common/DashboardFab";
 import { RichCalloutText } from "../../ui/components/dashboard/RichCalloutText";
-import {
-  GlowStack,
-  type GlowPalette,
-} from "../../ui/components/dashboard/Glow";
+import { Glow } from "../../ui/components/dashboard/Glow";
 import { openAndroidNativeDatePicker } from "../../ui/components/common/NativeDateTrigger";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { Logo } from "../../ui/components/branding/Logo";
@@ -124,13 +121,6 @@ type Props = NativeStackScreenProps<AppStackParamList, "VehicleDashboard">;
 
 /** Set to true to show the floating action button (add service/fuel/reminder). */
 const SHOW_DASHBOARD_FAB = false;
-
-/** Per-section glow palettes, ordered to match the dashboard pages. */
-const GLOW_PALETTES: GlowPalette[] = [
-  ["#FFB803", "#FF8A00", "#FFC93C"], // buttons – brand amber, full saturation
-  ["#FFCA4D", "#FF9F2E", "#FFE066"], // overview – lighter, softer gold
-  ["#CC8F00", "#B85C00", "#DBA820"], // stats – deeper, muted honey-orange
-];
 
 type DashboardTile = {
   key: string;
@@ -1200,15 +1190,15 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         }}
         contentContainerStyle={styles.scrollContent}
       >
-        <GlowStack
+        <Glow
           width={windowWidth}
-          height={Math.round(vehicleImageHeight * 1.05)}
+          height={Math.round(vehicleImageHeight)}
           mode={mode}
-          progress={pagerProgress}
-          palettes={GLOW_PALETTES}
+          angle={180}
+          variant="linear"
           style={[
             styles.carouselGlow,
-            { top: vehicleImageHeight - theme.spacing.xl * 2 },
+            { top: vehicleImageHeight - theme.radius.xl },
           ]}
         />
         <View
@@ -1500,7 +1490,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     publicPageCircleButton: {
       width: 44,
       height: 44,
-      borderRadius: 22,
+      borderRadius: 999,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: theme.colors.accent,
@@ -1520,9 +1510,10 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     vehicleImageContainer: {
       position: "relative",
+      zIndex: 1,
       overflow: "hidden",
-      borderBottomLeftRadius: theme.radius.lg,
-      borderBottomRightRadius: theme.radius.lg,
+      borderBottomLeftRadius: theme.radius.xl,
+      borderBottomRightRadius: theme.radius.xl,
     },
     vehicleImagePlaceholder: {
       width: "100%",
@@ -1557,7 +1548,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       gap: theme.spacing.xl,
     },
     quickMetricsCard: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.sm,
     },
@@ -1617,7 +1608,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       minWidth: 0,
     },
     infoCard: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       gap: theme.spacing.md,
     },
@@ -1631,7 +1622,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       alignItems: "flex-start",
     },
     mileageStaleCard: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       gap: theme.spacing.md,
       marginBottom: theme.spacing.md,
@@ -1650,7 +1641,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       right: -14,
       minWidth: 18,
       height: 18,
-      borderRadius: 9,
+      borderRadius: 999,
       paddingHorizontal: 5,
       backgroundColor: theme.colors.danger,
       alignItems: "center",
@@ -1697,7 +1688,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     dashboardStatTile: {
       flex: 1,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       justifyContent: "space-between",
     },
@@ -1737,7 +1728,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     quickActionCard: {
       flex: 1,
       aspectRatio: 1,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       alignItems: "center",
       justifyContent: "center",
       gap: theme.spacing.xs,
@@ -1769,7 +1760,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     statCard: {
       backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       gap: theme.spacing.xs / 2,
     },
@@ -1824,7 +1815,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     datePickerCard: {
-      borderRadius: theme.radius.lg,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       backgroundColor: "transparent",
       overflow: "hidden",
@@ -1850,7 +1841,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     qrModalCard: {
       width: "100%",
       maxWidth: 320,
-      borderRadius: theme.radius.lg,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       alignItems: "center",
       justifyContent: "center",
@@ -1908,11 +1899,11 @@ const stylesInline = {
   }),
   paginationDot: {
     backgroundColor: "rgba(255,255,255,0.5)",
-    borderRadius: 50,
+    borderRadius: 999,
   },
   activePaginationDot: (theme: any) => ({
     backgroundColor: theme.colors.accent,
-    borderRadius: 50,
+    borderRadius: 999,
   }),
   pagerDot: {
     width: 8,

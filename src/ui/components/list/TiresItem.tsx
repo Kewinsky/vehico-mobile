@@ -19,7 +19,12 @@ export type TiresItemProps = {
   onDelete?: () => void;
 };
 
-export function TiresItem({ tire, onPress, onToggleInUse, onDelete }: TiresItemProps) {
+export function TiresItem({
+  tire,
+  onPress,
+  onToggleInUse,
+  onDelete,
+}: TiresItemProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = makeStyles(theme);
@@ -132,7 +137,7 @@ const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     card: {
       flex: 1,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.sm,
       backgroundColor: theme.colors.card,
     },

@@ -16,7 +16,11 @@ import * as DocumentPicker from "expo-document-picker";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { isValidDate, isNonNegativeNumber } from "../../utils/validation";
-import type { Attachment, ServiceEntryCategory , Workshop } from "../../types/domain";
+import type {
+  Attachment,
+  ServiceEntryCategory,
+  Workshop,
+} from "../../types/domain";
 import {
   createServiceEntry,
   deleteServiceEntry,
@@ -798,7 +802,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     setWorkshopSnapshot(
                       selectedId
                         ? (workshops.find((w) => w.id === selectedId)?.name ??
-                          workshopSnapshot)
+                            workshopSnapshot)
                         : null,
                     );
                   },
@@ -939,7 +943,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   keyboardType="decimal-pad"
                   editable={!saving && !uploading}
                   placeholder={t("entryForm.placeholderCost")}
-                  error={fieldError(!isNonNegativeNumber(entries[0]?.cost ?? ""))}
+                  error={fieldError(
+                    !isNonNegativeNumber(entries[0]?.cost ?? ""),
+                  )}
                 />
               </Card>
 
@@ -1012,26 +1018,28 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                         rightThreshold={32}
                       >
                         <ListRowWithActions
-                        title={
-                          item.display_name?.trim() ||
-                          t("attachments.attachmentLabel")
-                        }
-                        subtitle={(() => {
-                          const fileName = getFileNameFromItem(item);
-                          const ext =
-                            fileName.split(".").pop()?.toUpperCase() || "FILE";
-                          const date = new Date(item.created_at);
-                          const formattedDate = date.toLocaleDateString(
-                            i18n.language === "pl" ? "pl-PL" : "en-US",
-                            {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            },
-                          );
-                          return `${t("documents.added")} ${formattedDate} · ${ext}`;
-                        })()}
-                        onPress={() => void openAttachment(item)}
+                          compact
+                          title={
+                            item.display_name?.trim() ||
+                            t("attachments.attachmentLabel")
+                          }
+                          subtitle={(() => {
+                            const fileName = getFileNameFromItem(item);
+                            const ext =
+                              fileName.split(".").pop()?.toUpperCase() ||
+                              "FILE";
+                            const date = new Date(item.created_at);
+                            const formattedDate = date.toLocaleDateString(
+                              i18n.language === "pl" ? "pl-PL" : "en-US",
+                              {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              },
+                            );
+                            return `${t("documents.added")} ${formattedDate} · ${ext}`;
+                          })()}
+                          onPress={() => void openAttachment(item)}
                         />
                       </ExclusiveSwipeable>
                     </View>
@@ -1070,6 +1078,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                         rightThreshold={32}
                       >
                         <ListRowWithActions
+                          compact
                           title={
                             item.fileName?.trim() ||
                             t("attachments.attachmentLabel")
@@ -1108,7 +1117,7 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     presetChip: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
       backgroundColor: theme.colors.card,
@@ -1207,7 +1216,7 @@ const makeStyles = (theme: any) =>
       color: theme.colors.muted,
     },
     attachmentCard: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       backgroundColor: theme.colors.card,
       padding: theme.spacing.md,
     },

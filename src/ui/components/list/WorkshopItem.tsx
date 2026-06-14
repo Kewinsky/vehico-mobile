@@ -207,8 +207,9 @@ const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     card: {
       flex: 1,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
       backgroundColor: theme.colors.card,
       gap: theme.spacing.sm,
     },
@@ -218,9 +219,9 @@ const makeStyles = (theme: AppTheme) =>
       gap: theme.spacing.sm,
     },
     iconContainer: {
-      width: 48,
-      height: 48,
-      borderRadius: 12,
+      width: 44,
+      height: 44,
+      borderRadius: 999,
       alignItems: "center",
       justifyContent: "center",
     },

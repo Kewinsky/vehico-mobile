@@ -53,7 +53,7 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { Logo } from "../../ui/components/branding/Logo";
 import { Card } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
-import { Glow, GLOW_SHAPES } from "../../ui/components/dashboard/Glow";
+import { Glow } from "../../ui/components/dashboard/Glow";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Onboarding">;
 
@@ -408,7 +408,7 @@ export function OnboardingScreen({ navigation }: Props) {
             <ContentHeader title={t("onboarding.name.title")} />
             <Card
               style={{
-                borderRadius: theme.radius.md,
+                borderRadius: theme.radius.xl,
                 borderColor: theme.colors.border,
                 backgroundColor: theme.colors.card,
               }}
@@ -858,7 +858,6 @@ export function OnboardingScreen({ navigation }: Props) {
             width={windowWidth}
             height={Math.round(windowHeight * 0.55)}
             mode={mode}
-            shape={GLOW_SHAPES[1]}
             style={styles.backgroundGlow}
           />
         </>
@@ -1111,14 +1110,13 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontWeight: theme.typography.fontWeight.bold,
     },
     photoCard: {
-      borderWidth: 1,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       overflow: "hidden",
       marginBottom: theme.spacing.xs,
     },
     photoPlaceholderCard: {
       borderWidth: 1,
-      borderRadius: theme.radius.md + 2,
+      borderRadius: theme.radius.xl,
       paddingHorizontal: theme.spacing.md,
       paddingVertical: theme.spacing.lg,
       alignItems: "center",
@@ -1126,9 +1124,9 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       marginBottom: theme.spacing.xs,
     },
     photoPlaceholderIcon: {
-      width: 56,
-      height: 56,
-      borderRadius: 18,
+      width: 44,
+      height: 44,
+      borderRadius: 999,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -1146,7 +1144,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       height: 220,
     },
     detailsCard: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       overflow: "hidden",
       borderWidth: 1,
     },
@@ -1201,9 +1199,9 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       minWidth: 0,
     },
     detailIconContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: theme.radius.sm,
+      width: 44,
+      height: 44,
+      borderRadius: 999,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -1222,7 +1220,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     pushRow: {
       marginTop: theme.spacing.md,
       borderWidth: 1,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       flexDirection: "row",
       alignItems: "center",
@@ -1253,7 +1251,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     vehicleTypeCard: {
       borderWidth: 1,
-      borderRadius: 16,
+      borderRadius: theme.radius.xl,
       paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
       flex: 1,

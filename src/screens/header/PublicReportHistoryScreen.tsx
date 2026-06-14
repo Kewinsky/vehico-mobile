@@ -1,9 +1,4 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-  useCallback,
-} from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Alert, Animated, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -213,7 +208,7 @@ const makeStyles = (theme: any) =>
     listWrap: { flex: 1 },
     list: { flex: 1 },
     reportCard: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.sm,
     },
     cardRow: {

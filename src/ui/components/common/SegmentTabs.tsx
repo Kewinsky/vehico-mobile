@@ -53,7 +53,10 @@ export function SegmentTabs<T extends string>({
   const translateX = Animated.multiply(animatedIndex, tabWidth);
 
   return (
-    <View style={[styles.wrap]} onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}>
+    <View
+      style={[styles.wrap]}
+      onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}
+    >
       {tabWidth > 0 ? (
         <Animated.View
           pointerEvents="none"
@@ -107,14 +110,14 @@ const makeStyles = (theme: any, variant: Variant) =>
       width: "100%",
       minWidth: 0,
       flexDirection: "row",
-      borderRadius: theme.radius.md,
+      borderRadius: 999,
       padding: 3,
       backgroundColor:
         variant === "secondary" ? theme.colors.card : theme.colors.bg,
     },
     tab: {
       flex: 1,
-      borderRadius: theme.radius.md - 2,
+      borderRadius: 999,
       paddingVertical: theme.spacing.xs - 2,
       alignItems: "center",
       justifyContent: "center",
@@ -122,7 +125,7 @@ const makeStyles = (theme: any, variant: Variant) =>
     },
     thumb: {
       position: "absolute",
-      borderRadius: theme.radius.md - 2,
+      borderRadius: 999,
       borderWidth: 1,
     },
     textMd: {

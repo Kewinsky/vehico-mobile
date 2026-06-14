@@ -57,7 +57,7 @@ const makeStyles = (theme: any) =>
       color: theme.colors.muted,
     },
     wrap: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       backgroundColor: theme.colors.card,
     },
     wrapMultiline: {

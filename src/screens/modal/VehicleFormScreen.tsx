@@ -1115,8 +1115,7 @@ const makeStyles = (theme: any) =>
     pickerActionBtn: {
       paddingVertical: theme.spacing.xs,
       paddingHorizontal: theme.spacing.md,
-      borderRadius: 9999,
-      borderWidth: 1,
+      borderRadius: 999,
     },
     pickerActionText: {
       fontSize: theme.typography.body,
@@ -1144,7 +1143,6 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.md,
       overflow: "hidden",
       backgroundColor: theme.colors.card,
-      borderWidth: 1,
       borderColor: theme.colors.border,
     },
     photoCardActive: {
@@ -1174,7 +1172,7 @@ const makeStyles = (theme: any) =>
       top: theme.spacing.xs,
       left: theme.spacing.xs,
       backgroundColor: theme.colors.accent,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       paddingHorizontal: theme.spacing.xs,
       paddingVertical: theme.spacing.xs / 2,
       alignItems: "center",

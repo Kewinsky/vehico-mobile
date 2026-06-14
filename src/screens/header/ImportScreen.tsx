@@ -293,7 +293,7 @@ const makeStyles = (theme: any) =>
       fontWeight: theme.typography.fontWeight.bold,
     },
     card: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       overflow: "hidden",
     },
     cardInner: {

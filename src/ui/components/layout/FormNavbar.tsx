@@ -88,7 +88,7 @@ const makeStyles = (theme: any) =>
     pillButton: {
       paddingVertical: theme.spacing.xs,
       paddingHorizontal: theme.spacing.md,
-      borderRadius: 9999,
+      borderRadius: 999,
       borderWidth: 1,
     },
     pillText: {

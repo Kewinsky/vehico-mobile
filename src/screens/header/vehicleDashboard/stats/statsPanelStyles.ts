@@ -2,7 +2,9 @@ import { StyleSheet } from "react-native";
 
 import { useTheme } from "../../../../ui/ThemeProvider";
 
-export const makeStatsPanelStyles = (theme: ReturnType<typeof useTheme>["theme"]) =>
+export const makeStatsPanelStyles = (
+  theme: ReturnType<typeof useTheme>["theme"],
+) =>
   StyleSheet.create({
     panelWrap: {
       paddingBottom: theme.spacing.sm,
@@ -14,7 +16,7 @@ export const makeStatsPanelStyles = (theme: ReturnType<typeof useTheme>["theme"]
     },
     heroCard: {
       backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.lg,
       gap: theme.spacing.sm,
     },
@@ -61,7 +63,7 @@ export const makeStatsPanelStyles = (theme: ReturnType<typeof useTheme>["theme"]
     tilesRow: { flexDirection: "row", gap: theme.spacing.sm },
     tile: {
       flex: 1,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       justifyContent: "space-between",
     },
@@ -150,7 +152,7 @@ export const makeStatsPanelStyles = (theme: ReturnType<typeof useTheme>["theme"]
       fontWeight: theme.typography.fontWeight.bold,
     },
     oilLifeCard: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       gap: theme.spacing.sm,
     },
@@ -173,7 +175,7 @@ export const makeStatsPanelStyles = (theme: ReturnType<typeof useTheme>["theme"]
     },
     oilLifeProgressTrack: {
       height: 44,
-      borderRadius: 22,
+      borderRadius: 999,
       overflow: "hidden",
       backgroundColor: theme.colors.bg,
       borderWidth: 1,
@@ -261,7 +263,7 @@ export const makeStatsPanelStyles = (theme: ReturnType<typeof useTheme>["theme"]
       width: "100%",
     },
     legendCard: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
     },
     legendCardPressed: {
@@ -300,7 +302,6 @@ export const makeStatsPanelStyles = (theme: ReturnType<typeof useTheme>["theme"]
       color: theme.colors.fg,
     },
   });
-
 
 export type StatsPanelStyles = ReturnType<typeof makeStatsPanelStyles>;
 

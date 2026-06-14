@@ -1,81 +1,138 @@
 import { useId } from "react";
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  type SharedValue,
-} from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from "react-native-svg";
 
-/** Three-tone palette distributed across a single gradient. */
-export type GlowPalette = [string, string, string];
+/** Linear gradient color pair: start → end. */
+export type GlowColors = [string, string];
 
-/** Origin + spread of the radial gradient, as fractions of width / height. */
-export type GlowShape = {
-  cx: number;
-  cy: number;
-  rx: number;
-  ry: number;
-};
+export type GlowVariant = "linear" | "radial";
 
-/**
- * A few gradient "angles": same smooth radial wash, anchored from different
- * spots so each section/screen reads slightly differently.
- */
-export const GLOW_SHAPES: GlowShape[] = [
-  { cx: 0.1, cy: 0.04, rx: 1.05, ry: 1.0 }, // top-left
-  { cx: 0.5, cy: 0.0, rx: 0.9, ry: 0.95 }, // top-center
-  { cx: 0.9, cy: 0.04, rx: 1.05, ry: 1.0 }, // top-right
-  { cx: 0.5, cy: 0.12, rx: 1.1, ry: 0.85 }, // wide top
-];
+const DEFAULT_COLORS: GlowColors = ["#ff5f6d", "#FFB803"];
 
-const DEFAULT_PALETTE: GlowPalette = ["#FFB803", "#FF8A00", "#FFC93C"];
+const GLOW_OPACITY = {
+  light: 0.6,
+  dark: 0.4,
+} as const;
+
+function resolveGlowOpacity(mode: "light" | "dark", override?: number) {
+  return override ?? GLOW_OPACITY[mode];
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  const normalized = hex.replace("#", "");
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/** CSS angle in degrees (0 = upward, 90 = right). */
+export function angleToGradientPoints(degrees: number) {
+  const rad = ((degrees - 90) * Math.PI) / 180;
+  const x = Math.cos(rad) * 0.5;
+  const y = Math.sin(rad) * 0.5;
+  return {
+    start: { x: 0.5 - x, y: 0.5 - y },
+    end: { x: 0.5 + x, y: 0.5 + y },
+  };
+}
+
+/** Map angle to radial origin (fractions of width / height). */
+export function angleToRadialOrigin(degrees: number) {
+  if (degrees === 225) {
+    return { cx: 0, cy: 0, rx: 1.15, ry: 1.05 };
+  }
+
+  const offset = ((degrees - 180) * Math.PI) / 180;
+  return {
+    cx: 0.5 - Math.sin(offset) * 0.45,
+    cy: 0,
+    rx: 1.05,
+    ry: 0.95,
+  };
+}
 
 type GlowProps = {
   width: number;
   height?: number;
   mode: "light" | "dark";
-  /** Three colors distributed across the gradient. */
-  colors?: GlowPalette;
-  /** Gradient origin/spread. Defaults to top-center. */
-  shape?: GlowShape;
+  colors?: GlowColors;
+  /** CSS angle in degrees (0 = upward). Default 180 (top → bottom, linear). */
+  angle?: number;
+  variant?: GlowVariant;
+  /** Override `GLOW_OPACITY` for this instance. */
+  opacity?: number;
   style?: StyleProp<ViewStyle>;
 };
 
-/** Smooth radial gradient glow, fading from `shape` origin to transparent. */
-export function Glow({
+function LinearTopGlow({
   width,
-  height = 340,
-  mode,
-  colors = DEFAULT_PALETTE,
-  shape = GLOW_SHAPES[0],
+  height,
+  colors,
+  angle,
+  opacity,
   style,
-}: GlowProps) {
-  const gradientId = useId();
-  const globalOpacity = mode === "dark" ? 0.55 : 0.38;
+}: Required<
+  Pick<GlowProps, "width" | "height" | "colors" | "angle" | "opacity">
+> &
+  Pick<GlowProps, "style">) {
+  const { start, end } = angleToGradientPoints(angle);
 
   return (
-    <View style={[{ width, height }, style]} pointerEvents="none">
-      <Svg width={width} height={height} opacity={globalOpacity}>
+    <View style={[{ width, height, opacity }, style]} pointerEvents="none">
+      <LinearGradient
+        colors={[
+          colors[0],
+          colors[1],
+          hexToRgba(colors[1], 0.45),
+          hexToRgba(colors[1], 0),
+        ]}
+        locations={[0, 0.28, 0.62, 1]}
+        start={start}
+        end={end}
+        style={StyleSheet.absoluteFill}
+      />
+    </View>
+  );
+}
+
+function RadialAngledGlow({
+  width,
+  height,
+  colors,
+  angle,
+  opacity,
+  style,
+}: Required<
+  Pick<GlowProps, "width" | "height" | "colors" | "angle" | "opacity">
+> &
+  Pick<GlowProps, "style">) {
+  const gradientId = useId();
+  const origin = angleToRadialOrigin(angle);
+
+  return (
+    <View style={[{ width, height, opacity }, style]} pointerEvents="none">
+      <Svg width={width} height={height}>
         <Defs>
           <RadialGradient
             id={gradientId}
-            cx={width * shape.cx}
-            cy={height * shape.cy}
-            rx={width * shape.rx}
-            ry={height * shape.ry}
+            cx={width * origin.cx}
+            cy={height * origin.cy}
+            rx={width * origin.rx}
+            ry={height * origin.ry}
             gradientUnits="userSpaceOnUse"
           >
             <Stop offset="0" stopColor={colors[0]} stopOpacity={1} />
-            <Stop offset="0.35" stopColor={colors[1]} stopOpacity={0.6} />
-            <Stop offset="0.7" stopColor={colors[2]} stopOpacity={0.25} />
-            <Stop offset="1" stopColor={colors[2]} stopOpacity={0} />
+            <Stop offset="0.45" stopColor={colors[1]} stopOpacity={0.65} />
+            <Stop offset="1" stopColor={colors[1]} stopOpacity={0} />
           </RadialGradient>
         </Defs>
         <Ellipse
-          cx={width * shape.cx}
-          cy={height * shape.cy}
-          rx={width * shape.rx}
-          ry={height * shape.ry}
+          cx={width * origin.cx}
+          cy={height * origin.cy}
+          rx={width * origin.rx}
+          ry={height * origin.ry}
           fill={`url(#${gradientId})`}
         />
       </Svg>
@@ -83,82 +140,31 @@ export function Glow({
   );
 }
 
-type GlowLayerProps = {
-  index: number;
-  progress: SharedValue<number>;
-  width: number;
-  height: number;
-  mode: "light" | "dark";
-  colors: GlowPalette;
-  shape: GlowShape;
-};
-
-function GlowLayer({
-  index,
-  progress,
-  width,
-  height,
-  mode,
-  colors,
-  shape,
-}: GlowLayerProps) {
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: Math.max(0, 1 - Math.abs(progress.value - index)),
-  }));
-
-  return (
-    <Animated.View
-      style={[StyleSheet.absoluteFill, animatedStyle]}
-      pointerEvents="none"
-    >
-      <Glow
-        width={width}
-        height={height}
-        mode={mode}
-        colors={colors}
-        shape={shape}
-      />
-    </Animated.View>
-  );
-}
-
-type GlowStackProps = {
-  width: number;
-  height?: number;
-  mode: "light" | "dark";
-  /** Drives which layer is visible (typically the pager progress 0..n). */
-  progress: SharedValue<number>;
-  /** One palette per section; cross-faded based on `progress`. */
-  palettes: GlowPalette[];
-  style?: StyleProp<ViewStyle>;
-};
-
-/**
- * Stacks one gradient glow per section and cross-fades between them as
- * `progress` moves. Each section also gets a different gradient angle.
- */
-export function GlowStack({
+/** Top-edge glow: linear or radial based on `variant` (defaults: 180° = linear). */
+export function Glow({
   width,
   height = 340,
   mode,
-  progress,
-  palettes,
+  colors = DEFAULT_COLORS,
+  angle = 180,
+  variant,
+  opacity,
   style,
-}: GlowStackProps) {
-  return (
-    <View style={[{ width, height }, style]} pointerEvents="none">
-      {palettes.map((colors, index) => (
-        <GlowLayer
-          key={`glow-${index}`}
-          index={index}
-          progress={progress}
-          width={width}
-          height={height}
-          mode={mode}
-          colors={colors}
-          shape={GLOW_SHAPES[index % GLOW_SHAPES.length]}
-        />
-      ))}
-    </View>
-  );
+}: GlowProps) {
+  const resolvedOpacity = resolveGlowOpacity(mode, opacity);
+  const props = {
+    width,
+    height,
+    colors,
+    angle,
+    opacity: resolvedOpacity,
+    style,
+  };
+  const useLinear = variant === "linear" || (variant == null && angle === 180);
+
+  if (useLinear) {
+    return <LinearTopGlow {...props} />;
+  }
+
+  return <RadialAngledGlow {...props} />;
 }

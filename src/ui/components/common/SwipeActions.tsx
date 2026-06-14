@@ -134,7 +134,7 @@ const makeStyles = (theme: AppTheme) =>
     button: {
       width: 48,
       height: 48,
-      borderRadius: 24,
+      borderRadius: 999,
       alignItems: "center",
       justifyContent: "center",
     },

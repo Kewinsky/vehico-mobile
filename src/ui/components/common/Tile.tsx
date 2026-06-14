@@ -67,7 +67,7 @@ const makeStyles = (theme: any) =>
     tile: {
       flex: 1,
       backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       alignItems: "center",
       justifyContent: "center",

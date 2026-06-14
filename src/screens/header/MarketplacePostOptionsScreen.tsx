@@ -98,7 +98,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     contentContainer: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       backgroundColor: theme.colors.card,
       minHeight: 300,
       maxHeight: 500,

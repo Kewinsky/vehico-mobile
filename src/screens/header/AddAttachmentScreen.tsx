@@ -272,7 +272,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     card: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.sm,
       backgroundColor: theme.colors.card,
     },

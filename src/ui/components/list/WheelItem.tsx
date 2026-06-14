@@ -224,7 +224,7 @@ const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     card: {
       flex: 1,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.sm,
       backgroundColor: theme.colors.card,
       gap: theme.spacing.xs / 2,
@@ -269,7 +269,7 @@ const makeStyles = (theme: AppTheme) =>
     toggleButton: {
       width: 28,
       height: 28,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       alignItems: "center",
       justifyContent: "center",
     },

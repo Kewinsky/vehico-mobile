@@ -37,7 +37,11 @@ export function SearchBar({
           },
         ]}
       >
-        <Search size={20} color={theme.colors.accent} style={styles.searchIcon} />
+        <Search
+          size={20}
+          color={theme.colors.accent}
+          style={styles.searchIcon}
+        />
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -68,7 +72,7 @@ const makeStyles = (theme: { spacing: any; radius: any; typography: any }) =>
       flexDirection: "row",
       alignItems: "center",
       height: 36,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       paddingLeft: theme.spacing.sm,
     },
     searchIcon: {

@@ -46,16 +46,12 @@ import {
 } from "../../utils/currencyDisplay";
 import { formatRollingGroupedNumber } from "../../utils/numberFormatting";
 import { ShopCompareRowIcon } from "../../ui/components/shop/ShopCompareRowIcon";
-import {
-  Glow,
-  GLOW_SHAPES,
-  type GlowPalette,
-} from "../../ui/components/dashboard/Glow";
+import { Glow } from "../../ui/components/dashboard/Glow";
 import { getShopComparisonRows, type ShopCompareRow } from "./shopComparison";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Shop">;
 
-const SHOP_GLOW_PALETTE: GlowPalette = ["#FFB803", "#FF8A00", "#FFC93C"];
+const SHOP_GLOW_ANGLE = 180;
 
 type PlanBadge = { label: string; tone: "save" | "deal" | "monthly" };
 
@@ -272,8 +268,7 @@ export function ShopScreen({ navigation }: Props) {
           width={windowWidth}
           height={Math.round(windowHeight * 0.55)}
           mode={mode}
-          colors={SHOP_GLOW_PALETTE}
-          shape={GLOW_SHAPES[1]}
+          angle={SHOP_GLOW_ANGLE}
           style={styles.backgroundGlow}
         />
       }

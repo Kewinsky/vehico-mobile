@@ -668,7 +668,7 @@ const makeStyles = (theme: any) =>
     },
     card: {
       backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.sm,
       gap: theme.spacing.sm / 2,
     },
@@ -691,8 +691,8 @@ const makeStyles = (theme: any) =>
       height: 220,
       width: "100%",
       overflow: "hidden",
-      borderBottomLeftRadius: theme.radius.lg,
-      borderBottomRightRadius: theme.radius.lg,
+      borderBottomLeftRadius: theme.radius.xl,
+      borderBottomRightRadius: theme.radius.xl,
     },
     vehicleImage: {
       width: "100%",

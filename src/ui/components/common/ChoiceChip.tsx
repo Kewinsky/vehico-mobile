@@ -54,7 +54,7 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     chip: {
       borderWidth: 1,
-      borderRadius: theme.radius.sm,
+      borderRadius: theme.radius.xl,
       paddingVertical: theme.spacing.sm - 2,
       paddingHorizontal: theme.spacing.sm,
       minWidth: 60,

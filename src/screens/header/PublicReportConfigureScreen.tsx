@@ -539,7 +539,7 @@ const makeStyles = (theme: any) =>
     section: { marginBottom: theme.spacing.md },
     hintSection: {
       backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
     },
     hintText: {
@@ -607,7 +607,7 @@ const makeStyles = (theme: any) =>
     photoImageContainer: {
       width: "100%",
       aspectRatio: 1,
-      borderRadius: theme.radius.sm,
+      borderRadius: theme.radius.md,
       overflow: "hidden",
       backgroundColor: theme.colors.card,
       position: "relative",

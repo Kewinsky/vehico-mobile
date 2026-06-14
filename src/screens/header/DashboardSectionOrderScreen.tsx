@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
@@ -233,7 +239,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>["theme"]) =>
       alignItems: "center",
       gap: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
     },
     rowLabel: {
       flex: 1,

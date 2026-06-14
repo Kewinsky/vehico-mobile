@@ -7,7 +7,8 @@ import {
   Text,
   TextInput,
   View,
- ScrollView } from "react-native";
+  ScrollView,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
@@ -330,8 +331,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         await scheduleLocalReminder(saved);
       }
 
-      const markedDoneNow =
-        saved.status === "done" && initialStatus !== "done";
+      const markedDoneNow = saved.status === "done" && initialStatus !== "done";
       if (markedDoneNow) {
         promptAddServiceEntryFromReminder(saved, t, {
           onCreated: () =>
@@ -629,7 +629,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                             backgroundColor: theme.colors.accent,
                             paddingVertical: 6,
                             paddingHorizontal: theme.spacing.sm,
-                            borderRadius: 9999,
+                            borderRadius: 999,
                             marginLeft: theme.spacing.sm,
                           },
                           pressed && { opacity: 0.85 },
@@ -691,7 +691,9 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             {mileageEnabled && (
               <>
                 <FormInputRow
-                  label={t("reminderForm.dueMileage", { unit: distanceUnitLabel })}
+                  label={t("reminderForm.dueMileage", {
+                    unit: distanceUnitLabel,
+                  })}
                   value={dueMileage}
                   onChangeText={setDueMileage}
                   placeholder={t("reminderForm.placeholderDueMileage")}
@@ -802,7 +804,7 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     presetChip: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
       backgroundColor: theme.colors.card,

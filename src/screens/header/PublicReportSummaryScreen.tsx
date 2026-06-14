@@ -840,7 +840,7 @@ const makeStyles = (theme: any) =>
     },
     sectionCard: {
       backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
     },
     sectionTitle: {
@@ -853,7 +853,7 @@ const makeStyles = (theme: any) =>
       width: "100%",
       position: "relative",
       height: 220,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       overflow: "hidden",
       backgroundColor: theme.colors.card,
     },
@@ -931,7 +931,7 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       gap: theme.spacing.sm,
       padding: theme.spacing.md,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       backgroundColor: theme.colors.card,
     },
     limitText: {

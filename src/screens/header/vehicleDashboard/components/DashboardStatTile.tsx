@@ -63,10 +63,7 @@ export function DashboardStatTile({
           {label}
         </Text>
         {onPress || showChevron ? (
-          <ChevronRight
-            size={18}
-            color={iconColor ?? theme.colors.muted}
-          />
+          <ChevronRight size={18} color={iconColor ?? theme.colors.muted} />
         ) : null}
       </View>
       <View style={styles.dashboardStatTileValueRow}>
@@ -118,7 +115,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>["theme"]) =>
     dashboardStatTile: {
       flex: 1,
       width: "100%",
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       justifyContent: "space-between",
     },

@@ -57,7 +57,7 @@ const makeStyles = (theme: any) =>
     },
     bodyWrap: {
       padding: theme.spacing.md,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       backgroundColor: theme.colors.card,
     },
     body: {

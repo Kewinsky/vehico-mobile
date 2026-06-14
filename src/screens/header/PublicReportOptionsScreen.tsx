@@ -152,7 +152,7 @@ const makeStyles = (theme: any) =>
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.sm,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
       backgroundColor: theme.colors.card,

@@ -89,7 +89,7 @@ export function CardRow({ style, error = false, ...rest }: CardRowProps) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     card: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       backgroundColor: theme.colors.card,
       overflow: "hidden",
     },

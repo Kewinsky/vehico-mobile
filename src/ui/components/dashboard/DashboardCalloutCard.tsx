@@ -94,7 +94,7 @@ export function DashboardCalloutCard({
 const makeStyles = (theme: ReturnType<typeof useTheme>["theme"]) =>
   StyleSheet.create({
     card: {
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       gap: theme.spacing.md,
       marginBottom: theme.spacing.md,

@@ -75,7 +75,7 @@ function makeStyles(theme: {
   return StyleSheet.create({
     locked: {
       borderWidth: 1,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       alignItems: "center",
       justifyContent: "center",
