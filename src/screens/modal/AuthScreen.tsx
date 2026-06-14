@@ -1,5 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useTranslation } from "react-i18next";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -7,6 +14,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import * as AuthSession from "expo-auth-session";
+import { StatusBar } from "expo-status-bar";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
@@ -33,6 +41,7 @@ import { Card } from "../../ui/components/common/Card";
 import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
 import { Logo } from "../../ui/components/branding/Logo";
 import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
+import { Glow, GLOW_SHAPES } from "../../ui/components/dashboard/Glow";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -60,8 +69,19 @@ function isOtpExpiredOrInvalid(message: string | undefined): boolean {
 
 export function AuthScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
+  const statusBarStyle = mode === "dark" ? "light" : "dark";
+  const glowBackground = (
+    <Glow
+      width={windowWidth}
+      height={Math.round(windowHeight * 0.55)}
+      mode={mode}
+      shape={GLOW_SHAPES[1]}
+      style={styles.backgroundGlow}
+    />
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otpCode, setOtpCode] = useState("");
@@ -401,7 +421,12 @@ export function AuthScreen({ navigation }: Props) {
     const emailIdx = displayEmail.length ? otpBody.indexOf(displayEmail) : -1;
 
     return (
-      <ModalLayout cancel={stackCancel} footer={legalFooter}>
+      <ModalLayout
+        cancel={stackCancel}
+        footer={legalFooter}
+        background={glowBackground}
+      >
+        <StatusBar style={statusBarStyle} />
         <FormScreen noLayout scrollEnabled={false}>
           <NativeHeaderScrollView>
             <View style={styles.otpContainer}>
@@ -488,7 +513,12 @@ export function AuthScreen({ navigation }: Props) {
   }
 
   return (
-    <ModalLayout cancel={stackCancel} footer={legalFooter}>
+    <ModalLayout
+      cancel={stackCancel}
+      footer={legalFooter}
+      background={glowBackground}
+    >
+      <StatusBar style={statusBarStyle} />
       <FormScreen noLayout scrollEnabled={false}>
         <NativeHeaderScrollView>
           <View style={styles.brandHeader}>
@@ -682,6 +712,11 @@ export function AuthScreen({ navigation }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
+    backgroundGlow: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+    },
     socialSection: {
       gap: theme.spacing.md,
     },

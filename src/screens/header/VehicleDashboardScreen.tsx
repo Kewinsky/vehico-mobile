@@ -94,9 +94,9 @@ import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts
 import { DashboardFab } from "../../ui/components/common/DashboardFab";
 import { RichCalloutText } from "../../ui/components/dashboard/RichCalloutText";
 import {
-  CarouselGlowStack,
+  GlowStack,
   type GlowPalette,
-} from "../../ui/components/dashboard/CarouselGlow";
+} from "../../ui/components/dashboard/Glow";
 import { openAndroidNativeDatePicker } from "../../ui/components/common/NativeDateTrigger";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { Logo } from "../../ui/components/branding/Logo";
@@ -1200,7 +1200,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
         }}
         contentContainerStyle={styles.scrollContent}
       >
-        <CarouselGlowStack
+        <GlowStack
           width={windowWidth}
           height={Math.round(vehicleImageHeight * 1.05)}
           mode={mode}

@@ -9,20 +9,15 @@ type Props = {
   variant?: "onboarding" | "landing";
 };
 
-export function DecorativeBackground({
-  variant = "onboarding",
-}: Props) {
+export function DecorativeBackground({ variant = "onboarding" }: Props) {
   const { theme, mode } = useTheme();
-  const styles = useMemo(() => makeStyles(theme, mode, variant), [theme, mode, variant]);
+  const styles = useMemo(
+    () => makeStyles(theme, mode, variant),
+    [theme, mode, variant],
+  );
 
   return (
     <View pointerEvents="none" style={styles.container}>
-      <LinearGradient
-        colors={[hexToRgba(theme.colors.accent, 0.18), "transparent"]}
-        start={{ x: 0.1, y: 0 }}
-        end={{ x: 0.9, y: 0.85 }}
-        style={styles.topGlow}
-      />
       <LinearGradient
         colors={[
           hexToRgba(theme.colors.accent, mode === "dark" ? 0.08 : 0.12),
@@ -75,7 +70,10 @@ const makeStyles = (
       height: 188,
       borderRadius: 188,
       borderWidth: 1,
-      borderColor: hexToRgba(theme.colors.accent, mode === "dark" ? 0.18 : 0.14),
+      borderColor: hexToRgba(
+        theme.colors.accent,
+        mode === "dark" ? 0.18 : 0.14,
+      ),
     },
     ringTwo: {
       position: "absolute",
@@ -94,7 +92,10 @@ const makeStyles = (
       width: 120,
       height: 120,
       borderRadius: 120,
-      backgroundColor: hexToRgba(theme.colors.accent, mode === "dark" ? 0.08 : 0.1),
+      backgroundColor: hexToRgba(
+        theme.colors.accent,
+        mode === "dark" ? 0.08 : 0.1,
+      ),
     },
     softBlobTwo: {
       position: "absolute",
@@ -103,6 +104,9 @@ const makeStyles = (
       width: 88,
       height: 88,
       borderRadius: 88,
-      backgroundColor: hexToRgba(theme.colors.fg, mode === "dark" ? 0.04 : 0.03),
+      backgroundColor: hexToRgba(
+        theme.colors.fg,
+        mode === "dark" ? 0.04 : 0.03,
+      ),
     },
   });

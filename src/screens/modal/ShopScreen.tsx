@@ -47,10 +47,10 @@ import {
 import { formatRollingGroupedNumber } from "../../utils/numberFormatting";
 import { ShopCompareRowIcon } from "../../ui/components/shop/ShopCompareRowIcon";
 import {
-  CarouselGlow,
+  Glow,
   GLOW_SHAPES,
   type GlowPalette,
-} from "../../ui/components/dashboard/CarouselGlow";
+} from "../../ui/components/dashboard/Glow";
 import { getShopComparisonRows, type ShopCompareRow } from "./shopComparison";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Shop">;
@@ -268,7 +268,7 @@ export function ShopScreen({ navigation }: Props) {
       cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
       useHorizontalContentInset
       background={
-        <CarouselGlow
+        <Glow
           width={windowWidth}
           height={Math.round(windowHeight * 0.55)}
           mode={mode}

@@ -39,10 +39,10 @@ import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { WelcomeHeaderLayout } from "../../layouts";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import {
-  CarouselGlow,
+  Glow,
   GLOW_SHAPES,
   type GlowPalette,
-} from "../../ui/components/dashboard/CarouselGlow";
+} from "../../ui/components/dashboard/Glow";
 import {
   getPremiumUpgradeAlertButtons,
   showPremiumRequiredAlert,
@@ -485,7 +485,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
       loading={loading}
       ready={initialVisualReady}
       background={
-        <CarouselGlow
+        <Glow
           width={windowWidth}
           height={Math.round(windowHeight * 0.55)}
           mode={mode}

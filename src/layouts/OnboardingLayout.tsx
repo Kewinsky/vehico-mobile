@@ -10,6 +10,8 @@ export type OnboardingLayoutProps = PropsWithChildren<{
   header?: ReactNode;
   footer?: ReactNode;
   loading?: boolean;
+  /** Optional background layer rendered above the default decorative one. */
+  background?: ReactNode;
 }>;
 
 export function OnboardingLayout({
@@ -17,6 +19,7 @@ export function OnboardingLayout({
   header,
   footer,
   loading = false,
+  background,
 }: OnboardingLayoutProps) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -34,6 +37,12 @@ export function OnboardingLayout({
       <View pointerEvents="none" style={StyleSheet.absoluteFill}>
         <DecorativeBackground variant="onboarding" />
       </View>
+
+      {background != null ? (
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          {background}
+        </View>
+      ) : null}
 
       {header}
 

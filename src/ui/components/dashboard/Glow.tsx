@@ -30,7 +30,7 @@ export const GLOW_SHAPES: GlowShape[] = [
 
 const DEFAULT_PALETTE: GlowPalette = ["#FFB803", "#FF8A00", "#FFC93C"];
 
-type CarouselGlowProps = {
+type GlowProps = {
   width: number;
   height?: number;
   mode: "light" | "dark";
@@ -42,14 +42,14 @@ type CarouselGlowProps = {
 };
 
 /** Smooth radial gradient glow, fading from `shape` origin to transparent. */
-export function CarouselGlow({
+export function Glow({
   width,
   height = 340,
   mode,
   colors = DEFAULT_PALETTE,
   shape = GLOW_SHAPES[0],
   style,
-}: CarouselGlowProps) {
+}: GlowProps) {
   const gradientId = useId();
   const globalOpacity = mode === "dark" ? 0.55 : 0.38;
 
@@ -111,7 +111,7 @@ function GlowLayer({
       style={[StyleSheet.absoluteFill, animatedStyle]}
       pointerEvents="none"
     >
-      <CarouselGlow
+      <Glow
         width={width}
         height={height}
         mode={mode}
@@ -122,7 +122,7 @@ function GlowLayer({
   );
 }
 
-type CarouselGlowStackProps = {
+type GlowStackProps = {
   width: number;
   height?: number;
   mode: "light" | "dark";
@@ -137,14 +137,14 @@ type CarouselGlowStackProps = {
  * Stacks one gradient glow per section and cross-fades between them as
  * `progress` moves. Each section also gets a different gradient angle.
  */
-export function CarouselGlowStack({
+export function GlowStack({
   width,
   height = 340,
   mode,
   progress,
   palettes,
   style,
-}: CarouselGlowStackProps) {
+}: GlowStackProps) {
   return (
     <View style={[{ width, height }, style]} pointerEvents="none">
       {palettes.map((colors, index) => (

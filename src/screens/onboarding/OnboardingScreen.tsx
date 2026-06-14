@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Animated,
+  Dimensions,
   Easing,
   Pressable,
   StyleSheet,
@@ -15,6 +16,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as Notifications from "expo-notifications";
+import { StatusBar } from "expo-status-bar";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { OnboardingLayout } from "../../layouts";
@@ -51,6 +53,7 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { Logo } from "../../ui/components/branding/Logo";
 import { Card } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
+import { Glow, GLOW_SHAPES } from "../../ui/components/dashboard/Glow";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Onboarding">;
 
@@ -66,8 +69,9 @@ const PROGRESS_STEPS = TOTAL_STEPS - 1; // don't count welcome step
 
 export function OnboardingScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const insets = useSafeAreaInsets();
+  const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
   const { user, signOut } = useAuth();
   const { vehiclesLimit, isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
@@ -847,6 +851,18 @@ export function OnboardingScreen({ navigation }: Props) {
 
   return (
     <OnboardingLayout
+      background={
+        <>
+          <StatusBar style={mode === "dark" ? "light" : "dark"} />
+          <Glow
+            width={windowWidth}
+            height={Math.round(windowHeight * 0.55)}
+            mode={mode}
+            shape={GLOW_SHAPES[1]}
+            style={styles.backgroundGlow}
+          />
+        </>
+      }
       header={
         <View
           style={[
@@ -967,6 +983,11 @@ export function OnboardingScreen({ navigation }: Props) {
 
 const makeStyles = (theme: any, insets: { bottom: number }) =>
   StyleSheet.create({
+    backgroundGlow: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+    },
     topBar: {
       height: theme.spacing.lg * 2 + theme.spacing.sm,
       flexDirection: "row",
