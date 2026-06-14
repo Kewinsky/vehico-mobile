@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { Button } from "../components/common/Button";
 import { useTheme } from "../ThemeProvider";
+import type { AppTheme } from "../theme";
 import { showPremiumRequiredAlert } from "./entitlementAlerts";
 
 type Navigation = {
@@ -67,12 +68,8 @@ export function PremiumFeatureGate({
   );
 }
 
-function makeStyles(theme: {
-  spacing: { md: number; sm: number };
-  typography: { small: number; fontWeight: { medium: string } };
-  radius: { md: number };
-}) {
-  return StyleSheet.create({
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
     locked: {
       borderWidth: 1,
       borderRadius: theme.radius.xl,
@@ -87,4 +84,3 @@ function makeStyles(theme: {
       lineHeight: theme.typography.small + 4,
     },
   });
-}
