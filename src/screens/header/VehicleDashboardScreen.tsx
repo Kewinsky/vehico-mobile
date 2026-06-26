@@ -292,6 +292,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const { distanceUnitLabel, consumptionUnitLine } = units;
   const currency = settings?.currency ?? "PLN";
   const vehicleImageHeight = Math.min(Math.max(windowHeight * 0.34, 280), 360);
+  const carouselGlowHeight = Math.round(vehicleImageHeight * 1.65);
   const mileageStaleYmd = useMemo(() => {
     return getMileageStaleYmd(vehicle?.mileage, vehicle?.mileage_updated_at);
   }, [vehicle?.mileage, vehicle?.mileage_updated_at]);
@@ -1192,13 +1193,14 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       >
         <Glow
           width={windowWidth}
-          height={Math.round(vehicleImageHeight)}
+          height={carouselGlowHeight}
           mode={mode}
           angle={180}
           variant="linear"
+          locations={[0, 0.1, 0.78, 1]}
           style={[
             styles.carouselGlow,
-            { top: vehicleImageHeight - theme.radius.xl },
+            { top: Math.round(vehicleImageHeight * 0.62) },
           ]}
         />
         <View

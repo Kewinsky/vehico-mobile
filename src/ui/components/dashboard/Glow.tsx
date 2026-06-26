@@ -63,8 +63,13 @@ type GlowProps = {
   variant?: GlowVariant;
   /** Override `GLOW_OPACITY` for this instance. */
   opacity?: number;
+  locations?: readonly [number, number, number, number];
   style?: StyleProp<ViewStyle>;
 };
+
+const DEFAULT_LINEAR_LOCATIONS: readonly [number, number, number, number] = [
+  0, 0.28, 0.62, 1,
+];
 
 function LinearTopGlow({
   width,
@@ -72,11 +77,12 @@ function LinearTopGlow({
   colors,
   angle,
   opacity,
+  locations = DEFAULT_LINEAR_LOCATIONS,
   style,
 }: Required<
   Pick<GlowProps, "width" | "height" | "colors" | "angle" | "opacity">
 > &
-  Pick<GlowProps, "style">) {
+  Pick<GlowProps, "locations" | "style">) {
   const { start, end } = angleToGradientPoints(angle);
 
   return (
@@ -88,7 +94,7 @@ function LinearTopGlow({
           hexToRgba(colors[1], 0.45),
           hexToRgba(colors[1], 0),
         ]}
-        locations={[0, 0.28, 0.62, 1]}
+        locations={[...locations]}
         start={start}
         end={end}
         style={StyleSheet.absoluteFill}
@@ -149,6 +155,7 @@ export function Glow({
   angle = 180,
   variant,
   opacity,
+  locations,
   style,
 }: GlowProps) {
   const resolvedOpacity = resolveGlowOpacity(mode, opacity);
@@ -158,6 +165,7 @@ export function Glow({
     colors,
     angle,
     opacity: resolvedOpacity,
+    locations,
     style,
   };
   const useLinear = variant === "linear" || (variant == null && angle === 180);
