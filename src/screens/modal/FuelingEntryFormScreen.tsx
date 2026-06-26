@@ -36,6 +36,7 @@ import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
+import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
 import { Droplet, Fuel } from "lucide-react-native";
@@ -48,7 +49,9 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const styles = makeStyles(theme);
   const { vehicleId, entryId } = route.params;
   const { distanceUnitLabel, fuelUnitShort } = useUnitDisplay();
+  const { settings } = useUserSettings();
   const fuelUnitLabel = fuelUnitShort;
+  const currency = settings?.currency ?? "PLN";
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [distance, setDistance] = useState("");
@@ -348,7 +351,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
 
             <FormInputRow
               icon="card-outline"
-              label={t("fuelingForm.cost")}
+              label={t("fuelingForm.cost", { unit: currency })}
               value={fuelCost}
               onChangeText={setFuelCost}
               decimal

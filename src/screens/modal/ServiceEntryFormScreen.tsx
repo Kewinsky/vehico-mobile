@@ -51,6 +51,7 @@ import {
 } from "../serviceEntryPresets";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
+import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
@@ -79,6 +80,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { isPremium, workshopsLimit, freePlanWorkshopIds } = useEntitlements();
   const { vehicleId, entryId } = route.params as any;
   const { distanceUnitLabel } = useUnitDisplay();
+  const { settings } = useUserSettings();
+  const currency = settings?.currency ?? "PLN";
 
   type EntryRow = ServiceEntryRowState;
   type FormMode = ServiceEntryFormMode;
@@ -893,7 +896,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     />
                     <FormInputRow
                       icon="cash-outline"
-                      label={t("entryForm.cost")}
+                      label={t("entryForm.cost", { unit: currency })}
                       value={row.cost}
                       onChangeText={(text) =>
                         updateEntry(index, { cost: text })
@@ -955,7 +958,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 />
                 <FormInputRow
                   icon="cash-outline"
-                  label={t("entryForm.cost")}
+                  label={t("entryForm.cost", { unit: currency })}
                   value={entries[0]?.cost ?? ""}
                   onChangeText={(text) => updateEntry(0, { cost: text })}
                   decimal
