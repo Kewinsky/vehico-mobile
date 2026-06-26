@@ -26,6 +26,19 @@ export function acceptDecimalInput(previous: string, text: string): string {
   return isValidDecimalInput(normalized) ? normalized : previous;
 }
 
+/** True if string is a positive integer. */
+export function isPositiveInteger(s: string): boolean {
+  const trimmed = s.trim();
+  if (!/^\d+$/.test(trimmed)) return false;
+  const n = Number(trimmed);
+  return Number.isFinite(n) && n > 0;
+}
+
+export function parsePositiveInteger(s: string): number | null {
+  if (!isPositiveInteger(s)) return null;
+  return Number(s.trim());
+}
+
 function parseDecimalString(s: string): number | null {
   const n = Number(s.replace(/,/g, "."));
   return Number.isFinite(n) ? n : null;

@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View, Keyboard } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { formatDateDisplay } from "../../utils/dateFormatting";
 import { i18n } from "../../i18n/i18n";
-import { acceptDecimalInput } from "../../utils/validation";
 import {
   canProceedMarketplaceConfigure,
   marketplaceConfigureFieldErrors,
-  parseMarketplacePrice,
+  marketplacePriceForNavigation,
   type MarketplaceConfigureFormState,
 } from "../../forms/marketplaceConfigureForm";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
@@ -153,7 +152,16 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   ]);
 
   function handleNext() {
-    if (!validateBeforeSave()) return;
+    if (!validateBeforeSave()) {
+      if (includePrice) {
+        toastError(
+          price.trim() === ""
+            ? t("marketplace.priceRequired")
+            : t("marketplace.invalidPrice"),
+        );
+      }
+      return;
+    }
 
     navigation.navigate("MarketplaceSummary", {
       vehicleId,
@@ -169,7 +177,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
         include_fueling_stats: includeFuelingStats,
       },
       includePrice,
-      price: parseMarketplacePrice(formValues),
+      price: marketplacePriceForNavigation(formValues),
       currency: settings?.currency ?? "PLN",
       includePublicReport,
       selectedReportId: includePublicReport ? selectedReportId : null,
@@ -223,7 +231,9 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
         <Button onPress={handleNext}>{t("marketplace.nextButton")}</Button>
       }
     >
-      <NativeHeaderScrollView>
+      <NativeHeaderScrollView keyboardDismissMode="on-drag">
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View>
         <ContentHeader title={t("marketplace.configureTitle")} />
         {unavailableOptions.length > 0 && (
           <View style={[styles.section, styles.hintSection]}>
@@ -340,10 +350,8 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                 </View>
                 <TextInput
                   value={price}
-                  onChangeText={(text) =>
-                    setPrice(acceptDecimalInput(price, text))
-                  }
-                  keyboardType="decimal-pad"
+                  onChangeText={setPrice}
+                  keyboardType="number-pad"
                   keyboardAppearance={mode === "dark" ? "dark" : "light"}
                   placeholder={t("marketplace.pricePlaceholder")}
                   placeholderTextColor={theme.colors.muted}
@@ -393,6 +401,8 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
             </View>
           )}
         </View>
+          </View>
+        </TouchableWithoutFeedback>
       </NativeHeaderScrollView>
     </HeaderLayout>
   );

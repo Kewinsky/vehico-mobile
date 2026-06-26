@@ -1,4 +1,4 @@
-import { isPositiveNumber, parsePositive } from "../utils/validation";
+import { isPositiveInteger, parsePositiveInteger } from "../utils/validation";
 
 export type MarketplaceConfigureFormState = {
   includePrice: boolean;
@@ -9,23 +9,23 @@ export function canProceedMarketplaceConfigure(
   form: MarketplaceConfigureFormState,
 ): boolean {
   if (!form.includePrice) return true;
-  return isPositiveNumber(form.price);
+  return isPositiveInteger(form.price);
 }
 
 export function marketplaceConfigureFieldErrors(
   form: MarketplaceConfigureFormState,
 ) {
   return {
-    price: form.includePrice && !isPositiveNumber(form.price),
+    price: form.includePrice && !isPositiveInteger(form.price),
   };
 }
 
-export function parseMarketplacePrice(
+export function marketplacePriceForNavigation(
   form: MarketplaceConfigureFormState,
 ): number | null {
   if (!form.includePrice) return null;
   if (!canProceedMarketplaceConfigure(form)) {
     throw new Error("Invalid marketplace price");
   }
-  return parsePositive(form.price);
+  return parsePositiveInteger(form.price.trim());
 }

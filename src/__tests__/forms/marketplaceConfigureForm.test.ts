@@ -1,7 +1,7 @@
 import {
   canProceedMarketplaceConfigure,
   marketplaceConfigureFieldErrors,
-  parseMarketplacePrice,
+  marketplacePriceForNavigation,
 } from "../../forms/marketplaceConfigureForm";
 
 describe("marketplaceConfigureForm", () => {
@@ -11,7 +11,7 @@ describe("marketplaceConfigureForm", () => {
     );
   });
 
-  it("requires a positive decimal price when option is on", () => {
+  it("requires a positive integer price when option is on", () => {
     expect(
       canProceedMarketplaceConfigure({ includePrice: true, price: "" }),
     ).toBe(false);
@@ -19,13 +19,16 @@ describe("marketplaceConfigureForm", () => {
       marketplaceConfigureFieldErrors({ includePrice: true, price: "0" }).price,
     ).toBe(true);
     expect(
-      canProceedMarketplaceConfigure({ includePrice: true, price: "49900,50" }),
+      canProceedMarketplaceConfigure({ includePrice: true, price: "123,50" }),
+    ).toBe(false);
+    expect(
+      canProceedMarketplaceConfigure({ includePrice: true, price: "49900" }),
     ).toBe(true);
   });
 
-  it("parses comma decimal price for API", () => {
+  it("parses integer price for navigation", () => {
     expect(
-      parseMarketplacePrice({ includePrice: true, price: "123,50" }),
-    ).toBe(123.5);
+      marketplacePriceForNavigation({ includePrice: true, price: "49900" }),
+    ).toBe(49900);
   });
 });
