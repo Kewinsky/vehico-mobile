@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 import { useRef } from "react";
+import { acceptDecimalInput } from "../../../utils/validation";
 import {
   Pressable,
   StyleSheet,
@@ -22,6 +23,8 @@ export type FormInputRowProps = TextInputProps & {
   error?: boolean;
   /** OTP code field: larger type; letter spacing only while typing (not on placeholder). */
   variant?: "default" | "otp";
+  /** Max 2 digits after decimal separator. */
+  decimal?: boolean;
 };
 
 export function FormInputRow({
@@ -34,7 +37,9 @@ export function FormInputRow({
   rowStyle,
   error = false,
   variant = "default",
+  decimal = false,
   value,
+  onChangeText,
   ...inputProps
 }: FormInputRowProps) {
   const { theme, mode } = useTheme();
@@ -46,6 +51,14 @@ export function FormInputRow({
 
   const focusInput = () => {
     if (isEditable) inputRef.current?.focus();
+  };
+
+  const handleChangeText = (text: string) => {
+    if (decimal && onChangeText) {
+      onChangeText(acceptDecimalInput(String(value ?? ""), text));
+      return;
+    }
+    onChangeText?.(text);
   };
 
   return (
@@ -73,6 +86,7 @@ export function FormInputRow({
         ref={inputRef}
         editable={editable}
         value={value}
+        onChangeText={handleChangeText}
         placeholderTextColor={theme.colors.muted}
         keyboardAppearance={mode === "dark" ? "dark" : "light"}
         {...inputProps}

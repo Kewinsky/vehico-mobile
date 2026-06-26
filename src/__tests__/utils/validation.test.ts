@@ -3,12 +3,14 @@ import {
   isNonNegativeNumber,
   isPositiveNumber,
   isValidDate,
+  isValidDecimalInput,
   isValidDot,
   isValidEt,
   isValidProductionYear,
   parseDecimal,
   parseNonNegative,
   parsePositive,
+  acceptDecimalInput,
 } from "../../utils/validation";
 
 describe("validation utils", () => {
@@ -22,24 +24,40 @@ describe("validation utils", () => {
     expect(isNonNegativeNumber("")).toBe(true);
     expect(isNonNegativeNumber("-1")).toBe(false);
     expect(isNonNegativeNumber("0")).toBe(true);
+    expect(isNonNegativeNumber("123,50")).toBe(true);
+    expect(isNonNegativeNumber("123,501")).toBe(false);
 
     expect(isPositiveNumber("")).toBe(false);
     expect(isPositiveNumber("0")).toBe(false);
     expect(isPositiveNumber("2")).toBe(true);
+    expect(isPositiveNumber("123,50")).toBe(true);
 
     expect(isFiniteNumber("")).toBe(true);
     expect(isFiniteNumber("abc")).toBe(false);
     expect(isFiniteNumber("2.5")).toBe(true);
+    expect(isFiniteNumber("2,5")).toBe(true);
+  });
+
+  it("decimal input helpers limit fractional digits", () => {
+    expect(acceptDecimalInput("123,50", "123,501")).toBe("123,50");
+    expect(acceptDecimalInput("123,50", "123,509")).toBe("123,50");
+    expect(acceptDecimalInput("123,5", "123,50")).toBe("123,50");
+    expect(acceptDecimalInput("", "12.34")).toBe("12.34");
+    expect(acceptDecimalInput("12.3", "12.3.4")).toBe("12.34");
+    expect(isValidDecimalInput("1,23")).toBe(true);
+    expect(isValidDecimalInput("1,234")).toBe(false);
   });
 
   it("parsers return null on invalid/empty", () => {
     expect(parseNonNegative("")).toBeNull();
     expect(parseNonNegative("-1")).toBeNull();
     expect(parseNonNegative("3")).toBe(3);
+    expect(parseNonNegative("3,5")).toBe(3.5);
 
     expect(parsePositive("")).toBeNull();
     expect(parsePositive("0")).toBeNull();
     expect(parsePositive("3")).toBe(3);
+    expect(parsePositive("3,5")).toBe(3.5);
 
     expect(parseDecimal("")).toBeNull();
     expect(parseDecimal("1,5")).toBe(1.5);
@@ -63,4 +81,3 @@ describe("validation utils", () => {
     expect(isValidEt("100")).toBe(false);
   });
 });
-

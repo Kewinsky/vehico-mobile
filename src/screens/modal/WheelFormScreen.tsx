@@ -17,10 +17,11 @@ import { Weight } from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
-  isPositiveNumber,
-  isValidEt,
-  parseDecimal,
-} from "../../utils/validation";
+  buildWheelPayload,
+  canSaveWheel,
+  wheelFieldErrors,
+  type WheelFormState,
+} from "../../forms/wheelForm";
 import {
   createVehicleWheel,
   deleteVehicleWheel,
@@ -76,6 +77,38 @@ export function WheelFormScreen({ navigation, route }: Props) {
   const [isCurrentlyFitted, setIsCurrentlyFitted] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const formValues = useMemo(
+    (): WheelFormState => ({
+      name,
+      width,
+      diameter,
+      etOffset,
+      boltPattern,
+      centerBore,
+      boltType,
+      weight,
+      isCurrentlyFitted,
+    }),
+    [
+      name,
+      width,
+      diameter,
+      etOffset,
+      boltPattern,
+      centerBore,
+      boltType,
+      weight,
+      isCurrentlyFitted,
+    ],
+  );
+
+  const fieldErrors = useMemo(() => wheelFieldErrors(formValues), [formValues]);
+
+  const canSave = useMemo(() => canSaveWheel(formValues), [formValues]);
+
+  const { fieldError, validateBeforeSave, resetFieldErrors } =
+    useFormFieldErrors(canSave);
+
   useEffect(() => {
     if (!wheelId) return;
     void (async () => {
@@ -97,25 +130,6 @@ export function WheelFormScreen({ navigation, route }: Props) {
       }
     })();
   }, [wheelId, t]);
-
-  const canSave = useMemo(() => {
-    const parsedWidth = parseDecimal(width);
-    return (
-      name.trim().length > 0 &&
-      parsedWidth != null &&
-      parsedWidth > 0 &&
-      isPositiveNumber(diameter) &&
-      isValidEt(etOffset)
-    );
-  }, [name, width, diameter, etOffset]);
-
-  const { fieldError, validateBeforeSave, resetFieldErrors } =
-    useFormFieldErrors(canSave);
-
-  const widthInvalid = useMemo(() => {
-    const parsed = parseDecimal(width);
-    return parsed == null || parsed <= 0;
-  }, [width]);
 
   function confirmDelete() {
     if (!wheelId) return;
@@ -153,9 +167,6 @@ export function WheelFormScreen({ navigation, route }: Props) {
     if (!validateBeforeSave()) return;
     try {
       setSaving(true);
-      const widthNum = parseDecimal(width)!;
-      const diameterNum = Number(diameter.trim());
-      // Check wheel limit (only for new wheels)
       if (!wheelId && !isPremium) {
         const wheels = await listVehicleWheels(vehicleId, wheelOptions);
         if (wheels.length >= wheelsPerVehicleLimit) {
@@ -168,18 +179,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
         }
       }
 
-      const payload = {
-        vehicle_id: vehicleId,
-        name: name.trim(),
-        width_inch: widthNum,
-        diameter_inch: diameterNum,
-        et_offset: etOffset.trim() ? Number(etOffset.trim()) : null,
-        bolt_pattern: boltPattern.trim() || null,
-        center_bore_mm: parseDecimal(centerBore),
-        bolt_type: boltType.trim() || null,
-        weight_kg: parseDecimal(weight),
-        is_currently_fitted: isCurrentlyFitted,
-      };
+      const payload = buildWheelPayload(vehicleId, formValues);
       if (wheelId) {
         await updateVehicleWheel(wheelId, payload);
       } else {
@@ -234,7 +234,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
               onChangeText={setName}
               editable={!saving}
               placeholder={t("wheelForm.placeholderName")}
-              error={fieldError(!name.trim())}
+              error={fieldError(fieldErrors.name)}
             />
             <FormInputRow
               iconComponent={
@@ -250,7 +250,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
               keyboardType="decimal-pad"
               editable={!saving}
               placeholder={t("wheelForm.placeholderWidth")}
-              error={fieldError(widthInvalid)}
+              error={fieldError(fieldErrors.width)}
             />
             <FormInputRow
               iconComponent={
@@ -266,7 +266,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
               keyboardType="number-pad"
               editable={!saving}
               placeholder={t("wheelForm.placeholderDiameter")}
-              error={fieldError(!isPositiveNumber(diameter))}
+              error={fieldError(fieldErrors.diameter)}
             />
             <FormInputRow
               iconComponent={
@@ -282,7 +282,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
               keyboardType="number-pad"
               editable={!saving}
               placeholder={t("wheelForm.placeholderEtOffset")}
-              error={fieldError(!isValidEt(etOffset))}
+              error={fieldError(fieldErrors.etOffset)}
             />
             <FormInputRow
               iconComponent={<BoltPatternIcon size={20} color={theme.colors.accent} />}

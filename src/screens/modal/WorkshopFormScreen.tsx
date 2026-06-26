@@ -13,6 +13,13 @@ import { Ionicons } from "@expo/vector-icons";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { WorkshopType } from "../../types/domain";
 import {
+  WORKSHOP_TYPE_OPTIONS,
+  buildWorkshopPayload,
+  canSaveWorkshop,
+  workshopFieldErrors,
+  type WorkshopFormState,
+} from "../../forms/workshopForm";
+import {
   createWorkshop,
   deleteWorkshop,
   getWorkshop,
@@ -36,15 +43,6 @@ import {
 
 type Props = NativeStackScreenProps<AppStackParamList, "WorkshopForm">;
 
-const WORKSHOP_TYPES: WorkshopType[] = [
-  "mechanic",
-  "electrician",
-  "detailer",
-  "bodywork",
-  "car_wash",
-  "other",
-];
-
 export function WorkshopFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -57,6 +55,26 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const formValues = useMemo(
+    (): WorkshopFormState => ({
+      name,
+      workshopType,
+      phoneNumber,
+      address,
+    }),
+    [name, workshopType, phoneNumber, address],
+  );
+
+  const fieldErrors = useMemo(
+    () => workshopFieldErrors(formValues),
+    [formValues],
+  );
+
+  const canSave = useMemo(
+    () => canSaveWorkshop(formValues),
+    [formValues],
+  );
 
   const load = useCallback(async () => {
     if (!workshopId) return;
@@ -71,17 +89,13 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
     }
   }, [workshopId, t]);
 
+  const { fieldError, validateBeforeSave, resetFieldErrors } =
+    useFormFieldErrors(canSave);
+
   useScreenFocusReload({
     initialLoad: load,
     onFocusReload: workshopId ? load : undefined,
   });
-
-  const canSave = useMemo(() => {
-    return name.trim().length > 0 && workshopType != null;
-  }, [name, workshopType]);
-
-  const { fieldError, validateBeforeSave, resetFieldErrors } =
-    useFormFieldErrors(canSave);
 
   function showPicker<T extends string>(opts: {
     title: string;
@@ -162,12 +176,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
         }
       }
 
-      const payload = {
-        name: name.trim(),
-        workshop_type: workshopType!,
-        phone_number: phoneNumber.trim() || null,
-        address: address.trim() || null,
-      };
+      const payload = buildWorkshopPayload(formValues);
       if (workshopId) {
         await updateWorkshop(workshopId, payload);
       } else {
@@ -218,14 +227,14 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
               onChangeText={setName}
               editable={!saving}
               placeholder={t("workshopForm.placeholderName")}
-              error={fieldError(!name.trim())}
+              error={fieldError(fieldErrors.name)}
             />
             <Pressable
               onPress={() =>
                 showPicker<WorkshopType>({
                   title: t("workshopForm.workshopType"),
                   value: workshopType,
-                  options: WORKSHOP_TYPES,
+                  options: WORKSHOP_TYPE_OPTIONS,
                   getLabel: (v) => t(`workshopForm.types.${v}`),
                   onChange: setWorkshopType,
                   placeholderLabel: t("workshopForm.selectType"),
@@ -233,7 +242,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
               }
               style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              <CardRow error={fieldError(!workshopType)}>
+              <CardRow error={fieldError(fieldErrors.workshopType)}>
                 <View style={styles.rowLeft}>
                   <Ionicons
                     name="pricetag-outline"

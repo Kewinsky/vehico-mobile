@@ -1,12 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import {
-  Alert,
-  Dimensions,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Linking from "expo-linking";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -29,11 +22,8 @@ import { supabase } from "../../services/supabase/client";
 import { Card } from "../../ui/components/common/Card";
 import { ENV } from "../../config/env";
 import { deleteAccount } from "../../services/account/deleteAccount";
-import { Glow } from "../../ui/components/dashboard/Glow";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Settings">;
-
-const SETTINGS_GLOW_ANGLE = 225;
 
 function getInitials(user: {
   user_metadata?: { full_name?: string };
@@ -63,10 +53,9 @@ type RowItem = {
 
 export function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { theme, mode } = useTheme();
+  const { theme } = useTheme();
   const { user, signOut } = useAuth();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
 
   const displayNameFromUser = normalizeDisplayName(
     user?.user_metadata?.full_name as string | undefined,
@@ -223,16 +212,6 @@ export function SettingsScreen({ navigation }: Props) {
         label: t("common.cancel"),
       }}
       useNativeHeaderScrollView
-      background={
-        <Glow
-          width={windowWidth}
-          height={Math.round(windowHeight * 0.55)}
-          mode={mode}
-          angle={SETTINGS_GLOW_ANGLE}
-          variant="radial"
-          style={styles.backgroundGlow}
-        />
-      }
     >
       <View style={styles.container}>
         <View style={styles.avatarBlock}>
@@ -312,11 +291,6 @@ export function SettingsScreen({ navigation }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    backgroundGlow: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-    },
     container: {
       flexGrow: 1,
       paddingTop: theme.spacing.md,

@@ -5,6 +5,14 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { formatDateDisplay } from "../../utils/dateFormatting";
 import { i18n } from "../../i18n/i18n";
+import { acceptDecimalInput } from "../../utils/validation";
+import {
+  canProceedMarketplaceConfigure,
+  marketplaceConfigureFieldErrors,
+  parseMarketplacePrice,
+  type MarketplaceConfigureFormState,
+} from "../../forms/marketplaceConfigureForm";
+import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
@@ -22,6 +30,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { PickerField } from "../../ui/components/common/PickerField";
+import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceConfigure">;
 
@@ -67,6 +76,26 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   const [price, setPrice] = useState("");
   const [includePublicReport, setIncludePublicReport] = useState(false);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+
+  const formValues = useMemo(
+    (): MarketplaceConfigureFormState => ({
+      includePrice,
+      price,
+    }),
+    [includePrice, price],
+  );
+
+  const fieldErrors = useMemo(
+    () => marketplaceConfigureFieldErrors(formValues),
+    [formValues],
+  );
+
+  const canProceed = useMemo(
+    () => canProceedMarketplaceConfigure(formValues),
+    [formValues],
+  );
+
+  const { fieldError, validateBeforeSave } = useFormFieldErrors(canProceed);
 
   const load = useCallback(async () => {
     try {
@@ -124,15 +153,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   ]);
 
   function handleNext() {
-    if (includePrice && !price.trim().length) {
-      toastError(t("marketplace.priceRequired"));
-      return;
-    }
-    const priceNum = price.trim().length ? Number(price) : null;
-    if (includePrice && price.trim().length && !Number.isFinite(priceNum)) {
-      toastError(t("marketplace.invalidPrice"));
-      return;
-    }
+    if (!validateBeforeSave()) return;
 
     navigation.navigate("MarketplaceSummary", {
       vehicleId,
@@ -148,7 +169,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
         include_fueling_stats: includeFuelingStats,
       },
       includePrice,
-      price: priceNum,
+      price: parseMarketplacePrice(formValues),
       currency: settings?.currency ?? "PLN",
       includePublicReport,
       selectedReportId: includePublicReport ? selectedReportId : null,
@@ -294,8 +315,12 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
               style={[
                 styles.priceCard,
                 {
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.card,
+                  borderColor: fieldError(fieldErrors.price)
+                    ? theme.colors.danger
+                    : theme.colors.border,
+                  backgroundColor: fieldError(fieldErrors.price)
+                    ? hexToRgba(theme.colors.danger, 0.15)
+                    : theme.colors.card,
                 },
               ]}
             >
@@ -315,7 +340,9 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                 </View>
                 <TextInput
                   value={price}
-                  onChangeText={setPrice}
+                  onChangeText={(text) =>
+                    setPrice(acceptDecimalInput(price, text))
+                  }
                   keyboardType="decimal-pad"
                   keyboardAppearance={mode === "dark" ? "dark" : "light"}
                   placeholder={t("marketplace.pricePlaceholder")}

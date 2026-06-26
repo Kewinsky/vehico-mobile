@@ -317,7 +317,7 @@ export const en = {
     placeholderMileage: "e.g. 50000",
     placeholderTitle: "e.g. Oil change",
     placeholderDescription: "e.g. Changed engine oil and filter",
-    placeholderCost: "e.g. 150.00",
+    placeholderCost: "e.g. 150",
     categories: {
       maintenance: "Maintenance",
       repair: "Repair",
@@ -360,7 +360,7 @@ export const en = {
   dashboard: {
     backToVehicles: "Back to vehicles",
     specification: "Specification",
-    quickActionsTitle: "Quick actions",
+    quickActionsTitle: "Add",
     sectionOrder: {
       menu: "Section layout",
       title: "Section layout",
@@ -711,15 +711,15 @@ Technical inspection valid until: 2025-09-20
 
 === SERVICE HISTORY ===
 2025-06-28 | 52 000 km | Oil
-  Oil and filter change – 680.00 PLN
+  Oil and filter change – 680 PLN
 
 2025-05-20 | 51 000 km | Inspection
-  Periodic inspection – 550.00 PLN
+  Periodic inspection – 550 PLN
 
 (... more entries in the app)
 
 === SERVICE STATISTICS ===
-Total service cost: 9 210.00 PLN
+Total service cost: 9 210 PLN
 Number of service entries: 14
 
 === NOTES ===
@@ -1089,7 +1089,7 @@ Detailed report available at: https://report.vehico.app/report/example`,
     gasStation: "Gas station",
     placeholderDistance: "e.g. 500",
     placeholderFuelAmount: "e.g. 40.5",
-    placeholderCost: "e.g. 200.00",
+    placeholderCost: "e.g. 200",
     fuelTypes: {
       "95": "95",
       "98": "98",

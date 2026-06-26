@@ -17,7 +17,18 @@ import {
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { TireType } from "../../types/domain";
-import { isPositiveNumber, isValidDot } from "../../utils/validation";
+import {
+  TIRE_DIAMETER_MAX_LENGTH,
+  TIRE_DOT_MAX_LENGTH,
+  TIRE_PROFILE_MAX_LENGTH,
+  TIRE_TYPE_OPTIONS,
+  TIRE_WIDTH_MAX_LENGTH,
+  buildTirePayload,
+  canSaveTire,
+  sanitizeTireDigits,
+  tireFieldErrors,
+  type TireFormState,
+} from "../../forms/tireForm";
 import {
   createVehicleTire,
   deleteVehicleTire,
@@ -43,15 +54,6 @@ import { SunSnowIcon } from "lucide-react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "TireForm">;
 
-const TIRE_TYPES: TireType[] = [
-  "summer",
-  "winter",
-  "all_season",
-  "run_flat",
-  "uhp",
-  "suv_xl",
-];
-
 export function TireFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -74,6 +76,26 @@ export function TireFormScreen({ navigation, route }: Props) {
   const [isCurrentlyFitted, setIsCurrentlyFitted] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const formValues = useMemo(
+    (): TireFormState => ({
+      name,
+      width,
+      profile,
+      diameter,
+      tireType,
+      dot,
+      isCurrentlyFitted,
+    }),
+    [name, width, profile, diameter, tireType, dot, isCurrentlyFitted],
+  );
+
+  const fieldErrors = useMemo(() => tireFieldErrors(formValues), [formValues]);
+
+  const canSave = useMemo(() => canSaveTire(formValues), [formValues]);
+
+  const { fieldError, validateBeforeSave, resetFieldErrors } =
+    useFormFieldErrors(canSave);
+
   useEffect(() => {
     if (!tireId) return;
     void (async () => {
@@ -91,20 +113,6 @@ export function TireFormScreen({ navigation, route }: Props) {
       }
     })();
   }, [tireId, t]);
-
-  const canSave = useMemo(() => {
-    return (
-      name.trim().length > 0 &&
-      isPositiveNumber(width) &&
-      isPositiveNumber(profile) &&
-      isPositiveNumber(diameter) &&
-      tireType != null &&
-      isValidDot(dot)
-    );
-  }, [name, width, profile, diameter, tireType, dot]);
-
-  const { fieldError, validateBeforeSave, resetFieldErrors } =
-    useFormFieldErrors(canSave);
 
   function showPicker<T extends string>(opts: {
     title: string;
@@ -173,10 +181,6 @@ export function TireFormScreen({ navigation, route }: Props) {
     if (!validateBeforeSave()) return;
     try {
       setSaving(true);
-      const widthNum = Number(width.trim());
-      const profileNum = Number(profile.trim());
-      const diameterNum = Number(diameter.trim());
-      // Check tire limit (only for new tires)
       if (!tireId && !isPremium) {
         const tires = await listVehicleTires(vehicleId, tireOptions);
         if (tires.length >= tiresPerVehicleLimit) {
@@ -189,16 +193,7 @@ export function TireFormScreen({ navigation, route }: Props) {
         }
       }
 
-      const payload = {
-        vehicle_id: vehicleId,
-        name: name.trim(),
-        width_mm: widthNum,
-        aspect_ratio: profileNum,
-        diameter_inch: diameterNum,
-        tire_type: tireType!,
-        dot: dot.trim() || null,
-        is_currently_fitted: isCurrentlyFitted,
-      };
+      const payload = buildTirePayload(vehicleId, formValues);
       if (tireId) {
         await updateVehicleTire(tireId, payload);
       } else {
@@ -253,7 +248,7 @@ export function TireFormScreen({ navigation, route }: Props) {
               onChangeText={setName}
               editable={!saving}
               placeholder={t("tireForm.placeholderName")}
-              error={fieldError(!name.trim())}
+              error={fieldError(fieldErrors.name)}
             />
             <FormInputRow
               iconComponent={
@@ -265,11 +260,14 @@ export function TireFormScreen({ navigation, route }: Props) {
               }
               label={t("tireForm.width")}
               value={width}
-              onChangeText={setWidth}
+              onChangeText={(text) =>
+                setWidth(sanitizeTireDigits(text, TIRE_WIDTH_MAX_LENGTH))
+              }
               keyboardType="number-pad"
+              maxLength={TIRE_WIDTH_MAX_LENGTH}
               editable={!saving}
               placeholder={t("tireForm.placeholderWidth")}
-              error={fieldError(!isPositiveNumber(width))}
+              error={fieldError(fieldErrors.width)}
             />
             <FormInputRow
               iconComponent={
@@ -281,11 +279,14 @@ export function TireFormScreen({ navigation, route }: Props) {
               }
               label={t("tireForm.profile")}
               value={profile}
-              onChangeText={setProfile}
+              onChangeText={(text) =>
+                setProfile(sanitizeTireDigits(text, TIRE_PROFILE_MAX_LENGTH))
+              }
               keyboardType="number-pad"
+              maxLength={TIRE_PROFILE_MAX_LENGTH}
               editable={!saving}
               placeholder={t("tireForm.placeholderProfile")}
-              error={fieldError(!isPositiveNumber(profile))}
+              error={fieldError(fieldErrors.profile)}
             />
             <FormInputRow
               iconComponent={
@@ -297,18 +298,21 @@ export function TireFormScreen({ navigation, route }: Props) {
               }
               label={t("tireForm.diameter")}
               value={diameter}
-              onChangeText={setDiameter}
+              onChangeText={(text) =>
+                setDiameter(sanitizeTireDigits(text, TIRE_DIAMETER_MAX_LENGTH))
+              }
               keyboardType="number-pad"
+              maxLength={TIRE_DIAMETER_MAX_LENGTH}
               editable={!saving}
               placeholder={t("tireForm.placeholderDiameter")}
-              error={fieldError(!isPositiveNumber(diameter))}
+              error={fieldError(fieldErrors.diameter)}
             />
             <Pressable
               onPress={() =>
                 showPicker<TireType>({
                   title: t("tireForm.tireType"),
                   value: tireType,
-                  options: TIRE_TYPES,
+                  options: TIRE_TYPE_OPTIONS,
                   getLabel: (v) => t(`tireForm.types.${v}`),
                   onChange: setTireType,
                   placeholderLabel: t("tireForm.placeholderTireType"),
@@ -316,7 +320,7 @@ export function TireFormScreen({ navigation, route }: Props) {
               }
               style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              <CardRow error={fieldError(!tireType)}>
+              <CardRow error={fieldError(fieldErrors.tireType)}>
                 <View style={styles.rowLeft}>
                   <SunSnowIcon size={20} color={theme.colors.accent} />
                   <Text
@@ -346,11 +350,14 @@ export function TireFormScreen({ navigation, route }: Props) {
               icon="calendar-outline"
               label={t("tireForm.dot")}
               value={dot}
-              onChangeText={setDot}
+              onChangeText={(text) =>
+                setDot(sanitizeTireDigits(text, TIRE_DOT_MAX_LENGTH))
+              }
               keyboardType="number-pad"
+              maxLength={TIRE_DOT_MAX_LENGTH}
               editable={!saving}
               placeholder={t("tireForm.placeholderDot")}
-              error={fieldError(!isValidDot(dot))}
+              error={fieldError(fieldErrors.dot)}
             />
             <CardRow>
               <View style={styles.rowLeft}>

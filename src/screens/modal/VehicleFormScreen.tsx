@@ -16,9 +16,11 @@ import { DraggableGrid } from "react-native-draggable-grid";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
-  isValidProductionYear,
-  isNonNegativeNumber,
-} from "../../utils/validation";
+  buildVehiclePayload,
+  canSaveVehicle,
+  vehicleFieldErrors,
+  type VehicleFormState,
+} from "../../forms/vehicleForm";
 import type {
   VehiclePhoto,
   VehicleType,
@@ -171,17 +173,53 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     if (isEditMode) void load();
   }, [isEditMode, load]);
 
-  const canSave = useMemo(() => {
-    return (
-      make.trim().length > 0 &&
-      model.trim().length > 0 &&
-      isValidProductionYear(year) &&
-      isNonNegativeNumber(initialMileage) &&
-      isNonNegativeNumber(mileage) &&
-      isNonNegativeNumber(engineCapacity) &&
-      isNonNegativeNumber(powerHp)
-    );
-  }, [make, model, year, initialMileage, mileage, engineCapacity, powerHp]);
+  const formValues = useMemo(
+    (): VehicleFormState => ({
+      type,
+      vin,
+      make,
+      model,
+      year,
+      initialMileage,
+      mileage,
+      firstRegistrationDate,
+      licensePlate,
+      engineCapacity,
+      powerHp,
+      fuelType,
+      transmission,
+      driveType,
+      notes,
+      insuranceValidUntil,
+      inspectionValidUntil,
+    }),
+    [
+      type,
+      vin,
+      make,
+      model,
+      year,
+      initialMileage,
+      mileage,
+      firstRegistrationDate,
+      licensePlate,
+      engineCapacity,
+      powerHp,
+      fuelType,
+      transmission,
+      driveType,
+      notes,
+      insuranceValidUntil,
+      inspectionValidUntil,
+    ],
+  );
+
+  const fieldErrors = useMemo(
+    () => vehicleFieldErrors(formValues),
+    [formValues],
+  );
+
+  const canSave = useMemo(() => canSaveVehicle(formValues), [formValues]);
 
   const { fieldError, validateBeforeSave } = useFormFieldErrors(canSave);
 
@@ -405,37 +443,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     if (!validateBeforeSave()) return;
     try {
       setSaving(true);
-      const production_year = Number(year.trim());
-
-      const payload = {
-        type,
-        vin: vin.trim().length ? vin.trim() : null,
-        make: make.trim(),
-        model: model.trim(),
-        production_year,
-        initial_mileage: initialMileage.trim().length
-          ? Number(initialMileage)
-          : null,
-        mileage: mileage.trim().length ? Number(mileage) : null,
-        first_registration_date: firstRegistrationDate.trim().length
-          ? firstRegistrationDate.trim()
-          : null,
-        license_plate: licensePlate.trim().length ? licensePlate.trim() : null,
-        engine_capacity: engineCapacity.trim().length
-          ? Number(engineCapacity)
-          : null,
-        power_hp: powerHp.trim().length ? Number(powerHp) : null,
-        fuel_type: fuelType,
-        transmission: transmission,
-        drive_type: driveType,
-        notes: notes.trim().length ? notes.trim() : null,
-        insurance_valid_until: insuranceValidUntil.trim().length
-          ? insuranceValidUntil.trim()
-          : null,
-        inspection_valid_until: inspectionValidUntil.trim().length
-          ? inspectionValidUntil.trim()
-          : null,
-      };
+      const payload = buildVehiclePayload(formValues);
 
       if (isEditMode && vehicleId) {
         const patch: UpdateVehicleInput = { ...payload };
@@ -647,7 +655,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderMakeMotorcycle")
                       : t("vehicleForm.placeholderMake")
                   }
-                  error={fieldError(!make.trim())}
+                  error={fieldError(fieldErrors.make)}
                 />
 
                 <FormInputRow
@@ -661,7 +669,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderModelMotorcycle")
                       : t("vehicleForm.placeholderModel")
                   }
-                  error={fieldError(!model.trim())}
+                  error={fieldError(fieldErrors.model)}
                 />
 
                 <FormInputRow
@@ -677,7 +685,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderYearMotorcycle")
                       : t("vehicleForm.placeholderYear")
                   }
-                  error={fieldError(!isValidProductionYear(year))}
+                  error={fieldError(fieldErrors.year)}
                 />
 
                 <FormInputRow
@@ -692,10 +700,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderInitialMileageMotorcycle")
                       : t("vehicleForm.placeholderInitialMileage")
                   }
-                  error={fieldError(
-                    initialMileage.trim().length > 0 &&
-                      !isNonNegativeNumber(initialMileage),
-                  )}
+                  error={fieldError(fieldErrors.initialMileage)}
                 />
 
                 <FormInputRow
@@ -710,9 +715,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderMileageMotorcycle")
                       : t("vehicleForm.placeholderMileage")
                   }
-                  error={fieldError(
-                    mileage.trim().length > 0 && !isNonNegativeNumber(mileage),
-                  )}
+                  error={fieldError(fieldErrors.mileage)}
                 />
 
                 <FormDateRow
@@ -837,10 +840,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderEngineCapacityMotorcycle")
                       : t("vehicleForm.placeholderEngineCapacity")
                   }
-                  error={fieldError(
-                    engineCapacity.trim().length > 0 &&
-                      !isNonNegativeNumber(engineCapacity),
-                  )}
+                  error={fieldError(fieldErrors.engineCapacity)}
                 />
 
                 <FormInputRow
@@ -855,9 +855,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       ? t("vehicleForm.placeholderPowerHpMotorcycle")
                       : t("vehicleForm.placeholderPowerHp")
                   }
-                  error={fieldError(
-                    powerHp.trim().length > 0 && !isNonNegativeNumber(powerHp),
-                  )}
+                  error={fieldError(fieldErrors.powerHp)}
                 />
               </Card>
 

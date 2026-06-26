@@ -15,12 +15,17 @@ import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { isValidDate, isNonNegativeNumber } from "../../utils/validation";
-import type {
-  Attachment,
-  ServiceEntryCategory,
-  Workshop,
-} from "../../types/domain";
+import {
+  SERVICE_ENTRY_CATEGORY_OPTIONS,
+  buildServiceEntryBasePayload,
+  buildServiceEntryRowPayload,
+  canSaveServiceEntry,
+  serviceEntryFieldErrors,
+  type ServiceEntryFormMode,
+  type ServiceEntryFormState,
+  type ServiceEntryRowState,
+} from "../../forms/serviceEntryForm";
+import type { Attachment, ServiceEntryCategory, Workshop } from "../../types/domain";
 import {
   createServiceEntry,
   deleteServiceEntry,
@@ -65,15 +70,6 @@ import { SquarePen, Trash2 } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
 
-const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
-  "maintenance",
-  "repair",
-  "inspection",
-  "upgrade",
-  "oil_change",
-  "other",
-];
-
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryForm">;
 
 export function ServiceEntryFormScreen({ navigation, route }: Props) {
@@ -84,8 +80,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { vehicleId, entryId } = route.params as any;
   const { distanceUnitLabel } = useUnitDisplay();
 
-  type EntryRow = { title: string; cost: string };
-  type FormMode = "single" | "multi";
+  type EntryRow = ServiceEntryRowState;
+  type FormMode = ServiceEntryFormMode;
   const [mode, setMode] = useState<FormMode>("single");
   const [serviceDate, setServiceDate] = useState(() =>
     new Date().toISOString().slice(0, 10),
@@ -105,6 +101,42 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [workshopId, setWorkshopId] = useState<string | null>(null);
   const [workshopSnapshot, setWorkshopSnapshot] = useState<string | null>(null);
   const [defaultMileage, setDefaultMileage] = useState("");
+
+  const formValues = useMemo(
+    (): ServiceEntryFormState => ({
+      mode,
+      serviceDate,
+      mileage,
+      category,
+      entries,
+      description,
+      workshopId,
+      workshopSnapshot,
+    }),
+    [
+      mode,
+      serviceDate,
+      mileage,
+      category,
+      entries,
+      description,
+      workshopId,
+      workshopSnapshot,
+    ],
+  );
+
+  const fieldErrors = useMemo(
+    () => serviceEntryFieldErrors(formValues),
+    [formValues],
+  );
+
+  const canSave = useMemo(
+    () => canSaveServiceEntry(formValues),
+    [formValues],
+  );
+
+  const { fieldError, validateBeforeSave, resetFieldErrors } =
+    useFormFieldErrors(canSave);
 
   const checkAndUpload = useCallback(
     async (params: {
@@ -343,19 +375,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     );
   }
 
-  const canSave = useMemo(() => {
-    return (
-      isValidDate(serviceDate) &&
-      category != null &&
-      entries.every((e) => e.title.trim().length > 0) &&
-      entries.every((e) => isNonNegativeNumber(e.cost)) &&
-      isNonNegativeNumber(mileage)
-    );
-  }, [serviceDate, category, entries, mileage]);
-
-  const { fieldError, validateBeforeSave, resetFieldErrors } =
-    useFormFieldErrors(canSave);
-
   function showPicker<T extends string>(opts: {
     title: string;
     value: T | null;
@@ -567,43 +586,42 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     if (!validateBeforeSave()) return;
     try {
       setSaving(true);
-      const basePayload = {
-        vehicle_id: vehicleId,
-        service_date: serviceDate.trim(),
-        mileage: mileage.trim().length ? Number(mileage) : null,
-        category: category!,
-        workshop_id: workshopId || null,
-        workshop_snapshot:
-          workshopId != null
-            ? (workshops.find((w) => w.id === workshopId)?.name ??
-              workshopSnapshot)
-            : null,
-      };
+      const workshopName =
+        workshopId != null
+          ? (workshops.find((w) => w.id === workshopId)?.name ??
+            workshopSnapshot)
+          : null;
+      const basePayload = buildServiceEntryBasePayload(
+        vehicleId,
+        formValues,
+        workshopName,
+      );
 
       if (entryId) {
         const first = entries[0];
+        const firstRow = buildServiceEntryRowPayload(
+          first,
+          description,
+        );
         await updateServiceEntry(entryId, {
           ...basePayload,
-          title: first.title.trim(),
-          description: description.trim(),
-          cost: first.cost.trim().length ? Number(first.cost) : null,
+          ...firstRow,
         });
         for (let i = 1; i < entries.length; i++) {
           const row = entries[i];
           await createServiceEntry({
             ...basePayload,
-            title: row.title.trim(),
-            description: "",
-            cost: row.cost.trim().length ? Number(row.cost) : null,
+            ...buildServiceEntryRowPayload(row, ""),
           });
         }
       } else {
         const first = entries[0];
         const created = await createServiceEntry({
           ...basePayload,
-          title: first.title.trim(),
-          description: isMulti ? "" : description.trim(),
-          cost: first.cost.trim().length ? Number(first.cost) : null,
+          ...buildServiceEntryRowPayload(
+            first,
+            isMulti ? "" : description,
+          ),
         });
         if (!isMulti && pendingFiles.length) {
           setUploading(true);
@@ -621,9 +639,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           const row = entries[i];
           await createServiceEntry({
             ...basePayload,
-            title: row.title.trim(),
-            description: "",
-            cost: row.cost.trim().length ? Number(row.cost) : null,
+            ...buildServiceEntryRowPayload(row, ""),
           });
         }
       }
@@ -742,7 +758,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               value={serviceDate}
               onChange={setServiceDate}
               disabled={saving || uploading}
-              error={fieldError(!isValidDate(serviceDate))}
+              error={fieldError(fieldErrors.serviceDate)}
             />
 
             <Pressable
@@ -750,7 +766,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 showPicker<ServiceEntryCategory>({
                   title: t("entryForm.category"),
                   value: category,
-                  options: CATEGORY_OPTIONS,
+                  options: SERVICE_ENTRY_CATEGORY_OPTIONS,
                   getLabel: (v) => t(`entryForm.categories.${v}` as any),
                   onChange: setCategory,
                   placeholderLabel: t("entryForm.categoryPlaceholder"),
@@ -758,7 +774,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               }
               style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
             >
-              <CardRow error={fieldError(!category)}>
+              <CardRow error={fieldError(fieldErrors.category)}>
                 <View style={styles.rowLeft}>
                   <Ionicons
                     name="pricetag-outline"
@@ -849,10 +865,11 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               label={`${t("entryForm.mileage")} (${distanceUnitLabel})`}
               value={mileage}
               onChangeText={setMileage}
-              keyboardType="number-pad"
+              decimal
+              keyboardType="decimal-pad"
               editable={!saving && !uploading}
               placeholder={t("entryForm.placeholderMileage")}
-              error={fieldError(!isNonNegativeNumber(mileage))}
+              error={fieldError(fieldErrors.mileage)}
             />
           </Card>
 
@@ -872,7 +889,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       }
                       editable={!saving && !uploading}
                       placeholder={t("entryForm.placeholderTitle")}
-                      error={fieldError(!row.title.trim())}
+                      error={fieldError(fieldErrors.entryTitles[index] ?? false)}
                     />
                     <FormInputRow
                       icon="cash-outline"
@@ -881,10 +898,11 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       onChangeText={(text) =>
                         updateEntry(index, { cost: text })
                       }
+                      decimal
                       keyboardType="decimal-pad"
                       editable={!saving && !uploading}
                       placeholder={t("entryForm.placeholderCost")}
-                      error={fieldError(!isNonNegativeNumber(row.cost))}
+                      error={fieldError(fieldErrors.entryCosts[index] ?? false)}
                       trailing={
                         isMultipleRows && (!entryId || index > 0) ? (
                           <Pressable
@@ -933,19 +951,18 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   onChangeText={(text) => updateEntry(0, { title: text })}
                   editable={!saving && !uploading}
                   placeholder={t("entryForm.placeholderTitle")}
-                  error={fieldError(!entries[0]?.title.trim())}
+                  error={fieldError(fieldErrors.entryTitles[0] ?? false)}
                 />
                 <FormInputRow
                   icon="cash-outline"
                   label={t("entryForm.cost")}
                   value={entries[0]?.cost ?? ""}
                   onChangeText={(text) => updateEntry(0, { cost: text })}
+                  decimal
                   keyboardType="decimal-pad"
                   editable={!saving && !uploading}
                   placeholder={t("entryForm.placeholderCost")}
-                  error={fieldError(
-                    !isNonNegativeNumber(entries[0]?.cost ?? ""),
-                  )}
+                  error={fieldError(fieldErrors.entryCosts[0] ?? false)}
                 />
               </Card>
 

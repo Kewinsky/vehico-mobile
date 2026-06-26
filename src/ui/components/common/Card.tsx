@@ -59,8 +59,8 @@ export function CardDivider() {
     <View
       style={{
         height: 1,
-        backgroundColor: theme.colors.border,
-        marginHorizontal: theme.spacing.md,
+        width: "100%",
+        backgroundColor: theme.colors.bg,
       }}
     />
   );

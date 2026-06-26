@@ -320,7 +320,7 @@ export const pl = {
     placeholderMileage: "np. 50000",
     placeholderTitle: "np. Wymiana oleju",
     placeholderDescription: "np. Wymieniono olej silnikowy i filtr",
-    placeholderCost: "np. 150.00",
+    placeholderCost: "np. 150",
     categories: {
       maintenance: "Serwis",
       repair: "Naprawa",
@@ -363,7 +363,7 @@ export const pl = {
   dashboard: {
     backToVehicles: "Wróć do pojazdów",
     specification: "Specyfikacja",
-    quickActionsTitle: "Szybkie akcje",
+    quickActionsTitle: "Dodaj",
     sectionOrder: {
       menu: "Układ sekcji",
       title: "Układ sekcji",
@@ -1094,7 +1094,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     gasStation: "Stacja benzynowa",
     placeholderDistance: "np. 500",
     placeholderFuelAmount: "np. 40.5",
-    placeholderCost: "np. 200.00",
+    placeholderCost: "np. 200",
     fuelTypes: {
       "95": "95",
       "98": "98",

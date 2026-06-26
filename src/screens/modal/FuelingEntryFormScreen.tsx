@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import {
@@ -10,12 +10,20 @@ import {
 } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { isValidDate, isPositiveNumber } from "../../utils/validation";
+import {
+  FUEL_TYPE_OPTIONS,
+  GAS_STATION_OPTIONS,
+  buildFuelingEntryPayload,
+  canSaveFuelingEntry,
+  fuelingEntryFieldErrors,
+  type FuelingEntryFormState,
+} from "../../forms/fuelingEntryForm";
 import type { FuelGrade, GasStation } from "../../types/domain";
 import {
   createFuelingEntry,
   deleteFuelingEntry,
   getFuelingEntry,
+  listFuelingEntries,
   updateFuelingEntry,
 } from "../../services/fuel/fuelingEntriesRepo";
 import { Button } from "../../ui/components/common/Button";
@@ -31,24 +39,6 @@ import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
 import { Droplet, Fuel } from "lucide-react-native";
-
-const FUEL_TYPE_OPTIONS: readonly FuelGrade[] = [
-  "95",
-  "98",
-  "100",
-  "on",
-  "lpg",
-];
-
-const GAS_STATION_OPTIONS: readonly GasStation[] = [
-  "orlen",
-  "bp",
-  "shell",
-  "circle_k",
-  "mol",
-  "moya",
-  "other",
-];
 
 type Props = NativeStackScreenProps<AppStackParamList, "FuelingEntryForm">;
 
@@ -68,34 +58,65 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const [gasStation, setGasStation] = useState<GasStation | null>(null);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!entryId) return;
-    void (async () => {
-      try {
-        const e = await getFuelingEntry(entryId);
-        setDate(e.date);
-        setDistance(e.distance != null ? String(e.distance) : "");
-        setFuelAmount(String(e.fuel_amount));
-        setFuelCost(String(e.fuel_cost));
-        setFuelType(e.fuel_type ?? null);
-        setGasStation(e.gas_station ?? null);
-      } catch (err: any) {
-        toastError(err?.message ?? t("common.error"));
-      }
-    })();
-  }, [entryId, t]);
+  const formValues = useMemo(
+    (): FuelingEntryFormState => ({
+      date,
+      distance,
+      fuelAmount,
+      fuelCost,
+      fuelType,
+      gasStation,
+    }),
+    [date, distance, fuelAmount, fuelCost, fuelType, gasStation],
+  );
 
-  const canSave = useMemo(() => {
-    return (
-      isValidDate(date) &&
-      isPositiveNumber(fuelAmount) &&
-      isPositiveNumber(fuelCost) &&
-      (distance.trim().length === 0 || isPositiveNumber(distance))
-    );
-  }, [date, fuelAmount, fuelCost, distance]);
+  const fieldErrors = useMemo(
+    () => fuelingEntryFieldErrors(formValues),
+    [formValues],
+  );
+
+  const canSave = useMemo(
+    () => canSaveFuelingEntry(formValues),
+    [formValues],
+  );
 
   const { fieldError, validateBeforeSave, resetFieldErrors } =
     useFormFieldErrors(canSave);
+
+  const load = useCallback(async () => {
+    if (entryId) {
+      try {
+        const entry = await getFuelingEntry(entryId);
+        setDate(entry.date);
+        setDistance(entry.distance != null ? String(entry.distance) : "");
+        setFuelAmount(String(entry.fuel_amount));
+        setFuelCost(String(entry.fuel_cost));
+        setFuelType(entry.fuel_type ?? null);
+        setGasStation(entry.gas_station ?? null);
+      } catch (err: any) {
+        toastError(err?.message ?? t("common.error"));
+      }
+      return;
+    }
+
+    try {
+      const entries = await listFuelingEntries(vehicleId);
+      const last = entries[0];
+      if (!last) return;
+      if (last.fuel_type != null) {
+        setFuelType((prev) => prev ?? last.fuel_type);
+      }
+      if (last.gas_station != null) {
+        setGasStation((prev) => prev ?? last.gas_station);
+      }
+    } catch (err: any) {
+      toastError(err?.message ?? t("common.error"));
+    }
+  }, [entryId, vehicleId, t]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   function confirmDelete() {
     if (!entryId) return;
@@ -165,19 +186,12 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
 
   async function onSave() {
     if (!validateBeforeSave()) return;
+
     try {
       setSaving(true);
-      const payload = {
-        vehicle_id: vehicleId,
-        date: date.trim(),
-        distance: distance.trim().length > 0 ? Number(distance) : null,
-        fuel_amount: Number(fuelAmount),
-        fuel_cost: Number(fuelCost),
-        fuel_type: fuelType,
-        gas_station: gasStation,
-      };
+      const payload = buildFuelingEntryPayload(vehicleId, formValues);
       if (entryId) await updateFuelingEntry(entryId, payload);
-      else await createFuelingEntry(payload as any);
+      else await createFuelingEntry(payload);
       navigation.goBack();
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
@@ -217,7 +231,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               value={date}
               onChange={setDate}
               disabled={saving}
-              error={fieldError(!isValidDate(date))}
+              error={fieldError(fieldErrors.date)}
             />
 
             <Pressable
@@ -313,12 +327,11 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               label={t("fuelingForm.distance", { unit: distanceUnitLabel })}
               value={distance}
               onChangeText={setDistance}
+              decimal
               keyboardType="decimal-pad"
               editable={!saving}
               placeholder={t("fuelingForm.placeholderDistance")}
-              error={fieldError(
-                distance.trim().length > 0 && !isPositiveNumber(distance),
-              )}
+              error={fieldError(fieldErrors.distance)}
             />
 
             <FormInputRow
@@ -326,10 +339,11 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               label={t("fuelingForm.fuelAmount", { unit: fuelUnitLabel })}
               value={fuelAmount}
               onChangeText={setFuelAmount}
+              decimal
               keyboardType="decimal-pad"
               editable={!saving}
               placeholder={t("fuelingForm.placeholderFuelAmount")}
-              error={fieldError(!isPositiveNumber(fuelAmount))}
+              error={fieldError(fieldErrors.fuelAmount)}
             />
 
             <FormInputRow
@@ -337,10 +351,11 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               label={t("fuelingForm.cost")}
               value={fuelCost}
               onChangeText={setFuelCost}
+              decimal
               keyboardType="decimal-pad"
               editable={!saving}
               placeholder={t("fuelingForm.placeholderCost")}
-              error={fieldError(!isPositiveNumber(fuelCost))}
+              error={fieldError(fieldErrors.fuelCost)}
             />
           </Card>
         </NativeHeaderScrollView>
