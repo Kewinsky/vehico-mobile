@@ -14,7 +14,20 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import {
+  FUEL_TYPE_OPTIONS,
+  GAS_STATION_OPTIONS,
+} from "../../forms/fuelingEntryForm";
+import { WORKSHOP_TYPE_OPTIONS } from "../../forms/workshopForm";
+import { createFuelingEntry } from "../../services/fuel/fuelingEntriesRepo";
 import { createServiceEntry } from "../../services/serviceEntries/serviceEntriesRepo";
+import { createWorkshop } from "../../services/workshops/workshopsRepo";
+import type {
+  FuelGrade,
+  GasStation,
+  ServiceEntryCategory,
+  WorkshopType,
+} from "../../types/domain";
 import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -25,6 +38,18 @@ import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { Textarea } from "../../ui/components/common/Textarea";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Import">;
+
+const IMPORT_ENTRY_TYPES = ["service", "fuel", "workshop"] as const;
+type ImportEntryType = (typeof IMPORT_ENTRY_TYPES)[number];
+
+const SERVICE_CATEGORIES = [
+  "maintenance",
+  "repair",
+  "inspection",
+  "upgrade",
+  "oil_change",
+  "other",
+] as const satisfies readonly ServiceEntryCategory[];
 
 function parseCsvLine(line: string): string[] {
   const out: string[] = [];
@@ -55,6 +80,19 @@ function parseCsvLine(line: string): string[] {
   return out;
 }
 
+function parseOptionalNumber(raw: string | undefined): number | null {
+  const value = (raw ?? "").trim();
+  if (!value.length) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function parseRequiredPositiveNumber(raw: string | undefined): number | null {
+  const parsed = parseOptionalNumber(raw);
+  if (parsed == null || parsed <= 0) return null;
+  return parsed;
+}
+
 export function ImportScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -62,16 +100,67 @@ export function ImportScreen({ navigation, route }: Props) {
   const { isPremium } = useEntitlements();
   const { vehicleId } = route.params;
 
+  const [entryType, setEntryType] = useState<ImportEntryType>("service");
   const [csv, setCsv] = useState("");
   const [importing, setImporting] = useState(false);
 
+  const entryTypeKey = `import.${entryType}` as const;
+
+  function openEntryTypePicker() {
+    if (importing) return;
+    Alert.alert(
+      "",
+      "",
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        ...IMPORT_ENTRY_TYPES.map((type) => ({
+          text: t(`import.entryTypes.${type}`),
+          onPress: () => {
+            setEntryType(type);
+            setCsv("");
+          },
+        })),
+      ],
+      { cancelable: true },
+    );
+  }
+
   async function copyColumns() {
     try {
-      await Clipboard.setStringAsync(t("import.columnsToCopy"));
+      await Clipboard.setStringAsync(t(`${entryTypeKey}.columnsToCopy`));
       toastSuccess(t("import.columnsCopied"));
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     }
+  }
+
+  async function runImport(count: number, createRows: () => Promise<void>) {
+    Alert.alert(
+      t("import.confirmTitle"),
+      t(`${entryTypeKey}.confirmBody`, { count }),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("import.confirmAction"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setImporting(true);
+              await createRows();
+              setCsv("");
+              toastSuccess(
+                t("import.successTitle"),
+                t(`${entryTypeKey}.successBody`),
+              );
+            } catch (err: any) {
+              toastError(err?.message ?? t("common.error"));
+            } finally {
+              setImporting(false);
+            }
+          },
+        },
+      ],
+    );
   }
 
   async function handleImportCsv() {
@@ -90,88 +179,160 @@ export function ImportScreen({ navigation, route }: Props) {
 
       const header = parseCsvLine(lines[0] ?? "").map((x) => x.toLowerCase());
       const idx = (name: string) => header.indexOf(name);
-      const iDate = idx("service_date");
-      const iCategory = idx("category");
-      const iTitle = idx("title");
-      const iDesc = idx("description");
-      const iMileage = idx("mileage");
-      const iCost = idx("cost");
-      if (iDate < 0 || iTitle < 0) {
-        throw new Error(t("import.missingColumns"));
+      const rows = lines.slice(1).map(parseCsvLine);
+
+      if (entryType === "service") {
+        const iDate = idx("service_date");
+        const iCategory = idx("category");
+        const iTitle = idx("title");
+        const iDesc = idx("description");
+        const iMileage = idx("mileage");
+        const iCost = idx("cost");
+        if (iDate < 0 || iTitle < 0) {
+          throw new Error(t("import.service.missingColumns"));
+        }
+
+        const toCreate = rows
+          .map((r) => ({
+            service_date: r[iDate] ?? "",
+            category:
+              iCategory >= 0 && (r[iCategory] ?? "").trim().length
+                ? (r[iCategory] ?? "").trim().toLowerCase()
+                : "other",
+            title: r[iTitle] ?? "",
+            description: iDesc >= 0 ? (r[iDesc] ?? "") : "",
+            mileage: parseOptionalNumber(r[iMileage]),
+            cost: parseOptionalNumber(r[iCost]),
+          }))
+          .filter(
+            (r) => r.service_date.trim().length === 10 && r.title.trim().length,
+          );
+
+        if (toCreate.length === 0) {
+          throw new Error(t("import.noValidEntries"));
+        }
+
+        await runImport(toCreate.length, async () => {
+          for (const e of toCreate) {
+            await createServiceEntry({
+              vehicle_id: vehicleId,
+              service_date: e.service_date.trim(),
+              mileage: e.mileage,
+              category: SERVICE_CATEGORIES.includes(e.category as any)
+                ? (e.category as ServiceEntryCategory)
+                : "other",
+              title: e.title.trim(),
+              description: (e.description ?? "").trim(),
+              cost: e.cost,
+            });
+          }
+        });
+        return;
       }
 
-      const rows = lines.slice(1).map(parseCsvLine);
+      if (entryType === "fuel") {
+        const iDate = idx("date");
+        const iDistance = idx("distance");
+        const iFuelAmount = idx("fuel_amount");
+        const iFuelCost = idx("fuel_cost");
+        const iFuelType = idx("fuel_type");
+        const iGasStation = idx("gas_station");
+        if (iDate < 0 || iFuelAmount < 0 || iFuelCost < 0) {
+          throw new Error(t("import.fuel.missingColumns"));
+        }
+
+        const toCreate = rows
+          .map((r) => {
+            const fuelTypeRaw = (r[iFuelType] ?? "").trim().toLowerCase();
+            const gasStationRaw = (r[iGasStation] ?? "").trim().toLowerCase();
+            return {
+              date: r[iDate] ?? "",
+              distance: parseOptionalNumber(r[iDistance]),
+              fuel_amount: parseRequiredPositiveNumber(r[iFuelAmount]),
+              fuel_cost: parseRequiredPositiveNumber(r[iFuelCost]),
+              fuel_type:
+                fuelTypeRaw.length &&
+                FUEL_TYPE_OPTIONS.includes(fuelTypeRaw as FuelGrade)
+                  ? (fuelTypeRaw as FuelGrade)
+                  : null,
+              gas_station:
+                gasStationRaw.length &&
+                GAS_STATION_OPTIONS.includes(gasStationRaw as GasStation)
+                  ? (gasStationRaw as GasStation)
+                  : null,
+            };
+          })
+          .filter(
+            (r) =>
+              r.date.trim().length === 10 &&
+              r.fuel_amount != null &&
+              r.fuel_cost != null,
+          );
+
+        if (toCreate.length === 0) {
+          throw new Error(t("import.noValidEntries"));
+        }
+
+        await runImport(toCreate.length, async () => {
+          for (const e of toCreate) {
+            await createFuelingEntry({
+              vehicle_id: vehicleId,
+              date: e.date.trim(),
+              distance: e.distance,
+              fuel_amount: e.fuel_amount!,
+              fuel_cost: e.fuel_cost!,
+              fuel_type: e.fuel_type,
+              gas_station: e.gas_station,
+            });
+          }
+        });
+        return;
+      }
+
+      const iName = idx("name");
+      const iWorkshopType = idx("workshop_type");
+      const iPhone = idx("phone_number");
+      const iAddress = idx("address");
+      if (iName < 0) {
+        throw new Error(t("import.workshop.missingColumns"));
+      }
+
       const toCreate = rows
-        .map((r) => ({
-          service_date: r[iDate] ?? "",
-          category:
-            iCategory >= 0 && (r[iCategory] ?? "").trim().length
-              ? (r[iCategory] ?? "").trim().toLowerCase()
-              : "other",
-          title: r[iTitle] ?? "",
-          description: iDesc >= 0 ? (r[iDesc] ?? "") : "",
-          mileage:
-            iMileage >= 0 && (r[iMileage] ?? "").length
-              ? Number(r[iMileage])
-              : null,
-          cost: iCost >= 0 && (r[iCost] ?? "").length ? Number(r[iCost]) : null,
-        }))
-        .filter(
-          (r) => r.service_date.trim().length === 10 && r.title.trim().length,
-        );
+        .map((r) => {
+          const workshopTypeRaw = (r[iWorkshopType] ?? "").trim().toLowerCase();
+          return {
+            name: r[iName] ?? "",
+            workshop_type:
+              workshopTypeRaw.length &&
+              WORKSHOP_TYPE_OPTIONS.includes(workshopTypeRaw as WorkshopType)
+                ? (workshopTypeRaw as WorkshopType)
+                : "other",
+            phone_number:
+              iPhone >= 0 && (r[iPhone] ?? "").trim().length
+                ? (r[iPhone] ?? "").trim()
+                : null,
+            address:
+              iAddress >= 0 && (r[iAddress] ?? "").trim().length
+                ? (r[iAddress] ?? "").trim()
+                : null,
+          };
+        })
+        .filter((r) => r.name.trim().length);
 
       if (toCreate.length === 0) {
         throw new Error(t("import.noValidEntries"));
       }
 
-      Alert.alert(
-        t("import.confirmTitle"),
-        t("import.confirmBody", { count: toCreate.length }),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("import.confirmAction"),
-            style: "destructive",
-            onPress: async () => {
-              try {
-                setImporting(true);
-                for (const e of toCreate) {
-                  await createServiceEntry({
-                    vehicle_id: vehicleId,
-                    service_date: e.service_date.trim(),
-                    mileage: Number.isFinite(e.mileage as any)
-                      ? (e.mileage as any)
-                      : null,
-                    category: (
-                      [
-                        "maintenance",
-                        "repair",
-                        "inspection",
-                        "upgrade",
-                        "oil_change",
-                        "other",
-                      ] as const
-                    ).includes(e.category as any)
-                      ? (e.category as any)
-                      : "other",
-                    title: e.title.trim(),
-                    description: (e.description ?? "").trim(),
-                    cost: Number.isFinite(e.cost as any)
-                      ? (e.cost as any)
-                      : null,
-                  });
-                }
-                setCsv("");
-                toastSuccess(t("import.successTitle"), t("import.successBody"));
-              } catch (err: any) {
-                toastError(err?.message ?? t("common.error"));
-              } finally {
-                setImporting(false);
-              }
-            },
-          },
-        ],
-      );
+      await runImport(toCreate.length, async () => {
+        for (const e of toCreate) {
+          await createWorkshop({
+            name: e.name.trim(),
+            workshop_type: e.workshop_type,
+            phone_number: e.phone_number,
+            address: e.address,
+          });
+        }
+      });
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     }
@@ -188,7 +349,9 @@ export function ImportScreen({ navigation, route }: Props) {
             onPress={handleImportCsv}
             disabled={importing || !csv.trim().length}
           >
-            {importing ? t("common.loading") : t("import.importButton")}
+            {importing
+              ? t("common.loading")
+              : t(`${entryTypeKey}.importButton`)}
           </Button>
           <Button
             onPress={() => setCsv("")}
@@ -203,6 +366,53 @@ export function ImportScreen({ navigation, route }: Props) {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <NativeHeaderScrollView>
           <ContentHeader title={t("import.title")} />
+          <View
+            style={[
+              styles.card,
+              styles.cardSpaced,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.card,
+              },
+            ]}
+          >
+            <View style={styles.cardInner}>
+              <View style={styles.entryTypeRow}>
+                <View style={styles.rowLeft}>
+                  <Text
+                    style={[styles.label, { color: theme.colors.muted }]}
+                    numberOfLines={1}
+                  >
+                    {t("import.entryTypeLabel")}
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={openEntryTypePicker}
+                  disabled={importing}
+                  style={({ pressed }) => [
+                    styles.entryTypePill,
+                    { backgroundColor: theme.colors.accent },
+                    pressed && !importing && { opacity: 0.85 },
+                    importing && { opacity: 0.5 },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.entryTypePillText,
+                      {
+                        color: "#000000",
+                        fontWeight: theme.typography.fontWeight.bold,
+                        fontSize: theme.typography.small,
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {t(`import.entryTypes.${entryType}`)}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
           <View
             style={[
               styles.card,
@@ -224,7 +434,7 @@ export function ImportScreen({ navigation, route }: Props) {
                 </Text>
               </View>
               <Text style={[styles.hint, { color: theme.colors.muted }]}>
-                {t("import.csvHint")}
+                {t(`${entryTypeKey}.csvHint`)}
               </Text>
               <View style={{ marginTop: theme.spacing.sm }}>
                 <Textarea
@@ -233,7 +443,7 @@ export function ImportScreen({ navigation, route }: Props) {
                   onChangeText={setCsv}
                   editable={!importing}
                   multiline
-                  placeholder={t("import.placeholder")}
+                  placeholder={t(`${entryTypeKey}.placeholder`)}
                   placeholderTextColor={theme.colors.muted}
                   style={[styles.textArea, { color: theme.colors.fg }]}
                   fixedHeight={250}
@@ -274,6 +484,21 @@ export function ImportScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
+    entryTypeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: theme.spacing.sm,
+    },
+    entryTypePill: {
+      paddingVertical: 6,
+      paddingHorizontal: theme.spacing.sm,
+      borderRadius: 999,
+      flexShrink: 0,
+    },
+    entryTypePillText: {
+      textAlign: "center",
+    },
     actionsRow: {
       flexDirection: "row",
       justifyContent: "flex-end",
@@ -296,6 +521,9 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.xl,
       overflow: "hidden",
     },
+    cardSpaced: {
+      marginBottom: theme.spacing.sm,
+    },
     cardInner: {
       paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
@@ -304,6 +532,9 @@ const makeStyles = (theme: any) =>
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.xs,
+      flex: 1,
+      minWidth: 0,
+      flexShrink: 1,
     },
     label: {
       fontSize: theme.typography.body,

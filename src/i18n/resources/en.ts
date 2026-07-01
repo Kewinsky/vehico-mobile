@@ -1193,30 +1193,61 @@ Detailed report available at: https://report.vehico.app/report/example`,
   },
   import: {
     title: "Import Data",
-    subtitle: "Import service entries from CSV.",
+    entryTypeLabel: "Select entry type",
+    entryTypes: {
+      service: "Service",
+      fuel: "Fuel",
+      workshop: "Workshop",
+    },
     csvLabel: "Paste CSV",
-    csvHint:
-      "Required columns: service_date,title (optional: category,description,mileage,cost)",
-    placeholder:
-      "service_date;category;title;description;mileage;cost\n2026-01-14;maintenance;Oil change;Engine oil and filter;120000;250",
-    copyHeadersButton: "Copy headers",
     copyColumnsButton: "Copy columns",
-    headersCopied: "Headers copied to clipboard",
     columnsCopied: "Columns copied to clipboard",
-    headersToCopy: "service_date;category;title;description;mileage;cost",
-    columnsToCopy:
-      "service_date (YYYY-MM-DD)\ncategory (maintenance|repair|inspection|upgrade|oil_change|other)\ntitle\ndescription\nmileage\ncost",
-    importButton: "Import service entries",
     clearButton: "Clear",
     confirmTitle: "Import entries?",
-    confirmBody: "This will add {{count}} service entries to this vehicle.",
     confirmAction: "Import",
     successTitle: "Imported",
-    successBody: "Service entries imported.",
     emptyCsv: "Please paste CSV data",
     invalidCsv: "CSV must include a header row and at least one data row.",
-    missingColumns: "CSV must include at least: service_date,title",
     noValidEntries: "No valid rows found to import.",
+    service: {
+      subtitle: "Import service entries from CSV.",
+      csvHint:
+        "Required columns: service_date,title (optional: category,description,mileage,cost)",
+      placeholder:
+        "service_date;category;title;description;mileage;cost\n2026-01-14;maintenance;Oil change;Engine oil and filter;120000;250",
+      columnsToCopy:
+        "service_date (YYYY-MM-DD)\ncategory (maintenance|repair|inspection|upgrade|oil_change|other)\ntitle\ndescription\nmileage\ncost",
+      importButton: "Import service entries",
+      confirmBody: "This will add {{count}} service entries to this vehicle.",
+      successBody: "Service entries imported.",
+      missingColumns: "CSV must include at least: service_date,title",
+    },
+    fuel: {
+      subtitle: "Import fueling entries from CSV.",
+      csvHint:
+        "Required columns: date,fuel_amount,fuel_cost (optional: distance,fuel_type,gas_station)",
+      placeholder:
+        "date;distance;fuel_amount;fuel_cost;fuel_type;gas_station\n2026-01-14;420;45.5;320.00;95;orlen",
+      columnsToCopy:
+        "date (YYYY-MM-DD)\ndistance\nfuel_amount\nfuel_cost\nfuel_type (95|98|100|on|lpg)\ngas_station (orlen|bp|shell|circle_k|mol|moya|other)",
+      importButton: "Import fuel entries",
+      confirmBody: "This will add {{count}} fueling entries to this vehicle.",
+      successBody: "Fueling entries imported.",
+      missingColumns: "CSV must include at least: date,fuel_amount,fuel_cost",
+    },
+    workshop: {
+      subtitle: "Import workshops from CSV.",
+      csvHint:
+        "Required columns: name (optional: workshop_type,phone_number,address)",
+      placeholder:
+        "name;workshop_type;phone_number;address\nKowalski Auto Service;mechanic;600123456;Main St 1",
+      columnsToCopy:
+        "name\nworkshop_type (mechanic|electrician|detailer|bodywork|car_wash|other)\nphone_number\naddress",
+      importButton: "Import workshops",
+      confirmBody: "This will add {{count}} workshops to your account.",
+      successBody: "Workshops imported.",
+      missingColumns: "CSV must include at least: name",
+    },
   },
   share: {
     title: "Share",
