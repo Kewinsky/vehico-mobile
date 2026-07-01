@@ -480,23 +480,15 @@ export const en = {
       charts: {
         expensesOverTime: "Expenses over time",
         distanceOverTime: "Monthly distance",
-        costPerKmOverTime: "Maintenance cost",
-        consumptionVsFuelPrice: "Consumption vs fuel price",
-        legend: {
-          consumption: "Consumption (L/100 km)",
-          fuelPrice: "Fuel price / L",
-        },
+        mileageOverTime: "Mileage over time",
         expensesByCategory: "Expenses by category",
       },
       chartInfo: {
         open: "Show chart explanation",
         openOilSection: "About oil change stats",
-        costPerKmTitle: "How to read maintenance cost?",
-        costPerKmBody:
-          "This chart shows maintenance cost per 1 km in each month: (fuel + service costs) / driven km. The red dashed line is the average maintenance cost for the selected period. When points are above this line, the vehicle is more expensive to maintain than usual. A rising trend means the vehicle is getting more expensive overall, and single spikes usually indicate a larger service or repair event.",
-        consumptionVsFuelPriceTitle: "How to read consumption vs fuel price?",
-        consumptionVsFuelPriceBody:
-          "Compare two lines: fuel consumption (L/100 km) and average fuel price per liter. If mostly consumption rises, the issue may be driving style or vehicle condition. If mostly fuel price rises, market prices are the main factor.",
+        mileageOverTimeTitle: "How to read mileage over time?",
+        mileageOverTimeBody:
+          "This chart shows vehicle mileage month by month from service entries with odometer readings and the history of manual odometer updates from the vehicle profile (in {{unit}}). Each point is the highest known mileage in that month – the line rises as new readings are recorded.",
         expensesOverTimeTitle: "How to read expenses over time?",
         expensesOverTimeBody:
           "This chart shows total monthly expenses (fuel + service). Use it to quickly spot cost spikes and compare whether current months are more expensive than previous ones.",

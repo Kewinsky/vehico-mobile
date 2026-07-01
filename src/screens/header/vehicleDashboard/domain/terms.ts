@@ -2,7 +2,7 @@ import type { Reminder } from "../../../../types/domain";
 import { daysSinceYmd } from "../../../../utils/formatRelativeTimePast";
 import { formatShortDisplayDate } from "../../../../utils/dateFormatting";
 
-const MILEAGE_STALE_MIN_DAYS = 90;
+const MILEAGE_STALE_MIN_DAYS = 30;
 export const FORMALITY_CALLOUT_DAYS_BEFORE = 7;
 
 export function shouldShowFormalityCallout(

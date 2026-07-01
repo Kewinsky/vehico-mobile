@@ -5,7 +5,20 @@ import { CHART_BAR_HEIGHT, ChartYAxis, SimpleStackedBarChart } from "../charts/c
 import type { StatisticsPanelProps } from "../types";
 
 export function ExpensesOverTimeSection({
-  styles, theme, t, period, monthlyExpensesSeries, barChartScale, barChartWidth, chartScrollViewportWidth, formatChartMonth, formatChartYAxisLabel, showChartInfo, currency,
+  styles,
+  theme,
+  t,
+  period,
+  monthlyExpensesSeries,
+  barChartScale,
+  barChartWidth,
+  chartScrollViewportWidth,
+  formatChartMonth,
+  formatChartMonthFull,
+  formatChartYAxisLabel,
+  formatExpenseChartValue,
+  showChartInfo,
+  currency,
 }: StatisticsPanelProps) {
   return (
       <View style={styles.section}>
@@ -82,6 +95,8 @@ export function ExpensesOverTimeSection({
                   grid={theme.colors.border}
                   textColor={theme.colors.muted}
                   formatXLabel={formatChartMonth}
+                  formatTooltipXLabel={formatChartMonthFull}
+                  formatMoneyValue={formatExpenseChartValue}
                   currency={currency}
                   tooltipBg={theme.colors.card}
                   tooltipText={theme.colors.fg}

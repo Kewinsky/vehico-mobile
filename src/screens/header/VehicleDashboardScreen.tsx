@@ -58,6 +58,7 @@ import {
   deleteVehicle,
   getVehicle,
   updateVehicle,
+  updateVehicleProfileMileage,
 } from "../../services/vehicles/vehiclesRepo";
 import {
   listVehiclePhotos,
@@ -781,10 +782,10 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               return;
             }
             try {
-              const updatedVehicle = await updateVehicle(vehicleId, {
-                mileage: Number(mileageRaw),
-                mileage_updated_at: new Date().toISOString().slice(0, 10),
-              });
+              const updatedVehicle = await updateVehicleProfileMileage(
+                vehicleId,
+                Number(mileageRaw),
+              );
               setVehicle(updatedVehicle);
             } catch (e: any) {
               toastError(e?.message ?? t("common.error"));
@@ -1166,7 +1167,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   });
 
   useEffect(() => {
-    if (activePage <= 1 && scrollOffsetYRef.current > 4) {
+    if (scrollOffsetYRef.current > 4) {
       scrollViewRef.current?.scrollTo({ y: 0, animated: true });
     }
   }, [activePage]);

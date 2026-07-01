@@ -35,6 +35,7 @@ import {
   updateVehicle,
   type UpdateVehicleInput,
 } from "../../services/vehicles/vehiclesRepo";
+import { insertMileageAudit } from "../../services/mileage/mileageAuditRepo";
 import {
   deleteVehiclePhoto,
   getVehiclePhotoUrl,
@@ -456,6 +457,18 @@ export function VehicleFormScreen({ navigation, route }: Props) {
             newMileage != null ? formatYmd(new Date()) : null;
         }
         await updateVehicle(vehicleId, patch);
+        if (
+          newMileage != null &&
+          initialMileageRef.current !== undefined &&
+          newMileage !== initialMileageRef.current
+        ) {
+          await insertMileageAudit({
+            vehicle_id: vehicleId,
+            reading_date: patch.mileage_updated_at ?? formatYmd(new Date()),
+            mileage: newMileage,
+            source: "profile",
+          });
+        }
 
         const currentExistingIds = new Set(
           draftPhotos

@@ -15,11 +15,10 @@ export type DashboardOverviewSectionId =
 /** Reorderable blocks on the dashboard statistics panel (right pager page). */
 export const DASHBOARD_STATS_SECTION_IDS = [
   "expenseSummary",
-  "costPerKmChart",
+  "mileageOverTimeChart",
   "fuelStats",
-  "consumptionVsFuelPriceChart",
-  "recentService",
   "expensesByCategory",
+  "recentService",
   "expensesOverTime",
   "oilChange",
 ] as const;

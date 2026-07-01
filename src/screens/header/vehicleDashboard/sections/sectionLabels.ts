@@ -19,10 +19,8 @@ const OVERVIEW_LABEL_KEYS: Record<DashboardOverviewSectionId, string> = {
 
 const STATS_LABEL_KEYS: Record<DashboardStatsSectionId, string> = {
   expenseSummary: "dashboard.sectionOrder.expenseSummary",
-  costPerKmChart: "dashboard.stats.charts.costPerKmOverTime",
+  mileageOverTimeChart: "dashboard.stats.charts.mileageOverTime",
   fuelStats: "dashboard.stats.fuelStats",
-  consumptionVsFuelPriceChart:
-    "dashboard.stats.charts.consumptionVsFuelPrice",
   recentService: "dashboard.stats.recentService",
   expensesByCategory: "dashboard.stats.charts.expensesByCategory",
   expensesOverTime: "dashboard.stats.charts.expensesOverTime",

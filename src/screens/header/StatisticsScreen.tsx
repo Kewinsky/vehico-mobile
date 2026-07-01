@@ -11,11 +11,13 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
+import { listMileageAudit } from "../../services/mileage/mileageAuditRepo";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import type {
   FuelingEntry,
+  MileageAudit,
   ServiceEntry,
   ServiceEntryCategory,
   Vehicle,
@@ -38,6 +40,7 @@ import {
   fmtNumber,
   fmtPct,
   formatChartMonthKey,
+  formatChartMonthKeyFull,
   formatChartYAxisLabel,
   listMonthKeysInclusive,
   monthKey,
@@ -77,6 +80,8 @@ export function StatisticsScreen(props: Props) {
   const chartLocale = i18n.language === "pl" ? "pl" : "en";
   const formatChartMonth = (key: string) =>
     formatChartMonthKey(key, chartLocale);
+  const formatChartMonthFull = (key: string) =>
+    formatChartMonthKeyFull(key, chartLocale);
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const { width: windowWidth } = useWindowDimensions();
@@ -97,6 +102,7 @@ export function StatisticsScreen(props: Props) {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [service, setService] = useState<ServiceEntry[]>([]);
   const [fueling, setFueling] = useState<FuelingEntry[]>([]);
+  const [mileageAudit, setMileageAudit] = useState<MileageAudit[]>([]);
   const [workshopsById, setWorkshopsById] = useState<Record<string, Workshop>>(
     {},
   );
@@ -113,15 +119,17 @@ export function StatisticsScreen(props: Props) {
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
-        const [v, s, f, workshops] = await Promise.all([
+        const [v, s, f, auditRows, workshops] = await Promise.all([
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
           listFuelingEntries(vehicleId),
+          listMileageAudit(vehicleId),
           listWorkshops(),
         ]);
         setVehicle(v);
         setService(s);
         setFueling(f);
+        setMileageAudit(auditRows);
         const workshopMap = workshops.reduce<Record<string, Workshop>>(
           (acc, workshop) => {
             acc[workshop.id] = workshop;
@@ -190,8 +198,21 @@ export function StatisticsScreen(props: Props) {
         entryMonthStr >= startMonthStr! && entryMonthStr <= currentMonthStr
       );
     });
-    return { service: serviceIn, fueling: fuelingIn };
-  }, [period, fueling, service]);
+    const mileageAuditIn = mileageAudit.filter((row) => {
+      const entryDateStr = row.reading_date.slice(0, 10);
+      if (entryDateStr > todayStr) return false;
+      if (period === "all") return true;
+      const entryMonthStr = entryDateStr.slice(0, 7);
+      return (
+        entryMonthStr >= startMonthStr! && entryMonthStr <= currentMonthStr
+      );
+    });
+    return {
+      service: serviceIn,
+      fueling: fuelingIn,
+      mileageAudit: mileageAuditIn,
+    };
+  }, [period, fueling, mileageAudit, service]);
 
   const monthRange = useMemo(() => {
     const today = new Date();
@@ -354,25 +375,27 @@ export function StatisticsScreen(props: Props) {
     return amounts.reduce((sum, value) => sum + value, 0) / amounts.length;
   }, [filtered.fueling]);
 
-  const costPerDistanceSeries = useMemo(() => {
-    const byMonthCost: Record<string, number> = {};
-    const byMonthDistance: Record<string, number> = {};
-    const addCost = (k: string, amount: number) => {
-      byMonthCost[k] = (byMonthCost[k] ?? 0) + clampNonNeg(amount);
-    };
-    for (const f of filtered.fueling) {
-      const d = parseDateLoose(f.date);
-      if (!d) continue;
-      const k = monthKey(d);
-      addCost(k, Number(f.fuel_cost ?? 0));
-      byMonthDistance[k] = (byMonthDistance[k] ?? 0) + Number(f.distance ?? 0);
+  const mileageOverTimeSeries = useMemo(() => {
+    const byMonthMax: Record<string, number> = {};
+    for (const entry of filtered.service) {
+      const mileage = entry.mileage;
+      if (mileage == null || !Number.isFinite(mileage) || mileage <= 0) {
+        continue;
+      }
+      const date = parseDateLoose(entry.service_date);
+      if (!date) continue;
+      const key = monthKey(date);
+      byMonthMax[key] = Math.max(byMonthMax[key] ?? 0, mileage);
     }
-    for (const s of filtered.service) {
-      const d = parseDateLoose(s.service_date);
-      if (!d) continue;
-      addCost(monthKey(d), Number(s.cost ?? 0));
+    for (const row of filtered.mileageAudit) {
+      const mileage = row.mileage;
+      if (!Number.isFinite(mileage) || mileage <= 0) continue;
+      const date = parseDateLoose(row.reading_date);
+      if (!date) continue;
+      const key = monthKey(date);
+      byMonthMax[key] = Math.max(byMonthMax[key] ?? 0, mileage);
     }
-    const keysWithData = Object.keys(byMonthCost).sort();
+    const keysWithData = Object.keys(byMonthMax).sort();
     const monthKeys =
       period === "all"
         ? keysWithData.length > 0
@@ -382,49 +405,19 @@ export function StatisticsScreen(props: Props) {
             monthRange.startMonthStr!,
             monthRange.currentMonthStr,
           );
-    return monthKeys.map((k) => {
-      const distance = byMonthDistance[k] ?? 0;
-      const totalCost = byMonthCost[k] ?? 0;
-      return { x: k, y: distance > 0 ? totalCost / distance : 0 };
-    });
-  }, [filtered.fueling, filtered.service, period, monthRange]);
-
-  const fuelVsConsumptionSeries = useMemo(() => {
-    const byMonthFuelCost: Record<string, number> = {};
-    const byMonthFuelAmount: Record<string, number> = {};
-    const byMonthDistance: Record<string, number> = {};
-    for (const f of filtered.fueling) {
-      const d = parseDateLoose(f.date);
-      if (!d) continue;
-      const k = monthKey(d);
-      byMonthFuelCost[k] =
-        (byMonthFuelCost[k] ?? 0) + clampNonNeg(Number(f.fuel_cost ?? 0));
-      byMonthFuelAmount[k] =
-        (byMonthFuelAmount[k] ?? 0) + clampNonNeg(Number(f.fuel_amount ?? 0));
-      byMonthDistance[k] = (byMonthDistance[k] ?? 0) + Number(f.distance ?? 0);
+    let runningMax = 0;
+    const series: { x: string; y: number }[] = [];
+    for (const key of monthKeys) {
+      const monthMax = byMonthMax[key];
+      if (monthMax != null && monthMax > runningMax) {
+        runningMax = monthMax;
+      }
+      if (runningMax > 0) {
+        series.push({ x: key, y: runningMax });
+      }
     }
-    const keysWithData = Object.keys(byMonthFuelCost).sort();
-    const monthKeys =
-      period === "all"
-        ? keysWithData.length > 0
-          ? listMonthKeysInclusive(keysWithData[0]!, monthRange.currentMonthStr)
-          : []
-        : listMonthKeysInclusive(
-            monthRange.startMonthStr!,
-            monthRange.currentMonthStr,
-          );
-    const consumption = monthKeys.map((k) => {
-      const distance = byMonthDistance[k] ?? 0;
-      const amount = byMonthFuelAmount[k] ?? 0;
-      return { x: k, y: distance > 0 ? (amount / distance) * 100 : 0 };
-    });
-    const fuelPrice = monthKeys.map((k) => {
-      const amount = byMonthFuelAmount[k] ?? 0;
-      const cost = byMonthFuelCost[k] ?? 0;
-      return { x: k, y: amount > 0 ? cost / amount : 0 };
-    });
-    return { consumption, fuelPrice };
-  }, [filtered.fueling, period, monthRange]);
+    return series;
+  }, [filtered.mileageAudit, filtered.service, period, monthRange]);
 
   const lastOilChange = useMemo(() => {
     const oilEntries = service
@@ -615,36 +608,30 @@ export function StatisticsScreen(props: Props) {
   const showChartInfo = useCallback(
     (
       chart:
-        | "costPerKm"
-        | "consumptionVsFuelPrice"
+        | "mileageOverTime"
         | "expensesOverTime"
         | "expensesByCategory",
     ) => {
       const info =
-        chart === "costPerKm"
+        chart === "mileageOverTime"
           ? {
-              title: t("dashboard.stats.chartInfo.costPerKmTitle"),
-              body: t("dashboard.stats.chartInfo.costPerKmBody"),
+              title: t("dashboard.stats.chartInfo.mileageOverTimeTitle"),
+              body: t("dashboard.stats.chartInfo.mileageOverTimeBody", {
+                unit: distanceUnitLabel,
+              }),
             }
-          : chart === "consumptionVsFuelPrice"
+          : chart === "expensesOverTime"
             ? {
-                title: t(
-                  "dashboard.stats.chartInfo.consumptionVsFuelPriceTitle",
-                ),
-                body: t("dashboard.stats.chartInfo.consumptionVsFuelPriceBody"),
+                title: t("dashboard.stats.chartInfo.expensesOverTimeTitle"),
+                body: t("dashboard.stats.chartInfo.expensesOverTimeBody"),
               }
-            : chart === "expensesOverTime"
-              ? {
-                  title: t("dashboard.stats.chartInfo.expensesOverTimeTitle"),
-                  body: t("dashboard.stats.chartInfo.expensesOverTimeBody"),
-                }
-              : {
-                  title: t("dashboard.stats.chartInfo.expensesByCategoryTitle"),
-                  body: t("dashboard.stats.chartInfo.expensesByCategoryBody"),
-                };
+            : {
+                title: t("dashboard.stats.chartInfo.expensesByCategoryTitle"),
+                body: t("dashboard.stats.chartInfo.expensesByCategoryBody"),
+              };
       Alert.alert(info.title, info.body);
     },
-    [t],
+    [distanceUnitLabel, t],
   );
 
   const showOilSectionInfo = useCallback(() => {
@@ -668,34 +655,16 @@ export function StatisticsScreen(props: Props) {
     monthlyExpensesSeries.data.length,
     chartScrollViewportWidth,
   );
-  const lineChartWidth = getScrollableChartWidth(
-    costPerDistanceSeries.length,
-    chartScrollViewportWidth,
-  );
-  const dualLineChartWidth = getScrollableChartWidth(
-    fuelVsConsumptionSeries.consumption.length,
+  const mileageChartWidth = getScrollableChartWidth(
+    mileageOverTimeSeries.length,
     chartScrollViewportWidth,
   );
   const barChartScale = getChartScale(
     monthlyExpensesSeries.data.map((item) => item.total),
     CHART_BAR_HEIGHT,
   );
-  const lineChartScale = getChartScale(
-    costPerDistanceSeries.map((item) => item.y),
-    CHART_LINE_HEIGHT,
-  );
-  const avgCostPerDistance = useMemo(() => {
-    const values = costPerDistanceSeries
-      .map((item) => item.y)
-      .filter((value) => Number.isFinite(value) && value > 0);
-    if (values.length === 0) return Number.NaN;
-    return values.reduce((sum, value) => sum + value, 0) / values.length;
-  }, [costPerDistanceSeries]);
-  const fuelComparisonScale = getChartScale(
-    [
-      ...fuelVsConsumptionSeries.consumption.map((item) => item.y),
-      ...fuelVsConsumptionSeries.fuelPrice.map((item) => item.y),
-    ],
+  const mileageChartScale = getChartScale(
+    mileageOverTimeSeries.map((item) => item.y),
     CHART_LINE_HEIGHT,
   );
   const categorySeries = useMemo(
@@ -721,6 +690,16 @@ export function StatisticsScreen(props: Props) {
   );
   const hasHiddenCategoryItems = categorySeries.length > 3;
   const isNarrow = windowWidth < 380;
+
+  const formatMileageChartValue = useCallback(
+    (value: number) =>
+      `${groupThousands(Math.round(value), 0, chartLocale)} ${distanceUnitLabel}`,
+    [chartLocale, distanceUnitLabel],
+  );
+  const formatExpenseChartValue = useCallback(
+    (value: number) => fmtMoney(value, currency),
+    [currency],
+  );
 
   const filterPanelContent = (
     <View style={styles.panelWrap}>
@@ -784,13 +763,15 @@ export function StatisticsScreen(props: Props) {
     totalMain,
     fuelMain,
     serviceMain,
-    costPerDistanceSeries,
-    lineChartScale,
-    avgCostPerDistance,
+    mileageOverTimeSeries,
+    mileageChartScale,
     chartScrollViewportWidth,
-    lineChartWidth,
+    mileageChartWidth,
     formatChartMonth,
+    formatChartMonthFull,
     formatChartYAxisLabel,
+    formatMileageChartValue,
+    formatExpenseChartValue,
     showChartInfo,
     consumptionUnitLine,
     fuelUnitShort,
@@ -805,9 +786,6 @@ export function StatisticsScreen(props: Props) {
     fuelStatsDistance,
     fuelIntervals,
     avgRefuelAmount,
-    fuelVsConsumptionSeries,
-    fuelComparisonScale,
-    dualLineChartWidth,
     navigateToFuel,
     recentServiceEntries,
     workshopsById,

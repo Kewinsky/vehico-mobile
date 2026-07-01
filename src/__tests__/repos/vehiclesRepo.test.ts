@@ -5,6 +5,7 @@ import {
   listVehicles,
   syncVehicleMileageIfHigher,
   updateVehicle,
+  updateVehicleProfileMileage,
 } from "../../services/vehicles/vehiclesRepo";
 import {
   createPostgrestChain,
@@ -69,6 +70,34 @@ describe("vehiclesRepo", () => {
     );
 
     await expect(updateVehicle("v1", { notes: "x" })).resolves.toEqual(row);
+  });
+
+  it("updateVehicleProfileMileage updates vehicle and records audit row", async () => {
+    const vehicleRow = {
+      id: "v1",
+      mileage: 105_000,
+      mileage_updated_at: "2025-06-01",
+    };
+    const readingRow = {
+      id: "r1",
+      vehicle_id: "v1",
+      reading_date: "2025-06-01",
+      mileage: 105_000,
+      source: "profile",
+    };
+    jest
+      .mocked(supabase.from)
+      .mockImplementationOnce(() =>
+        createPostgrestChain({ data: vehicleRow, error: null }),
+      )
+      .mockImplementationOnce(() =>
+        createPostgrestChain({ data: readingRow, error: null }),
+      );
+
+    await expect(
+      updateVehicleProfileMileage("v1", 105_000, "2025-06-01"),
+    ).resolves.toEqual(vehicleRow);
+    expect(supabase.from).toHaveBeenCalledTimes(2);
   });
 
   it("syncVehicleMileageIfHigher updates vehicle when entry mileage is higher", async () => {

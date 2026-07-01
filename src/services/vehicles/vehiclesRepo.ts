@@ -3,6 +3,7 @@ import {
   cancelVehicleFormalityNotifications,
   rescheduleVehicleFormalityNotifications,
 } from "../push/localFormalityNotifications";
+import { insertMileageAudit } from "../mileage/mileageAuditRepo";
 import { listVehiclePhotos } from "./uploadPhoto";
 import type { Vehicle, VehicleType } from "../../types/domain";
 
@@ -91,6 +92,30 @@ export async function updateVehicle(
   if (error) throw error;
   const vehicle = data as Vehicle;
   syncFormalityNotifications(vehicle);
+  return vehicle;
+}
+
+function todayYmd(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** Updates profile mileage and appends an audit row for the mileage-over-time chart. */
+export async function updateVehicleProfileMileage(
+  vehicleId: string,
+  mileage: number,
+  readingDate?: string | null,
+): Promise<Vehicle> {
+  const date = readingDate?.trim().slice(0, 10) || todayYmd();
+  const vehicle = await updateVehicle(vehicleId, {
+    mileage,
+    mileage_updated_at: date,
+  });
+  await insertMileageAudit({
+    vehicle_id: vehicleId,
+    reading_date: date,
+    mileage,
+    source: "profile",
+  });
   return vehicle;
 }
 

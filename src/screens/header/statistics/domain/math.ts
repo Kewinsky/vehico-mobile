@@ -142,3 +142,15 @@ export function formatChartMonthKey(key: string, locale: string): string {
   const withDot = short.endsWith(".") ? short : `${short}.`;
   return withDot.charAt(0).toUpperCase() + withDot.slice(1);
 }
+
+export function formatChartMonthKeyFull(key: string, locale: string): string {
+  const match = /^(\d{4})-(\d{2})$/.exec(key);
+  if (!match) return key.replace("-", "/");
+  const year = parseInt(match[1], 10);
+  const month = parseInt(match[2], 10) - 1;
+  const label = new Intl.DateTimeFormat(locale, {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(year, month, 1));
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}

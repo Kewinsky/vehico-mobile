@@ -113,6 +113,20 @@ create index service_entries_service_date_idx on public.service_entries(service_
 create index service_entries_workshop_id_idx on public.service_entries(workshop_id);
 alter table public.service_entries add column if not exists workshop_snapshot text;
 
+-- Manual odometer updates from vehicle profile (audit for mileage-over-time chart)
+create table public.mileage_audit (
+  id uuid primary key default gen_random_uuid(),
+  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
+  reading_date date not null,
+  mileage integer not null check (mileage >= 0),
+  source text not null default 'profile' check (source in ('profile')),
+  created_at timestamptz not null default now()
+);
+
+create index mileage_audit_vehicle_id_idx on public.mileage_audit(vehicle_id);
+create index mileage_audit_reading_date_idx
+  on public.mileage_audit(vehicle_id, reading_date desc);
+
 -- Attachments and vehicle_documents are stored locally on device (SQLite + file system).
 -- See: src/services/localStorage/
 
@@ -250,6 +264,7 @@ create index wheels_is_currently_fitted_idx on public.wheels(vehicle_id, is_curr
 alter table public.vehicles enable row level security;
 alter table public.workshops enable row level security;
 alter table public.service_entries enable row level security;
+alter table public.mileage_audit enable row level security;
 alter table public.reports enable row level security;
 alter table public.fueling_entries enable row level security;
 alter table public.reminders enable row level security;
@@ -338,6 +353,40 @@ using (
   exists (
     select 1 from public.vehicles v
     where v.id = service_entries.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+-- Mileage audit: owner can read/insert/delete via own vehicles (append-only audit)
+create policy mileage_audit_select_own_vehicle
+on public.mileage_audit for select
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = mileage_audit.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+create policy mileage_audit_insert_own_vehicle
+on public.mileage_audit for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = mileage_audit.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+create policy mileage_audit_delete_own_vehicle
+on public.mileage_audit for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = mileage_audit.vehicle_id
       and v.owner_id = auth.uid()
   )
 );
@@ -1796,6 +1845,11 @@ begin
     now()
   )
   returning * into v_vehicle;
+
+  if p_mileage is not null then
+    insert into public.mileage_audit (vehicle_id, reading_date, mileage, source)
+    values (v_vehicle.id, current_date, p_mileage, 'profile');
+  end if;
 
   return v_vehicle;
 end;

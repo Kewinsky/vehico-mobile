@@ -5,8 +5,15 @@ import { SimplePieChart } from "../charts/charts";
 import type { StatisticsPanelProps } from "../types";
 
 export function ExpensesByCategorySection({
-  styles, theme, t, period, categorySeries, chartViewportWidth, isNarrow, legendShowPercent, setLegendShowPercent, visibleCategorySeries, totalByCategory, hasHiddenCategoryItems, showAllCategoryLegend, setShowAllCategoryLegend, showChartInfo, fmtPct, fmtMoney, currency,
+  styles,
+  theme,
+  t,
+  isPremium,
+  period,
+  categorySeries, chartViewportWidth, isNarrow, legendShowPercent, setLegendShowPercent, visibleCategorySeries, totalByCategory, hasHiddenCategoryItems, showAllCategoryLegend, setShowAllCategoryLegend, showChartInfo, fmtPct, fmtMoney, currency,
 }: StatisticsPanelProps) {
+  if (!isPremium) return null;
+
   return (
       <View style={styles.section}>
         <View style={styles.sectionHeaderInline}>

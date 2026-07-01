@@ -32,20 +32,21 @@ export type StatisticsPanelProps = {
   totalMain: string;
   fuelMain: string;
   serviceMain: string;
-  costPerDistanceSeries: { x: string; y: number }[];
-  lineChartScale: {
+  mileageOverTimeSeries: { x: string; y: number }[];
+  mileageChartScale: {
     niceMaxY: number;
     yTicks: { value: number; y: number }[];
   };
-  avgCostPerDistance: number;
   chartScrollViewportWidth: number;
-  lineChartWidth: number;
+  mileageChartWidth: number;
   formatChartMonth: (key: string) => string;
+  formatChartMonthFull: (key: string) => string;
   formatChartYAxisLabel: (value: number) => string;
+  formatMileageChartValue: (value: number) => string;
+  formatExpenseChartValue: (value: number) => string;
   showChartInfo: (
     chart:
-      | "costPerKm"
-      | "consumptionVsFuelPrice"
+      | "mileageOverTime"
       | "expensesOverTime"
       | "expensesByCategory",
   ) => void;
@@ -62,15 +63,6 @@ export type StatisticsPanelProps = {
   fuelStatsDistance: number | null;
   fuelIntervals: { avgDays: number };
   avgRefuelAmount: number;
-  fuelVsConsumptionSeries: {
-    consumption: { x: string; y: number }[];
-    fuelPrice: { x: string; y: number }[];
-  };
-  fuelComparisonScale: {
-    niceMaxY: number;
-    yTicks: { value: number; y: number }[];
-  };
-  dualLineChartWidth: number;
   navigateToFuel: () => void;
   recentServiceEntries: ServiceEntry[];
   workshopsById: Record<string, Workshop>;

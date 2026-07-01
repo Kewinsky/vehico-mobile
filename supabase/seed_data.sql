@@ -235,6 +235,16 @@ INSERT INTO public.wheels (vehicle_id, name, width_inch, diameter_inch, et_offse
 (vehicle_id, 'Felgi aluminiowe letnie', 7, 16, 45, '5x112', 66.5, 'M14x1.5', 10.2, false);
 
 -- ================
+-- MILEAGE AUDIT (ręczne aktualizacje licznika z profilu – bez wpisu serwisowego)
+-- ================
+INSERT INTO public.mileage_audit (vehicle_id, reading_date, mileage, source) VALUES
+(vehicle_id, '2025-01-02', m0, 'profile'),
+(vehicle_id, '2025-04-05', m0 + 2400, 'profile'),
+(vehicle_id, '2025-07-08', m0 + 5100, 'profile'),
+(vehicle_id, '2025-10-03', m0 + 8100, 'profile'),
+(vehicle_id, '2026-01-12', m0 + 10700, 'profile');
+
+-- ================
 -- SYNC VEHICLE ODOMETER (zgodny z ostatnim serwisem)
 -- ================
   UPDATE public.vehicles

@@ -200,6 +200,7 @@ function SvgChartTooltip({
   viewportWidth,
   viewportHeight,
   title,
+  subtitle,
   rows,
   backgroundColor,
   textColor,
@@ -210,6 +211,7 @@ function SvgChartTooltip({
   viewportWidth: number;
   viewportHeight: number;
   title: string;
+  subtitle?: string;
   rows: ChartTooltipRow[];
   backgroundColor: string;
   textColor: string;
@@ -217,10 +219,12 @@ function SvgChartTooltip({
   if (!visible) return null;
   const tooltipWidth = estimateTooltipWidth([
     title,
+    subtitle ?? "",
     ...rows.map((row) => row.value),
   ]);
   const rowCount = rows.length;
-  const tooltipHeight = 34 + rowCount * 16 + 8;
+  const subtitleBlockHeight = subtitle ? 18 : 0;
+  const tooltipHeight = 34 + subtitleBlockHeight + rowCount * 16 + 8;
   const tooltipMargin = 8;
   const tooltipX = Math.max(
     CHART_PLOT_PADDING_LEFT,
@@ -258,8 +262,19 @@ function SvgChartTooltip({
       >
         {title}
       </SvgText>
+      {subtitle ? (
+        <SvgText
+          x={tooltipX + 10}
+          y={tooltipY + 38}
+          fontSize={12}
+          fill={textColor}
+          fontWeight="700"
+        >
+          {subtitle}
+        </SvgText>
+      ) : null}
       {rows.flatMap((row, idx) => {
-        const y = tooltipY + 38 + idx * 16;
+        const y = tooltipY + 38 + subtitleBlockHeight + idx * 16;
         return [
           <Circle
             key={`tooltip-dot-${idx}`}
@@ -294,6 +309,8 @@ export function SimpleStackedBarChart({
   grid,
   textColor,
   formatXLabel,
+  formatTooltipXLabel,
+  formatMoneyValue,
   currency,
   tooltipBg,
   tooltipText,
@@ -308,6 +325,8 @@ export function SimpleStackedBarChart({
   grid: string;
   textColor: string;
   formatXLabel?: (key: string) => string;
+  formatTooltipXLabel?: (key: string) => string;
+  formatMoneyValue?: (value: number) => string;
   currency: string;
   tooltipBg: string;
   tooltipText: string;
@@ -346,6 +365,7 @@ export function SimpleStackedBarChart({
       fuelHeight,
       serviceY,
       serviceHeight,
+      monthKey: d.x,
       label: formatXLabel ? formatXLabel(d.x) : d.x.replace("-", "/"),
       fuelValue,
       serviceValue,
@@ -359,18 +379,26 @@ export function SimpleStackedBarChart({
   }));
   const selectedBar =
     selectedBarIndex != null ? (bars[selectedBarIndex] ?? null) : null;
-  const tooltipTitle = selectedBar
-    ? `${selectedBar.label}  ${selectedBar.totalValue.toFixed(2)} ${currency}`
+  const formatAmount = (value: number) =>
+    formatMoneyValue
+      ? formatMoneyValue(value)
+      : `${value.toFixed(0)} ${currency}`;
+  const tooltipMonthLabel = selectedBar
+    ? formatTooltipXLabel
+      ? formatTooltipXLabel(selectedBar.monthKey)
+      : selectedBar.label
     : "";
+  const tooltipTitle = tooltipMonthLabel;
+  const tooltipSubtitle = selectedBar ? formatAmount(selectedBar.totalValue) : "";
   const tooltipRows: ChartTooltipRow[] = selectedBar
     ? [
         {
           color: fuelFill,
-          value: `${selectedBar.fuelValue.toFixed(2)} ${currency}`,
+          value: formatAmount(selectedBar.fuelValue),
         },
         {
           color: serviceFill,
-          value: `${selectedBar.serviceValue.toFixed(2)} ${currency}`,
+          value: formatAmount(selectedBar.serviceValue),
         },
       ]
     : [];
@@ -459,6 +487,7 @@ export function SimpleStackedBarChart({
         viewportWidth={w}
         viewportHeight={h}
         title={tooltipTitle}
+        subtitle={tooltipSubtitle}
         rows={tooltipRows}
         backgroundColor={tooltipBg}
         textColor={tooltipText}
@@ -491,6 +520,10 @@ export function SimpleLineChart({
   grid,
   textColor,
   formatXLabel,
+  formatTooltipXLabel,
+  formatTooltipValue,
+  tooltipBg,
+  tooltipText,
   referenceLineY,
   referenceLineStroke,
 }: {
@@ -504,9 +537,20 @@ export function SimpleLineChart({
   grid: string;
   textColor: string;
   formatXLabel?: (key: string) => string;
+  formatTooltipXLabel?: (key: string) => string;
+  formatTooltipValue?: (value: number) => string;
+  tooltipBg?: string;
+  tooltipText?: string;
   referenceLineY?: number;
   referenceLineStroke?: string;
 }) {
+  const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(
+    null,
+  );
+  const tooltipEnabled =
+    tooltipBg != null &&
+    tooltipText != null &&
+    formatTooltipValue != null;
   const w = width;
   const h = height;
   const plotH = h - CHART_PLOT_PADDING_TOP - CHART_PLOT_PADDING_BOTTOM;
@@ -533,12 +577,29 @@ export function SimpleLineChart({
   });
   const toXLabel = (key: string) =>
     formatXLabel ? formatXLabel(key) : key.replace("-", "/");
+  const toTooltipXLabel = (key: string) =>
+    formatTooltipXLabel ? formatTooltipXLabel(key) : toXLabel(key);
   const xTicks: { x: number; label: string; index: number }[] = [];
   if (data.length > 0) {
     points.forEach((p, i) => {
       xTicks.push({ x: p.x, label: toXLabel(p.label), index: i });
     });
   }
+  const selectedPoint =
+    selectedPointIndex != null ? (points[selectedPointIndex] ?? null) : null;
+  const tooltipTitle = selectedPoint ? selectedPoint.label : "";
+  const tooltipRows: ChartTooltipRow[] =
+    selectedPoint && formatTooltipValue
+      ? [
+          {
+            color: stroke,
+            value: formatTooltipValue(selectedPoint.value),
+          },
+        ]
+      : [];
+  const tooltipAnchorX = selectedPoint?.x ?? 0;
+  const tooltipAnchorY = selectedPoint?.y ?? 0;
+
   return (
     <Svg width={w} height={h}>
       {yTicks.map((tick, i) => (
@@ -585,16 +646,41 @@ export function SimpleLineChart({
           strokeDasharray="6,4"
         />
       ) : null}
-      {points.length > 0 ? (
-        <>
-          <Circle cx={points[0].x} cy={points[0].y} r={4} fill={stroke} />
-          <Circle
-            cx={points[points.length - 1].x}
-            cy={points[points.length - 1].y}
-            r={4}
-            fill={stroke}
-          />
-        </>
+      {points.map((point, i) => (
+        <Circle
+          key={`point-dot-${i}`}
+          cx={point.x}
+          cy={point.y}
+          r={4}
+          fill={stroke}
+        />
+      ))}
+      {tooltipEnabled
+        ? points.map((point, i) => (
+            <Circle
+              key={`point-hitbox-${i}`}
+              cx={point.x}
+              cy={point.y}
+              r={14}
+              fill="transparent"
+              onPress={() =>
+                setSelectedPointIndex((prev) => (prev === i ? null : i))
+              }
+            />
+          ))
+        : null}
+      {tooltipEnabled ? (
+        <SvgChartTooltip
+          visible={selectedPoint != null}
+          anchorX={tooltipAnchorX}
+          anchorY={tooltipAnchorY}
+          viewportWidth={w}
+          viewportHeight={h}
+          title={selectedPoint ? toTooltipXLabel(tooltipTitle) : ""}
+          rows={tooltipRows}
+          backgroundColor={tooltipBg!}
+          textColor={tooltipText!}
+        />
       ) : null}
     </Svg>
   );

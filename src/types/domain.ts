@@ -28,6 +28,17 @@ export type Vehicle = {
   created_at: string;
 };
 
+export type MileageAuditSource = "profile";
+
+export type MileageAudit = {
+  id: string;
+  vehicle_id: string;
+  reading_date: string; // YYYY-MM-DD
+  mileage: number;
+  source: MileageAuditSource;
+  created_at: string;
+};
+
 export type ServiceEntry = {
   id: string;
   vehicle_id: string;

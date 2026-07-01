@@ -483,23 +483,15 @@ export const pl = {
       charts: {
         expensesOverTime: "Wydatki w czasie",
         distanceOverTime: "Dystans wg miesięcy",
-        costPerKmOverTime: "Koszt utrzymania",
-        consumptionVsFuelPrice: "Spalanie vs cena paliwa",
-        legend: {
-          consumption: "Spalanie (L/100 km)",
-          fuelPrice: "Cena paliwa / L",
-        },
+        mileageOverTime: "Przebieg w czasie",
         expensesByCategory: "Wydatki wg kategorii",
       },
       chartInfo: {
         open: "Pokaż wyjaśnienie wykresu",
         openOilSection: "Informacja – wymiana oleju",
-        costPerKmTitle: "Jak czytać koszt utrzymania?",
-        costPerKmBody:
-          "Wykres pokazuje koszt utrzymania przeliczony na 1 km w każdym miesiącu: (paliwo + serwis) / przejechane km. Czerwona przerywana linia to średni koszt utrzymania z wybranego okresu. Gdy punkty są powyżej tej linii, auto jest droższe w utrzymaniu niż zwykle. Pojedyncze piki zwykle oznaczają większy serwis lub naprawę.",
-        consumptionVsFuelPriceTitle: "Jak czytać spalanie vs cena paliwa?",
-        consumptionVsFuelPriceBody:
-          "Porównaj dwie linie: spalanie (L/100 km) i średnią cenę paliwa za litr. Gdy rośnie głównie spalanie, problem może być w stylu jazdy lub stanie auta. Gdy rośnie głównie cena paliwa, wpływ ma głównie rynek.",
+        mileageOverTimeTitle: "Jak czytać przebieg w czasie?",
+        mileageOverTimeBody:
+          "Wykres pokazuje przebieg pojazdu w kolejnych miesiącach na podstawie wpisów serwisowych z podanym przebiegiem oraz historii ręcznych aktualizacji licznika z profilu auta (w {{unit}}). Każdy punkt to najwyższy znany przebieg w danym miesiącu – linia rośnie wraz z kolejnymi odczytami.",
         expensesOverTimeTitle: "Jak czytać wydatki w czasie?",
         expensesOverTimeBody:
           "Wykres pokazuje łączne wydatki miesięczne (paliwo + serwis). Służy do szybkiego wykrywania pików kosztów i porównania, czy bieżące miesiące są droższe od poprzednich.",
