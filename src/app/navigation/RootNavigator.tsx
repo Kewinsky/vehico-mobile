@@ -19,6 +19,7 @@ import { ReminderFormScreen } from "../../screens/modal/ReminderFormScreen";
 import { ServiceEntryFormScreen } from "../../screens/modal/ServiceEntryFormScreen";
 import { SettingsScreen } from "../../screens/modal/SettingsScreen";
 import { DataPortabilityScreen } from "../../screens/header/DataPortabilityScreen";
+import { ExportScreen } from "../../screens/header/ExportScreen";
 import { ImportScreen } from "../../screens/header/ImportScreen";
 import { AddAttachmentScreen } from "../../screens/header/AddAttachmentScreen";
 import { AddAttachmentFiltersScreen } from "../../screens/modal/AddAttachmentFiltersScreen";
@@ -164,6 +165,7 @@ export type AppStackParamList = {
   PublicReportHistory: { vehicleId: string };
   ManageVehicle: { vehicleId: string };
   DataPortability: { vehicleId: string };
+  Export: { vehicleId: string };
   Import: { vehicleId: string };
   AddAttachment: { vehicleId: string };
   AddAttachmentFilters: {
@@ -406,6 +408,11 @@ export function RootNavigator() {
           <Stack.Screen
             name="DataPortability"
             component={DataPortabilityScreen}
+            options={nativeHeaderScreenOptions}
+          />
+          <Stack.Screen
+            name="Export"
+            component={ExportScreen}
             options={nativeHeaderScreenOptions}
           />
           <Stack.Screen
