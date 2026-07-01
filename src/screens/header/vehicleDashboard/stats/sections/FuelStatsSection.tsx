@@ -20,6 +20,8 @@ export function FuelStatsSection({
   lastRefuelValueMain,
   lastRefuelValueSuffix,
   fuelStatsDistance,
+  fuelIntervals,
+  avgRefuelAmount,
   navigateToFuel,
   formatStatNumber,
 }: StatisticsPanelProps) {
@@ -107,6 +109,44 @@ export function FuelStatsSection({
             fuelStatsDistance != null ? distanceUnitLabel : undefined
           }
           valueMainRollingValue={fuelStatsDistance ?? undefined}
+        />
+      </View>
+      <View style={styles.tilesRow}>
+        <StatTile
+          theme={theme}
+          styles={styles}
+          label={t("dashboard.stats.metrics.avgRefuelIntervalDays")}
+          valueMain={
+            Number.isFinite(fuelIntervals.avgDays)
+              ? formatStatNumber(fuelIntervals.avgDays, 0)
+              : "–"
+          }
+          valueSuffix={
+            Number.isFinite(fuelIntervals.avgDays)
+              ? t("dashboard.stats.days")
+              : undefined
+          }
+          valueMainRollingValue={
+            Number.isFinite(fuelIntervals.avgDays)
+              ? fuelIntervals.avgDays
+              : undefined
+          }
+        />
+        <StatTile
+          theme={theme}
+          styles={styles}
+          label={t("dashboard.stats.metrics.avgRefuelAmount")}
+          valueMain={
+            Number.isFinite(avgRefuelAmount)
+              ? formatStatNumber(avgRefuelAmount, 1)
+              : "–"
+          }
+          valueSuffix={
+            Number.isFinite(avgRefuelAmount) ? fuelUnitLabel : undefined
+          }
+          valueMainRollingValue={
+            Number.isFinite(avgRefuelAmount) ? avgRefuelAmount : undefined
+          }
         />
       </View>
     </View>

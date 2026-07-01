@@ -60,6 +60,8 @@ export type StatisticsPanelProps = {
   lastRefuelValueMain: string;
   lastRefuelValueSuffix: string | undefined;
   fuelStatsDistance: number | null;
+  fuelIntervals: { avgDays: number };
+  avgRefuelAmount: number;
   fuelVsConsumptionSeries: {
     consumption: { x: string; y: number }[];
     fuelPrice: { x: string; y: number }[];

@@ -324,6 +324,36 @@ export function StatisticsScreen(props: Props) {
     )[0];
   }, [filtered.fueling]);
 
+  const fuelIntervals = useMemo(() => {
+    const sorted = [...filtered.fueling].sort((a, b) =>
+      String(a.date).localeCompare(String(b.date)),
+    );
+    if (sorted.length < 2) return { avgDays: Number.NaN };
+    const dayDeltas: number[] = [];
+    for (let i = 1; i < sorted.length; i++) {
+      const prevDate = parseDateLoose(sorted[i - 1]!.date);
+      const currDate = parseDateLoose(sorted[i]!.date);
+      if (!prevDate || !currDate) continue;
+      const days = Math.floor(
+        (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
+      if (days > 0) dayDeltas.push(days);
+    }
+    const avgDays =
+      dayDeltas.length > 0
+        ? dayDeltas.reduce((sum, value) => sum + value, 0) / dayDeltas.length
+        : Number.NaN;
+    return { avgDays };
+  }, [filtered.fueling]);
+
+  const avgRefuelAmount = useMemo(() => {
+    const amounts = filtered.fueling
+      .map((entry) => Number(entry.fuel_amount ?? Number.NaN))
+      .filter((value) => Number.isFinite(value) && value > 0);
+    if (amounts.length === 0) return Number.NaN;
+    return amounts.reduce((sum, value) => sum + value, 0) / amounts.length;
+  }, [filtered.fueling]);
+
   const costPerDistanceSeries = useMemo(() => {
     const byMonthCost: Record<string, number> = {};
     const byMonthDistance: Record<string, number> = {};
@@ -773,6 +803,8 @@ export function StatisticsScreen(props: Props) {
     lastRefuelValueMain,
     lastRefuelValueSuffix,
     fuelStatsDistance,
+    fuelIntervals,
+    avgRefuelAmount,
     fuelVsConsumptionSeries,
     fuelComparisonScale,
     dualLineChartWidth,
