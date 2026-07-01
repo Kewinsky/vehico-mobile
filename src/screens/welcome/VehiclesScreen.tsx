@@ -15,6 +15,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import { useSharedValue } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
+import MaskedView from "@react-native-masked-view/masked-view";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { Vehicle } from "../../types/domain";
@@ -116,6 +118,64 @@ type VehicleCardImageProps = {
   isLocked?: boolean;
 };
 
+function VehicleImageTextOverlay({
+  item,
+  styles,
+  formatMileage,
+  i18n,
+}: {
+  item: Vehicle;
+  styles: ReturnType<typeof makeStyles>;
+  formatMileage: (m: number | null | undefined) => string;
+  i18n: { language: string };
+}) {
+  const { mode } = useTheme();
+
+  return (
+    <View style={styles.vehicleImageTint} pointerEvents="none">
+      <MaskedView
+        style={styles.vehicleImageTintMask}
+        maskElement={
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.35)", "black"]}
+            locations={[0, 0.42, 0.88]}
+            style={StyleSheet.absoluteFill}
+          />
+        }
+      >
+        <BlurView
+          intensity={mode === "dark" ? 48 : 64}
+          tint="dark"
+          style={StyleSheet.absoluteFill}
+        />
+      </MaskedView>
+      <LinearGradient
+        colors={["transparent", "rgba(0,0,0,0.08)", "rgba(0,0,0,0.38)"]}
+        locations={[0, 0.55, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={styles.vehicleImageContent}>
+        <Text
+          style={[styles.vehicleTitle, styles.vehicleTitleOverlay]}
+          numberOfLines={2}
+        >
+          {`${item.make} ${item.model}`}
+        </Text>
+        <Text
+          style={[styles.vehicleMeta, styles.vehicleMetaOverlay]}
+          numberOfLines={1}
+        >
+          {item.production_year}
+          {item.power_hp
+            ? ` · ${item.power_hp} ${i18n.language === "pl" ? "KM" : "HP"}`
+            : ""}
+          {item.mileage ? ` · ${formatMileage(item.mileage)}` : ""}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 function VehicleCardImage({
   item,
   photoUrls,
@@ -180,24 +240,12 @@ function VehicleCardImage({
         progress={progress}
         isLocked={isLocked}
       />
-      <View style={styles.vehicleImageContent} pointerEvents="none">
-        <Text
-          style={[styles.vehicleTitle, styles.vehicleTitleOverlay]}
-          numberOfLines={2}
-        >
-          {`${item.make} ${item.model}`}
-        </Text>
-        <Text
-          style={[styles.vehicleMeta, styles.vehicleMetaOverlay]}
-          numberOfLines={1}
-        >
-          {item.production_year}
-          {item.power_hp
-            ? ` · ${item.power_hp} ${i18n.language === "pl" ? "KM" : "HP"}`
-            : ""}
-          {item.mileage ? ` · ${formatMileage(item.mileage)}` : ""}
-        </Text>
-      </View>
+      <VehicleImageTextOverlay
+        item={item}
+        styles={styles}
+        formatMileage={formatMileage}
+        i18n={i18n}
+      />
       {photoUrls.length > 1 && !isLocked && (
         <View
           style={{
@@ -578,37 +626,12 @@ export function VehiclesScreen({ navigation, route }: Props) {
                             color={theme.colors.muted}
                           />
                         </View>
-                        <View
-                          style={styles.vehicleImageContent}
-                          pointerEvents="none"
-                        >
-                          <Text
-                            style={[
-                              styles.vehicleTitle,
-                              styles.vehicleTitleOverlay,
-                            ]}
-                            numberOfLines={2}
-                          >
-                            {`${item.make} ${item.model}`}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.vehicleMeta,
-                              styles.vehicleMetaOverlay,
-                            ]}
-                            numberOfLines={1}
-                          >
-                            {item.production_year}
-                            {item.power_hp
-                              ? ` · ${item.power_hp}${
-                                  i18n.language === "pl" ? "KM" : "HP"
-                                }`
-                              : ""}
-                            {item.mileage
-                              ? ` · ${formatMileage(item.mileage)}`
-                              : ""}
-                          </Text>
-                        </View>
+                        <VehicleImageTextOverlay
+                          item={item}
+                          styles={styles}
+                          formatMileage={formatMileage}
+                          i18n={i18n}
+                        />
                       </>
                     );
                   }
@@ -672,14 +695,20 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    vehicleImageContent: {
+    vehicleImageTint: {
       position: "absolute",
       bottom: 0,
       left: 0,
       right: 0,
+      height: 148,
+      justifyContent: "flex-end",
+    },
+    vehicleImageTintMask: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    vehicleImageContent: {
       padding: theme.spacing.md,
       paddingBottom: theme.spacing.sm + 4,
-      backgroundColor: "rgba(0,0,0,0.55)",
     },
     vehicleTitle: {
       fontSize: theme.typography.title,
