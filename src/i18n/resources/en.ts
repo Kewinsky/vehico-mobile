@@ -493,7 +493,7 @@ export const en = {
         openOilSection: "About oil change stats",
         mileageOverTimeTitle: "How to read mileage over time?",
         mileageOverTimeBody:
-          "This chart shows vehicle mileage month by month from service entries with odometer readings and the history of manual odometer updates from the vehicle profile (in {{unit}}). Each point is the highest known mileage in that month – the line rises as new readings are recorded.",
+          "This chart shows vehicle mileage month by month from service entries with odometer readings and manual odometer updates from the vehicle profile. Each point is the highest known mileage in that month. The Y-axis zooms to the lowest and highest readings in the selected period; tap a point for the exact value in {{unit}}.",
         expensesOverTimeTitle: "How to read expenses over time?",
         expensesOverTimeBody:
           "This chart shows total monthly expenses (fuel + service). Use it to quickly spot cost spikes and compare whether current months are more expensive than previous ones.",

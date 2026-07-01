@@ -60,6 +60,7 @@ import {
   CHART_LINE_HEIGHT,
   CHART_Y_AXIS_WIDTH,
   getChartScale,
+  getMileageChartScale,
   getScrollableChartWidth,
 } from "./vehicleDashboard/stats/charts/charts";
 import { useStatsPanelStyles } from "./vehicleDashboard/stats/statsPanelStyles";
@@ -662,9 +663,13 @@ export function StatisticsScreen(props: Props) {
     monthlyExpensesSeries.data.map((item) => item.total),
     CHART_BAR_HEIGHT,
   );
-  const mileageChartScale = getChartScale(
-    mileageOverTimeSeries.map((item) => item.y),
-    CHART_LINE_HEIGHT,
+  const mileageChartScale = useMemo(
+    () =>
+      getMileageChartScale(
+        mileageOverTimeSeries.map((item) => item.y),
+        CHART_LINE_HEIGHT,
+      ),
+    [mileageOverTimeSeries],
   );
   const categorySeries = useMemo(
     () =>

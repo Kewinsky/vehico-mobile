@@ -11,6 +11,7 @@ import Svg, {
 import {
   clampNonNeg,
   generateNiceTicks,
+  mileageAxisScaleForData,
   niceMaxValue,
 } from "../../../statistics/domain/math";
 
@@ -112,6 +113,7 @@ export const CHART_AXIS_FONT_SIZE = 13;
 export const CHART_LINE_HEIGHT = 260;
 export const CHART_BAR_HEIGHT = 260;
 export const CHART_Y_AXIS_WIDTH = 44;
+export const CHART_MILEAGE_Y_AXIS_WIDTH = 50;
 export const CHART_PLOT_PADDING_LEFT = 8;
 export const CHART_PLOT_PADDING_RIGHT = 16;
 export const CHART_PLOT_PADDING_TOP = 16;
@@ -129,7 +131,24 @@ export function getChartScale(values: number[], height: number) {
     value,
     y: CHART_PLOT_PADDING_TOP + (1 - value / niceMaxY) * plotH,
   }));
-  return { maxY, niceMaxY, plotH, yTicks };
+  return { maxY, niceMaxY, plotH, yTicks, minY: 0 };
+}
+
+/** Y scale for mileage chart: auto-zoom to data min–max with nice km ticks. */
+export function getMileageChartScale(values: number[], height: number) {
+  const { minY, maxY, tickValues } = mileageAxisScaleForData(values);
+  if (tickValues.length === 0) {
+    return getChartScale([1], height);
+  }
+
+  const yRange = Math.max(1, maxY - minY);
+  const plotH = height - CHART_PLOT_PADDING_TOP - CHART_PLOT_PADDING_BOTTOM;
+  const yTicks: ChartYTick[] = tickValues.map((value) => ({
+    value,
+    y: CHART_PLOT_PADDING_TOP + (1 - (value - minY) / yRange) * plotH,
+  }));
+
+  return { minY, maxY, niceMaxY: maxY, plotH, yTicks };
 }
 
 export function getScrollableChartWidth(
@@ -149,19 +168,21 @@ export function ChartYAxis({
   textColor,
   grid,
   formatYLabel,
+  width = CHART_Y_AXIS_WIDTH,
 }: {
   height: number;
   yTicks: ChartYTick[];
   textColor: string;
   grid: string;
   formatYLabel: (value: number) => string;
+  width?: number;
 }) {
   return (
-    <Svg width={CHART_Y_AXIS_WIDTH} height={height}>
+    <Svg width={width} height={height}>
       <SvgLine
-        x1={CHART_Y_AXIS_WIDTH - 1}
+        x1={width - 1}
         y1={CHART_PLOT_PADDING_TOP}
-        x2={CHART_Y_AXIS_WIDTH - 1}
+        x2={width - 1}
         y2={height - CHART_PLOT_PADDING_BOTTOM}
         stroke={grid}
         strokeWidth={1}
@@ -169,7 +190,7 @@ export function ChartYAxis({
       {yTicks.map((tick, i) => (
         <SvgText
           key={`y-axis-label-${i}`}
-          x={CHART_Y_AXIS_WIDTH - 12}
+          x={width - 12}
           y={tick.y + 5}
           fontSize={CHART_AXIS_FONT_SIZE}
           fill={textColor}

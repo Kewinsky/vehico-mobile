@@ -34,6 +34,7 @@ export type StatisticsPanelProps = {
   serviceMain: string;
   mileageOverTimeSeries: { x: string; y: number }[];
   mileageChartScale: {
+    minY: number;
     niceMaxY: number;
     yTicks: { value: number; y: number }[];
   };

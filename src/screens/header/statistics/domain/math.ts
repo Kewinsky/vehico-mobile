@@ -93,6 +93,111 @@ export function generateNiceTicks(max: number): number[] {
   return ticks;
 }
 
+function nextNiceStepUp(step: number): number {
+  if (step <= 0) return 1;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(step)));
+  const normalized = step / magnitude;
+  let nextNormalized: number;
+  if (normalized <= 1) nextNormalized = 1;
+  else if (normalized <= 2) nextNormalized = 2;
+  else if (normalized <= 5) nextNormalized = 5;
+  else nextNormalized = 10;
+  const candidate = nextNormalized * magnitude;
+  return candidate > step ? candidate : candidate * 2;
+}
+
+export function generateNiceTicksForRange(
+  min: number,
+  max: number,
+  targetCount = 5,
+): number[] {
+  const tickCount = Math.max(2, targetCount);
+  const intervals = tickCount - 1;
+
+  if (!Number.isFinite(min) || !Number.isFinite(max)) {
+    return Array.from({ length: tickCount }, (_, index) => index);
+  }
+
+  let minBound = min;
+  let maxBound = max;
+  if (maxBound <= minBound) {
+    const center = (minBound + maxBound) / 2;
+    const pad = Math.max(1, Math.round(Math.abs(center) * 0.05) || 50);
+    minBound = center - pad;
+    maxBound = center + pad;
+  }
+
+  const range = maxBound - minBound;
+  let step = Math.max(1, Math.round(roundToNice(range / intervals)));
+
+  while (intervals * step < range) {
+    step = Math.max(step + 1, Math.round(nextNiceStepUp(step)));
+  }
+
+  let tickMin = Math.floor(minBound / step) * step;
+  while (tickMin + intervals * step < maxBound) {
+    tickMin -= step;
+  }
+
+  const ticks = Array.from({ length: tickCount }, (_, index) =>
+    Math.round(tickMin + index * step),
+  );
+
+  if (new Set(ticks).size === tickCount) {
+    return ticks;
+  }
+
+  const fallbackStep = Math.max(1, range / intervals);
+  const fallbackMin = Math.round(minBound);
+  return Array.from({ length: tickCount }, (_, index) =>
+    Math.round(fallbackMin + index * fallbackStep),
+  );
+}
+
+/** Auto-zoom Y range for mileage: min–max in period + padding, nice km ticks. */
+export function mileageAxisScaleForData(values: number[]): {
+  minY: number;
+  maxY: number;
+  tickValues: number[];
+} {
+  const valid = values.filter((value) => Number.isFinite(value) && value > 0);
+  if (valid.length === 0) {
+    const tickValues = generateNiceTicksForRange(0, 1);
+    return {
+      minY: tickValues[0] ?? 0,
+      maxY: tickValues[tickValues.length - 1] ?? 1,
+      tickValues,
+    };
+  }
+
+  const minData = Math.min(...valid);
+  const maxData = Math.max(...valid);
+
+  if (minData === maxData) {
+    const pad = Math.max(Math.round(minData * 0.05), 50, 1);
+    const minY = Math.max(0, minData - pad);
+    const maxY = minData + pad;
+    const tickValues = generateNiceTicksForRange(minY, maxY);
+    return {
+      minY: tickValues[0] ?? minY,
+      maxY: tickValues[tickValues.length - 1] ?? maxY,
+      tickValues,
+    };
+  }
+
+  const range = maxData - minData;
+  const pad = Math.max(range * 0.08, roundToNice(range / 8), 1);
+  const minY = Math.max(0, minData - pad);
+  const maxY = maxData + pad;
+  const tickValues = generateNiceTicksForRange(minY, maxY);
+
+  return {
+    minY: tickValues[0] ?? Math.round(minY),
+    maxY: tickValues[tickValues.length - 1] ?? Math.round(maxY),
+    tickValues,
+  };
+}
+
 export function fmtPct(pct: number): string {
   if (!Number.isFinite(pct)) return "–";
   return `${Math.round(pct)}%`;

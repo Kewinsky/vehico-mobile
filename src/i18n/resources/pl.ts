@@ -496,7 +496,7 @@ export const pl = {
         openOilSection: "Informacja – wymiana oleju",
         mileageOverTimeTitle: "Jak czytać przebieg w czasie?",
         mileageOverTimeBody:
-          "Wykres pokazuje przebieg pojazdu w kolejnych miesiącach na podstawie wpisów serwisowych z podanym przebiegiem oraz historii ręcznych aktualizacji licznika z profilu auta (w {{unit}}). Każdy punkt to najwyższy znany przebieg w danym miesiącu – linia rośnie wraz z kolejnymi odczytami.",
+          "Wykres pokazuje przebieg pojazdu w kolejnych miesiącach na podstawie wpisów serwisowych z przebiegiem oraz ręcznych aktualizacji licznika z profilu auta. Każdy punkt to najwyższy znany przebieg w danym miesiącu. Oś Y jest dopasowana do najniższego i najwyższego odczytu w wybranym okresie; dotknij punktu, aby zobaczyć dokładną wartość w {{unit}}.",
         expensesOverTimeTitle: "Jak czytać wydatki w czasie?",
         expensesOverTimeBody:
           "Wykres pokazuje łączne wydatki miesięczne (paliwo + serwis). Służy do szybkiego wykrywania pików kosztów i porównania, czy bieżące miesiące są droższe od poprzednich.",
