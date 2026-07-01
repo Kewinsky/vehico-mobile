@@ -61,6 +61,14 @@ export function useOverviewPanelStyles() {
       justifyContent: "space-between",
       gap: theme.spacing.sm,
     },
+    sectionHeaderInline: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+    },
+    infoIconButton: {
+      padding: 2,
+    },
     viewAllLink: {
       fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.bold,

@@ -39,14 +39,14 @@ function localYmd(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-export function quickMetricsWindowYmdBounds(): {
+export function currentMonthYmdBounds(): {
   fromYmd: string;
   toYmd: string;
 } {
   const end = new Date();
   end.setHours(12, 0, 0, 0);
-  const start = new Date(end);
-  start.setDate(start.getDate() - 29);
+  const start = new Date(end.getFullYear(), end.getMonth(), 1);
+  start.setHours(12, 0, 0, 0);
   return { fromYmd: localYmd(start), toYmd: localYmd(end) };
 }
 

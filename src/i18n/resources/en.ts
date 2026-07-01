@@ -430,6 +430,9 @@ export const en = {
       costSubtitle: "Cost/day",
       distanceSubtitle: "Distance",
       alertsSubtitle: "Alerts",
+      infoTitle: "Quick metrics",
+      infoBody:
+        "Consumption – 12-month average from fuel entries with distance\nCost/day – average daily fuel and service cost over the last 12 months\nDistance – total km from fuel entries in the current month\nAlerts – count of active reminders",
     },
     stats: {
       title: "Statistics",

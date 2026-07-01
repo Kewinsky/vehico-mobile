@@ -113,7 +113,7 @@ import {
   getDaysUntilDate,
   getMileageStaleYmd,
   isReminderOverdue,
-  quickMetricsWindowYmdBounds,
+  currentMonthYmdBounds,
   shouldShowFormalityCallout,
 } from "./vehicleDashboard/domain/terms";
 
@@ -442,12 +442,12 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   ]);
 
   const quickMetrics = useMemo(() => {
-    const { fromYmd, toYmd } = quickMetricsWindowYmdBounds();
+    const { fromYmd, toYmd } = currentMonthYmdBounds();
     const now = new Date();
     const oneYearAgo = new Date(now);
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
     const fromYmdYear = oneYearAgo.toISOString().slice(0, 10);
-    const fuelInWindow = fuelingEntries.filter((x) => {
+    const fuelInCurrentMonth = fuelingEntries.filter((x) => {
       const d = String(x.date).slice(0, 10);
       return d >= fromYmd && d <= toYmd;
     });
@@ -464,7 +464,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       (sum, x) => sum + Number(x.distance ?? 0),
       0,
     );
-    const distanceKmTotalForDistance = fuelInWindow.reduce(
+    const distanceKmTotalForDistance = fuelInCurrentMonth.reduce(
       (sum, x) => sum + Number(x.distance ?? 0),
       0,
     );

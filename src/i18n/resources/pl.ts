@@ -433,6 +433,9 @@ export const pl = {
       costSubtitle: "Koszt/dzień",
       distanceSubtitle: "Dystans",
       alertsSubtitle: "Alerty",
+      infoTitle: "Szybkie metryki",
+      infoBody:
+        "Spalanie – średnie z ostatnich 12 miesięcy (tankowania z dystansem)\nKoszt/dzień – średni dzienny koszt paliwa i serwisu z ostatnich 12 miesięcy\nDystans – suma km z tankowań w bieżącym miesiącu\nAlerty – liczba aktywnych przypomnień",
     },
     stats: {
       title: "Statystyki",
