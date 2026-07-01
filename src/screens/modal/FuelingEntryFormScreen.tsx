@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
@@ -78,10 +72,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     [formValues],
   );
 
-  const canSave = useMemo(
-    () => canSaveFuelingEntry(formValues),
-    [formValues],
-  );
+  const canSave = useMemo(() => canSaveFuelingEntry(formValues), [formValues]);
 
   const { fieldError, validateBeforeSave, resetFieldErrors } =
     useFormFieldErrors(canSave);
@@ -182,7 +173,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       });
     });
 
-    Alert.alert(opts.title, t("common.chooseOption"), buttons, {
+    Alert.alert("", "", buttons, {
       cancelable: true,
     });
   }

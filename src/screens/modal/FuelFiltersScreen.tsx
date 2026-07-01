@@ -1,13 +1,7 @@
 import { useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { GasStation } from "../../types/domain";
@@ -77,14 +71,9 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
         onPress: () => setStationFilter(s),
       })),
     ];
-    Alert.alert(
-      t("timeline.filterStation"),
-      t("common.chooseOption"),
-      buttons,
-      {
-        cancelable: true,
-      },
-    );
+    Alert.alert("", "", buttons, {
+      cancelable: true,
+    });
   }
 
   function applyFilters() {

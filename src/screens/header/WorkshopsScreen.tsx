@@ -117,7 +117,7 @@ export function WorkshopsScreen({ navigation }: Props) {
         onPress: () => setTypeFilter(type),
       })),
     ];
-    Alert.alert(t("workshops.filterByType"), t("common.chooseOption"), buttons, {
+    Alert.alert("", "", buttons, {
       cancelable: true,
     });
   }, [t]);

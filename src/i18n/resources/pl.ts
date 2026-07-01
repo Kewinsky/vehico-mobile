@@ -1236,8 +1236,6 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
         "Wymagane kolumny: service_date,title (opcjonalnie: category,description,mileage,cost)",
       placeholder:
         "service_date;category;title;description;mileage;cost\n2026-01-14;maintenance;Wymiana oleju;Olej i filtr;120000;250",
-      columnsToCopy:
-        "service_date (YYYY-MM-DD)\ncategory (maintenance|repair|inspection|upgrade|oil_change|other)\ntitle\ndescription\nmileage\ncost",
       importButton: "Importuj wpisy serwisowe",
       confirmBody: "To doda {{count}} wpisów serwisowych do tego pojazdu.",
       successBody: "Wpisy serwisowe zostały zaimportowane.",
@@ -1249,8 +1247,6 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
         "Wymagane kolumny: date,fuel_amount,fuel_cost (opcjonalnie: distance,fuel_type,gas_station)",
       placeholder:
         "date;distance;fuel_amount;fuel_cost;fuel_type;gas_station\n2026-01-14;420;45.5;320.00;95;orlen",
-      columnsToCopy:
-        "date (YYYY-MM-DD)\ndistance\nfuel_amount\nfuel_cost\nfuel_type (95|98|100|on|lpg)\ngas_station (orlen|bp|shell|circle_k|mol|moya|other)",
       importButton: "Importuj tankowania",
       confirmBody: "To doda {{count}} wpisów tankowania do tego pojazdu.",
       successBody: "Wpisy tankowania zostały zaimportowane.",
@@ -1263,8 +1259,6 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
         "Wymagane kolumny: name (opcjonalnie: workshop_type,phone_number,address)",
       placeholder:
         "name;workshop_type;phone_number;address\nAuto Serwis Kowalski;mechanic;600123456;ul. Główna 1",
-      columnsToCopy:
-        "name\nworkshop_type (mechanic|electrician|detailer|bodywork|car_wash|other)\nphone_number\naddress",
       importButton: "Importuj warsztaty",
       confirmBody: "To doda {{count}} warsztatów do Twojego konta.",
       successBody: "Warsztaty zostały zaimportowane.",

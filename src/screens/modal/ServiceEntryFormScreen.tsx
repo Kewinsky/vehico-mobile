@@ -25,7 +25,11 @@ import {
   type ServiceEntryFormState,
   type ServiceEntryRowState,
 } from "../../forms/serviceEntryForm";
-import type { Attachment, ServiceEntryCategory, Workshop } from "../../types/domain";
+import type {
+  Attachment,
+  ServiceEntryCategory,
+  Workshop,
+} from "../../types/domain";
 import {
   createServiceEntry,
   deleteServiceEntry,
@@ -133,10 +137,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     [formValues],
   );
 
-  const canSave = useMemo(
-    () => canSaveServiceEntry(formValues),
-    [formValues],
-  );
+  const canSave = useMemo(() => canSaveServiceEntry(formValues), [formValues]);
 
   const { fieldError, validateBeforeSave, resetFieldErrors } =
     useFormFieldErrors(canSave);
@@ -406,7 +407,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       });
     });
 
-    Alert.alert(opts.title, t("common.chooseOption"), buttons, {
+    Alert.alert("", "", buttons, {
       cancelable: true,
     });
   }
@@ -459,19 +460,15 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }
 
   function pickAttachment() {
-    Alert.alert(
-      t("attachments.addPickerTitle"),
-      t("attachments.addPickerBody"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        { text: t("attachments.camera"), onPress: () => void pickFromCamera() },
-        {
-          text: t("attachments.photos"),
-          onPress: () => void pickFromGallery(),
-        },
-        { text: t("attachments.files"), onPress: () => void pickFromFiles() },
-      ],
-    );
+    Alert.alert("", t("attachments.addPickerBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("attachments.camera"), onPress: () => void pickFromCamera() },
+      {
+        text: t("attachments.photos"),
+        onPress: () => void pickFromGallery(),
+      },
+      { text: t("attachments.files"), onPress: () => void pickFromFiles() },
+    ]);
   }
 
   async function pickFromCamera() {
@@ -602,10 +599,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
       if (entryId) {
         const first = entries[0];
-        const firstRow = buildServiceEntryRowPayload(
-          first,
-          description,
-        );
+        const firstRow = buildServiceEntryRowPayload(first, description);
         await updateServiceEntry(entryId, {
           ...basePayload,
           ...firstRow,
@@ -621,10 +615,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         const first = entries[0];
         const created = await createServiceEntry({
           ...basePayload,
-          ...buildServiceEntryRowPayload(
-            first,
-            isMulti ? "" : description,
-          ),
+          ...buildServiceEntryRowPayload(first, isMulti ? "" : description),
         });
         if (!isMulti && pendingFiles.length) {
           setUploading(true);
@@ -892,7 +883,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       }
                       editable={!saving && !uploading}
                       placeholder={t("entryForm.placeholderTitle")}
-                      error={fieldError(fieldErrors.entryTitles[index] ?? false)}
+                      error={fieldError(
+                        fieldErrors.entryTitles[index] ?? false,
+                      )}
                     />
                     <FormInputRow
                       icon="cash-outline"

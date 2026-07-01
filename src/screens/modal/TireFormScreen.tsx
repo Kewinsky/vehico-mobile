@@ -1,12 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import {
@@ -142,7 +135,7 @@ export function TireFormScreen({ navigation, route }: Props) {
       });
     });
 
-    Alert.alert(opts.title, t("common.chooseOption"), buttons, {
+    Alert.alert("", "", buttons, {
       cancelable: true,
     });
   }

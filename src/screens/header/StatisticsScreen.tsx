@@ -607,41 +607,40 @@ export function StatisticsScreen(props: Props) {
 
   const showChartInfo = useCallback(
     (
-      chart:
+      section:
         | "mileageOverTime"
         | "expensesOverTime"
-        | "expensesByCategory",
+        | "expensesByCategory"
+        | "oilChange",
     ) => {
       const info =
-        chart === "mileageOverTime"
+        section === "mileageOverTime"
           ? {
               title: t("dashboard.stats.chartInfo.mileageOverTimeTitle"),
               body: t("dashboard.stats.chartInfo.mileageOverTimeBody", {
                 unit: distanceUnitLabel,
               }),
             }
-          : chart === "expensesOverTime"
+          : section === "expensesOverTime"
             ? {
                 title: t("dashboard.stats.chartInfo.expensesOverTimeTitle"),
                 body: t("dashboard.stats.chartInfo.expensesOverTimeBody"),
               }
-            : {
-                title: t("dashboard.stats.chartInfo.expensesByCategoryTitle"),
-                body: t("dashboard.stats.chartInfo.expensesByCategoryBody"),
-              };
+            : section === "expensesByCategory"
+              ? {
+                  title: t("dashboard.stats.chartInfo.expensesByCategoryTitle"),
+                  body: t("dashboard.stats.chartInfo.expensesByCategoryBody"),
+                }
+              : {
+                  title: t("dashboard.stats.chartInfo.oilChangeTitle"),
+                  body: t("dashboard.stats.chartInfo.oilChangeBody", {
+                    category: t("entryForm.categories.oil_change"),
+                  }),
+                };
       Alert.alert(info.title, info.body);
     },
     [distanceUnitLabel, t],
   );
-
-  const showOilSectionInfo = useCallback(() => {
-    Alert.alert(
-      t("dashboard.stats.chartInfo.oilChangeTitle"),
-      t("dashboard.stats.chartInfo.oilChangeBody", {
-        category: t("entryForm.categories.oil_change"),
-      }),
-    );
-  }, [t]);
 
   const chartViewportWidth = Math.max(
     280,
@@ -810,7 +809,6 @@ export function StatisticsScreen(props: Props) {
     oilAvgIntervalShowMonths,
     setOilAvgIntervalShowMonths,
     oilIntervals,
-    showOilSectionInfo,
     oilLife,
     oilLifeStatusText,
     oilLifeProgressPercent,

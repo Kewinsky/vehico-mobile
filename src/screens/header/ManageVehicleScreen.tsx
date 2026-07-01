@@ -264,7 +264,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
 
   function openActions() {
     if (!vehicle) return;
-    Alert.alert(t("dashboard.tiles.manageTitle"), t("common.chooseOption"), [
+    Alert.alert(t("dashboard.tiles.manageTitle"), "", [
       { text: t("common.cancel"), style: "cancel" },
       {
         text: t("common.edit"),

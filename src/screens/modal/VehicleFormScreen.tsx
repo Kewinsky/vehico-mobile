@@ -252,7 +252,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       });
     });
 
-    Alert.alert(opts.title, t("common.chooseOption"), buttons, {
+    Alert.alert("", "", buttons, {
       cancelable: true,
     });
   }
@@ -264,25 +264,21 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       toastError(t("vehicleForm.maxPhotosReached"));
       return;
     }
-    Alert.alert(
-      t("attachments.addPickerTitle"),
-      t("attachments.addPickerBody"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("attachments.camera"),
-          onPress: () => void pickFromCamera(),
-        },
-        {
-          text: t("attachments.photos"),
-          onPress: () => void pickFromGallery(),
-        },
-        {
-          text: t("attachments.files"),
-          onPress: () => void pickFromFiles(),
-        },
-      ],
-    );
+    Alert.alert("", t("attachments.addPickerBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("attachments.camera"),
+        onPress: () => void pickFromCamera(),
+      },
+      {
+        text: t("attachments.photos"),
+        onPress: () => void pickFromGallery(),
+      },
+      {
+        text: t("attachments.files"),
+        onPress: () => void pickFromFiles(),
+      },
+    ]);
   }
 
   async function pickFromCamera() {

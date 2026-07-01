@@ -37,13 +37,11 @@ import { PublicReportConfigureScreen } from "../../screens/header/PublicReportCo
 import { PublicReportSummaryScreen } from "../../screens/header/PublicReportSummaryScreen";
 import { WheelsOverviewScreen } from "../../screens/header/WheelsOverviewScreen";
 import { TiresListScreen } from "../../screens/header/TiresListScreen";
-import { TiresListFiltersScreen } from "../../screens/modal/TiresListFiltersScreen";
 import { WheelsListScreen } from "../../screens/header/WheelsListScreen";
 import { WheelsListFiltersScreen } from "../../screens/modal/WheelsListFiltersScreen";
 import { TireFormScreen } from "../../screens/modal/TireFormScreen";
 import { WheelFormScreen } from "../../screens/modal/WheelFormScreen";
 import { WorkshopsScreen } from "../../screens/header/WorkshopsScreen";
-import { WorkshopsFiltersScreen } from "../../screens/modal/WorkshopsFiltersScreen";
 import { WorkshopFormScreen } from "../../screens/modal/WorkshopFormScreen";
 import { ShopScreen } from "../../screens/modal/ShopScreen";
 import { ExampleListingScreen } from "../../screens/modal/ExampleListingScreen";
@@ -177,12 +175,6 @@ export type AppStackParamList = {
   ReminderForm: { vehicleId: string; reminderId?: string };
   Wheels: { vehicleId: string };
   TiresList: { vehicleId: string };
-  TiresListFilters: {
-    vehicleId: string;
-    tireTypeFilter?: string;
-    fittedFilter?: "all" | "fitted" | "not_fitted";
-    sortOrder?: "az" | "za";
-  };
   WheelsList: { vehicleId: string };
   WheelsListFilters: {
     vehicleId: string;
@@ -192,10 +184,6 @@ export type AppStackParamList = {
   TireForm: { vehicleId: string; tireId?: string };
   WheelForm: { vehicleId: string; wheelId?: string };
   Workshops: undefined;
-  WorkshopsFilters: {
-    typeFilter?: string;
-    sortOrder?: "az" | "za";
-  };
   WorkshopForm: { workshopId?: string };
   Shop: undefined;
   ExampleListing: undefined;
@@ -454,15 +442,6 @@ export function RootNavigator() {
             options={nativeHeaderScreenOptions}
           />
           <Stack.Screen
-            name="TiresListFilters"
-            component={TiresListFiltersScreen}
-            options={{
-              presentation: "modal",
-              headerShown: true,
-              headerShadowVisible: false,
-            }}
-          />
-          <Stack.Screen
             name="WheelsList"
             component={WheelsListScreen}
             options={nativeHeaderScreenOptions}
@@ -498,15 +477,6 @@ export function RootNavigator() {
             name="Workshops"
             component={WorkshopsScreen}
             options={nativeHeaderScreenOptions}
-          />
-          <Stack.Screen
-            name="WorkshopsFilters"
-            component={WorkshopsFiltersScreen}
-            options={{
-              presentation: "modal",
-              headerShown: true,
-              headerShadowVisible: false,
-            }}
           />
           <Stack.Screen
             name="WorkshopForm"

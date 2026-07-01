@@ -127,7 +127,12 @@ export function ImportScreen({ navigation, route }: Props) {
 
   async function copyColumns() {
     try {
-      await Clipboard.setStringAsync(t(`${entryTypeKey}.columnsToCopy`));
+      const headerLine =
+        t(`${entryTypeKey}.placeholder`).split(/\r?\n/)[0]?.trim() ?? "";
+      if (!headerLine.length) {
+        throw new Error(t("common.error"));
+      }
+      await Clipboard.setStringAsync(headerLine);
       toastSuccess(t("import.columnsCopied"));
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));

@@ -45,10 +45,11 @@ export type StatisticsPanelProps = {
   formatMileageChartValue: (value: number) => string;
   formatExpenseChartValue: (value: number) => string;
   showChartInfo: (
-    chart:
+    section:
       | "mileageOverTime"
       | "expensesOverTime"
-      | "expensesByCategory",
+      | "expensesByCategory"
+      | "oilChange",
   ) => void;
   consumptionUnitLine: string;
   fuelUnitShort: string;
@@ -102,7 +103,6 @@ export type StatisticsPanelProps = {
   oilAvgIntervalShowMonths: boolean;
   setOilAvgIntervalShowMonths: Dispatch<SetStateAction<boolean>>;
   oilIntervals: { avgMonths: number; avgKm: number };
-  showOilSectionInfo: () => void;
   oilLife: {
     progressPercent: number;
     isOverdue: boolean;

@@ -1,11 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -71,10 +65,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
     [formValues],
   );
 
-  const canSave = useMemo(
-    () => canSaveWorkshop(formValues),
-    [formValues],
-  );
+  const canSave = useMemo(() => canSaveWorkshop(formValues), [formValues]);
 
   const load = useCallback(async () => {
     if (!workshopId) return;
@@ -125,7 +116,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       });
     });
 
-    Alert.alert(opts.title, t("common.chooseOption"), buttons, {
+    Alert.alert("", "", buttons, {
       cancelable: true,
     });
   }

@@ -657,7 +657,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
   function openPublicReportShareActions() {
     if (!publicReportUrl) return;
-    Alert.alert(t("share.title"), t("common.chooseOption"), [
+    Alert.alert("", "", [
       { text: t("common.cancel"), style: "cancel" },
       {
         text: t("share.openInBrowser"),
@@ -710,7 +710,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   }
 
   function openActions() {
-    Alert.alert(t("dashboard.tiles.manageTitle"), t("common.chooseOption"), [
+    Alert.alert(t("dashboard.tiles.manageTitle"), "", [
       { text: t("common.cancel"), style: "cancel" },
       {
         text: t("common.edit"),

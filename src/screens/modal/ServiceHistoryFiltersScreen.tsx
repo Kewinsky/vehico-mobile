@@ -1,13 +1,7 @@
 import { useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { ServiceEntryCategory } from "../../types/domain";
@@ -124,14 +118,9 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
         onPress: () => setCategoryFilter(c),
       })),
     ];
-    Alert.alert(
-      t("timeline.filterCategory"),
-      t("common.chooseOption"),
-      buttons,
-      {
-        cancelable: true,
-      },
-    );
+    Alert.alert("", "", buttons, {
+      cancelable: true,
+    });
   }
 
   function showSortFieldPicker() {
@@ -154,7 +143,7 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
         onPress: () => setSortField("cost"),
       },
     ];
-    Alert.alert(t("timeline.sortBy"), t("common.chooseOption"), buttons, {
+    Alert.alert("", "", buttons, {
       cancelable: true,
     });
   }
@@ -201,7 +190,7 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
       );
     }
 
-    Alert.alert(t("timeline.sortBy"), t("common.chooseOption"), baseButtons, {
+    Alert.alert("", "", baseButtons, {
       cancelable: true,
     });
   }

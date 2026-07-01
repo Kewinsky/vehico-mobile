@@ -133,10 +133,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     [formValues],
   );
 
-  const canSave = useMemo(
-    () => canSaveReminder(formValues),
-    [formValues],
-  );
+  const canSave = useMemo(() => canSaveReminder(formValues), [formValues]);
 
   const { fieldError, validateBeforeSave, resetFieldErrors } =
     useFormFieldErrors(canSave);
@@ -583,7 +580,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                             years: t("reminderForm.intervalYears"),
                           };
                           Alert.alert(
-                            t("reminderForm.every"),
+                            "",
                             "",
                             [
                               { text: t("common.cancel"), style: "cancel" },

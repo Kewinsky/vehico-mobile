@@ -18,7 +18,7 @@ export function OilChangeSection({
   oilAvgIntervalShowMonths,
   setOilAvgIntervalShowMonths,
   oilIntervals,
-  showOilSectionInfo,
+  showChartInfo,
   oilLife,
   oilLifeStatusText,
   oilLifeProgressPercent,
@@ -37,7 +37,7 @@ export function OilChangeSection({
         </Text>
         <Pressable
           style={styles.infoIconButton}
-          onPress={showOilSectionInfo}
+          onPress={() => showChartInfo("oilChange")}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={t("dashboard.stats.chartInfo.openOilSection")}

@@ -127,7 +127,7 @@ export function AppearanceScreen({ navigation }: Props) {
       });
     });
 
-    Alert.alert(opts.title, t("common.chooseOption"), buttons, {
+    Alert.alert(opts.title, "", buttons, {
       cancelable: true,
     });
   }
@@ -192,9 +192,7 @@ export function AppearanceScreen({ navigation }: Props) {
                             void pick(key, next as UserSettings[typeof key]),
                         })
                       }
-                      style={({ pressed }) => [
-                        { opacity: pressed ? 0.75 : 1 },
-                      ]}
+                      style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
                     >
                       <CardRow>
                         <View style={styles.rowLeft}>
@@ -204,7 +202,10 @@ export function AppearanceScreen({ navigation }: Props) {
                             color={theme.colors.accent}
                           />
                           <Text
-                            style={[styles.label, { color: theme.colors.muted }]}
+                            style={[
+                              styles.label,
+                              { color: theme.colors.muted },
+                            ]}
                             numberOfLines={1}
                           >
                             {t(labelKey)}
@@ -226,9 +227,7 @@ export function AppearanceScreen({ navigation }: Props) {
                 {unitGroup ? (
                   <Pressable
                     onPress={openUnitGroupAlert}
-                    style={({ pressed }) => [
-                      { opacity: pressed ? 0.75 : 1 },
-                    ]}
+                    style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
                   >
                     <CardRow>
                       <View style={styles.rowLeft}>

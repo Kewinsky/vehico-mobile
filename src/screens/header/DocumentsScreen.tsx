@@ -109,25 +109,21 @@ export function DocumentsScreen({ route, navigation }: Props) {
   }
 
   function pickVehicleDocument() {
-    Alert.alert(
-      t("documents.addVehicleDocument"),
-      t("attachments.addPickerBody"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("attachments.camera"),
-          onPress: () => void pickDocFromCamera(),
-        },
-        {
-          text: t("attachments.photos"),
-          onPress: () => void pickDocFromGallery(),
-        },
-        {
-          text: t("attachments.files"),
-          onPress: () => void pickDocFromFiles(),
-        },
-      ],
-    );
+    Alert.alert("", t("attachments.addPickerBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("attachments.camera"),
+        onPress: () => void pickDocFromCamera(),
+      },
+      {
+        text: t("attachments.photos"),
+        onPress: () => void pickDocFromGallery(),
+      },
+      {
+        text: t("attachments.files"),
+        onPress: () => void pickDocFromFiles(),
+      },
+    ]);
   }
 
   async function pickDocFromCamera() {
@@ -207,7 +203,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
   }
 
   function openAddPicker() {
-    Alert.alert(t("documents.addVehicleDocument"), t("common.chooseOption"), [
+    Alert.alert("", "", [
       { text: t("common.cancel"), style: "cancel" },
       {
         text: t("documents.addVehicleDocument"),
