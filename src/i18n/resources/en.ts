@@ -361,6 +361,11 @@ export const en = {
     backToVehicles: "Back to vehicles",
     specification: "Specification",
     quickActionsTitle: "Add",
+    pager: {
+      menu: "Menu",
+      overview: "Overview",
+      statistics: "Statistics",
+    },
     sectionOrder: {
       menu: "Section layout",
       title: "Section layout",

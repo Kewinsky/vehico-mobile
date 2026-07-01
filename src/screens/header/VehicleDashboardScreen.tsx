@@ -138,32 +138,88 @@ type VehicleCarouselProps = {
   onPhotoPress?: (index: number) => void;
 };
 
-type PagerDotProps = {
+type PagerSectionTabProps = {
   pageIndex: number;
+  icon: keyof typeof Ionicons.glyphMap;
+  activeIcon: keyof typeof Ionicons.glyphMap;
+  accessibilityLabel: string;
   onPress: () => void;
   progress: SharedValue<number>;
   theme: any;
 };
 
-function PagerDot({ pageIndex, onPress, progress, theme }: PagerDotProps) {
-  const animatedStyle = useAnimatedStyle(() => ({
-    width: 8 + 12 * Math.max(0, 1 - Math.abs(progress.value - pageIndex)),
-    opacity: 0.7 + 0.3 * Math.max(0, 1 - Math.abs(progress.value - pageIndex)),
-    backgroundColor: interpolateColor(
-      Math.max(0, 1 - Math.abs(progress.value - pageIndex)),
-      [0, 1],
-      [theme.colors.border, theme.colors.accent],
-    ),
-    transform: [
-      {
-        scale: 1 + 0.08 * Math.max(0, 1 - Math.abs(progress.value - pageIndex)),
-      },
-    ],
-  }));
+const DASHBOARD_PAGER_SECTIONS = [
+  {
+    icon: "apps-outline",
+    activeIcon: "apps",
+    labelKey: "dashboard.pager.menu",
+  },
+  {
+    icon: "car-sport-outline",
+    activeIcon: "car-sport",
+    labelKey: "dashboard.pager.overview",
+  },
+  {
+    icon: "stats-chart-outline",
+    activeIcon: "stats-chart",
+    labelKey: "dashboard.pager.statistics",
+  },
+] as const satisfies readonly {
+  icon: keyof typeof Ionicons.glyphMap;
+  activeIcon: keyof typeof Ionicons.glyphMap;
+  labelKey: string;
+}[];
+
+function PagerSectionTab({
+  pageIndex,
+  icon,
+  activeIcon,
+  accessibilityLabel,
+  onPress,
+  progress,
+  theme,
+}: PagerSectionTabProps) {
+  const containerStyle = useAnimatedStyle(() => {
+    const active = Math.max(0, 1 - Math.abs(progress.value - pageIndex));
+    return {
+      transform: [{ scale: 0.92 + 0.08 * active }],
+      backgroundColor: interpolateColor(
+        active,
+        [0, 1],
+        ["transparent", `${theme.colors.accent}24`],
+      ),
+    };
+  });
+  const inactiveIconStyle = useAnimatedStyle(() => {
+    const active = Math.max(0, 1 - Math.abs(progress.value - pageIndex));
+    return { opacity: 1 - active };
+  });
+  const activeIconStyle = useAnimatedStyle(() => {
+    const active = Math.max(0, 1 - Math.abs(progress.value - pageIndex));
+    return { opacity: active };
+  });
 
   return (
-    <Pressable onPress={onPress} hitSlop={8}>
-      <Animated.View style={[stylesInline.pagerDot, animatedStyle]} />
+    <Pressable
+      onPress={onPress}
+      hitSlop={8}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+    >
+      <Animated.View style={[stylesInline.pagerTab, containerStyle]}>
+        <Animated.View
+          style={[stylesInline.pagerTabIconLayer, inactiveIconStyle]}
+          pointerEvents="none"
+        >
+          <Ionicons name={icon} size={23} color={theme.colors.muted} />
+        </Animated.View>
+        <Animated.View
+          style={[stylesInline.pagerTabIconLayer, activeIconStyle]}
+          pointerEvents="none"
+        >
+          <Ionicons name={activeIcon} size={23} color={theme.colors.accent} />
+        </Animated.View>
+      </Animated.View>
     </Pressable>
   );
 }
@@ -1255,21 +1311,27 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             tint={mode === "dark" ? "dark" : "light"}
             style={StyleSheet.absoluteFill}
           />
-          {pageData.map((pageIndex) => (
-            <PagerDot
-              key={`dot-${pageIndex}`}
-              pageIndex={pageIndex}
-              onPress={() => {
-                pagerRef.current?.scrollToIndex({
-                  index: pageIndex,
-                  animated: true,
-                });
-                setActivePage(pageIndex);
-              }}
-              progress={pagerProgress}
-              theme={theme}
-            />
-          ))}
+          {pageData.map((pageIndex) => {
+            const section = DASHBOARD_PAGER_SECTIONS[pageIndex];
+            return (
+              <PagerSectionTab
+                key={`pager-tab-${pageIndex}`}
+                pageIndex={pageIndex}
+                icon={section.icon}
+                activeIcon={section.activeIcon}
+                accessibilityLabel={t(section.labelKey)}
+                onPress={() => {
+                  pagerRef.current?.scrollToIndex({
+                    index: pageIndex,
+                    animated: true,
+                  });
+                  setActivePage(pageIndex);
+                }}
+                progress={pagerProgress}
+                theme={theme}
+              />
+            );
+          })}
         </View>
       </View>
 
@@ -1790,9 +1852,9 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
-      gap: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.sm,
+      gap: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.xs / 2,
+      paddingVertical: theme.spacing.xs / 2,
       borderRadius: 999,
       backgroundColor: "transparent",
       elevation: 4,
@@ -1905,10 +1967,17 @@ const stylesInline = {
     backgroundColor: theme.colors.accent,
     borderRadius: 999,
   }),
-  pagerDot: {
-    width: 8,
-    height: 8,
+  pagerTab: {
+    width: 48,
+    height: 48,
     borderRadius: 999,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  },
+  pagerTabIconLayer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
   expandButton: (theme: any) => ({
     position: "absolute" as const,
