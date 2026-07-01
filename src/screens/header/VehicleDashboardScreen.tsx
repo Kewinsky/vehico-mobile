@@ -293,7 +293,6 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
   const { distanceUnitLabel, consumptionUnitLine } = units;
   const currency = settings?.currency ?? "PLN";
   const vehicleImageHeight = Math.min(Math.max(windowHeight * 0.34, 280), 360);
-  const carouselGlowHeight = Math.round(vehicleImageHeight * 1.65);
   const mileageStaleYmd = useMemo(() => {
     return getMileageStaleYmd(vehicle?.mileage, vehicle?.mileage_updated_at);
   }, [vehicle?.mileage, vehicle?.mileage_updated_at]);
@@ -1194,15 +1193,13 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       >
         <Glow
           width={windowWidth}
-          height={carouselGlowHeight}
+          height={Math.round(windowHeight * 0.55)}
           mode={mode}
-          angle={180}
-          variant="linear"
-          locations={[0, 0.1, 0.78, 1]}
-          style={[
-            styles.carouselGlow,
-            { top: Math.round(vehicleImageHeight * 0.62) },
-          ]}
+          variant="irregular"
+          irregularOrigin="top-right"
+          angle={135}
+          scale={2}
+          style={styles.carouselGlow}
         />
         <View
           style={[styles.vehicleImageContainer, { height: vehicleImageHeight }]}
@@ -1507,8 +1504,8 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     carouselGlow: {
       position: "absolute",
+      top: 0,
       left: 0,
-      right: 0,
       zIndex: 0,
     },
     vehicleImageContainer: {

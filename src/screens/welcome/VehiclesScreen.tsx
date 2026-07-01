@@ -531,9 +531,12 @@ export function VehiclesScreen({ navigation, route }: Props) {
       background={
         <Glow
           width={windowWidth}
-          height={Math.round(windowHeight * 0.55)}
+          height={Math.round(windowHeight * 0.275)}
           mode={mode}
+          variant="irregular"
+          irregularOrigin="top-right"
           angle={VEHICLES_GLOW_ANGLE}
+          scale={2}
           style={styles.backgroundGlow}
         />
       }
