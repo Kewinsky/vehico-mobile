@@ -1,18 +1,18 @@
 import { useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { GasStation } from "../../types/domain";
 import { setPendingModalResult } from "../../app/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
 import { ModalFormScreen } from "../../ui/components/layout/ModalFormScreen";
-import { Card, CardRow } from "../../ui/components/common/Card";
+import { Card } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
-import { useTheme } from "../../ui/ThemeProvider";
-import { Ionicons } from "@expo/vector-icons";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
+import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
+import { useTheme } from "../../ui/ThemeProvider";
 
 const GAS_STATION_OPTIONS: readonly GasStation[] = [
   "orlen",
@@ -58,24 +58,6 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
     setMaxCost("");
   }
 
-  function showStationPicker() {
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default";
-    }[] = [
-      { text: t("common.cancel"), style: "cancel" },
-      { text: t("common.all"), onPress: () => setStationFilter(null) },
-      ...GAS_STATION_OPTIONS.map((s) => ({
-        text: t(`fuelingForm.stations.${s}`),
-        onPress: () => setStationFilter(s),
-      })),
-    ];
-    Alert.alert("", "", buttons, {
-      cancelable: true,
-    });
-  }
-
   function applyFilters() {
     const applied: FuelFiltersParams = {
       dateFrom,
@@ -102,39 +84,16 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
       }
     >
       <Card>
-        <Pressable
-          onPress={showStationPicker}
-          style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-        >
-          <CardRow style={styles.rowSpread}>
-            <View style={styles.rowLeft}>
-              <Ionicons
-                name="location-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("timeline.filterStation")}
-              </Text>
-            </View>
-            <Text
-              style={[
-                styles.valueText,
-                {
-                  color:
-                    stationFilter != null
-                      ? theme.colors.fg
-                      : theme.colors.muted,
-                },
-              ]}
-              numberOfLines={1}
-            >
-              {stationFilter != null
-                ? t(`fuelingForm.stations.${stationFilter}`)
-                : stationPlaceholder}
-            </Text>
-          </CardRow>
-        </Pressable>
+        <FormPickerRow<GasStation>
+          icon="location-outline"
+          label={t("timeline.filterStation")}
+          value={stationFilter}
+          options={GAS_STATION_OPTIONS}
+          getLabel={(value) => t(`fuelingForm.stations.${value}`)}
+          onChange={setStationFilter}
+          placeholderLabel={stationPlaceholder}
+          rowStyle={styles.rowSpread}
+        />
 
         <FormDateRow
           icon="calendar-outline"

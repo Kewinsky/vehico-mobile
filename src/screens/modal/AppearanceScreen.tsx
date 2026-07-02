@@ -1,4 +1,4 @@
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
@@ -11,7 +11,8 @@ import type { UserSettings } from "../../app/providers/UserSettingsProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
-import { Card, CardRow } from "../../ui/components/common/Card";
+import { Card } from "../../ui/components/common/Card";
+import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { APP_CURRENCY_OPTIONS } from "../../utils/currencies";
 import {
   UNIT_GROUPS,
@@ -83,6 +84,11 @@ export function AppearanceScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const cardConfig = useMemo(() => buildCardConfig(t), [t]);
 
+  const unitGroupIds = useMemo(
+    () => UNIT_GROUPS.map((group) => group.id),
+    [],
+  );
+
   async function pick<K extends keyof UserSettings>(
     key: K,
     value: UserSettings[K],
@@ -108,57 +114,12 @@ export function AppearanceScreen({ navigation }: Props) {
     });
   }
 
-  function showPicker<V extends string>(opts: {
-    title: string;
-    value: V;
-    options: readonly Option<V>[];
-    onChange: (value: V) => void;
-  }) {
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default" | "destructive";
-    }[] = [{ text: t("common.cancel"), style: "cancel" }];
-
-    opts.options.forEach((opt) => {
-      buttons.push({
-        text: opt.label,
-        onPress: () => opts.onChange(opt.value),
-      });
-    });
-
-    Alert.alert(opts.title, "", buttons, {
-      cancelable: true,
-    });
-  }
-
-  function openUnitGroupAlert() {
-    if (!settings) return;
-    showPicker({
-      title: t("settings.unitGroupSection"),
-      value: resolveUnitGroupId(settings),
-      options: UNIT_GROUPS.map((group) => ({
-        value: group.id,
-        label: unitGroupTitle(group.id),
-      })),
-      onChange: (groupId) => void pickUnitGroup(groupId),
-    });
-  }
-
   const themeIcon: React.ComponentProps<typeof Ionicons>["name"] =
     settings?.theme === "system"
       ? "phone-portrait-outline"
       : mode === "dark"
         ? "moon-outline"
         : "sunny-outline";
-
-  function labelForSetting(
-    value: string,
-    options: readonly Option<string>[],
-  ): string {
-    const match = options.find((opt) => opt.value === value);
-    return match?.label ?? value;
-  }
 
   return (
     <ModalLayout
@@ -178,82 +139,36 @@ export function AppearanceScreen({ navigation }: Props) {
                 {items.map(({ key, icon, labelKey, options }) => {
                   const currentIcon = key === "theme" ? themeIcon : icon;
                   const value = String(settings[key]);
-                  const displayValue = labelForSetting(value, options);
+                  const optionValues = options.map((option) => option.value);
 
                   return (
-                    <Pressable
+                    <FormPickerRow<string>
                       key={String(key)}
-                      onPress={() =>
-                        showPicker({
-                          title: t(labelKey),
-                          value,
-                          options,
-                          onChange: (next) =>
-                            void pick(key, next as UserSettings[typeof key]),
-                        })
+                      icon={currentIcon}
+                      label={t(labelKey)}
+                      value={value}
+                      options={optionValues}
+                      getLabel={(optionValue) =>
+                        options.find((option) => option.value === optionValue)
+                          ?.label ?? optionValue
                       }
-                      style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-                    >
-                      <CardRow>
-                        <View style={styles.rowLeft}>
-                          <Ionicons
-                            name={currentIcon}
-                            size={20}
-                            color={theme.colors.accent}
-                          />
-                          <Text
-                            style={[
-                              styles.label,
-                              { color: theme.colors.muted },
-                            ]}
-                            numberOfLines={1}
-                          >
-                            {t(labelKey)}
-                          </Text>
-                        </View>
-                        <Text
-                          style={[
-                            styles.valueText,
-                            { color: theme.colors.fg, textAlign: "right" },
-                          ]}
-                          numberOfLines={2}
-                        >
-                          {displayValue}
-                        </Text>
-                      </CardRow>
-                    </Pressable>
+                      onChange={(next) =>
+                        void pick(key, next as UserSettings[typeof key])
+                      }
+                    />
                   );
                 })}
                 {unitGroup ? (
-                  <Pressable
-                    onPress={openUnitGroupAlert}
-                    style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-                  >
-                    <CardRow>
-                      <View style={styles.rowLeft}>
-                        <Ionicons
-                          name="speedometer-outline"
-                          size={20}
-                          color={theme.colors.accent}
-                        />
-                        <Text
-                          style={[styles.label, { color: theme.colors.muted }]}
-                          numberOfLines={1}
-                        >
-                          {t("settings.unitGroupSection")}
-                        </Text>
-                      </View>
-                      <Text
-                        style={[
-                          styles.valueText,
-                          { color: theme.colors.fg, textAlign: "right" },
-                        ]}
-                        numberOfLines={2}
-                      >
-                        {unitGroupTitle(resolveUnitGroupId(settings))}
-                      </Text>
-                    </CardRow>
-                  </Pressable>
+                  <FormPickerRow<UnitGroupId>
+                    icon="speedometer-outline"
+                    label={t("settings.unitGroupSection")}
+                    value={resolveUnitGroupId(settings)}
+                    options={unitGroupIds}
+                    getLabel={unitGroupTitle}
+                    onChange={(groupId) => {
+                      if (groupId) void pickUnitGroup(groupId);
+                    }}
+                  />
                 ) : null}
               </Card>
             </View>
@@ -280,21 +195,6 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.title,
       fontWeight: theme.typography.fontWeight.bold,
       marginBottom: theme.spacing.sm,
-    },
-    rowLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-      flexShrink: 1,
-    },
-    label: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    valueText: {
-      flex: 1,
-      minWidth: 0,
-      fontSize: theme.typography.body,
     },
     bottomSpacer: {
       height: theme.spacing.lg,

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
@@ -27,6 +27,7 @@ import { ModalLayout } from "../../layouts";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
+import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
@@ -145,39 +146,6 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     setGasStation(null);
   }
 
-  function showPicker<T extends string>(opts: {
-    title: string;
-    value: T | null;
-    options: readonly T[];
-    getLabel: (v: T) => string;
-    onChange: (v: T | null) => void;
-    placeholderLabel?: string;
-  }) {
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default" | "destructive";
-    }[] = [{ text: t("common.cancel"), style: "cancel" }];
-
-    if (opts.placeholderLabel) {
-      buttons.push({
-        text: opts.placeholderLabel,
-        onPress: () => opts.onChange(null),
-      });
-    }
-
-    opts.options.forEach((opt) => {
-      buttons.push({
-        text: opts.getLabel(opt),
-        onPress: () => opts.onChange(opt),
-      });
-    });
-
-    Alert.alert("", "", buttons, {
-      cancelable: true,
-    });
-  }
-
   async function onSave() {
     if (!validateBeforeSave()) return;
 
@@ -228,89 +196,27 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               error={fieldError(fieldErrors.date)}
             />
 
-            <Pressable
-              onPress={() =>
-                showPicker<FuelGrade>({
-                  title: t("fuelingForm.fuelType"),
-                  value: fuelType,
-                  options: FUEL_TYPE_OPTIONS,
-                  getLabel: (v) => t(`fuelingForm.fuelTypes.${v}`),
-                  onChange: setFuelType,
-                  placeholderLabel: t("fuelingForm.fuelPlaceholder"),
-                })
-              }
-              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-            >
-              <CardRow>
-                <View style={styles.rowLeft}>
-                  <Fuel size={20} color={theme.colors.accent} />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("fuelingForm.fuelType")}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    styles.valueText,
-                    {
-                      color: fuelType ? theme.colors.fg : theme.colors.muted,
-                      textAlign: "right",
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {fuelType
-                    ? t(`fuelingForm.fuelTypes.${fuelType}`)
-                    : t("fuelingForm.fuelPlaceholder")}
-                </Text>
-              </CardRow>
-            </Pressable>
+            <FormPickerRow<FuelGrade>
+              iconComponent={<Fuel size={20} color={theme.colors.accent} />}
+              label={t("fuelingForm.fuelType")}
+              value={fuelType}
+              options={FUEL_TYPE_OPTIONS}
+              getLabel={(value) => t(`fuelingForm.fuelTypes.${value}`)}
+              onChange={setFuelType}
+              placeholderLabel={t("fuelingForm.fuelPlaceholder")}
+              disabled={saving}
+            />
 
-            <Pressable
-              onPress={() =>
-                showPicker<GasStation>({
-                  title: t("fuelingForm.gasStation"),
-                  value: gasStation,
-                  options: GAS_STATION_OPTIONS,
-                  getLabel: (v) => t(`fuelingForm.stations.${v}`),
-                  onChange: setGasStation,
-                  placeholderLabel: t("fuelingForm.gasStationPlaceholder"),
-                })
-              }
-              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-            >
-              <CardRow>
-                <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="location-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("fuelingForm.gasStation")}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    styles.valueText,
-                    {
-                      color: gasStation ? theme.colors.fg : theme.colors.muted,
-                      textAlign: "right",
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {gasStation
-                    ? t(`fuelingForm.stations.${gasStation}`)
-                    : t("fuelingForm.gasStationPlaceholder")}
-                </Text>
-              </CardRow>
-            </Pressable>
+            <FormPickerRow<GasStation>
+              icon="location-outline"
+              label={t("fuelingForm.gasStation")}
+              value={gasStation}
+              options={GAS_STATION_OPTIONS}
+              getLabel={(value) => t(`fuelingForm.stations.${value}`)}
+              onChange={setGasStation}
+              placeholderLabel={t("fuelingForm.gasStationPlaceholder")}
+              disabled={saving}
+            />
           </Card>
 
           <View style={{ height: theme.spacing.sm }} />

@@ -1,19 +1,19 @@
 import { useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { ServiceEntryCategory } from "../../types/domain";
 import { setPendingModalResult } from "../../app/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
+import { Card } from "../../ui/components/common/Card";
 import { ModalFormScreen } from "../../ui/components/layout/ModalFormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
-import { Ionicons } from "@expo/vector-icons";
-import { Card, CardRow } from "../../ui/components/common/Card";
+import { ListFilter } from "lucide-react-native";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
-import { ListFilter } from "lucide-react-native";
+import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 
 export type ServiceHistoryFiltersParams = {
   categoryFilter: "all" | ServiceEntryCategory;
@@ -38,6 +38,13 @@ const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
   "oil_change",
   "other",
 ];
+
+const CATEGORY_FILTER_OPTIONS = [
+  "all",
+  ...CATEGORY_OPTIONS,
+] as const satisfies readonly ("all" | ServiceEntryCategory)[];
+
+const SORT_FIELD_OPTIONS = ["date", "title", "cost"] as const;
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceHistoryFilters">;
 
@@ -72,10 +79,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
     if (field === "cost") return "cost" as const;
     return "date" as const;
   }, [sortOption]);
-  const dateSortOption =
-    sortOption === "date-oldest" ? "date-oldest" : "date-newest";
-  const titleSortOption = sortOption === "title-za" ? "title-za" : "title-az";
-  const costSortOption = sortOption === "cost-desc" ? "cost-desc" : "cost-asc";
 
   function setSortField(next: "date" | "title" | "cost") {
     if (next === sortField) return;
@@ -84,17 +87,13 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
     if (next === "cost") setSortOption("cost-asc");
   }
 
-  function setDateSortOption(next: "date-newest" | "date-oldest") {
-    setSortOption(next);
-  }
+  const categoryOptions = useMemo(() => [...CATEGORY_FILTER_OPTIONS], []);
 
-  function setTitleSortOption(next: "title-az" | "title-za") {
-    setSortOption(next);
-  }
-
-  function setCostSortOption(next: "cost-asc" | "cost-desc") {
-    setSortOption(next);
-  }
+  const sortOrderOptions = useMemo((): SortOption[] => {
+    if (sortField === "date") return ["date-newest", "date-oldest"];
+    if (sortField === "title") return ["title-az", "title-za"];
+    return ["cost-asc", "cost-desc"];
+  }, [sortField]);
 
   function clearFilters() {
     setCategoryFilter("all");
@@ -104,119 +103,6 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
     setMaxCost("");
     setSortOption("date-newest");
   }
-
-  function showCategoryPicker() {
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default";
-    }[] = [
-      { text: t("common.cancel"), style: "cancel" },
-      { text: t("common.all"), onPress: () => setCategoryFilter("all") },
-      ...CATEGORY_OPTIONS.map((c) => ({
-        text: t(`entryForm.categories.${c}` as any),
-        onPress: () => setCategoryFilter(c),
-      })),
-    ];
-    Alert.alert("", "", buttons, {
-      cancelable: true,
-    });
-  }
-
-  function showSortFieldPicker() {
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default";
-    }[] = [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("timeline.sortFieldDate"),
-        onPress: () => setSortField("date"),
-      },
-      {
-        text: t("timeline.sortFieldTitle"),
-        onPress: () => setSortField("title"),
-      },
-      {
-        text: t("timeline.sortFieldAmount"),
-        onPress: () => setSortField("cost"),
-      },
-    ];
-    Alert.alert("", "", buttons, {
-      cancelable: true,
-    });
-  }
-
-  function showSortOrderPicker() {
-    const baseButtons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default";
-    }[] = [{ text: t("common.cancel"), style: "cancel" }];
-
-    if (sortField === "date") {
-      baseButtons.push(
-        {
-          text: t("timeline.sortOrderNewest"),
-          onPress: () => setDateSortOption("date-newest"),
-        },
-        {
-          text: t("timeline.sortOrderOldest"),
-          onPress: () => setDateSortOption("date-oldest"),
-        },
-      );
-    } else if (sortField === "title") {
-      baseButtons.push(
-        {
-          text: t("timeline.sortOrderAz"),
-          onPress: () => setTitleSortOption("title-az"),
-        },
-        {
-          text: t("timeline.sortOrderZa"),
-          onPress: () => setTitleSortOption("title-za"),
-        },
-      );
-    } else {
-      baseButtons.push(
-        {
-          text: t("timeline.sortOrderAmountAsc"),
-          onPress: () => setCostSortOption("cost-asc"),
-        },
-        {
-          text: t("timeline.sortOrderAmountDesc"),
-          onPress: () => setCostSortOption("cost-desc"),
-        },
-      );
-    }
-
-    Alert.alert("", "", baseButtons, {
-      cancelable: true,
-    });
-  }
-
-  const categoryLabel =
-    categoryFilter === "all"
-      ? t("entryForm.categoryPlaceholder")
-      : t(`entryForm.categories.${categoryFilter}` as any);
-  const sortFieldLabel =
-    sortField === "date"
-      ? t("timeline.sortFieldDate")
-      : sortField === "title"
-        ? t("timeline.sortFieldTitle")
-        : t("timeline.sortFieldAmount");
-  const sortOrderLabel =
-    sortField === "date"
-      ? dateSortOption === "date-oldest"
-        ? t("timeline.sortOrderOldest")
-        : t("timeline.sortOrderNewest")
-      : sortField === "title"
-        ? titleSortOption === "title-za"
-          ? t("timeline.sortOrderZa")
-          : t("timeline.sortOrderAz")
-        : costSortOption === "cost-desc"
-          ? t("timeline.sortOrderAmountDesc")
-          : t("timeline.sortOrderAmountAsc");
 
   function applyFilters() {
     const applied: ServiceHistoryFiltersParams = {
@@ -245,79 +131,57 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
       }
     >
       <Card>
-        <Pressable
-          onPress={showCategoryPicker}
-          style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-        >
-          <CardRow style={styles.rowSpread}>
-            <View style={styles.rowLeft}>
-              <Ionicons
-                name="pricetag-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("timeline.filterCategory")}
-              </Text>
-            </View>
-            <Text
-              style={[
-                styles.valueText,
-                {
-                  color:
-                    categoryFilter === "all"
-                      ? theme.colors.muted
-                      : theme.colors.fg,
-                },
-              ]}
-              numberOfLines={1}
-            >
-              {categoryLabel}
-            </Text>
-          </CardRow>
-        </Pressable>
-        <Pressable
-          onPress={showSortFieldPicker}
-          style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-        >
-          <CardRow style={styles.rowSpread}>
-            <View style={styles.rowLeft}>
-              <Ionicons
-                name="swap-vertical-outline"
-                size={20}
-                color={theme.colors.accent}
-              />
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("timeline.sortBy")}
-              </Text>
-            </View>
-            <Text
-              style={[styles.valueText, { color: theme.colors.fg }]}
-              numberOfLines={1}
-            >
-              {sortFieldLabel}
-            </Text>
-          </CardRow>
-        </Pressable>
-        <Pressable
-          onPress={showSortOrderPicker}
-          style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-        >
-          <CardRow style={styles.rowSpread}>
-            <View style={styles.rowLeft}>
-              <ListFilter size={20} color={theme.colors.accent} />
-              <Text style={[styles.label, { color: theme.colors.muted }]}>
-                {t("timeline.sortOrderNewest")}
-              </Text>
-            </View>
-            <Text
-              style={[styles.valueText, { color: theme.colors.fg }]}
-              numberOfLines={1}
-            >
-              {sortOrderLabel}
-            </Text>
-          </CardRow>
-        </Pressable>
+        <FormPickerRow<"all" | ServiceEntryCategory>
+          icon="pricetag-outline"
+          label={t("timeline.filterCategory")}
+          value={categoryFilter}
+          options={categoryOptions}
+          getLabel={(value) =>
+            value === "all"
+              ? t("common.all")
+              : t(`entryForm.categories.${value}` as any)
+          }
+          onChange={(value) => {
+            if (value) setCategoryFilter(value);
+          }}
+          mutedValues={["all"]}
+          rowStyle={styles.rowSpread}
+        />
+        <FormPickerRow<"date" | "title" | "cost">
+          icon="swap-vertical-outline"
+          label={t("timeline.sortBy")}
+          value={sortField}
+          options={SORT_FIELD_OPTIONS}
+          getLabel={(value) =>
+            value === "date"
+              ? t("timeline.sortFieldDate")
+              : value === "title"
+                ? t("timeline.sortFieldTitle")
+                : t("timeline.sortFieldAmount")
+          }
+          onChange={(value) => {
+            if (value) setSortField(value);
+          }}
+          rowStyle={styles.rowSpread}
+        />
+        <FormPickerRow<SortOption>
+          iconComponent={<ListFilter size={20} color={theme.colors.accent} />}
+          label={t("timeline.sortOrderNewest")}
+          value={sortOption}
+          options={sortOrderOptions}
+          getLabel={(value) => {
+            if (value === "date-oldest") return t("timeline.sortOrderOldest");
+            if (value === "date-newest") return t("timeline.sortOrderNewest");
+            if (value === "title-az") return t("timeline.sortOrderAz");
+            if (value === "title-za") return t("timeline.sortOrderZa");
+            if (value === "cost-asc") return t("timeline.sortOrderAmountAsc");
+            return t("timeline.sortOrderAmountDesc");
+          }}
+          onChange={(value) => {
+            if (value) setSortOption(value);
+          }}
+          rowStyle={styles.rowSpread}
+        />
         <FormDateRow
           icon="calendar-outline"
           label={t("timeline.filterFrom")}

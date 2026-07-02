@@ -63,6 +63,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { ModalLayout } from "../../layouts";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
+import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -209,6 +210,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       }
     })();
   }, [entryId, reloadAttachments, t]);
+
+  const isPickerDisabled = saving || uploading;
+  const workshopIds = useMemo(() => workshops.map((workshop) => workshop.id), [workshops]);
 
   const isMulti = mode === "multi";
   const isMultipleRows = entries.length > 1;
@@ -377,39 +381,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         ]}
       />
     );
-  }
-
-  function showPicker<T extends string>(opts: {
-    title: string;
-    value: T | null;
-    options: readonly T[];
-    getLabel: (v: T) => string;
-    onChange: (v: T | null) => void;
-    placeholderLabel?: string;
-  }) {
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default" | "destructive";
-    }[] = [{ text: t("common.cancel"), style: "cancel" }];
-
-    if (opts.placeholderLabel) {
-      buttons.push({
-        text: opts.placeholderLabel,
-        onPress: () => opts.onChange(null),
-      });
-    }
-
-    opts.options.forEach((opt) => {
-      buttons.push({
-        text: opts.getLabel(opt),
-        onPress: () => opts.onChange(opt),
-      });
-    });
-
-    Alert.alert("", "", buttons, {
-      cancelable: true,
-    });
   }
 
   function confirmDeleteEntry() {
@@ -755,104 +726,38 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               error={fieldError(fieldErrors.serviceDate)}
             />
 
-            <Pressable
-              onPress={() =>
-                showPicker<ServiceEntryCategory>({
-                  title: t("entryForm.category"),
-                  value: category,
-                  options: SERVICE_ENTRY_CATEGORY_OPTIONS,
-                  getLabel: (v) => t(`entryForm.categories.${v}` as any),
-                  onChange: setCategory,
-                  placeholderLabel: t("entryForm.categoryPlaceholder"),
-                })
-              }
-              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-            >
-              <CardRow error={fieldError(fieldErrors.category)}>
-                <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="pricetag-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("entryForm.category")}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    styles.valueText,
-                    {
-                      color: category ? theme.colors.fg : theme.colors.muted,
-                      textAlign: "right",
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {category
-                    ? t(`entryForm.categories.${category}` as any)
-                    : t("entryForm.categoryPlaceholder")}
-                </Text>
-              </CardRow>
-            </Pressable>
+            <FormPickerRow<ServiceEntryCategory>
+              icon="pricetag-outline"
+              label={t("entryForm.category")}
+              value={category}
+              options={SERVICE_ENTRY_CATEGORY_OPTIONS}
+              getLabel={(value) => t(`entryForm.categories.${value}` as any)}
+              onChange={setCategory}
+              placeholderLabel={t("entryForm.categoryPlaceholder")}
+              disabled={isPickerDisabled}
+              error={fieldError(fieldErrors.category)}
+            />
 
-            <Pressable
-              onPress={() =>
-                showPicker<string>({
-                  title: t("entryForm.workshop"),
-                  value: workshopId,
-                  options: workshops.map((w) => w.id),
-                  getLabel: (id) =>
-                    workshops.find((w) => w.id === id)?.name ?? "",
-                  onChange: (selectedId) => {
-                    setWorkshopId(selectedId);
-                    setWorkshopSnapshot(
-                      selectedId
-                        ? (workshops.find((w) => w.id === selectedId)?.name ??
-                            workshopSnapshot)
-                        : null,
-                    );
-                  },
-                  placeholderLabel: t("entryForm.workshopPlaceholder"),
-                })
+            <FormPickerRow<string>
+              icon="business-outline"
+              label={t("entryForm.workshop")}
+              value={workshopId}
+              options={workshopIds}
+              getLabel={(id) =>
+                workshops.find((workshop) => workshop.id === id)?.name ?? ""
               }
-              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-            >
-              <CardRow>
-                <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="business-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("entryForm.workshop")}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    styles.valueText,
-                    {
-                      color: workshopId ? theme.colors.fg : theme.colors.muted,
-                      textAlign: "right",
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {workshopId
-                    ? (workshops.find((w) => w.id === workshopId)?.name ??
-                      workshopSnapshot ??
-                      t("entryForm.workshopPlaceholder"))
-                    : t("entryForm.workshopPlaceholder")}
-                </Text>
-              </CardRow>
-            </Pressable>
+              onChange={(selectedId) => {
+                setWorkshopId(selectedId);
+                setWorkshopSnapshot(
+                  selectedId
+                    ? (workshops.find((workshop) => workshop.id === selectedId)
+                        ?.name ?? workshopSnapshot)
+                    : null,
+                );
+              }}
+              placeholderLabel={t("entryForm.workshopPlaceholder")}
+              disabled={isPickerDisabled}
+            />
 
             <FormInputRow
               icon="speedometer-outline"

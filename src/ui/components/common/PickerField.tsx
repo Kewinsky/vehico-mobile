@@ -1,7 +1,12 @@
-import { Alert, Pressable, View } from "react-native";
+import { useMemo } from "react";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Host, Picker } from "@expo/ui/swift-ui";
+import { fixedSize } from "@expo/ui/swift-ui/modifiers";
 
-import { TextField } from "./TextField";
+import { useTheme } from "../../ThemeProvider";
+import { buildMenuPickerState } from "./menuPickerState";
+import { openAlertPicker } from "./openAlertPicker";
 
 type Props<T extends string> = {
   label: string;
@@ -25,48 +30,138 @@ export function PickerField<T extends string>({
   placeholder,
 }: Props<T>) {
   const { t } = useTranslation();
+  const { theme, mode: themeMode } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const handlePress = () => {
-    if (disabled) return;
+  const { pickerOptions, selectedIndex, isValueMuted, handleSelectIndex } =
+    useMemo(
+      () =>
+        buildMenuPickerState({
+          value,
+          options,
+          getLabel,
+          placeholderLabel: placeholder,
+        }),
+      [value, options, getLabel, placeholder],
+    );
 
-    const buttons: { text: string; onPress?: () => void; style?: "cancel" | "default" | "destructive" }[] = [
-      { text: t("common.cancel"), style: "cancel" },
-    ];
+  const displayText = value ? getLabel(value) : placeholder || "";
 
-    if (placeholder) {
-      buttons.push({
-        text: placeholder,
-        onPress: () => onChange(null),
-      });
-    }
+  if (Platform.OS === "ios") {
+    const valueColor = isValueMuted ? theme.colors.muted : theme.colors.fg;
 
-    options.forEach((opt) => {
-      buttons.push({
-        text: getLabel(opt),
-        onPress: () => onChange(opt),
-      });
-    });
-
-    Alert.alert(label, t("common.chooseOption"), buttons, { cancelable: true });
-  };
+    return (
+      <View
+        style={[styles.field, noMarginTop && styles.fieldNoTop]}
+        pointerEvents={disabled ? "none" : "auto"}
+      >
+        {label ? <Text style={styles.label}>{label}</Text> : null}
+        <View style={[styles.wrap, disabled && styles.disabled]}>
+          <View style={styles.valueWrap}>
+            <Host
+              matchContents={{ horizontal: true, vertical: true }}
+              colorScheme={themeMode === "dark" ? "dark" : "light"}
+              style={styles.nativePickerHost}
+            >
+              <Picker
+                variant="menu"
+                label=""
+                options={pickerOptions}
+                selectedIndex={selectedIndex}
+                color={valueColor}
+                modifiers={[fixedSize({ horizontal: true, vertical: true })]}
+                onOptionSelected={({ nativeEvent }) => {
+                  onChange(handleSelectIndex(nativeEvent.index));
+                }}
+              />
+            </Host>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
-    <View>
+    <View style={[styles.field, noMarginTop && styles.fieldNoTop]}>
       <Pressable
-        onPress={handlePress}
+        onPress={() => {
+          if (disabled) return;
+          openAlertPicker({
+            title: label,
+            cancelLabel: t("common.cancel"),
+            choices: [
+              ...(placeholder
+                ? [{ label: placeholder, onPress: () => onChange(null) }]
+                : []),
+              ...options.map((option) => ({
+                label: getLabel(option),
+                onPress: () => onChange(option),
+              })),
+            ],
+          });
+        }}
         disabled={disabled}
         style={({ pressed }) => [
           pressed && !disabled ? { opacity: 0.95 } : null,
         ]}
       >
-        <TextField
-          noMarginTop={noMarginTop}
-          label={label}
-          value={value ? getLabel(value) : placeholder || ""}
-          editable={false}
-          pointerEvents="none"
-        />
+        {label ? <Text style={styles.label}>{label}</Text> : null}
+        <View style={styles.wrap}>
+          <Text
+            style={[
+              styles.valueText,
+              {
+                color: value
+                  ? theme.colors.fg
+                  : theme.colors.muted,
+              },
+            ]}
+            numberOfLines={1}
+          >
+            {displayText}
+          </Text>
+        </View>
       </Pressable>
     </View>
   );
 }
+
+const makeStyles = (theme: any) =>
+  StyleSheet.create({
+    field: {
+      marginTop: theme.spacing.sm,
+    },
+    fieldNoTop: {
+      marginTop: 0,
+    },
+    label: {
+      marginBottom: theme.spacing.sm,
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.muted,
+    },
+    wrap: {
+      borderRadius: theme.radius.xl,
+      backgroundColor: theme.colors.card,
+      paddingVertical: theme.spacing.md,
+      paddingRight: 0,
+      paddingLeft: theme.spacing.md,
+      minHeight: 48,
+      justifyContent: "center",
+    },
+    valueWrap: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-end",
+    },
+    valueText: {
+      fontSize: theme.typography.body,
+    },
+    nativePickerHost: {
+      flexShrink: 0,
+      maxWidth: "100%",
+    },
+    disabled: {
+      opacity: 0.55,
+    },
+  });

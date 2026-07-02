@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import { Alert, StyleSheet, Switch, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import {
@@ -35,6 +35,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { ModalLayout } from "../../layouts";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
+import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -106,39 +107,6 @@ export function TireFormScreen({ navigation, route }: Props) {
       }
     })();
   }, [tireId, t]);
-
-  function showPicker<T extends string>(opts: {
-    title: string;
-    value: T | null;
-    options: readonly T[];
-    getLabel: (v: T) => string;
-    onChange: (v: T | null) => void;
-    placeholderLabel?: string;
-  }) {
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default" | "destructive";
-    }[] = [{ text: t("common.cancel"), style: "cancel" }];
-
-    if (opts.placeholderLabel) {
-      buttons.push({
-        text: opts.placeholderLabel,
-        onPress: () => opts.onChange(null),
-      });
-    }
-
-    opts.options.forEach((opt) => {
-      buttons.push({
-        text: opts.getLabel(opt),
-        onPress: () => opts.onChange(opt),
-      });
-    });
-
-    Alert.alert("", "", buttons, {
-      cancelable: true,
-    });
-  }
 
   function confirmDelete() {
     if (!tireId) return;
@@ -300,45 +268,17 @@ export function TireFormScreen({ navigation, route }: Props) {
               placeholder={t("tireForm.placeholderDiameter")}
               error={fieldError(fieldErrors.diameter)}
             />
-            <Pressable
-              onPress={() =>
-                showPicker<TireType>({
-                  title: t("tireForm.tireType"),
-                  value: tireType,
-                  options: TIRE_TYPE_OPTIONS,
-                  getLabel: (v) => t(`tireForm.types.${v}`),
-                  onChange: setTireType,
-                  placeholderLabel: t("tireForm.placeholderTireType"),
-                })
-              }
-              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-            >
-              <CardRow error={fieldError(fieldErrors.tireType)}>
-                <View style={styles.rowLeft}>
-                  <SunSnowIcon size={20} color={theme.colors.accent} />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("tireForm.tireType")}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    styles.valueText,
-                    {
-                      color: tireType ? theme.colors.fg : theme.colors.muted,
-                      textAlign: "right",
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {tireType
-                    ? t(`tireForm.types.${tireType}`)
-                    : t("tireForm.placeholderTireType")}
-                </Text>
-              </CardRow>
-            </Pressable>
+            <FormPickerRow<TireType>
+              iconComponent={<SunSnowIcon size={20} color={theme.colors.accent} />}
+              label={t("tireForm.tireType")}
+              value={tireType}
+              options={TIRE_TYPE_OPTIONS}
+              getLabel={(value) => t(`tireForm.types.${value}`)}
+              onChange={setTireType}
+              placeholderLabel={t("tireForm.placeholderTireType")}
+              disabled={saving}
+              error={fieldError(fieldErrors.tireType)}
+            />
             <FormInputRow
               icon="calendar-outline"
               label={t("tireForm.dot")}

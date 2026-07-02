@@ -30,7 +30,9 @@ import type {
 } from "../../types/domain";
 import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
+import { Card } from "../../ui/components/common/Card";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -105,25 +107,6 @@ export function ImportScreen({ navigation, route }: Props) {
   const [importing, setImporting] = useState(false);
 
   const entryTypeKey = `import.${entryType}` as const;
-
-  function openEntryTypePicker() {
-    if (importing) return;
-    Alert.alert(
-      "",
-      "",
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        ...IMPORT_ENTRY_TYPES.map((type) => ({
-          text: t(`import.entryTypes.${type}`),
-          onPress: () => {
-            setEntryType(type);
-            setCsv("");
-          },
-        })),
-      ],
-      { cancelable: true },
-    );
-  }
 
   async function copyColumns() {
     try {
@@ -371,53 +354,21 @@ export function ImportScreen({ navigation, route }: Props) {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <NativeHeaderScrollView>
           <ContentHeader title={t("import.title")} />
-          <View
-            style={[
-              styles.card,
-              styles.cardSpaced,
-              {
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.card,
-              },
-            ]}
-          >
-            <View style={styles.cardInner}>
-              <View style={styles.entryTypeRow}>
-                <View style={styles.rowLeft}>
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("import.entryTypeLabel")}
-                  </Text>
-                </View>
-                <Pressable
-                  onPress={openEntryTypePicker}
-                  disabled={importing}
-                  style={({ pressed }) => [
-                    styles.entryTypePill,
-                    { backgroundColor: theme.colors.accent },
-                    pressed && !importing && { opacity: 0.85 },
-                    importing && { opacity: 0.5 },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.entryTypePillText,
-                      {
-                        color: "#000000",
-                        fontWeight: theme.typography.fontWeight.bold,
-                        fontSize: theme.typography.small,
-                      },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {t(`import.entryTypes.${entryType}`)}
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          </View>
+          <Card style={styles.cardSpaced}>
+            <FormPickerRow<ImportEntryType>
+              label={t("import.entryTypeLabel")}
+              value={entryType}
+              options={IMPORT_ENTRY_TYPES}
+              getLabel={(value) => t(`import.entryTypes.${value}`)}
+              onChange={(value) => {
+                if (value) {
+                  setEntryType(value);
+                  setCsv("");
+                }
+              }}
+              disabled={importing}
+            />
+          </Card>
           <View
             style={[
               styles.card,
@@ -489,20 +440,8 @@ export function ImportScreen({ navigation, route }: Props) {
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    entryTypeRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: theme.spacing.sm,
-    },
-    entryTypePill: {
-      paddingVertical: 6,
-      paddingHorizontal: theme.spacing.sm,
-      borderRadius: 999,
-      flexShrink: 0,
-    },
-    entryTypePillText: {
-      textAlign: "center",
+    cardSpaced: {
+      marginBottom: theme.spacing.sm,
     },
     actionsRow: {
       flexDirection: "row",
@@ -525,9 +464,6 @@ const makeStyles = (theme: any) =>
     card: {
       borderRadius: theme.radius.xl,
       overflow: "hidden",
-    },
-    cardSpaced: {
-      marginBottom: theme.spacing.sm,
     },
     cardInner: {
       paddingVertical: theme.spacing.md,

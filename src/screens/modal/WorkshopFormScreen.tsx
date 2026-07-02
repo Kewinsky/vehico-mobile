@@ -1,8 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { WorkshopType } from "../../types/domain";
@@ -25,8 +24,9 @@ import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
-import { Card, CardRow } from "../../ui/components/common/Card";
+import { Card } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
+import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
@@ -87,39 +87,6 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
     initialLoad: load,
     onFocusReload: workshopId ? load : undefined,
   });
-
-  function showPicker<T extends string>(opts: {
-    title: string;
-    value: T | null;
-    options: readonly T[];
-    getLabel: (v: T) => string;
-    onChange: (v: T | null) => void;
-    placeholderLabel?: string;
-  }) {
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default" | "destructive";
-    }[] = [{ text: t("common.cancel"), style: "cancel" }];
-
-    if (opts.placeholderLabel) {
-      buttons.push({
-        text: opts.placeholderLabel,
-        onPress: () => opts.onChange(null),
-      });
-    }
-
-    opts.options.forEach((opt) => {
-      buttons.push({
-        text: opts.getLabel(opt),
-        onPress: () => opts.onChange(opt),
-      });
-    });
-
-    Alert.alert("", "", buttons, {
-      cancelable: true,
-    });
-  }
 
   function confirmDelete() {
     if (!workshopId) return;
@@ -220,51 +187,17 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
               placeholder={t("workshopForm.placeholderName")}
               error={fieldError(fieldErrors.name)}
             />
-            <Pressable
-              onPress={() =>
-                showPicker<WorkshopType>({
-                  title: t("workshopForm.workshopType"),
-                  value: workshopType,
-                  options: WORKSHOP_TYPE_OPTIONS,
-                  getLabel: (v) => t(`workshopForm.types.${v}`),
-                  onChange: setWorkshopType,
-                  placeholderLabel: t("workshopForm.selectType"),
-                })
-              }
-              style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-            >
-              <CardRow error={fieldError(fieldErrors.workshopType)}>
-                <View style={styles.rowLeft}>
-                  <Ionicons
-                    name="pricetag-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.label, { color: theme.colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {t("workshopForm.workshopType")}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    styles.valueText,
-                    {
-                      color: workshopType
-                        ? theme.colors.fg
-                        : theme.colors.muted,
-                      textAlign: "right",
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {workshopType
-                    ? t(`workshopForm.types.${workshopType}`)
-                    : t("workshopForm.selectType")}
-                </Text>
-              </CardRow>
-            </Pressable>
+            <FormPickerRow<WorkshopType>
+              icon="pricetag-outline"
+              label={t("workshopForm.workshopType")}
+              value={workshopType}
+              options={WORKSHOP_TYPE_OPTIONS}
+              getLabel={(value) => t(`workshopForm.types.${value}`)}
+              onChange={setWorkshopType}
+              placeholderLabel={t("workshopForm.selectType")}
+              disabled={saving}
+              error={fieldError(fieldErrors.workshopType)}
+            />
             <FormInputRow
               icon="call-outline"
               label={t("workshopForm.phoneNumber")}

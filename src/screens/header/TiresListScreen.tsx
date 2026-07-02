@@ -15,6 +15,7 @@ import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
+import { openAlertPicker } from "../../ui/components/common/openAlertPicker";
 import { toastError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
@@ -115,7 +116,9 @@ export function TiresListScreen({ route, navigation }: Props) {
         const updated = await updateVehicleTire(tire.id, {
           is_currently_fitted: !tire.is_currently_fitted,
         });
-        setTires((prev) => prev.map((item) => (item.id === tire.id ? updated : item)));
+        setTires((prev) =>
+          prev.map((item) => (item.id === tire.id ? updated : item)),
+        );
       } catch (e: any) {
         if (e?.message === "FITTED_TIRE_LIMIT_REACHED") {
           Alert.alert(
@@ -161,30 +164,19 @@ export function TiresListScreen({ route, navigation }: Props) {
       return;
     }
     navigation.navigate("TireForm", { vehicleId });
-  }, [
-    isPremium,
-    navigation,
-    t,
-    tires.length,
-    tiresPerVehicleLimit,
-    vehicleId,
-  ]);
+  }, [isPremium, navigation, t, tires.length, tiresPerVehicleLimit, vehicleId]);
 
   const openFilters = useCallback(() => {
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default";
-    }[] = [
-      { text: t("common.cancel"), style: "cancel" },
-      { text: t("common.all"), onPress: () => setTireTypeFilter("all") },
-      ...TIRE_TYPE_OPTIONS.map((type) => ({
-        text: t(`tireForm.types.${type}`),
-        onPress: () => setTireTypeFilter(type),
-      })),
-    ];
-    Alert.alert(t("tires.filterByType"), t("common.chooseOption"), buttons, {
-      cancelable: true,
+    openAlertPicker({
+      title: "",
+      cancelLabel: t("common.cancel"),
+      choices: [
+        { label: t("common.all"), onPress: () => setTireTypeFilter("all") },
+        ...TIRE_TYPE_OPTIONS.map((type) => ({
+          label: t(`tireForm.types.${type}`),
+          onPress: () => setTireTypeFilter(type),
+        })),
+      ],
     });
   }, [t]);
 

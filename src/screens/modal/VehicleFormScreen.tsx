@@ -52,6 +52,7 @@ import { Hash, CalendarCheck, Fuel } from "lucide-react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
+import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
@@ -224,38 +225,25 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
   const { fieldError, validateBeforeSave } = useFormFieldErrors(canSave);
 
-  function showPicker<T extends string>(opts: {
-    title: string;
-    value: T | null;
-    options: readonly T[];
-    getLabel: (v: T) => string;
-    onChange: (v: T | null) => void;
-    placeholderLabel?: string;
-  }) {
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default" | "destructive";
-    }[] = [{ text: t("common.cancel"), style: "cancel" }];
+  const fuelTypeOptions = useMemo(
+    () => ["petrol", "diesel", "hybrid", "electric", "lpg"] as const,
+    [],
+  );
 
-    if (opts.placeholderLabel) {
-      buttons.push({
-        text: opts.placeholderLabel,
-        onPress: () => opts.onChange(null),
-      });
-    }
-
-    opts.options.forEach((opt) => {
-      buttons.push({
-        text: opts.getLabel(opt),
-        onPress: () => opts.onChange(opt),
-      });
-    });
-
-    Alert.alert("", "", buttons, {
-      cancelable: true,
-    });
-  }
+  const getFuelTypeLabel = useCallback(
+    (value: FuelType) =>
+      t(
+        `vehicleForm.fuelType${
+          value.charAt(0).toUpperCase() + value.slice(1)
+        }` as
+          | "vehicleForm.fuelTypePetrol"
+          | "vehicleForm.fuelTypeDiesel"
+          | "vehicleForm.fuelTypeHybrid"
+          | "vehicleForm.fuelTypeElectric"
+          | "vehicleForm.fuelTypeLpg",
+      ),
+    [t],
+  );
 
   function pickSource() {
     const photoCount = draftPhotos.length;
@@ -768,68 +756,16 @@ export function VehicleFormScreen({ navigation, route }: Props) {
               <View style={{ height: theme.spacing.sm }} />
 
               <Card>
-                <Pressable
-                  onPress={() =>
-                    showPicker<FuelType>({
-                      title: t("vehicleForm.fuelTypeLabel"),
-                      value: fuelType,
-                      options: [
-                        "petrol",
-                        "diesel",
-                        "hybrid",
-                        "electric",
-                        "lpg",
-                      ] as const,
-                      getLabel: (value) =>
-                        t(
-                          `vehicleForm.fuelType${
-                            value.charAt(0).toUpperCase() + value.slice(1)
-                          }` as
-                            | "vehicleForm.fuelTypePetrol"
-                            | "vehicleForm.fuelTypeDiesel"
-                            | "vehicleForm.fuelTypeHybrid"
-                            | "vehicleForm.fuelTypeElectric"
-                            | "vehicleForm.fuelTypeLpg",
-                        ),
-                      onChange: setFuelType,
-                      placeholderLabel: t("vehicleForm.fuelTypePlaceholder"),
-                    })
-                  }
-                  style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-                >
-                  <CardRow>
-                    <View style={styles.rowLeft}>
-                      <Fuel size={20} color={theme.colors.accent} />
-                      <Text
-                        style={[styles.label, { color: theme.colors.muted }]}
-                        numberOfLines={1}
-                      >
-                        {t("vehicleForm.fuelTypeLabel")}
-                      </Text>
-                    </View>
-                    <Text
-                      style={[
-                        styles.valueText,
-                        {
-                          color: fuelType
-                            ? theme.colors.fg
-                            : theme.colors.muted,
-                          textAlign: "right",
-                        },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {fuelType
-                        ? t(
-                            `vehicleForm.fuelType${
-                              fuelType.charAt(0).toUpperCase() +
-                              fuelType.slice(1)
-                            }` as any,
-                          )
-                        : t("vehicleForm.fuelTypePlaceholder")}
-                    </Text>
-                  </CardRow>
-                </Pressable>
+                <FormPickerRow<FuelType>
+                  iconComponent={<Fuel size={20} color={theme.colors.accent} />}
+                  label={t("vehicleForm.fuelTypeLabel")}
+                  value={fuelType}
+                  options={fuelTypeOptions}
+                  getLabel={getFuelTypeLabel}
+                  onChange={setFuelType}
+                  placeholderLabel={t("vehicleForm.fuelTypePlaceholder")}
+                  disabled={saving}
+                />
 
                 <FormInputRow
                   iconComponent={
@@ -871,94 +807,39 @@ export function VehicleFormScreen({ navigation, route }: Props) {
               <View style={{ height: theme.spacing.sm }} />
 
               <Card>
-                <Pressable
-                  onPress={() =>
-                    showPicker<TransmissionType>({
-                      title: t("vehicleForm.transmissionLabel"),
-                      value: transmission,
-                      options: ["manual", "automatic"] as const,
-                      getLabel: (value) =>
-                        value === "manual"
-                          ? t("vehicleForm.transmissionManual")
-                          : t("vehicleForm.transmissionAutomatic"),
-                      onChange: setTransmission,
-                    })
+                <FormPickerRow<TransmissionType>
+                  iconComponent={
+                    <MaterialCommunityIcons
+                      name="car-shift-pattern"
+                      size={20}
+                      color={theme.colors.accent}
+                    />
                   }
-                  style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-                >
-                  <CardRow>
-                    <View style={styles.rowLeft}>
-                      <MaterialCommunityIcons
-                        name="car-shift-pattern"
-                        size={20}
-                        color={theme.colors.accent}
-                      />
-                      <Text
-                        style={[styles.label, { color: theme.colors.muted }]}
-                        numberOfLines={1}
-                      >
-                        {t("vehicleForm.transmissionLabel")}
-                      </Text>
-                    </View>
-                    <Text
-                      style={[
-                        styles.valueText,
-                        {
-                          color: transmission
-                            ? theme.colors.fg
-                            : theme.colors.muted,
-                          textAlign: "right",
-                        },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {transmission
-                        ? transmission === "manual"
-                          ? t("vehicleForm.transmissionManual")
-                          : t("vehicleForm.transmissionAutomatic")
-                        : t("common.chooseOption")}
-                    </Text>
-                  </CardRow>
-                </Pressable>
+                  label={t("vehicleForm.transmissionLabel")}
+                  value={transmission}
+                  options={["manual", "automatic"] as const}
+                  getLabel={(value) =>
+                    value === "manual"
+                      ? t("vehicleForm.transmissionManual")
+                      : t("vehicleForm.transmissionAutomatic")
+                  }
+                  onChange={setTransmission}
+                  placeholderLabel={t("common.chooseOption")}
+                  disabled={saving}
+                />
 
-                <Pressable
-                  onPress={() =>
-                    showPicker<DriveType>({
-                      title: t("vehicleForm.driveTypeLabel"),
-                      value: driveType,
-                      options: ["FWD", "RWD", "AWD"] as const,
-                      getLabel: (value) => value,
-                      onChange: setDriveType,
-                    })
+                <FormPickerRow<DriveType>
+                  iconComponent={
+                    <DriveTypeIcon size={20} color={theme.colors.accent} />
                   }
-                  style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-                >
-                  <CardRow>
-                    <View style={styles.rowLeft}>
-                      <DriveTypeIcon size={20} color={theme.colors.accent} />
-                      <Text
-                        style={[styles.label, { color: theme.colors.muted }]}
-                        numberOfLines={1}
-                      >
-                        {t("vehicleForm.driveTypeLabel")}
-                      </Text>
-                    </View>
-                    <Text
-                      style={[
-                        styles.valueText,
-                        {
-                          color: driveType
-                            ? theme.colors.fg
-                            : theme.colors.muted,
-                          textAlign: "right",
-                        },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {driveType ?? t("common.chooseOption")}
-                    </Text>
-                  </CardRow>
-                </Pressable>
+                  label={t("vehicleForm.driveTypeLabel")}
+                  value={driveType}
+                  options={["FWD", "RWD", "AWD"] as const}
+                  getLabel={(value) => value}
+                  onChange={setDriveType}
+                  placeholderLabel={t("common.chooseOption")}
+                  disabled={saving}
+                />
               </Card>
 
               <View style={{ height: theme.spacing.sm }} />

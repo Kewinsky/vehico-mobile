@@ -17,6 +17,7 @@ import { WorkshopItem } from "../../ui/components/list/WorkshopItem";
 import { toastError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
+import { openAlertPicker } from "../../ui/components/common/openAlertPicker";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Workshops">;
 
@@ -105,20 +106,15 @@ export function WorkshopsScreen({ navigation }: Props) {
   }, [isPremium, items.length, navigation, t, workshopsLimit]);
 
   const openFilters = useCallback(() => {
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default";
-    }[] = [
-      { text: t("common.cancel"), style: "cancel" },
-      { text: t("workshops.typeAll"), onPress: () => setTypeFilter("all") },
-      ...WORKSHOP_TYPE_OPTIONS.map((type) => ({
-        text: t(`workshopForm.types.${type}`),
-        onPress: () => setTypeFilter(type),
-      })),
-    ];
-    Alert.alert("", "", buttons, {
-      cancelable: true,
+    openAlertPicker({
+      cancelLabel: t("common.cancel"),
+      choices: [
+        { label: t("workshops.typeAll"), onPress: () => setTypeFilter("all") },
+        ...WORKSHOP_TYPE_OPTIONS.map((type) => ({
+          label: t(`workshopForm.types.${type}`),
+          onPress: () => setTypeFilter(type),
+        })),
+      ],
     });
   }, [t]);
 

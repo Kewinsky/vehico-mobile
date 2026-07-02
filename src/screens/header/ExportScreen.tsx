@@ -1,4 +1,4 @@
-import { Alert, Pressable, Share, StyleSheet, Text, View } from "react-native";
+import { Pressable, Share, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,7 @@ import { Button } from "../../ui/components/common/Button";
 import { Card, CardDivider } from "../../ui/components/common/Card";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
+import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -113,38 +114,6 @@ export function ExportScreen({ navigation, route }: Props) {
         isValidDate(customToYmd) &&
         customFromYmd > customToYmd));
 
-  function openFormatPicker() {
-    if (exporting) return;
-    Alert.alert(
-      "",
-      "",
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        ...EXPORT_FORMATS.map((value) => ({
-          text: t(`export.formats.${value}`),
-          onPress: () => setFormat(value),
-        })),
-      ],
-      { cancelable: true },
-    );
-  }
-
-  function openTimeRangePicker() {
-    if (exporting) return;
-    Alert.alert(
-      "",
-      "",
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        ...EXPORT_TIME_RANGES.map((value) => ({
-          text: t(`export.timeRanges.${value}`),
-          onPress: () => setTimeRange(value),
-        })),
-      ],
-      { cancelable: true },
-    );
-  }
-
   function toggleDataType(type: ExportDataType) {
     if (exporting) return;
     setSelectedTypes((prev) =>
@@ -232,49 +201,6 @@ export function ExportScreen({ navigation, route }: Props) {
     </Pressable>
   );
 
-  const SelectionRow = ({
-    label,
-    value,
-    onPress,
-  }: {
-    label: string;
-    value: string;
-    onPress: () => void;
-  }) => (
-    <View style={styles.selectionRow}>
-      <Text
-        style={[styles.label, { color: theme.colors.muted }]}
-        numberOfLines={1}
-      >
-        {label}
-      </Text>
-      <Pressable
-        onPress={onPress}
-        disabled={exporting}
-        style={({ pressed }) => [
-          styles.selectionPill,
-          { backgroundColor: theme.colors.accent },
-          pressed && !exporting && { opacity: 0.85 },
-          exporting && { opacity: 0.5 },
-        ]}
-      >
-        <Text
-          style={[
-            styles.selectionPillText,
-            {
-              color: "#000000",
-              fontWeight: theme.typography.fontWeight.bold,
-              fontSize: theme.typography.small,
-            },
-          ]}
-          numberOfLines={1}
-        >
-          {value}
-        </Text>
-      </Pressable>
-    </View>
-  );
-
   return (
     <HeaderLayout
       onBack={() => navigation.goBack()}
@@ -290,13 +216,16 @@ export function ExportScreen({ navigation, route }: Props) {
         <ContentHeader title={t("export.title")} />
 
         <Card style={styles.cardSpaced}>
-          <View style={styles.cardSection}>
-            <SelectionRow
-              label={t("export.formatLabel")}
-              value={t(`export.formats.${format}`)}
-              onPress={openFormatPicker}
-            />
-          </View>
+          <FormPickerRow<ExportFormat>
+            label={t("export.formatLabel")}
+            value={format}
+            options={EXPORT_FORMATS}
+            getLabel={(value) => t(`export.formats.${value}`)}
+            onChange={(value) => {
+              if (value) setFormat(value);
+            }}
+            disabled={exporting}
+          />
         </Card>
 
         <Card style={styles.cardSpaced}>
@@ -319,13 +248,16 @@ export function ExportScreen({ navigation, route }: Props) {
         </Card>
 
         <Card style={styles.cardSpaced}>
-          <View style={styles.cardSection}>
-            <SelectionRow
-              label={t("export.timeRangeLabel")}
-              value={t(`export.timeRanges.${timeRange}`)}
-              onPress={openTimeRangePicker}
-            />
-          </View>
+          <FormPickerRow<ExportTimeRange>
+            label={t("export.timeRangeLabel")}
+            value={timeRange}
+            options={EXPORT_TIME_RANGES}
+            getLabel={(value) => t(`export.timeRanges.${value}`)}
+            onChange={(value) => {
+              if (value) setTimeRange(value);
+            }}
+            disabled={exporting}
+          />
           {timeRange === "custom" ? (
             <>
               <CardDivider />
@@ -366,28 +298,6 @@ const makeStyles = (theme: any) =>
     sectionTitle: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
-    },
-    selectionRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: theme.spacing.sm,
-    },
-    selectionPill: {
-      paddingVertical: 6,
-      paddingHorizontal: theme.spacing.sm,
-      borderRadius: 999,
-      flexShrink: 0,
-      maxWidth: "58%",
-    },
-    selectionPillText: {
-      textAlign: "center",
-    },
-    label: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-      flex: 1,
-      minWidth: 0,
     },
     checkboxRow: {
       flexDirection: "row",

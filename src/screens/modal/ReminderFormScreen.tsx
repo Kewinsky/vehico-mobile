@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -60,6 +60,7 @@ import { ModalLayout } from "../../layouts";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
+import { FormInlineMenuPicker } from "../../ui/components/common/FormInlineMenuPicker";
 import { SquarePen } from "lucide-react-native";
 import { groupThousands } from "../../utils/numberFormatting";
 
@@ -321,20 +322,28 @@ export function ReminderFormScreen({ navigation, route }: Props) {
     }
   }
 
-  const recurrenceUnitLabel = useMemo(() => {
-    switch (recurrenceUnit) {
-      case "days":
-        return t("reminderForm.intervalDays");
-      case "weeks":
-        return t("reminderForm.intervalWeeks");
-      case "months":
-        return t("reminderForm.intervalMonths");
-      case "years":
-        return t("reminderForm.intervalYears");
-      default:
-        return "";
-    }
-  }, [recurrenceUnit, t]);
+  const recurrenceUnitOptions = useMemo(
+    () => RECURRENCE_UNITS.map((unit) => unit.value),
+    [],
+  );
+
+  const getRecurrenceUnitLabel = useCallback(
+    (unit: ReminderRecurrenceUnit) => {
+      switch (unit) {
+        case "days":
+          return t("reminderForm.intervalDays");
+        case "weeks":
+          return t("reminderForm.intervalWeeks");
+        case "months":
+          return t("reminderForm.intervalMonths");
+        case "years":
+          return t("reminderForm.intervalYears");
+        default:
+          return "";
+      }
+    },
+    [t],
+  );
 
   return (
     <ModalLayout
@@ -568,56 +577,13 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                           },
                         ]}
                       />
-                      <Pressable
-                        onPress={() => {
-                          const unitLabels: Record<
-                            ReminderRecurrenceUnit,
-                            string
-                          > = {
-                            days: t("reminderForm.intervalDays"),
-                            weeks: t("reminderForm.intervalWeeks"),
-                            months: t("reminderForm.intervalMonths"),
-                            years: t("reminderForm.intervalYears"),
-                          };
-                          Alert.alert(
-                            "",
-                            "",
-                            [
-                              { text: t("common.cancel"), style: "cancel" },
-                              ...RECURRENCE_UNITS.map((u) => ({
-                                text: unitLabels[u.value],
-                                onPress: () => setRecurrenceUnit(u.value),
-                              })),
-                            ],
-                            { cancelable: true },
-                          );
-                        }}
-                        style={({ pressed }) => [
-                          {
-                            backgroundColor: theme.colors.accent,
-                            paddingVertical: 6,
-                            paddingHorizontal: theme.spacing.sm,
-                            borderRadius: 999,
-                            marginLeft: theme.spacing.sm,
-                          },
-                          pressed && { opacity: 0.85 },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.valueText,
-                            {
-                              color: "#000000",
-                              textAlign: "center",
-                              fontWeight: theme.typography.fontWeight.bold,
-                              fontSize: theme.typography.small,
-                            },
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {recurrenceUnitLabel}
-                        </Text>
-                      </Pressable>
+                      <FormInlineMenuPicker<ReminderRecurrenceUnit>
+                        value={recurrenceUnit}
+                        options={recurrenceUnitOptions}
+                        getLabel={getRecurrenceUnitLabel}
+                        onChange={setRecurrenceUnit}
+                        disabled={saving}
+                      />
                     </View>
                   </CardRow>
                 )}
@@ -803,7 +769,6 @@ const makeStyles = (theme: any) =>
       flexDirection: "row",
       justifyContent: "flex-end",
       alignItems: "center",
-      gap: theme.spacing.sm,
     },
     segmentTabs: {
       marginHorizontal: theme.layout.contentPaddingHorizontal,
