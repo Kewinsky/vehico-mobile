@@ -1351,7 +1351,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     chartsGroup: "Wykresy",
     chartsGroupHint:
       "Wykresy wydatków wymagają min. {{min}} wpisów serwisowych. Wykres przebiegu wymaga min. {{mileageMin}} punktów danych.",
-    optionServiceStats: "Koszty serwisu",
+    optionServiceStats: "Statystyki serwisowe",
     optionFuelingStats: "Statystyki tankowań",
     optionOilChange: "Wymiana oleju",
     optionExpensesByCategoryChart: "Wykres wydatków wg kategorii",
