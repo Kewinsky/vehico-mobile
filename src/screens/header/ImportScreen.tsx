@@ -136,10 +136,7 @@ export function ImportScreen({ navigation, route }: Props) {
               setImporting(true);
               await createRows();
               setCsv("");
-              toastSuccess(
-                t("import.successTitle"),
-                t(`${entryTypeKey}.successBody`),
-              );
+              toastSuccess(t(`${entryTypeKey}.successBody`));
             } catch (err: any) {
               toastError(err?.message ?? t("common.error"));
             } finally {

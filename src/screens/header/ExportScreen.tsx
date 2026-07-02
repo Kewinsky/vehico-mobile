@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -209,8 +209,31 @@ export function ExportScreen({ navigation, route }: Props) {
       showProfileAvatar
       showShopIcon={!isPremium}
       footer={
-        <Button onPress={() => void handleExport()} loading={exporting}>
-          {t("export.exportButton")}
+        <Button
+          onPress={() => void handleExport()}
+          disabled={exporting}
+        >
+          {exporting ? (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: theme.spacing.sm,
+              }}
+            >
+              <ActivityIndicator size="small" color="#000000" />
+              <Text
+                style={{
+                  color: "#000000",
+                  fontWeight: theme.typography.fontWeight.bold,
+                }}
+              >
+                {t("export.exporting")}
+              </Text>
+            </View>
+          ) : (
+            t("export.exportButton")
+          )}
         </Button>
       }
     >
