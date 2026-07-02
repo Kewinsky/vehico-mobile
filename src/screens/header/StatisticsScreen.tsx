@@ -706,15 +706,13 @@ export function StatisticsScreen(props: Props) {
   );
 
   const filterPanelContent = (
-    <View style={styles.panelWrap}>
-      <SegmentTabs<PeriodKey>
-        value={period}
-        options={periodOptions.map((p) => ({ value: p.key, label: p.label }))}
-        onChange={setPeriod}
-        size="sm"
-        variant="secondary"
-      />
-    </View>
+    <SegmentTabs<PeriodKey>
+      value={period}
+      options={periodOptions.map((p) => ({ value: p.key, label: p.label }))}
+      onChange={setPeriod}
+      size="sm"
+      variant="secondary"
+    />
   );
 
   const formatExpenseAmount = (value: number) =>

@@ -6,9 +6,6 @@ export const makeStatsPanelStyles = (
   theme: ReturnType<typeof useTheme>["theme"],
 ) =>
   StyleSheet.create({
-    panelWrap: {
-      paddingBottom: theme.spacing.sm,
-    },
     loading: {
       alignItems: "center",
       justifyContent: "center",
@@ -57,6 +54,55 @@ export const makeStatsPanelStyles = (
       justifyContent: "center",
     },
     expensesHeroCurrency: {
+      fontWeight: theme.typography.fontWeight.regular,
+      fontSize: theme.typography.small,
+    },
+    expenseSummaryBreakdownRow: {
+      flexDirection: "row",
+      paddingTop: theme.spacing.xs,
+      gap: theme.spacing.sm,
+    },
+    expenseSummaryBreakdownCell: {
+      flex: 1,
+      minWidth: 0,
+      borderRadius: theme.radius.lg,
+      padding: theme.spacing.md,
+      gap: theme.spacing.xs,
+    },
+    expenseSummaryBreakdownHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: theme.spacing.xs,
+    },
+    expenseSummaryShareLabel: {
+      fontSize: theme.typography.small - 1,
+      fontWeight: theme.typography.fontWeight.medium,
+      flexShrink: 0,
+    },
+    expenseSummaryIconBadge: {
+      width: 34,
+      height: 34,
+      borderRadius: 999,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    expenseSummaryBreakdownLabel: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.medium,
+    },
+    expenseSummaryBreakdownValueRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      flexWrap: "wrap",
+      gap: theme.spacing.xs,
+      rowGap: 0,
+    },
+    expenseSummaryBreakdownValue: {
+      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: theme.typography.title,
+    },
+    expenseSummaryBreakdownSuffix: {
       fontWeight: theme.typography.fontWeight.regular,
       fontSize: theme.typography.small,
     },

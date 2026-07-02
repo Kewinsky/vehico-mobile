@@ -26,9 +26,7 @@ export function ContentHeader({
       {subtitle != null ? (
         <Text style={styles.subtitle}>{subtitle}</Text>
       ) : null}
-      {filterPanel != null ? (
-        <View style={styles.panelBlock}>{filterPanel}</View>
-      ) : null}
+      {filterPanel != null ? filterPanel : null}
     </>
   );
 }
@@ -46,9 +44,6 @@ const makeStyles = (theme: any) =>
     subtitle: {
       fontSize: theme.typography.body,
       color: theme.colors.muted,
-      paddingBottom: theme.spacing.sm,
-    },
-    panelBlock: {
       paddingBottom: theme.spacing.sm,
     },
   });

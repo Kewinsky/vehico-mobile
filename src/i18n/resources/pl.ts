@@ -506,7 +506,7 @@ export const pl = {
           "Wykres pokazuje udział każdej kategorii kosztów w wybranym okresie. Legenda pod wykresem jest klikalna i przełącza widok między procentami a sumami kwot.",
         oilChangeTitle: "Sekcja wymiany oleju",
         oilChangeBody:
-          "Te informacje pochodzą wyłącznie z wpisów serwisowych z kategorią „{{category}}”: ostatnia wymiana (dotknij, by przełączyć datę ↔ przebieg), średnie interwały oraz szacowana „żywność” oleju. Przy wymianie oleju wybieraj tę kategorię, żeby dane były poprawne.",
+          "Te informacje pochodzą wyłącznie z wpisów serwisowych z kategorią „{{category}}”: ostatnia wymiana (dotknij, by przełączyć datę ↔ przebieg), średnie interwały oraz szacowana czas wymiany oleju. Przy wymianie oleju wybieraj tę kategorię, żeby dane były poprawne.",
       },
       categories: {
         fuel: "Paliwo",
@@ -1283,7 +1283,8 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
       "Ta funkcja nie jest jeszcze dostępna. Pracujemy nad tym.",
     copyLink: "Kopiuj link",
     shareLink: "Udostępnij link",
-    reportShareMessage: "Zobacz raport historii serwisu pojazdu {{vehicleTitle}}.",
+    reportShareMessage:
+      "Zobacz raport historii serwisu pojazdu {{vehicleTitle}}.",
     openInBrowser: "Otwórz w przeglądarce",
     showQRCode: "Pokaż kod QR",
     linkCopied: "Link skopiowany do schowka",

@@ -47,7 +47,10 @@ function SegmentTabsFallback<T extends string>({
   variant = "default",
 }: Props<T>) {
   const { theme } = useTheme();
-  const styles = useMemo(() => makeFallbackStyles(theme, variant), [theme, variant]);
+  const styles = useMemo(
+    () => makeFallbackStyles(theme, variant),
+    [theme, variant],
+  );
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -123,7 +126,7 @@ function SegmentTabsFallback<T extends string>({
   );
 }
 
-const NATIVE_SEGMENT_HEIGHT = 36;
+const NATIVE_SEGMENT_HEIGHT = 44;
 
 export function SegmentTabs<T extends string>(props: Props<T>) {
   const { value, options, onChange, variant = "default" } = props;

@@ -1,61 +1,137 @@
+import { useMemo } from "react";
 import { Text, View } from "react-native";
-import { Fuel } from "lucide-react-native";
+import { Fuel, Wrench } from "lucide-react-native";
 import { AnimatedRollingNumber } from "react-native-animated-rolling-numbers";
 
-import { StatTile } from "../components/StatTile";
+import { hexToRgba } from "../../../../../ui/components/common/ChoiceChip";
+import { SERVICE_CATEGORY_ICON_BACKGROUND } from "../../../../../ui/theme/serviceCategoryColors";
 import type { StatisticsPanelProps } from "../types";
+
+function formatSummaryAmount(
+  formatStatNumber: (value: number, fractionDigits: number) => string,
+  value: number,
+) {
+  if (!Number.isFinite(value) || value <= 0) {
+    return formatStatNumber(0, 0);
+  }
+  return formatStatNumber(
+    value >= 10 ? Math.round(value) : value,
+    value >= 10 ? 0 : 1,
+  );
+}
+
+function ExpenseAmount({
+  amount,
+  formatted,
+  textStyle,
+  animateZero = false,
+}: {
+  amount: number;
+  formatted: string;
+  textStyle: object;
+  animateZero?: boolean;
+}) {
+  if (Number.isFinite(amount) && (amount > 0 || animateZero)) {
+    return (
+      <AnimatedRollingNumber
+        value={amount}
+        formattedText={formatted}
+        spinningAnimationConfig={{ duration: 420 }}
+        textStyle={textStyle}
+      />
+    );
+  }
+
+  return (
+    <Text style={textStyle} numberOfLines={1}>
+      {formatted}
+    </Text>
+  );
+}
 
 export function ExpenseSummarySection({
   styles,
   theme,
   t,
   totals,
-  totalMain,
-  fuelMain,
-  serviceMain,
+  formatStatNumber,
+  fmtPct,
   currency,
 }: StatisticsPanelProps) {
+  const fuelMain = useMemo(
+    () => formatSummaryAmount(formatStatNumber, totals.fuelCost),
+    [formatStatNumber, totals.fuelCost],
+  );
+  const serviceMain = useMemo(
+    () => formatSummaryAmount(formatStatNumber, totals.serviceCost),
+    [formatStatNumber, totals.serviceCost],
+  );
+
+  const fuelSharePct =
+    totals.total > 0 ? (totals.fuelCost / totals.total) * 100 : 0;
+  const serviceSharePct =
+    totals.total > 0 ? (totals.serviceCost / totals.total) * 100 : 0;
+
+  const breakdownStyles = useMemo(
+    () => ({
+      fuelBg: SERVICE_CATEGORY_ICON_BACKGROUND.fuel,
+      serviceBg: hexToRgba(theme.colors.muted, 0.12),
+      fuelColor: theme.colors.accent,
+      serviceColor: theme.colors.muted,
+    }),
+    [theme.colors.accent, theme.colors.muted],
+  );
+
   return (
     <View style={styles.section}>
-      <View
-        style={[
-          styles.tile,
-          styles.tileFullWidth,
-          { backgroundColor: theme.colors.card },
-        ]}
-      >
-        <View style={styles.expensesHeroRow}>
+      <View style={styles.expenseSummaryBreakdownRow}>
+        <View
+          style={[
+            styles.expenseSummaryBreakdownCell,
+            { backgroundColor: breakdownStyles.fuelBg },
+          ]}
+        >
+          <View style={styles.expenseSummaryBreakdownHeader}>
+            <View
+              style={[
+                styles.expenseSummaryIconBadge,
+                { backgroundColor: hexToRgba(theme.colors.accent, 0.18) },
+              ]}
+            >
+              <Fuel size={18} color={breakdownStyles.fuelColor} />
+            </View>
+            <ExpenseAmount
+              amount={fuelSharePct}
+              formatted={fmtPct(fuelSharePct)}
+              textStyle={[
+                styles.expenseSummaryShareLabel,
+                { color: theme.colors.muted },
+              ]}
+              animateZero
+            />
+          </View>
           <Text
-            style={[styles.expensesHeroLabel, { color: theme.colors.accent }]}
+            style={[
+              styles.expenseSummaryBreakdownLabel,
+              { color: theme.colors.muted },
+            ]}
             numberOfLines={1}
           >
-            {t("dashboard.stats.metrics.totalExpenses")}
+            {t("dashboard.stats.categories.fuel")}
           </Text>
-          <View style={styles.expensesHeroValueGroup}>
-            {totals.total > 0 ? (
-              <View style={styles.expensesHeroRollingWrap}>
-                <AnimatedRollingNumber
-                  value={totals.total}
-                  formattedText={totalMain}
-                  spinningAnimationConfig={{ duration: 420 }}
-                  textStyle={[
-                    styles.expensesHeroValue,
-                    { color: theme.colors.fg },
-                  ]}
-                />
-              </View>
-            ) : (
-              <Text
-                style={[styles.expensesHeroValue, { color: theme.colors.fg }]}
-                numberOfLines={1}
-              >
-                {totalMain}
-              </Text>
-            )}
-            {totalMain !== "–" ? (
+          <View style={styles.expenseSummaryBreakdownValueRow}>
+            <ExpenseAmount
+              amount={totals.fuelCost}
+              formatted={fuelMain}
+              textStyle={[
+                styles.expenseSummaryBreakdownValue,
+                { color: theme.colors.fg },
+              ]}
+            />
+            {currency ? (
               <Text
                 style={[
-                  styles.expensesHeroCurrency,
+                  styles.expenseSummaryBreakdownSuffix,
                   { color: theme.colors.muted },
                 ]}
                 numberOfLines={1}
@@ -65,32 +141,63 @@ export function ExpenseSummarySection({
             ) : null}
           </View>
         </View>
-      </View>
-      <View style={styles.tilesRow}>
-        <StatTile
-          theme={theme}
-          styles={styles}
-          layout="iconLeading"
-          accessibilityLabel={t("dashboard.stats.categories.fuel")}
-          iconComponent={<Fuel size={32} color={theme.colors.accent} />}
-          valueMain={fuelMain}
-          valueMainRollingValue={
-            totals.fuelCost > 0 ? totals.fuelCost : undefined
-          }
-          valueSuffix={fuelMain !== "–" ? currency : undefined}
-        />
-        <StatTile
-          theme={theme}
-          styles={styles}
-          layout="iconLeading"
-          accessibilityLabel={t("dashboard.tiles.serviceTitle")}
-          icon="construct"
-          valueMain={serviceMain}
-          valueMainRollingValue={
-            totals.serviceCost > 0 ? totals.serviceCost : undefined
-          }
-          valueSuffix={serviceMain !== "–" ? currency : undefined}
-        />
+
+        <View
+          style={[
+            styles.expenseSummaryBreakdownCell,
+            { backgroundColor: breakdownStyles.serviceBg },
+          ]}
+        >
+          <View style={styles.expenseSummaryBreakdownHeader}>
+            <View
+              style={[
+                styles.expenseSummaryIconBadge,
+                { backgroundColor: hexToRgba(theme.colors.muted, 0.18) },
+              ]}
+            >
+              <Wrench size={18} color={breakdownStyles.serviceColor} />
+            </View>
+            <ExpenseAmount
+              amount={serviceSharePct}
+              formatted={fmtPct(serviceSharePct)}
+              textStyle={[
+                styles.expenseSummaryShareLabel,
+                { color: theme.colors.muted },
+              ]}
+              animateZero
+            />
+          </View>
+          <Text
+            style={[
+              styles.expenseSummaryBreakdownLabel,
+              { color: theme.colors.muted },
+            ]}
+            numberOfLines={1}
+          >
+            {t("dashboard.stats.categories.service")}
+          </Text>
+          <View style={styles.expenseSummaryBreakdownValueRow}>
+            <ExpenseAmount
+              amount={totals.serviceCost}
+              formatted={serviceMain}
+              textStyle={[
+                styles.expenseSummaryBreakdownValue,
+                { color: theme.colors.fg },
+              ]}
+            />
+            {currency ? (
+              <Text
+                style={[
+                  styles.expenseSummaryBreakdownSuffix,
+                  { color: theme.colors.muted },
+                ]}
+                numberOfLines={1}
+              >
+                {currency}
+              </Text>
+            ) : null}
+          </View>
+        </View>
       </View>
     </View>
   );
