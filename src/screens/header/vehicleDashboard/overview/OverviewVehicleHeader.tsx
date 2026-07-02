@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Copy } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 import type { Vehicle } from "../../../../types/domain";
 import type { OverviewPanelStyles } from "./overviewStyles";
@@ -15,7 +16,7 @@ type OverviewVehicleHeaderProps = {
   isPremium: boolean;
   publicReportUrl: string | null;
   onCopyVin: () => void;
-  openPublicReportShareActions: () => void;
+  onShowQrCode: () => void;
 };
 
 export function OverviewVehicleHeader({
@@ -25,8 +26,10 @@ export function OverviewVehicleHeader({
   isPremium,
   publicReportUrl,
   onCopyVin,
-  openPublicReportShareActions,
+  onShowQrCode,
 }: OverviewVehicleHeaderProps) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.vehicleHeaderRow}>
       <View style={styles.vehicleHeaderText}>
@@ -47,11 +50,13 @@ export function OverviewVehicleHeader({
       </View>
       {isPremium && publicReportUrl ? (
         <Pressable
-          onPress={openPublicReportShareActions}
+          onPress={onShowQrCode}
           style={styles.publicPageCircleButton}
           hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={t("share.showQRCode")}
         >
-          <Ionicons name="share-social" size={24} color="#000" />
+          <Ionicons name="qr-code-outline" size={24} color="#000" />
         </Pressable>
       ) : null}
     </View>

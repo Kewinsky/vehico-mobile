@@ -212,7 +212,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }, [entryId, reloadAttachments, t]);
 
   const isPickerDisabled = saving || uploading;
-  const workshopIds = useMemo(() => workshops.map((workshop) => workshop.id), [workshops]);
+  const workshopIds = useMemo(
+    () => workshops.map((workshop) => workshop.id),
+    [workshops],
+  );
 
   const isMulti = mode === "multi";
   const isMultipleRows = entries.length > 1;

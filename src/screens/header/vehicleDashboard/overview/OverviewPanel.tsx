@@ -35,7 +35,7 @@ export function OverviewPanel(props: OverviewPanelProps) {
         isPremium={props.isPremium}
         publicReportUrl={props.publicReportUrl}
         onCopyVin={props.onCopyVin}
-        openPublicReportShareActions={props.openPublicReportShareActions}
+        onShowQrCode={props.onShowQrCode}
       />
 
       <OverviewCallouts

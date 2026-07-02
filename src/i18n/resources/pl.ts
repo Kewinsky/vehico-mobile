@@ -1281,6 +1281,8 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     notAvailableBody:
       "Ta funkcja nie jest jeszcze dostępna. Pracujemy nad tym.",
     copyLink: "Kopiuj link",
+    shareLink: "Udostępnij link",
+    reportShareMessage: "Zobacz raport historii serwisu pojazdu {{vehicleTitle}}.",
     openInBrowser: "Otwórz w przeglądarce",
     showQRCode: "Pokaż kod QR",
     linkCopied: "Link skopiowany do schowka",

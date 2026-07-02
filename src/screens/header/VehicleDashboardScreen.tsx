@@ -93,6 +93,8 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { DashboardFab } from "../../ui/components/common/DashboardFab";
+import { Button } from "../../ui/components/common/Button";
+import { FormShareLink } from "../../ui/components/common/FormShareLink";
 import { RichCalloutText } from "../../ui/components/dashboard/RichCalloutText";
 import { Glow } from "../../ui/components/dashboard/Glow";
 import { openAndroidNativeDatePicker } from "../../ui/components/common/NativeDateTrigger";
@@ -711,23 +713,9 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
     }
   }
 
-  function openPublicReportShareActions() {
+  function handleShowPublicReportQr() {
     if (!publicReportUrl) return;
-    Alert.alert("", "", [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("share.openInBrowser"),
-        onPress: () => void handleOpenPublicReportInBrowser(),
-      },
-      {
-        text: t("share.showQRCode"),
-        onPress: () => setIsPublicQrVisible(true),
-      },
-      {
-        text: t("share.copyLink"),
-        onPress: () => void handleCopyPublicReportLink(),
-      },
-    ]);
+    setIsPublicQrVisible(true);
   }
 
   async function onDeleteVehicle() {
@@ -1139,7 +1127,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       isPremium={isPremium}
       publicReportUrl={publicReportUrl}
       onCopyVin={onCopyVin}
-      openPublicReportShareActions={openPublicReportShareActions}
+      onShowQrCode={handleShowPublicReportQr}
       mileageStaleTitle={mileageStaleTitle}
       handleQuickMileageEdit={handleQuickMileageEdit}
       insuranceCalloutCopy={insuranceCalloutCopy}
@@ -1356,20 +1344,67 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               <Ionicons name="close" size={22} color={theme.colors.fg} />
             </Pressable>
             {publicReportUrl ? (
-              <View style={styles.qrWrap}>
-                <QRCode
-                  value={publicReportUrl}
-                  size={220}
-                  color={mode === "dark" ? "#ffffff" : "#000000"}
-                  backgroundColor={theme.colors.bg}
-                  ecl="H"
-                />
-                <View style={styles.qrLogoOverlay} pointerEvents="none">
-                  <View style={[styles.qrLogoBadge]}>
-                    <Logo width={34} height={34} />
+              <>
+                <Text
+                  style={[styles.qrModalSubtitle, { color: theme.colors.muted }]}
+                >
+                  {t("share.qrCodeSubtitle")}
+                </Text>
+                <View style={styles.qrWrap}>
+                  <QRCode
+                    value={publicReportUrl}
+                    size={220}
+                    color={mode === "dark" ? "#ffffff" : "#000000"}
+                    backgroundColor={theme.colors.bg}
+                    ecl="H"
+                  />
+                  <View style={styles.qrLogoOverlay} pointerEvents="none">
+                    <View style={[styles.qrLogoBadge]}>
+                      <Logo width={34} height={34} />
+                    </View>
                   </View>
                 </View>
-              </View>
+                <View style={styles.qrModalActions}>
+                  <FormShareLink
+                    item={publicReportUrl}
+                    subject={
+                      vehicle
+                        ? `${vehicle.make} ${vehicle.model}`.trim()
+                        : undefined
+                    }
+                    message={t("share.reportShareMessage", {
+                      vehicleTitle: vehicle
+                        ? `${vehicle.make} ${vehicle.model}`.trim()
+                        : "",
+                    })}
+                  >
+                    <View style={styles.qrShareButton}>
+                      <Ionicons
+                        name="share-outline"
+                        size={18}
+                        color={theme.colors.fg}
+                      />
+                      <Text
+                        style={[styles.qrShareButtonText, { color: theme.colors.fg }]}
+                      >
+                        {t("share.shareLink")}
+                      </Text>
+                    </View>
+                  </FormShareLink>
+                  <Button
+                    variant="ghost"
+                    onPress={() => void handleCopyPublicReportLink()}
+                  >
+                    {t("share.copyLink")}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onPress={() => void handleOpenPublicReportInBrowser()}
+                  >
+                    {t("share.openInBrowser")}
+                  </Button>
+                </View>
+              </>
             ) : null}
           </View>
         </View>
@@ -1918,6 +1953,32 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       height: 34,
       alignItems: "center",
       justifyContent: "center",
+    },
+    qrModalSubtitle: {
+      marginTop: theme.spacing.xl,
+      marginBottom: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.sm,
+      fontSize: theme.typography.small,
+      lineHeight: theme.typography.body + 2,
+      textAlign: "center",
+    },
+    qrModalActions: {
+      width: "100%",
+      gap: theme.spacing.xs,
+      marginBottom: theme.spacing.sm,
+    },
+    qrShareButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: theme.spacing.xs,
+      paddingVertical: theme.spacing.sm,
+      borderRadius: theme.radius.lg,
+      backgroundColor: theme.colors.card,
+    },
+    qrShareButtonText: {
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.semibold,
     },
     qrWrap: {
       position: "relative",

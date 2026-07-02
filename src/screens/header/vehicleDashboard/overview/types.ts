@@ -38,7 +38,7 @@ export type OverviewPanelProps = {
   isPremium: boolean;
   publicReportUrl: string | null;
   onCopyVin: () => void;
-  openPublicReportShareActions: () => void;
+  onShowQrCode: () => void;
   mileageStaleTitle: string | null;
   handleQuickMileageEdit: () => void;
   insuranceCalloutCopy: {

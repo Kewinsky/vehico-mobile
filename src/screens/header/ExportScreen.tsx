@@ -1,4 +1,4 @@
-import { Pressable, Share, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -25,6 +25,7 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { toastError } from "../../ui/toast/toast";
 import { isValidDate } from "../../utils/validation";
+import { shareExportFile } from "../../utils/shareContent";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Export">;
 
@@ -154,10 +155,11 @@ export function ExportScreen({ navigation, route }: Props) {
         throw new Error(t("export.noDataInRange"));
       }
 
-      await Share.share({
-        title: t("export.shareTitle", { appName: APP_DISPLAY_NAME }),
-        message: content,
-      });
+      await shareExportFile(
+        content,
+        format,
+        t("export.shareTitle", { appName: APP_DISPLAY_NAME }),
+      );
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
