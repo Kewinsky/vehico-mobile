@@ -9,6 +9,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
+import { listMileageAudit } from "../../services/mileage/mileageAuditRepo";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import { listVehicleTires } from "../../services/tires/tiresRepo";
@@ -18,7 +19,26 @@ import {
   getVehiclePhotoUrl,
 } from "../../services/vehicles/uploadPhoto";
 import type { Vehicle, VehiclePhoto } from "../../types/domain";
+import {
+  MIN_MILEAGE_CHART_POINTS,
+  MIN_STATS_ENTRIES,
+  hasEnoughMileageChartPoints,
+  hasEnoughStatsEntries,
+} from "../../types/reportOptions";
 import { Button } from "../../ui/components/common/Button";
+import { ReportOptionGroup } from "../../ui/components/common/ReportOptionGroup";
+import {
+  getReportGroupMasterState,
+  hasAnyEnabledReportOption,
+  hasAnyCheckedReportOption,
+  resetAllReportOptions,
+  selectAllReportOptions,
+  toggleReportGroupMaster,
+  type ReportGroupItem,
+} from "../../ui/components/common/reportOptionGroupUtils";
+import { ReportOptionRow } from "../../ui/components/common/ReportOptionRow";
+import { ReportOptionsCard } from "../../ui/components/common/ReportOptionsCard";
+import { ReportOptionsActionsBar } from "../../ui/components/common/ReportOptionsActionsBar";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
@@ -57,6 +77,9 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   const [vehiclePhotos, setVehiclePhotos] = useState<VehiclePhoto[]>([]);
   const [fuelingCount, setFuelingCount] = useState(0);
   const [serviceEntriesCount, setServiceEntriesCount] = useState(0);
+  const [serviceEntriesWithMileageCount, setServiceEntriesWithMileageCount] =
+    useState(0);
+  const [mileageAuditCount, setMileageAuditCount] = useState(0);
   const [tiresCount, setTiresCount] = useState(0);
   const [wheelsCount, setWheelsCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -69,8 +92,13 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   const hasWheels = wheelsCount > 0;
   const hasTires = tiresCount > 0;
   const hasServiceHistory = serviceEntriesCount > 0;
-  const hasServiceStats = serviceEntriesCount > 0;
-  const hasFuelingStats = fuelingCount > 0;
+  const hasServiceStats = hasEnoughStatsEntries(serviceEntriesCount);
+  const hasFuelingStats = hasEnoughStatsEntries(fuelingCount);
+  const hasExpensesCharts = hasEnoughStatsEntries(serviceEntriesCount);
+  const hasMileageChart = hasEnoughMileageChartPoints(
+    serviceEntriesWithMileageCount,
+    mileageAuditCount,
+  );
 
   const [includeTechnicalData] = useState(true);
   const [includeInsurance, setIncludeInsurance] = useState(false);
@@ -81,6 +109,12 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   const [includeServiceHistory, setIncludeServiceHistory] = useState(false);
   const [includeServiceStats, setIncludeServiceStats] = useState(false);
   const [includeFuelingStats, setIncludeFuelingStats] = useState(false);
+  const [includeExpensesByCategoryChart, setIncludeExpensesByCategoryChart] =
+    useState(false);
+  const [includeExpensesOverTimeChart, setIncludeExpensesOverTimeChart] =
+    useState(false);
+  const [includeMileageOverTimeChart, setIncludeMileageOverTimeChart] =
+    useState(false);
   const [includePhotos, setIncludePhotos] = useState(false);
 
   const [selectedVehiclePhotoIds, setSelectedVehiclePhotoIds] = useState<
@@ -92,12 +126,13 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [v, photos, fuelings, serviceEntries, tires, wheels] =
+      const [v, photos, fuelings, serviceEntries, mileageAudit, tires, wheels] =
         await Promise.all([
           getVehicle(vehicleId),
           listVehiclePhotos(vehicleId),
           listFuelingEntries(vehicleId),
           listServiceEntries(vehicleId),
+          listMileageAudit(vehicleId),
           listVehicleTires(vehicleId),
           listVehicleWheels(vehicleId),
         ]);
@@ -105,6 +140,15 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       setVehiclePhotos(photos);
       setFuelingCount(fuelings.length);
       setServiceEntriesCount(serviceEntries.length);
+      setServiceEntriesWithMileageCount(
+        serviceEntries.filter(
+          (entry) =>
+            entry.mileage != null &&
+            Number.isFinite(entry.mileage) &&
+            entry.mileage > 0,
+        ).length,
+      );
+      setMileageAuditCount(mileageAudit.length);
       setTiresCount(tires.length);
       setWheelsCount(wheels.length);
       setSelectedVehiclePhotoIds(new Set(photos.map((p) => p.id)));
@@ -146,26 +190,200 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
 
   const totalPhotoCount = allPhotos.length;
 
-  const unavailableOptions = useMemo(() => {
-    const list: string[] = [];
-    if (!hasInsurance) list.push(t("publicReport.optionInsurance"));
-    if (!hasInspection) list.push(t("publicReport.optionInspection"));
-    if (!hasNotes) list.push(t("publicReport.notes"));
-    if (!hasWheels) list.push(t("publicReport.optionWheels"));
-    if (!hasTires) list.push(t("publicReport.optionTires"));
-    if (!hasServiceHistory) list.push(t("publicReport.optionServiceHistory"));
-    if (!hasFuelingStats) list.push(t("publicReport.optionFuelingStats"));
-    return list;
+  const minStatsUnavailableBody = (count: number) =>
+    t("publicReport.optionMinEntriesAlert", {
+      min: MIN_STATS_ENTRIES,
+      current: count,
+    });
+
+  const minMileageUnavailableBody = () =>
+    t("publicReport.optionMinMileagePointsAlert", {
+      min: MIN_MILEAGE_CHART_POINTS,
+      current: serviceEntriesWithMileageCount + mileageAuditCount,
+    });
+
+  const formalitiesGroupState = useMemo(
+    () =>
+      getReportGroupMasterState([
+        {
+          enabled: hasInsurance,
+          checked: includeInsurance,
+          setChecked: setIncludeInsurance,
+        },
+        {
+          enabled: hasInspection,
+          checked: includeInspection,
+          setChecked: setIncludeInspection,
+        },
+      ]),
+    [hasInsurance, hasInspection, includeInsurance, includeInspection],
+  );
+
+  const wheelsGroupState = useMemo(
+    () =>
+      getReportGroupMasterState([
+        {
+          enabled: hasTires,
+          checked: includeTires,
+          setChecked: setIncludeTires,
+        },
+        {
+          enabled: hasWheels,
+          checked: includeWheels,
+          setChecked: setIncludeWheels,
+        },
+      ]),
+    [hasTires, hasWheels, includeTires, includeWheels],
+  );
+
+  const exploitationGroupState = useMemo(
+    () =>
+      getReportGroupMasterState([
+        {
+          enabled: hasServiceStats,
+          checked: includeServiceStats,
+          setChecked: setIncludeServiceStats,
+        },
+        {
+          enabled: hasFuelingStats,
+          checked: includeFuelingStats,
+          setChecked: setIncludeFuelingStats,
+        },
+      ]),
+    [
+      hasServiceStats,
+      hasFuelingStats,
+      includeServiceStats,
+      includeFuelingStats,
+    ],
+  );
+
+  const chartsGroupState = useMemo(
+    () =>
+      getReportGroupMasterState([
+        {
+          enabled: hasMileageChart,
+          checked: includeMileageOverTimeChart,
+          setChecked: setIncludeMileageOverTimeChart,
+        },
+        {
+          enabled: hasExpensesCharts,
+          checked: includeExpensesOverTimeChart,
+          setChecked: setIncludeExpensesOverTimeChart,
+        },
+        {
+          enabled: hasExpensesCharts,
+          checked: includeExpensesByCategoryChart,
+          setChecked: setIncludeExpensesByCategoryChart,
+        },
+      ]),
+    [
+      hasMileageChart,
+      hasExpensesCharts,
+      includeMileageOverTimeChart,
+      includeExpensesOverTimeChart,
+      includeExpensesByCategoryChart,
+    ],
+  );
+
+  const allReportOptions = useMemo((): ReportGroupItem[] => {
+    return [
+      {
+        enabled: hasServiceHistory,
+        checked: includeServiceHistory,
+        setChecked: setIncludeServiceHistory,
+      },
+      {
+        enabled: hasNotes,
+        checked: includeNotes,
+        setChecked: setIncludeNotes,
+      },
+      {
+        enabled: hasInsurance,
+        checked: includeInsurance,
+        setChecked: setIncludeInsurance,
+      },
+      {
+        enabled: hasInspection,
+        checked: includeInspection,
+        setChecked: setIncludeInspection,
+      },
+      {
+        enabled: hasTires,
+        checked: includeTires,
+        setChecked: setIncludeTires,
+      },
+      {
+        enabled: hasWheels,
+        checked: includeWheels,
+        setChecked: setIncludeWheels,
+      },
+      {
+        enabled: hasServiceStats,
+        checked: includeServiceStats,
+        setChecked: setIncludeServiceStats,
+      },
+      {
+        enabled: hasFuelingStats,
+        checked: includeFuelingStats,
+        setChecked: setIncludeFuelingStats,
+      },
+      {
+        enabled: hasMileageChart,
+        checked: includeMileageOverTimeChart,
+        setChecked: setIncludeMileageOverTimeChart,
+      },
+      {
+        enabled: hasExpensesCharts,
+        checked: includeExpensesOverTimeChart,
+        setChecked: setIncludeExpensesOverTimeChart,
+      },
+      {
+        enabled: hasExpensesCharts,
+        checked: includeExpensesByCategoryChart,
+        setChecked: setIncludeExpensesByCategoryChart,
+      },
+      {
+        enabled: true,
+        checked: includePhotos,
+        setChecked: setIncludePhotos,
+      },
+    ];
   }, [
+    hasServiceHistory,
+    hasNotes,
     hasInsurance,
     hasInspection,
-    hasNotes,
-    hasWheels,
     hasTires,
-    hasServiceHistory,
+    hasWheels,
+    hasServiceStats,
     hasFuelingStats,
-    t,
+    hasMileageChart,
+    hasExpensesCharts,
+    includeServiceHistory,
+    includeNotes,
+    includeInsurance,
+    includeInspection,
+    includeTires,
+    includeWheels,
+    includeServiceStats,
+    includeFuelingStats,
+    includeMileageOverTimeChart,
+    includeExpensesOverTimeChart,
+    includeExpensesByCategoryChart,
+    includePhotos,
   ]);
+
+  const canSelectAll = hasAnyEnabledReportOption(allReportOptions);
+  const canReset = hasAnyCheckedReportOption(allReportOptions);
+
+  function handleSelectAll() {
+    selectAllReportOptions(allReportOptions);
+  }
+
+  function handleReset() {
+    resetAllReportOptions(allReportOptions);
+  }
 
   async function pickFromGallery() {
     try {
@@ -283,6 +501,9 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         include_service_history: includeServiceHistory,
         include_service_stats: includeServiceStats,
         include_fueling_stats: includeFuelingStats,
+        include_expenses_by_category_chart: includeExpensesByCategoryChart,
+        include_expenses_over_time_chart: includeExpensesOverTimeChart,
+        include_mileage_over_time_chart: includeMileageOverTimeChart,
         include_photos: includePhotos,
         distance_unit: getUnitDisplay(settings).distanceUnit,
         fuel_unit: getUnitDisplay(settings).fuelUnit,
@@ -312,44 +533,6 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
 
   const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
 
-  const CheckboxRow = ({
-    label,
-    checked,
-    onPress,
-    disabled,
-    suffix,
-  }: {
-    label: string;
-    checked: boolean;
-    onPress: () => void;
-    disabled?: boolean;
-    suffix?: string;
-  }) => (
-    <Pressable
-      style={[styles.checkboxRow, disabled && styles.checkboxRowDisabled]}
-      onPress={() => !disabled && onPress()}
-      disabled={disabled}
-    >
-      <Text
-        style={[styles.optionLabel, disabled && { color: theme.colors.muted }]}
-      >
-        {label}
-        {suffix ? ` ${suffix}` : ""}
-      </Text>
-      <Ionicons
-        name={checked ? "checkbox" : "checkbox-outline"}
-        size={24}
-        color={
-          disabled
-            ? theme.colors.muted
-            : checked
-              ? theme.colors.accent
-              : theme.colors.muted
-        }
-      />
-    </Pressable>
-  );
-
   return (
     <HeaderContentScreen
       loading={loading}
@@ -361,102 +544,227 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       title={t("publicReport.configureTitle")}
       scrollEnabled={!isDragging}
     >
-      {unavailableOptions.length > 0 && (
-        <View style={[styles.section, styles.hintSection]}>
-          <Text style={styles.hintText}>
-            {t("publicReport.unavailableOptionsHint", {
-              list: unavailableOptions.join(", "),
-            })}
-          </Text>
-        </View>
-      )}
       <View>
-        <CheckboxRow
-          label={t("publicReport.optionInsurance")}
-          checked={includeInsurance}
-          onPress={() => setIncludeInsurance(!includeInsurance)}
-          disabled={!hasInsurance}
-          suffix={!hasInsurance ? `(${t("publicReport.noData")})` : undefined}
+        <ReportOptionsActionsBar
+          onSelectAll={handleSelectAll}
+          onReset={handleReset}
+          selectAllDisabled={!canSelectAll}
+          resetDisabled={!canReset}
         />
-        <CheckboxRow
-          label={t("publicReport.optionInspection")}
-          checked={includeInspection}
-          onPress={() => setIncludeInspection(!includeInspection)}
-          disabled={!hasInspection}
-          suffix={!hasInspection ? `(${t("publicReport.noData")})` : undefined}
-        />
-        <CheckboxRow
-          label={t("publicReport.optionNotes", { vehicleTitle })}
-          checked={includeNotes}
-          onPress={() => setIncludeNotes(!includeNotes)}
-          disabled={!hasNotes}
-          suffix={!hasNotes ? `(${t("publicReport.noData")})` : undefined}
-        />
-        <CheckboxRow
-          label={t("publicReport.optionWheels")}
-          checked={includeWheels}
-          onPress={() => setIncludeWheels(!includeWheels)}
-          disabled={!hasWheels}
-          suffix={!hasWheels ? `(${t("publicReport.noData")})` : undefined}
-        />
-        <CheckboxRow
-          label={t("publicReport.optionTires")}
-          checked={includeTires}
-          onPress={() => setIncludeTires(!includeTires)}
-          disabled={!hasTires}
-          suffix={!hasTires ? `(${t("publicReport.noData")})` : undefined}
-        />
-        <CheckboxRow
-          label={t("publicReport.optionServiceHistory")}
-          checked={includeServiceHistory}
-          onPress={() => setIncludeServiceHistory(!includeServiceHistory)}
-          disabled={!hasServiceHistory}
-          suffix={
-            hasServiceHistory
-              ? t("publicReport.optionServiceHistoryEntries", {
-                  count: serviceEntriesCount,
-                })
-              : t("publicReport.optionServiceHistoryNoData")
+        <ReportOptionsCard>
+          <ReportOptionRow
+            label={t("publicReport.optionServiceHistory")}
+            checked={includeServiceHistory}
+            onPress={() => setIncludeServiceHistory(!includeServiceHistory)}
+            disabled={!hasServiceHistory}
+            unavailableTitle={t("publicReport.optionServiceHistory")}
+            unavailableBody={t("publicReport.optionServiceHistoryUnavailable")}
+          />
+          <ReportOptionRow
+            label={t("publicReport.optionNotes", { vehicleTitle })}
+            checked={includeNotes}
+            onPress={() => setIncludeNotes(!includeNotes)}
+            disabled={!hasNotes}
+            unavailableTitle={t("publicReport.optionNotes", { vehicleTitle })}
+            unavailableBody={t("publicReport.unavailableNoData")}
+            isLast
+          />
+        </ReportOptionsCard>
+
+        <ReportOptionGroup
+          title={t("publicReport.formalitiesGroup")}
+          masterChecked={formalitiesGroupState.masterChecked}
+          masterDisabled={formalitiesGroupState.masterDisabled}
+          onMasterToggle={() =>
+            toggleReportGroupMaster([
+              {
+                enabled: hasInsurance,
+                checked: includeInsurance,
+                setChecked: setIncludeInsurance,
+              },
+              {
+                enabled: hasInspection,
+                checked: includeInspection,
+                setChecked: setIncludeInspection,
+              },
+            ])
           }
-        />
-        <CheckboxRow
-          label={t("publicReport.optionServiceStats")}
-          checked={includeServiceStats}
-          onPress={() => setIncludeServiceStats(!includeServiceStats)}
-          disabled={!hasServiceStats}
-          suffix={
-            !hasServiceStats ? `(${t("publicReport.noData")})` : undefined
+        >
+          <ReportOptionRow
+            label={t("publicReport.optionInsurance")}
+            checked={includeInsurance}
+            onPress={() => setIncludeInsurance(!includeInsurance)}
+            disabled={!hasInsurance}
+            unavailableTitle={t("publicReport.optionInsurance")}
+            unavailableBody={t("publicReport.unavailableNoData")}
+          />
+          <ReportOptionRow
+            label={t("publicReport.optionInspection")}
+            checked={includeInspection}
+            onPress={() => setIncludeInspection(!includeInspection)}
+            disabled={!hasInspection}
+            unavailableTitle={t("publicReport.optionInspection")}
+            unavailableBody={t("publicReport.unavailableNoData")}
+            isLast
+          />
+        </ReportOptionGroup>
+
+        <ReportOptionGroup
+          title={t("publicReport.wheelsGroup")}
+          masterChecked={wheelsGroupState.masterChecked}
+          masterDisabled={wheelsGroupState.masterDisabled}
+          onMasterToggle={() =>
+            toggleReportGroupMaster([
+              {
+                enabled: hasTires,
+                checked: includeTires,
+                setChecked: setIncludeTires,
+              },
+              {
+                enabled: hasWheels,
+                checked: includeWheels,
+                setChecked: setIncludeWheels,
+              },
+            ])
           }
-        />
-        <CheckboxRow
-          label={t("publicReport.optionFuelingStats")}
-          checked={includeFuelingStats}
-          onPress={() => setIncludeFuelingStats(!includeFuelingStats)}
-          disabled={!hasFuelingStats}
-          suffix={
-            !hasFuelingStats ? `(${t("publicReport.noData")})` : undefined
+        >
+          <ReportOptionRow
+            label={t("publicReport.optionTires")}
+            checked={includeTires}
+            onPress={() => setIncludeTires(!includeTires)}
+            disabled={!hasTires}
+            unavailableTitle={t("publicReport.optionTires")}
+            unavailableBody={t("publicReport.unavailableNoData")}
+          />
+          <ReportOptionRow
+            label={t("publicReport.optionWheels")}
+            checked={includeWheels}
+            onPress={() => setIncludeWheels(!includeWheels)}
+            disabled={!hasWheels}
+            unavailableTitle={t("publicReport.optionWheels")}
+            unavailableBody={t("publicReport.unavailableNoData")}
+            isLast
+          />
+        </ReportOptionGroup>
+
+        <ReportOptionGroup
+          title={t("publicReport.exploitationStatsGroup")}
+          masterChecked={exploitationGroupState.masterChecked}
+          masterDisabled={exploitationGroupState.masterDisabled}
+          onMasterToggle={() =>
+            toggleReportGroupMaster([
+              {
+                enabled: hasServiceStats,
+                checked: includeServiceStats,
+                setChecked: setIncludeServiceStats,
+              },
+              {
+                enabled: hasFuelingStats,
+                checked: includeFuelingStats,
+                setChecked: setIncludeFuelingStats,
+              },
+            ])
           }
-        />
-        <CheckboxRow
-          label={t("publicReport.optionPhotos")}
-          checked={includePhotos}
-          onPress={() => setIncludePhotos(!includePhotos)}
-          suffix={
-            includePhotos && totalPhotoCount > 0
-              ? t("publicReport.optionPhotosCount", {
-                  count: totalPhotoCount,
-                })
-              : undefined
+        >
+          <ReportOptionRow
+            label={t("publicReport.optionServiceStats")}
+            checked={includeServiceStats}
+            onPress={() => setIncludeServiceStats(!includeServiceStats)}
+            disabled={!hasServiceStats}
+            unavailableTitle={t("publicReport.optionServiceStats")}
+            unavailableBody={minStatsUnavailableBody(serviceEntriesCount)}
+            infoTitle={t("publicReport.optionInfo.serviceStatsTitle")}
+            infoBody={t("publicReport.optionInfo.serviceStatsBody")}
+          />
+          <ReportOptionRow
+            label={t("publicReport.optionFuelingStats")}
+            checked={includeFuelingStats}
+            onPress={() => setIncludeFuelingStats(!includeFuelingStats)}
+            disabled={!hasFuelingStats}
+            unavailableTitle={t("publicReport.optionFuelingStats")}
+            unavailableBody={minStatsUnavailableBody(fuelingCount)}
+            infoTitle={t("publicReport.optionInfo.fuelingStatsTitle")}
+            infoBody={t("publicReport.optionInfo.fuelingStatsBody")}
+            isLast
+          />
+        </ReportOptionGroup>
+
+        <ReportOptionGroup
+          title={t("publicReport.chartsGroup")}
+          masterChecked={chartsGroupState.masterChecked}
+          masterDisabled={chartsGroupState.masterDisabled}
+          onMasterToggle={() =>
+            toggleReportGroupMaster([
+              {
+                enabled: hasMileageChart,
+                checked: includeMileageOverTimeChart,
+                setChecked: setIncludeMileageOverTimeChart,
+              },
+              {
+                enabled: hasExpensesCharts,
+                checked: includeExpensesOverTimeChart,
+                setChecked: setIncludeExpensesOverTimeChart,
+              },
+              {
+                enabled: hasExpensesCharts,
+                checked: includeExpensesByCategoryChart,
+                setChecked: setIncludeExpensesByCategoryChart,
+              },
+            ])
           }
-        />
+        >
+          <ReportOptionRow
+            label={t("publicReport.optionMileageOverTimeChart")}
+            checked={includeMileageOverTimeChart}
+            onPress={() =>
+              setIncludeMileageOverTimeChart(!includeMileageOverTimeChart)
+            }
+            disabled={!hasMileageChart}
+            unavailableTitle={t("publicReport.optionMileageOverTimeChart")}
+            unavailableBody={minMileageUnavailableBody()}
+            infoTitle={t("publicReport.optionInfo.mileageOverTimeTitle")}
+            infoBody={t("publicReport.optionInfo.mileageOverTimeBody")}
+          />
+          <ReportOptionRow
+            label={t("publicReport.optionExpensesOverTimeChart")}
+            checked={includeExpensesOverTimeChart}
+            onPress={() =>
+              setIncludeExpensesOverTimeChart(!includeExpensesOverTimeChart)
+            }
+            disabled={!hasExpensesCharts}
+            unavailableTitle={t("publicReport.optionExpensesOverTimeChart")}
+            unavailableBody={minStatsUnavailableBody(serviceEntriesCount)}
+            infoTitle={t("publicReport.optionInfo.expensesOverTimeTitle")}
+            infoBody={t("publicReport.optionInfo.expensesOverTimeBody")}
+          />
+          <ReportOptionRow
+            label={t("publicReport.optionExpensesByCategoryChart")}
+            checked={includeExpensesByCategoryChart}
+            onPress={() =>
+              setIncludeExpensesByCategoryChart(!includeExpensesByCategoryChart)
+            }
+            disabled={!hasExpensesCharts}
+            unavailableTitle={t("publicReport.optionExpensesByCategoryChart")}
+            unavailableBody={minStatsUnavailableBody(serviceEntriesCount)}
+            infoTitle={t("publicReport.optionInfo.expensesByCategoryTitle")}
+            infoBody={t("publicReport.optionInfo.expensesByCategoryBody")}
+            isLast
+          />
+        </ReportOptionGroup>
+
+        <ReportOptionsCard>
+          <ReportOptionRow
+            label={t("publicReport.optionPhotos")}
+            checked={includePhotos}
+            onPress={() => setIncludePhotos(!includePhotos)}
+            isLast
+          />
+        </ReportOptionsCard>
       </View>
 
       {includePhotos && (
         <View style={styles.section}>
           <View style={styles.photosHeader}>
-            <Text style={styles.sectionTitle}>
-              {t("publicReport.photosSection")}
-            </Text>
             <Text style={styles.photosCount}>
               {t("publicReport.photosCount", {
                 count: totalPhotoCount,
@@ -537,37 +845,15 @@ const makeStyles = (theme: any) =>
       color: theme.colors.fg,
     },
     section: { marginBottom: theme.spacing.md },
-    hintSection: {
-      backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.xl,
-      padding: theme.spacing.md,
-    },
-    hintText: {
-      fontSize: theme.typography.small,
-      color: theme.colors.muted,
-      lineHeight: theme.typography.body + 4,
-    },
     sectionTitle: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
       marginBottom: theme.spacing.sm,
     },
-    checkboxRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginBottom: theme.spacing.sm,
-    },
-    checkboxRowDisabled: { opacity: 0.7 },
-    optionLabel: {
-      flex: 1,
-      fontSize: theme.typography.body,
-      color: theme.colors.fg,
-    },
     photosHeader: {
       flexDirection: "row",
-      justifyContent: "space-between",
+      justifyContent: "flex-end",
       alignItems: "center",
       marginBottom: theme.spacing.sm,
     },

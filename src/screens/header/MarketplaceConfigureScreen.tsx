@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View, Keyboard } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
+  Keyboard,
+} from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { formatDateDisplay } from "../../utils/dateFormatting";
-import { i18n } from "../../i18n/i18n";
 import {
   canProceedMarketplaceConfigure,
   marketplaceConfigureFieldErrors,
@@ -14,6 +20,10 @@ import {
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import {
+  hasEnoughStatsEntries,
+  MIN_STATS_ENTRIES,
+} from "../../types/reportOptions";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { listVehicleTires } from "../../services/tires/tiresRepo";
@@ -23,18 +33,31 @@ import { listPublicPages } from "../../services/publicPages/publicPagesRepo";
 import type { Vehicle, PublicReportSnapshot } from "../../types/domain";
 import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
+import { ReportOptionGroup } from "../../ui/components/common/ReportOptionGroup";
+import {
+  getReportGroupMasterState,
+  hasAnyEnabledReportOption,
+  hasAnyCheckedReportOption,
+  resetAllReportOptions,
+  selectAllReportOptions,
+  toggleReportGroupMaster,
+  type ReportGroupItem,
+} from "../../ui/components/common/reportOptionGroupUtils";
+import { ReportOptionRow } from "../../ui/components/common/ReportOptionRow";
+import { ReportOptionsCard } from "../../ui/components/common/ReportOptionsCard";
+import { ReportOptionsActionsBar } from "../../ui/components/common/ReportOptionsActionsBar";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
-import { PickerField } from "../../ui/components/common/PickerField";
+import { openAlertPicker } from "../../ui/components/common/openAlertPicker";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
 type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceConfigure">;
 
 export function MarketplaceConfigureScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -59,8 +82,8 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   const hasWheels = wheelsCount > 0;
   const hasTires = tiresCount > 0;
   const hasServiceHistory = serviceEntriesCount > 0;
-  const hasServiceStats = serviceEntriesCount > 0;
-  const hasFuelingStats = fuelingCount > 0;
+  const hasServiceStats = hasEnoughStatsEntries(serviceEntriesCount);
+  const hasFuelingStats = hasEnoughStatsEntries(fuelingCount);
 
   const [includeTechnicalData] = useState(true);
   const [includeInsurance, setIncludeInsurance] = useState(false);
@@ -125,31 +148,180 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
     void load();
   }, [load]);
 
-  const unavailableOptions = useMemo(() => {
-    const list: string[] = [];
-    if (!hasInsurance) list.push(t("publicReport.optionInsurance"));
-    if (!hasInspection) list.push(t("publicReport.optionInspection"));
-    if (!hasNotes) list.push(t("publicReport.notes"));
-    if (!hasWheels) list.push(t("publicReport.optionWheels"));
-    if (!hasTires) list.push(t("publicReport.optionTires"));
-    if (!hasServiceHistory) list.push(t("publicReport.optionServiceHistory"));
-    if (!hasFuelingStats) list.push(t("publicReport.optionFuelingStats"));
-    if (publicReports.length === 0)
-      list.push(
-        `${t("marketplace.optionPublicReport")} (${t("marketplace.noReports")})`,
-      );
-    return list;
+  const minStatsUnavailableBody = (count: number) =>
+    t("publicReport.optionMinEntriesAlert", {
+      min: MIN_STATS_ENTRIES,
+      current: count,
+    });
+
+  const formalitiesGroupState = useMemo(
+    () =>
+      getReportGroupMasterState([
+        {
+          enabled: hasInsurance,
+          checked: includeInsurance,
+          setChecked: setIncludeInsurance,
+        },
+        {
+          enabled: hasInspection,
+          checked: includeInspection,
+          setChecked: setIncludeInspection,
+        },
+      ]),
+    [hasInsurance, hasInspection, includeInsurance, includeInspection],
+  );
+
+  const wheelsGroupState = useMemo(
+    () =>
+      getReportGroupMasterState([
+        {
+          enabled: hasTires,
+          checked: includeTires,
+          setChecked: setIncludeTires,
+        },
+        {
+          enabled: hasWheels,
+          checked: includeWheels,
+          setChecked: setIncludeWheels,
+        },
+      ]),
+    [hasTires, hasWheels, includeTires, includeWheels],
+  );
+
+  const exploitationGroupState = useMemo(
+    () =>
+      getReportGroupMasterState([
+        {
+          enabled: hasServiceStats,
+          checked: includeServiceStats,
+          setChecked: setIncludeServiceStats,
+        },
+        {
+          enabled: hasFuelingStats,
+          checked: includeFuelingStats,
+          setChecked: setIncludeFuelingStats,
+        },
+      ]),
+    [
+      hasServiceStats,
+      hasFuelingStats,
+      includeServiceStats,
+      includeFuelingStats,
+    ],
+  );
+
+  const allReportOptions = useMemo((): ReportGroupItem[] => {
+    return [
+      {
+        enabled: hasServiceHistory,
+        checked: includeServiceHistory,
+        setChecked: setIncludeServiceHistory,
+      },
+      {
+        enabled: hasNotes,
+        checked: includeNotes,
+        setChecked: setIncludeNotes,
+      },
+      {
+        enabled: hasInsurance,
+        checked: includeInsurance,
+        setChecked: setIncludeInsurance,
+      },
+      {
+        enabled: hasInspection,
+        checked: includeInspection,
+        setChecked: setIncludeInspection,
+      },
+      {
+        enabled: hasTires,
+        checked: includeTires,
+        setChecked: setIncludeTires,
+      },
+      {
+        enabled: hasWheels,
+        checked: includeWheels,
+        setChecked: setIncludeWheels,
+      },
+      {
+        enabled: hasServiceStats,
+        checked: includeServiceStats,
+        setChecked: setIncludeServiceStats,
+      },
+      {
+        enabled: hasFuelingStats,
+        checked: includeFuelingStats,
+        setChecked: setIncludeFuelingStats,
+      },
+      {
+        enabled: true,
+        checked: includePrice,
+        setChecked: setIncludePrice,
+      },
+      {
+        enabled: publicReports.length > 0,
+        checked: includePublicReport,
+        setChecked: setIncludePublicReport,
+      },
+    ];
   }, [
+    hasServiceHistory,
+    hasNotes,
     hasInsurance,
     hasInspection,
-    hasNotes,
-    hasWheels,
     hasTires,
-    hasServiceHistory,
+    hasWheels,
+    hasServiceStats,
     hasFuelingStats,
+    includeServiceHistory,
+    includeNotes,
+    includeInsurance,
+    includeInspection,
+    includeTires,
+    includeWheels,
+    includeServiceStats,
+    includeFuelingStats,
+    includePrice,
     publicReports.length,
-    t,
+    includePublicReport,
   ]);
+
+  const canSelectAll = hasAnyEnabledReportOption(allReportOptions);
+  const canReset =
+    hasAnyCheckedReportOption(allReportOptions) || price.trim() !== "";
+
+  function handleSelectAll() {
+    selectAllReportOptions(allReportOptions);
+  }
+
+  function handleReset() {
+    resetAllReportOptions(allReportOptions);
+    setPrice("");
+  }
+
+  const getReportLabel = useCallback(
+    (reportId: string) => {
+      const report = publicReports.find((item) => item.id === reportId);
+      if (!report) return reportId;
+      const date = formatDateDisplay(report.created_at, i18n.language);
+      return report.title || `${t("marketplace.report")} - ${date}`;
+    },
+    [publicReports, i18n.language, t],
+  );
+
+  const openReportPicker = useCallback(() => {
+    openAlertPicker({
+      cancelLabel: t("common.cancel"),
+      choices: publicReports.map((report) => ({
+        label: getReportLabel(report.id),
+        onPress: () => setSelectedReportId(report.id),
+      })),
+    });
+  }, [publicReports, getReportLabel, t]);
+
+  const reportButtonLabel = useMemo(() => {
+    if (!selectedReportId) return t("marketplace.selectReport");
+    return getReportLabel(selectedReportId);
+  }, [selectedReportId, getReportLabel, t]);
 
   function handleNext() {
     if (!validateBeforeSave()) {
@@ -184,43 +356,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
     });
   }
 
-  const CheckboxRow = ({
-    label,
-    checked,
-    onPress,
-    disabled,
-    suffix,
-  }: {
-    label: string;
-    checked: boolean;
-    onPress: () => void;
-    disabled?: boolean;
-    suffix?: string;
-  }) => (
-    <Pressable
-      style={[styles.checkboxRow, disabled && styles.checkboxRowDisabled]}
-      onPress={() => !disabled && onPress()}
-      disabled={disabled}
-    >
-      <Text
-        style={[styles.optionLabel, disabled && { color: theme.colors.muted }]}
-      >
-        {label}
-        {suffix ? ` ${suffix}` : ""}
-      </Text>
-      <Ionicons
-        name={checked ? "checkbox" : "checkbox-outline"}
-        size={24}
-        color={
-          disabled
-            ? theme.colors.muted
-            : checked
-              ? theme.colors.accent
-              : theme.colors.muted
-        }
-      />
-    </Pressable>
-  );
+  const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
 
   return (
     <HeaderLayout
@@ -234,173 +370,223 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
       <NativeHeaderScrollView keyboardDismissMode="on-drag">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View>
-        <ContentHeader title={t("marketplace.configureTitle")} />
-        {unavailableOptions.length > 0 && (
-          <View style={[styles.section, styles.hintSection]}>
-            <Text style={styles.hintText}>
-              {t("publicReport.unavailableOptionsHint", {
-                list: unavailableOptions.join(", "),
-              })}
-            </Text>
-          </View>
-        )}
-        <View>
-          <CheckboxRow
-            label={t("publicReport.optionInsurance")}
-            checked={includeInsurance}
-            onPress={() => setIncludeInsurance(!includeInsurance)}
-            disabled={!hasInsurance}
-            suffix={!hasInsurance ? `(${t("publicReport.noData")})` : undefined}
-          />
-          <CheckboxRow
-            label={t("publicReport.optionInspection")}
-            checked={includeInspection}
-            onPress={() => setIncludeInspection(!includeInspection)}
-            disabled={!hasInspection}
-            suffix={
-              !hasInspection ? `(${t("publicReport.noData")})` : undefined
-            }
-          />
-          <CheckboxRow
-            label={t("publicReport.optionNotes", {
-              vehicleTitle: vehicle ? `${vehicle.make} ${vehicle.model}` : "",
-            })}
-            checked={includeNotes}
-            onPress={() => setIncludeNotes(!includeNotes)}
-            disabled={!hasNotes}
-            suffix={!hasNotes ? `(${t("publicReport.noData")})` : undefined}
-          />
-          <CheckboxRow
-            label={t("publicReport.optionWheels")}
-            checked={includeWheels}
-            onPress={() => setIncludeWheels(!includeWheels)}
-            disabled={!hasWheels}
-            suffix={!hasWheels ? `(${t("publicReport.noData")})` : undefined}
-          />
-          <CheckboxRow
-            label={t("publicReport.optionTires")}
-            checked={includeTires}
-            onPress={() => setIncludeTires(!includeTires)}
-            disabled={!hasTires}
-            suffix={!hasTires ? `(${t("publicReport.noData")})` : undefined}
-          />
-          <CheckboxRow
-            label={t("publicReport.optionServiceHistory")}
-            checked={includeServiceHistory}
-            onPress={() => setIncludeServiceHistory(!includeServiceHistory)}
-            disabled={!hasServiceHistory}
-            suffix={
-              hasServiceHistory
-                ? t("publicReport.optionServiceHistoryEntries", {
-                    count: serviceEntriesCount,
-                  })
-                : t("publicReport.optionServiceHistoryNoData")
-            }
-          />
-          <CheckboxRow
-            label={t("publicReport.optionServiceStats")}
-            checked={includeServiceStats}
-            onPress={() => setIncludeServiceStats(!includeServiceStats)}
-            disabled={!hasServiceStats}
-            suffix={
-              !hasServiceStats ? `(${t("publicReport.noData")})` : undefined
-            }
-          />
-          <CheckboxRow
-            label={t("publicReport.optionFuelingStats")}
-            checked={includeFuelingStats}
-            onPress={() => setIncludeFuelingStats(!includeFuelingStats)}
-            disabled={!hasFuelingStats}
-            suffix={
-              !hasFuelingStats ? `(${t("publicReport.noData")})` : undefined
-            }
-          />
-          <CheckboxRow
-            label={t("marketplace.optionPrice")}
-            checked={includePrice}
-            onPress={() => setIncludePrice(!includePrice)}
-          />
-          {includePrice && (
-            <View
-              style={[
-                styles.priceCard,
-                {
-                  borderColor: fieldError(fieldErrors.price)
-                    ? theme.colors.danger
-                    : theme.colors.border,
-                  backgroundColor: fieldError(fieldErrors.price)
-                    ? hexToRgba(theme.colors.danger, 0.15)
-                    : theme.colors.card,
-                },
-              ]}
-            >
-              <View style={styles.priceRow}>
-                <View style={styles.priceRowLeft}>
-                  <Ionicons
-                    name="pricetag-outline"
-                    size={20}
-                    color={theme.colors.accent}
-                  />
-                  <Text
-                    style={[styles.priceLabel, { color: theme.colors.muted }]}
-                    numberOfLines={1}
+            <ContentHeader title={t("marketplace.configureTitle")} />
+            <View>
+              <ReportOptionsActionsBar
+                onSelectAll={handleSelectAll}
+                onReset={handleReset}
+                selectAllDisabled={!canSelectAll}
+                resetDisabled={!canReset}
+              />
+              <ReportOptionsCard>
+                <ReportOptionRow
+                  label={t("publicReport.optionServiceHistory")}
+                  checked={includeServiceHistory}
+                  onPress={() =>
+                    setIncludeServiceHistory(!includeServiceHistory)
+                  }
+                  disabled={!hasServiceHistory}
+                  unavailableTitle={t("publicReport.optionServiceHistory")}
+                  unavailableBody={t(
+                    "publicReport.optionServiceHistoryUnavailable",
+                  )}
+                />
+                <ReportOptionRow
+                  label={t("publicReport.optionNotes", { vehicleTitle })}
+                  checked={includeNotes}
+                  onPress={() => setIncludeNotes(!includeNotes)}
+                  disabled={!hasNotes}
+                  unavailableTitle={t("publicReport.optionNotes", {
+                    vehicleTitle,
+                  })}
+                  unavailableBody={t("publicReport.unavailableNoData")}
+                  isLast
+                />
+              </ReportOptionsCard>
+
+              <ReportOptionGroup
+                title={t("publicReport.formalitiesGroup")}
+                masterChecked={formalitiesGroupState.masterChecked}
+                masterDisabled={formalitiesGroupState.masterDisabled}
+                onMasterToggle={() =>
+                  toggleReportGroupMaster([
+                    {
+                      enabled: hasInsurance,
+                      checked: includeInsurance,
+                      setChecked: setIncludeInsurance,
+                    },
+                    {
+                      enabled: hasInspection,
+                      checked: includeInspection,
+                      setChecked: setIncludeInspection,
+                    },
+                  ])
+                }
+              >
+                <ReportOptionRow
+                  label={t("publicReport.optionInsurance")}
+                  checked={includeInsurance}
+                  onPress={() => setIncludeInsurance(!includeInsurance)}
+                  disabled={!hasInsurance}
+                  unavailableTitle={t("publicReport.optionInsurance")}
+                  unavailableBody={t("publicReport.unavailableNoData")}
+                />
+                <ReportOptionRow
+                  label={t("publicReport.optionInspection")}
+                  checked={includeInspection}
+                  onPress={() => setIncludeInspection(!includeInspection)}
+                  disabled={!hasInspection}
+                  unavailableTitle={t("publicReport.optionInspection")}
+                  unavailableBody={t("publicReport.unavailableNoData")}
+                  isLast
+                />
+              </ReportOptionGroup>
+
+              <ReportOptionGroup
+                title={t("publicReport.wheelsGroup")}
+                masterChecked={wheelsGroupState.masterChecked}
+                masterDisabled={wheelsGroupState.masterDisabled}
+                onMasterToggle={() =>
+                  toggleReportGroupMaster([
+                    {
+                      enabled: hasTires,
+                      checked: includeTires,
+                      setChecked: setIncludeTires,
+                    },
+                    {
+                      enabled: hasWheels,
+                      checked: includeWheels,
+                      setChecked: setIncludeWheels,
+                    },
+                  ])
+                }
+              >
+                <ReportOptionRow
+                  label={t("publicReport.optionTires")}
+                  checked={includeTires}
+                  onPress={() => setIncludeTires(!includeTires)}
+                  disabled={!hasTires}
+                  unavailableTitle={t("publicReport.optionTires")}
+                  unavailableBody={t("publicReport.unavailableNoData")}
+                />
+                <ReportOptionRow
+                  label={t("publicReport.optionWheels")}
+                  checked={includeWheels}
+                  onPress={() => setIncludeWheels(!includeWheels)}
+                  disabled={!hasWheels}
+                  unavailableTitle={t("publicReport.optionWheels")}
+                  unavailableBody={t("publicReport.unavailableNoData")}
+                  isLast
+                />
+              </ReportOptionGroup>
+
+              <ReportOptionGroup
+                title={t("publicReport.exploitationStatsGroup")}
+                masterChecked={exploitationGroupState.masterChecked}
+                masterDisabled={exploitationGroupState.masterDisabled}
+                onMasterToggle={() =>
+                  toggleReportGroupMaster([
+                    {
+                      enabled: hasServiceStats,
+                      checked: includeServiceStats,
+                      setChecked: setIncludeServiceStats,
+                    },
+                    {
+                      enabled: hasFuelingStats,
+                      checked: includeFuelingStats,
+                      setChecked: setIncludeFuelingStats,
+                    },
+                  ])
+                }
+              >
+                <ReportOptionRow
+                  label={t("publicReport.optionServiceStats")}
+                  checked={includeServiceStats}
+                  onPress={() => setIncludeServiceStats(!includeServiceStats)}
+                  disabled={!hasServiceStats}
+                  unavailableTitle={t("publicReport.optionServiceStats")}
+                  unavailableBody={minStatsUnavailableBody(serviceEntriesCount)}
+                  infoTitle={t("publicReport.optionInfo.serviceStatsTitle")}
+                  infoBody={t("publicReport.optionInfo.serviceStatsBody")}
+                />
+                <ReportOptionRow
+                  label={t("publicReport.optionFuelingStats")}
+                  checked={includeFuelingStats}
+                  onPress={() => setIncludeFuelingStats(!includeFuelingStats)}
+                  disabled={!hasFuelingStats}
+                  unavailableTitle={t("publicReport.optionFuelingStats")}
+                  unavailableBody={minStatsUnavailableBody(fuelingCount)}
+                  infoTitle={t("publicReport.optionInfo.fuelingStatsTitle")}
+                  infoBody={t("publicReport.optionInfo.fuelingStatsBody")}
+                  isLast
+                />
+              </ReportOptionGroup>
+
+              <ReportOptionsCard>
+                <ReportOptionRow
+                  label={t("marketplace.optionPrice")}
+                  checked={includePrice}
+                  onPress={() => setIncludePrice(!includePrice)}
+                />
+                {includePrice && (
+                  <View
+                    style={[
+                      styles.priceRow,
+                      {
+                        backgroundColor: fieldError(fieldErrors.price)
+                          ? hexToRgba(theme.colors.danger, 0.15)
+                          : theme.colors.bg,
+                      },
+                    ]}
                   >
-                    {t("marketplace.optionPrice")}
-                  </Text>
-                </View>
-                <TextInput
-                  value={price}
-                  onChangeText={setPrice}
-                  keyboardType="number-pad"
-                  keyboardAppearance={mode === "dark" ? "dark" : "light"}
-                  placeholder={t("marketplace.pricePlaceholder")}
-                  placeholderTextColor={theme.colors.muted}
-                  style={[styles.priceInput, { color: theme.colors.fg }]}
+                    <View style={styles.priceRowLeft}>
+                      <Ionicons
+                        name="pricetag-outline"
+                        size={20}
+                        color={theme.colors.accent}
+                      />
+                      <Text
+                        style={[
+                          styles.priceLabel,
+                          { color: theme.colors.muted },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {t("marketplace.optionPrice")}
+                      </Text>
+                    </View>
+                    <TextInput
+                      value={price}
+                      onChangeText={setPrice}
+                      keyboardType="number-pad"
+                      keyboardAppearance={mode === "dark" ? "dark" : "light"}
+                      placeholder={t("marketplace.pricePlaceholder")}
+                      placeholderTextColor={theme.colors.muted}
+                      style={[styles.priceInput, { color: theme.colors.fg }]}
+                    />
+                  </View>
+                )}
+                <ReportOptionRow
+                  label={t("marketplace.optionPublicReport")}
+                  checked={includePublicReport}
+                  onPress={() => setIncludePublicReport(!includePublicReport)}
+                  disabled={publicReports.length === 0}
+                  unavailableTitle={t("marketplace.optionPublicReport")}
+                  unavailableBody={t("marketplace.noReports")}
+                  isLast={!includePublicReport}
                 />
-              </View>
+                {includePublicReport && publicReports.length > 0 ? (
+                  <Button
+                    variant="outlined"
+                    color={theme.colors.accent}
+                    onPress={openReportPicker}
+                    style={styles.selectReportButton}
+                  >
+                    {reportButtonLabel}
+                  </Button>
+                ) : null}
+              </ReportOptionsCard>
             </View>
-          )}
-          <CheckboxRow
-            label={t("marketplace.optionPublicReport")}
-            checked={includePublicReport}
-            onPress={() => setIncludePublicReport(!includePublicReport)}
-            disabled={publicReports.length === 0}
-            suffix={
-              publicReports.length === 0
-                ? `(${t("marketplace.noReports")})`
-                : undefined
-            }
-          />
-          {includePublicReport && (
-            <View style={styles.section}>
-              {publicReports.length > 0 ? (
-                <PickerField
-                  noMarginTop
-                  label=""
-                  value={selectedReportId as string | null}
-                  options={publicReports.map((r) => r.id) as readonly string[]}
-                  getLabel={(value) => {
-                    const report = publicReports.find((r) => r.id === value);
-                    if (!report) return t("marketplace.selectReport");
-                    const date = formatDateDisplay(
-                      report.created_at,
-                      i18n.language,
-                    );
-                    return (
-                      report.title || `${t("marketplace.report")} - ${date}`
-                    );
-                  }}
-                  onChange={(value) => setSelectedReportId(value)}
-                  placeholder={t("marketplace.selectReport")}
-                />
-              ) : (
-                <Text style={styles.noReportsText}>
-                  {t("marketplace.noReports")}
-                </Text>
-              )}
-            </View>
-          )}
-        </View>
           </View>
         </TouchableWithoutFeedback>
       </NativeHeaderScrollView>
@@ -417,25 +603,10 @@ const makeStyles = (theme: any) =>
       color: theme.colors.fg,
     },
     section: { marginBottom: theme.spacing.md },
-    hintSection: {
-      backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.xl,
-      padding: theme.spacing.md,
-    },
-    hintText: {
-      fontSize: theme.typography.small,
-      color: theme.colors.muted,
-      lineHeight: theme.typography.body + 4,
-    },
     sectionTitle: {
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
-      marginBottom: theme.spacing.sm,
-    },
-    priceCard: {
-      borderRadius: theme.radius.xl,
-      overflow: "hidden",
       marginBottom: theme.spacing.sm,
     },
     priceRow: {
@@ -444,6 +615,8 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
       paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
+      borderRadius: theme.radius.xl,
+      marginBottom: theme.spacing.sm,
     },
     priceRowLeft: {
       flexDirection: "row",
@@ -462,20 +635,7 @@ const makeStyles = (theme: any) =>
       paddingVertical: 0,
       textAlign: "right",
     },
-    noReportsText: {
-      fontSize: theme.typography.body,
-      color: theme.colors.muted,
-    },
-    checkboxRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
+    selectReportButton: {
       marginBottom: theme.spacing.sm,
-    },
-    checkboxRowDisabled: { opacity: 0.7 },
-    optionLabel: {
-      flex: 1,
-      fontSize: theme.typography.body,
-      color: theme.colors.fg,
     },
   });

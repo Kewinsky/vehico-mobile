@@ -2,6 +2,7 @@ import React from "react";
 import { ActivityIndicator, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+import type { MarketplaceReportOptions, ReportOptions } from "../../types/reportOptions";
 import { useAuth } from "../providers/AuthProvider";
 import { AuthScreen } from "../../screens/modal/AuthScreen";
 import { VehiclesScreen } from "../../screens/welcome/VehiclesScreen";
@@ -98,17 +99,7 @@ export type AppStackParamList = {
   MarketplaceConfigure: { vehicleId: string };
   MarketplaceSummary: {
     vehicleId: string;
-    reportOptions: {
-      include_technical_data: boolean;
-      include_insurance: boolean;
-      include_inspection: boolean;
-      include_notes: boolean;
-      include_wheels: boolean;
-      include_tires: boolean;
-      include_service_history: boolean;
-      include_service_stats: boolean;
-      include_fueling_stats: boolean;
-    };
+    reportOptions: MarketplaceReportOptions;
     includePrice: boolean;
     price: number | null;
     currency: string;
@@ -129,21 +120,7 @@ export type AppStackParamList = {
   PublicReportConfigure: { vehicleId: string };
   PublicReportSummary: {
     vehicleId: string;
-    reportOptions: {
-      include_technical_data: boolean;
-      include_insurance: boolean;
-      include_inspection: boolean;
-      include_notes: boolean;
-      include_wheels: boolean;
-      include_tires: boolean;
-      include_service_history: boolean;
-      include_service_stats: boolean;
-      include_fueling_stats: boolean;
-      include_photos: boolean;
-      distance_unit?: "km" | "miles";
-      fuel_unit?: "liters" | "gallons";
-      currency?: import("../../types/domain").Currency;
-    };
+    reportOptions: ReportOptions;
     reportPhotos: {
       kind: "vehicle" | "local";
       vehiclePhotoId?: string;

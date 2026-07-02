@@ -219,77 +219,30 @@ function calculateFuelingStats(
   };
 }
 
-function calculateServiceStats(
-  entries: ServiceEntry[],
-  lang: "en" | "pl"
-): {
+function calculateServiceStats(entries: ServiceEntry[]): {
   totalCost: number;
   entryCount: number;
-  byCategory: Record<string, number>;
 } {
   if (entries.length === 0) {
-    return { totalCost: 0, entryCount: 0, byCategory: {} };
+    return { totalCost: 0, entryCount: 0 };
   }
 
   const totalCost = entries.reduce((sum, e) => sum + (e.cost || 0), 0);
-  const byCategory: Record<string, number> = {};
-  entries.forEach((e) => {
-    const cat = e.category || "other";
-    byCategory[cat] = (byCategory[cat] || 0) + (e.cost || 0);
-  });
 
   return {
     totalCost,
     entryCount: entries.length,
-    byCategory,
   };
 }
 
-function formatFuelingStats(
-  stats: ReturnType<typeof calculateFuelingStats>,
-  currency: string,
-  lang: "en" | "pl"
-): string {
-  if (stats.entryCount === 0) {
-    return lang === "pl" ? "Brak danych o tankowaniach." : "No fueling data.";
-  }
-
-  const isPL = lang === "pl";
-  const lines: string[] = [];
-
-  if (stats.totalDistance > 0) {
-    lines.push(
-      `${
-        isPL ? "Całkowity przebieg" : "Total distance"
-      }: ${stats.totalDistance.toLocaleString()} km`
-    );
-  }
-  if (stats.totalFuel > 0) {
-    lines.push(
-      `${isPL ? "Całkowite paliwo" : "Total fuel"}: ${stats.totalFuel.toFixed(
-        2
-      )} L`
-    );
-  }
-  if (stats.avgConsumption > 0) {
-    lines.push(
-      `${
-        isPL ? "Średnie spalanie" : "Average consumption"
-      }: ${stats.avgConsumption.toFixed(2)} L/100km`
-    );
-  }
-  if (stats.totalCost > 0) {
-    lines.push(
-      `${
-        isPL ? "Całkowity koszt paliwa" : "Total fuel cost"
-      }: ${stats.totalCost.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })} ${currency}`
-    );
-  }
-
-  return lines.join("\n");
+function calculateDistanceDriven(
+  vehicle: VehicleData,
+  currentMileage: number | null,
+): number | null {
+  if (currentMileage == null || !Number.isFinite(currentMileage)) return null;
+  const initial = vehicle.initial_mileage ?? 0;
+  const driven = currentMileage - initial;
+  return driven > 0 ? driven : null;
 }
 
 type OilChangeData = {
@@ -299,92 +252,106 @@ type OilChangeData = {
   avgMonths: number;
 };
 
-function formatServiceStats(
-  stats: ReturnType<typeof calculateServiceStats>,
-  oil: OilChangeData,
-  currency: string,
-  lang: "en" | "pl"
+function formatExploitationSection(
+  vehicle: VehicleData,
+  currentMileage: number | null,
+  fuelingEntries: FuelingEntry[],
+  serviceEntries: ServiceEntry[],
+  options: {
+    includeFuelingStats: boolean;
+    includeServiceStats: boolean;
+    currency: string;
+  },
+  lang: "en" | "pl",
 ): string {
   const isPL = lang === "pl";
   const lines: string[] = [];
 
-  // 1. Ostatnia wymiana oleju
-  if (oil.lastDate) {
-    lines.push(
-      `${isPL ? "Ostatnia wymiana oleju" : "Last oil change"}: ${oil.lastDate}`
-    );
-    if (oil.lastMileage != null) {
+  if (options.includeFuelingStats) {
+    const fuelStats = calculateFuelingStats(fuelingEntries, lang);
+    if (fuelStats.avgConsumption > 0) {
       lines.push(
         `${
-          isPL ? "Przebieg" : "Mileage"
-        }: ${oil.lastMileage.toLocaleString()} km`
+          isPL ? "Średnie spalanie" : "Average consumption"
+        }: ${fuelStats.avgConsumption.toFixed(2)} L/100km`,
+      );
+    }
+    const distanceDriven = calculateDistanceDriven(vehicle, currentMileage);
+    if (distanceDriven != null) {
+      lines.push(
+        `${
+          isPL ? "Przejechany dystans" : "Distance driven"
+        }: ${Math.round(distanceDriven).toLocaleString()} km`,
+      );
+    }
+    if (fuelStats.totalFuel > 0) {
+      lines.push(
+        `${
+          isPL ? "Łączna ilość paliwa" : "Total fuel"
+        }: ${fuelStats.totalFuel.toFixed(2)} L`,
+      );
+    }
+    if (fuelStats.totalCost > 0) {
+      lines.push(
+        `${
+          isPL ? "Łączny koszt paliwa" : "Total fuel cost"
+        }: ${fuelStats.totalCost.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })} ${options.currency}`,
       );
     }
   }
 
-  // 2. Interwały olejowe
-  if (Number.isFinite(oil.avgKm)) {
-    lines.push(
-      `${
-        isPL ? "Średni interwał olejowy (km)" : "Avg oil interval (km)"
-      }: ${Math.round(oil.avgKm).toLocaleString()} km`
-    );
-  }
-  if (Number.isFinite(oil.avgMonths)) {
-    lines.push(
-      `${
-        isPL ? "Średni interwał olejowy (mies.)" : "Avg oil interval (months)"
-      }: ${oil.avgMonths.toFixed(1)}`
-    );
-  }
+  if (options.includeServiceStats) {
+    const serviceStats = calculateServiceStats(serviceEntries);
+    const oil = getOilChangeData(serviceEntries);
 
-  // 3. Łączny koszt serwisu
-  if (stats.totalCost > 0) {
-    lines.push(
-      `${
-        isPL ? "Łączny koszt serwisów" : "Total service cost"
-      }: ${stats.totalCost.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })} ${currency}`
-    );
-  }
-
-  // 4. Liczba wpisów serwisowych
-  lines.push(
-    `${isPL ? "Liczba wpisów serwisowych" : "Number of service entries"}: ${
-      stats.entryCount
-    }`
-  );
-
-  // 5. Koszty według kategorii
-  const categoryLabels: Record<string, { en: string; pl: string }> = {
-    maintenance: { en: "Maintenance", pl: "Serwis" },
-    repair: { en: "Repair", pl: "Naprawa" },
-    inspection: { en: "Inspection", pl: "Przegląd" },
-    upgrade: { en: "Upgrade", pl: "Ulepszenie" },
-    oil_change: { en: "Oil change", pl: "Wymiana oleju" },
-    other: { en: "Other", pl: "Inne" },
-  };
-  const categories = Object.entries(stats.byCategory)
-    .filter(([_, cost]) => cost > 0)
-    .sort(([_, a], [__, b]) => b - a);
-  if (categories.length > 0) {
-    lines.push("");
-    lines.push(isPL ? "Koszty według kategorii:" : "Costs by category:");
-    categories.forEach(([cat, cost]) => {
-      const label = categoryLabels[cat]?.[lang] || cat;
+    if (serviceStats.totalCost > 0) {
       lines.push(
-        `- ${label}: ${cost.toLocaleString(undefined, {
+        `${
+          isPL ? "Łączny koszt serwisów" : "Total service cost"
+        }: ${serviceStats.totalCost.toLocaleString(undefined, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
-        })} ${currency}`
+        })} ${options.currency}`,
       );
-    });
+    }
+
+    lines.push(
+      `${
+        isPL ? "Liczba wpisów serwisowych" : "Number of service entries"
+      }: ${serviceStats.entryCount}`,
+    );
+
+    if (oil.lastDate || oil.lastMileage != null) {
+      const lastOilParts: string[] = [];
+      if (oil.lastDate) lastOilParts.push(oil.lastDate);
+      if (oil.lastMileage != null) {
+        lastOilParts.push(`${oil.lastMileage.toLocaleString()} km`);
+      }
+      lines.push(
+        `${isPL ? "Ostatnia wymiana oleju" : "Last oil change"}: ${lastOilParts.join(" | ")}`,
+      );
+    }
+    if (Number.isFinite(oil.avgKm) || Number.isFinite(oil.avgMonths)) {
+      const intervalParts: string[] = [];
+      if (Number.isFinite(oil.avgKm)) {
+        intervalParts.push(`${Math.round(oil.avgKm).toLocaleString()} km`);
+      }
+      if (Number.isFinite(oil.avgMonths)) {
+        intervalParts.push(
+          `${oil.avgMonths.toFixed(1)} ${isPL ? "mies." : "months"}`,
+        );
+      }
+      lines.push(
+        `${isPL ? "Interwał wymiany oleju" : "Oil change interval"}: ${intervalParts.join(" | ")}`,
+      );
+    }
   }
 
   if (lines.length === 0) {
-    return isPL ? "Brak danych o serwisach." : "No service data.";
+    return isPL ? "Brak danych eksploatacyjnych." : "No exploitation data.";
   }
   return lines.join("\n");
 }
@@ -590,21 +557,22 @@ ${formatServiceHistory(serviceEntries, language)}`;
     sections.push(history);
   }
 
-  if (options.includeFuelingStats) {
-    const fuelingStats = calculateFuelingStats(fuelingEntries, language);
-    const statsTitle = isPL ? "STATYSTYKI TANKOWAŃ" : "FUELING STATISTICS";
-    const stats = `=== ${statsTitle} ===
-${formatFuelingStats(fuelingStats, options.currency, language)}`;
-    sections.push(stats);
-  }
-
-  if (options.includeServiceStats) {
-    const serviceStats = calculateServiceStats(serviceEntries, language);
-    const oilData = getOilChangeData(serviceEntries);
-    const statsTitle = isPL ? "STATYSTYKI SERWISOWE" : "SERVICE STATISTICS";
-    const stats = `=== ${statsTitle} ===
-${formatServiceStats(serviceStats, oilData, options.currency, language)}`;
-    sections.push(stats);
+  if (options.includeFuelingStats || options.includeServiceStats) {
+    const exploitationTitle = isPL ? "EKSPLOATACJA" : "EXPLOITATION";
+    const exploitation = `=== ${exploitationTitle} ===
+${formatExploitationSection(
+  vehicle,
+  currentMileage,
+  fuelingEntries,
+  serviceEntries,
+  {
+    includeFuelingStats: options.includeFuelingStats,
+    includeServiceStats: options.includeServiceStats,
+    currency: options.currency,
+  },
+  language,
+)}`;
+    sections.push(exploitation);
   }
 
   if (options.includeNotes && vehicle.notes) {

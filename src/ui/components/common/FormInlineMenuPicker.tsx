@@ -14,6 +14,7 @@ type Props<T extends string> = {
   getLabel: (value: T) => string;
   onChange: (value: T) => void;
   disabled?: boolean;
+  centered?: boolean;
 };
 
 export function FormInlineMenuPicker<T extends string>({
@@ -22,6 +23,7 @@ export function FormInlineMenuPicker<T extends string>({
   getLabel,
   onChange,
   disabled = false,
+  centered = false,
 }: Props<T>) {
   const { t } = useTranslation();
   const { theme, mode: themeMode } = useTheme();
@@ -41,7 +43,11 @@ export function FormInlineMenuPicker<T extends string>({
     return (
       <View
         pointerEvents={disabled ? "none" : "auto"}
-        style={[styles.wrap, disabled && styles.disabled]}
+        style={[
+          styles.wrap,
+          centered && styles.wrapCentered,
+          disabled && styles.disabled,
+        ]}
       >
         <Host
           matchContents={{ horizontal: true, vertical: true }}
@@ -80,6 +86,7 @@ export function FormInlineMenuPicker<T extends string>({
       disabled={disabled}
       style={({ pressed }) => [
         styles.androidPill,
+        centered && styles.androidPillCentered,
         { backgroundColor: theme.colors.accent },
         pressed && !disabled && { opacity: 0.85 },
         disabled && styles.disabled,
@@ -99,6 +106,10 @@ const makeStyles = (theme: any) =>
       maxWidth: "100%",
       marginLeft: theme.spacing.sm,
     },
+    wrapCentered: {
+      marginLeft: 0,
+      alignSelf: "center",
+    },
     host: {
       flexShrink: 0,
       maxWidth: "100%",
@@ -111,6 +122,10 @@ const makeStyles = (theme: any) =>
       paddingHorizontal: theme.spacing.sm,
       borderRadius: 999,
       marginLeft: theme.spacing.sm,
+    },
+    androidPillCentered: {
+      marginLeft: 0,
+      alignSelf: "center",
     },
     androidPillText: {
       color: "#000000",

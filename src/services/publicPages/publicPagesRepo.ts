@@ -1,25 +1,12 @@
 import { supabase } from "../supabase/client";
 import { ENV } from "../../config/env";
 import type { Currency, PublicReportSnapshot } from "../../types/domain";
+import type { ReportOptions } from "../../types/reportOptions";
 import type { ReportPhotoUpload } from "./uploadReportPhoto";
 
 const REPORT_PHOTOS_BUCKET = "report-photos";
 
-export type ReportOptions = {
-  include_technical_data: boolean;
-  include_insurance: boolean;
-  include_inspection: boolean;
-  include_notes: boolean;
-  include_wheels: boolean;
-  include_tires: boolean;
-  include_service_history: boolean;
-  include_service_stats: boolean;
-  include_fueling_stats: boolean;
-  include_photos: boolean;
-  distance_unit?: "km" | "miles";
-  fuel_unit?: "liters" | "gallons";
-  currency?: Currency;
-};
+export type { ReportOptions } from "../../types/reportOptions";
 
 export async function generatePublicPageWithOptions(
   vehicleId: string,

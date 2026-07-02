@@ -41,6 +41,9 @@ describe("publicPagesRepo", () => {
       include_service_history: true,
       include_service_stats: false,
       include_fueling_stats: false,
+      include_expenses_by_category_chart: false,
+      include_expenses_over_time_chart: false,
+      include_mileage_over_time_chart: false,
       include_photos: true,
     });
 
@@ -70,6 +73,9 @@ describe("publicPagesRepo", () => {
         include_service_history: false,
         include_service_stats: false,
         include_fueling_stats: false,
+        include_expenses_by_category_chart: false,
+        include_expenses_over_time_chart: false,
+        include_mileage_over_time_chart: false,
         include_photos: true,
       }),
     ).rejects.toEqual(expect.objectContaining({ message: "rpc failed" }));

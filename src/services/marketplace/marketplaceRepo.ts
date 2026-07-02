@@ -1,17 +1,9 @@
 import { supabase } from "../supabase/client";
 import type { MarketplacePost } from "../../types/domain";
 
-export type MarketplaceReportOptions = {
-  include_technical_data: boolean;
-  include_insurance: boolean;
-  include_inspection: boolean;
-  include_notes: boolean;
-  include_wheels: boolean;
-  include_tires: boolean;
-  include_service_history: boolean;
-  include_service_stats: boolean;
-  include_fueling_stats: boolean;
-};
+import type { MarketplaceReportOptions } from "../../types/reportOptions";
+
+export type { MarketplaceReportOptions } from "../../types/reportOptions";
 
 type GenerateMarketplacePostInput = {
   vehicleId: string;
