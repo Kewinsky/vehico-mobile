@@ -722,7 +722,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   label={t("vehicleForm.firstRegistrationDateLabel")}
                   value={firstRegistrationDate}
                   onChange={setFirstRegistrationDate}
-                  placeholder={t("manageVehicle.selectDate")}
                   disabled={saving}
                   trailing={
                     firstRegistrationDate ? (
@@ -850,7 +849,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   label={t("manageVehicle.insuranceLabel")}
                   value={insuranceValidUntil}
                   onChange={setInsuranceValidUntil}
-                  placeholder={t("manageVehicle.selectDate")}
                   disabled={saving}
                   trailing={
                     insuranceValidUntil ? (
@@ -876,7 +874,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   label={t("manageVehicle.inspectionLabel")}
                   value={inspectionValidUntil}
                   onChange={setInspectionValidUntil}
-                  placeholder={t("manageVehicle.selectDate")}
                   disabled={saving}
                   trailing={
                     inspectionValidUntil ? (

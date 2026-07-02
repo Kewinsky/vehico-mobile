@@ -1,5 +1,15 @@
-import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Animated,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { Picker as ComposePicker } from "@expo/ui/jetpack-compose";
+import { Host, Picker as SwiftUIPicker } from "@expo/ui/swift-ui";
+import { frame } from "@expo/ui/swift-ui/modifiers";
 
 import { useTheme } from "../../ThemeProvider";
 import { hexToRgba } from "./ChoiceChip";
@@ -19,7 +29,17 @@ type Props<T extends string> = {
 
 type Variant = "default" | "secondary";
 
-export function SegmentTabs<T extends string>({
+const IOS_MIN_VERSION = 17;
+
+function supportsNativeSegmentTabs() {
+  if (Platform.OS === "android") return true;
+  if (Platform.OS === "ios") {
+    return Number.parseFloat(String(Platform.Version)) >= IOS_MIN_VERSION;
+  }
+  return false;
+}
+
+function SegmentTabsFallback<T extends string>({
   value,
   options,
   onChange,
@@ -27,7 +47,7 @@ export function SegmentTabs<T extends string>({
   variant = "default",
 }: Props<T>) {
   const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme, variant), [theme, variant]);
+  const styles = useMemo(() => makeFallbackStyles(theme, variant), [theme, variant]);
   const accentBg = useMemo(
     () => hexToRgba(theme.colors.accent, 0.15),
     [theme.colors.accent],
@@ -54,7 +74,7 @@ export function SegmentTabs<T extends string>({
 
   return (
     <View
-      style={[styles.wrap]}
+      style={styles.wrap}
       onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}
     >
       {tabWidth > 0 ? (
@@ -103,7 +123,103 @@ export function SegmentTabs<T extends string>({
   );
 }
 
-const makeStyles = (theme: any, variant: Variant) =>
+const NATIVE_SEGMENT_HEIGHT = 36;
+
+export function SegmentTabs<T extends string>(props: Props<T>) {
+  const { value, options, onChange, variant = "default" } = props;
+  const { theme, mode: themeMode } = useTheme();
+  const styles = useMemo(() => makeNativeStyles(), []);
+
+  const pickerOptions = useMemo(
+    () => options.map((option) => option.label),
+    [options],
+  );
+  const selectedIndex = Math.max(
+    0,
+    options.findIndex((option) => option.value === value),
+  );
+
+  const handleSelect = useCallback(
+    (index: number) => {
+      const next = options[index];
+      if (next && next.value !== value) {
+        onChange(next.value);
+      }
+    },
+    [onChange, options, value],
+  );
+
+  const androidElementColors = useMemo(
+    () => ({
+      activeContainerColor: hexToRgba(theme.colors.accent, 0.15),
+      activeContentColor: theme.colors.accent,
+      activeBorderColor: theme.colors.accent,
+      inactiveContainerColor:
+        variant === "secondary" ? theme.colors.card : theme.colors.bg,
+      inactiveContentColor: theme.colors.muted,
+      inactiveBorderColor: theme.colors.border,
+    }),
+    [theme, variant],
+  );
+
+  if (!supportsNativeSegmentTabs()) {
+    return <SegmentTabsFallback {...props} />;
+  }
+
+  if (Platform.OS === "ios") {
+    return (
+      <View style={styles.wrap}>
+        <Host
+          matchContents={{ vertical: true }}
+          colorScheme={themeMode === "dark" ? "dark" : "light"}
+          style={styles.nativeHost}
+        >
+          <SwiftUIPicker
+            variant="segmented"
+            options={pickerOptions}
+            selectedIndex={selectedIndex}
+            onOptionSelected={({ nativeEvent }) => {
+              handleSelect(nativeEvent.index);
+            }}
+            modifiers={[frame({ maxWidth: 10_000 })]}
+          />
+        </Host>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.wrap}>
+      <ComposePicker
+        variant="segmented"
+        style={styles.nativeHost}
+        options={pickerOptions}
+        selectedIndex={selectedIndex}
+        elementColors={androidElementColors}
+        onOptionSelected={({ nativeEvent }) => {
+          handleSelect(nativeEvent.index);
+        }}
+      />
+    </View>
+  );
+}
+
+const makeNativeStyles = () =>
+  StyleSheet.create({
+    wrap: {
+      alignSelf: "stretch",
+      width: "100%",
+      minWidth: 0,
+      minHeight: NATIVE_SEGMENT_HEIGHT,
+    },
+    nativeHost: {
+      width: "100%",
+      minHeight: NATIVE_SEGMENT_HEIGHT,
+      alignSelf: "stretch",
+    },
+  });
+
+const makeFallbackStyles = (theme: any, variant: Variant) =>
   StyleSheet.create({
     wrap: {
       alignSelf: "stretch",

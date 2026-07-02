@@ -27,6 +27,7 @@ export const pl = {
     and: "i",
     clearButton: "Wyczyść",
     chooseOption: "Wybierz",
+    selectDate: "Wybierz datę",
   },
   validation: {
     invalidDate: "Wprowadź poprawną datę (RRRR-MM-DD).",
@@ -1143,7 +1144,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     removePhotoConfirm: "Czy na pewno chcesz usunąć to zdjęcie?",
     insuranceLabel: "Ubezpieczenie",
     inspectionLabel: "Przegląd",
-    selectDate: "Wybierz",
+    selectDate: "Wybierz datę",
   },
   attachments: {
     title: "Załączniki",

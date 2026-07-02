@@ -27,6 +27,7 @@ export const en = {
     and: "and",
     clearButton: "Clear",
     chooseOption: "Select",
+    selectDate: "Select date",
   },
   validation: {
     invalidDate: "Please enter a valid date (YYYY-MM-DD).",

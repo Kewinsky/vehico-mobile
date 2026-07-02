@@ -34,7 +34,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import * as Font from "expo-font";
 import { Image } from "expo-image";
-import { BlurView } from "expo-blur";
+import { FormGlassSurface } from "../../ui/components/common/FormGlassSurface";
 import QRCode from "react-native-qrcode-svg";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import Animated, {
@@ -1294,11 +1294,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
       <View style={styles.pagerDotsContainer} pointerEvents="box-none">
         <View style={styles.pagerDots}>
-          <BlurView
-            intensity={mode === "dark" ? 45 : 70}
-            tint={mode === "dark" ? "dark" : "light"}
-            style={StyleSheet.absoluteFill}
-          />
+          <FormGlassSurface shape="capsule" />
           {pageData.map((pageIndex) => {
             const section = DASHBOARD_PAGER_SECTIONS[pageIndex];
             return (
@@ -1331,10 +1327,9 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
       >
         <View style={styles.qrModalOverlay}>
           <View style={styles.qrModalCard}>
-            <BlurView
-              intensity={mode === "dark" ? 45 : 70}
-              tint={mode === "dark" ? "dark" : "light"}
-              style={StyleSheet.absoluteFill}
+            <FormGlassSurface
+              shape="rounded"
+              cornerRadius={theme.radius.xl}
             />
             <Pressable
               style={styles.qrModalClose}
@@ -1346,7 +1341,10 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
             {publicReportUrl ? (
               <>
                 <Text
-                  style={[styles.qrModalSubtitle, { color: theme.colors.muted }]}
+                  style={[
+                    styles.qrModalSubtitle,
+                    { color: theme.colors.muted },
+                  ]}
                 >
                   {t("share.qrCodeSubtitle")}
                 </Text>
@@ -1385,7 +1383,10 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                         color={theme.colors.fg}
                       />
                       <Text
-                        style={[styles.qrShareButtonText, { color: theme.colors.fg }]}
+                        style={[
+                          styles.qrShareButtonText,
+                          { color: theme.colors.fg },
+                        ]}
                       >
                         {t("share.shareLink")}
                       </Text>
@@ -1475,6 +1476,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
 
       {formalityOverlay && Platform.OS === "ios" ? (
         <Modal
+          key={formalityOverlay.field}
           transparent
           visible
           animationType="fade"
@@ -1488,30 +1490,31 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
               style={[styles.datePickerCard]}
               onPress={(event) => event.stopPropagation()}
             >
-              <BlurView
-                intensity={mode === "dark" ? 45 : 70}
-                tint={mode === "dark" ? "dark" : "light"}
-                style={StyleSheet.absoluteFill}
+              <FormGlassSurface
+                shape="rounded"
+                cornerRadius={theme.radius.xl}
               />
-              <DateTimePicker
-                value={parseYmd(
-                  formalityOverlay.value.length === 10
-                    ? formalityOverlay.value
-                    : formatYmd(new Date()),
-                )}
-                mode="date"
-                display="inline"
-                locale={localeCodeFromLanguage(i18n.language)}
-                accentColor={theme.colors.accent}
-                themeVariant={mode === "dark" ? "dark" : "light"}
-                onChange={(_, selectedDate) => {
-                  if (!selectedDate) return;
-                  setFormalityOverlay((prev) =>
-                    prev ? { ...prev, value: formatYmd(selectedDate) } : prev,
-                  );
-                }}
-              />
-              <View style={styles.datePickerActions}>
+              <View style={styles.datePickerContent}>
+                <DateTimePicker
+                  style={styles.datePickerNative}
+                  value={parseYmd(
+                    formalityOverlay.value.length === 10
+                      ? formalityOverlay.value
+                      : formatYmd(new Date()),
+                  )}
+                  mode="date"
+                  display="inline"
+                  locale={localeCodeFromLanguage(i18n.language)}
+                  accentColor={theme.colors.accent}
+                  themeVariant={mode === "dark" ? "dark" : "light"}
+                  onChange={(_, selectedDate) => {
+                    if (!selectedDate) return;
+                    setFormalityOverlay((prev) =>
+                      prev ? { ...prev, value: formatYmd(selectedDate) } : prev,
+                    );
+                  }}
+                />
+                <View style={styles.datePickerActions}>
                 <Pressable
                   onPress={() => setFormalityOverlay(null)}
                   hitSlop={8}
@@ -1546,6 +1549,7 @@ export function VehicleDashboardScreen({ navigation, route }: Props) {
                     {t("common.save")}
                   </Text>
                 </Pressable>
+              </View>
               </View>
             </Pressable>
           </Pressable>
@@ -1912,16 +1916,27 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     datePickerCard: {
+      width: "100%",
+      maxWidth: 360,
+      alignSelf: "center",
       borderRadius: theme.radius.xl,
-      padding: theme.spacing.md,
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.lg,
       backgroundColor: "transparent",
       overflow: "hidden",
     },
+    datePickerContent: {
+      width: "100%",
+      alignItems: "center",
+    },
+    datePickerNative: {
+      alignSelf: "center",
+    },
     datePickerActions: {
+      width: "100%",
       flexDirection: "row",
       justifyContent: "flex-end",
-      paddingRight: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
+      paddingTop: theme.spacing.xs,
       gap: theme.spacing.xl,
     },
     datePickerActionText: {
@@ -1956,7 +1971,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     },
     qrModalSubtitle: {
       marginTop: theme.spacing.xl,
-      marginBottom: theme.spacing.sm,
       paddingHorizontal: theme.spacing.sm,
       fontSize: theme.typography.small,
       lineHeight: theme.typography.body + 2,
@@ -1965,7 +1979,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
     qrModalActions: {
       width: "100%",
       gap: theme.spacing.xs,
-      marginBottom: theme.spacing.sm,
     },
     qrShareButton: {
       flexDirection: "row",

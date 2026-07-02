@@ -268,7 +268,6 @@ export function ExportScreen({ navigation, route }: Props) {
                 value={customFromYmd}
                 onChange={setCustomFromYmd}
                 disabled={exporting}
-                placeholder={t("common.chooseOption")}
                 error={fieldError(customFromFieldInvalid)}
               />
               <CardDivider />
@@ -277,7 +276,6 @@ export function ExportScreen({ navigation, route }: Props) {
                 value={customToYmd}
                 onChange={setCustomToYmd}
                 disabled={exporting}
-                placeholder={t("common.chooseOption")}
                 error={fieldError(customToFieldInvalid)}
               />
             </>

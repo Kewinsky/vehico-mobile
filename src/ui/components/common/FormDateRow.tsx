@@ -47,7 +47,7 @@ export function FormDateRow({
   error = false,
 }: FormDateRowProps) {
   const { theme, mode: themeMode } = useTheme();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const hasValue = value.trim().length === 10;
@@ -58,7 +58,7 @@ export function FormDateRow({
 
   const displayText = hasValue
     ? formatDateDisplay(`${value}T12:00:00`, i18n.language)
-    : (placeholder ?? label);
+    : (placeholder ?? t("common.selectDate"));
 
   const pickerLocale = localeCodeFromLanguage(i18n.language);
 
