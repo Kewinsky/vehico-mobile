@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   StyleSheet,
-  Switch,
   Text,
   View,
 } from "react-native";
@@ -36,6 +35,7 @@ import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
+import { FormSwitch } from "../../ui/components/common/FormSwitch";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
@@ -330,14 +330,10 @@ export function WheelFormScreen({ navigation, route }: Props) {
                 </Text>
               </View>
               <View style={styles.rowRight}>
-                <Switch
+                <FormSwitch
                   value={isCurrentlyFitted}
                   onValueChange={setIsCurrentlyFitted}
-                  trackColor={{
-                    false: theme.colors.border,
-                    true: theme.colors.accent,
-                  }}
-                  thumbColor="#fff"
+                  disabled={saving}
                 />
               </View>
             </CardRow>

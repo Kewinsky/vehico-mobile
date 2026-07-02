@@ -3,7 +3,6 @@ import {
   Alert,
   Pressable,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   View,
@@ -61,6 +60,7 @@ import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormInlineMenuPicker } from "../../ui/components/common/FormInlineMenuPicker";
+import { FormSwitch } from "../../ui/components/common/FormSwitch";
 import { SquarePen } from "lucide-react-native";
 import { groupThousands } from "../../utils/numberFormatting";
 
@@ -491,14 +491,10 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                   {t("reminderForm.dateReminder")}
                 </Text>
               </View>
-              <Switch
+              <FormSwitch
                 value={dateEnabled}
                 onValueChange={setDateEnabled}
-                trackColor={{
-                  false: theme.colors.border,
-                  true: theme.colors.accent,
-                }}
-                thumbColor="#fff"
+                disabled={saving}
               />
             </CardRow>
             {dateEnabled && (
@@ -537,14 +533,10 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                       {t("reminderForm.repeats")}
                     </Text>
                   </View>
-                  <Switch
+                  <FormSwitch
                     value={dateRepeats}
                     onValueChange={setDateRepeats}
-                    trackColor={{
-                      false: theme.colors.border,
-                      true: theme.colors.accent,
-                    }}
-                    thumbColor="#fff"
+                    disabled={saving}
                   />
                 </CardRow>
                 {dateRepeats && <CardDivider />}
@@ -612,14 +604,10 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                   {t("reminderForm.mileageReminder")}
                 </Text>
               </View>
-              <Switch
+              <FormSwitch
                 value={mileageEnabled}
                 onValueChange={setMileageEnabled}
-                trackColor={{
-                  false: theme.colors.border,
-                  true: theme.colors.accent,
-                }}
-                thumbColor="#fff"
+                disabled={saving}
               />
             </CardRow>
             {mileageEnabled && (
@@ -650,14 +638,10 @@ export function ReminderFormScreen({ navigation, route }: Props) {
                       {t("reminderForm.repeats")}
                     </Text>
                   </View>
-                  <Switch
+                  <FormSwitch
                     value={mileageRepeats}
                     onValueChange={setMileageRepeats}
-                    trackColor={{
-                      false: theme.colors.border,
-                      true: theme.colors.accent,
-                    }}
-                    thumbColor="#fff"
+                    disabled={saving}
                   />
                 </CardRow>
                 {mileageRepeats && <CardDivider />}
