@@ -21,12 +21,16 @@ describe("formatRelativeTimePast", () => {
     expect(daysSinceYmd("2025-04-01")).toBe(30);
   });
 
-  it("formats english months ago with min clamp 3", () => {
-    // 45 days -> 1 month, clamped to 3
-    expect(formatRelativeTimePast("2025-03-17", "en")).toBe("3 months ago");
+  it("formats english a month ago at 30 days", () => {
+    expect(formatRelativeTimePast("2025-04-01", "en")).toBe("a month ago");
   });
 
-  it("formats polish forms", () => {
+  it("formats english months ago for 45 days", () => {
+    expect(formatRelativeTimePast("2025-03-17", "en")).toBe("a month ago");
+  });
+
+  it("formats polish month forms", () => {
+    expect(formatRelativeTimePast("2025-04-01", "pl")).toBe("miesiąc temu");
     const out = formatRelativeTimePast("2025-01-01", "pl");
     expect(out).toMatch(/miesiące|miesięcy/);
   });
@@ -36,4 +40,3 @@ describe("formatRelativeTimePast", () => {
     expect(formatRelativeTimePast("2024-01-01", "pl")).toBe("ponad rok temu");
   });
 });
-

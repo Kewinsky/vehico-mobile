@@ -10,7 +10,7 @@ export function daysSinceYmd(ymd: string): number {
 }
 
 /**
- * Copy for stale-mileage card only: 3–11 → "N months ago", 12+ → "over a year ago".
+ * Copy for stale-mileage card: 1–11 → "N months ago", 12+ → "over a year ago".
  * Expects YYYY-MM-DD (`mileage_updated_at`). Rough months = floor(days / 30).
  */
 export function formatRelativeTimePast(ymd: string, locale: string): string {
@@ -21,10 +21,11 @@ export function formatRelativeTimePast(ymd: string, locale: string): string {
     return pl ? "ponad rok temu" : "over a year ago";
   }
 
-  const n = Math.max(3, months);
+  const n = Math.max(1, months);
   if (pl) {
+    if (n === 1) return "miesiąc temu";
     if (n <= 4) return `${n} miesiące temu`;
     return `${n} miesięcy temu`;
   }
-  return `${n} months ago`;
+  return n === 1 ? "a month ago" : `${n} months ago`;
 }
