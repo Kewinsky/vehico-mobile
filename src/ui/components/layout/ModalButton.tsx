@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { ActivityIndicator, Text } from "react-native";
-import { HeaderButton } from "@react-navigation/elements";
+import { HeaderButton } from "expo-router/react-navigation";
 import { Check, X } from "lucide-react-native";
 
 import { useTheme } from "../../ThemeProvider";

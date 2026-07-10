@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Alert, Animated, StyleSheet, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { SquarePen, Trash2 } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import type { MarketplacePost, Vehicle } from "../../types/domain";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import {
@@ -25,22 +25,20 @@ import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { i18n } from "../../i18n/i18n";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 
-type Props = NativeStackScreenProps<
-  AppStackParamList,
-  "MarketplacePostHistory"
->;
-
-export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
+export function MarketplacePostHistoryScreen() {
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [posts, setPosts] = useState<MarketplacePost[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadVehicle = useCallback(async () => {
+    if (!vehicleId) return;
     try {
       const v = await getVehicle(vehicleId);
       setVehicle(v);
@@ -56,6 +54,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
   const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
 
   const loadPosts = useCallback(async () => {
+    if (!vehicleId) return;
     try {
       setLoading(true);
       const loaded = await listMarketplacePosts(vehicleId);
@@ -72,6 +71,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
   }, [loadPosts]);
 
   async function handleRefresh() {
+    if (!vehicleId) return;
     try {
       setRefreshing(true);
       const loaded = await listMarketplacePosts(vehicleId);
@@ -134,13 +134,15 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
   }
 
   function handlePostPress(post: MarketplacePost) {
-    navigation.navigate("MarketplacePostOptions", {
-      content: post.content,
-      vehicleTitle,
-      vehicleId,
-      postTitle: post.title,
-      generatedAt: `${t("marketplace.generatedOn")} ${formatShortDisplayDate(post.created_at, i18n.language)}`,
-    });
+    if (!vehicleId) return;
+    router.push(
+      routes.marketplacePostOptions(vehicleId, {
+        content: JSON.stringify(post.content),
+        vehicleTitle,
+        postTitle: post.title,
+        generatedAt: `${t("marketplace.generatedOn")} ${formatShortDisplayDate(post.created_at, i18n.language)}`,
+      }),
+    );
   }
 
   function renderRightActions(
@@ -169,7 +171,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
   return (
     <HeaderLayout
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       showProfileAvatar
     >
       <View style={styles.listWrap}>

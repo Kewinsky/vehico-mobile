@@ -1,6 +1,6 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import { useLayoutEffect } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router/react-navigation";
 
 import { AppLayout } from "../ui/components/layout/AppLayout";
 import { ModalButton } from "../ui/components/layout/ModalButton";

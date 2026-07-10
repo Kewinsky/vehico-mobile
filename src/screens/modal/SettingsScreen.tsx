@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Linking from "expo-linking";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   Crown,
@@ -12,8 +12,8 @@ import {
   Trash2,
 } from "lucide-react-native";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { useAuth } from "../../app/providers/AuthProvider";
+import { routes } from "../../core/navigation/routes";
+import { useAuth } from "../../core/providers/AuthProvider";
 import { normalizeDisplayName } from "../../utils/displayName";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
@@ -22,8 +22,6 @@ import { supabase } from "../../services/supabase/client";
 import { Card } from "../../ui/components/common/Card";
 import { ENV } from "../../config/env";
 import { deleteAccount } from "../../services/account/deleteAccount";
-
-type Props = NativeStackScreenProps<AppStackParamList, "Settings">;
 
 function getInitials(user: {
   user_metadata?: { full_name?: string };
@@ -51,7 +49,8 @@ type RowItem = {
   onPress: () => void;
 };
 
-export function SettingsScreen({ navigation }: Props) {
+export function SettingsScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { user, signOut } = useAuth();
@@ -160,14 +159,14 @@ export function SettingsScreen({ navigation }: Props) {
         icon: <SlidersHorizontal size={22} color={theme.colors.accent} />,
         title: t("settings.appearanceButton"),
         subtitle: t("settings.appearanceSubtitle"),
-        onPress: () => navigation.navigate("Appearance"),
+        onPress: () => router.push(routes.appearance()),
       },
       {
         id: "shop",
         icon: <Crown size={22} color={theme.colors.accent} />,
         title: t("settings.shopButton"),
         subtitle: t("settings.shopSubtitle"),
-        onPress: () => navigation.navigate("Shop"),
+        onPress: () => router.push(routes.shop()),
       },
       {
         id: "support",
@@ -195,7 +194,7 @@ export function SettingsScreen({ navigation }: Props) {
     ],
     [
       t,
-      navigation,
+      router,
       onSignOut,
       onSupport,
       openDeleteAccountMenu,
@@ -208,7 +207,7 @@ export function SettingsScreen({ navigation }: Props) {
     <ModalLayout
       title={t("settings.title")}
       cancel={{
-        onPress: () => navigation.goBack(),
+        onPress: () => router.back(),
         label: t("common.cancel"),
       }}
       useNativeHeaderScrollView

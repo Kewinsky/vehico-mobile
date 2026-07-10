@@ -4,7 +4,7 @@ import { useColorScheme } from 'react-native';
 
 import type { AppTheme, ThemeMode } from './theme';
 import { getTheme } from './theme';
-import { useUserSettings } from '../app/providers/UserSettingsProvider';
+import { useUserSettings } from '../core/providers/UserSettingsProvider';
 
 type ThemeContextValue = {
   mode: ThemeMode;

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   AntDesign,
@@ -8,7 +8,7 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { usePremiumNavigation } from "../../core/hooks/usePremiumNavigation";
 import type { TireType } from "../../types/domain";
 import {
   TIRE_DIAMETER_MAX_LENGTH,
@@ -38,8 +38,8 @@ import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { FormSwitch } from "../../ui/components/common/FormSwitch";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useFormFieldErrors } from "../../core/hooks/useFormFieldErrors";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import {
   getPremiumUpgradeAlertButtons,
@@ -47,15 +47,18 @@ import {
 } from "../../ui/limits/entitlementAlerts";
 import { SunSnowIcon } from "lucide-react-native";
 
-type Props = NativeStackScreenProps<AppStackParamList, "TireForm">;
-
-export function TireFormScreen({ navigation, route }: Props) {
+export function TireFormScreen() {
+  const router = useRouter();
+  const premiumNavigation = usePremiumNavigation();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { isPremium, tiresPerVehicleLimit, freePlanVehicleId, freePlanTireId } =
     useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId, tireId } = route.params;
+  const params = useLocalSearchParams<{ vehicleId: string; tireId: string }>();
+  const vehicleId = Array.isArray(params.vehicleId) ? params.vehicleId[0] : params.vehicleId;
+  const tireIdParam = Array.isArray(params.tireId) ? params.tireId[0] : params.tireId;
+  const tireId = tireIdParam === "new" ? undefined : tireIdParam;
   const tireOptions = isPremium
     ? undefined
     : freePlanVehicleId === vehicleId
@@ -119,7 +122,7 @@ export function TireFormScreen({ navigation, route }: Props) {
         onPress: async () => {
           try {
             await deleteVehicleTire(tireId);
-            navigation.goBack();
+            router.back();
           } catch (e: any) {
             toastError(e?.message ?? t("common.error"));
           }
@@ -140,7 +143,7 @@ export function TireFormScreen({ navigation, route }: Props) {
   }
 
   async function onSave() {
-    if (!validateBeforeSave()) return;
+    if (!vehicleId || !validateBeforeSave()) return;
     try {
       setSaving(true);
       if (!tireId && !isPremium) {
@@ -149,7 +152,7 @@ export function TireFormScreen({ navigation, route }: Props) {
           Alert.alert(
             t("limits.tireLimitReachedTitle"),
             t("limits.tireLimitReachedBody", { limit: tiresPerVehicleLimit }),
-            getPremiumUpgradeAlertButtons(t, navigation),
+            getPremiumUpgradeAlertButtons(t, premiumNavigation),
           );
           return;
         }
@@ -161,14 +164,14 @@ export function TireFormScreen({ navigation, route }: Props) {
       } else {
         await createVehicleTire(payload);
       }
-      navigation.goBack();
+      router.back();
     } catch (e: any) {
       if (e?.message === "FITTED_TIRE_LIMIT_REACHED") {
         Alert.alert(
           t("limits.fittedTireLimitReachedTitle"),
           t("limits.fittedTireLimitReachedBody"),
         );
-      } else if (handleAndShowLimitErrorAlert(e, t, navigation)) {
+      } else if (handleAndShowLimitErrorAlert(e, t, premiumNavigation)) {
         return;
       } else {
         toastError(e?.message ?? t("common.error"));
@@ -181,7 +184,7 @@ export function TireFormScreen({ navigation, route }: Props) {
   return (
     <ModalLayout
       title={tireId ? t("tireForm.editTitle") : t("tireForm.addTitle")}
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      cancel={{ onPress: () => router.back(), label: t("common.cancel") }}
       done={{
         onPress: onSave,
         label: t("common.done"),

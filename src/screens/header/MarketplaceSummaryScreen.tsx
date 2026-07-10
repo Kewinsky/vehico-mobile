@@ -5,14 +5,15 @@ import {
   Pressable,
   ActivityIndicator,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import type { Vehicle } from "../../types/domain";
+import type { MarketplaceReportOptions } from "../../types/reportOptions";
 import { hasEnoughStatsEntries } from "../../types/reportOptions";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
@@ -28,7 +29,7 @@ import {
 } from "../../services/marketplace/marketplaceRepo";
 import { Button } from "../../ui/components/common/Button";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { groupThousands } from "../../utils/numberFormatting";
@@ -39,22 +40,40 @@ import { ReportSummaryOptionRow } from "../../ui/components/common/ReportSummary
 import { reportSummaryStatus } from "../../ui/components/common/reportSummaryUtils";
 import { VehicleTechnicalDataSummary } from "../../ui/components/common/VehicleTechnicalDataSummary";
 
-type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceSummary">;
-
-export function MarketplaceSummaryScreen({ navigation, route }: Props) {
+export function MarketplaceSummaryScreen() {
+  const params = useLocalSearchParams<{
+    vehicleId: string;
+    reportOptions: string;
+    includePrice: string;
+    price?: string;
+    currency: string;
+    includePublicReport: string;
+    selectedReportId?: string;
+  }>();
+  const router = useRouter();
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const {
-    vehicleId,
-    reportOptions,
-    includePrice,
-    price,
-    currency,
-    includePublicReport,
-    selectedReportId,
-  } = route.params;
+
+  const vehicleId = Array.isArray(params.vehicleId) ? params.vehicleId[0] : params.vehicleId;
+  const currency = Array.isArray(params.currency) ? params.currency[0] : params.currency;
+  const includePrice = params.includePrice === "true";
+  const includePublicReport = params.includePublicReport === "true";
+  const priceRaw = Array.isArray(params.price) ? params.price[0] : params.price;
+  const price = priceRaw !== undefined ? Number(priceRaw) : null;
+  const selectedReportId =
+    (Array.isArray(params.selectedReportId) ? params.selectedReportId[0] : params.selectedReportId) ??
+    null;
+  const reportOptions = useMemo<MarketplaceReportOptions | null>(() => {
+    const raw = Array.isArray(params.reportOptions) ? params.reportOptions[0] : params.reportOptions;
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as MarketplaceReportOptions;
+    } catch {
+      return null;
+    }
+  }, [params.reportOptions]);
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [serviceEntriesCount, setServiceEntriesCount] = useState<number>(0);
@@ -66,6 +85,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   const [confirmed, setConfirmed] = useState(false);
 
   const load = useCallback(async () => {
+    if (!vehicleId) return;
     try {
       setLoading(true);
       const [v, serviceEntries, fuelingEntries, tires, wheels] =
@@ -93,6 +113,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   }, [load]);
 
   async function handleGeneratePost() {
+    if (!vehicleId || !reportOptions) return;
     if (!confirmed) {
       toastError(t("marketplace.confirmationRequired"));
       return;
@@ -107,7 +128,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
 
     // Check entitlements
     if (!isPremium) {
-      navigation.navigate("Shop");
+      router.push(routes.shop());
       return;
     }
 
@@ -141,24 +162,13 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
 
       toastSuccess(t("marketplace.postGenerated"));
 
-      navigation.reset({
-        index: 4,
-        routes: [
-          { name: "Vehicles" },
-          { name: "VehicleDashboard", params: { vehicleId } },
-          { name: "Share", params: { vehicleId } },
-          { name: "Marketplace", params: { vehicleId } },
-          {
-            name: "MarketplacePostOptions",
-            params: {
-              content,
-              vehicleTitle: vehicle ? `${vehicle.make} ${vehicle.model}` : "",
-              vehicleId,
-              generatedAt: `${t("marketplace.generatedOn")} ${formatShortDisplayDate(new Date().toISOString(), i18n.language)}`,
-            },
-          },
-        ],
-      });
+      router.dismissTo(
+        routes.marketplacePostOptions(vehicleId, {
+          content: JSON.stringify(content),
+          vehicleTitle: vehicle ? `${vehicle.make} ${vehicle.model}` : "",
+          generatedAt: `${t("marketplace.generatedOn")} ${formatShortDisplayDate(new Date().toISOString(), i18n.language)}`,
+        }),
+      );
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -176,7 +186,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   return (
     <HeaderContentScreen
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       showProfileAvatar
       footer={
         <Button
@@ -208,7 +218,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
       }
       title={t("marketplace.summaryTitle")}
     >
-      {!loading && (
+      {!loading && reportOptions && (
         <>
           {reportOptions.include_technical_data && vehicle && (
             <VehicleTechnicalDataSummary vehicle={vehicle} />

@@ -8,13 +8,13 @@ import {
   View,
 } from "react-native";
 import { Image } from "expo-image";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { DraggableGrid } from "react-native-draggable-grid";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { usePremiumNavigation } from "../../core/hooks/usePremiumNavigation";
 import {
   buildVehiclePayload,
   canSaveVehicle,
@@ -54,9 +54,9 @@ import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
-import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useFormFieldErrors } from "../../core/hooks/useFormFieldErrors";
+import { useUnitDisplay } from "../../core/hooks/useUnitDisplay";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import {
   getPremiumUpgradeAlertButtons,
@@ -68,15 +68,16 @@ import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { formatYmd } from "../../utils/dateYmd";
 
-type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
-
-export function VehicleFormScreen({ navigation, route }: Props) {
+export function VehicleFormScreen() {
+  const router = useRouter();
+  const premiumNavigation = usePremiumNavigation();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { vehiclesLimit, isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = makeStyles(theme);
   const { distanceUnitLabel } = useUnitDisplay();
-  const vehicleId = route.params?.vehicleId;
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId?: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
   const isEditMode = !!vehicleId;
   const [loading, setLoading] = useState(isEditMode);
   const [initialPhotos, setInitialPhotos] = useState<VehiclePhoto[]>([]);
@@ -493,7 +494,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
           await reorderVehiclePhotos(vehicleId, orderedPhotoIds);
         }
 
-        navigation.goBack();
+        router.back();
         return;
       }
 
@@ -504,7 +505,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
           Alert.alert(
             t("limits.vehicleLimitReachedTitle"),
             t("limits.vehicleLimitReachedBody", { limit: vehiclesLimit }),
-            getPremiumUpgradeAlertButtons(t, navigation),
+            getPremiumUpgradeAlertButtons(t, premiumNavigation),
           );
           return;
         }
@@ -534,9 +535,9 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         }
       }
 
-      navigation.goBack();
+      router.back();
     } catch (e: any) {
-      if (handleAndShowLimitErrorAlert(e, t, navigation)) return;
+      if (handleAndShowLimitErrorAlert(e, t, premiumNavigation)) return;
       toastError(e?.message ?? t("common.error"));
     } finally {
       setSaving(false);
@@ -546,7 +547,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
   return (
     <ModalLayout
       title={isEditMode ? t("manageVehicle.editTitle") : t("vehicleForm.title")}
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      cancel={{ onPress: () => router.back(), label: t("common.cancel") }}
       done={{
         onPress: onSave,
         label: t("common.done"),

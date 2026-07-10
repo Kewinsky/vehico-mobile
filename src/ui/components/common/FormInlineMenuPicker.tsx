@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { Host, Picker } from "@expo/ui/swift-ui";
-import { fixedSize } from "@expo/ui/swift-ui/modifiers";
+import { Host, Picker, Text as SwiftUIText } from "@expo/ui/swift-ui";
+import { fixedSize, pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 
 import { useTheme } from "../../ThemeProvider";
 import { buildMenuPickerState } from "./menuPickerState";
@@ -55,17 +55,22 @@ export function FormInlineMenuPicker<T extends string>({
           style={styles.host}
         >
           <Picker
-            variant="menu"
-            label=""
-            options={pickerOptions}
-            selectedIndex={selectedIndex}
-            color={theme.colors.fg}
-            modifiers={[fixedSize({ horizontal: true, vertical: true })]}
-            onOptionSelected={({ nativeEvent }) => {
-              const next = handleSelectIndex(nativeEvent.index);
+            selection={selectedIndex}
+            modifiers={[
+              pickerStyle("menu"),
+              fixedSize({ horizontal: true, vertical: true }),
+            ]}
+            onSelectionChange={(selection) => {
+              const next = handleSelectIndex(Number(selection));
               if (next) onChange(next);
             }}
-          />
+          >
+            {pickerOptions.map((option, index) => (
+              <SwiftUIText key={`${option}-${index}`} modifiers={[tag(index)]}>
+                {option}
+              </SwiftUIText>
+            ))}
+          </Picker>
         </Host>
       </View>
     );

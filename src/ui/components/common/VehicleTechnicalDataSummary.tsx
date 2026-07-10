@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { Vehicle } from "../../../types/domain";
-import { useUnitDisplay } from "../../../app/hooks/useUnitDisplay";
+import { useUnitDisplay } from "../../../core/hooks/useUnitDisplay";
 import { groupThousands } from "../../../utils/numberFormatting";
 import { ReportSummaryDataRow } from "./ReportSummaryDataRow";
 import { ReportSummaryOptionGroup } from "./ReportSummaryOptionGroup";

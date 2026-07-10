@@ -9,12 +9,11 @@ import {
   Text,
   View,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
   SERVICE_ENTRY_CATEGORY_OPTIONS,
   buildServiceEntryBasePayload,
@@ -53,10 +52,10 @@ import {
   SERVICE_ENTRY_PRESETS,
   type ServiceEntryPreset,
 } from "../serviceEntryPresets";
-import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
-import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useFormFieldErrors } from "../../core/hooks/useFormFieldErrors";
+import { useUnitDisplay } from "../../core/hooks/useUnitDisplay";
+import { useUserSettings } from "../../core/providers/UserSettingsProvider";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
@@ -76,14 +75,16 @@ import { SquarePen, Trash2 } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
 
-type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryForm">;
-
-export function ServiceEntryFormScreen({ navigation, route }: Props) {
+export function ServiceEntryFormScreen() {
+  const router = useRouter();
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { isPremium, workshopsLimit, freePlanWorkshopIds } = useEntitlements();
-  const { vehicleId, entryId } = route.params as any;
+  const params = useLocalSearchParams<{ vehicleId: string; entryId: string }>();
+  const vehicleId = Array.isArray(params.vehicleId) ? params.vehicleId[0] : params.vehicleId;
+  const entryIdParam = Array.isArray(params.entryId) ? params.entryId[0] : params.entryId;
+  const entryId = entryIdParam === "new" ? undefined : entryIdParam;
   const { distanceUnitLabel } = useUnitDisplay();
   const { settings } = useUserSettings();
   const currency = settings?.currency ?? "PLN";
@@ -396,7 +397,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         onPress: async () => {
           try {
             await deleteServiceEntry(entryId);
-            navigation.goBack();
+            router.back();
           } catch (e: any) {
             toastError(e?.message ?? t("common.error"));
           }
@@ -612,7 +613,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         }
       }
 
-      navigation.goBack();
+      router.back();
     } catch (e: any) {
       Alert.alert(t("common.error"), e?.message ?? String(e));
     } finally {
@@ -624,7 +625,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   return (
     <ModalLayout
       title={entryId ? t("entryForm.editTitle") : t("entryForm.title")}
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      cancel={{ onPress: () => router.back(), label: t("common.cancel") }}
       done={{
         onPress: onSave,
         label: t("common.done"),

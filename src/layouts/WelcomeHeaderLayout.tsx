@@ -1,15 +1,14 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import { useLayoutEffect, useMemo } from "react";
 import { Text, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { HeaderButton } from "@react-navigation/elements";
+import { useNavigation, type NavigationProp, type ParamListBase, HeaderButton } from "expo-router/react-navigation";
+import { useRouter } from "expo-router";
 import { Crown, Settings } from "lucide-react-native";
 
 import { AppLayout } from "../ui/components/layout/AppLayout";
 import { useTheme } from "../ui/ThemeProvider";
-import type { AppStackParamList } from "../app/navigation/RootNavigator";
-import { useAuth } from "../app/providers/AuthProvider";
+import { routes } from "../core/navigation/routes";
+import { useAuth } from "../core/providers/AuthProvider";
 
 export type WelcomeHeaderLayoutProps = PropsWithChildren<{
   title: string;
@@ -37,10 +36,8 @@ export function WelcomeHeaderLayout({
 }: WelcomeHeaderLayoutProps) {
   const { theme } = useTheme();
   const { user } = useAuth();
-  const navigation =
-    useNavigation<
-      NativeStackNavigationProp<AppStackParamList, keyof AppStackParamList>
-    >();
+  const router = useRouter();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
   const showSettingsIcon = showProfileAvatar && user;
   const rightContent = useMemo(
@@ -55,7 +52,7 @@ export function WelcomeHeaderLayout({
       >
         {showShopIcon && (
           <HeaderButton
-            onPress={() => navigation.navigate("Shop")}
+            onPress={() => router.push(routes.shop())}
             tintColor={theme.colors.accent}
             accessibilityLabel="Shop"
           >
@@ -67,7 +64,7 @@ export function WelcomeHeaderLayout({
         )}
         {showSettingsIcon && (
           <HeaderButton
-            onPress={() => navigation.navigate("Settings")}
+            onPress={() => router.push(routes.settings())}
             tintColor={theme.colors.accent}
             accessibilityLabel="Settings"
           >
@@ -81,7 +78,7 @@ export function WelcomeHeaderLayout({
       </View>
     ) : null,
     [
-      navigation,
+      router,
       right,
       showSettingsIcon,
       showShopIcon,

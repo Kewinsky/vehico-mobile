@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { WorkshopType } from "../../types/domain";
+import { usePremiumNavigation } from "../../core/hooks/usePremiumNavigation";
 import {
   WORKSHOP_TYPE_OPTIONS,
   buildWorkshopPayload,
@@ -27,22 +27,24 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { Card } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
-import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import { useFormFieldErrors } from "../../core/hooks/useFormFieldErrors";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
+import { useScreenFocusReload } from "../../core/useScreenFocusReload";
 import {
   getPremiumUpgradeAlertButtons,
   handleAndShowLimitErrorAlert,
 } from "../../ui/limits/entitlementAlerts";
 
-type Props = NativeStackScreenProps<AppStackParamList, "WorkshopForm">;
-
-export function WorkshopFormScreen({ navigation, route }: Props) {
+export function WorkshopFormScreen() {
+  const { workshopId: workshopIdParam } = useLocalSearchParams<{ workshopId: string }>();
+  const workshopIdRaw = Array.isArray(workshopIdParam) ? workshopIdParam[0] : workshopIdParam;
+  const workshopId = workshopIdRaw === "new" ? undefined : workshopIdRaw;
+  const router = useRouter();
+  const premiumNavigation = usePremiumNavigation();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { isPremium, workshopsLimit, freePlanWorkshopIds } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { workshopId } = route.params ?? {};
 
   const [name, setName] = useState("");
   const [workshopType, setWorkshopType] = useState<WorkshopType | null>(null);
@@ -98,7 +100,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
         onPress: async () => {
           try {
             await deleteWorkshop(workshopId);
-            navigation.goBack();
+            router.back();
           } catch (e: any) {
             Alert.alert(t("common.error"), e?.message ?? t("common.error"));
           }
@@ -128,7 +130,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
           Alert.alert(
             t("limits.workshopLimitReachedTitle"),
             t("limits.workshopLimitReachedBody", { limit: workshopsLimit }),
-            getPremiumUpgradeAlertButtons(t, navigation),
+            getPremiumUpgradeAlertButtons(t, premiumNavigation),
           );
           return;
         }
@@ -140,9 +142,9 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       } else {
         await createWorkshop(payload);
       }
-      navigation.goBack();
+      router.back();
     } catch (e: any) {
-      if (handleAndShowLimitErrorAlert(e, t, navigation)) return;
+      if (handleAndShowLimitErrorAlert(e, t, premiumNavigation)) return;
       Alert.alert(t("common.error"), e?.message ?? t("common.error"));
     } finally {
       setSaving(false);
@@ -154,7 +156,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       title={
         workshopId ? t("workshopForm.editTitle") : t("workshopForm.addTitle")
       }
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      cancel={{ onPress: () => router.back(), label: t("common.cancel") }}
       done={{
         onPress: onSave,
         label: t("common.done"),

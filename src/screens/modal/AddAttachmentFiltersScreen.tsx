@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { setPendingModalResult } from "../../app/pendingModalResult";
+import { setPendingModalResult } from "../../core/pendingModalResult";
 import { ModalLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
@@ -18,18 +17,25 @@ export type AddAttachmentFiltersParams = {
   sortOption: "date-newest" | "date-oldest" | "title-az" | "title-za";
 };
 
-type Props = NativeStackScreenProps<AppStackParamList, "AddAttachmentFilters">;
-
-export function AddAttachmentFiltersScreen({ navigation, route }: Props) {
+export function AddAttachmentFiltersScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const params = route.params;
+  const params = useLocalSearchParams<{
+    sortOption?: string;
+  }>();
+
+  const initialSortOption =
+    (Array.isArray(params.sortOption) ? params.sortOption[0] : params.sortOption) ??
+    "date-newest";
 
   const [sortOption, setSortOption] = useState<
     AddAttachmentFiltersParams["sortOption"]
-  >(params.sortOption ?? "date-newest");
+  >(
+    initialSortOption as AddAttachmentFiltersParams["sortOption"],
+  );
 
   const sortField = useMemo(() => {
     const [field] = sortOption.split("-") as [string, string];
@@ -59,13 +65,13 @@ export function AddAttachmentFiltersScreen({ navigation, route }: Props) {
 
   function applyFilters() {
     setPendingModalResult("addAttachment", { sortOption });
-    navigation.goBack();
+    router.back();
   }
 
   return (
     <ModalLayout
       title={t("timeline.filtersTitle")}
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      cancel={{ onPress: () => router.back(), label: t("common.cancel") }}
       done={{ onPress: applyFilters, label: t("common.done") }}
       footer={
         <Button variant="outlined" onPress={clearFilters}>

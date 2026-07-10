@@ -1,5 +1,7 @@
 import { Pressable, Text, View } from "react-native";
+import { useRouter } from "expo-router";
 
+import { routes } from "../../../../../core/navigation/routes";
 import { ReminderItem } from "../../../../../ui/components/list/ReminderItem";
 import { DashboardSection } from "../../components/DashboardSection";
 import type { OverviewPanelProps } from "../types";
@@ -10,7 +12,6 @@ export function UpcomingRemindersSection({
   t,
   vehicleId,
   vehicle,
-  navigation,
   upcomingReminders,
 }: Pick<
   OverviewPanelProps,
@@ -19,15 +20,16 @@ export function UpcomingRemindersSection({
   | "t"
   | "vehicleId"
   | "vehicle"
-  | "navigation"
   | "upcomingReminders"
 >) {
+  const router = useRouter();
+
   return (
     <DashboardSection
       title={t("reminders.tabUpcoming", { defaultValue: "Upcoming" })}
       headerRight={
         <Pressable
-          onPress={() => navigation.navigate("Reminders", { vehicleId })}
+          onPress={() => router.push(routes.reminders(vehicleId))}
           hitSlop={8}
         >
           <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
@@ -50,10 +52,7 @@ export function UpcomingRemindersSection({
               remainingDistanceLabel={t("reminders.remainingDistance")}
               estimatedTimeLabel={t("reminders.estimatedTime")}
               onPress={() =>
-                navigation.navigate("ReminderForm", {
-                  vehicleId,
-                  reminderId: reminder.id,
-                })
+                router.push(routes.reminderForm(vehicleId, reminder.id))
               }
             />
           ))}

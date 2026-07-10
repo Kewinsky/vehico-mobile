@@ -9,16 +9,17 @@ import {
   Modal,
   Dimensions,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import Carousel from "react-native-reanimated-carousel";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import type { Vehicle, VehiclePhoto } from "../../types/domain";
+import type { ReportOptions } from "../../types/reportOptions";
 import { hasEnoughStatsEntries } from "../../types/reportOptions";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
@@ -36,7 +37,7 @@ import {
 import { uploadAllReportPhotos } from "../../services/publicPages/uploadReportPhoto";
 import { Button } from "../../ui/components/common/Button";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
@@ -46,15 +47,50 @@ import { ReportSummaryOptionRow } from "../../ui/components/common/ReportSummary
 import { reportSummaryStatus } from "../../ui/components/common/reportSummaryUtils";
 import { VehicleTechnicalDataSummary } from "../../ui/components/common/VehicleTechnicalDataSummary";
 
-type Props = NativeStackScreenProps<AppStackParamList, "PublicReportSummary">;
+type ReportPhotoParam = {
+  kind: "vehicle" | "local";
+  vehiclePhotoId?: string;
+  fileUri?: string;
+  displayOrder: number;
+  mimeType?: string | null;
+  fileName?: string | null;
+};
 
-export function PublicReportSummaryScreen({ navigation, route }: Props) {
+export function PublicReportSummaryScreen() {
+  const {
+    vehicleId: vehicleIdParam,
+    reportOptions: reportOptionsParam,
+    reportPhotos: reportPhotosParam,
+  } = useLocalSearchParams<{
+    vehicleId: string;
+    reportOptions: string;
+    reportPhotos: string;
+  }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const router = useRouter();
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId, reportOptions, reportPhotos } = route.params;
+  const reportOptions = useMemo<ReportOptions | null>(() => {
+    const raw = Array.isArray(reportOptionsParam) ? reportOptionsParam[0] : reportOptionsParam;
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as ReportOptions;
+    } catch {
+      return null;
+    }
+  }, [reportOptionsParam]);
+  const reportPhotos = useMemo<ReportPhotoParam[]>(() => {
+    const raw = Array.isArray(reportPhotosParam) ? reportPhotosParam[0] : reportPhotosParam;
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw) as ReportPhotoParam[];
+    } catch {
+      return [];
+    }
+  }, [reportPhotosParam]);
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [serviceEntriesCount, setServiceEntriesCount] = useState<number>(0);
@@ -75,6 +111,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   );
 
   const load = useCallback(async () => {
+    if (!vehicleId) return;
     try {
       setLoading(true);
       const [v, serviceEntries, fuelingEntries, photos, tires, wheels] =
@@ -117,6 +154,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   }, [load]);
 
   async function handleGenerateReport() {
+    if (!vehicleId || !reportOptions) return;
     if (!confirmed) {
       toastError(t("publicReport.confirmationRequired"));
       return;
@@ -124,7 +162,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
 
     // Check entitlements
     if (!isPremium) {
-      navigation.navigate("Shop");
+      router.push(routes.shop());
       return;
     }
 
@@ -172,25 +210,14 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
 
       toastSuccess(t("publicReport.reportGenerated"));
 
-      navigation.reset({
-        index: 4,
-        routes: [
-          { name: "Vehicles" },
-          { name: "VehicleDashboard", params: { vehicleId } },
-          { name: "Share", params: { vehicleId } },
-          { name: "PublicReport", params: { vehicleId } },
-          {
-            name: "PublicReportOptions",
-            params: {
-              url,
-              vehicleTitle,
-              vehicleId,
-              reportTitle: report.title,
-              generatedAt: `${t("share.generatedOn")} ${formatShortDisplayDate(report.created_at, i18n.language)}`,
-            },
-          },
-        ],
-      });
+      router.dismissTo(
+        routes.publicReportOptions(vehicleId, {
+          url,
+          vehicleTitle,
+          reportTitle: report.title,
+          generatedAt: `${t("share.generatedOn")} ${formatShortDisplayDate(report.created_at, i18n.language)}`,
+        }),
+      );
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -224,7 +251,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   return (
     <HeaderContentScreen
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       showProfileAvatar
       footer={
         <Button
@@ -256,7 +283,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
       }
       title={t("publicReport.summaryTitle")}
     >
-      {!loading && (
+      {!loading && reportOptions && (
         <>
           {reportOptions.include_photos && photoCount > 0 && (
             <View style={styles.carouselSection}>

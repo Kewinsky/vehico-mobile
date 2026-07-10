@@ -1,5 +1,7 @@
 import { Pressable, Text, View } from "react-native";
+import { useRouter } from "expo-router";
 
+import { routes } from "../../../../../core/navigation/routes";
 import { RimIcon } from "../../../../../ui/components/icons/RimIcon";
 import { TireIcon } from "../../../../../ui/components/icons/TireIcon";
 import { DashboardSection } from "../../components/DashboardSection";
@@ -11,7 +13,6 @@ export function WheelsSection({
   theme,
   t,
   vehicleId,
-  navigation,
   fittedTiresLines,
   fittedWheelsLines,
 }: Pick<
@@ -20,16 +21,17 @@ export function WheelsSection({
   | "theme"
   | "t"
   | "vehicleId"
-  | "navigation"
   | "fittedTiresLines"
   | "fittedWheelsLines"
 >) {
+  const router = useRouter();
+
   return (
     <DashboardSection
       title={t("dashboard.stats.wheels")}
       headerRight={
         <Pressable
-          onPress={() => navigation.navigate("Wheels", { vehicleId })}
+          onPress={() => router.push(routes.wheels(vehicleId))}
           hitSlop={8}
         >
           <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>

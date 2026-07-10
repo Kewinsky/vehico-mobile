@@ -1,15 +1,13 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 
-type Props = NativeStackScreenProps<AppStackParamList, "ExampleListing">;
-
-export function ExampleListingScreen({ navigation }: Props) {
+export function ExampleListingScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -17,7 +15,7 @@ export function ExampleListingScreen({ navigation }: Props) {
   return (
     <ModalLayout
       title={t("shop.exampleListingPage.title")}
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      cancel={{ onPress: () => router.back(), label: t("common.cancel") }}
       useNativeHeaderScrollView
     >
       <View style={styles.container}>
@@ -45,26 +43,20 @@ const makeStyles = (theme: any) =>
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.xl,
     },
-    largeTitle: {
-      fontSize: theme.typography.largeTitle,
-      fontWeight: theme.typography.fontWeight.bold,
-      marginVertical: theme.spacing.md,
-    },
     subtitle: {
       fontSize: theme.typography.body,
-      lineHeight: theme.typography.body + 6,
       marginBottom: theme.spacing.md,
     },
     bodyWrap: {
-      padding: theme.spacing.md,
       borderRadius: theme.radius.xl,
+      padding: theme.spacing.md,
       backgroundColor: theme.colors.card,
     },
     body: {
       fontSize: theme.typography.small,
-      lineHeight: theme.typography.body,
+      lineHeight: theme.typography.body + 4,
     },
     bottomSpacer: {
-      height: theme.spacing.lg,
+      height: theme.spacing.xl,
     },
   });

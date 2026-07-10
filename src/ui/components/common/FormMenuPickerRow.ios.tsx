@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Host, Picker } from "@expo/ui/swift-ui";
-import { fixedSize } from "@expo/ui/swift-ui/modifiers";
+import { Host, Picker, Text as SwiftUIText } from "@expo/ui/swift-ui";
+import { fixedSize, pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "../../ThemeProvider";
@@ -55,16 +55,21 @@ export function FormMenuPickerRow({
               style={styles.nativePickerHost}
             >
               <Picker
-                variant="menu"
-                label=""
-                options={options}
-                selectedIndex={selectedIndex}
-                color={valueColor}
-                modifiers={[fixedSize({ horizontal: true, vertical: true })]}
-                onOptionSelected={({ nativeEvent }) => {
-                  onOptionSelected(nativeEvent.index);
+                selection={selectedIndex}
+                modifiers={[
+                  pickerStyle("menu"),
+                  fixedSize({ horizontal: true, vertical: true }),
+                ]}
+                onSelectionChange={(selection) => {
+                  onOptionSelected(Number(selection));
                 }}
-              />
+              >
+                {options.map((option, index) => (
+                  <SwiftUIText key={`${option}-${index}`} modifiers={[tag(index)]}>
+                    {option}
+                  </SwiftUIText>
+                ))}
+              </Picker>
             </Host>
           </View>
         </View>

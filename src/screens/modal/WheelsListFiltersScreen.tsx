@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { setPendingModalResult } from "../../app/pendingModalResult";
+import { setPendingModalResult } from "../../core/pendingModalResult";
 import { ModalLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
@@ -19,14 +18,16 @@ export type WheelsListFiltersParams = {
   sortOrder: "az" | "za";
 };
 
-type Props = NativeStackScreenProps<AppStackParamList, "WheelsListFilters">;
-
-export function WheelsListFiltersScreen({ navigation, route }: Props) {
+export function WheelsListFiltersScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const params = route.params;
+  const params = useLocalSearchParams<{
+    fittedFilter?: "all" | "fitted" | "not_fitted";
+    sortOrder?: "az" | "za";
+  }>();
 
   const [fittedFilter, setFittedFilter] = useState<
     "all" | "fitted" | "not_fitted"
@@ -46,13 +47,13 @@ export function WheelsListFiltersScreen({ navigation, route }: Props) {
       sortOrder,
     };
     setPendingModalResult("wheelsList", applied);
-    navigation.goBack();
+    router.back();
   }
 
   return (
     <ModalLayout
       title={t("timeline.filtersTitle")}
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      cancel={{ onPress: () => router.back(), label: t("common.cancel") }}
       done={{ onPress: applyFilters, label: t("common.done") }}
       footer={
         <Button variant="outlined" onPress={clearFilters}>

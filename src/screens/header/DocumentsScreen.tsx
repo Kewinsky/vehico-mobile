@@ -1,5 +1,5 @@
 import { Alert, Animated, StyleSheet, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
@@ -8,14 +8,14 @@ import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeabl
 import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
 import { SquarePen, Trash2 } from "lucide-react-native";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { SearchBar } from "../../ui/components/common/SearchBar";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import { useScreenFocusReload } from "../../core/useScreenFocusReload";
 import type { Attachment, VehicleDocument } from "../../types/domain";
 import {
   deleteAttachment,
@@ -36,9 +36,10 @@ import {
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
-
-export function DocumentsScreen({ route, navigation }: Props) {
+export function DocumentsScreen() {
+  const router = useRouter();
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -53,12 +54,13 @@ export function DocumentsScreen({ route, navigation }: Props) {
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
+      if (!vehicleId) return;
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
         const [d, a] = await Promise.all([
-          listVehicleDocuments(route.params.vehicleId),
-          listVehicleAttachments(route.params.vehicleId),
+          listVehicleDocuments(vehicleId),
+          listVehicleAttachments(vehicleId),
         ]);
         setVehicleDocs(d);
         setAttachments(a);
@@ -68,7 +70,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [route.params.vehicleId, t],
+    [vehicleId, t],
   );
 
   useScreenFocusReload({
@@ -127,6 +129,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
   }
 
   async function pickDocFromCamera() {
+    if (!vehicleId) return;
     try {
       setUploading(true);
       const perm = await ImagePicker.requestCameraPermissionsAsync();
@@ -137,7 +140,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
       await uploadVehicleDocument({
-        vehicleId: route.params.vehicleId,
+        vehicleId,
         fileUri: asset.uri,
         mimeType: asset.mimeType,
         fileName: asset.fileName,
@@ -151,6 +154,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
   }
 
   async function pickDocFromGallery() {
+    if (!vehicleId) return;
     try {
       setUploading(true);
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -164,7 +168,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
       await uploadVehicleDocument({
-        vehicleId: route.params.vehicleId,
+        vehicleId,
         fileUri: asset.uri,
         mimeType: asset.mimeType,
         fileName: asset.fileName,
@@ -178,6 +182,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
   }
 
   async function pickDocFromFiles() {
+    if (!vehicleId) return;
     try {
       setUploading(true);
       const result = await DocumentPicker.getDocumentAsync({
@@ -189,7 +194,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
       await uploadVehicleDocument({
-        vehicleId: route.params.vehicleId,
+        vehicleId,
         fileUri: asset.uri,
         mimeType: asset.mimeType,
         fileName: asset.name,
@@ -211,10 +216,10 @@ export function DocumentsScreen({ route, navigation }: Props) {
       },
       {
         text: t("documents.addAttachment"),
-        onPress: () =>
-          navigation.navigate("AddAttachment", {
-            vehicleId: route.params.vehicleId,
-          }),
+        onPress: () => {
+          if (!vehicleId) return;
+          router.push(routes.addAttachment(vehicleId));
+        },
       },
     ]);
   }
@@ -300,7 +305,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps -- openAddPicker uses stable route/t handlers
-    [t, navigation, route.params.vehicleId],
+    [t, router, vehicleId],
   );
 
   function renderDocumentRightActions(
@@ -347,7 +352,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
   return (
     <HeaderContentScreen
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       actions={headerActions}
       title={t("dashboard.tiles.docsTitle")}
     >

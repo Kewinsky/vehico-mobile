@@ -1,6 +1,6 @@
 import React from "react";
 import { Animated, ScrollView, type ScrollViewProps } from "react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { useHeaderHeight } from "expo-router/react-navigation";
 
 import { useTheme } from "../../ThemeProvider";
 

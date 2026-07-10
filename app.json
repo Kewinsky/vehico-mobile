@@ -43,6 +43,17 @@
     },
     "plugins": [
       [
+        "expo-router",
+        {
+          "root": "./app"
+        }
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-sharing",
+      "expo-status-bar",
+      "expo-web-browser",
+      [
         "expo-localization",
         {
           "supportedLocales": {

@@ -34,18 +34,19 @@ export function ButtonsPage({
     2;
 
   return (
-    <View style={[styles.page, { width: windowWidth }]}>
+    <View
+      style={[styles.page, { width: windowWidth }]}
+      collapsable={false}
+    >
       <View style={styles.tilesWrap}>
         {tiles.map((item) => (
-          <View
-            key={item.key}
-            style={[styles.tileWrapper, { width: tileWidth }]}
-          >
+          <View key={item.key} style={{ width: tileWidth }}>
             <TileCard
               onPress={item.onPress}
               minHeight={110}
+              style={{ width: "100%", flexGrow: 0, flexShrink: 0 }}
               title={item.title}
-              icon={
+            icon={
                 item.key === "fuel" ? (
                   <Fuel size={32} color={theme.colors.accent} />
                 ) : item.key === "data" ? (

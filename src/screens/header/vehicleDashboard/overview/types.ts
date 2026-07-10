@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 import type { TFunction } from "i18next";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import type { AppStackParamList } from "../../../../app/navigation/RootNavigator";
 import type { Reminder, Vehicle } from "../../../../types/domain";
 import type { OilChangeDueState } from "../../../../utils/oilChangeDue";
 import type { OverviewPanelStyles } from "./overviewStyles";
@@ -22,7 +20,6 @@ export type OverviewPanelProps = {
   styles: OverviewPanelStyles;
   vehicleId: string;
   vehicle: Vehicle | null;
-  navigation: NativeStackNavigationProp<AppStackParamList, "VehicleDashboard">;
   t: TFunction;
   language: string;
   theme: {

@@ -8,10 +8,10 @@ import {
   View,
   ScrollView,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { usePremiumNavigation } from "../../core/hooks/usePremiumNavigation";
 import {
   buildReminderPayload,
   canSaveReminder,
@@ -39,9 +39,9 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { Button } from "../../ui/components/common/Button";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
-import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useFormFieldErrors } from "../../core/hooks/useFormFieldErrors";
+import { useUnitDisplay } from "../../core/hooks/useUnitDisplay";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { promptAddServiceEntryFromReminder } from "../../services/reminders/reminderServiceEntryPrompt";
 import {
@@ -64,15 +64,18 @@ import { FormSwitch } from "../../ui/components/common/FormSwitch";
 import { SquarePen } from "lucide-react-native";
 import { groupThousands } from "../../utils/numberFormatting";
 
-type Props = NativeStackScreenProps<AppStackParamList, "ReminderForm">;
-
-export function ReminderFormScreen({ navigation, route }: Props) {
+export function ReminderFormScreen() {
+  const router = useRouter();
+  const premiumNavigation = usePremiumNavigation();
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { isPremium, remindersLimit, freePlanVehicleId, freePlanReminderIds } =
     useEntitlements();
   const styles = makeStyles(theme);
-  const { vehicleId, reminderId } = route.params;
+  const params = useLocalSearchParams<{ vehicleId: string; reminderId: string }>();
+  const vehicleId = Array.isArray(params.vehicleId) ? params.vehicleId[0] : params.vehicleId;
+  const reminderIdParam = Array.isArray(params.reminderId) ? params.reminderId[0] : params.reminderId;
+  const reminderId = reminderIdParam === "new" ? undefined : reminderIdParam;
   const { distanceUnitLabel } = useUnitDisplay();
 
   const [status, setStatus] = useState<ReminderStatus>("active");
@@ -259,7 +262,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
             try {
               await cancelLocalReminder(reminderId);
               await deleteReminder(reminderId);
-              navigation.goBack();
+              router.back();
             } catch (e: unknown) {
               toastError((e as Error)?.message ?? t("common.error"));
             }
@@ -283,7 +286,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           Alert.alert(
             t("limits.reminderLimitReachedTitle"),
             t("limits.reminderLimitReachedBody", { limit: remindersLimit }),
-            getPremiumUpgradeAlertButtons(t, navigation),
+            getPremiumUpgradeAlertButtons(t, premiumNavigation),
           );
           return;
         }
@@ -309,13 +312,13 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           onCreated: () =>
             toastSuccess(t("reminders.serviceEntryFromReminderCreated")),
           onError: (message) => toastError(message),
-          onDismiss: () => navigation.goBack(),
+          onDismiss: () => router.back(),
         });
       } else {
-        navigation.goBack();
+        router.back();
       }
     } catch (e: unknown) {
-      if (handleAndShowLimitErrorAlert(e, t, navigation)) return;
+      if (handleAndShowLimitErrorAlert(e, t, premiumNavigation)) return;
       toastError((e as Error)?.message ?? t("common.error"));
     } finally {
       setSaving(false);
@@ -350,7 +353,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       title={
         reminderId ? t("reminderForm.editTitle") : t("reminderForm.addTitle")
       }
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      cancel={{ onPress: () => router.back(), label: t("common.cancel") }}
       done={{
         onPress: onSave,
         label: t("common.done"),

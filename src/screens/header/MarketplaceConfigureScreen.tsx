@@ -7,7 +7,7 @@ import {
   View,
   Keyboard,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { formatDateDisplay } from "../../utils/dateFormatting";
@@ -17,9 +17,9 @@ import {
   marketplacePriceForNavigation,
   type MarketplaceConfigureFormState,
 } from "../../forms/marketplaceConfigureForm";
-import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
+import { useFormFieldErrors } from "../../core/hooks/useFormFieldErrors";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import {
   hasEnoughStatsEntries,
   MIN_STATS_ENTRIES,
@@ -49,19 +49,19 @@ import { ReportOptionsActionsBar } from "../../ui/components/common/ReportOption
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
+import { useUserSettings } from "../../core/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { openAlertPicker } from "../../ui/components/common/openAlertPicker";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
-type Props = NativeStackScreenProps<AppStackParamList, "MarketplaceConfigure">;
-
-export function MarketplaceConfigureScreen({ navigation, route }: Props) {
+export function MarketplaceConfigureScreen() {
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const router = useRouter();
   const { t, i18n } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId } = route.params;
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [fuelingCount, setFuelingCount] = useState(0);
@@ -120,6 +120,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   const { fieldError, validateBeforeSave } = useFormFieldErrors(canProceed);
 
   const load = useCallback(async () => {
+    if (!vehicleId) return;
     try {
       setLoading(true);
       const [v, fuelings, serviceEntries, tires, wheels, reports] =
@@ -324,6 +325,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   }, [selectedReportId, getReportLabel, t]);
 
   function handleNext() {
+    if (!vehicleId) return;
     if (!validateBeforeSave()) {
       if (includePrice) {
         toastError(
@@ -335,25 +337,27 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
       return;
     }
 
-    navigation.navigate("MarketplaceSummary", {
-      vehicleId,
-      reportOptions: {
-        include_technical_data: includeTechnicalData,
-        include_insurance: includeInsurance,
-        include_inspection: includeInspection,
-        include_notes: includeNotes,
-        include_wheels: includeWheels,
-        include_tires: includeTires,
-        include_service_history: includeServiceHistory,
-        include_service_stats: includeServiceStats,
-        include_fueling_stats: includeFuelingStats,
-      },
-      includePrice,
-      price: marketplacePriceForNavigation(formValues),
-      currency: settings?.currency ?? "PLN",
-      includePublicReport,
-      selectedReportId: includePublicReport ? selectedReportId : null,
-    });
+    const reportOptions = {
+      include_technical_data: includeTechnicalData,
+      include_insurance: includeInsurance,
+      include_inspection: includeInspection,
+      include_notes: includeNotes,
+      include_wheels: includeWheels,
+      include_tires: includeTires,
+      include_service_history: includeServiceHistory,
+      include_service_stats: includeServiceStats,
+      include_fueling_stats: includeFuelingStats,
+    };
+    router.push(
+      routes.marketplaceSummary(vehicleId, {
+        reportOptions: JSON.stringify(reportOptions),
+        includePrice,
+        price: marketplacePriceForNavigation(formValues),
+        currency: settings?.currency ?? "PLN",
+        includePublicReport,
+        selectedReportId: includePublicReport ? selectedReportId : undefined,
+      }),
+    );
   }
 
   const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
@@ -361,7 +365,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   return (
     <HeaderLayout
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       showProfileAvatar
       footer={
         <Button onPress={handleNext}>{t("marketplace.nextButton")}</Button>

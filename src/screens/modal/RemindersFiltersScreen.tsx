@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { setPendingModalResult } from "../../app/pendingModalResult";
+import { setPendingModalResult } from "../../core/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
@@ -21,14 +20,17 @@ export type RemindersFiltersParams = {
   statusFilter: "all" | "active" | "done";
 };
 
-type Props = NativeStackScreenProps<AppStackParamList, "RemindersFilters">;
-
-export function RemindersFiltersScreen({ navigation, route }: Props) {
+export function RemindersFiltersScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const params = route.params;
+  const params = useLocalSearchParams<{
+    dateFrom?: string;
+    dateTo?: string;
+    statusFilter?: "all" | "active" | "done";
+  }>();
 
   const [dateFrom, setDateFrom] = useState(params.dateFrom ?? "");
   const [dateTo, setDateTo] = useState(params.dateTo ?? "");
@@ -49,13 +51,13 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
       statusFilter,
     };
     setPendingModalResult("reminders", applied);
-    navigation.goBack();
+    router.back();
   }
 
   return (
     <ModalLayout
       title={t("timeline.filtersTitle")}
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      cancel={{ onPress: () => router.back(), label: t("common.cancel") }}
       done={{ onPress: applyFilters, label: t("common.done") }}
       footer={
         <Button variant="outlined" onPress={clearFilters}>

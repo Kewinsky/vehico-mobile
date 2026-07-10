@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Alert, StyleSheet, View } from "react-native";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
   FUEL_TYPE_OPTIONS,
   GAS_STATION_OPTIONS,
@@ -29,20 +28,22 @@ import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
-import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
+import { useFormFieldErrors } from "../../core/hooks/useFormFieldErrors";
+import { useUnitDisplay } from "../../core/hooks/useUnitDisplay";
+import { useUserSettings } from "../../core/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
 import { Droplet, Fuel } from "lucide-react-native";
 
-type Props = NativeStackScreenProps<AppStackParamList, "FuelingEntryForm">;
-
-export function FuelingEntryFormScreen({ navigation, route }: Props) {
+export function FuelingEntryFormScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = makeStyles(theme);
-  const { vehicleId, entryId } = route.params;
+  const params = useLocalSearchParams<{ vehicleId: string; entryId: string }>();
+  const vehicleId = Array.isArray(params.vehicleId) ? params.vehicleId[0] : params.vehicleId;
+  const entryIdParam = Array.isArray(params.entryId) ? params.entryId[0] : params.entryId;
+  const entryId = entryIdParam === "new" ? undefined : entryIdParam;
   const { distanceUnitLabel, fuelUnitShort } = useUnitDisplay();
   const { settings } = useUserSettings();
   const fuelUnitLabel = fuelUnitShort;
@@ -126,7 +127,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
           onPress: async () => {
             try {
               await deleteFuelingEntry(entryId);
-              navigation.goBack();
+              router.back();
             } catch (e: any) {
               toastError(e?.message ?? t("common.error"));
             }
@@ -154,7 +155,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       const payload = buildFuelingEntryPayload(vehicleId, formValues);
       if (entryId) await updateFuelingEntry(entryId, payload);
       else await createFuelingEntry(payload);
-      navigation.goBack();
+      router.back();
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -165,7 +166,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   return (
     <ModalLayout
       title={entryId ? t("fuelingForm.editTitle") : t("fuelingForm.addTitle")}
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      cancel={{ onPress: () => router.back(), label: t("common.cancel") }}
       done={{
         onPress: onSave,
         label: t("common.done"),

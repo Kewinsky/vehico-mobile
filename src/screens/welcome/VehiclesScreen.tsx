@@ -8,8 +8,8 @@ import {
   Alert,
 } from "react-native";
 import { Image } from "expo-image";
-import { useIsFocused } from "@react-navigation/native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useIsFocused } from "expo-router/react-navigation";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
@@ -18,8 +18,8 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import MaskedView from "@react-native-masked-view/masked-view";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { Vehicle } from "../../types/domain";
+import { routes } from "../../core/navigation/routes";
 import { purgeOrphanLocalVehicleData } from "../../services/localStorage/purgeOrphanLocalVehicleData";
 import { listVehicles } from "../../services/vehicles/vehiclesRepo";
 import {
@@ -31,10 +31,10 @@ import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useAuth } from "../../app/providers/AuthProvider";
-import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import { useAuth } from "../../core/providers/AuthProvider";
+import { useUnitDisplay } from "../../core/hooks/useUnitDisplay";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
+import { useScreenFocusReload } from "../../core/useScreenFocusReload";
 import { normalizeDisplayName } from "../../utils/displayName";
 import { groupThousands } from "../../utils/numberFormatting";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
@@ -45,8 +45,6 @@ import {
   getPremiumUpgradeAlertButtons,
   showPremiumRequiredAlert,
 } from "../../ui/limits/entitlementAlerts";
-
-type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 
 const VEHICLE_IMAGE_HEIGHT = 220;
 
@@ -295,7 +293,11 @@ function pickDailyGreetingVariant(
   return variants[idx] ?? variants[0];
 }
 
-export function VehiclesScreen({ navigation, route }: Props) {
+export function VehiclesScreen() {
+  const router = useRouter();
+  const { showVehiclePicker } = useLocalSearchParams<{
+    showVehiclePicker?: string;
+  }>();
   const { t, i18n } = useTranslation();
   const { theme, mode } = useTheme();
   const { user } = useAuth();
@@ -458,6 +460,17 @@ export function VehiclesScreen({ navigation, route }: Props) {
     setFreePlanVehicleId,
   ]);
 
+  const premiumNavigation = useMemo(
+    () => ({
+      navigate: (screen: string) => {
+        if (screen === "Shop") {
+          router.push(routes.shop());
+        }
+      },
+    }),
+    [router],
+  );
+
   useEffect(() => {
     if (isPremium || freePlanVehicleId != null) {
       hasShownPickerRef.current = false;
@@ -466,7 +479,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
     if (!isFocused || items.length < 2) return;
     if (entitlementsLoading) return;
 
-    const fromDowngradeParam = route.params?.showVehiclePicker === true;
+    const fromDowngradeParam = showVehiclePicker === "true";
     const needPicker = fromDowngradeParam || !freePlanVehicleId;
     if (!needPicker) return;
 
@@ -474,7 +487,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
     hasShownPickerRef.current = true;
 
     if (fromDowngradeParam) {
-      navigation.setParams({ showVehiclePicker: false });
+      router.replace(routes.home());
     }
     const vehicleButtons = items.map((item) => ({
       text: `${item.make} ${item.model}${item.production_year ? ` (${item.production_year})` : ""}`,
@@ -490,8 +503,8 @@ export function VehiclesScreen({ navigation, route }: Props) {
     items,
     t,
     setFreePlanVehicleId,
-    navigation,
-    route.params?.showVehiclePicker,
+    router,
+    showVehiclePicker,
     isPremium,
     freePlanVehicleId,
     entitlementsLoading,
@@ -499,7 +512,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
 
   const handleLockedVehiclePress = () => {
     const days = daysUntilHiddenDataDeletion ?? 0;
-    showPremiumRequiredAlert(t, navigation, {
+    showPremiumRequiredAlert(t, premiumNavigation, {
       title: t("vehicles.lockedVehicleAlertTitle"),
       message: t("vehicles.lockedVehicleAlertBody", { days }),
     });
@@ -507,18 +520,18 @@ export function VehiclesScreen({ navigation, route }: Props) {
 
   const handleAddVehicle = () => {
     if (isPremium) {
-      navigation.navigate("VehicleForm", {});
+      router.push(routes.vehicleForm());
       return;
     }
     if (items.length >= vehiclesLimit) {
       Alert.alert(
         t("limits.vehicleLimitReachedTitle"),
         t("limits.vehicleLimitReachedBody", { limit: vehiclesLimit }),
-        getPremiumUpgradeAlertButtons(t, navigation),
+        getPremiumUpgradeAlertButtons(t, premiumNavigation),
       );
       return;
     }
-    navigation.navigate("VehicleForm", {});
+    router.push(routes.vehicleForm());
   };
 
   return (
@@ -562,9 +575,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
                   handleLockedVehiclePress();
                   return;
                 }
-                navigation.navigate("VehicleDashboard", {
-                  vehicleId: item.id,
-                });
+                router.push(routes.vehicleDashboard(item.id));
               }}
               style={({ pressed }) => [
                 styles.vehicleCard,
@@ -707,7 +718,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       justifyContent: "flex-end",
     },
     vehicleImageTintMask: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     vehicleImageContent: {
       padding: theme.spacing.md,

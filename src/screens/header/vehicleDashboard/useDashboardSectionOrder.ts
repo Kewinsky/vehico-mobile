@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 
-import { useEntitlements } from "../../../app/providers/EntitlementsProvider";
-import { useUserSettings } from "../../../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../../../core/providers/EntitlementsProvider";
+import { useUserSettings } from "../../../core/providers/UserSettingsProvider";
 import { normalizeSectionOrder } from "../../../utils/dashboardSectionOrder";
 import {
   DASHBOARD_OVERVIEW_SECTION_IDS,

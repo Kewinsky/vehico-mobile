@@ -1,10 +1,8 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { APP_DISPLAY_NAME } from "../../config/appBrand";
 import {
   buildExportPayload,
@@ -21,13 +19,11 @@ import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
+import { useFormFieldErrors } from "../../core/hooks/useFormFieldErrors";
 import { toastError } from "../../ui/toast/toast";
 import { isValidDate } from "../../utils/validation";
 import { shareExportFile } from "../../utils/shareContent";
-
-type Props = NativeStackScreenProps<AppStackParamList, "Export">;
 
 const EXPORT_FORMATS = [
   "json",
@@ -57,7 +53,10 @@ const DEFAULT_SELECTED_TYPES: ExportDataType[] = [
   "reminders",
 ];
 
-export function ExportScreen({ navigation, route }: Props) {
+export function ExportScreen() {
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -69,7 +68,6 @@ export function ExportScreen({ navigation, route }: Props) {
     freePlanTireId,
     freePlanWheelId,
   } = useEntitlements();
-  const { vehicleId } = route.params;
 
   const isFreeVehicle = freePlanVehicleId === vehicleId;
   const reminderOpts = isPremium
@@ -125,6 +123,7 @@ export function ExportScreen({ navigation, route }: Props) {
   }
 
   async function handleExport() {
+    if (!vehicleId) return;
     if (exporting) return;
     if (selectedTypes.length === 0) {
       toastError(t("export.noDataTypesSelected"));
@@ -205,7 +204,7 @@ export function ExportScreen({ navigation, route }: Props) {
 
   return (
     <HeaderLayout
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       showProfileAvatar
       showShopIcon={!isPremium}
       footer={

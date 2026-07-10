@@ -6,14 +6,14 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { useRouter } from "expo-router";
+import { useHeaderHeight } from "expo-router/react-navigation";
 import { useTranslation } from "react-i18next";
 import { DraggableGrid } from "react-native-draggable-grid";
 import { GripVertical } from "lucide-react-native";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { usePremiumNavigation } from "../../core/hooks/usePremiumNavigation";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import { HeaderLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
@@ -29,15 +29,15 @@ import {
 import { useDashboardSectionOrder } from "./vehicleDashboard/useDashboardSectionOrder";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 
-type Props = NativeStackScreenProps<AppStackParamList, "DashboardSectionOrder">;
-
 type SectionRow = {
   key: string;
 };
 
 const ROW_HEIGHT = 48;
 
-export function DashboardSectionOrderScreen({ navigation }: Props) {
+export function DashboardSectionOrderScreen() {
+  const router = useRouter();
+  const premiumNavigation = usePremiumNavigation();
   const { t } = useTranslation();
   const { isPremium } = useEntitlements();
   const { theme } = useTheme();
@@ -67,10 +67,10 @@ export function DashboardSectionOrderScreen({ navigation }: Props) {
     Alert.alert(
       t("limits.premiumRequiredTitle"),
       t("dashboard.sectionOrder.premiumRequiredBody"),
-      getPremiumUpgradeAlertButtons(t, navigation),
-      { cancelable: true, onDismiss: () => navigation.goBack() },
+      getPremiumUpgradeAlertButtons(t, premiumNavigation),
+      { cancelable: true, onDismiss: () => router.back() },
     );
-  }, [isPremium, navigation, t]);
+  }, [isPremium, premiumNavigation, router, t]);
   const isAtDefault = sectionOrdersEqual(
     rows.map((r) => r.key),
     defaultIdList,
@@ -104,14 +104,14 @@ export function DashboardSectionOrderScreen({ navigation }: Props) {
         );
       }
       toastSuccess(t("dashboard.sectionOrder.saved"));
-      navigation.goBack();
+      router.back();
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : t("common.error");
       toastError(message);
     } finally {
       setSaving(false);
     }
-  }, [isDirty, navigation, overviewOrder, panel, rows, saving, statsOrder, t]);
+  }, [isDirty, router, overviewOrder, panel, rows, saving, statsOrder, t]);
 
   const onReset = useCallback(async () => {
     if (resetting || saving || isAtDefault) return;
@@ -173,7 +173,7 @@ export function DashboardSectionOrderScreen({ navigation }: Props) {
   );
 
   return (
-    <HeaderLayout onBack={() => navigation.goBack()} right={headerRight}>
+    <HeaderLayout onBack={() => router.back()} right={headerRight}>
       <View style={[styles.content, { paddingTop: headerHeight }]}>
         <ContentHeader
           title={t("dashboard.sectionOrder.title")}

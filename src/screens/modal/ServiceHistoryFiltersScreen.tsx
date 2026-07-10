@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { ServiceEntryCategory } from "../../types/domain";
-import { setPendingModalResult } from "../../app/pendingModalResult";
+import { setPendingModalResult } from "../../core/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
 import { Card } from "../../ui/components/common/Card";
 import { ModalFormScreen } from "../../ui/components/layout/ModalFormScreen";
@@ -46,14 +45,20 @@ const CATEGORY_FILTER_OPTIONS = [
 
 const SORT_FIELD_OPTIONS = ["date", "title", "cost"] as const;
 
-type Props = NativeStackScreenProps<AppStackParamList, "ServiceHistoryFilters">;
-
-export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
+export function ServiceHistoryFiltersScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const params = route.params;
+  const params = useLocalSearchParams<{
+    categoryFilter?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    minCost?: string;
+    maxCost?: string;
+    sortOption?: string;
+  }>();
 
   const [categoryFilter, setCategoryFilter] = useState<
     "all" | ServiceEntryCategory
@@ -114,13 +119,13 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
       sortOption,
     };
     setPendingModalResult("serviceHistory", applied);
-    navigation.goBack();
+    router.back();
   }
 
   return (
     <ModalFormScreen
       title={t("timeline.filtersTitle")}
-      onCancel={() => navigation.goBack()}
+      onCancel={() => router.back()}
       onDone={applyFilters}
       cancelLabel={t("common.cancel")}
       doneLabel={t("common.done")}

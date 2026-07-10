@@ -83,6 +83,7 @@ export function FormGlassSurface({
       intensity={themeMode === "dark" ? 45 : 70}
       tint={themeMode === "dark" ? "dark" : "light"}
       style={surfaceStyle}
+      pointerEvents="none"
       onLayout={handleLayout}
     />
   );

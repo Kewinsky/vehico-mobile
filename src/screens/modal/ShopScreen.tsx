@@ -8,15 +8,15 @@ import {
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useFocusEffect } from "@react-navigation/native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useFocusEffect } from "expo-router/react-navigation";
+import { useRouter } from "expo-router";
 import Purchases from "react-native-purchases";
 import RevenueCatUI from "react-native-purchases-ui";
 import { AnimatedRollingNumber } from "react-native-animated-rolling-numbers";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as WebBrowser from "expo-web-browser";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import { Button } from "../../ui/components/common/Button";
 import { Card } from "../../ui/components/common/Card";
 import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
@@ -24,7 +24,7 @@ import { ModalLayout } from "../../layouts";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import type { AppTheme } from "../../ui/theme";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import {
   isLifetimeProduct,
   isMonthlyProduct,
@@ -49,13 +49,12 @@ import { ShopCompareRowIcon } from "../../ui/components/shop/ShopCompareRowIcon"
 import { Glow } from "../../ui/components/dashboard/Glow";
 import { getShopComparisonRows, type ShopCompareRow } from "./shopComparison";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Shop">;
-
 const SHOP_GLOW_ANGLE = 180;
 
 type PlanBadge = { label: string; tone: "save" | "deal" | "monthly" };
 
-export function ShopScreen({ navigation }: Props) {
+export function ShopScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const insets = useSafeAreaInsets();
@@ -226,7 +225,7 @@ export function ShopScreen({ navigation }: Props) {
     if (!link) return;
     try {
       if (link.kind === "exampleListing") {
-        navigation.navigate("ExampleListing");
+        router.push(routes.exampleListing());
         return;
       }
       await WebBrowser.openBrowserAsync(link.url);
@@ -261,7 +260,7 @@ export function ShopScreen({ navigation }: Props) {
   return (
     <ModalLayout
       title={t("shop.title")}
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      cancel={{ onPress: () => router.back(), label: t("common.cancel") }}
       useHorizontalContentInset
       background={
         <Glow

@@ -1,12 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
 import { Alert } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
+import { usePremiumNavigation } from "../../core/hooks/usePremiumNavigation";
 import type { Workshop, WorkshopType } from "../../types/domain";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
-import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import { useScreenFocusReload } from "../../core/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
@@ -15,11 +16,9 @@ import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { WorkshopItem } from "../../ui/components/list/WorkshopItem";
 import { toastError } from "../../ui/toast/toast";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { openAlertPicker } from "../../ui/components/common/openAlertPicker";
-
-type Props = NativeStackScreenProps<AppStackParamList, "Workshops">;
 
 const WORKSHOP_TYPE_OPTIONS: WorkshopType[] = [
   "mechanic",
@@ -30,7 +29,9 @@ const WORKSHOP_TYPE_OPTIONS: WorkshopType[] = [
   "other",
 ];
 
-export function WorkshopsScreen({ navigation }: Props) {
+export function WorkshopsScreen() {
+  const router = useRouter();
+  const premiumNavigation = usePremiumNavigation();
   const { t } = useTranslation();
 
   const [items, setItems] = useState<Workshop[]>([]);
@@ -98,12 +99,12 @@ export function WorkshopsScreen({ navigation }: Props) {
       Alert.alert(
         t("limits.workshopLimitReachedTitle"),
         t("limits.workshopLimitReachedBody", { limit: workshopsLimit }),
-        getPremiumUpgradeAlertButtons(t, navigation),
+        getPremiumUpgradeAlertButtons(t, premiumNavigation),
       );
       return;
     }
-    navigation.navigate("WorkshopForm", {});
-  }, [isPremium, items.length, navigation, t, workshopsLimit]);
+    router.push(routes.workshopForm());
+  }, [isPremium, items.length, premiumNavigation, router, t, workshopsLimit]);
 
   const openFilters = useCallback(() => {
     openAlertPicker({
@@ -148,7 +149,7 @@ export function WorkshopsScreen({ navigation }: Props) {
   return (
     <HeaderLayout
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       actions={headerActions}
     >
       <CustomFlatList<Workshop>
@@ -170,7 +171,7 @@ export function WorkshopsScreen({ navigation }: Props) {
             callLabel={t("workshops.call")}
             navigateLabel={t("workshops.navigate")}
             onPress={() =>
-              navigation.navigate("WorkshopForm", { workshopId: item.id })
+              router.push(routes.workshopForm(item.id))
             }
           />
         )}

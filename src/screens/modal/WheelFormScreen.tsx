@@ -5,7 +5,7 @@ import {
   Text,
   View,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   AntDesign,
@@ -14,7 +14,7 @@ import {
 } from "@expo/vector-icons";
 import { Weight } from "lucide-react-native";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { usePremiumNavigation } from "../../core/hooks/usePremiumNavigation";
 import {
   buildWheelPayload,
   canSaveWheel,
@@ -36,8 +36,8 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormSwitch } from "../../ui/components/common/FormSwitch";
-import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useFormFieldErrors } from "../../core/hooks/useFormFieldErrors";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import { toastError } from "../../ui/toast/toast";
 import {
   getPremiumUpgradeAlertButtons,
@@ -47,9 +47,9 @@ import { BoltPatternIcon } from "../../ui/components/icons/BoltPatternIcon";
 import { BoltTypeIcon } from "../../ui/components/icons/BoltTypeIcon";
 import { EtOffsetIcon } from "../../ui/components/icons/EtOffsetIcon";
 
-type Props = NativeStackScreenProps<AppStackParamList, "WheelForm">;
-
-export function WheelFormScreen({ navigation, route }: Props) {
+export function WheelFormScreen() {
+  const router = useRouter();
+  const premiumNavigation = usePremiumNavigation();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const {
@@ -59,7 +59,10 @@ export function WheelFormScreen({ navigation, route }: Props) {
     freePlanWheelId,
   } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId, wheelId } = route.params;
+  const params = useLocalSearchParams<{ vehicleId: string; wheelId: string }>();
+  const vehicleId = Array.isArray(params.vehicleId) ? params.vehicleId[0] : params.vehicleId;
+  const wheelIdParam = Array.isArray(params.wheelId) ? params.wheelId[0] : params.wheelId;
+  const wheelId = wheelIdParam === "new" ? undefined : wheelIdParam;
   const wheelOptions = isPremium
     ? undefined
     : freePlanVehicleId === vehicleId
@@ -141,7 +144,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
         onPress: async () => {
           try {
             await deleteVehicleWheel(wheelId);
-            navigation.goBack();
+            router.back();
           } catch (e: any) {
             toastError(e?.message ?? t("common.error"));
           }
@@ -164,7 +167,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
   }
 
   async function onSave() {
-    if (!validateBeforeSave()) return;
+    if (!vehicleId || !validateBeforeSave()) return;
     try {
       setSaving(true);
       if (!wheelId && !isPremium) {
@@ -173,7 +176,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
           Alert.alert(
             t("limits.wheelLimitReachedTitle"),
             t("limits.wheelLimitReachedBody", { limit: wheelsPerVehicleLimit }),
-            getPremiumUpgradeAlertButtons(t, navigation),
+            getPremiumUpgradeAlertButtons(t, premiumNavigation),
           );
           return;
         }
@@ -185,14 +188,14 @@ export function WheelFormScreen({ navigation, route }: Props) {
       } else {
         await createVehicleWheel(payload);
       }
-      navigation.goBack();
+      router.back();
     } catch (e: any) {
       if (e?.message === "FITTED_WHEEL_LIMIT_REACHED") {
         Alert.alert(
           t("limits.fittedWheelLimitReachedTitle"),
           t("limits.fittedWheelLimitReachedBody"),
         );
-      } else if (handleAndShowLimitErrorAlert(e, t, navigation)) {
+      } else if (handleAndShowLimitErrorAlert(e, t, premiumNavigation)) {
         return;
       } else {
         toastError(e?.message ?? t("common.error"));
@@ -205,7 +208,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
   return (
     <ModalLayout
       title={wheelId ? t("wheelForm.editTitle") : t("wheelForm.addTitle")}
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      cancel={{ onPress: () => router.back(), label: t("common.cancel") }}
       done={{
         onPress: onSave,
         label: t("common.done"),

@@ -1,15 +1,15 @@
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useCallback, useMemo, useState } from "react";
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import type { FuelFiltersParams } from "../modal/FuelFiltersScreen";
-import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import { useScreenFocusReload } from "../../core/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { listFuelingEntries , deleteFuelingEntry } from "../../services/fuel/fuelingEntriesRepo";
 import type { FuelingEntry, GasStation } from "../../types/domain";
-import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
+import { useUnitDisplay } from "../../core/hooks/useUnitDisplay";
+import { useUserSettings } from "../../core/providers/UserSettingsProvider";
 import { toastError } from "../../ui/toast/toast";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import { EmptyState } from "../../ui/components/common/EmptyState";
@@ -17,9 +17,10 @@ import { FuelItem } from "../../ui/components/list/FuelItem";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { Alert } from "react-native";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
-
-export function FuelScreen({ route, navigation }: Props) {
+export function FuelScreen() {
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const router = useRouter();
   const { t } = useTranslation();
   const { settings } = useUserSettings();
 
@@ -37,10 +38,11 @@ export function FuelScreen({ route, navigation }: Props) {
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
+      if (!vehicleId) return;
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
-        const f = await listFuelingEntries(route.params.vehicleId);
+        const f = await listFuelingEntries(vehicleId);
         setFueling(f);
       } catch (err: any) {
         toastError(err?.message ?? t("common.error"));
@@ -48,7 +50,7 @@ export function FuelScreen({ route, navigation }: Props) {
         if (showLoading) setLoading(false);
       }
     },
-    [route.params.vehicleId, t],
+    [vehicleId, t],
   );
 
   useScreenFocusReload<FuelFiltersParams>({
@@ -74,23 +76,17 @@ export function FuelScreen({ route, navigation }: Props) {
     );
   }, [dateFrom, dateTo, stationFilter, minCost, maxCost]);
   const openFilters = useCallback(() => {
-    navigation.navigate("FuelFilters", {
-      vehicleId: route.params.vehicleId,
-      dateFrom,
-      dateTo,
-      stationFilter,
-      minCost,
-      maxCost,
-    });
-  }, [
-    navigation,
-    route.params.vehicleId,
-    dateFrom,
-    dateTo,
-    stationFilter,
-    minCost,
-    maxCost,
-  ]);
+    if (!vehicleId) return;
+    router.push(
+      routes.fuelFilters(vehicleId, {
+        dateFrom,
+        dateTo,
+        stationFilter,
+        minCost,
+        maxCost,
+      }),
+    );
+  }, [router, vehicleId, dateFrom, dateTo, stationFilter, minCost, maxCost]);
 
   const resetFilters = useCallback(() => {
     setDateFrom("");
@@ -101,10 +97,9 @@ export function FuelScreen({ route, navigation }: Props) {
   }, []);
 
   const openAddEntry = useCallback(() => {
-    navigation.navigate("FuelingEntryForm", {
-      vehicleId: route.params.vehicleId,
-    });
-  }, [navigation, route.params.vehicleId]);
+    if (!vehicleId) return;
+    router.push(routes.fuelingEntryForm(vehicleId));
+  }, [router, vehicleId]);
 
   const filteredFuelingList = useMemo(() => {
     const min = minCost.trim().length ? Number(minCost) : null;
@@ -191,7 +186,7 @@ export function FuelScreen({ route, navigation }: Props) {
   return (
     <HeaderLayout
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       actions={headerActions}
     >
       <CustomFlatList<FuelingEntry>
@@ -221,12 +216,10 @@ export function FuelScreen({ route, navigation }: Props) {
             fuelUnitLabel={fuelUnitLabel}
             cost={Number(entry.fuel_cost)}
             currency={currency}
-            onPress={() =>
-              navigation.navigate("FuelingEntryForm", {
-                vehicleId: route.params.vehicleId,
-                entryId: entry.id,
-              })
-            }
+            onPress={() => {
+              if (!vehicleId) return;
+              router.push(routes.fuelingEntryForm(vehicleId, entry.id));
+            }}
             onDelete={() => handleDeleteFueling(entry)}
           />
         )}

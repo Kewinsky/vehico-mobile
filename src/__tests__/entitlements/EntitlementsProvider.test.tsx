@@ -7,10 +7,10 @@ import Purchases from "react-native-purchases";
 import {
   EntitlementsProvider,
   useEntitlements,
-} from "../../app/providers/EntitlementsProvider";
+} from "../../core/providers/EntitlementsProvider";
 import { IAP_PRODUCT_IDS } from "../../../shared/payments/iapProducts";
 
-jest.mock("../../app/providers/AuthProvider", () => ({
+jest.mock("../../core/providers/AuthProvider", () => ({
   useAuth: () => ({
     user: {
       id: "user-1",

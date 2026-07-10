@@ -6,12 +6,12 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import QRCode from "react-native-qrcode-svg";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -20,13 +20,21 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Logo } from "../../ui/components/branding/Logo";
 
-type Props = NativeStackScreenProps<AppStackParamList, "PublicReportOptions">;
-
-export function PublicReportOptionsScreen({ navigation, route }: Props) {
+export function PublicReportOptionsScreen() {
+  const params = useLocalSearchParams<{
+    url: string;
+    vehicleId: string;
+    reportTitle?: string;
+    generatedAt?: string;
+  }>();
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { url, vehicleId, reportTitle, generatedAt } = route.params;
+  const url = Array.isArray(params.url) ? params.url[0] : params.url;
+  const vehicleId = Array.isArray(params.vehicleId) ? params.vehicleId[0] : params.vehicleId;
+  const reportTitle = Array.isArray(params.reportTitle) ? params.reportTitle[0] : params.reportTitle;
+  const generatedAt = Array.isArray(params.generatedAt) ? params.generatedAt[0] : params.generatedAt;
   const { width } = useWindowDimensions();
 
   const qrSize = useMemo(() => {
@@ -47,14 +55,15 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
 
   const handleBack = () => {
     // Try to go back first, if not possible, replace with PublicReport screen
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    } else {
-      navigation.replace("PublicReport", { vehicleId });
+    if (router.canGoBack()) {
+      router.back();
+    } else if (vehicleId) {
+      router.replace(routes.publicReport(vehicleId));
     }
   };
 
   async function handleOpenInBrowser() {
+    if (!url) return;
     try {
       const canOpen = await Linking.canOpenURL(url);
       if (canOpen) {
@@ -68,6 +77,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
   }
 
   async function handleShare() {
+    if (!url) return;
     try {
       await Share.share(Platform.OS === "ios" ? { url } : { message: url });
     } catch (e: any) {
@@ -96,7 +106,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
         <View style={styles.qrCenterWrap}>
           <View style={[styles.qrInner, { width: qrSize, height: qrSize }]}>
             <QRCode
-              value={url}
+              value={url ?? ""}
               size={qrSize}
               color={mode === "dark" ? "#ffffff" : "#000000"}
               backgroundColor={theme.colors.bg}
@@ -136,7 +146,7 @@ const makeStyles = (theme: any) =>
       justifyContent: "center",
     },
     qrLogoOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       alignItems: "center",
       justifyContent: "center",
     },

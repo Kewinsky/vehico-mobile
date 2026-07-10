@@ -7,13 +7,11 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
   FUEL_TYPE_OPTIONS,
   GAS_STATION_OPTIONS,
@@ -35,13 +33,12 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { Textarea } from "../../ui/components/common/Textarea";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Import">;
-
 const IMPORT_ENTRY_TYPES = ["service", "fuel", "workshop"] as const;
+
 type ImportEntryType = (typeof IMPORT_ENTRY_TYPES)[number];
 
 const SERVICE_CATEGORIES = [
@@ -95,12 +92,14 @@ function parseRequiredPositiveNumber(raw: string | undefined): number | null {
   return parsed;
 }
 
-export function ImportScreen({ navigation, route }: Props) {
+export function ImportScreen() {
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { isPremium } = useEntitlements();
-  const { vehicleId } = route.params;
 
   const [entryType, setEntryType] = useState<ImportEntryType>("service");
   const [csv, setCsv] = useState("");
@@ -150,6 +149,7 @@ export function ImportScreen({ navigation, route }: Props) {
 
   async function handleImportCsv() {
     try {
+      if (!vehicleId) return;
       if (importing) return;
       const raw = csv.trim();
       if (!raw) {
@@ -325,7 +325,7 @@ export function ImportScreen({ navigation, route }: Props) {
 
   return (
     <HeaderLayout
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       showProfileAvatar
       showShopIcon={!isPremium}
       footer={

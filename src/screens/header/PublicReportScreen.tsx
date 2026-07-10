@@ -1,33 +1,36 @@
 import { StyleSheet, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { CirclePlus, History } from "lucide-react-native";
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
+import { usePremiumNavigation } from "../../core/hooks/usePremiumNavigation";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { Tile } from "../../ui/components/common/Tile";
 import { showPremiumRequiredAlert } from "../../ui/limits/entitlementAlerts";
 
-type Props = NativeStackScreenProps<AppStackParamList, "PublicReport">;
-
-export function PublicReportScreen({ navigation, route }: Props) {
+export function PublicReportScreen() {
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const router = useRouter();
+  const premiumNavigation = usePremiumNavigation();
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { vehicleId } = route.params;
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const onGeneratePress = useCallback(() => {
+    if (!vehicleId) return;
     if (!isPremium) {
-      showPremiumRequiredAlert(t, navigation);
+      showPremiumRequiredAlert(t, premiumNavigation);
       return;
     }
-    navigation.navigate("PublicReportConfigure", { vehicleId });
-  }, [isPremium, navigation, t, vehicleId]);
+    router.push(routes.publicReportConfigure(vehicleId));
+  }, [isPremium, premiumNavigation, router, t, vehicleId]);
 
   const tiles = useMemo(
     () => [
@@ -39,17 +42,17 @@ export function PublicReportScreen({ navigation, route }: Props) {
       {
         key: "history",
         title: t("publicReport.historyButton"),
-        onPress: () =>
-          navigation.navigate("PublicReportHistory", {
-            vehicleId,
-          }),
+        onPress: () => {
+          if (!vehicleId) return;
+          router.push(routes.publicReportHistory(vehicleId));
+        },
       },
     ],
-    [t, navigation, vehicleId, onGeneratePress],
+    [t, router, vehicleId, onGeneratePress],
   );
 
   return (
-    <HeaderLayout onBack={() => navigation.goBack()} showProfileAvatar>
+    <HeaderLayout onBack={() => router.back()} showProfileAvatar>
       <NativeHeaderScrollView>
         <ContentHeader title={t("publicReport.title")} />
         <View style={styles.row}>

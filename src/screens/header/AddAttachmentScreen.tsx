@@ -1,14 +1,14 @@
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import type { AddAttachmentFiltersParams } from "../modal/AddAttachmentFiltersScreen";
 import type { ServiceEntry } from "../../types/domain";
-import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import { useScreenFocusReload } from "../../core/useScreenFocusReload";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { uploadAttachment } from "../../services/attachments/attachmentsRepo";
 import { HeaderLayout } from "../../layouts";
@@ -20,13 +20,13 @@ import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 
-type Props = NativeStackScreenProps<AppStackParamList, "AddAttachment">;
-
-export function AddAttachmentScreen({ navigation, route }: Props) {
+export function AddAttachmentScreen() {
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId } = route.params;
 
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +39,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
 
   const load = useCallback(
     async (opts?: { refreshing?: boolean }) => {
+      if (!vehicleId) return;
       try {
         if (opts?.refreshing) setRefreshing(true);
         else setLoading(true);
@@ -65,8 +66,9 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
   const hasActiveFilters = sortOption !== "date-newest";
 
   const openFilters = useCallback(() => {
-    navigation.navigate("AddAttachmentFilters", { vehicleId, sortOption });
-  }, [navigation, sortOption, vehicleId]);
+    if (!vehicleId) return;
+    router.push(routes.addAttachmentFilters(vehicleId, { sortOption }));
+  }, [router, sortOption, vehicleId]);
 
   const resetFilters = useCallback(() => {
     setSortOption("date-newest");
@@ -76,6 +78,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     serviceEntryId: string,
     file: { uri: string; mimeType?: string | null; fileName?: string | null },
   ) {
+    if (!vehicleId) return;
     await uploadAttachment({
       serviceEntryId,
       vehicleId,
@@ -122,7 +125,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         mimeType: asset.mimeType,
         fileName: asset.fileName,
       });
-      navigation.goBack();
+      router.back();
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -148,7 +151,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         mimeType: asset.mimeType,
         fileName: asset.fileName,
       });
-      navigation.goBack();
+      router.back();
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -172,7 +175,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         mimeType: asset.mimeType,
         fileName: asset.name,
       });
-      navigation.goBack();
+      router.back();
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {
@@ -229,7 +232,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
   return (
     <HeaderLayout
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       actions={headerActions}
     >
       <CustomFlatList<ServiceEntry>

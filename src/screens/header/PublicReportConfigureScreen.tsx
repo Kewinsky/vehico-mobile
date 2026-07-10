@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 import { DraggableGrid } from "react-native-draggable-grid";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listMileageAudit } from "../../services/mileage/mileageAuditRepo";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
@@ -41,13 +41,11 @@ import { ReportOptionsCard } from "../../ui/components/common/ReportOptionsCard"
 import { ReportOptionsActionsBar } from "../../ui/components/common/ReportOptionsActionsBar";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
+import { useUserSettings } from "../../core/providers/UserSettingsProvider";
 import { getUnitDisplay } from "../../utils/unitGroups";
 import { toastError } from "../../ui/toast/toast";
 
 const MAX_PHOTOS = 40;
-
-type Props = NativeStackScreenProps<AppStackParamList, "PublicReportConfigure">;
 
 type LocalReportPhoto = {
   id: string;
@@ -66,12 +64,14 @@ type PhotoItem = {
   displayOrder: number;
 };
 
-export function PublicReportConfigureScreen({ navigation, route }: Props) {
+export function PublicReportConfigureScreen() {
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId } = route.params;
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [vehiclePhotos, setVehiclePhotos] = useState<VehiclePhoto[]>([]);
@@ -124,6 +124,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   const [isDragging, setIsDragging] = useState(false);
 
   const load = useCallback(async () => {
+    if (!vehicleId) return;
     try {
       setLoading(true);
       const [v, photos, fuelings, serviceEntries, mileageAudit, tires, wheels] =
@@ -489,46 +490,50 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   );
 
   function handleNext() {
-    navigation.navigate("PublicReportSummary", {
-      vehicleId,
-      reportOptions: {
-        include_technical_data: includeTechnicalData,
-        include_insurance: includeInsurance,
-        include_inspection: includeInspection,
-        include_notes: includeNotes,
-        include_wheels: includeWheels,
-        include_tires: includeTires,
-        include_service_history: includeServiceHistory,
-        include_service_stats: includeServiceStats,
-        include_fueling_stats: includeFuelingStats,
-        include_expenses_by_category_chart: includeExpensesByCategoryChart,
-        include_expenses_over_time_chart: includeExpensesOverTimeChart,
-        include_mileage_over_time_chart: includeMileageOverTimeChart,
-        include_photos: includePhotos,
-        distance_unit: getUnitDisplay(settings).distanceUnit,
-        fuel_unit: getUnitDisplay(settings).fuelUnit,
-        currency: settings?.currency ?? "PLN",
-      },
-      reportPhotos: includePhotos
-        ? allPhotos.map((item, index) => {
-            if (item.kind === "vehicle" && item.photoId) {
-              return {
-                kind: "vehicle" as const,
-                vehiclePhotoId: item.photoId,
-                displayOrder: index,
-              };
-            }
-            const local = localPhotos.find((p) => p.id === item.localId);
+    if (!vehicleId) return;
+    const reportOptions = {
+      include_technical_data: includeTechnicalData,
+      include_insurance: includeInsurance,
+      include_inspection: includeInspection,
+      include_notes: includeNotes,
+      include_wheels: includeWheels,
+      include_tires: includeTires,
+      include_service_history: includeServiceHistory,
+      include_service_stats: includeServiceStats,
+      include_fueling_stats: includeFuelingStats,
+      include_expenses_by_category_chart: includeExpensesByCategoryChart,
+      include_expenses_over_time_chart: includeExpensesOverTimeChart,
+      include_mileage_over_time_chart: includeMileageOverTimeChart,
+      include_photos: includePhotos,
+      distance_unit: getUnitDisplay(settings).distanceUnit,
+      fuel_unit: getUnitDisplay(settings).fuelUnit,
+      currency: settings?.currency ?? "PLN",
+    };
+    const reportPhotos = includePhotos
+      ? allPhotos.map((item, index) => {
+          if (item.kind === "vehicle" && item.photoId) {
             return {
-              kind: "local" as const,
-              fileUri: local?.fileUri ?? item.url,
+              kind: "vehicle" as const,
+              vehiclePhotoId: item.photoId,
               displayOrder: index,
-              mimeType: local?.mimeType,
-              fileName: local?.fileName,
             };
-          })
-        : [],
-    });
+          }
+          const local = localPhotos.find((p) => p.id === item.localId);
+          return {
+            kind: "local" as const,
+            fileUri: local?.fileUri ?? item.url,
+            displayOrder: index,
+            mimeType: local?.mimeType,
+            fileName: local?.fileName,
+          };
+        })
+      : [];
+    router.push(
+      routes.publicReportSummary(vehicleId, {
+        reportOptions: JSON.stringify(reportOptions),
+        reportPhotos: JSON.stringify(reportPhotos),
+      }),
+    );
   }
 
   const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
@@ -536,7 +541,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   return (
     <HeaderContentScreen
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       showProfileAvatar
       footer={
         <Button onPress={handleNext}>{t("publicReport.nextButton")}</Button>

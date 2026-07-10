@@ -11,8 +11,8 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { HeaderButton } from "@react-navigation/elements";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { HeaderButton } from "expo-router/react-navigation";
 import { useTranslation } from "react-i18next";
 import { Hash, CalendarCheck, Fuel } from "lucide-react-native";
 import {
@@ -24,7 +24,7 @@ import * as Clipboard from "expo-clipboard";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import { useSharedValue } from "react-native-reanimated";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import type { Vehicle } from "../../types/domain";
 import {
   deleteVehicle,
@@ -38,15 +38,13 @@ import { HeaderLayout } from "../../layouts";
 import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import { useUnitDisplay } from "../../core/hooks/useUnitDisplay";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
+import { useScreenFocusReload } from "../../core/useScreenFocusReload";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { groupThousands } from "../../utils/numberFormatting";
-
-type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicle">;
 
 type VehicleCarouselProps = {
   photoUrls: string[];
@@ -180,7 +178,8 @@ function DetailItem({ icon, label, value }: DetailItemProps) {
   );
 }
 
-export function ManageVehicleScreen({ navigation, route }: Props) {
+export function ManageVehicleScreen() {
+  const router = useRouter();
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const {
@@ -189,7 +188,8 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
     refresh: refreshEntitlements,
   } = useEntitlements();
   const styles = makeStyles(theme);
-  const { vehicleId } = route.params;
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
   const { distanceUnitLabel } = useUnitDisplay();
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
@@ -204,6 +204,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
+      if (!vehicleId) return;
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
@@ -241,6 +242,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   }
 
   async function onDeleteVehicle() {
+    if (!vehicleId) return;
     Alert.alert(
       t("manageVehicle.deleteVehicleTitle"),
       t("manageVehicle.deleteVehicleBody"),
@@ -252,7 +254,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
           onPress: async () => {
             try {
               await deleteVehicle(vehicleId);
-              navigation.popToTop();
+              router.dismissTo(routes.home());
             } catch (e: any) {
               toastError(e?.message ?? t("common.error"));
             }
@@ -263,12 +265,12 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   }
 
   function openActions() {
-    if (!vehicle) return;
+    if (!vehicle || !vehicleId) return;
     Alert.alert(t("dashboard.tiles.manageTitle"), "", [
       { text: t("common.cancel"), style: "cancel" },
       {
         text: t("common.edit"),
-        onPress: () => navigation.navigate("VehicleForm", { vehicleId }),
+        onPress: () => router.push(routes.vehicleForm(vehicleId)),
       },
       {
         text: t("common.delete"),
@@ -294,7 +296,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
 
   return (
     <HeaderLayout
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       right={headerRight}
       paddingHorizontal={false}
     >

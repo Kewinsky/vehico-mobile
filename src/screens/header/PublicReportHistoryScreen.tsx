@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Alert, Animated, StyleSheet, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { SquarePen, Trash2 } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import type { PublicReportSnapshot, Vehicle } from "../../types/domain";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import {
@@ -25,19 +25,20 @@ import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { i18n } from "../../i18n/i18n";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 
-type Props = NativeStackScreenProps<AppStackParamList, "PublicReportHistory">;
-
-export function PublicReportHistoryScreen({ navigation, route }: Props) {
+export function PublicReportHistoryScreen() {
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId } = route.params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [reports, setReports] = useState<PublicReportSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadVehicle = useCallback(async () => {
+    if (!vehicleId) return;
     try {
       const v = await getVehicle(vehicleId);
       setVehicle(v);
@@ -53,6 +54,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
   const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model}` : "";
 
   const loadReports = useCallback(async () => {
+    if (!vehicleId) return;
     try {
       setLoading(true);
       const loaded = await listPublicPages(vehicleId);
@@ -69,6 +71,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
   }, [loadReports]);
 
   async function handleRefresh() {
+    if (!vehicleId) return;
     try {
       setRefreshing(true);
       const loaded = await listPublicPages(vehicleId);
@@ -127,15 +130,17 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
   }
 
   async function handleReportPress(report: PublicReportSnapshot) {
+    if (!vehicleId) return;
     try {
       const url = await getPublicPageUrl(report.public_id);
-      navigation.navigate("PublicReportOptions", {
-        url,
-        vehicleTitle,
-        vehicleId,
-        reportTitle: report.title,
-        generatedAt: `${t("share.generatedOn")} ${formatShortDisplayDate(report.created_at, i18n.language)}`,
-      });
+      router.push(
+        routes.publicReportOptions(vehicleId, {
+          url,
+          vehicleTitle,
+          reportTitle: report.title,
+          generatedAt: `${t("share.generatedOn")} ${formatShortDisplayDate(report.created_at, i18n.language)}`,
+        }),
+      );
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     }
@@ -167,7 +172,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
   return (
     <HeaderLayout
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       showProfileAvatar
     >
       <View style={styles.listWrap}>

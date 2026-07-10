@@ -1,4 +1,4 @@
-import type { UserSettings } from "../app/providers/UserSettingsProvider";
+import type { UserSettings } from "../core/providers/UserSettingsProvider";
 
 export type UnitGroupId = "metric" | "european" | "uk" | "imperial";
 

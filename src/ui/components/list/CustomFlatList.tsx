@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { FlatList, FlatListProps, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { useHeaderHeight } from "expo-router/react-navigation";
 
 import { useTheme } from "../../ThemeProvider";
 import { MonthYearSeparator } from "./MonthYearSeparator";

@@ -1,11 +1,12 @@
 import { Alert, StyleSheet, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useCallback, useMemo, useState } from "react";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
+import { usePremiumNavigation } from "../../core/hooks/usePremiumNavigation";
 import type { VehicleWheel } from "../../types/domain";
-import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import { useScreenFocusReload } from "../../core/useScreenFocusReload";
 import {
   deleteVehicleWheel,
   listVehicleWheels,
@@ -16,21 +17,22 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import { WheelItem } from "../../ui/components/list/WheelItem";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 
-type Props = NativeStackScreenProps<AppStackParamList, "WheelsList">;
-
-export function WheelsListScreen({ route, navigation }: Props) {
+export function WheelsListScreen() {
+  const router = useRouter();
+  const premiumNavigation = usePremiumNavigation();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
-  const { vehicleId } = route.params;
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
   const {
     isPremium,
     wheelsPerVehicleLimit,
@@ -59,6 +61,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
+      if (!vehicleId) return;
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
@@ -138,18 +141,20 @@ export function WheelsListScreen({ route, navigation }: Props) {
   );
 
   const onAddWheelPress = useCallback(() => {
+    if (!vehicleId) return;
     if (!isPremium && wheels.length >= wheelsPerVehicleLimit) {
       Alert.alert(
         t("limits.wheelLimitReachedTitle"),
         t("limits.wheelLimitReachedBody", { limit: wheelsPerVehicleLimit }),
-        getPremiumUpgradeAlertButtons(t, navigation),
+        getPremiumUpgradeAlertButtons(t, premiumNavigation),
       );
       return;
     }
-    navigation.navigate("WheelForm", { vehicleId });
+    router.push(routes.wheelForm(vehicleId));
   }, [
     isPremium,
-    navigation,
+    premiumNavigation,
+    router,
     t,
     vehicleId,
     wheels.length,
@@ -169,7 +174,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
   return (
     <HeaderLayout
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       actions={headerActions}
     >
       <View style={styles.listWrap}>
@@ -184,12 +189,10 @@ export function WheelsListScreen({ route, navigation }: Props) {
           renderItem={({ item }) => (
             <WheelItem
               wheel={item}
-              onPress={() =>
-                navigation.navigate("WheelForm", {
-                  vehicleId,
-                  wheelId: item.id,
-                })
-              }
+              onPress={() => {
+                if (!vehicleId) return;
+                router.push(routes.wheelForm(vehicleId, item.id));
+              }}
               onToggleInUse={() => void handleToggleInUse(item)}
               onDelete={() => handleDeleteWheel(item)}
             />

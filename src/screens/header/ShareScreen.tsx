@@ -1,23 +1,23 @@
 import { StyleSheet, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { Tile } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Share">;
-
-export function ShareScreen({ navigation, route }: Props) {
+export function ShareScreen() {
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId } = route.params;
 
   const tiles = useMemo(
     () => [
@@ -25,20 +25,26 @@ export function ShareScreen({ navigation, route }: Props) {
         key: "report",
         title: t("share.onlineReport"),
         icon: "globe-outline" as const,
-        onPress: () => navigation.navigate("PublicReport", { vehicleId }),
+        onPress: () => {
+          if (!vehicleId) return;
+          router.push(routes.publicReport(vehicleId));
+        },
       },
       {
         key: "marketplace",
         title: t("share.marketplacePost"),
         icon: "pricetag" as const,
-        onPress: () => navigation.navigate("Marketplace", { vehicleId }),
+        onPress: () => {
+          if (!vehicleId) return;
+          router.push(routes.marketplace(vehicleId));
+        },
       },
     ],
-    [t, navigation, vehicleId],
+    [t, router, vehicleId],
   );
 
   return (
-    <HeaderLayout onBack={() => navigation.goBack()} showProfileAvatar>
+    <HeaderLayout onBack={() => router.back()} showProfileAvatar>
       <NativeHeaderScrollView>
         <ContentHeader title={t("dashboard.tiles.shareTitle")} />
         <View style={styles.row}>

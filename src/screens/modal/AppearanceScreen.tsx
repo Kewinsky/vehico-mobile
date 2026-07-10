@@ -1,14 +1,13 @@
 import { StyleSheet, Text, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import type { TFunction } from "i18next";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { ModalLayout } from "../../layouts";
-import type { UserSettings } from "../../app/providers/UserSettingsProvider";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
+import type { UserSettings } from "../../core/providers/UserSettingsProvider";
+import { useUserSettings } from "../../core/providers/UserSettingsProvider";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { Card } from "../../ui/components/common/Card";
@@ -20,8 +19,6 @@ import {
   settingsPatchForUnitGroup,
   type UnitGroupId,
 } from "../../utils/unitGroups";
-
-type Props = NativeStackScreenProps<AppStackParamList, "Appearance">;
 
 type Option<V extends string> = { value: V; label: string };
 
@@ -77,7 +74,8 @@ function buildCardConfig(t: TFunction): {
   ];
 }
 
-export function AppearanceScreen({ navigation }: Props) {
+export function AppearanceScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings, setSettings } = useUserSettings();
@@ -124,7 +122,7 @@ export function AppearanceScreen({ navigation }: Props) {
   return (
     <ModalLayout
       title={t("settings.appearanceButton")}
-      cancel={{ onPress: () => navigation.goBack(), label: t("common.cancel") }}
+      cancel={{ onPress: () => router.back(), label: t("common.cancel") }}
       loading={!settings}
       useNativeHeaderScrollView
     >

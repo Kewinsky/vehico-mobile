@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -18,7 +18,8 @@ import * as ImagePicker from "expo-image-picker";
 import * as Notifications from "expo-notifications";
 import { StatusBar } from "expo-status-bar";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
+import { usePremiumNavigation } from "../../core/hooks/usePremiumNavigation";
 import { OnboardingLayout } from "../../layouts";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
@@ -39,7 +40,7 @@ import {
   listVehicles,
 } from "../../services/vehicles/vehiclesRepo";
 import { uploadVehiclePhoto } from "../../services/vehicles/uploadPhoto";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import { supabase } from "../../services/supabase/client";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import {
@@ -47,15 +48,13 @@ import {
   handleAndShowLimitErrorAlert,
 } from "../../ui/limits/entitlementAlerts";
 import { groupThousands } from "../../utils/numberFormatting";
-import { useAuth } from "../../app/providers/AuthProvider";
-import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
+import { useAuth } from "../../core/providers/AuthProvider";
+import { useUnitDisplay } from "../../core/hooks/useUnitDisplay";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { Logo } from "../../ui/components/branding/Logo";
 import { Card } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { Glow } from "../../ui/components/dashboard/Glow";
-
-type Props = NativeStackScreenProps<AppStackParamList, "Onboarding">;
 
 type PhotoFile = {
   uri: string;
@@ -67,7 +66,9 @@ const TOTAL_STEPS = 6;
 const LAST_STEP_INDEX = TOTAL_STEPS - 1;
 const PROGRESS_STEPS = TOTAL_STEPS - 1; // don't count welcome step
 
-export function OnboardingScreen({ navigation }: Props) {
+export function OnboardingScreen() {
+  const router = useRouter();
+  const premiumNavigation = usePremiumNavigation();
   const { t, i18n } = useTranslation();
   const { theme, mode } = useTheme();
   const insets = useSafeAreaInsets();
@@ -218,7 +219,7 @@ export function OnboardingScreen({ navigation }: Props) {
         Alert.alert(
           t("limits.vehicleLimitReachedTitle"),
           t("limits.vehicleLimitReachedBody", { limit: vehiclesLimit }),
-          getPremiumUpgradeAlertButtons(t, navigation),
+          getPremiumUpgradeAlertButtons(t, premiumNavigation),
         );
         return null;
       }
@@ -236,7 +237,7 @@ export function OnboardingScreen({ navigation }: Props) {
         mileage: mileage.trim().length ? Number(mileage.trim()) : null,
       });
     } catch (e: any) {
-      if (handleAndShowLimitErrorAlert(e, t, navigation)) return null;
+      if (handleAndShowLimitErrorAlert(e, t, premiumNavigation)) return null;
       toastError(e?.message ?? t("common.error"));
       return null;
     }
@@ -359,7 +360,7 @@ export function OnboardingScreen({ navigation }: Props) {
       }
 
       toastSuccess(t("onboarding.complete.doneToast"));
-      navigation.replace("Vehicles");
+      router.replace(routes.home());
     } catch (e: any) {
       toastError(e?.message ?? t("common.error"));
     } finally {

@@ -1,15 +1,13 @@
-import type {
-  NativeStackNavigationProp,
-  NativeStackScreenProps,
-} from "@react-navigation/native-stack";
-import { useNavigation } from "@react-navigation/native";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, View, useWindowDimensions } from "react-native";
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { routes } from "../../core/navigation/routes";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
+import { useUnitDisplay } from "../../core/hooks/useUnitDisplay";
+import { useUserSettings } from "../../core/providers/UserSettingsProvider";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listMileageAudit } from "../../services/mileage/mileageAuditRepo";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
@@ -24,13 +22,12 @@ import type {
   Workshop,
 } from "../../types/domain";
 import { SERVICE_CATEGORY_COLORS } from "../../ui/theme/serviceCategoryColors";
-import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/layout/ContentHeader";
+import { AppLayout } from "../../ui/components/layout/AppLayout";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
-import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import { useScreenFocusReload } from "../../core/useScreenFocusReload";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { groupThousands } from "../../utils/numberFormatting";
 import {
@@ -65,18 +62,13 @@ import {
 } from "./vehicleDashboard/stats/charts/charts";
 import { useStatsPanelStyles } from "./vehicleDashboard/stats/statsPanelStyles";
 
-type ScreenProps = NativeStackScreenProps<AppStackParamList, "Statistics">;
-type EmbeddedProps = {
-  vehicleId: string;
-  embedded: true;
-};
-type Props = ScreenProps | EmbeddedProps;
-
-function isEmbeddedProps(props: Props): props is EmbeddedProps {
-  return "embedded" in props && props.embedded === true;
-}
-
-export function StatisticsScreen(props: Props) {
+export default function StatisticsScreen() {
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam)
+    ? vehicleIdParam[0]
+    : (vehicleIdParam ?? "");
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const chartLocale = i18n.language === "pl" ? "pl" : "en";
   const formatChartMonth = (key: string) =>
@@ -86,10 +78,6 @@ export function StatisticsScreen(props: Props) {
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const { width: windowWidth } = useWindowDimensions();
-  const embedded = isEmbeddedProps(props);
-  const vehicleId = embedded ? props.vehicleId : props.route.params.vehicleId;
-  const navigation =
-    useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const { isPremium, refresh: refreshEntitlements } = useEntitlements();
 
   const [period, setPeriod] = useState<PeriodKey>("3m");
@@ -117,6 +105,7 @@ export function StatisticsScreen(props: Props) {
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
+      if (!vehicleId) return;
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
@@ -591,20 +580,12 @@ export function StatisticsScreen(props: Props) {
     : undefined;
 
   const navigateToServiceHistory = useCallback(() => {
-    if (embedded) {
-      navigation.navigate("ServiceHistory", { vehicleId });
-      return;
-    }
-    props.navigation.navigate("ServiceHistory", { vehicleId });
-  }, [embedded, navigation, props, vehicleId]);
+    router.push(routes.serviceHistory(vehicleId));
+  }, [router, vehicleId]);
 
   const navigateToFuel = useCallback(() => {
-    if (embedded) {
-      navigation.navigate("Fuel", { vehicleId });
-      return;
-    }
-    props.navigation.navigate("Fuel", { vehicleId });
-  }, [embedded, navigation, props, vehicleId]);
+    router.push(routes.fuel(vehicleId));
+  }, [router, vehicleId]);
 
   const showChartInfo = useCallback(
     (
@@ -712,6 +693,7 @@ export function StatisticsScreen(props: Props) {
       onChange={setPeriod}
       size="sm"
       variant="secondary"
+      preferFallback
     />
   );
 
@@ -743,9 +725,9 @@ export function StatisticsScreen(props: Props) {
 
   const onServiceEntryPress = useCallback(
     (entryId: string) => {
-      navigation.navigate("ServiceEntryForm", { entryId, vehicleId });
+      router.push(routes.serviceEntryForm(vehicleId, entryId));
     },
-    [navigation, vehicleId],
+    [router, vehicleId],
   );
 
   const panelProps: StatisticsPanelProps = {
@@ -756,9 +738,7 @@ export function StatisticsScreen(props: Props) {
     currency,
     period,
     vehicleId,
-    embedded,
     isPremium,
-    navigation,
     onServiceEntryPress,
     totals,
     formatStatNumber,
@@ -825,31 +805,25 @@ export function StatisticsScreen(props: Props) {
 
   const cardContent = <StatisticsPanelContent {...panelProps} />;
 
-  if (embedded) {
-    return (
-      <View style={{ paddingBottom: theme.spacing.xl }}>
-        {filterPanelContent}
-        {cardContent}
-      </View>
-    );
-  }
-
   return (
-    <HeaderLayout
+    <AppLayout
       loading={loading}
-      onBack={() => props.navigation.goBack()}
-      showProfileAvatar
-      showShopIcon={!isPremium}
+      ready
+      useNativeHeader
+      useHorizontalContentInset={false}
     >
       <NativeHeaderScrollView
-        contentContainerStyle={{ paddingBottom: theme.spacing.xl }}
+        paddingHorizontal={false}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
+        contentContainerStyle={{
+          paddingHorizontal: theme.layout.contentPaddingHorizontal,
+          paddingBottom: Math.max(theme.spacing.xl, insets.bottom + theme.spacing.md),
+        }}
       >
-        <ContentHeader
-          title={t("dashboard.stats.title")}
-          filterPanel={filterPanelContent}
-        />
+        {filterPanelContent}
         {cardContent}
       </NativeHeaderScrollView>
-    </HeaderLayout>
+    </AppLayout>
   );
 }

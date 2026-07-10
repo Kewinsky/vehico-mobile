@@ -7,9 +7,12 @@ import {
   Text,
   View,
 } from "react-native";
-import { Picker as ComposePicker } from "@expo/ui/jetpack-compose";
-import { Host, Picker as SwiftUIPicker } from "@expo/ui/swift-ui";
-import { frame } from "@expo/ui/swift-ui/modifiers";
+import {
+  SegmentedButton,
+  SingleChoiceSegmentedButtonRow,
+} from "@expo/ui/jetpack-compose";
+import { Host, Picker, Text as SwiftUIText } from "@expo/ui/swift-ui";
+import { frame, pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 
 import { useTheme } from "../../ThemeProvider";
 import { hexToRgba } from "./ChoiceChip";
@@ -25,6 +28,8 @@ type Props<T extends string> = {
   onChange: (next: T) => void;
   size?: "sm" | "md";
   variant?: Variant;
+  /** Use JS tabs instead of native pickers (e.g. inside nested scroll/pager). */
+  preferFallback?: boolean;
 };
 
 type Variant = "default" | "secondary";
@@ -129,7 +134,8 @@ function SegmentTabsFallback<T extends string>({
 const NATIVE_SEGMENT_HEIGHT = 44;
 
 export function SegmentTabs<T extends string>(props: Props<T>) {
-  const { value, options, onChange, variant = "default" } = props;
+  const { value, options, onChange, variant = "default", preferFallback = false } =
+    props;
   const { theme, mode: themeMode } = useTheme();
   const styles = useMemo(() => makeNativeStyles(), []);
 
@@ -165,7 +171,7 @@ export function SegmentTabs<T extends string>(props: Props<T>) {
     [theme, variant],
   );
 
-  if (!supportsNativeSegmentTabs()) {
+  if (preferFallback || !supportsNativeSegmentTabs()) {
     return <SegmentTabsFallback {...props} />;
   }
 
@@ -177,15 +183,19 @@ export function SegmentTabs<T extends string>(props: Props<T>) {
           colorScheme={themeMode === "dark" ? "dark" : "light"}
           style={styles.nativeHost}
         >
-          <SwiftUIPicker
-            variant="segmented"
-            options={pickerOptions}
-            selectedIndex={selectedIndex}
-            onOptionSelected={({ nativeEvent }) => {
-              handleSelect(nativeEvent.index);
+          <Picker
+            selection={selectedIndex}
+            onSelectionChange={(selection) => {
+              handleSelect(Number(selection));
             }}
-            modifiers={[frame({ maxWidth: 10_000 })]}
-          />
+            modifiers={[pickerStyle("segmented"), frame({ maxWidth: 10_000 })]}
+          >
+            {pickerOptions.map((label, index) => (
+              <SwiftUIText key={`${label}-${index}`} modifiers={[tag(index)]}>
+                {label}
+              </SwiftUIText>
+            ))}
+          </Picker>
         </Host>
       </View>
     );
@@ -193,16 +203,20 @@ export function SegmentTabs<T extends string>(props: Props<T>) {
 
   return (
     <View style={styles.wrap}>
-      <ComposePicker
-        variant="segmented"
-        style={styles.nativeHost}
-        options={pickerOptions}
-        selectedIndex={selectedIndex}
-        elementColors={androidElementColors}
-        onOptionSelected={({ nativeEvent }) => {
-          handleSelect(nativeEvent.index);
-        }}
-      />
+      <View style={styles.nativeHost}>
+        <SingleChoiceSegmentedButtonRow>
+          {options.map((option, index) => (
+            <SegmentedButton
+              key={option.value}
+              selected={selectedIndex === index}
+              onClick={() => handleSelect(index)}
+              colors={androidElementColors}
+            >
+              <SegmentedButton.Label>{option.label}</SegmentedButton.Label>
+            </SegmentedButton>
+          ))}
+        </SingleChoiceSegmentedButtonRow>
+      </View>
     </View>
   );
 }
@@ -216,43 +230,44 @@ const makeNativeStyles = () =>
       minHeight: NATIVE_SEGMENT_HEIGHT,
     },
     nativeHost: {
-      width: "100%",
-      minHeight: NATIVE_SEGMENT_HEIGHT,
       alignSelf: "stretch",
+      width: "100%",
+      minWidth: 0,
+      minHeight: NATIVE_SEGMENT_HEIGHT,
     },
   });
 
 const makeFallbackStyles = (theme: any, variant: Variant) =>
   StyleSheet.create({
     wrap: {
-      alignSelf: "stretch",
-      width: "100%",
-      minWidth: 0,
+      position: "relative",
       flexDirection: "row",
-      borderRadius: 999,
+      borderRadius: theme.radius.xl,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      backgroundColor: variant === "secondary" ? theme.colors.card : theme.colors.bg,
       padding: 3,
-      backgroundColor:
-        variant === "secondary" ? theme.colors.card : theme.colors.bg,
-    },
-    tab: {
-      flex: 1,
-      borderRadius: 999,
-      paddingVertical: theme.spacing.xs - 2,
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 1,
+      overflow: "hidden",
     },
     thumb: {
       position: "absolute",
-      borderRadius: 999,
+      borderRadius: theme.radius.lg,
       borderWidth: 1,
     },
-    textMd: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.bold,
+    tab: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.xs,
+      zIndex: 1,
     },
     textSm: {
       fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    textMd: {
+      fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
     },
   });

@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import type { VehicleTire, VehicleWheel } from "../../types/domain";
 import {
   listVehicleTires,
@@ -17,15 +17,14 @@ import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScr
 import { Tile } from "../../ui/components/common/Tile";
 import { Card, CardRow } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
+import { useScreenFocusReload } from "../../core/useScreenFocusReload";
 import { toastError } from "../../ui/toast/toast";
 import { RimIcon } from "../../ui/components/icons/RimIcon";
 import { TireIcon } from "../../ui/components/icons/TireIcon";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Wheels">;
-
-export function WheelsOverviewScreen({ navigation, route }: Props) {
+export function WheelsOverviewScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const {
@@ -38,7 +37,8 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
     refresh: refreshEntitlements,
   } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId } = route.params;
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
   const tireOpts = useMemo(
     () =>
       isPremium
@@ -76,6 +76,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
+      if (!vehicleId) return;
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
@@ -116,13 +117,19 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
         <Tile
           title={t("wheels.tiresSection")}
           icon={<TireIcon size={32} color={theme.colors.accent} />}
-          onPress={() => navigation.navigate("TiresList", { vehicleId })}
+          onPress={() => {
+            if (!vehicleId) return;
+            router.push(routes.tiresList(vehicleId));
+          }}
           minHeight={110}
         />
         <Tile
           title={t("wheels.rimsSection")}
           icon={<RimIcon size={32} color={theme.colors.accent} />}
-          onPress={() => navigation.navigate("WheelsList", { vehicleId })}
+          onPress={() => {
+            if (!vehicleId) return;
+            router.push(routes.wheelsList(vehicleId));
+          }}
           minHeight={110}
         />
       </View>
@@ -192,7 +199,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
   return (
     <HeaderContentScreen
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       showShopIcon={!isPremium}
       title={t("wheels.title")}
     >

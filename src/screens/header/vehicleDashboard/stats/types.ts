@@ -1,8 +1,6 @@
 import type { TFunction, i18n as I18nInstance } from "i18next";
 import type { Dispatch, SetStateAction } from "react";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import type { AppStackParamList } from "../../../../app/navigation/RootNavigator";
 import type { AppTheme } from "../../../../ui/theme";
 import type { ServiceEntry, Workshop } from "../../../../types/domain";
 import type { StatsPanelStyles } from "./statsPanelStyles";
@@ -17,9 +15,7 @@ export type StatisticsPanelProps = {
   currency: string;
   period: PeriodKey;
   vehicleId: string;
-  embedded: boolean;
   isPremium: boolean;
-  navigation: NativeStackNavigationProp<AppStackParamList>;
   onServiceEntryPress: (entryId: string) => void;
   totals: {
     total: number;

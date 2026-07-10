@@ -5,7 +5,7 @@ import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../common/SwipeActions";
 import { useTranslation } from "react-i18next";
 
-import { useUnitDisplay } from "../../../app/hooks/useUnitDisplay";
+import { useUnitDisplay } from "../../../core/hooks/useUnitDisplay";
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
 import { groupThousands } from "../../../utils/numberFormatting";

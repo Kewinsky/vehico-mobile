@@ -1,7 +1,7 @@
 import React from "react";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
-import { AuthProvider, useAuth } from "../../app/providers/AuthProvider";
+import { AuthProvider, useAuth } from "../../core/providers/AuthProvider";
 import { supabase } from "../../test/supabaseMock";
 
 function wrapper({ children }: { children: React.ReactNode }) {

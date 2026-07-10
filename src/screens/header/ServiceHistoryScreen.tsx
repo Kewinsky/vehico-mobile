@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 import { Alert, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import type {
   ServiceEntry,
   ServiceEntryCategory,
@@ -20,20 +20,20 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { ServiceItem } from "../../ui/components/list/ServiceItem";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
-import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import { useUserSettings } from "../../core/providers/UserSettingsProvider";
+import { useScreenFocusReload } from "../../core/useScreenFocusReload";
 import { toastError } from "../../ui/toast/toast";
 import { SERVICE_CATEGORY_ICON_BACKGROUND } from "../../ui/theme/serviceCategoryColors";
 import { ServiceCategoryIcon } from "../../ui/components/service/ServiceCategoryIcon";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 
-type Props = NativeStackScreenProps<AppStackParamList, "ServiceHistory">;
-
-export function ServiceHistoryScreen({ navigation, route }: Props) {
+export function ServiceHistoryScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { settings } = useUserSettings();
-  const { vehicleId } = route.params;
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [workshopsById, setWorkshopsById] = useState<Record<string, Workshop>>(
     {},
@@ -61,6 +61,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
 
   const load = useCallback(
     async (opts?: { refreshing?: boolean; showLoading?: boolean }) => {
+      if (!vehicleId) return;
       try {
         if (opts?.showLoading !== false) {
           if (opts?.refreshing) setRefreshing(true);
@@ -127,17 +128,19 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   }, [categoryFilter, dateFrom, dateTo, minCost, maxCost]);
 
   const openFilters = useCallback(() => {
-    navigation.navigate("ServiceHistoryFilters", {
-      vehicleId,
-      categoryFilter,
-      dateFrom,
-      dateTo,
-      minCost,
-      maxCost,
-      sortOption,
-    });
+    if (!vehicleId) return;
+    router.push(
+      routes.serviceHistoryFilters(vehicleId, {
+        categoryFilter,
+        dateFrom,
+        dateTo,
+        minCost,
+        maxCost,
+        sortOption,
+      }),
+    );
   }, [
-    navigation,
+    router,
     vehicleId,
     categoryFilter,
     dateFrom,
@@ -259,13 +262,13 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
       },
       {
         type: "add",
-        onPress: () =>
-          navigation.navigate("ServiceEntryForm", {
-            vehicleId,
-          }),
+        onPress: () => {
+          if (!vehicleId) return;
+          router.push(routes.serviceEntryForm(vehicleId));
+        },
       },
     ],
-    [hasActiveFilters, navigation, openFilters, resetFilters, vehicleId],
+    [hasActiveFilters, router, openFilters, resetFilters, vehicleId],
   );
 
   const handleDeleteEntry = useCallback(
@@ -292,7 +295,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   return (
     <HeaderLayout
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       actions={headerActions}
     >
       <View style={{ flex: 1 }}>
@@ -324,12 +327,10 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
                 workshopName={e.workshop_id ? workshopsById[e.workshop_id]?.name : null}
                 cost={e.cost}
                 currency={currency}
-                onPress={() =>
-                  navigation.navigate("ServiceEntryForm", {
-                    entryId: e.id,
-                    vehicleId,
-                  })
-                }
+                onPress={() => {
+                  if (!vehicleId) return;
+                  router.push(routes.serviceEntryForm(vehicleId, e.id));
+                }}
                 onDelete={() => handleDeleteEntry(e)}
               />
             );

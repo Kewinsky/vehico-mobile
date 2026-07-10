@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { StyleSheet } from "react-native";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { GasStation } from "../../types/domain";
-import { setPendingModalResult } from "../../app/pendingModalResult";
+import { setPendingModalResult } from "../../core/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
 import { ModalFormScreen } from "../../ui/components/layout/ModalFormScreen";
 import { Card } from "../../ui/components/common/Card";
@@ -32,14 +31,19 @@ export type FuelFiltersParams = {
   maxCost: string;
 };
 
-type Props = NativeStackScreenProps<AppStackParamList, "FuelFilters">;
-
-export function FuelFiltersScreen({ navigation, route }: Props) {
+export function FuelFiltersScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const params = route.params;
+  const params = useLocalSearchParams<{
+    dateFrom?: string;
+    dateTo?: string;
+    stationFilter?: string;
+    minCost?: string;
+    maxCost?: string;
+  }>();
 
   const [dateFrom, setDateFrom] = useState(params.dateFrom ?? "");
   const [dateTo, setDateTo] = useState(params.dateTo ?? "");
@@ -67,13 +71,13 @@ export function FuelFiltersScreen({ navigation, route }: Props) {
       maxCost,
     };
     setPendingModalResult("fuel", applied);
-    navigation.goBack();
+    router.back();
   }
 
   return (
     <ModalFormScreen
       title={t("timeline.filtersTitle")}
-      onCancel={() => navigation.goBack()}
+      onCancel={() => router.back()}
       onDone={applyFilters}
       cancelLabel={t("common.cancel")}
       doneLabel={t("common.done")}

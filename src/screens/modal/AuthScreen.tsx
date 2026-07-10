@@ -9,14 +9,13 @@ import {
 } from "react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useTranslation } from "react-i18next";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router/react-navigation";
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import * as AuthSession from "expo-auth-session";
 import { StatusBar } from "expo-status-bar";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
   EMAIL_OTP_LENGTH,
   isValidEmailOtpLength,
@@ -45,8 +44,6 @@ import { Glow } from "../../ui/components/dashboard/Glow";
 
 WebBrowser.maybeCompleteAuthSession();
 
-type Props = NativeStackScreenProps<AppStackParamList, "Auth">;
-
 function isRateLimitError(message: string | undefined): boolean {
   const msg = message?.toLowerCase() ?? "";
   return (
@@ -67,7 +64,8 @@ function isOtpExpiredOrInvalid(message: string | undefined): boolean {
   );
 }
 
-export function AuthScreen({ navigation }: Props) {
+export function AuthScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -106,8 +104,8 @@ export function AuthScreen({ navigation }: Props) {
   );
 
   const stackCancel =
-    typeof navigation.canGoBack === "function" && navigation.canGoBack()
-      ? { onPress: () => navigation.goBack(), label: t("common.cancel") }
+    router.canGoBack()
+      ? { onPress: () => router.back(), label: t("common.cancel") }
       : undefined;
 
   const emailTrimmed = useMemo(() => email.trim(), [email]);

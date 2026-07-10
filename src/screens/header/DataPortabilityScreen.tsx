@@ -1,23 +1,23 @@
 import { StyleSheet, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { routes } from "../../core/navigation/routes";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { Tile } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 
-type Props = NativeStackScreenProps<AppStackParamList, "DataPortability">;
-
-export function DataPortabilityScreen({ navigation, route }: Props) {
+export function DataPortabilityScreen() {
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { isPremium } = useEntitlements();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { vehicleId } = route.params;
 
   const tiles = useMemo(
     () => [
@@ -25,21 +25,27 @@ export function DataPortabilityScreen({ navigation, route }: Props) {
         key: "export",
         title: t("dataPortability.exportButton"),
         icon: "share" as const,
-        onPress: () => navigation.navigate("Export", { vehicleId }),
+        onPress: () => {
+          if (!vehicleId) return;
+          router.push(routes.exportData(vehicleId));
+        },
       },
       {
         key: "import",
         title: t("dataPortability.importButton"),
         icon: "download" as const,
-        onPress: () => navigation.navigate("Import", { vehicleId }),
+        onPress: () => {
+          if (!vehicleId) return;
+          router.push(routes.importData(vehicleId));
+        },
       },
     ],
-    [t, navigation, vehicleId],
+    [t, router, vehicleId],
   );
 
   return (
     <HeaderContentScreen
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       showShopIcon={!isPremium}
       title={t("dataPortability.title")}
     >

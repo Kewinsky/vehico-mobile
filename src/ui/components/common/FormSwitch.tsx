@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Platform, Switch as RNSwitch, StyleSheet, View } from "react-native";
-import { Host, Switch as SwiftUISwitch } from "@expo/ui/swift-ui";
+import { Host, Toggle } from "@expo/ui/swift-ui";
 import { disabled, fixedSize } from "@expo/ui/swift-ui/modifiers";
 import { Switch as ComposeSwitch } from "@expo/ui/jetpack-compose";
 
@@ -31,10 +31,9 @@ export function FormSwitch({
           colorScheme={themeMode === "dark" ? "dark" : "light"}
           style={styles.host}
         >
-          <SwiftUISwitch
-            value={value}
-            onValueChange={onValueChange}
-            color={theme.colors.accent}
+          <Toggle
+            isOn={value}
+            onIsOnChange={onValueChange}
             modifiers={[
               fixedSize({ horizontal: true, vertical: true }),
               ...(isDisabled ? [disabled()] : []),
@@ -53,9 +52,9 @@ export function FormSwitch({
       >
         <ComposeSwitch
           value={value}
-          onValueChange={onValueChange}
-          color={theme.colors.accent}
-          elementColors={{
+          enabled={!isDisabled}
+          onCheckedChange={onValueChange}
+          colors={{
             checkedTrackColor: theme.colors.accent,
             uncheckedTrackColor: theme.colors.border,
             checkedThumbColor: "#fff",

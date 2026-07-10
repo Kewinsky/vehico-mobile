@@ -1,10 +1,11 @@
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, View } from "react-native";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import { routes } from "../../core/navigation/routes";
+import { usePremiumNavigation } from "../../core/hooks/usePremiumNavigation";
+import { useScreenFocusReload } from "../../core/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
@@ -16,7 +17,7 @@ import {
   listReminders,
   updateReminder,
 } from "../../services/reminders/remindersRepo";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { useEntitlements } from "../../core/providers/EntitlementsProvider";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { toastError, toastSuccess } from "../../ui/toast/toast";
 import { promptAddServiceEntryFromReminder } from "../../services/reminders/reminderServiceEntryPrompt";
@@ -26,9 +27,9 @@ import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import { getReminderProgressPercent } from "../../services/reminders/reminderProgress";
 
-type Props = NativeStackScreenProps<AppStackParamList, "Reminders">;
-
-export function RemindersScreen({ route, navigation }: Props) {
+export function RemindersScreen() {
+  const router = useRouter();
+  const premiumNavigation = usePremiumNavigation();
   const { t } = useTranslation();
 
   const [items, setItems] = useState<Reminder[]>([]);
@@ -40,7 +41,8 @@ export function RemindersScreen({ route, navigation }: Props) {
     "upcoming" | "overdue" | "completed"
   >("upcoming");
 
-  const vehicleId = route.params.vehicleId;
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
 
   const {
     isPremium,
@@ -52,6 +54,7 @@ export function RemindersScreen({ route, navigation }: Props) {
 
   const load = useCallback(
     async (opts?: { refreshing?: boolean; showLoading?: boolean }) => {
+      if (!vehicleId) return;
       try {
         if (opts?.showLoading !== false) {
           if (opts?.refreshing) setRefreshing(true);
@@ -143,23 +146,23 @@ export function RemindersScreen({ route, navigation }: Props) {
   }, [items, query, activeTab, vehicle?.mileage, isReminderOverdue]);
 
   const onAddReminderPress = useCallback(() => {
+    if (!vehicleId) return;
     if (!isPremium && items.length >= remindersLimit) {
       Alert.alert(
         t("limits.reminderLimitReachedTitle"),
         t("limits.reminderLimitReachedBody", { limit: remindersLimit }),
-        getPremiumUpgradeAlertButtons(t, navigation),
+        getPremiumUpgradeAlertButtons(t, premiumNavigation),
       );
       return;
     }
-    navigation.navigate("ReminderForm", {
-      vehicleId: route.params.vehicleId,
-    });
+    router.push(routes.reminderForm(vehicleId));
   }, [
     isPremium,
     items.length,
     remindersLimit,
-    navigation,
-    route.params.vehicleId,
+    premiumNavigation,
+    router,
+    vehicleId,
     t,
   ]);
 
@@ -212,7 +215,7 @@ export function RemindersScreen({ route, navigation }: Props) {
   return (
     <HeaderLayout
       loading={loading}
-      onBack={() => navigation.goBack()}
+      onBack={() => router.back()}
       actions={headerActions}
     >
       <CustomFlatList<Reminder>
@@ -261,12 +264,10 @@ export function RemindersScreen({ route, navigation }: Props) {
               anchorMileage={reminder.recurrence_anchor_mileage}
               remainingDistanceLabel={t("reminders.remainingDistance")}
               estimatedTimeLabel={t("reminders.estimatedTime")}
-              onPress={() =>
-                navigation.navigate("ReminderForm", {
-                  vehicleId: route.params.vehicleId,
-                  reminderId: reminder.id,
-                })
-              }
+              onPress={() => {
+                if (!vehicleId) return;
+                router.push(routes.reminderForm(vehicleId, reminder.id));
+              }}
               onToggleDone={() => void handleToggleDone(reminder)}
               onDelete={() => handleDeleteReminder(reminder)}
               done={isDone}

@@ -1,11 +1,11 @@
 import { StyleSheet, TextInput, View } from "react-native";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as Clipboard from "expo-clipboard";
 
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
+import { routes } from "../../core/navigation/routes";
+import { useUserSettings } from "../../core/providers/UserSettingsProvider";
 import { resolveMarketplacePostContent } from "../../services/marketplace/marketplaceRepo";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -15,17 +15,29 @@ import { Button } from "../../ui/components/common/Button";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastSuccess, toastError } from "../../ui/toast/toast";
 
-type Props = NativeStackScreenProps<
-  AppStackParamList,
-  "MarketplacePostOptions"
->;
-
-export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
+export function MarketplacePostOptionsScreen() {
+  const params = useLocalSearchParams<{
+    content: string;
+    vehicleId: string;
+    postTitle?: string;
+    generatedAt?: string;
+  }>();
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme, mode } = useTheme();
   const { settings } = useUserSettings();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { content, vehicleId, postTitle, generatedAt } = route.params;
+  const vehicleId = Array.isArray(params.vehicleId) ? params.vehicleId[0] : params.vehicleId;
+  const postTitle = Array.isArray(params.postTitle) ? params.postTitle[0] : params.postTitle;
+  const generatedAt = Array.isArray(params.generatedAt) ? params.generatedAt[0] : params.generatedAt;
+  const content = useMemo(() => {
+    const raw = Array.isArray(params.content) ? params.content[0] : params.content;
+    try {
+      return JSON.parse(raw ?? "") as { pl: string; en: string };
+    } catch {
+      return { pl: "", en: "" };
+    }
+  }, [params.content]);
   const [displayLang, setDisplayLang] = useState<"pl" | "en">(
     (settings?.language as "pl" | "en") ?? "pl",
   );
@@ -36,10 +48,10 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
   );
 
   const handleBack = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    } else {
-      navigation.replace("Marketplace", { vehicleId });
+    if (router.canGoBack()) {
+      router.back();
+    } else if (vehicleId) {
+      router.replace(routes.marketplace(vehicleId));
     }
   };
 
