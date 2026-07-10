@@ -7,10 +7,6 @@ import {
   Text,
   View,
 } from "react-native";
-import {
-  SegmentedButton,
-  SingleChoiceSegmentedButtonRow,
-} from "@expo/ui/jetpack-compose";
 import { Host, Picker, Text as SwiftUIText } from "@expo/ui/swift-ui";
 import { frame, pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 
@@ -37,11 +33,7 @@ type Variant = "default" | "secondary";
 const IOS_MIN_VERSION = 17;
 
 function supportsNativeSegmentTabs() {
-  if (Platform.OS === "android") return true;
-  if (Platform.OS === "ios") {
-    return Number.parseFloat(String(Platform.Version)) >= IOS_MIN_VERSION;
-  }
-  return false;
+  return Number.parseFloat(String(Platform.Version)) >= IOS_MIN_VERSION;
 }
 
 function SegmentTabsFallback<T extends string>({
@@ -134,9 +126,8 @@ function SegmentTabsFallback<T extends string>({
 const NATIVE_SEGMENT_HEIGHT = 44;
 
 export function SegmentTabs<T extends string>(props: Props<T>) {
-  const { value, options, onChange, variant = "default", preferFallback = false } =
-    props;
-  const { theme, mode: themeMode } = useTheme();
+  const { value, options, onChange, preferFallback = false } = props;
+  const { mode: themeMode } = useTheme();
   const styles = useMemo(() => makeNativeStyles(), []);
 
   const pickerOptions = useMemo(
@@ -158,65 +149,31 @@ export function SegmentTabs<T extends string>(props: Props<T>) {
     [onChange, options, value],
   );
 
-  const androidElementColors = useMemo(
-    () => ({
-      activeContainerColor: hexToRgba(theme.colors.accent, 0.15),
-      activeContentColor: theme.colors.accent,
-      activeBorderColor: theme.colors.accent,
-      inactiveContainerColor:
-        variant === "secondary" ? theme.colors.card : theme.colors.bg,
-      inactiveContentColor: theme.colors.muted,
-      inactiveBorderColor: theme.colors.border,
-    }),
-    [theme, variant],
-  );
-
   if (preferFallback || !supportsNativeSegmentTabs()) {
     return <SegmentTabsFallback {...props} />;
   }
 
-  if (Platform.OS === "ios") {
-    return (
-      <View style={styles.wrap}>
-        <Host
-          matchContents={{ vertical: true }}
-          colorScheme={themeMode === "dark" ? "dark" : "light"}
-          style={styles.nativeHost}
-        >
-          <Picker
-            selection={selectedIndex}
-            onSelectionChange={(selection) => {
-              handleSelect(Number(selection));
-            }}
-            modifiers={[pickerStyle("segmented"), frame({ maxWidth: 10_000 })]}
-          >
-            {pickerOptions.map((label, index) => (
-              <SwiftUIText key={`${label}-${index}`} modifiers={[tag(index)]}>
-                {label}
-              </SwiftUIText>
-            ))}
-          </Picker>
-        </Host>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.wrap}>
-      <View style={styles.nativeHost}>
-        <SingleChoiceSegmentedButtonRow>
-          {options.map((option, index) => (
-            <SegmentedButton
-              key={option.value}
-              selected={selectedIndex === index}
-              onClick={() => handleSelect(index)}
-              colors={androidElementColors}
-            >
-              <SegmentedButton.Label>{option.label}</SegmentedButton.Label>
-            </SegmentedButton>
+      <Host
+        matchContents={{ vertical: true }}
+        colorScheme={themeMode === "dark" ? "dark" : "light"}
+        style={styles.nativeHost}
+      >
+        <Picker
+          selection={selectedIndex}
+          onSelectionChange={(selection) => {
+            handleSelect(Number(selection));
+          }}
+          modifiers={[pickerStyle("segmented"), frame({ maxWidth: 10_000 })]}
+        >
+          {pickerOptions.map((label, index) => (
+            <SwiftUIText key={`${label}-${index}`} modifiers={[tag(index)]}>
+              {label}
+            </SwiftUIText>
           ))}
-        </SingleChoiceSegmentedButtonRow>
-      </View>
+        </Picker>
+      </Host>
     </View>
   );
 }

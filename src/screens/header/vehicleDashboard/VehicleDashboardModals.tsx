@@ -1,7 +1,6 @@
 import {
   FlatList,
   Modal,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -192,7 +191,7 @@ export function VehicleDashboardModals() {
         </View>
       </Modal>
 
-      {formalityOverlay && Platform.OS === "ios" ? (
+      {formalityOverlay ? (
         <Modal
           key={formalityOverlay.field}
           transparent

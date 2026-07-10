@@ -1,10 +1,8 @@
 import { useMemo } from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { useTranslation } from "react-i18next";
+import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../../ThemeProvider";
 import { IOSMenuPickerControl } from "./IOSMenuPickerControl";
 import { buildMenuPickerState } from "./menuPickerState";
-import { openAlertPicker } from "./openAlertPicker";
 
 type Props<T extends string> = {
   label: string;
@@ -27,7 +25,6 @@ export function PickerField<T extends string>({
   noMarginTop,
   placeholder,
 }: Props<T>) {
-  const { t } = useTranslation();
   const { theme, mode: themeMode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
@@ -44,75 +41,36 @@ export function PickerField<T extends string>({
     );
 
   const displayText = pickerOptions[selectedIndex] ?? "";
-
-  if (Platform.OS === "ios") {
-    const valueColor = isValueMuted ? theme.colors.muted : theme.colors.fg;
-
-    return (
-      <View
-        style={[styles.field, noMarginTop && styles.fieldNoTop]}
-        pointerEvents={disabled ? "none" : "auto"}
-      >
-        {label ? <Text style={styles.label}>{label}</Text> : null}
-        <View style={[styles.wrap, disabled && styles.disabled]}>
-          <IOSMenuPickerControl
-            displayText={displayText}
-            valueColor={valueColor}
-            options={pickerOptions}
-            onSelect={(index) => onChange(handleSelectIndex(index))}
-            colorScheme={themeMode === "dark" ? "dark" : "light"}
-            wrapStyle={styles.menuWrap}
-          />
-        </View>
-      </View>
-    );
-  }
+  const valueColor = isValueMuted ? theme.colors.muted : theme.colors.fg;
 
   return (
-    <View style={[styles.field, noMarginTop && styles.fieldNoTop]}>
-      <Pressable
-        onPress={() => {
-          if (disabled) return;
-          openAlertPicker({
-            title: label,
-            cancelLabel: t("common.cancel"),
-            choices: [
-              ...(placeholder
-                ? [{ label: placeholder, onPress: () => onChange(null) }]
-                : []),
-              ...options.map((option) => ({
-                label: getLabel(option),
-                onPress: () => onChange(option),
-              })),
-            ],
-          });
-        }}
-        disabled={disabled}
-        style={({ pressed }) => [
-          pressed && !disabled ? { opacity: 0.95 } : null,
-        ]}
-      >
-        {label ? <Text style={styles.label}>{label}</Text> : null}
-        <View style={styles.wrap}>
-          <Text
-            style={[
-              styles.valueText,
-              {
-                color: value ? theme.colors.fg : theme.colors.muted,
-              },
-            ]}
-            numberOfLines={1}
-          >
-            {displayText}
-          </Text>
-        </View>
-      </Pressable>
+    <View
+      style={[styles.field, noMarginTop && styles.fieldNoTop]}
+      pointerEvents={disabled ? "none" : "auto"}
+    >
+      {label ? <Text style={styles.label}>{label}</Text> : null}
+      <View style={[styles.wrap, disabled && styles.disabled]}>
+        <IOSMenuPickerControl
+          displayText={displayText}
+          valueColor={valueColor}
+          options={pickerOptions}
+          onSelect={(index) => onChange(handleSelectIndex(index))}
+          colorScheme={themeMode === "dark" ? "dark" : "light"}
+          wrapStyle={styles.menuWrap}
+        />
+      </View>
     </View>
   );
 }
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
+    field: {
+      marginTop: theme.spacing.md,
+    },
+    fieldNoTop: {
+      marginTop: 0,
+    },
     label: {
       marginBottom: theme.spacing.sm,
       fontSize: theme.typography.small,
@@ -129,9 +87,6 @@ const makeStyles = (theme: any) =>
     },
     menuWrap: {
       flex: 1,
-    },
-    valueText: {
-      fontSize: theme.typography.body,
     },
     disabled: {
       opacity: 0.55,

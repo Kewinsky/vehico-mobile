@@ -1,12 +1,10 @@
 import { useMemo } from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { useTranslation } from "react-i18next";
+import { StyleSheet, View } from "react-native";
 import { Host, Picker, Text as SwiftUIText } from "@expo/ui/swift-ui";
 import { fixedSize, pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
 
 import { useTheme } from "../../ThemeProvider";
 import { buildMenuPickerState } from "./menuPickerState";
-import { openAlertPicker } from "./openAlertPicker";
 
 type Props<T extends string> = {
   value: T;
@@ -25,7 +23,6 @@ export function FormInlineMenuPicker<T extends string>({
   disabled = false,
   centered = false,
 }: Props<T>) {
-  const { t } = useTranslation();
   const { theme, mode: themeMode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
@@ -39,68 +36,39 @@ export function FormInlineMenuPicker<T extends string>({
     [value, options, getLabel],
   );
 
-  if (Platform.OS === "ios") {
-    return (
-      <View
-        pointerEvents={disabled ? "none" : "auto"}
-        style={[
-          styles.wrap,
-          centered && styles.wrapCentered,
-          disabled && styles.disabled,
-        ]}
-      >
-        <Host
-          matchContents={{ horizontal: true, vertical: true }}
-          colorScheme={themeMode === "dark" ? "dark" : "light"}
-          style={styles.host}
-        >
-          <Picker
-            selection={selectedIndex}
-            modifiers={[
-              pickerStyle("menu"),
-              fixedSize({ horizontal: true, vertical: true }),
-            ]}
-            onSelectionChange={(selection) => {
-              const next = handleSelectIndex(Number(selection));
-              if (next) onChange(next);
-            }}
-          >
-            {pickerOptions.map((option, index) => (
-              <SwiftUIText key={`${option}-${index}`} modifiers={[tag(index)]}>
-                {option}
-              </SwiftUIText>
-            ))}
-          </Picker>
-        </Host>
-      </View>
-    );
-  }
-
   return (
-    <Pressable
-      onPress={() => {
-        if (disabled) return;
-        openAlertPicker({
-          cancelLabel: t("common.cancel"),
-          choices: options.map((option) => ({
-            label: getLabel(option),
-            onPress: () => onChange(option),
-          })),
-        });
-      }}
-      disabled={disabled}
-      style={({ pressed }) => [
-        styles.androidPill,
-        centered && styles.androidPillCentered,
-        { backgroundColor: theme.colors.accent },
-        pressed && !disabled && { opacity: 0.85 },
+    <View
+      pointerEvents={disabled ? "none" : "auto"}
+      style={[
+        styles.wrap,
+        centered && styles.wrapCentered,
         disabled && styles.disabled,
       ]}
     >
-      <Text style={styles.androidPillText} numberOfLines={1}>
-        {getLabel(value)}
-      </Text>
-    </Pressable>
+      <Host
+        matchContents={{ horizontal: true, vertical: true }}
+        colorScheme={themeMode === "dark" ? "dark" : "light"}
+        style={styles.host}
+      >
+        <Picker
+          selection={selectedIndex}
+          modifiers={[
+            pickerStyle("menu"),
+            fixedSize({ horizontal: true, vertical: true }),
+          ]}
+          onSelectionChange={(selection) => {
+            const next = handleSelectIndex(Number(selection));
+            if (next) onChange(next);
+          }}
+        >
+          {pickerOptions.map((option, index) => (
+            <SwiftUIText key={`${option}-${index}`} modifiers={[tag(index)]}>
+              {option}
+            </SwiftUIText>
+          ))}
+        </Picker>
+      </Host>
+    </View>
   );
 }
 
@@ -121,21 +89,5 @@ const makeStyles = (theme: any) =>
     },
     disabled: {
       opacity: 0.55,
-    },
-    androidPill: {
-      paddingVertical: 6,
-      paddingHorizontal: theme.spacing.sm,
-      borderRadius: 999,
-      marginLeft: theme.spacing.sm,
-    },
-    androidPillCentered: {
-      marginLeft: 0,
-      alignSelf: "center",
-    },
-    androidPillText: {
-      color: "#000000",
-      textAlign: "center",
-      fontWeight: theme.typography.fontWeight.bold,
-      fontSize: theme.typography.small,
     },
   });

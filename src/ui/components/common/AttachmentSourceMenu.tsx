@@ -2,11 +2,8 @@ import type { ReactElement } from "react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View, type ViewStyle } from "react-native";
-import {
-  MenuView,
-  type MenuAction,
-  type NativeActionEvent,
-} from "@expo/ui/community/menu";
+import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
+import { buttonStyle } from "@expo/ui/swift-ui/modifiers";
 
 import { useTheme } from "../../ThemeProvider";
 import { ghostButtonTriggerStyles } from "./ghostButtonTriggerStyles";
@@ -27,49 +24,39 @@ export function AttachmentSourceMenu({
   disabled = false,
 }: AttachmentSourceMenuProps) {
   const { t } = useTranslation();
-
-  const actions = useMemo((): MenuAction[] => {
-    return [
-      {
-        id: "camera",
-        title: t("attachments.camera"),
-        image: "camera",
-      },
-      {
-        id: "photos",
-        title: t("attachments.photos"),
-        image: "photo.on.rectangle",
-      },
-      {
-        id: "files",
-        title: t("attachments.files"),
-        image: "folder",
-      },
-    ];
-  }, [t]);
-
-  const handlePressAction = ({ nativeEvent: { event } }: NativeActionEvent) => {
-    switch (event) {
-      case "camera":
-        onCamera();
-        break;
-      case "photos":
-        onPhotos();
-        break;
-      case "files":
-        onFiles();
-        break;
-    }
-  };
+  const { mode } = useTheme();
 
   return (
     <View
       pointerEvents={disabled ? "none" : "auto"}
       style={[styles.host, disabled ? styles.disabled : undefined]}
     >
-      <MenuView actions={actions} onPressAction={handlePressAction}>
-        {children}
-      </MenuView>
+      <Host
+        matchContents
+        ignoreSafeArea="all"
+        colorScheme={mode === "dark" ? "dark" : "light"}
+      >
+        <Menu
+          modifiers={[buttonStyle("plain")]}
+          label={<RNHostView matchContents>{children}</RNHostView>}
+        >
+          <Button
+            label={t("attachments.camera")}
+            systemImage="camera"
+            onPress={onCamera}
+          />
+          <Button
+            label={t("attachments.photos")}
+            systemImage="photo.on.rectangle"
+            onPress={onPhotos}
+          />
+          <Button
+            label={t("attachments.files")}
+            systemImage="folder"
+            onPress={onFiles}
+          />
+        </Menu>
+      </Host>
     </View>
   );
 }

@@ -9,7 +9,6 @@ import type { ScrollView as ScrollViewInstance } from "react-native";
 import {
   Keyboard,
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
   TouchableWithoutFeedback,
   View,
@@ -46,13 +45,11 @@ export function FormScreen({
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
-    const showSub = Keyboard.addListener(
-      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
-      (e) => setKeyboardHeight(e.endCoordinates.height),
+    const showSub = Keyboard.addListener("keyboardWillShow", (e) =>
+      setKeyboardHeight(e.endCoordinates.height),
     );
-    const hideSub = Keyboard.addListener(
-      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
-      () => setKeyboardHeight(0),
+    const hideSub = Keyboard.addListener("keyboardWillHide", () =>
+      setKeyboardHeight(0),
     );
     return () => {
       showSub.remove();
@@ -63,8 +60,8 @@ export function FormScreen({
   const inner = (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      behavior="padding"
+      keyboardVerticalOffset={0}
     >
       <FormScreenScrollRefContext.Provider value={effectiveScrollRef}>
         <View style={{ flex: 1 }}>

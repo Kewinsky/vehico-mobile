@@ -1,4 +1,4 @@
-import { Platform, Share } from "react-native";
+import { Share } from "react-native";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 
@@ -13,15 +13,7 @@ export async function shareUrl(
   url: string,
   { title, message }: ShareUrlOptions = {},
 ): Promise<void> {
-  const payload =
-    Platform.OS === "ios"
-      ? { url, message: message ?? title }
-      : {
-          title,
-          message: message ? `${message}\n${url}` : url,
-        };
-
-  await Share.share(payload);
+  await Share.share({ url, message: message ?? title });
 }
 
 export async function shareExportFile(

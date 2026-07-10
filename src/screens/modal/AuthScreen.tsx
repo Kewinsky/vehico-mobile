@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Dimensions,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -90,7 +89,6 @@ export function AuthScreen() {
   const [otpSent, setOtpSent] = useState(false);
   const [sentEmail, setSentEmail] = useState("");
   useEffect(() => {
-    if (Platform.OS !== "ios") return;
     void AppleAuthentication.isAvailableAsync().then(setAppleSignInAvailable);
   }, []);
 
@@ -370,7 +368,7 @@ export function AuthScreen() {
   }
 
   async function signInWithApple() {
-    if (Platform.OS === "ios" && appleSignInAvailable) {
+    if (appleSignInAvailable) {
       return signInWithAppleNative();
     }
     return signInWithOAuth("apple");
@@ -595,7 +593,7 @@ export function AuthScreen() {
 
           <View style={styles.socialSection}>
             <View style={styles.socialButtons}>
-              {(Platform.OS === "ios" ? appleSignInAvailable : true) ? (
+              {appleSignInAvailable ? (
                 <Pressable
                   onPress={() => void signInWithApple()}
                   disabled={!!isSocialLoading}
