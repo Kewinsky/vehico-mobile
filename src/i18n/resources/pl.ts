@@ -793,7 +793,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     language: "Język",
     languagePl: "Polski",
     languageEn: "Angielski",
-    unitGroupSection: "System jednostek",
+    unitGroupSection: "Jednostki",
     unitGroups: {
       metric: {
         title: "Metryczny ({{units}})",

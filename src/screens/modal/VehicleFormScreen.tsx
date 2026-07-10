@@ -43,7 +43,7 @@ import {
   reorderVehiclePhotos,
   uploadVehiclePhoto,
 } from "../../services/vehicles/uploadPhoto";
-import { Button } from "../../ui/components/common/Button";
+import { AttachmentSourceMenuButton } from "../../ui/components/common/AttachmentSourceMenu";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
@@ -76,8 +76,12 @@ export function VehicleFormScreen() {
   const { vehiclesLimit, isPremium, photosPerVehicleLimit } = useEntitlements();
   const styles = makeStyles(theme);
   const { distanceUnitLabel } = useUnitDisplay();
-  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId?: string }>();
-  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{
+    vehicleId?: string;
+  }>();
+  const vehicleId = Array.isArray(vehicleIdParam)
+    ? vehicleIdParam[0]
+    : vehicleIdParam;
   const isEditMode = !!vehicleId;
   const [loading, setLoading] = useState(isEditMode);
   const [initialPhotos, setInitialPhotos] = useState<VehiclePhoto[]>([]);
@@ -245,30 +249,6 @@ export function VehicleFormScreen() {
       ),
     [t],
   );
-
-  function pickSource() {
-    const photoCount = draftPhotos.length;
-    const remainingSlots = 6 - photoCount;
-    if (remainingSlots <= 0) {
-      toastError(t("vehicleForm.maxPhotosReached"));
-      return;
-    }
-    Alert.alert("", t("attachments.addPickerBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("attachments.camera"),
-        onPress: () => void pickFromCamera(),
-      },
-      {
-        text: t("attachments.photos"),
-        onPress: () => void pickFromGallery(),
-      },
-      {
-        text: t("attachments.files"),
-        onPress: () => void pickFromFiles(),
-      },
-    ]);
-  }
 
   async function pickFromCamera() {
     try {
@@ -602,14 +582,14 @@ export function VehicleFormScreen() {
                   </View>
                 )}
                 {draftPhotos.length < 6 && (
-                  <Button
-                    onPress={pickSource}
+                  <AttachmentSourceMenuButton
+                    label={t("vehicleForm.addPhoto")}
+                    onCamera={() => void pickFromCamera()}
+                    onPhotos={() => void pickFromGallery()}
+                    onFiles={() => void pickFromFiles()}
                     disabled={saving || uploadingPhoto}
-                    variant="ghost"
                     style={{ marginTop: theme.spacing.sm / 2 }}
-                  >
-                    {t("vehicleForm.addPhoto")}
-                  </Button>
+                  />
                 )}
               </View>
 
@@ -737,7 +717,6 @@ export function VehicleFormScreen() {
                           name="close-circle"
                           size={20}
                           color={theme.colors.muted}
-                          style={{ marginLeft: theme.spacing.xs }}
                         />
                       </Pressable>
                     ) : null
@@ -864,7 +843,6 @@ export function VehicleFormScreen() {
                           name="close-circle"
                           size={20}
                           color={theme.colors.muted}
-                          style={{ marginLeft: theme.spacing.xs }}
                         />
                       </Pressable>
                     ) : null
@@ -889,7 +867,6 @@ export function VehicleFormScreen() {
                           name="close-circle"
                           size={20}
                           color={theme.colors.muted}
-                          style={{ marginLeft: theme.spacing.xs }}
                         />
                       </Pressable>
                     ) : null
@@ -1026,7 +1003,7 @@ const makeStyles = (theme: any) =>
           theme.spacing.sm * 2) /
         3,
       aspectRatio: 1,
-      borderRadius: theme.radius.md,
+      borderRadius: theme.radius.xl,
       overflow: "hidden",
       backgroundColor: theme.colors.card,
       borderColor: theme.colors.border,

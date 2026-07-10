@@ -6,12 +6,13 @@ export function useMenuPageStyles() {
   const { theme } = useTheme();
   return StyleSheet.create({
     page: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+      alignSelf: "stretch",
     },
     tilesWrap: {
       flexDirection: "row",
       flexWrap: "wrap",
       gap: theme.spacing.sm,
+      justifyContent: "center",
     },
     tileWrapper: {
       width: "48%",

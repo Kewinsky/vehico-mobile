@@ -1,4 +1,4 @@
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,6 +17,7 @@ import { SearchBar } from "../../ui/components/common/SearchBar";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
+import { AttachmentSourceMenu } from "../../ui/components/common/AttachmentSourceMenu";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 
@@ -86,28 +87,6 @@ export function AddAttachmentScreen() {
       mimeType: file.mimeType,
       fileName: file.fileName,
     });
-  }
-
-  function pickSource(serviceEntryId: string) {
-    Alert.alert(
-      t("attachments.addPickerTitle"),
-      t("attachments.addPickerBody"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("attachments.camera"),
-          onPress: () => void pickFromCamera(serviceEntryId),
-        },
-        {
-          text: t("attachments.photos"),
-          onPress: () => void pickFromGallery(serviceEntryId),
-        },
-        {
-          text: t("attachments.files"),
-          onPress: () => void pickFromFiles(serviceEntryId),
-        },
-      ],
-    );
   }
 
   async function pickFromCamera(serviceEntryId: string) {
@@ -251,10 +230,11 @@ export function AddAttachmentScreen() {
         refreshing={refreshing}
         onRefresh={() => void load({ refreshing: true })}
         renderItem={({ item }) => (
-          <Pressable
-            onPress={() => pickSource(item.id)}
+          <AttachmentSourceMenu
+            onCamera={() => void pickFromCamera(item.id)}
+            onPhotos={() => void pickFromGallery(item.id)}
+            onFiles={() => void pickFromFiles(item.id)}
             disabled={uploading}
-            style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
           >
             <View style={styles.card}>
               <Text style={styles.cardTitle}>{item.title}</Text>
@@ -262,7 +242,7 @@ export function AddAttachmentScreen() {
                 {String(item.service_date).slice(0, 10)}
               </Text>
             </View>
-          </Pressable>
+          </AttachmentSourceMenu>
         )}
         ListEmptyComponent={
           <EmptyState body={t("documents.noServiceEntries")} />

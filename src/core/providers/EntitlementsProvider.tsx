@@ -603,12 +603,13 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
         }
         const isConfigured = await Purchases.isConfigured();
         if (!isConfigured) {
-          await Purchases.setLogLevel(
-            __DEV__ ? Purchases.LOG_LEVEL.DEBUG : Purchases.LOG_LEVEL.INFO,
-          );
+          // configure registers the native log handler; setLogLevel must run after.
           Purchases.configure({
             apiKey: REVENUECAT_PUBLIC_API_KEY,
           });
+          await Purchases.setLogLevel(
+            __DEV__ ? Purchases.LOG_LEVEL.DEBUG : Purchases.LOG_LEVEL.INFO,
+          );
         }
 
         Purchases.addCustomerInfoUpdateListener(customerInfoListener);

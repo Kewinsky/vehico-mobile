@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -28,6 +28,9 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { toastError } from "../../ui/toast/toast";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useScreenFocusReload } from "../../core/useScreenFocusReload";
+import { VehicleDashboardHeaderToolbars } from "./vehicleDashboard/VehicleDashboardHeaderToolbars";
+import { VehicleDashboardVehicleHeader } from "./vehicleDashboard/VehicleDashboardVehicleHeader";
+import { useVehicleDashboard } from "./vehicleDashboard/VehicleDashboardProvider";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { groupThousands } from "../../utils/numberFormatting";
 import {
@@ -63,7 +66,9 @@ import {
 import { useStatsPanelStyles } from "./vehicleDashboard/stats/statsPanelStyles";
 
 export default function StatisticsScreen() {
-  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{
+    vehicleId: string;
+  }>();
   const vehicleId = Array.isArray(vehicleIdParam)
     ? vehicleIdParam[0]
     : (vehicleIdParam ?? "");
@@ -76,6 +81,14 @@ export default function StatisticsScreen() {
   const formatChartMonthFull = (key: string) =>
     formatChartMonthKeyFull(key, chartLocale);
   const { theme } = useTheme();
+  const dashboard = useVehicleDashboard();
+  const {
+    vehicle: dashboardVehicle,
+    isPremium: dashboardIsPremium,
+    publicReportUrl,
+    onCopyVin,
+    handleShowPublicReportQr,
+  } = dashboard;
   const { settings } = useUserSettings();
   const { width: windowWidth } = useWindowDimensions();
   const { isPremium, refresh: refreshEntitlements } = useEntitlements();
@@ -105,7 +118,10 @@ export default function StatisticsScreen() {
 
   const load = useCallback(
     async (opts?: { showLoading?: boolean }) => {
-      if (!vehicleId) return;
+      if (!vehicleId) {
+        setLoading(false);
+        return;
+      }
       const showLoading = opts?.showLoading !== false;
       try {
         if (showLoading) setLoading(true);
@@ -143,6 +159,10 @@ export default function StatisticsScreen() {
     onFocusReload: () => load({ showLoading: false }),
     deferFocusReload: true,
   });
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const periodOptions: { key: PeriodKey; label: string }[] = [
     { key: "1m", label: t("dashboard.stats.periods.1m") },
@@ -691,9 +711,7 @@ export default function StatisticsScreen() {
       value={period}
       options={periodOptions.map((p) => ({ value: p.key, label: p.label }))}
       onChange={setPeriod}
-      size="sm"
       variant="secondary"
-      preferFallback
     />
   );
 
@@ -806,24 +824,37 @@ export default function StatisticsScreen() {
   const cardContent = <StatisticsPanelContent {...panelProps} />;
 
   return (
-    <AppLayout
-      loading={loading}
-      ready
-      useNativeHeader
-      useHorizontalContentInset={false}
-    >
-      <NativeHeaderScrollView
-        paddingHorizontal={false}
-        keyboardShouldPersistTaps="handled"
-        nestedScrollEnabled
-        contentContainerStyle={{
-          paddingHorizontal: theme.layout.contentPaddingHorizontal,
-          paddingBottom: Math.max(theme.spacing.xl, insets.bottom + theme.spacing.md),
-        }}
+    <>
+      <VehicleDashboardHeaderToolbars />
+      <AppLayout
+        loading={loading}
+        ready
+        useNativeHeader
+        useHorizontalContentInset={false}
       >
-        {filterPanelContent}
-        {cardContent}
-      </NativeHeaderScrollView>
-    </AppLayout>
+        <NativeHeaderScrollView
+          paddingHorizontal={false}
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled
+          contentContainerStyle={{
+            paddingHorizontal: theme.layout.contentPaddingHorizontal,
+            paddingBottom: Math.max(
+              theme.spacing.xl,
+              insets.bottom + theme.spacing.md,
+            ),
+          }}
+        >
+          <VehicleDashboardVehicleHeader
+            vehicle={dashboardVehicle}
+            isPremium={dashboardIsPremium}
+            publicReportUrl={publicReportUrl}
+            onCopyVin={onCopyVin}
+            onShowQrCode={handleShowPublicReportQr}
+          />
+          {filterPanelContent}
+          {cardContent}
+        </NativeHeaderScrollView>
+      </AppLayout>
+    </>
   );
 }

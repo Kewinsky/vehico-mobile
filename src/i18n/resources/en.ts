@@ -788,7 +788,7 @@ Detailed report available at: https://report.vehico.app/report/example`,
     language: "Language",
     languagePl: "Polish",
     languageEn: "English",
-    unitGroupSection: "Unit system",
+    unitGroupSection: "Units",
     unitGroups: {
       metric: {
         title: "Metric ({{units}})",

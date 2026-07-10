@@ -24,6 +24,7 @@ import {
 import { supabase } from "../../services/supabase/client";
 import { Button } from "../../ui/components/common/Button";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
+import { FormOtpRow } from "../../ui/components/common/FormOtpRow";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
@@ -458,9 +459,7 @@ export function AuthScreen() {
               </View>
 
               <Card>
-                <FormInputRow
-                  variant="otp"
-                  icon="keypad-outline"
+                <FormOtpRow
                   label={t("auth.otpCodeLabel")}
                   value={otpCode}
                   onChangeText={(text) =>
@@ -469,9 +468,6 @@ export function AuthScreen() {
                   placeholder={t("auth.otpCodePlaceholder", {
                     length: EMAIL_OTP_LENGTH,
                   })}
-                  keyboardType="number-pad"
-                  textContentType="oneTimeCode"
-                  autoComplete="one-time-code"
                   maxLength={EMAIL_OTP_LENGTH}
                   editable={!isVerifying && !isSubmitting}
                 />

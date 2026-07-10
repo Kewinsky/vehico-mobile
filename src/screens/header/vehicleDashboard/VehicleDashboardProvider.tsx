@@ -172,6 +172,8 @@ type VehicleDashboardContextValue = {
     value: string | null,
   ) => Promise<void>;
   openActions: () => void;
+  handleSectionOrderPress: () => void;
+  onDeleteVehicle: () => void;
 };
 
 const VehicleDashboardContext =
@@ -679,7 +681,7 @@ export function VehicleDashboardProvider({
     Alert.alert(t("dashboard.tiles.manageTitle"), "", [
       { text: t("common.cancel"), style: "cancel" },
       {
-        text: t("common.edit"),
+        text: t("dashboard.tiles.manageTitle"),
         onPress: () => router.push(routes.vehicleForm(vehicleId)),
       },
       {
@@ -1088,6 +1090,8 @@ export function VehicleDashboardProvider({
       fittedWheelsLines,
       saveFormalitiesDate,
       openActions,
+      handleSectionOrderPress,
+      onDeleteVehicle,
     }),
     [
       vehicleId,
@@ -1137,6 +1141,8 @@ export function VehicleDashboardProvider({
       fittedWheelsLines,
       saveFormalitiesDate,
       openActions,
+      handleSectionOrderPress,
+      onDeleteVehicle,
     ],
   );
 

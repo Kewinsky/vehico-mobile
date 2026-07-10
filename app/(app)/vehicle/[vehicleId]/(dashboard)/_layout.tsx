@@ -2,11 +2,9 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { useTranslation } from "react-i18next";
 
-import { useVehicleDashboardHeader } from "@/screens/header/vehicleDashboard/useVehicleDashboardHeader";
 import { useTheme } from "@/ui/ThemeProvider";
 
 export default function VehicleDashboardLayout() {
-  useVehicleDashboardHeader();
   const { t } = useTranslation();
   const { theme } = useTheme();
 

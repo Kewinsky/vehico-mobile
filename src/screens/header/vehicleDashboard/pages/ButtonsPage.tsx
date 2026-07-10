@@ -34,10 +34,7 @@ export function ButtonsPage({
     2;
 
   return (
-    <View
-      style={[styles.page, { width: windowWidth }]}
-      collapsable={false}
-    >
+    <View style={styles.page} collapsable={false}>
       <View style={styles.tilesWrap}>
         {tiles.map((item) => (
           <View key={item.key} style={{ width: tileWidth }}>

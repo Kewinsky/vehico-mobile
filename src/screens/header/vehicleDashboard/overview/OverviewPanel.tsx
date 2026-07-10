@@ -2,7 +2,7 @@ import { View } from "react-native";
 
 import { useDashboardSectionOrder } from "../useDashboardSectionOrder";
 import { OverviewCallouts } from "./OverviewCallouts";
-import { OverviewVehicleHeader } from "./OverviewVehicleHeader";
+import { VehicleDashboardVehicleHeader } from "../VehicleDashboardVehicleHeader";
 import { FormalitiesSection } from "./sections/FormalitiesSection";
 import { NotesSection } from "./sections/NotesSection";
 import { QuickActionsSection } from "./sections/QuickActionsSection";
@@ -28,10 +28,8 @@ export function OverviewPanel(props: OverviewPanelProps) {
 
   return (
     <View style={[styles.page, { width: windowWidth }]}>
-      <OverviewVehicleHeader
-        styles={styles}
+      <VehicleDashboardVehicleHeader
         vehicle={props.vehicle}
-        theme={props.theme}
         isPremium={props.isPremium}
         publicReportUrl={props.publicReportUrl}
         onCopyVin={props.onCopyVin}

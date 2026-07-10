@@ -644,7 +644,7 @@ function makeStyles(theme: AppTheme) {
       maxWidth: 340,
     },
     compareCard: {
-      borderRadius: radius.lg,
+      borderRadius: radius.xl,
       overflow: "hidden",
     },
     compareHeaderRow: {
@@ -729,7 +729,7 @@ function makeStyles(theme: AppTheme) {
     currentPlanBadge: {
       paddingHorizontal: spacing.sm,
       paddingVertical: 4,
-      borderRadius: radius.lg,
+      borderRadius: radius.xl,
     },
     currentPlanBadgeText: {
       fontSize: typography.small - 1,
@@ -746,7 +746,7 @@ function makeStyles(theme: AppTheme) {
     },
     planTabs: {
       flexDirection: "row",
-      borderRadius: radius.lg,
+      borderRadius: radius.xl,
       padding: 4,
       gap: 4,
     },
@@ -756,7 +756,7 @@ function makeStyles(theme: AppTheme) {
       justifyContent: "center",
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.xs,
-      borderRadius: radius.md,
+      borderRadius: radius.xl,
       minHeight: 56,
     },
     planTabLabel: {

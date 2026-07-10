@@ -67,7 +67,10 @@ export function VehicleDashboardModals() {
             {publicReportUrl ? (
               <>
                 <Text
-                  style={[styles.qrModalSubtitle, { color: theme.colors.muted }]}
+                  style={[
+                    styles.qrModalSubtitle,
+                    { color: theme.colors.muted },
+                  ]}
                 >
                   {t("share.qrCodeSubtitle")}
                 </Text>
@@ -205,7 +208,10 @@ export function VehicleDashboardModals() {
               style={styles.datePickerCard}
               onPress={(event) => event.stopPropagation()}
             >
-              <FormGlassSurface shape="rounded" cornerRadius={theme.radius.xl} />
+              <FormGlassSurface
+                shape="rounded"
+                cornerRadius={theme.radius.xl}
+              />
               <View style={styles.datePickerContent}>
                 <DateTimePicker
                   style={styles.datePickerNative}
@@ -370,7 +376,7 @@ const makeStyles = (
       justifyContent: "center",
       gap: theme.spacing.xs,
       paddingVertical: theme.spacing.sm,
-      borderRadius: theme.radius.lg,
+      borderRadius: theme.radius.xl,
       backgroundColor: theme.colors.card,
     },
     qrShareButtonText: {

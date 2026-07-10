@@ -1,6 +1,5 @@
 import type { ComponentProps, ReactNode } from "react";
 import { useRef } from "react";
-import { acceptDecimalInput } from "../../../utils/validation";
 import {
   Pressable,
   StyleSheet,
@@ -14,19 +13,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../ThemeProvider";
 import { CardRow } from "./Card";
 
-export type FormInputRowProps = TextInputProps & {
+export type FormOtpRowProps = TextInputProps & {
   icon?: ComponentProps<typeof Ionicons>["name"];
   iconComponent?: ReactNode;
   label: string;
   trailing?: ReactNode;
   rowStyle?: ViewStyle;
   error?: boolean;
-  /** Max 2 digits after decimal separator. */
-  decimal?: boolean;
 };
 
-export function FormInputRow({
-  icon,
+export function FormOtpRow({
+  icon = "keypad-outline",
   iconComponent,
   label,
   trailing,
@@ -34,26 +31,20 @@ export function FormInputRow({
   style,
   rowStyle,
   error = false,
-  decimal = false,
   value,
-  onChangeText,
+  keyboardType = "number-pad",
+  textContentType = "oneTimeCode",
+  autoComplete = "one-time-code",
   ...inputProps
-}: FormInputRowProps) {
+}: FormOtpRowProps) {
   const { theme, mode } = useTheme();
   const styles = makeStyles(theme);
   const inputRef = useRef<TextInput>(null);
   const isEditable = editable !== false;
+  const hasValue = value != null && String(value).length > 0;
 
   const focusInput = () => {
     if (isEditable) inputRef.current?.focus();
-  };
-
-  const handleChangeText = (text: string) => {
-    if (decimal && onChangeText) {
-      onChangeText(acceptDecimalInput(String(value ?? ""), text));
-      return;
-    }
-    onChangeText?.(text);
   };
 
   return (
@@ -81,16 +72,19 @@ export function FormInputRow({
         ref={inputRef}
         editable={editable}
         value={value}
-        onChangeText={handleChangeText}
+        keyboardType={keyboardType}
+        textContentType={textContentType}
+        autoComplete={autoComplete}
         placeholderTextColor={theme.colors.muted}
         keyboardAppearance={mode === "dark" ? "dark" : "light"}
         {...inputProps}
         style={[
           styles.input,
+          styles.otpInput,
+          hasValue && styles.otpInputTyped,
           {
             color: theme.colors.fg,
             textAlign: "right",
-            letterSpacing: 0,
           },
           style,
         ]}
@@ -100,7 +94,7 @@ export function FormInputRow({
   );
 }
 
-const makeStyles = (theme: any) =>
+const makeStyles = (theme: ReturnType<typeof useTheme>["theme"]) =>
   StyleSheet.create({
     rowLeft: {
       flexDirection: "row",
@@ -118,5 +112,12 @@ const makeStyles = (theme: any) =>
       fontSize: theme.typography.body,
       paddingVertical: 0,
       marginRight: theme.spacing.xs,
+    },
+    otpInput: {
+      fontSize: theme.typography.title,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    otpInputTyped: {
+      letterSpacing: 4,
     },
   });

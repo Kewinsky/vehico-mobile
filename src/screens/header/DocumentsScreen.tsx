@@ -13,7 +13,7 @@ import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScr
 import { SearchBar } from "../../ui/components/common/SearchBar";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { EmptyState } from "../../ui/components/common/EmptyState";
-import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
+import { DocumentsAddHeaderMenu } from "../../ui/components/common/DocumentsAddHeaderMenu";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useScreenFocusReload } from "../../core/useScreenFocusReload";
 import type { Attachment, VehicleDocument } from "../../types/domain";
@@ -38,15 +38,19 @@ import { toastError, toastSuccess } from "../../ui/toast/toast";
 
 export function DocumentsScreen() {
   const router = useRouter();
-  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
-  const vehicleId = Array.isArray(vehicleIdParam) ? vehicleIdParam[0] : vehicleIdParam;
+  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{
+    vehicleId: string;
+  }>();
+  const vehicleId = Array.isArray(vehicleIdParam)
+    ? vehicleIdParam[0]
+    : vehicleIdParam;
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [vehicleDocs, setVehicleDocs] = useState<VehicleDocument[]>([]);
   const [attachments, setAttachments] = useState<VehicleAttachment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [, setUploading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"documents" | "attachments">(
     "documents",
@@ -108,24 +112,6 @@ export function DocumentsScreen() {
           : (e?.message ?? t("common.error")),
       );
     }
-  }
-
-  function pickVehicleDocument() {
-    Alert.alert("", t("attachments.addPickerBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("attachments.camera"),
-        onPress: () => void pickDocFromCamera(),
-      },
-      {
-        text: t("attachments.photos"),
-        onPress: () => void pickDocFromGallery(),
-      },
-      {
-        text: t("attachments.files"),
-        onPress: () => void pickDocFromFiles(),
-      },
-    ]);
   }
 
   async function pickDocFromCamera() {
@@ -207,22 +193,18 @@ export function DocumentsScreen() {
     }
   }
 
-  function openAddPicker() {
-    Alert.alert("", "", [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("documents.addVehicleDocument"),
-        onPress: () => pickVehicleDocument(),
-      },
-      {
-        text: t("documents.addAttachment"),
-        onPress: () => {
-          if (!vehicleId) return;
-          router.push(routes.addAttachment(vehicleId));
-        },
-      },
-    ]);
-  }
+  const headerRight = (
+    <DocumentsAddHeaderMenu
+      onCamera={() => void pickDocFromCamera()}
+      onPhotos={() => void pickDocFromGallery()}
+      onFiles={() => void pickDocFromFiles()}
+      onAddAttachment={() => {
+        if (!vehicleId) return;
+        router.push(routes.addAttachment(vehicleId));
+      }}
+      disabled={uploading}
+    />
+  );
 
   async function editDocumentDescription(doc: VehicleDocument) {
     Alert.prompt(
@@ -297,17 +279,6 @@ export function DocumentsScreen() {
     );
   }
 
-  const headerActions: HeaderAction[] = useMemo(
-    () => [
-      {
-        type: "add",
-        onPress: () => openAddPicker(),
-      },
-    ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- openAddPicker uses stable route/t handlers
-    [t, router, vehicleId],
-  );
-
   function renderDocumentRightActions(
     item: VehicleDocument,
     progress: Animated.AnimatedInterpolation<number>,
@@ -353,7 +324,7 @@ export function DocumentsScreen() {
     <HeaderContentScreen
       loading={loading}
       onBack={() => router.back()}
-      actions={headerActions}
+      right={headerRight}
       title={t("dashboard.tiles.docsTitle")}
     >
       <SearchBar
@@ -506,7 +477,7 @@ const makeStyles = (theme: any) =>
     trash: {
       width: theme.spacing.xl + theme.spacing.sm,
       height: theme.spacing.xl + theme.spacing.sm,
-      borderRadius: theme.radius.sm,
+      borderRadius: theme.radius.xl,
       alignItems: "center",
       justifyContent: "center",
     },

@@ -1,10 +1,8 @@
 import { useMemo } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { Host, Picker, Text as SwiftUIText } from "@expo/ui/swift-ui";
-import { fixedSize, pickerStyle, tag } from "@expo/ui/swift-ui/modifiers";
-
 import { useTheme } from "../../ThemeProvider";
+import { IOSMenuPickerControl } from "./IOSMenuPickerControl";
 import { buildMenuPickerState } from "./menuPickerState";
 import { openAlertPicker } from "./openAlertPicker";
 
@@ -45,7 +43,7 @@ export function PickerField<T extends string>({
       [value, options, getLabel, placeholder],
     );
 
-  const displayText = value ? getLabel(value) : placeholder || "";
+  const displayText = pickerOptions[selectedIndex] ?? "";
 
   if (Platform.OS === "ios") {
     const valueColor = isValueMuted ? theme.colors.muted : theme.colors.fg;
@@ -57,30 +55,14 @@ export function PickerField<T extends string>({
       >
         {label ? <Text style={styles.label}>{label}</Text> : null}
         <View style={[styles.wrap, disabled && styles.disabled]}>
-          <View style={styles.valueWrap}>
-            <Host
-              matchContents={{ horizontal: true, vertical: true }}
-              colorScheme={themeMode === "dark" ? "dark" : "light"}
-              style={styles.nativePickerHost}
-            >
-              <Picker
-                selection={selectedIndex}
-                modifiers={[
-                  pickerStyle("menu"),
-                  fixedSize({ horizontal: true, vertical: true }),
-                ]}
-                onSelectionChange={(selection) => {
-                  onChange(handleSelectIndex(Number(selection)));
-                }}
-              >
-                {pickerOptions.map((option, index) => (
-                  <SwiftUIText key={`${option}-${index}`} modifiers={[tag(index)]}>
-                    {option}
-                  </SwiftUIText>
-                ))}
-              </Picker>
-            </Host>
-          </View>
+          <IOSMenuPickerControl
+            displayText={displayText}
+            valueColor={valueColor}
+            options={pickerOptions}
+            onSelect={(index) => onChange(handleSelectIndex(index))}
+            colorScheme={themeMode === "dark" ? "dark" : "light"}
+            wrapStyle={styles.menuWrap}
+          />
         </View>
       </View>
     );
@@ -116,9 +98,7 @@ export function PickerField<T extends string>({
             style={[
               styles.valueText,
               {
-                color: value
-                  ? theme.colors.fg
-                  : theme.colors.muted,
+                color: value ? theme.colors.fg : theme.colors.muted,
               },
             ]}
             numberOfLines={1}
@@ -133,12 +113,6 @@ export function PickerField<T extends string>({
 
 const makeStyles = (theme: any) =>
   StyleSheet.create({
-    field: {
-      marginTop: theme.spacing.sm,
-    },
-    fieldNoTop: {
-      marginTop: 0,
-    },
     label: {
       marginBottom: theme.spacing.sm,
       fontSize: theme.typography.small,
@@ -149,22 +123,15 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.xl,
       backgroundColor: theme.colors.card,
       paddingVertical: theme.spacing.md,
-      paddingRight: 0,
-      paddingLeft: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md,
       minHeight: 48,
       justifyContent: "center",
     },
-    valueWrap: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
+    menuWrap: {
+      flex: 1,
     },
     valueText: {
       fontSize: theme.typography.body,
-    },
-    nativePickerHost: {
-      flexShrink: 0,
-      maxWidth: "100%",
     },
     disabled: {
       opacity: 0.55,

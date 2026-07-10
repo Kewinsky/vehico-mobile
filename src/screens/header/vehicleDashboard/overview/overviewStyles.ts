@@ -7,42 +7,6 @@ export function useOverviewPanelStyles() {
   return StyleSheet.create({
     page: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.md,
-    },
-    vehicleHeaderRow: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      justifyContent: "space-between",
-      gap: theme.spacing.sm,
-      marginBottom: theme.spacing.md,
-    },
-    vehicleHeaderText: {
-      flex: 1,
-      minWidth: 0,
-    },
-    title: {
-      color: theme.colors.fg,
-      fontSize: theme.typography.largeTitle,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    vinRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-      marginTop: theme.spacing.xs,
-    },
-    vinText: {
-      color: theme.colors.muted,
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.medium,
-    },
-    publicPageCircleButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 999,
-      backgroundColor: theme.colors.accent,
-      alignItems: "center",
-      justifyContent: "center",
     },
     panelSections: {
       gap: theme.spacing.xl,

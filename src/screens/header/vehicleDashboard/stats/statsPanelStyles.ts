@@ -65,7 +65,7 @@ export const makeStatsPanelStyles = (
     expenseSummaryBreakdownCell: {
       flex: 1,
       minWidth: 0,
-      borderRadius: theme.radius.lg,
+      borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       gap: theme.spacing.xs,
     },

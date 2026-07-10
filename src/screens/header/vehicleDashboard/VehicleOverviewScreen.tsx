@@ -5,6 +5,7 @@ import { AppLayout } from "../../../ui/components/layout/AppLayout";
 import { NativeHeaderScrollView } from "../../../ui/components/layout/NativeHeaderScrollView";
 import { OverviewPanel } from "./overview/OverviewPanel";
 import { VehicleDashboardCarousel } from "./VehicleDashboardCarousel";
+import { VehicleDashboardHeaderToolbars } from "./VehicleDashboardHeaderToolbars";
 import { useVehicleDashboard } from "./VehicleDashboardProvider";
 
 export default function VehicleOverviewScreen() {
@@ -46,55 +47,62 @@ export default function VehicleOverviewScreen() {
   } = dashboard;
 
   return (
-    <AppLayout
-      loading={loading}
-      ready
-      useNativeHeader
-      useHorizontalContentInset={false}
-    >
-      <NativeHeaderScrollView
-        paddingHorizontal={false}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{
-          paddingBottom: Math.max(theme.spacing.xl, insets.bottom + theme.spacing.md),
-        }}
+    <>
+      <VehicleDashboardHeaderToolbars showActionsMenu />
+      <AppLayout
+        loading={loading}
+        ready
+        useNativeHeader
+        useHorizontalContentInset={false}
       >
-        <VehicleDashboardCarousel />
-        <OverviewPanel
-          windowWidth={windowWidth}
-          styles={overviewStyles}
-          vehicleId={vehicleId}
-          vehicle={vehicle}
-          t={t}
-          language={i18n.language}
-          theme={theme}
-          isPremium={isPremium}
-          publicReportUrl={publicReportUrl}
-          onCopyVin={onCopyVin}
-          onShowQrCode={handleShowPublicReportQr}
-          mileageStaleTitle={mileageStaleTitle}
-          handleQuickMileageEdit={handleQuickMileageEdit}
-          insuranceCalloutCopy={insuranceCalloutCopy}
-          inspectionCalloutCopy={inspectionCalloutCopy}
-          oilChangeDueState={oilChangeDueState}
-          oilBannerCopy={oilBannerCopy}
-          handleOilChangeDone={handleOilChangeDone}
-          handleOilChangeBook={handleOilChangeBook}
-          oilBookLoading={oilBookLoading}
-          quickMetrics={quickMetrics}
-          currency={currency}
-          distanceUnitLabel={distanceUnitLabel}
-          handleAddService={handleAddService}
-          handleAddFuel={handleAddFuel}
-          handleAddReminder={handleAddReminder}
-          upcomingReminders={upcomingReminders}
-          insuranceDaysUntil={insuranceDaysUntil}
-          inspectionDaysUntil={inspectionDaysUntil}
-          openFormalitiesDateEditor={openFormalitiesDateEditor}
-          fittedTiresLines={fittedTiresLines}
-          fittedWheelsLines={fittedWheelsLines}
-        />
-      </NativeHeaderScrollView>
-    </AppLayout>
+        <NativeHeaderScrollView
+          paddingHorizontal={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            paddingTop: 0,
+            paddingBottom: Math.max(
+              theme.spacing.xl,
+              insets.bottom + theme.spacing.md,
+            ),
+          }}
+        >
+          <VehicleDashboardCarousel />
+          <OverviewPanel
+            windowWidth={windowWidth}
+            styles={overviewStyles}
+            vehicleId={vehicleId}
+            vehicle={vehicle}
+            t={t}
+            language={i18n.language}
+            theme={theme}
+            isPremium={isPremium}
+            publicReportUrl={publicReportUrl}
+            onCopyVin={onCopyVin}
+            onShowQrCode={handleShowPublicReportQr}
+            mileageStaleTitle={mileageStaleTitle}
+            handleQuickMileageEdit={handleQuickMileageEdit}
+            insuranceCalloutCopy={insuranceCalloutCopy}
+            inspectionCalloutCopy={inspectionCalloutCopy}
+            oilChangeDueState={oilChangeDueState}
+            oilBannerCopy={oilBannerCopy}
+            handleOilChangeDone={handleOilChangeDone}
+            handleOilChangeBook={handleOilChangeBook}
+            oilBookLoading={oilBookLoading}
+            quickMetrics={quickMetrics}
+            currency={currency}
+            distanceUnitLabel={distanceUnitLabel}
+            handleAddService={handleAddService}
+            handleAddFuel={handleAddFuel}
+            handleAddReminder={handleAddReminder}
+            upcomingReminders={upcomingReminders}
+            insuranceDaysUntil={insuranceDaysUntil}
+            inspectionDaysUntil={inspectionDaysUntil}
+            openFormalitiesDateEditor={openFormalitiesDateEditor}
+            fittedTiresLines={fittedTiresLines}
+            fittedWheelsLines={fittedWheelsLines}
+          />
+        </NativeHeaderScrollView>
+      </AppLayout>
+    </>
   );
 }
