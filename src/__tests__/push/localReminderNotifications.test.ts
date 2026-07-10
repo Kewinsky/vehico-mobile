@@ -1,5 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { i18n } from "../../i18n/i18n";
+import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import {
   cancelLocalReminder,
   scheduleLocalReminder,
@@ -27,6 +28,10 @@ jest.mock("../../i18n/i18n", () => ({
   },
 }));
 
+jest.mock("../../services/vehicles/vehiclesRepo", () => ({
+  getVehicle: jest.fn(),
+}));
+
 jest.mock("../../utils/dateFormatting", () => ({
   formatLongMonthDisplayDate: jest.fn(() => "Jan 1, 2025"),
 }));
@@ -35,6 +40,10 @@ describe("localReminderNotifications", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     i18n.language = "en";
+    (getVehicle as jest.Mock).mockResolvedValue({
+      make: "BMW",
+      model: "530d",
+    });
   });
 
   it("does nothing when due_date missing", async () => {
@@ -125,6 +134,9 @@ describe("localReminderNotifications", () => {
     expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledWith(
       expect.objectContaining({
         identifier: "vehico-reminder-r1",
+        content: expect.objectContaining({
+          body: "Due Reminder (BMW 530d) Jan 1, 2025",
+        }),
       }),
     );
   });

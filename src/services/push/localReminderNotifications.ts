@@ -2,7 +2,9 @@ import * as Notifications from "expo-notifications";
 
 import { APP_DISPLAY_NAME } from "../../config/appBrand";
 import { i18n } from "../../i18n/i18n";
+import type { Vehicle } from "../../types/domain";
 import { formatLongMonthDisplayDate } from "../../utils/dateFormatting";
+import { getVehicle } from "../vehicles/vehiclesRepo";
 
 const DEFAULT_HOUR = 9;
 const DEFAULT_MINUTE = 0;
@@ -10,6 +12,27 @@ const DEFAULT_MINUTE = 0;
 /** Prefix for scheduled notification identifiers so we can cancel by reminder id */
 const PREFIX = "vehico-reminder-";
 const PREFIX_BEFORE = "vehico-reminder-before-";
+
+function vehicleDisplayLabel(vehicle: Pick<Vehicle, "make" | "model">): string {
+  return `${vehicle.make ?? ""} ${vehicle.model ?? ""}`.trim();
+}
+
+function reminderNotificationLabel(
+  reminderTitle: string,
+  vehicleLabel: string,
+): string {
+  const vehicle = vehicleLabel.trim();
+  return vehicle ? `${reminderTitle} (${vehicle})` : reminderTitle;
+}
+
+async function resolveVehicleLabel(vehicleId: string): Promise<string> {
+  try {
+    const vehicle = await getVehicle(vehicleId);
+    return vehicleDisplayLabel(vehicle);
+  } catch {
+    return "";
+  }
+}
 
 /** Relative lead time for push body, with correct EN/PL singular/plural. */
 function formatReminderLeadTimePhrase(days: number, lang: string): string {
@@ -60,9 +83,14 @@ export async function scheduleLocalReminder(
   const reminderTitle =
     (reminder.title ?? "").trim() ||
     i18n.t("reminders.localNotification.defaultTitle");
+  const vehicleLabel = await resolveVehicleLabel(reminder.vehicle_id);
+  const notificationLabel = reminderNotificationLabel(
+    reminderTitle,
+    vehicleLabel,
+  );
   const dateFormatted = formatLongMonthDisplayDate(reminder.due_date, lang);
   const body = i18n.t("reminders.localNotification.onDueDay", {
-    title: reminderTitle,
+    title: notificationLabel,
     date: dateFormatted,
   });
   const data = { reminderId: reminder.id, vehicleId: reminder.vehicle_id };
@@ -91,7 +119,7 @@ export async function scheduleLocalReminder(
     beforeDate.setDate(beforeDate.getDate() - daysBefore);
     if (beforeDate.getTime() > Date.now()) {
       const beforeBody = i18n.t("reminders.localNotification.daysBefore", {
-        title: reminderTitle,
+        title: notificationLabel,
         when: formatReminderLeadTimePhrase(daysBefore, lang),
         date: dateFormatted,
       });
