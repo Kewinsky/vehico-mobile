@@ -15,11 +15,10 @@ import { PremiumDowngradeHandler } from "@/core/PremiumDowngradeHandler";
 import { AuthProvider } from "@/core/providers/AuthProvider";
 import { UserSettingsProvider } from "@/core/providers/UserSettingsProvider";
 import { EntitlementsProvider } from "@/core/providers/EntitlementsProvider";
-import { ThemeProvider, useTheme } from "@/ui/ThemeProvider";
+import { ThemeProvider } from "@/ui/ThemeProvider";
 import { ExclusiveSwipeProvider } from "@/ui/components/common/ExclusiveSwipeable";
 import { ErrorBoundary } from "@/ui/components/common/ErrorBoundary";
 import { AppToasts } from "@/ui/toast/AppToasts";
-import { setThemeColorsGetter } from "@/ui/toast/toast";
 import { FormalityNotificationsBootstrap } from "@/core/FormalityNotificationsBootstrap";
 import {
   navigateToReminderForm,
@@ -78,22 +77,6 @@ function NotificationBootstrap() {
   return null;
 }
 
-function ThemeToastBridge() {
-  const { theme } = useTheme();
-
-  useEffect(() => {
-    setThemeColorsGetter(() => ({
-      bg: theme.colors.bg,
-      fg: theme.colors.fg,
-      accent: theme.colors.accent,
-      danger: theme.colors.danger,
-      muted: theme.colors.muted,
-    }));
-  }, [theme]);
-
-  return null;
-}
-
 function RootLayoutNav() {
   const [fontsLoaded] = useFonts({
     [BRAND_FONT_FAMILY]: require("../fonts/ChironGoRoundTC-ExtraBold.ttf"),
@@ -111,7 +94,6 @@ function RootLayoutNav() {
     <>
       <FormalityNotificationsBootstrap />
       <NotificationBootstrap />
-      <ThemeToastBridge />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(app)" />

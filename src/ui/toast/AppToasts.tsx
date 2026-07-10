@@ -1,91 +1,134 @@
-import ToastManager, { BaseToast } from "toastify-react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useWindowDimensions, View, StyleSheet } from "react-native";
-import { BlurView } from "expo-blur";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Animated,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Host, Label } from "@expo/ui/swift-ui";
+import { glassEffect, padding, tint } from "@expo/ui/swift-ui/modifiers";
+import type { SFSymbol } from "sf-symbols-typescript";
 
-import { hexToRgba } from "../components/common/ChoiceChip";
 import { useTheme } from "../ThemeProvider";
+import { subscribe, type ToastPayload } from "./toastStore";
+
+const TOAST_SYMBOLS: Record<ToastPayload["type"], SFSymbol> = {
+  success: "checkmark.circle.fill",
+  error: "xmark.circle.fill",
+  info: "info.circle.fill",
+};
+
+function toastMessage(toast: ToastPayload): string {
+  if (toast.description) {
+    return `${toast.title}\n${toast.description}`;
+  }
+  return toast.title;
+}
 
 export function AppToasts() {
   const { mode, theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
-  const horizontalInset = theme.layout.contentPaddingHorizontal;
-  const toastWidth = Math.max(240, windowWidth - horizontalInset * 2);
-
-  const renderBlurToast = (props: any) => (
-    <View style={[styles.blurWrap, { width: toastWidth }]}>
-      <BlurView
-        intensity={mode === "dark" ? 45 : 70}
-        tint={mode === "dark" ? "dark" : "light"}
-        style={StyleSheet.absoluteFill}
-      />
-      <BaseToast
-        {...props}
-        width={toastWidth}
-        backgroundColor="transparent"
-        style={[
-          props.style,
-          {
-            backgroundColor: "transparent",
-            borderRadius: 999,
-          },
-        ]}
-      />
-    </View>
+  const [toast, setToast] = useState<ToastPayload | null>(null);
+  const toastWidth = Math.max(
+    240,
+    windowWidth - theme.layout.contentPaddingHorizontal * 2,
   );
 
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => subscribe(setToast), []);
+
+  useEffect(() => {
+    if (!toast) {
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 20,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+      ]).start();
+      return;
+    }
+
+    translateY.setValue(20);
+    opacity.setValue(0);
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+      Animated.spring(translateY, {
+        toValue: 0,
+        useNativeDriver: true,
+        speed: 18,
+        bounciness: 4,
+      }),
+    ]).start();
+  }, [opacity, toast, translateY]);
+
+  const iconTint = useMemo(() => {
+    if (!toast) return theme.colors.accent;
+    return toast.type === "error" ? theme.colors.danger : theme.colors.accent;
+  }, [theme.colors.accent, theme.colors.danger, toast]);
+
   return (
-    <ToastManager
-      useModal={false}
-      position="bottom"
-      width={toastWidth}
-      theme={mode === "dark" ? "dark" : "light"}
-      showProgressBar={false}
-      showCloseIcon={false}
-      duration={3200}
-      style={{
-        borderRadius: 999,
-        backgroundColor: "transparent",
-        borderWidth: 1,
-        borderColor: hexToRgba(theme.colors.accent, 0.3),
-      }}
-      icons={{
-        success: (
-          <Ionicons
-            name="checkmark-circle"
-            size={22}
-            color={theme.colors.accent}
-          />
-        ),
-        error: (
-          <Ionicons name="close-circle" size={22} color={theme.colors.danger} />
-        ),
-        info: (
-          <Ionicons
-            name="information-circle"
-            size={22}
-            color={theme.colors.accent}
-          />
-        ),
-        warn: <Ionicons name="warning" size={22} color="#f59e0b" />,
-        default: (
-          <Ionicons name="notifications" size={22} color={theme.colors.muted} />
-        ),
-      }}
-      config={{
-        success: renderBlurToast,
-        error: renderBlurToast,
-        info: renderBlurToast,
-        warn: renderBlurToast,
-        default: renderBlurToast,
-      }}
-    />
+    <View pointerEvents="box-none" style={styles.root}>
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.toastWrap,
+          {
+            width: toastWidth,
+            marginBottom: insets.bottom + 12,
+            opacity,
+            transform: [{ translateY }],
+          },
+        ]}
+      >
+        {toast ? (
+          <Host
+            matchContents={{ vertical: true }}
+            colorScheme={mode === "dark" ? "dark" : "light"}
+            seedColor={theme.colors.accent}
+            style={{ width: toastWidth }}
+          >
+            <Label
+              title={toastMessage(toast)}
+              systemImage={TOAST_SYMBOLS[toast.type]}
+              modifiers={[
+                padding({ horizontal: 16, vertical: 12 }),
+                glassEffect({
+                  glass: { variant: "regular", interactive: false },
+                  shape: "capsule",
+                }),
+                tint(iconTint),
+              ]}
+            />
+          </Host>
+        ) : null}
+      </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  blurWrap: {
-    borderRadius: 999,
-    overflow: "hidden",
+  root: {
+    ...StyleSheet.absoluteFill,
+    justifyContent: "flex-end",
+    alignItems: "center",
+    zIndex: 9999,
+    elevation: 9999,
+  },
+  toastWrap: {
+    alignSelf: "center",
   },
 });
