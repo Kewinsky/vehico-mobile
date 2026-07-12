@@ -29,13 +29,6 @@ export type StatisticsPanelProps = {
   fuelMain: string;
   serviceMain: string;
   mileageOverTimeSeries: { x: string; y: number }[];
-  mileageChartScale: {
-    minY: number;
-    niceMaxY: number;
-    yTicks: { value: number; y: number }[];
-  };
-  chartScrollViewportWidth: number;
-  mileageChartWidth: number;
   formatChartMonth: (key: string) => string;
   formatChartMonthFull: (key: string) => string;
   formatChartYAxisLabel: (value: number) => string;
@@ -88,11 +81,6 @@ export type StatisticsPanelProps = {
       total: number;
     }[];
   };
-  barChartScale: {
-    niceMaxY: number;
-    yTicks: { value: number; y: number }[];
-  };
-  barChartWidth: number;
   oilLastChangeShowDate: boolean;
   setOilLastChangeShowDate: Dispatch<SetStateAction<boolean>>;
   lastOilChangeDateLabel: string;

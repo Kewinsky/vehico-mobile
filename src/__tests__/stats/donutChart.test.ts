@@ -1,4 +1,4 @@
-import { donutSlicePath } from "../../screens/header/vehicleDashboard/stats/charts/charts";
+import { donutSlicePath } from "../../screens/header/vehicleDashboard/stats/charts/chartGeometry";
 
 describe("donutSlicePath", () => {
   it("returns a path for a full ring (100% single slice)", () => {

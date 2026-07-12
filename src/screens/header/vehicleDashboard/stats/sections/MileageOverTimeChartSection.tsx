@@ -1,8 +1,7 @@
 import { Pressable, Text, View } from "react-native";
 import { CircleHelp } from "lucide-react-native";
 
-import { ChartHorizontalScroll } from "../components/ChartHorizontalScroll";
-import { CHART_LINE_HEIGHT, CHART_MILEAGE_Y_AXIS_WIDTH, ChartYAxis, SimpleLineChart } from "../charts/charts";
+import { VictoryMileageLineChart } from "../charts/VictoryMileageLineChart";
 import type { StatisticsPanelProps } from "../types";
 
 export function MileageOverTimeChartSection({
@@ -12,9 +11,6 @@ export function MileageOverTimeChartSection({
   isPremium,
   period,
   mileageOverTimeSeries,
-  mileageChartScale,
-  chartScrollViewportWidth,
-  mileageChartWidth,
   formatChartMonth,
   formatChartMonthFull,
   formatChartYAxisLabel,
@@ -45,40 +41,18 @@ export function MileageOverTimeChartSection({
             {t("dashboard.stats.empty")}
           </Text>
         ) : (
-          <View style={styles.chartFrame}>
-            <ChartYAxis
-              width={CHART_MILEAGE_Y_AXIS_WIDTH}
-              height={CHART_LINE_HEIGHT}
-              yTicks={mileageChartScale.yTicks}
-              textColor={theme.colors.muted}
-              grid={theme.colors.border}
-              formatYLabel={formatChartYAxisLabel}
-            />
-            <ChartHorizontalScroll
-              contentWidth={mileageChartWidth}
-              viewportWidth={chartScrollViewportWidth}
-              maxHeight={CHART_LINE_HEIGHT}
-              style={styles.chartScroll}
-              contentContainerStyle={styles.chartScrollContent}
-            >
-              <SimpleLineChart
-                data={mileageOverTimeSeries}
-                width={mileageChartWidth}
-                height={CHART_LINE_HEIGHT}
-                minY={mileageChartScale.minY}
-                maxY={mileageChartScale.niceMaxY}
-                yTicks={mileageChartScale.yTicks}
-                stroke={theme.colors.accent}
-                grid={theme.colors.border}
-                textColor={theme.colors.muted}
-                formatXLabel={formatChartMonth}
-                formatTooltipXLabel={formatChartMonthFull}
-                formatTooltipValue={formatMileageChartValue}
-                tooltipBg={theme.colors.card}
-                tooltipText={theme.colors.fg}
-              />
-            </ChartHorizontalScroll>
-          </View>
+          <VictoryMileageLineChart
+            data={mileageOverTimeSeries}
+            accentColor={theme.colors.accent}
+            mutedColor={theme.colors.muted}
+            borderColor={theme.colors.border}
+            cardColor={theme.colors.card}
+            textColor={theme.colors.fg}
+            formatMonth={formatChartMonth}
+            formatMonthFull={formatChartMonthFull}
+            formatYLabel={formatChartYAxisLabel}
+            formatValue={formatMileageChartValue}
+          />
         )}
       </View>
     </View>

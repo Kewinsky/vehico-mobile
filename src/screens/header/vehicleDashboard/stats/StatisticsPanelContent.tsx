@@ -28,12 +28,6 @@ const PREMIUM_STATS_SECTIONS = new Set<DashboardStatsSectionId>([
   "oilChange",
 ]);
 
-const CHART_SECTIONS = new Set<DashboardStatsSectionId>([
-  "mileageOverTimeChart",
-  "expensesByCategory",
-  "expensesOverTime",
-]);
-
 type ChartInfoSection = Parameters<StatisticsPanelProps["showChartInfo"]>[0];
 
 type Props = {
@@ -77,7 +71,6 @@ export function StatisticsPanelContent({ period }: Props) {
     distanceUnitLabel,
     fuelUnitLabel: fuelUnitShort,
     showAllCategoryLegend,
-    includeCharts: false,
   });
   const { snapshot } = stats;
 
@@ -161,9 +154,6 @@ export function StatisticsPanelContent({ period }: Props) {
     fuelMain: stats.fuelMain,
     serviceMain: stats.serviceMain,
     mileageOverTimeSeries: snapshot.mileageOverTimeSeries,
-    mileageChartScale: stats.mileageChartScale,
-    chartScrollViewportWidth: stats.chartScrollViewportWidth,
-    mileageChartWidth: stats.mileageChartWidth,
     formatChartMonth: stats.formatChartMonth,
     formatChartMonthFull: stats.formatChartMonthFull,
     formatChartYAxisLabel: stats.formatChartYAxisLabel,
@@ -198,8 +188,6 @@ export function StatisticsPanelContent({ period }: Props) {
     showAllCategoryLegend,
     setShowAllCategoryLegend,
     monthlyExpensesSeries: snapshot.monthlyExpensesSeries,
-    barChartScale: stats.barChartScale,
-    barChartWidth: stats.barChartWidth,
     oilLastChangeShowDate,
     setOilLastChangeShowDate,
     lastOilChangeDateLabel: formatShortDisplayDate(
@@ -222,11 +210,9 @@ export function StatisticsPanelContent({ period }: Props) {
   };
 
   const { orderedIds } = useDashboardSectionOrder("stats");
-  const visibleSectionIds = (
-    isPremium
-      ? orderedIds
-      : orderedIds.filter((id) => !PREMIUM_STATS_SECTIONS.has(id))
-  ).filter((id) => !CHART_SECTIONS.has(id));
+  const visibleSectionIds = isPremium
+    ? orderedIds
+    : orderedIds.filter((id) => !PREMIUM_STATS_SECTIONS.has(id));
 
   const sectionRenderers = {
     expenseSummary: () => <ExpenseSummarySection {...panelProps} />,

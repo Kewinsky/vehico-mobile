@@ -47,7 +47,10 @@
         "expo-localization",
         {
           "supportedLocales": {
-            "ios": ["en", "pl"]
+            "ios": [
+              "en",
+              "pl"
+            ]
           }
         }
       ],
@@ -75,6 +78,9 @@
         "projectId": "cdb0e267-7fe1-48b4-bd44-5e6debb39f5f"
       }
     },
-    "owner": "kta.software"
+    "owner": "kta.software",
+    "android": {
+      "package": "com.ktasoftware.vehico"
+    }
   }
 }

@@ -2,7 +2,12 @@ import { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useWindowDimensions } from "react-native";
 
-import type { FuelingEntry, MileageAudit, ServiceEntry, Vehicle } from "../../../../types/domain";
+import type {
+  FuelingEntry,
+  MileageAudit,
+  ServiceEntry,
+  Vehicle,
+} from "../../../../types/domain";
 import { useTheme } from "../../../../ui/ThemeProvider";
 import { groupThousands } from "../../../../utils/numberFormatting";
 import {
@@ -14,14 +19,6 @@ import {
   formatChartMonthKeyFull,
   formatChartYAxisLabel,
 } from "../../statistics/domain/math";
-import {
-  CHART_BAR_HEIGHT,
-  CHART_LINE_HEIGHT,
-  CHART_Y_AXIS_WIDTH,
-  getChartScale,
-  getMileageChartScale,
-  getScrollableChartWidth,
-} from "./charts/charts";
 import {
   buildCategorySeries,
   computeVehicleStatistics,
@@ -133,41 +130,6 @@ export function useVehicleStatistics({
   const chartViewportWidth = includeCharts
     ? Math.max(280, windowWidth - theme.layout.contentPaddingHorizontal * 2)
     : 0;
-  const chartScrollViewportWidth = includeCharts
-    ? Math.max(0, chartViewportWidth - CHART_Y_AXIS_WIDTH)
-    : 0;
-  const barChartWidth = includeCharts
-    ? getScrollableChartWidth(
-        snapshot.monthlyExpensesSeries.data.length,
-        chartScrollViewportWidth,
-      )
-    : 0;
-  const mileageChartWidth = includeCharts
-    ? getScrollableChartWidth(
-        snapshot.mileageOverTimeSeries.length,
-        chartScrollViewportWidth,
-      )
-    : 0;
-  const barChartScale = useMemo(
-    () =>
-      includeCharts
-        ? getChartScale(
-            snapshot.monthlyExpensesSeries.data.map((item) => item.total),
-            CHART_BAR_HEIGHT,
-          )
-        : { niceMaxY: 0, yTicks: [] },
-    [includeCharts, snapshot.monthlyExpensesSeries.data],
-  );
-  const mileageChartScale = useMemo(
-    () =>
-      includeCharts
-        ? getMileageChartScale(
-            snapshot.mileageOverTimeSeries.map((item) => item.y),
-            CHART_LINE_HEIGHT,
-          )
-        : { minY: 0, niceMaxY: 0, yTicks: [] },
-    [includeCharts, snapshot.mileageOverTimeSeries],
-  );
 
   const formatExpenseAmount = useCallback(
     (value: number) =>
@@ -197,11 +159,6 @@ export function useVehicleStatistics({
       totalByCategory,
       hasHiddenCategoryItems: categorySeries.length > 3,
       chartViewportWidth,
-      chartScrollViewportWidth,
-      barChartWidth,
-      mileageChartWidth,
-      barChartScale,
-      mileageChartScale,
       isNarrow: windowWidth < 380,
       formatChartMonth,
       formatChartMonthFull,
@@ -232,11 +189,6 @@ export function useVehicleStatistics({
       visibleCategorySeries,
       totalByCategory,
       chartViewportWidth,
-      chartScrollViewportWidth,
-      barChartWidth,
-      mileageChartWidth,
-      barChartScale,
-      mileageChartScale,
       windowWidth,
       formatChartMonth,
       formatChartMonthFull,

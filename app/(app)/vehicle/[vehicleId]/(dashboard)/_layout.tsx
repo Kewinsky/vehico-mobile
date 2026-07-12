@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { Tabs } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/ui/ThemeProvider";
@@ -9,71 +9,58 @@ export default function VehicleDashboardLayout() {
   const { theme } = useTheme();
 
   return (
-    <NativeTabs
-      labelVisibilityMode="unlabeled"
-      tintColor={theme.colors.accent}
-      iconColor={theme.colors.muted}
+    <Tabs
+      initialRouteName="index"
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: theme.colors.accent,
+        tabBarInactiveTintColor: theme.colors.muted,
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: theme.colors.bg,
+          borderTopColor: theme.colors.border,
+        },
+      }}
     >
-      <NativeTabs.Trigger name="menu">
-        <NativeTabs.Trigger.Icon
-          src={{
-            default: (
-              <NativeTabs.Trigger.VectorIcon
-                family={Ionicons}
-                name="apps-outline"
-              />
-            ),
-            selected: (
-              <NativeTabs.Trigger.VectorIcon family={Ionicons} name="apps" />
-            ),
-          }}
-        />
-        <NativeTabs.Trigger.Label>
-          {t("dashboard.pager.menu")}
-        </NativeTabs.Trigger.Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Icon
-          src={{
-            default: (
-              <NativeTabs.Trigger.VectorIcon
-                family={Ionicons}
-                name="car-sport-outline"
-              />
-            ),
-            selected: (
-              <NativeTabs.Trigger.VectorIcon
-                family={Ionicons}
-                name="car-sport"
-              />
-            ),
-          }}
-        />
-        <NativeTabs.Trigger.Label>
-          {t("dashboard.pager.overview")}
-        </NativeTabs.Trigger.Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="statistics">
-        <NativeTabs.Trigger.Icon
-          src={{
-            default: (
-              <NativeTabs.Trigger.VectorIcon
-                family={Ionicons}
-                name="stats-chart-outline"
-              />
-            ),
-            selected: (
-              <NativeTabs.Trigger.VectorIcon
-                family={Ionicons}
-                name="stats-chart"
-              />
-            ),
-          }}
-        />
-        <NativeTabs.Trigger.Label>
-          {t("dashboard.pager.statistics")}
-        </NativeTabs.Trigger.Label>
-      </NativeTabs.Trigger>
-    </NativeTabs>
+      <Tabs.Screen
+        name="menu"
+        options={{
+          title: t("dashboard.pager.menu"),
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "apps" : "apps-outline"}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: t("dashboard.pager.overview"),
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "car-sport" : "car-sport-outline"}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="statistics"
+        options={{
+          title: t("dashboard.pager.statistics"),
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "stats-chart" : "stats-chart-outline"}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }

@@ -1,0 +1,2 @@
+export const VICTORY_CHART_HEIGHT = 260;
+export const VICTORY_DONUT_MAX_SIZE = 260;
