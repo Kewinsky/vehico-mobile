@@ -1,6 +1,7 @@
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { CircleHelp } from "lucide-react-native";
 
+import { ChartHorizontalScroll } from "../components/ChartHorizontalScroll";
 import { CHART_LINE_HEIGHT, CHART_MILEAGE_Y_AXIS_WIDTH, ChartYAxis, SimpleLineChart } from "../charts/charts";
 import type { StatisticsPanelProps } from "../types";
 
@@ -53,15 +54,12 @@ export function MileageOverTimeChartSection({
               grid={theme.colors.border}
               formatYLabel={formatChartYAxisLabel}
             />
-            <ScrollView
-              horizontal
-              bounces={false}
-              showsHorizontalScrollIndicator={false}
+            <ChartHorizontalScroll
+              contentWidth={mileageChartWidth}
+              viewportWidth={chartScrollViewportWidth}
+              maxHeight={CHART_LINE_HEIGHT}
               style={styles.chartScroll}
-              contentContainerStyle={[
-                styles.chartScrollContent,
-                { minWidth: chartScrollViewportWidth },
-              ]}
+              contentContainerStyle={styles.chartScrollContent}
             >
               <SimpleLineChart
                 data={mileageOverTimeSeries}
@@ -79,7 +77,7 @@ export function MileageOverTimeChartSection({
                 tooltipBg={theme.colors.card}
                 tooltipText={theme.colors.fg}
               />
-            </ScrollView>
+            </ChartHorizontalScroll>
           </View>
         )}
       </View>

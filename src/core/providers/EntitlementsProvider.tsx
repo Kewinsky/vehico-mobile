@@ -7,7 +7,6 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { InteractionManager } from "react-native";
 import Purchases, {
   type CustomerInfo,
   type PurchasesEntitlementInfo,
@@ -539,7 +538,7 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
     await ensureRevenueCatLoggedIn();
 
     await new Promise<void>((resolve) => {
-      InteractionManager.runAfterInteractions(() => resolve());
+      requestIdleCallback(() => resolve());
     });
 
     await RevenueCatUI.presentCustomerCenter({

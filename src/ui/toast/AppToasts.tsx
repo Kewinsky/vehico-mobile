@@ -1,48 +1,64 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   StyleSheet,
+  Text,
   View,
   useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Host, Label } from "@expo/ui/swift-ui";
-import { glassEffect, padding, tint } from "@expo/ui/swift-ui/modifiers";
-import type { SFSymbol } from "sf-symbols-typescript";
 
 import { useTheme } from "../ThemeProvider";
 import { subscribe, type ToastPayload } from "./toastStore";
 
-const TOAST_SYMBOLS: Record<ToastPayload["type"], SFSymbol> = {
-  success: "checkmark.circle.fill",
-  error: "xmark.circle.fill",
-  info: "info.circle.fill",
+const TOAST_ICONS: Record<
+  ToastPayload["type"],
+  keyof typeof Ionicons.glyphMap
+> = {
+  success: "checkmark-circle",
+  error: "close-circle",
+  info: "information-circle",
 };
-
-function toastMessage(toast: ToastPayload): string {
-  if (toast.description) {
-    return `${toast.title}\n${toast.description}`;
-  }
-  return toast.title;
-}
 
 export function AppToasts() {
   const { mode, theme } = useTheme();
   const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
-  const [toast, setToast] = useState<ToastPayload | null>(null);
+  const [renderedToast, setRenderedToast] = useState<ToastPayload | null>(
+    null,
+  );
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
+
   const toastWidth = Math.max(
     240,
     windowWidth - theme.layout.contentPaddingHorizontal * 2,
   );
 
-  const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(20)).current;
-
-  useEffect(() => subscribe(setToast), []);
-
   useEffect(() => {
-    if (!toast) {
+    return subscribe((next) => {
+      if (next) {
+        setRenderedToast(next);
+        translateY.setValue(20);
+        opacity.setValue(0);
+        Animated.parallel([
+          Animated.timing(opacity, {
+            toValue: 1,
+            duration: 220,
+            useNativeDriver: true,
+          }),
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            speed: 18,
+            bounciness: 4,
+          }),
+        ]).start();
+        return;
+      }
+
       Animated.parallel([
         Animated.timing(opacity, {
           toValue: 0,
@@ -54,81 +70,92 @@ export function AppToasts() {
           duration: 180,
           useNativeDriver: true,
         }),
-      ]).start();
-      return;
-    }
+      ]).start(({ finished }) => {
+        if (finished) {
+          setRenderedToast(null);
+        }
+      });
+    });
+  }, [opacity, translateY]);
 
-    translateY.setValue(20);
-    opacity.setValue(0);
-    Animated.parallel([
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 220,
-        useNativeDriver: true,
-      }),
-      Animated.spring(translateY, {
-        toValue: 0,
-        useNativeDriver: true,
-        speed: 18,
-        bounciness: 4,
-      }),
-    ]).start();
-  }, [opacity, toast, translateY]);
+  if (!renderedToast) {
+    return null;
+  }
 
-  const iconTint = useMemo(() => {
-    if (!toast) return theme.colors.accent;
-    return toast.type === "error" ? theme.colors.danger : theme.colors.accent;
-  }, [theme.colors.accent, theme.colors.danger, toast]);
+  const iconColor =
+    renderedToast.type === "error"
+      ? theme.colors.danger
+      : theme.colors.accent;
+  const message = renderedToast.description
+    ? `${renderedToast.title}\n${renderedToast.description}`
+    : renderedToast.title;
 
   return (
-    <View pointerEvents="box-none" style={styles.root}>
+    <View
+      pointerEvents="none"
+      style={[
+        styles.host,
+        {
+          bottom: insets.bottom + 12,
+          paddingHorizontal: theme.layout.contentPaddingHorizontal,
+        },
+      ]}
+    >
       <Animated.View
-        pointerEvents="none"
-        style={[
-          styles.toastWrap,
-          {
-            width: toastWidth,
-            marginBottom: insets.bottom + 12,
-            opacity,
-            transform: [{ translateY }],
-          },
-        ]}
+        style={{
+          width: toastWidth,
+          opacity,
+          transform: [{ translateY }],
+        }}
       >
-        {toast ? (
-          <Host
-            matchContents={{ vertical: true }}
-            colorScheme={mode === "dark" ? "dark" : "light"}
-            seedColor={theme.colors.accent}
-            style={{ width: toastWidth }}
-          >
-            <Label
-              title={toastMessage(toast)}
-              systemImage={TOAST_SYMBOLS[toast.type]}
-              modifiers={[
-                padding({ horizontal: 16, vertical: 12 }),
-                glassEffect({
-                  glass: { variant: "regular", interactive: false },
-                  shape: "capsule",
-                }),
-                tint(iconTint),
-              ]}
+        <BlurView
+          intensity={70}
+          tint={mode === "dark" ? "dark" : "light"}
+          style={[
+            styles.capsule,
+            { borderColor: theme.colors.border },
+          ]}
+        >
+          <View style={styles.row}>
+            <Ionicons
+              name={TOAST_ICONS[renderedToast.type]}
+              size={20}
+              color={iconColor}
             />
-          </Host>
-        ) : null}
+            <Text style={[styles.text, { color: theme.colors.fg }]}>
+              {message}
+            </Text>
+          </View>
+        </BlurView>
       </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    ...StyleSheet.absoluteFill,
-    justifyContent: "flex-end",
+  host: {
+    position: "absolute",
+    left: 0,
+    right: 0,
     alignItems: "center",
     zIndex: 9999,
-    elevation: 9999,
   },
-  toastWrap: {
-    alignSelf: "center",
+  capsule: {
+    borderRadius: 999,
+    overflow: "hidden",
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  text: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "600",
+    lineHeight: 20,
   },
 });

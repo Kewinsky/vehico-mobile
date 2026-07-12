@@ -46,11 +46,13 @@ export default function VehicleOverviewScreen() {
     fittedWheelsLines,
   } = dashboard;
 
+  const showInitialLoading = loading && !vehicle;
+
   return (
     <>
       <VehicleDashboardHeaderToolbars showActionsMenu />
       <AppLayout
-        loading={loading}
+        loading={showInitialLoading}
         ready
         useNativeHeader
         useHorizontalContentInset={false}

@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
 import QRCode from "react-native-qrcode-svg";
@@ -45,10 +46,26 @@ export function VehicleDashboardModals() {
 
   const styles = makeStyles(theme, mode);
 
+  const showPublicQr = isPublicQrVisible && publicReportUrl != null;
+  const showFullScreenPhotos =
+    fullScreenIndex != null && photoUrls.length > 0;
+
+  useEffect(() => {
+    if (fullScreenIndex != null && photoUrls.length === 0) {
+      setFullScreenIndex(null);
+    }
+  }, [fullScreenIndex, photoUrls.length, setFullScreenIndex]);
+
+  useEffect(() => {
+    if (isPublicQrVisible && publicReportUrl == null) {
+      setIsPublicQrVisible(false);
+    }
+  }, [isPublicQrVisible, publicReportUrl, setIsPublicQrVisible]);
+
   return (
     <>
       <Modal
-        visible={isPublicQrVisible}
+        visible={showPublicQr}
         transparent
         animationType="fade"
         onRequestClose={() => setIsPublicQrVisible(false)}
@@ -137,7 +154,7 @@ export function VehicleDashboardModals() {
       </Modal>
 
       <Modal
-        visible={fullScreenIndex !== null}
+        visible={showFullScreenPhotos}
         transparent
         animationType="fade"
         onRequestClose={() => setFullScreenIndex(null)}

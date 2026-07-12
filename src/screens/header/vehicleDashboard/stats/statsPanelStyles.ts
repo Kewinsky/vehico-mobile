@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { StyleSheet } from "react-native";
 
 import { useTheme } from "../../../../ui/ThemeProvider";
@@ -271,9 +272,10 @@ export const makeStatsPanelStyles = (
       width: "100%",
       flexDirection: "row",
       alignItems: "flex-start",
+      overflow: "hidden",
     },
     chartScroll: {
-      flex: 1,
+      overflow: "hidden",
     },
     chartScrollContent: {
       alignItems: "flex-start",
@@ -353,5 +355,5 @@ export type StatsPanelStyles = ReturnType<typeof makeStatsPanelStyles>;
 
 export function useStatsPanelStyles() {
   const { theme } = useTheme();
-  return makeStatsPanelStyles(theme);
+  return useMemo(() => makeStatsPanelStyles(theme), [theme]);
 }

@@ -25,11 +25,13 @@ export default function VehicleMenuScreen() {
     handleShowPublicReportQr,
   } = useVehicleDashboard();
 
+  const showInitialLoading = loading && !vehicle;
+
   return (
     <>
       <VehicleDashboardHeaderToolbars />
       <AppLayout
-        loading={loading}
+        loading={showInitialLoading}
         ready
         useNativeHeader
         useHorizontalContentInset={false}

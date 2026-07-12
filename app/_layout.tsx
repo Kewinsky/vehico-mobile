@@ -1,9 +1,14 @@
 import "../src/core/bootstrap";
 import "../src/i18n/i18n";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, type PropsWithChildren } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { Stack } from "expo-router";
+import {
+  DarkTheme,
+  DefaultTheme,
+  Stack,
+  ThemeProvider as NavigationThemeProvider,
+} from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
@@ -15,7 +20,7 @@ import { PremiumDowngradeHandler } from "@/core/PremiumDowngradeHandler";
 import { AuthProvider } from "@/core/providers/AuthProvider";
 import { UserSettingsProvider } from "@/core/providers/UserSettingsProvider";
 import { EntitlementsProvider } from "@/core/providers/EntitlementsProvider";
-import { ThemeProvider } from "@/ui/ThemeProvider";
+import { ThemeProvider, useTheme } from "@/ui/ThemeProvider";
 import { ExclusiveSwipeProvider } from "@/ui/components/common/ExclusiveSwipeable";
 import { ErrorBoundary } from "@/ui/components/common/ErrorBoundary";
 import { AppToasts } from "@/ui/toast/AppToasts";
@@ -77,6 +82,35 @@ function NotificationBootstrap() {
   return null;
 }
 
+/**
+ * Bridge the app theme into the navigation theme so native containers
+ * (native tabs screens, stack transitions) use the app background instead of
+ * the default white one, which otherwise flashes on tab switches in dark mode.
+ */
+function AppNavigationThemeProvider({ children }: PropsWithChildren) {
+  const { theme, mode } = useTheme();
+  const navigationTheme = useMemo(() => {
+    const base = mode === "dark" ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        primary: theme.colors.accent,
+        background: theme.colors.bg,
+        card: theme.colors.bg,
+        text: theme.colors.fg,
+        border: theme.colors.border,
+      },
+    };
+  }, [mode, theme]);
+
+  return (
+    <NavigationThemeProvider value={navigationTheme}>
+      {children}
+    </NavigationThemeProvider>
+  );
+}
+
 function RootLayoutNav() {
   const [fontsLoaded] = useFonts({
     [BRAND_FONT_FAMILY]: require("../fonts/ChironGoRoundTC-ExtraBold.ttf"),
@@ -113,11 +147,13 @@ function RootLayout() {
           <UserSettingsProvider>
             <EntitlementsProvider>
               <ThemeProvider>
-                <ExclusiveSwipeProvider>
-                  <ErrorBoundary>
-                    <RootLayoutNav />
-                  </ErrorBoundary>
-                </ExclusiveSwipeProvider>
+                <AppNavigationThemeProvider>
+                  <ExclusiveSwipeProvider>
+                    <ErrorBoundary>
+                      <RootLayoutNav />
+                    </ErrorBoundary>
+                  </ExclusiveSwipeProvider>
+                </AppNavigationThemeProvider>
               </ThemeProvider>
             </EntitlementsProvider>
           </UserSettingsProvider>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Pressable, type GestureResponderEvent } from "react-native";
 import Svg, {
   Circle,
   Line as SvgLine,
@@ -17,7 +18,12 @@ import {
 
 type XY = { x: string; y: number };
 export type ChartYTick = { value: number; y: number };
-export function polarToCartesian(cx: number, cy: number, r: number, angleRad: number) {
+export function polarToCartesian(
+  cx: number,
+  cy: number,
+  r: number,
+  angleRad: number,
+) {
   return {
     x: cx + r * Math.cos(angleRad),
     y: cy + r * Math.sin(angleRad),
@@ -178,7 +184,7 @@ export function ChartYAxis({
   width?: number;
 }) {
   return (
-    <Svg width={width} height={height}>
+    <Svg width={width} height={height} pointerEvents="none">
       <SvgLine
         x1={width - 1}
         y1={CHART_PLOT_PADDING_TOP}
@@ -410,7 +416,9 @@ export function SimpleStackedBarChart({
       : selectedBar.label
     : "";
   const tooltipTitle = tooltipMonthLabel;
-  const tooltipSubtitle = selectedBar ? formatAmount(selectedBar.totalValue) : "";
+  const tooltipSubtitle = selectedBar
+    ? formatAmount(selectedBar.totalValue)
+    : "";
   const tooltipRows: ChartTooltipRow[] = selectedBar
     ? [
         {
@@ -432,101 +440,103 @@ export function SimpleStackedBarChart({
       : selectedBar.fuelY
     : 0;
 
+  // Taps are handled by a plain RN Pressable around the Svg: touch handlers
+  // inside react-native-svg break hit testing on the new architecture and
+  // swallow taps on the whole screen (software-mansion/react-native-svg#2690).
+  const handlePress = (event: GestureResponderEvent) => {
+    const { locationX } = event.nativeEvent;
+    const index = bars.findIndex(
+      (bar) =>
+        locationX >= bar.x - barGap / 2 &&
+        locationX <= bar.x + bar.width + barGap / 2,
+    );
+    if (index < 0) {
+      setSelectedBarIndex(null);
+      return;
+    }
+    setSelectedBarIndex((prev) => (prev === index ? null : index));
+  };
+
   return (
-    <Svg width={w} height={h}>
-      {yTicks.map((tick, i) => (
-        <SvgLine
-          key={`grid-y-${i}`}
-          x1={0}
-          y1={tick.y}
-          x2={w}
-          y2={tick.y}
-          stroke={grid}
-          strokeWidth={1}
-          strokeDasharray="2,2"
-        />
-      ))}
-      {bars.map((bar, i) => {
-        const hasFuel = bar.fuelHeight > 0;
-        const hasService = bar.serviceHeight > 0;
-        if (!hasFuel) return null;
-        const d = roundedRectPath(
-          bar.x,
-          bar.fuelY,
-          bar.width,
-          bar.fuelHeight,
-          5,
-          {
-            topLeft: !hasService,
-            topRight: !hasService,
-            bottomRight: true,
-            bottomLeft: true,
-          },
-        );
-        return <Path key={`fuel-bar-${i}`} d={d} fill={fuelFill} />;
-      })}
-      {bars.map((bar, i) => {
-        const hasFuel = bar.fuelHeight > 0;
-        const hasService = bar.serviceHeight > 0;
-        if (!hasService) return null;
-        const d = roundedRectPath(
-          bar.x,
-          bar.serviceY,
-          bar.width,
-          bar.serviceHeight,
-          5,
-          {
-            topLeft: true,
-            topRight: true,
-            bottomRight: !hasFuel,
-            bottomLeft: !hasFuel,
-          },
-        );
-        return <Path key={`service-bar-${i}`} d={d} fill={serviceFill} />;
-      })}
-      {bars.map((bar, i) => {
-        const topY = bar.serviceHeight > 0 ? bar.serviceY : bar.fuelY;
-        const totalHeight = bar.fuelHeight + bar.serviceHeight;
-        return (
-          <Rect
-            key={`bar-hitbox-${i}`}
-            x={bar.x}
-            y={topY}
-            width={bar.width}
-            height={Math.max(totalHeight, 24)}
-            fill="transparent"
-            onPress={() =>
-              setSelectedBarIndex((prev) => (prev === i ? null : i))
-            }
+    <Pressable onPress={handlePress}>
+      <Svg width={w} height={h} pointerEvents="none">
+        {yTicks.map((tick, i) => (
+          <SvgLine
+            key={`grid-y-${i}`}
+            x1={0}
+            y1={tick.y}
+            x2={w}
+            y2={tick.y}
+            stroke={grid}
+            strokeWidth={1}
+            strokeDasharray="2,2"
           />
-        );
-      })}
-      <SvgChartTooltip
-        visible={selectedBar != null}
-        anchorX={tooltipAnchorX}
-        anchorY={tooltipAnchorY}
-        viewportWidth={w}
-        viewportHeight={h}
-        title={tooltipTitle}
-        subtitle={tooltipSubtitle}
-        rows={tooltipRows}
-        backgroundColor={tooltipBg}
-        textColor={tooltipText}
-      />
-      {xTicks.map((tick, i) => (
-        <SvgText
-          key={`x-label-${i}`}
-          x={tick.x}
-          y={CHART_PLOT_PADDING_TOP + plotH + 26}
-          fontSize={CHART_AXIS_FONT_SIZE}
-          fill={textColor}
-          textAnchor="middle"
-          alignmentBaseline="hanging"
-        >
-          {tick.label}
-        </SvgText>
-      ))}
-    </Svg>
+        ))}
+        {bars.map((bar, i) => {
+          const hasFuel = bar.fuelHeight > 0;
+          const hasService = bar.serviceHeight > 0;
+          if (!hasFuel) return null;
+          const d = roundedRectPath(
+            bar.x,
+            bar.fuelY,
+            bar.width,
+            bar.fuelHeight,
+            5,
+            {
+              topLeft: !hasService,
+              topRight: !hasService,
+              bottomRight: true,
+              bottomLeft: true,
+            },
+          );
+          return <Path key={`fuel-bar-${i}`} d={d} fill={fuelFill} />;
+        })}
+        {bars.map((bar, i) => {
+          const hasFuel = bar.fuelHeight > 0;
+          const hasService = bar.serviceHeight > 0;
+          if (!hasService) return null;
+          const d = roundedRectPath(
+            bar.x,
+            bar.serviceY,
+            bar.width,
+            bar.serviceHeight,
+            5,
+            {
+              topLeft: true,
+              topRight: true,
+              bottomRight: !hasFuel,
+              bottomLeft: !hasFuel,
+            },
+          );
+          return <Path key={`service-bar-${i}`} d={d} fill={serviceFill} />;
+        })}
+        <SvgChartTooltip
+          visible={selectedBar != null}
+          anchorX={tooltipAnchorX}
+          anchorY={tooltipAnchorY}
+          viewportWidth={w}
+          viewportHeight={h}
+          title={tooltipTitle}
+          subtitle={tooltipSubtitle}
+          rows={tooltipRows}
+          backgroundColor={tooltipBg}
+          textColor={tooltipText}
+        />
+        {xTicks.map((tick, i) => (
+          <SvgText
+            key={`x-label-${i}`}
+            x={tick.x}
+            y={CHART_PLOT_PADDING_TOP + plotH + 26}
+            fontSize={CHART_AXIS_FONT_SIZE}
+            fill={textColor}
+            textAnchor="middle"
+            alignmentBaseline="hanging"
+          >
+            {tick.label}
+          </SvgText>
+        ))}
+      </Svg>
+    </Pressable>
   );
 }
 
@@ -569,9 +579,7 @@ export function SimpleLineChart({
     null,
   );
   const tooltipEnabled =
-    tooltipBg != null &&
-    tooltipText != null &&
-    formatTooltipValue != null;
+    tooltipBg != null && tooltipText != null && formatTooltipValue != null;
   const w = width;
   const h = height;
   const plotH = h - CHART_PLOT_PADDING_TOP - CHART_PLOT_PADDING_BOTTOM;
@@ -621,89 +629,101 @@ export function SimpleLineChart({
   const tooltipAnchorX = selectedPoint?.x ?? 0;
   const tooltipAnchorY = selectedPoint?.y ?? 0;
 
+  // Taps are handled by a plain RN Pressable around the Svg (see the note in
+  // SimpleStackedBarChart): tap toggles the tooltip of the nearest point.
+  const PRESS_HIT_RADIUS = 32;
+  const handlePress = (event: GestureResponderEvent) => {
+    if (!tooltipEnabled) return;
+    const { locationX, locationY } = event.nativeEvent;
+    let nearestIndex = -1;
+    let nearestDistance = Number.POSITIVE_INFINITY;
+    points.forEach((point, index) => {
+      const distance = Math.hypot(point.x - locationX, point.y - locationY);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestIndex = index;
+      }
+    });
+    if (nearestIndex < 0 || nearestDistance > PRESS_HIT_RADIUS) {
+      setSelectedPointIndex(null);
+      return;
+    }
+    setSelectedPointIndex((prev) =>
+      prev === nearestIndex ? null : nearestIndex,
+    );
+  };
+
   return (
-    <Svg width={w} height={h}>
-      {yTicks.map((tick, i) => (
-        <SvgLine
-          key={`grid-y-${i}`}
-          x1={0}
-          y1={tick.y}
-          x2={w}
-          y2={tick.y}
-          stroke={grid}
-          strokeWidth={1}
-          strokeDasharray="2,2"
-        />
-      ))}
-      {xTicks.map((tick, i) => (
-        <SvgText
-          key={`x-label-${i}`}
-          x={tick.x}
-          y={CHART_PLOT_PADDING_TOP + plotH + 26}
-          fontSize={CHART_AXIS_FONT_SIZE}
-          fill={textColor}
-          textAnchor="middle"
-          alignmentBaseline="hanging"
-        >
-          {tick.label}
-        </SvgText>
-      ))}
-      {points.length > 0 ? (
-        <Polyline
-          points={points.map((p) => `${p.x},${p.y}`).join(" ")}
-          fill="none"
-          stroke={stroke}
-          strokeWidth={3}
-        />
-      ) : null}
-      {referenceLineYPos != null ? (
-        <SvgLine
-          x1={0}
-          y1={referenceLineYPos}
-          x2={w}
-          y2={referenceLineYPos}
-          stroke={referenceLineStroke ?? stroke}
-          strokeWidth={2}
-          strokeDasharray="6,4"
-        />
-      ) : null}
-      {points.map((point, i) => (
-        <Circle
-          key={`point-dot-${i}`}
-          cx={point.x}
-          cy={point.y}
-          r={4}
-          fill={stroke}
-        />
-      ))}
-      {tooltipEnabled
-        ? points.map((point, i) => (
-            <Circle
-              key={`point-hitbox-${i}`}
-              cx={point.x}
-              cy={point.y}
-              r={14}
-              fill="transparent"
-              onPress={() =>
-                setSelectedPointIndex((prev) => (prev === i ? null : i))
-              }
-            />
-          ))
-        : null}
-      {tooltipEnabled ? (
-        <SvgChartTooltip
-          visible={selectedPoint != null}
-          anchorX={tooltipAnchorX}
-          anchorY={tooltipAnchorY}
-          viewportWidth={w}
-          viewportHeight={h}
-          title={selectedPoint ? toTooltipXLabel(tooltipTitle) : ""}
-          rows={tooltipRows}
-          backgroundColor={tooltipBg!}
-          textColor={tooltipText!}
-        />
-      ) : null}
-    </Svg>
+    <Pressable onPress={handlePress} disabled={!tooltipEnabled}>
+      <Svg width={w} height={h} pointerEvents="none">
+        {yTicks.map((tick, i) => (
+          <SvgLine
+            key={`grid-y-${i}`}
+            x1={0}
+            y1={tick.y}
+            x2={w}
+            y2={tick.y}
+            stroke={grid}
+            strokeWidth={1}
+            strokeDasharray="2,2"
+          />
+        ))}
+        {xTicks.map((tick, i) => (
+          <SvgText
+            key={`x-label-${i}`}
+            x={tick.x}
+            y={CHART_PLOT_PADDING_TOP + plotH + 26}
+            fontSize={CHART_AXIS_FONT_SIZE}
+            fill={textColor}
+            textAnchor="middle"
+            alignmentBaseline="hanging"
+          >
+            {tick.label}
+          </SvgText>
+        ))}
+        {points.length > 0 ? (
+          <Polyline
+            points={points.map((p) => `${p.x},${p.y}`).join(" ")}
+            fill="none"
+            stroke={stroke}
+            strokeWidth={3}
+          />
+        ) : null}
+        {referenceLineYPos != null ? (
+          <SvgLine
+            x1={0}
+            y1={referenceLineYPos}
+            x2={w}
+            y2={referenceLineYPos}
+            stroke={referenceLineStroke ?? stroke}
+            strokeWidth={2}
+            strokeDasharray="6,4"
+          />
+        ) : null}
+        {points.map((point, i) => (
+          <Circle
+            key={`point-dot-${i}`}
+            cx={point.x}
+            cy={point.y}
+            r={4}
+            fill={stroke}
+          />
+        ))}
+        {tooltipEnabled ? (
+          <SvgChartTooltip
+            visible={selectedPoint != null}
+            anchorX={tooltipAnchorX}
+            anchorY={tooltipAnchorY}
+            viewportWidth={w}
+            viewportHeight={h}
+            title={selectedPoint ? toTooltipXLabel(tooltipTitle) : ""}
+            rows={tooltipRows}
+            backgroundColor={tooltipBg!}
+            textColor={tooltipText!}
+          />
+        ) : null}
+      </Svg>
+    </Pressable>
   );
 }
 
@@ -766,7 +786,7 @@ export function SimpleDualLineChart({
   }));
 
   return (
-    <Svg width={w} height={h}>
+    <Svg width={w} height={h} pointerEvents="none">
       {yTicks.map((tick, i) => (
         <SvgLine
           key={`grid-y-${i}`}
@@ -861,7 +881,7 @@ export function SimplePieChart({
   let angle = -Math.PI / 2;
   if (total <= 0) {
     return (
-      <Svg width={size} height={size}>
+      <Svg width={size} height={size} pointerEvents="none">
         <Circle
           cx={cx}
           cy={cy}
@@ -874,7 +894,7 @@ export function SimplePieChart({
     );
   }
   return (
-    <Svg width={size} height={size}>
+    <Svg width={size} height={size} pointerEvents="none">
       {data.map((s, idx) => {
         const v = clampNonNeg(s.value);
         const slice = (v / total) * Math.PI * 2;

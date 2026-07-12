@@ -1,6 +1,7 @@
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { CircleHelp } from "lucide-react-native";
 
+import { ChartHorizontalScroll } from "../components/ChartHorizontalScroll";
 import { CHART_BAR_HEIGHT, ChartYAxis, SimpleStackedBarChart } from "../charts/charts";
 import type { StatisticsPanelProps } from "../types";
 
@@ -74,15 +75,12 @@ export function ExpensesOverTimeSection({
                 grid={theme.colors.border}
                 formatYLabel={formatChartYAxisLabel}
               />
-              <ScrollView
-                horizontal
-                bounces={false}
-                showsHorizontalScrollIndicator={false}
+              <ChartHorizontalScroll
+                contentWidth={barChartWidth}
+                viewportWidth={chartScrollViewportWidth}
+                maxHeight={CHART_BAR_HEIGHT}
                 style={styles.chartScroll}
-                contentContainerStyle={[
-                  styles.chartScrollContent,
-                  { minWidth: chartScrollViewportWidth },
-                ]}
+                contentContainerStyle={styles.chartScrollContent}
               >
                 <SimpleStackedBarChart
                   data={monthlyExpensesSeries.data}
@@ -101,7 +99,7 @@ export function ExpensesOverTimeSection({
                   tooltipBg={theme.colors.card}
                   tooltipText={theme.colors.fg}
                 />
-              </ScrollView>
+              </ChartHorizontalScroll>
             </View>
           )}
         </View>

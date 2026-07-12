@@ -59,10 +59,13 @@ import { ModalLayout } from "../../layouts";
 import { Card, CardDivider, CardRow } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
+import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { FormInlineMenuPicker } from "../../ui/components/common/FormInlineMenuPicker";
 import { FormSwitch } from "../../ui/components/common/FormSwitch";
 import { SquarePen } from "lucide-react-native";
 import { groupThousands } from "../../utils/numberFormatting";
+
+const DAYS_BEFORE_OPTIONS = ["0", "1", "3", "7", "14", "30"] as const;
 
 export function ReminderFormScreen() {
   const router = useRouter();
@@ -348,6 +351,22 @@ export function ReminderFormScreen() {
     [t],
   );
 
+  const daysBeforeOptions = useMemo(() => {
+    const trimmed = daysBefore.trim();
+    if (trimmed && !DAYS_BEFORE_OPTIONS.includes(trimmed as (typeof DAYS_BEFORE_OPTIONS)[number])) {
+      return [...DAYS_BEFORE_OPTIONS, trimmed].sort(
+        (a, b) => Number(a) - Number(b),
+      );
+    }
+    return [...DAYS_BEFORE_OPTIONS];
+  }, [daysBefore]);
+
+  const getDaysBeforeLabel = useCallback(
+    (days: string) =>
+      t("reminderDetail.daysBeforeValue", { days: Number(days) }),
+    [t],
+  );
+
   return (
     <ModalLayout
       title={
@@ -512,13 +531,14 @@ export function ReminderFormScreen() {
 
                 <CardDivider />
 
-                <FormInputRow
+                <FormPickerRow
+                  icon="notifications-outline"
                   label={t("reminderForm.daysBefore")}
-                  value={daysBefore}
-                  onChangeText={setDaysBefore}
-                  placeholder="7"
-                  keyboardType="number-pad"
-                  editable={!saving}
+                  value={daysBefore.trim() || "7"}
+                  options={daysBeforeOptions}
+                  getLabel={getDaysBeforeLabel}
+                  onChange={(value) => setDaysBefore(value ?? "7")}
+                  disabled={saving}
                   error={fieldError(fieldErrors.daysBefore)}
                 />
                 <CardDivider />

@@ -10,13 +10,14 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
-import { ActivityIndicator, Alert, Dimensions, Linking, Text, View } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { ActivityIndicator, Alert, Linking, Text, View, useWindowDimensions } from "react-native";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 
 import { routes } from "../../../core/navigation/routes";
+import { useVehicleRouteId } from "../../../core/navigation/useVehicleRouteId";
 import type {
   FuelingEntry,
   Reminder,
@@ -71,6 +72,8 @@ import { formatYmd } from "../../../utils/dateYmd";
 import {
   groupThousands,
 } from "../../../utils/numberFormatting";
+import { withTimeout } from "../../../utils/withTimeout";
+import { getErrorMessage } from "../../../utils/errorMessage";
 import { useOverviewPanelStyles } from "./overview/overviewStyles";
 import {
   getDaysUntilDate,
@@ -211,10 +214,7 @@ export function VehicleDashboardProvider({
   const units = useUnitDisplay();
   const { settings } = useUserSettings();
   const insets = useSafeAreaInsets();
-  const { vehicleId: vehicleIdParam } = useLocalSearchParams<{ vehicleId: string }>();
-  const vehicleId = Array.isArray(vehicleIdParam)
-    ? vehicleIdParam[0]
-    : vehicleIdParam;
+  const vehicleId = useVehicleRouteId();
 
   const {
     isPremium,
@@ -240,7 +240,7 @@ export function VehicleDashboardProvider({
   const [formalityOverlay, setFormalityOverlay] =
     useState<FormalityOverlay | null>(null);
 
-  const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const { distanceUnitLabel, consumptionUnitLine } = units;
   const currency = settings?.currency ?? "PLN";
   const vehicleImageHeight = Math.min(Math.max(windowHeight * 0.34, 280), 360);
@@ -505,62 +505,95 @@ export function VehicleDashboardProvider({
       if (!vehicleId) return;
       const showLoading = opts?.showLoading !== false;
       try {
-        if (showLoading) setLoading(true);
+        if (showLoading && !vehicle) setLoading(true);
         const reminderOptions = isPremium
           ? undefined
           : freePlanVehicleId === vehicleId
             ? { freePlanReminderIds }
             : { limit: remindersLimit };
-        const [
-          v,
-          photos,
-          tiresData,
-          wheelsData,
-          reports,
-          remindersData,
-          fuelingData,
-          serviceData,
-        ] = await Promise.all([
-          getVehicle(vehicleId),
-          listVehiclePhotos(vehicleId),
-          listVehicleTires(vehicleId),
-          listVehicleWheels(vehicleId),
-          isPremium ? listPublicPages(vehicleId) : Promise.resolve([]),
-          listReminders(vehicleId, reminderOptions),
-          listFuelingEntries(vehicleId),
-          listServiceEntries(vehicleId),
-        ]);
-        setVehicle(v);
-        setPhotoUrls(photos.map((photo) => getVehiclePhotoUrl(photo)));
-        setTires(tiresData);
-        setWheels(wheelsData);
+        const results = await withTimeout(
+          Promise.allSettled([
+            getVehicle(vehicleId),
+            listVehiclePhotos(vehicleId),
+            listVehicleTires(vehicleId),
+            listVehicleWheels(vehicleId),
+            isPremium ? listPublicPages(vehicleId) : Promise.resolve([]),
+            listReminders(vehicleId, reminderOptions),
+            listFuelingEntries(vehicleId),
+            listServiceEntries(vehicleId),
+          ]),
+          15000,
+          "VehicleDashboardProvider.load",
+        );
+
+        const valueAt = <T,>(index: number): T | null => {
+          const result = results[index];
+          return result?.status === "fulfilled" ? (result.value as T) : null;
+        };
+
+        const v = valueAt<Vehicle>(0);
+        const photos = valueAt<Awaited<ReturnType<typeof listVehiclePhotos>>>(1);
+        const tiresData = valueAt<Awaited<ReturnType<typeof listVehicleTires>>>(2);
+        const wheelsData = valueAt<Awaited<ReturnType<typeof listVehicleWheels>>>(3);
+        const reports =
+          valueAt<Awaited<ReturnType<typeof listPublicPages>>>(4) ?? [];
+        const remindersData =
+          valueAt<Awaited<ReturnType<typeof listReminders>>>(5) ?? [];
+        const fuelingData =
+          valueAt<Awaited<ReturnType<typeof listFuelingEntries>>>(6) ?? [];
+        const serviceData =
+          valueAt<Awaited<ReturnType<typeof listServiceEntries>>>(7) ?? [];
+
+        if (v) setVehicle(v);
+        if (photos) {
+          setPhotoUrls(photos.map((photo) => getVehiclePhotoUrl(photo)));
+        }
+        if (tiresData) setTires(tiresData);
+        if (wheelsData) setWheels(wheelsData);
         setReminders(remindersData);
         setFuelingEntries(fuelingData);
         setServiceEntries(serviceData);
 
-        if (showLoading) {
-          setLoading(false);
+        const failed = results.filter((result) => result.status === "rejected");
+        if (failed.length > 0) {
+          console.error("VehicleDashboardProvider.load partial failures:", failed);
+        }
+        if (!v && failed.length > 0) {
+          const firstError = failed[0];
+          const message =
+            firstError?.status === "rejected" && firstError.reason instanceof Error
+              ? firstError.reason.message
+              : t("common.error");
+          toastError(message);
         }
 
         const latestReport = reports[0];
-        if (latestReport?.public_id) {
-          try {
-            const reportUrl = await getPublicPageUrl(latestReport.public_id);
-            setPublicReportUrl(reportUrl);
-          } catch {
+        void (async () => {
+          if (latestReport?.public_id) {
+            try {
+              const reportUrl = await withTimeout(
+                getPublicPageUrl(latestReport.public_id),
+                10000,
+                "VehicleDashboardProvider.getPublicPageUrl",
+              );
+              setPublicReportUrl(reportUrl);
+            } catch {
+              setPublicReportUrl(null);
+            }
+          } else {
             setPublicReportUrl(null);
           }
-        } else {
-          setPublicReportUrl(null);
-        }
-      } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        })();
+      } catch (error: unknown) {
+        console.error("VehicleDashboardProvider.load failed:", error);
+        toastError(getErrorMessage(error, t("common.error")));
       } finally {
-        if (showLoading) setLoading(false);
+        setLoading(false);
       }
     },
     [
       vehicleId,
+      vehicle,
       t,
       isPremium,
       freePlanVehicleId,
@@ -621,8 +654,8 @@ export function VehicleDashboardProvider({
       } else {
         toastError(t("share.cannotOpenUrl"));
       }
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+    } catch (error: unknown) {
+      toastError(getErrorMessage(error, t("common.error")));
     }
   }, [publicReportUrl, t]);
 
@@ -631,8 +664,8 @@ export function VehicleDashboardProvider({
     try {
       await Clipboard.setStringAsync(publicReportUrl);
       toastSuccess(t("share.linkCopied"));
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+    } catch (error: unknown) {
+      toastError(getErrorMessage(error, t("common.error")));
     }
   }, [publicReportUrl, t]);
 
@@ -654,8 +687,8 @@ export function VehicleDashboardProvider({
             try {
               await deleteVehicle(vehicleId);
               router.replace(routes.home());
-            } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+            } catch (error: unknown) {
+              toastError(getErrorMessage(error, t("common.error")));
             }
           },
         },
@@ -754,8 +787,8 @@ export function VehicleDashboardProvider({
                 Number(mileageRaw),
               );
               setVehicle(updatedVehicle);
-            } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+            } catch (error: unknown) {
+              toastError(getErrorMessage(error, t("common.error")));
             }
           },
         },
@@ -902,8 +935,8 @@ export function VehicleDashboardProvider({
                 setVehicle(updatedVehicle);
               }
               toastSuccess(t("dashboard.oilBanner.doneSuccess"));
-            } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+            } catch (error: unknown) {
+              toastError(getErrorMessage(error, t("common.error")));
             }
           },
         },
@@ -935,8 +968,8 @@ export function VehicleDashboardProvider({
       }
       const telHref = `tel:${phone.replace(/[^\d+#*;,.]/g, "")}`;
       await Linking.openURL(telHref);
-    } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+    } catch (error: unknown) {
+      toastError(getErrorMessage(error, t("common.error")));
     } finally {
       setOilBookLoading(false);
     }
@@ -956,8 +989,8 @@ export function VehicleDashboardProvider({
           [field]: value,
         });
         setVehicle(updatedVehicle);
-      } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+      } catch (error: unknown) {
+        toastError(getErrorMessage(error, t("common.error")));
       }
     },
     [t, vehicleId],
@@ -973,7 +1006,7 @@ export function VehicleDashboardProvider({
       const ymd = currentValue?.slice(0, 10) ?? "";
       setFormalityOverlay({ field, value: ymd, title });
     },
-    [saveFormalitiesDate],
+    [],
   );
 
   const tiles: DashboardTile[] = useMemo(
@@ -1139,6 +1172,9 @@ export function VehicleDashboardProvider({
   );
 
   if (!vehicleId) {
+    if (__DEV__) {
+      console.warn("VehicleDashboardProvider: missing vehicleId in route");
+    }
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <ActivityIndicator />

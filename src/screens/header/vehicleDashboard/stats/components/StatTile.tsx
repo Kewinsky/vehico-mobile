@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { AnimatedRollingNumber } from "react-native-animated-rolling-numbers";
 
 import type { AppTheme } from "../../../../../ui/theme";
 import type { StatsPanelStyles } from "../statsPanelStyles";
@@ -58,23 +57,12 @@ export function StatTile({
       <View style={styles.tileIconLeadingRow}>
         <View style={styles.tileIconLeadingIcon}>{leadingIcon}</View>
         <View style={styles.tileIconLeadingValueGroup}>
-          {valueMainRollingValue != null ? (
-            <View style={styles.tileRollingNumberWrap}>
-              <AnimatedRollingNumber
-                value={valueMainRollingValue}
-                formattedText={valueMain}
-                spinningAnimationConfig={{ duration: 420 }}
-                textStyle={[styles.tileValueMain, { color: theme.colors.fg }]}
-              />
-            </View>
-          ) : (
-            <Text
-              style={[styles.tileValueMain, { color: theme.colors.fg }]}
-              numberOfLines={1}
-            >
-              {valueMain}
-            </Text>
-          )}
+          <Text
+            style={[styles.tileValueMain, { color: theme.colors.fg }]}
+            numberOfLines={1}
+          >
+            {valueMain}
+          </Text>
           {valueSuffix != null && valueSuffix !== "" ? (
             <Text
               style={[styles.tileValueSuffix, { color: theme.colors.muted }]}
@@ -133,23 +121,12 @@ export function StatTile({
         </Text>
       </View>
       <View style={styles.tileValueRow}>
-        {valueMainRollingValue != null ? (
-          <View style={styles.tileRollingNumberWrap}>
-            <AnimatedRollingNumber
-              value={valueMainRollingValue}
-              formattedText={valueMain}
-              spinningAnimationConfig={{ duration: 420 }}
-              textStyle={[styles.tileValueMain, { color: theme.colors.fg }]}
-            />
-          </View>
-        ) : (
-          <Text
-            style={[styles.tileValueMain, { color: theme.colors.fg }]}
-            numberOfLines={1}
-          >
-            {valueMain}
-          </Text>
-        )}
+        <Text
+          style={[styles.tileValueMain, { color: theme.colors.fg }]}
+          numberOfLines={1}
+        >
+          {valueMain}
+        </Text>
         {valueSuffix != null && valueSuffix !== "" ? (
           <Text
             style={[styles.tileValueSuffix, { color: theme.colors.muted }]}

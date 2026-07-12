@@ -24,7 +24,6 @@ export function VehicleDashboardActionsMenu() {
         matchContents
         ignoreSafeArea="all"
         colorScheme={mode === "dark" ? "dark" : "light"}
-        seedColor={tintColor}
       >
         <Menu
           modifiers={[buttonStyle("plain")]}
