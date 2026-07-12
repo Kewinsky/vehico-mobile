@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Text, View } from "react-native";
 import { Fuel, Wrench } from "lucide-react-native";
+import { AnimatedRollingNumber } from "react-native-animated-rolling-numbers";
 
 import { hexToRgba } from "../../../../../ui/components/common/ChoiceChip";
 import { SERVICE_CATEGORY_ICON_BACKGROUND } from "../../../../../ui/theme/serviceCategoryColors";
@@ -20,12 +21,27 @@ function formatSummaryAmount(
 }
 
 function ExpenseAmount({
+  amount,
   formatted,
   textStyle,
+  animateZero = false,
 }: {
+  amount: number;
   formatted: string;
   textStyle: object;
+  animateZero?: boolean;
 }) {
+  if (Number.isFinite(amount) && (amount > 0 || animateZero)) {
+    return (
+      <AnimatedRollingNumber
+        value={amount}
+        formattedText={formatted}
+        spinningAnimationConfig={{ duration: 420 }}
+        textStyle={textStyle}
+      />
+    );
+  }
+
   return (
     <Text style={textStyle} numberOfLines={1}>
       {formatted}
@@ -85,11 +101,13 @@ export function ExpenseSummarySection({
               <Fuel size={18} color={breakdownStyles.fuelColor} />
             </View>
             <ExpenseAmount
+              amount={fuelSharePct}
               formatted={fmtPct(fuelSharePct)}
               textStyle={[
                 styles.expenseSummaryShareLabel,
                 { color: theme.colors.muted },
               ]}
+              animateZero
             />
           </View>
           <Text
@@ -103,6 +121,7 @@ export function ExpenseSummarySection({
           </Text>
           <View style={styles.expenseSummaryBreakdownValueRow}>
             <ExpenseAmount
+              amount={totals.fuelCost}
               formatted={fuelMain}
               textStyle={[
                 styles.expenseSummaryBreakdownValue,
@@ -139,11 +158,13 @@ export function ExpenseSummarySection({
               <Wrench size={18} color={breakdownStyles.serviceColor} />
             </View>
             <ExpenseAmount
+              amount={serviceSharePct}
               formatted={fmtPct(serviceSharePct)}
               textStyle={[
                 styles.expenseSummaryShareLabel,
                 { color: theme.colors.muted },
               ]}
+              animateZero
             />
           </View>
           <Text
@@ -157,6 +178,7 @@ export function ExpenseSummarySection({
           </Text>
           <View style={styles.expenseSummaryBreakdownValueRow}>
             <ExpenseAmount
+              amount={totals.serviceCost}
               formatted={serviceMain}
               textStyle={[
                 styles.expenseSummaryBreakdownValue,
