@@ -29,7 +29,7 @@ A React Native mobile application for tracking vehicle maintenance, fuel consump
 
 - Node.js (v18 or higher)
 - npm or yarn
-- Expo (via `npx expo ...`)
+- Expo
 - iOS Simulator (for iOS development)
 - Supabase account and project
 
