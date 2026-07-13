@@ -3,7 +3,6 @@ import {
   Dimensions,
   FlatList,
   Modal,
-  Platform,
   Pressable,
   Text,
   View,
@@ -218,7 +217,7 @@ export function VehicleDashboardModals() {
         </View>
       </Modal>
 
-      {formalityOverlay && Platform.OS === "ios" ? (
+      {formalityOverlay ? (
         <Modal
           key={formalityOverlay.field}
           transparent

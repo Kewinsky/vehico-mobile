@@ -28,41 +28,17 @@
         "ITSAppUsesNonExemptEncryption": false
       }
     },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/app-icon.png",
-        "backgroundColor": "#000000",
-        "monochromeImage": "./assets/app-icon.png"
-      },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.ktasoftware.vehico"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
     "plugins": [
       [
         "expo-localization",
         {
           "supportedLocales": {
-            "ios": ["en", "pl"],
-            "android": ["en", "pl"]
+            "ios": ["en", "pl"]
           }
         }
       ],
       "expo-apple-authentication",
-      [
-        "@react-native-community/datetimepicker",
-        {
-          "android": {
-            "datePicker": {
-              "colorAccent": { "light": "#FFB803", "dark": "#FFB803" },
-              "colorControlActivated": { "light": "#FFB803", "dark": "#FFB803" }
-            }
-          }
-        }
-      ],
+      "@react-native-community/datetimepicker",
       "expo-sqlite",
       [
         "expo-notifications",

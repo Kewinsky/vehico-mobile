@@ -1,7 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 import { useMemo, useState } from "react";
 import {
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -53,7 +52,6 @@ export function FormDateRow({
   const hasValue = value.trim().length === 10;
   const pickerDate = parseYmd(hasValue ? value : formatYmd(new Date()));
 
-  const [androidPickerVisible, setAndroidPickerVisible] = useState(false);
   const [iosPickerActive, setIosPickerActive] = useState(false);
 
   const displayText = hasValue
@@ -62,112 +60,85 @@ export function FormDateRow({
 
   const pickerLocale = localeCodeFromLanguage(i18n.language);
 
-  const showIosCompact =
-    Platform.OS === "ios" && !disabled && (hasValue || iosPickerActive);
+  const showIosCompact = !disabled && (hasValue || iosPickerActive);
 
   function handleChange(event: DateTimePickerEvent, selectedDate?: Date) {
-    if (Platform.OS === "android") {
-      setAndroidPickerVisible(false);
-    }
     if (event.type === "dismissed") {
-      if (Platform.OS === "ios" && !hasValue) setIosPickerActive(false);
+      if (!hasValue) setIosPickerActive(false);
       return;
     }
     if (!selectedDate) return;
     onChange(formatYmd(selectedDate));
-    if (Platform.OS === "ios" && !hasValue) setIosPickerActive(true);
+    if (!hasValue) setIosPickerActive(true);
   }
 
   function openPicker() {
     if (disabled) return;
-    if (Platform.OS === "android") {
-      setAndroidPickerVisible(true);
-      return;
-    }
     if (!hasValue) setIosPickerActive(true);
   }
 
   return (
-    <>
-      <CardRow style={rowStyle} error={error}>
-        <Pressable
-          onPress={openPicker}
-          disabled={
-            disabled || (Platform.OS === "ios" && showIosCompact && hasValue)
-          }
-          style={({ pressed }) => [
-            styles.pressableRow,
-            {
-              opacity: pressed && !disabled && Platform.OS !== "ios" ? 0.75 : 1,
-            },
-          ]}
-        >
-          {(icon || iconComponent) && (
-            <View style={styles.rowLeft}>
-              {iconComponent ??
-                (icon ? (
-                  <Ionicons name={icon} size={20} color={theme.colors.accent} />
-                ) : null)}
-              <Text
-                style={[styles.label, { color: theme.colors.muted }]}
-                numberOfLines={1}
-              >
-                {label}
-              </Text>
-            </View>
-          )}
-          {!icon && !iconComponent ? (
+    <CardRow style={rowStyle} error={error}>
+      <Pressable
+        onPress={openPicker}
+        disabled={disabled || (showIosCompact && hasValue)}
+        style={styles.pressableRow}
+      >
+        {(icon || iconComponent) && (
+          <View style={styles.rowLeft}>
+            {iconComponent ??
+              (icon ? (
+                <Ionicons name={icon} size={20} color={theme.colors.accent} />
+              ) : null)}
             <Text
-              style={[
-                styles.label,
-                { color: theme.colors.muted, flexShrink: 1 },
-              ]}
+              style={[styles.label, { color: theme.colors.muted }]}
               numberOfLines={1}
             >
               {label}
             </Text>
-          ) : null}
-          <View style={styles.valueWrap}>
-            {showIosCompact ? (
-              <DateTimePicker
-                value={pickerDate}
-                mode="date"
-                display="compact"
-                locale={pickerLocale}
-                accentColor={theme.colors.accent}
-                themeVariant={themeMode === "dark" ? "dark" : "light"}
-                onChange={handleChange}
-                style={styles.nativeDatePicker}
-              />
-            ) : (
-              <Text
-                style={[
-                  styles.valueText,
-                  {
-                    color: hasValue ? theme.colors.fg : theme.colors.muted,
-                    textAlign: "right",
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {displayText}
-              </Text>
-            )}
           </View>
-        </Pressable>
-        {trailing}
-      </CardRow>
-
-      {Platform.OS === "android" && androidPickerVisible ? (
-        <DateTimePicker
-          value={pickerDate}
-          mode="date"
-          display="default"
-          locale={pickerLocale}
-          onChange={handleChange}
-        />
-      ) : null}
-    </>
+        )}
+        {!icon && !iconComponent ? (
+          <Text
+            style={[
+              styles.label,
+              { color: theme.colors.muted, flexShrink: 1 },
+            ]}
+            numberOfLines={1}
+          >
+            {label}
+          </Text>
+        ) : null}
+        <View style={styles.valueWrap}>
+          {showIosCompact ? (
+            <DateTimePicker
+              value={pickerDate}
+              mode="date"
+              display="compact"
+              locale={pickerLocale}
+              accentColor={theme.colors.accent}
+              themeVariant={themeMode === "dark" ? "dark" : "light"}
+              onChange={handleChange}
+              style={styles.nativeDatePicker}
+            />
+          ) : (
+            <Text
+              style={[
+                styles.valueText,
+                {
+                  color: hasValue ? theme.colors.fg : theme.colors.muted,
+                  textAlign: "right",
+                },
+              ]}
+              numberOfLines={1}
+            >
+              {displayText}
+            </Text>
+          )}
+        </View>
+      </Pressable>
+      {trailing}
+    </CardRow>
   );
 }
 

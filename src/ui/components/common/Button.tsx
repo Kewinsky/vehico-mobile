@@ -1,7 +1,6 @@
 import type { PropsWithChildren } from "react";
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -89,11 +88,7 @@ const makeStyles = (theme: any) =>
       width: "100%",
     },
     primary: {
-      ...(Platform.OS === "ios"
-        ? {
-            elevation: 4,
-          }
-        : { elevation: 4 }),
+      elevation: 4,
     },
     ghost: {
       backgroundColor: theme.colors.card,
@@ -106,14 +101,10 @@ const makeStyles = (theme: any) =>
     destructive: {
       backgroundColor: theme.colors.danger,
       borderColor: theme.colors.danger,
-      ...(Platform.OS === "ios"
-        ? {
-            shadowColor: "#000",
-            shadowOpacity: 0.12,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: 6 },
-          }
-        : { elevation: 2 }),
+      shadowColor: "#000",
+      shadowOpacity: 0.12,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 6 },
     },
     text: {
       fontSize: theme.typography.body,

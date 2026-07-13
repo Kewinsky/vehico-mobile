@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Alert, Linking, Platform, Text } from "react-native";
+import { Alert, Linking, Text } from "react-native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -59,7 +59,6 @@ import { useTheme } from "../../../ui/ThemeProvider";
 import { toastCaughtError, toastError, toastSuccess } from "../../../ui/toast/toast";
 import { getPremiumUpgradeAlertButtons } from "../../../ui/limits/entitlementAlerts";
 import { RichCalloutText } from "../../../ui/components/dashboard/RichCalloutText";
-import { openAndroidNativeDatePicker } from "../../../ui/components/common/NativeDateTrigger";
 import { useScreenFocusReload } from "../../../app/useScreenFocusReload";
 import { isNonNegativeNumber, isValidDate } from "../../../utils/validation";
 import { formatRelativeTimePast } from "../../../utils/formatRelativeTimePast";
@@ -806,13 +805,6 @@ export function useVehicleDashboardState({
       _prompt: string,
     ) => {
       const ymd = currentValue?.slice(0, 10) ?? "";
-      if (Platform.OS === "android") {
-        openAndroidNativeDatePicker(
-          ymd,
-          (nextYmd) => void saveFormalitiesDate(field, nextYmd),
-        );
-        return;
-      }
       setFormalityOverlay({ field, value: ymd, title });
     },
     [saveFormalitiesDate],

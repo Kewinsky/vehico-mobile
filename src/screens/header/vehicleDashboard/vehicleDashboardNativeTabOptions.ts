@@ -1,5 +1,4 @@
 import type { TFunction } from "i18next";
-import { Platform } from "react-native";
 
 import type { NativeBottomTabNavigationOptions } from "@bottom-tabs/react-navigation";
 
@@ -40,10 +39,8 @@ export function getVehicleDashboardTabOptions(
   return {
     title: label,
     tabBarLabel: label,
-    ...(Platform.OS === "ios" && {
-      tabBarIcon: ({ focused }) => ({
-        sfSymbol: (focused ? config.sfFocused : config.sfUnfocused) as never,
-      }),
+    tabBarIcon: ({ focused }) => ({
+      sfSymbol: (focused ? config.sfFocused : config.sfUnfocused) as never,
     }),
   };
 }

@@ -1,4 +1,3 @@
-import { Linking, Platform } from "react-native";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 
@@ -25,15 +24,5 @@ export async function openLocalFile(localPath: string): Promise<void> {
   }
 
   const uri = toFileUri(localPath);
-
-  if (Platform.OS === "ios") {
-    await shareLocalFile(uri);
-    return;
-  }
-
-  try {
-    await Linking.openURL(uri);
-  } catch {
-    await shareLocalFile(uri);
-  }
+  await shareLocalFile(uri);
 }

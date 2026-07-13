@@ -1,6 +1,5 @@
 import {
   Linking,
-  Platform,
   Share,
   StyleSheet,
   useWindowDimensions,
@@ -69,7 +68,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
 
   async function handleShare() {
     try {
-      await Share.share(Platform.OS === "ios" ? { url } : { message: url });
+      await Share.share({ url });
     } catch (e: any) {
       toastCaughtError(e, t("common.error"));
     }

@@ -1,14 +1,11 @@
 import { type ReactNode, useMemo } from "react";
 import {
-  Platform,
-  Pressable,
   StyleSheet,
   Text,
   View,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
-import { useTranslation } from "react-i18next";
 import type { SFSymbol } from "sf-symbols-typescript";
 import {
   Host,
@@ -18,8 +15,6 @@ import {
 } from "@expo/ui/swift-ui";
 
 import { useTheme } from "../../ThemeProvider";
-import { Button } from "./Button";
-import { openAlertPicker } from "./openAlertPicker";
 
 export type SourcePickerMenuActionItem = {
   id: string;
@@ -50,7 +45,7 @@ type SourcePickerMenuProps = {
   children?: ReactNode;
   disabled?: boolean;
   items: SourcePickerMenuItem[];
-  /** Ghost-style label trigger (iOS: passive View inside ContextMenu). */
+  /** Ghost-style label trigger (passive View inside ContextMenu). */
   triggerLabel?: string;
   triggerStyle?: StyleProp<ViewStyle>;
 };
@@ -98,19 +93,6 @@ function GhostMenuTrigger({
   );
 }
 
-function flattenItems(items: SourcePickerMenuItem[]): SourcePickerMenuActionItem[] {
-  const result: SourcePickerMenuActionItem[] = [];
-  for (const item of items) {
-    if (isDividerItem(item)) continue;
-    if (item.items?.length) {
-      result.push(...flattenItems(item.items));
-      continue;
-    }
-    if (item.onPress) result.push(item);
-  }
-  return result;
-}
-
 function renderMenuItems(items: SourcePickerMenuItem[]) {
   return items.map((item) => {
     if (isDividerItem(item)) {
@@ -152,19 +134,7 @@ export function SourcePickerMenu({
   triggerLabel,
   triggerStyle,
 }: SourcePickerMenuProps) {
-  const { t } = useTranslation();
   const { mode: themeMode } = useTheme();
-  const flatItems = useMemo(() => flattenItems(items), [items]);
-
-  const openMenu = () => {
-    openAlertPicker({
-      cancelLabel: t("common.cancel"),
-      choices: flatItems.map((item) => ({
-        label: item.label,
-        onPress: item.onPress ?? (() => undefined),
-      })),
-    });
-  };
 
   if (triggerLabel) {
     if (disabled) {
@@ -177,30 +147,22 @@ export function SourcePickerMenu({
       );
     }
 
-    if (Platform.OS === "ios") {
-      return (
-        <View style={{ alignSelf: "stretch", width: "100%" }}>
-          <Host
-            matchContents
-            colorScheme={themeMode === "dark" ? "dark" : "light"}
-          >
-            <SwiftUIContextMenu activationMethod="singlePress">
-              <SwiftUIContextMenu.Items>
-                {renderMenuItems(items)}
-              </SwiftUIContextMenu.Items>
-              <SwiftUIContextMenu.Trigger>
-                <GhostMenuTrigger label={triggerLabel} style={triggerStyle} />
-              </SwiftUIContextMenu.Trigger>
-            </SwiftUIContextMenu>
-          </Host>
-        </View>
-      );
-    }
-
     return (
-      <Button onPress={openMenu} variant="ghost" style={triggerStyle}>
-        {triggerLabel}
-      </Button>
+      <View style={{ alignSelf: "stretch", width: "100%" }}>
+        <Host
+          matchContents
+          colorScheme={themeMode === "dark" ? "dark" : "light"}
+        >
+          <SwiftUIContextMenu activationMethod="singlePress">
+            <SwiftUIContextMenu.Items>
+              {renderMenuItems(items)}
+            </SwiftUIContextMenu.Items>
+            <SwiftUIContextMenu.Trigger>
+              <GhostMenuTrigger label={triggerLabel} style={triggerStyle} />
+            </SwiftUIContextMenu.Trigger>
+          </SwiftUIContextMenu>
+        </Host>
+      </View>
     );
   }
 
@@ -208,23 +170,17 @@ export function SourcePickerMenu({
     return <>{children}</>;
   }
 
-  if (Platform.OS === "ios") {
-    return (
-      <Host
-        matchContents
-        colorScheme={themeMode === "dark" ? "dark" : "light"}
-      >
-        <SwiftUIContextMenu activationMethod="singlePress">
-          <SwiftUIContextMenu.Items>
-            {renderMenuItems(items)}
-          </SwiftUIContextMenu.Items>
-          <SwiftUIContextMenu.Trigger>{children}</SwiftUIContextMenu.Trigger>
-        </SwiftUIContextMenu>
-      </Host>
-    );
-  }
-
   return (
-    <Pressable onPress={openMenu}>{children}</Pressable>
+    <Host
+      matchContents
+      colorScheme={themeMode === "dark" ? "dark" : "light"}
+    >
+      <SwiftUIContextMenu activationMethod="singlePress">
+        <SwiftUIContextMenu.Items>
+          {renderMenuItems(items)}
+        </SwiftUIContextMenu.Items>
+        <SwiftUIContextMenu.Trigger>{children}</SwiftUIContextMenu.Trigger>
+      </SwiftUIContextMenu>
+    </Host>
   );
 }
