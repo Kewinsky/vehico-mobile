@@ -46,6 +46,7 @@ export function useOverviewPanelStyles() {
     },
     panelSections: {
       gap: theme.spacing.xl,
+      paddingBottom: theme.spacing.xl,
     },
     sectionBlock: {
       gap: theme.spacing.sm,

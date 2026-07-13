@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OverviewVehicleHeader } from "../overview/OverviewVehicleHeader";
 import { useOverviewPanelStyles } from "../overview/overviewStyles";
 import { VehicleDashboardScrollView } from "../components/VehicleDashboardScrollView";
+import { DashboardBottomInset } from "../components/DashboardBottomInset";
 import { StatisticsPanel } from "../stats/StatisticsPanel";
 import { StatisticsPeriodTabs } from "../stats/StatisticsPeriodTabs";
 import type { PeriodKey } from "../stats/types";
@@ -32,7 +33,7 @@ export function VehicleDashboardStatsScreen() {
   } = useVehicleDashboard();
 
   return (
-    <VehicleDashboardScrollView>
+    <VehicleDashboardScrollView contentContainerStyle={{ paddingBottom: 0 }}>
       <View
         style={{
           paddingHorizontal: theme.layout.contentPaddingHorizontal,
@@ -62,6 +63,7 @@ export function VehicleDashboardStatsScreen() {
           navigation={navigation}
         />
       </View>
+      <DashboardBottomInset />
     </VehicleDashboardScrollView>
   );
 }

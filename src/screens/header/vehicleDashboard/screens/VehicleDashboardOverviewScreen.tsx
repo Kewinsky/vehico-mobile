@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Glow } from "../../../../ui/components/dashboard/Glow";
 import { useTheme } from "../../../../ui/ThemeProvider";
 import { VehicleCarousel } from "../components/VehicleCarousel";
+import { DashboardBottomInset } from "../components/DashboardBottomInset";
 import { makeDashboardScreenStyles } from "../dashboardScreenStyles";
 import { OverviewPanel } from "../overview/OverviewPanel";
 import { useOverviewPanelStyles } from "../overview/overviewStyles";
@@ -22,7 +23,7 @@ export function VehicleDashboardOverviewScreen() {
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[styles.scrollContent, { paddingBottom: 0 }]}
     >
       <Glow
         width={windowWidth}
@@ -93,6 +94,7 @@ export function VehicleDashboardOverviewScreen() {
         fittedTiresLines={dashboard.fittedTiresLines}
         fittedWheelsLines={dashboard.fittedWheelsLines}
       />
+      <DashboardBottomInset />
     </ScrollView>
   );
 }
