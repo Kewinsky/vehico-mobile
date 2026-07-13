@@ -78,7 +78,8 @@
           "project": "vehico",
           "organization": "ktasoftware"
         }
-      ]
+      ],
+      "react-native-bottom-tabs"
     ],
     "scheme": "vehico",
     "extra": {

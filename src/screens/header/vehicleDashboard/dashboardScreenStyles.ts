@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-import type { AppTheme, ThemeMode } from "../../../ui/theme";
+import type { AppTheme } from "../../../ui/theme";
 
 export function makeDashboardScreenStyles(
   theme: AppTheme,
@@ -9,8 +9,8 @@ export function makeDashboardScreenStyles(
   return StyleSheet.create({
     scrollContent: {
       paddingBottom: Math.max(
-        theme.spacing.xl * 3,
-        insets.bottom + theme.spacing.xl * 2,
+        theme.spacing.xl,
+        insets.bottom + theme.spacing.md,
       ),
     },
     carouselGlow: {
@@ -63,33 +63,6 @@ export function makeDashboardScreenStyles(
       fontSize: theme.typography.xs,
       fontWeight: theme.typography.fontWeight.bold,
       lineHeight: 14,
-    },
-    pagerDotsContainer: {
-      position: "absolute",
-      left: 0,
-      right: 0,
-      alignItems: "center",
-      zIndex: 20,
-      pointerEvents: "box-none",
-    },
-    pagerDots: {
-      overflow: "hidden",
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.xs / 2,
-      paddingVertical: theme.spacing.xs / 2,
-      borderRadius: 999,
-      backgroundColor: "transparent",
-      elevation: 4,
-    },
-    pagerTab: {
-      width: 48,
-      height: 48,
-      borderRadius: 999,
-      alignItems: "center",
-      justifyContent: "center",
     },
     headerRightActions: {
       flexDirection: "row",

@@ -58,6 +58,7 @@ import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
+import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
@@ -431,18 +432,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     setWorkshopId(null);
     setWorkshopSnapshot(null);
     setPendingFiles([]);
-  }
-
-  function pickAttachment() {
-    Alert.alert("", t("attachments.addPickerBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      { text: t("attachments.camera"), onPress: () => void pickFromCamera() },
-      {
-        text: t("attachments.photos"),
-        onPress: () => void pickFromGallery(),
-      },
-      { text: t("attachments.files"), onPress: () => void pickFromFiles() },
-    ]);
   }
 
   async function pickFromCamera() {
@@ -912,13 +901,22 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               </View>
               <View style={{ height: theme.spacing.sm }} />
               <View style={styles.insetContent}>
-                <Button
-                  onPress={pickAttachment}
-                  variant="ghost"
+                <AttachmentSourcePicker
                   disabled={saving || uploading}
+                  handlers={{
+                    onCamera: () => void pickFromCamera(),
+                    onPhotos: () => void pickFromGallery(),
+                    onFiles: () => void pickFromFiles(),
+                  }}
                 >
-                  {t("entryForm.addAttachment")}
-                </Button>
+                  <Button
+                    onPress={() => undefined}
+                    variant="ghost"
+                    disabled={saving || uploading}
+                  >
+                    {t("entryForm.addAttachment")}
+                  </Button>
+                </AttachmentSourcePicker>
               </View>
               <View style={{ height: theme.spacing.sm }} />
 

@@ -44,6 +44,7 @@ import {
   uploadVehiclePhoto,
 } from "../../services/vehicles/uploadPhoto";
 import { Button } from "../../ui/components/common/Button";
+import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
@@ -244,30 +245,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       ),
     [t],
   );
-
-  function pickSource() {
-    const photoCount = draftPhotos.length;
-    const remainingSlots = 6 - photoCount;
-    if (remainingSlots <= 0) {
-      toastError(t("vehicleForm.maxPhotosReached"));
-      return;
-    }
-    Alert.alert("", t("attachments.addPickerBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("attachments.camera"),
-        onPress: () => void pickFromCamera(),
-      },
-      {
-        text: t("attachments.photos"),
-        onPress: () => void pickFromGallery(),
-      },
-      {
-        text: t("attachments.files"),
-        onPress: () => void pickFromFiles(),
-      },
-    ]);
-  }
 
   async function pickFromCamera() {
     try {
@@ -601,14 +578,23 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   </View>
                 )}
                 {draftPhotos.length < 6 && (
-                  <Button
-                    onPress={pickSource}
+                  <AttachmentSourcePicker
                     disabled={saving || uploadingPhoto}
-                    variant="ghost"
-                    style={{ marginTop: theme.spacing.sm / 2 }}
+                    handlers={{
+                      onCamera: () => void pickFromCamera(),
+                      onPhotos: () => void pickFromGallery(),
+                      onFiles: () => void pickFromFiles(),
+                    }}
                   >
-                    {t("vehicleForm.addPhoto")}
-                  </Button>
+                    <Button
+                      onPress={() => undefined}
+                      disabled={saving || uploadingPhoto}
+                      variant="ghost"
+                      style={{ marginTop: theme.spacing.sm / 2 }}
+                    >
+                      {t("vehicleForm.addPhoto")}
+                    </Button>
+                  </AttachmentSourcePicker>
                 )}
               </View>
 

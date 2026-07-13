@@ -516,7 +516,11 @@ export function useVehicleDashboardState({
     );
   }
 
-  function handleSectionOrderPress() {
+  const handleManageVehicle = useCallback(() => {
+    navigation.navigate("VehicleForm", { vehicleId });
+  }, [navigation, vehicleId]);
+
+  const handleSectionOrderPress = useCallback(() => {
     if (isPremium) {
       navigation.navigate("DashboardSectionOrder");
       return;
@@ -527,26 +531,7 @@ export function useVehicleDashboardState({
       t("dashboard.sectionOrder.premiumRequiredBody"),
       getPremiumUpgradeAlertButtons(t, navigation),
     );
-  }
-
-  function openActions() {
-    Alert.alert(t("dashboard.tiles.manageTitle"), "", [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("common.edit"),
-        onPress: () => navigation.navigate("VehicleForm", { vehicleId }),
-      },
-      {
-        text: t("dashboard.sectionOrder.menu"),
-        onPress: handleSectionOrderPress,
-      },
-      {
-        text: t("common.delete"),
-        style: "destructive",
-        onPress: onDeleteVehicle,
-      },
-    ]);
-  }
+  }, [isPremium, navigation, t]);
 
   const handleAddService = useCallback(() => {
     navigation.navigate("ServiceEntryForm", { vehicleId });
@@ -936,7 +921,9 @@ export function useVehicleDashboardState({
     handleOpenPublicReportInBrowser,
     handleCopyPublicReportLink,
     handleShowPublicReportQr,
-    openActions,
+    handleManageVehicle,
+    handleSectionOrderPress,
+    onDeleteVehicle,
     handleAddService,
     handleAddFuel,
     handleAddReminder,

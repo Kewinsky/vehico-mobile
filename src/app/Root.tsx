@@ -14,16 +14,13 @@ import { PremiumDowngradeHandler } from "./PremiumDowngradeHandler";
 import { AuthProvider } from "./providers/AuthProvider";
 import { UserSettingsProvider } from "./providers/UserSettingsProvider";
 import { EntitlementsProvider } from "./providers/EntitlementsProvider";
-import { ThemeProvider, useTheme } from "../ui/ThemeProvider";
+import { ThemeProvider } from "../ui/ThemeProvider";
 import { ExclusiveSwipeProvider } from "../ui/components/common/ExclusiveSwipeable";
 import { ErrorBoundary } from "../ui/components/common/ErrorBoundary";
 import { AppToasts } from "../ui/toast/AppToasts";
-import { setThemeColorsGetter } from "../ui/toast/toast";
 import { FormalityNotificationsBootstrap } from "./FormalityNotificationsBootstrap";
 
 function AppContent() {
-  const { theme } = useTheme();
-
   // Handle tap on local notification (reminder) – navigate to ReminderForm (edit)
   useEffect(() => {
     const navigateFromNotification = (data: {
@@ -80,17 +77,6 @@ function AppContent() {
 
     return () => sub.remove();
   }, []);
-
-  // Set theme colors getter for toast functions
-  React.useEffect(() => {
-    setThemeColorsGetter(() => ({
-      bg: theme.colors.bg,
-      fg: theme.colors.fg,
-      accent: theme.colors.accent,
-      danger: theme.colors.danger,
-      muted: theme.colors.muted,
-    }));
-  }, [theme]);
 
   const linking = {
     prefixes: ["vehico://", "exp://", LinkingModule.createURL("/")],
