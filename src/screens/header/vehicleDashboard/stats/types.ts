@@ -17,7 +17,6 @@ export type StatisticsPanelProps = {
   currency: string;
   period: PeriodKey;
   vehicleId: string;
-  embedded: boolean;
   isPremium: boolean;
   navigation: NativeStackNavigationProp<AppStackParamList>;
   onServiceEntryPress: (entryId: string) => void;

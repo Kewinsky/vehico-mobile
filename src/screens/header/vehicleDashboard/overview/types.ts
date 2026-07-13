@@ -22,7 +22,7 @@ export type OverviewPanelProps = {
   styles: OverviewPanelStyles;
   vehicleId: string;
   vehicle: Vehicle | null;
-  navigation: NativeStackNavigationProp<AppStackParamList, "VehicleDashboard">;
+  navigation: NativeStackNavigationProp<AppStackParamList>;
   t: TFunction;
   language: string;
   theme: {

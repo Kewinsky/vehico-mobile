@@ -25,6 +25,8 @@ type Props<T extends string> = {
   onChange: (next: T) => void;
   size?: "sm" | "md";
   variant?: Variant;
+  /** Use Pressable tabs instead of native segmented control. */
+  preferFallback?: boolean;
 };
 
 type Variant = "default" | "secondary";
@@ -129,7 +131,8 @@ function SegmentTabsFallback<T extends string>({
 const NATIVE_SEGMENT_HEIGHT = 44;
 
 export function SegmentTabs<T extends string>(props: Props<T>) {
-  const { value, options, onChange, variant = "default" } = props;
+  const { value, options, onChange, variant = "default", preferFallback = false } =
+    props;
   const { theme, mode: themeMode } = useTheme();
   const styles = useMemo(() => makeNativeStyles(), []);
 
@@ -165,7 +168,7 @@ export function SegmentTabs<T extends string>(props: Props<T>) {
     [theme, variant],
   );
 
-  if (!supportsNativeSegmentTabs()) {
+  if (preferFallback || !supportsNativeSegmentTabs()) {
     return <SegmentTabsFallback {...props} />;
   }
 

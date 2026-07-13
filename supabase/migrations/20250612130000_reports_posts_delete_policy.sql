@@ -1,5 +1,6 @@
 -- Allow owners to delete their own reports and marketplace posts from the mobile app.
 
+drop policy if exists reports_delete_own on public.reports;
 create policy reports_delete_own
 on public.reports for delete
 to authenticated
@@ -12,6 +13,7 @@ using (
   )
 );
 
+drop policy if exists posts_delete_own on public.posts;
 create policy posts_delete_own
 on public.posts for delete
 to authenticated

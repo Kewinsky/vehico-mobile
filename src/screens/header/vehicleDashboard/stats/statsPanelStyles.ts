@@ -59,7 +59,6 @@ export const makeStatsPanelStyles = (
     },
     expenseSummaryBreakdownRow: {
       flexDirection: "row",
-      paddingTop: theme.spacing.xs,
       gap: theme.spacing.sm,
     },
     expenseSummaryBreakdownCell: {

@@ -7,7 +7,7 @@
 -- ================
 DO $$
 DECLARE
-  vehicle_id uuid := 'YOUR_VEHICLE_ID_HERE'::uuid;
+  vehicle_id uuid := 'b0000001-0000-4000-8000-000000000001'::uuid;
   -- Odczyt licznika przy pierwszym wpisie serwisowym (baseline = dawniej 15 000 km w szablonie):
   seed_base_mileage integer := 78200;
   v_owner_id uuid;

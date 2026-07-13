@@ -1,6 +1,6 @@
 -- Audit log for manual odometer updates from the vehicle profile (and initial mileage on create).
 
-create table public.mileage_audit (
+create table if not exists public.mileage_audit (
   id uuid primary key default gen_random_uuid(),
   vehicle_id uuid not null references public.vehicles(id) on delete cascade,
   reading_date date not null,
@@ -9,12 +9,13 @@ create table public.mileage_audit (
   created_at timestamptz not null default now()
 );
 
-create index mileage_audit_vehicle_id_idx on public.mileage_audit(vehicle_id);
-create index mileage_audit_reading_date_idx
+create index if not exists mileage_audit_vehicle_id_idx on public.mileage_audit(vehicle_id);
+create index if not exists mileage_audit_reading_date_idx
   on public.mileage_audit(vehicle_id, reading_date desc);
 
 alter table public.mileage_audit enable row level security;
 
+drop policy if exists mileage_audit_select_own_vehicle on public.mileage_audit;
 create policy mileage_audit_select_own_vehicle
 on public.mileage_audit for select
 to authenticated
@@ -26,6 +27,7 @@ using (
   )
 );
 
+drop policy if exists mileage_audit_insert_own_vehicle on public.mileage_audit;
 create policy mileage_audit_insert_own_vehicle
 on public.mileage_audit for insert
 to authenticated
@@ -37,6 +39,7 @@ with check (
   )
 );
 
+drop policy if exists mileage_audit_delete_own_vehicle on public.mileage_audit;
 create policy mileage_audit_delete_own_vehicle
 on public.mileage_audit for delete
 to authenticated
@@ -53,7 +56,12 @@ insert into public.mileage_audit (vehicle_id, reading_date, mileage, source)
 select v.id, v.mileage_updated_at, v.mileage, 'profile'
 from public.vehicles v
 where v.mileage is not null
-  and v.mileage_updated_at is not null;
+  and v.mileage_updated_at is not null
+  and not exists (
+    select 1
+    from public.mileage_audit ma
+    where ma.vehicle_id = v.id
+  );
 
 -- Record initial mileage when creating a vehicle.
 create or replace function public.create_vehicle(

@@ -1,3 +1,51 @@
+# Local Supabase config for vehico-mobile.
+# Docs: https://supabase.com/docs/guides/local-development/cli/config
+
+project_id = "vehico"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.migrations]
+enabled = true
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql", "./seed_data.sql"]
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://127.0.0.1"
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3000"
+additional_redirect_urls = ["https://127.0.0.1:3000", "vehico://"]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+# Analytics/vector often fail local health checks on macOS Docker.
+# Auth + DB work fine without them for mobile dev.
+[analytics]
+enabled = false
+
 [functions.generate-marketplace-post]
 verify_jwt = false
 
@@ -5,9 +53,6 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.revenuecat-webhook]
-verify_jwt = false
-
-[functions.sync-entitlements-from-revenuecat]
 verify_jwt = false
 
 [functions.retention-cleanup]

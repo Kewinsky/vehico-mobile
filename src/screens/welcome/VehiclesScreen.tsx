@@ -564,6 +564,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
                 }
                 navigation.navigate("VehicleDashboard", {
                   vehicleId: item.id,
+                  screen: "Overview",
                 });
               }}
               style={({ pressed }) => [

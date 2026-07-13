@@ -42,6 +42,7 @@ function AppContent() {
       if (data.formalityKind) {
         navigationRef.navigate("VehicleDashboard", {
           vehicleId: data.vehicleId,
+          screen: "Overview",
         });
       }
     };
