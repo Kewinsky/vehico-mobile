@@ -57,7 +57,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
     : t("marketplace.postGenerated");
 
   return (
-    <HeaderLayout onBack={handleBack} showProfileAvatar>
+    <HeaderLayout onBack={handleBack}>
       <NativeHeaderScrollView>
         <ContentHeader title={layoutTitle} subtitle={generatedAt} />
         <SegmentTabs<"pl" | "en">

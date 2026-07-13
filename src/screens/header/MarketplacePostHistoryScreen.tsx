@@ -170,7 +170,6 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
     <HeaderLayout
       loading={loading}
       onBack={() => navigation.goBack()}
-      showProfileAvatar
     >
       <View style={styles.listWrap}>
         <CustomFlatList

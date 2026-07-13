@@ -89,7 +89,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
   );
 
   return (
-    <HeaderLayout onBack={handleBack} showProfileAvatar footer={footer}>
+    <HeaderLayout onBack={handleBack} footer={footer}>
       <NativeHeaderScrollView contentContainerStyle={styles.scrollContent}>
         <ContentHeader title={layoutTitle} subtitle={generatedAt} />
         <View style={styles.qrCenterWrap}>

@@ -362,7 +362,6 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
     <HeaderLayout
       loading={loading}
       onBack={() => navigation.goBack()}
-      showProfileAvatar
       footer={
         <Button onPress={handleNext}>{t("marketplace.nextButton")}</Button>
       }

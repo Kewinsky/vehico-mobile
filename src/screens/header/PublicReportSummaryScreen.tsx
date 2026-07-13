@@ -225,7 +225,6 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
     <HeaderContentScreen
       loading={loading}
       onBack={() => navigation.goBack()}
-      showProfileAvatar
       footer={
         <Button
           onPress={handleGenerateReport}

@@ -54,7 +54,7 @@ export function MarketplaceScreen({ navigation, route }: Props) {
   );
 
   return (
-    <HeaderLayout onBack={() => navigation.goBack()} showProfileAvatar>
+    <HeaderLayout onBack={() => navigation.goBack()}>
       <NativeHeaderScrollView>
         <ContentHeader title={t("marketplace.screenTitle")} />
         <View style={styles.row}>

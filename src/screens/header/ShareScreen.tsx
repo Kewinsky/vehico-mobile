@@ -38,7 +38,7 @@ export function ShareScreen({ navigation, route }: Props) {
   );
 
   return (
-    <HeaderLayout onBack={() => navigation.goBack()} showProfileAvatar>
+    <HeaderLayout onBack={() => navigation.goBack()}>
       <NativeHeaderScrollView>
         <ContentHeader title={t("dashboard.tiles.shareTitle")} />
         <View style={styles.row}>

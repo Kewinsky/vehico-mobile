@@ -177,7 +177,6 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
     <HeaderContentScreen
       loading={loading}
       onBack={() => navigation.goBack()}
-      showProfileAvatar
       footer={
         <Button
           onPress={handleGeneratePost}

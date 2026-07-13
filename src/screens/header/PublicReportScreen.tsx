@@ -49,7 +49,7 @@ export function PublicReportScreen({ navigation, route }: Props) {
   );
 
   return (
-    <HeaderLayout onBack={() => navigation.goBack()} showProfileAvatar>
+    <HeaderLayout onBack={() => navigation.goBack()}>
       <NativeHeaderScrollView>
         <ContentHeader title={t("publicReport.title")} />
         <View style={styles.row}>

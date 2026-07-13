@@ -616,7 +616,6 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
     <HeaderContentScreen
       loading={loading}
       onBack={() => navigation.goBack()}
-      showProfileAvatar
       footer={
         <Button onPress={handleNext}>{t("publicReport.nextButton")}</Button>
       }
