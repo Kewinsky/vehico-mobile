@@ -57,7 +57,7 @@ export function AppToasts() {
   );
 
   const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(-20)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
 
   useEffect(() => subscribe(setToast), []);
 
@@ -70,7 +70,7 @@ export function AppToasts() {
           useNativeDriver: true,
         }),
         Animated.timing(translateY, {
-          toValue: -20,
+          toValue: 20,
           duration: 180,
           useNativeDriver: true,
         }),
@@ -78,7 +78,7 @@ export function AppToasts() {
       return;
     }
 
-    translateY.setValue(-20);
+    translateY.setValue(20);
     opacity.setValue(0);
     Animated.parallel([
       Animated.timing(opacity, {
@@ -108,7 +108,7 @@ export function AppToasts() {
           styles.toastWrap,
           {
             width: toastWidth,
-            marginTop: insets.top + 12,
+            marginBottom: insets.bottom + 12,
             opacity,
             transform: [{ translateY }],
           },
@@ -142,7 +142,7 @@ export function AppToasts() {
 const styles = StyleSheet.create({
   root: {
     ...StyleSheet.absoluteFillObject,
-    justifyContent: "flex-start",
+    justifyContent: "flex-end",
     alignItems: "center",
     zIndex: 9999,
     elevation: 9999,

@@ -49,9 +49,7 @@ export function VehicleDashboardOverviewScreen() {
           <View style={styles.vehicleImagePlaceholder}>
             <MaterialCommunityIcons
               name={
-                dashboard.vehicle?.type === "car"
-                  ? "car-outline"
-                  : "motorbike"
+                dashboard.vehicle?.type === "car" ? "car-outline" : "motorbike"
               }
               size={theme.spacing.xl * 2}
               color={theme.colors.muted}

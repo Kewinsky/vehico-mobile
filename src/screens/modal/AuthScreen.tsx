@@ -29,7 +29,7 @@ import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import {
   persistOAuthDisplayName,
   shouldShowSignedInSuccessToastForCurrentUser,
@@ -187,7 +187,7 @@ export function AuthScreen({ navigation }: Props) {
       // https://supabase.com/docs/guides/auth/auth-email-passwordless#with-otp
       await requestOtpForEmail(emailTrimmed);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -199,7 +199,7 @@ export function AuthScreen({ navigation }: Props) {
       setIsSubmitting(true);
       await requestOtpForEmail(sentEmail.trim(), { resend: true });
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -241,7 +241,7 @@ export function AuthScreen({ navigation }: Props) {
 
       await toastSignedInIfReturningUser();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setIsVerifying(false);
     }
@@ -328,7 +328,7 @@ export function AuthScreen({ navigation }: Props) {
         throw new Error("Authentication failed");
       }
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setIsSocialLoading(null);
     }
@@ -364,7 +364,7 @@ export function AuthScreen({ navigation }: Props) {
       await toastSignedInIfReturningUser();
     } catch (e: any) {
       if (e?.code === "ERR_REQUEST_CANCELED") return;
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setIsSocialLoading(null);
     }
@@ -398,7 +398,7 @@ export function AuthScreen({ navigation }: Props) {
       }
       await toastSignedInIfReturningUser();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setIsSubmitting(false);
     }

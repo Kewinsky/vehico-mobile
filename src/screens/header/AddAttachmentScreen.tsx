@@ -18,7 +18,7 @@ import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
 
 type Props = NativeStackScreenProps<AppStackParamList, "AddAttachment">;
@@ -46,7 +46,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         const data = await listServiceEntries(vehicleId);
         setItems(data);
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       } finally {
         if (opts?.refreshing) setRefreshing(false);
         else setLoading(false);
@@ -103,7 +103,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       });
       navigation.goBack();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -129,7 +129,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       });
       navigation.goBack();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -153,7 +153,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       });
       navigation.goBack();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploading(false);
     }

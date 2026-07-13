@@ -23,7 +23,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import { isValidDate } from "../../utils/validation";
 import { shareExportFile } from "../../utils/shareContent";
 
@@ -161,7 +161,7 @@ export function ExportScreen({ navigation, route }: Props) {
         t("export.shareTitle", { appName: APP_DISPLAY_NAME }),
       );
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setExporting(false);
     }

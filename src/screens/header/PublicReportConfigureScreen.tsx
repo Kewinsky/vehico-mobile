@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 import { useTranslation } from "react-i18next";
 import { DraggableGrid } from "react-native-draggable-grid";
 import { Ionicons } from "@expo/vector-icons";
@@ -26,6 +27,7 @@ import {
   hasEnoughStatsEntries,
 } from "../../types/reportOptions";
 import { Button } from "../../ui/components/common/Button";
+import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
 import { ReportOptionGroup } from "../../ui/components/common/ReportOptionGroup";
 import {
   getReportGroupMasterState,
@@ -43,7 +45,7 @@ import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScr
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { getUnitDisplay } from "../../utils/unitGroups";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 
 const MAX_PHOTOS = 40;
 
@@ -153,7 +155,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       setWheelsCount(wheels.length);
       setSelectedVehiclePhotoIds(new Set(photos.map((p) => p.id)));
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -385,6 +387,58 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
     resetAllReportOptions(allReportOptions);
   }
 
+  function addPhotosFromAssets(
+    assets: Array<{
+      uri: string;
+      mimeType?: string | null;
+      fileName?: string | null;
+    }>,
+  ) {
+    const remainingSlots = MAX_PHOTOS - totalPhotoCount;
+    if (remainingSlots <= 0) {
+      toastError(t("publicReport.maxPhotosReached"));
+      return;
+    }
+    const picked = assets.filter((asset) => asset.uri);
+    if (picked.length === 0) {
+      toastError(t("attachments.noFileSelected"));
+      return;
+    }
+    const newPhotos = picked.slice(0, remainingSlots).map((asset, index) => ({
+      id: `${Date.now()}-${index}-${Math.random()}`,
+      fileUri: asset.uri,
+      displayOrder: totalPhotoCount + index,
+      mimeType: asset.mimeType ?? null,
+      fileName: asset.fileName ?? null,
+    }));
+    setLocalPhotos((prev) => [...prev, ...newPhotos]);
+  }
+
+  async function pickFromCamera() {
+    try {
+      if (MAX_PHOTOS - totalPhotoCount <= 0) {
+        toastError(t("publicReport.maxPhotosReached"));
+        return;
+      }
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted)
+        throw new Error(t("attachments.cameraPermissionDenied"));
+      const result = await ImagePicker.launchCameraAsync({ quality: 1 });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      addPhotosFromAssets([
+        {
+          uri: asset.uri,
+          mimeType: asset.mimeType,
+          fileName: asset.fileName,
+        },
+      ]);
+    } catch (e: any) {
+      toastCaughtError(e, t("common.error"));
+    }
+  }
+
   async function pickFromGallery() {
     try {
       const remainingSlots = MAX_PHOTOS - totalPhotoCount;
@@ -405,18 +459,43 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       if (!result.assets || result.assets.length === 0) {
         throw new Error(t("attachments.noFileSelected"));
       }
-      const newPhotos = result.assets
-        .slice(0, remainingSlots)
-        .map((asset, index) => ({
-          id: `${Date.now()}-${index}-${Math.random()}`,
-          fileUri: asset.uri,
-          displayOrder: totalPhotoCount + index,
-          mimeType: asset.mimeType ?? null,
-          fileName: asset.fileName ?? null,
-        }));
-      setLocalPhotos([...localPhotos, ...newPhotos]);
+      addPhotosFromAssets(
+        result.assets.map((asset) => ({
+          uri: asset.uri,
+          mimeType: asset.mimeType,
+          fileName: asset.fileName,
+        })),
+      );
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
+    }
+  }
+
+  async function pickFromFiles() {
+    try {
+      const remainingSlots = MAX_PHOTOS - totalPhotoCount;
+      if (remainingSlots <= 0) {
+        toastError(t("publicReport.maxPhotosReached"));
+        return;
+      }
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "image/*",
+        copyToCacheDirectory: true,
+        multiple: remainingSlots > 1,
+      });
+      if (result.canceled) return;
+      if (!result.assets || result.assets.length === 0) {
+        throw new Error(t("attachments.noFileSelected"));
+      }
+      addPhotosFromAssets(
+        result.assets.map((asset) => ({
+          uri: asset.uri,
+          mimeType: asset.mimeType,
+          fileName: asset.name,
+        })),
+      );
+    } catch (e: any) {
+      toastCaughtError(e, t("common.error"));
     }
   }
 
@@ -821,13 +900,15 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           )}
           {totalPhotoCount < MAX_PHOTOS && (
             <View style={styles.addPhotoButtons}>
-              <Button
-                onPress={pickFromGallery}
-                variant="ghost"
-                style={styles.addPhotoButton}
-              >
-                {t("publicReport.addPhotos")}
-              </Button>
+              <AttachmentSourcePicker
+                label={t("publicReport.addPhotos")}
+                triggerStyle={styles.addPhotoButton}
+                handlers={{
+                  onCamera: () => void pickFromCamera(),
+                  onPhotos: () => void pickFromGallery(),
+                  onFiles: () => void pickFromFiles(),
+                }}
+              />
             </View>
           )}
         </View>

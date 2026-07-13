@@ -1,5 +1,13 @@
 import { type ReactNode, useMemo } from "react";
-import { Platform, Pressable } from "react-native";
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import type { SFSymbol } from "sf-symbols-typescript";
 import {
@@ -10,6 +18,7 @@ import {
 } from "@expo/ui/swift-ui";
 
 import { useTheme } from "../../ThemeProvider";
+import { Button } from "./Button";
 import { openAlertPicker } from "./openAlertPicker";
 
 export type SourcePickerMenuActionItem = {
@@ -38,10 +47,56 @@ function isDividerItem(
 }
 
 type SourcePickerMenuProps = {
-  children: ReactNode;
+  children?: ReactNode;
   disabled?: boolean;
   items: SourcePickerMenuItem[];
+  /** Ghost-style label trigger (iOS: passive View inside ContextMenu). */
+  triggerLabel?: string;
+  triggerStyle?: StyleProp<ViewStyle>;
 };
+
+function makeGhostTriggerStyles(theme: { spacing: any; radius: any; typography: any; colors: any }) {
+  return StyleSheet.create({
+    ghost: {
+      height: theme.spacing.lg * 2,
+      borderRadius: theme.radius.xl,
+      alignItems: "center",
+      justifyContent: "center",
+      alignSelf: "stretch",
+      width: "100%",
+      backgroundColor: theme.colors.card,
+      borderWidth: 0,
+    },
+    text: {
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+      letterSpacing: 0.2,
+      color: theme.colors.fg,
+    },
+    disabled: {
+      opacity: 0.5,
+    },
+  });
+}
+
+function GhostMenuTrigger({
+  label,
+  disabled,
+  style,
+}: {
+  label: string;
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeGhostTriggerStyles(theme), [theme]);
+
+  return (
+    <View style={[styles.ghost, disabled && styles.disabled, style]}>
+      <Text style={styles.text}>{label}</Text>
+    </View>
+  );
+}
 
 function flattenItems(items: SourcePickerMenuItem[]): SourcePickerMenuActionItem[] {
   const result: SourcePickerMenuActionItem[] = [];
@@ -94,10 +149,60 @@ export function SourcePickerMenu({
   children,
   disabled = false,
   items,
+  triggerLabel,
+  triggerStyle,
 }: SourcePickerMenuProps) {
   const { t } = useTranslation();
   const { mode: themeMode } = useTheme();
   const flatItems = useMemo(() => flattenItems(items), [items]);
+
+  const openMenu = () => {
+    openAlertPicker({
+      cancelLabel: t("common.cancel"),
+      choices: flatItems.map((item) => ({
+        label: item.label,
+        onPress: item.onPress ?? (() => undefined),
+      })),
+    });
+  };
+
+  if (triggerLabel) {
+    if (disabled) {
+      return (
+        <GhostMenuTrigger
+          label={triggerLabel}
+          disabled
+          style={triggerStyle}
+        />
+      );
+    }
+
+    if (Platform.OS === "ios") {
+      return (
+        <View style={{ alignSelf: "stretch", width: "100%" }}>
+          <Host
+            matchContents
+            colorScheme={themeMode === "dark" ? "dark" : "light"}
+          >
+            <SwiftUIContextMenu activationMethod="singlePress">
+              <SwiftUIContextMenu.Items>
+                {renderMenuItems(items)}
+              </SwiftUIContextMenu.Items>
+              <SwiftUIContextMenu.Trigger>
+                <GhostMenuTrigger label={triggerLabel} style={triggerStyle} />
+              </SwiftUIContextMenu.Trigger>
+            </SwiftUIContextMenu>
+          </Host>
+        </View>
+      );
+    }
+
+    return (
+      <Button onPress={openMenu} variant="ghost" style={triggerStyle}>
+        {triggerLabel}
+      </Button>
+    );
+  }
 
   if (disabled) {
     return <>{children}</>;
@@ -120,18 +225,6 @@ export function SourcePickerMenu({
   }
 
   return (
-    <Pressable
-      onPress={() => {
-        openAlertPicker({
-          cancelLabel: t("common.cancel"),
-          choices: flatItems.map((item) => ({
-            label: item.label,
-            onPress: item.onPress ?? (() => undefined),
-          })),
-        });
-      }}
-    >
-      {children}
-    </Pressable>
+    <Pressable onPress={openMenu}>{children}</Pressable>
   );
 }

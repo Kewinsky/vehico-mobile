@@ -14,7 +14,7 @@ import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { WorkshopItem } from "../../ui/components/list/WorkshopItem";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { openAlertPicker } from "../../ui/components/common/openAlertPicker";
@@ -54,7 +54,7 @@ export function WorkshopsScreen({ navigation }: Props) {
         const data = await listWorkshops(options);
         setItems(data);
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       } finally {
         if (showLoading) setLoading(false);
       }

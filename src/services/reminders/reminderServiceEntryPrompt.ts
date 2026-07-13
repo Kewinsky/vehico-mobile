@@ -32,7 +32,7 @@ export function promptAddServiceEntryFromReminder(
   t: TFunction,
   handlers?: {
     onCreated?: () => void;
-    onError?: (message: string) => void;
+    onError?: (error: unknown) => void;
     onDismiss?: () => void;
   },
 ): void {
@@ -54,7 +54,7 @@ export function promptAddServiceEntryFromReminder(
             await createServiceEntryFromReminder(reminder);
             handlers?.onCreated?.();
           } catch (e: unknown) {
-            handlers?.onError?.((e as Error)?.message ?? t("common.error"));
+            handlers?.onError?.(e);
           } finally {
             handlers?.onDismiss?.();
           }

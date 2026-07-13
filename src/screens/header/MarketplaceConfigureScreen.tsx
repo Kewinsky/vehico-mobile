@@ -50,7 +50,7 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import { openAlertPicker } from "../../ui/components/common/openAlertPicker";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 
@@ -138,7 +138,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
       setWheelsCount(wheels.length);
       setPublicReports(reports);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setLoading(false);
     }

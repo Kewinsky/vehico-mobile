@@ -19,7 +19,7 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { i18n } from "../../i18n/i18n";
@@ -45,7 +45,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
       const v = await getVehicle(vehicleId);
       setVehicle(v);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     }
   }, [vehicleId, t]);
 
@@ -61,7 +61,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
       const loaded = await listMarketplacePosts(vehicleId);
       setPosts(loaded);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
       const loaded = await listMarketplacePosts(vehicleId);
       setPosts(loaded);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setRefreshing(false);
     }
@@ -98,7 +98,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
               setPosts((prev) => prev.filter((p) => p.id !== post.id));
               toastSuccess(t("marketplace.deleted"));
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
@@ -123,7 +123,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
               toastSuccess(t("marketplace.titleUpdated"));
               await loadPosts();
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },

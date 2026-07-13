@@ -22,7 +22,7 @@ import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { ServiceItem } from "../../ui/components/list/ServiceItem";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import { SERVICE_CATEGORY_ICON_BACKGROUND } from "../../ui/theme/serviceCategoryColors";
 import { ServiceCategoryIcon } from "../../ui/components/service/ServiceCategoryIcon";
 import { EmptyState } from "../../ui/components/common/EmptyState";
@@ -80,7 +80,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
         );
         setWorkshopsById(workshopMap);
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       } finally {
         if (opts?.showLoading !== false) {
           if (opts?.refreshing) setRefreshing(false);
@@ -280,7 +280,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
               await deleteServiceEntry(entry.id);
               setItems((prev) => prev.filter((item) => item.id !== entry.id));
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },

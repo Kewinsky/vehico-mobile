@@ -20,7 +20,7 @@ import type {
 } from "../../../../types/domain";
 import { SERVICE_CATEGORY_COLORS } from "../../../../ui/theme/serviceCategoryColors";
 import { useTheme } from "../../../../ui/ThemeProvider";
-import { toastError } from "../../../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../../../ui/toast/toast";
 import { formatShortDisplayDate } from "../../../../utils/dateFormatting";
 import { groupThousands } from "../../../../utils/numberFormatting";
 import {
@@ -109,7 +109,7 @@ export function useStatisticsPanel({
       );
       setWorkshopsById(workshopMap);
     } catch (err: any) {
-      toastError(err?.message ?? t("common.error"));
+      toastCaughtError(err, t("common.error"));
     }
   }, [vehicleId, t]);
 

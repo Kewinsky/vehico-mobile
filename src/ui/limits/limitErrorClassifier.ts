@@ -1,12 +1,6 @@
-function extractErrorMessage(err: unknown): string {
-  if (!err) return "";
-  if (typeof err === "string") return err;
-  if (typeof err === "object" && "message" in err) {
-    const message = (err as any).message;
-    return typeof message === "string" ? message : "";
-  }
-  return "";
-}
+import { extractErrorMessage } from "../errors/userFacingError";
+
+export { extractErrorMessage };
 
 export function isLimitError(err: unknown): boolean {
   const message = extractErrorMessage(err).toLowerCase();

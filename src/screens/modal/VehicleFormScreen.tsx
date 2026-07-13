@@ -58,7 +58,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import {
   getPremiumUpgradeAlertButtons,
   handleAndShowLimitErrorAlert,
@@ -166,7 +166,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         })),
       );
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -275,7 +275,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         },
       ]);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploadingPhoto(false);
     }
@@ -317,7 +317,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         .filter((photo) => !!photo.previewUri);
       setDraftPhotos((prev) => [...prev, ...newPhotos]);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploadingPhoto(false);
     }
@@ -355,7 +355,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         .filter((photo) => !!photo.previewUri);
       setDraftPhotos((prev) => [...prev, ...newPhotos]);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploadingPhoto(false);
     }
@@ -507,14 +507,14 @@ export function VehicleFormScreen({ navigation, route }: Props) {
           }
         } catch (e: any) {
           console.error("Failed to upload photos:", e);
-          toastError(e?.message ?? t("common.error"));
+          toastCaughtError(e, t("common.error"));
         }
       }
 
       navigation.goBack();
     } catch (e: any) {
       if (handleAndShowLimitErrorAlert(e, t, navigation)) return;
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -579,22 +579,15 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                 )}
                 {draftPhotos.length < 6 && (
                   <AttachmentSourcePicker
+                    label={t("vehicleForm.addPhoto")}
                     disabled={saving || uploadingPhoto}
+                    triggerStyle={{ marginTop: theme.spacing.sm / 2 }}
                     handlers={{
                       onCamera: () => void pickFromCamera(),
                       onPhotos: () => void pickFromGallery(),
                       onFiles: () => void pickFromFiles(),
                     }}
-                  >
-                    <Button
-                      onPress={() => undefined}
-                      disabled={saving || uploadingPhoto}
-                      variant="ghost"
-                      style={{ marginTop: theme.spacing.sm / 2 }}
-                    >
-                      {t("vehicleForm.addPhoto")}
-                    </Button>
-                  </AttachmentSourcePicker>
+                  />
                 )}
               </View>
 

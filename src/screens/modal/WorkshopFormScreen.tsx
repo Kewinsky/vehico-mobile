@@ -19,6 +19,7 @@ import {
   updateWorkshop,
   listWorkshops,
 } from "../../services/workshops/workshopsRepo";
+import { alertCaughtError } from "../../ui/errors/userFacingError";
 import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
@@ -76,7 +77,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       setPhoneNumber(w.phone_number ?? "");
       setAddress(w.address ?? "");
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? t("common.error"));
+      alertCaughtError(t("common.error"), e, t("common.error"));
     }
   }, [workshopId, t]);
 
@@ -100,7 +101,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
             await deleteWorkshop(workshopId);
             navigation.goBack();
           } catch (e: any) {
-            Alert.alert(t("common.error"), e?.message ?? t("common.error"));
+            alertCaughtError(t("common.error"), e, t("common.error"));
           }
         },
       },
@@ -143,7 +144,7 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       navigation.goBack();
     } catch (e: any) {
       if (handleAndShowLimitErrorAlert(e, t, navigation)) return;
-      Alert.alert(t("common.error"), e?.message ?? t("common.error"));
+      alertCaughtError(t("common.error"), e, t("common.error"));
     } finally {
       setSaving(false);
     }

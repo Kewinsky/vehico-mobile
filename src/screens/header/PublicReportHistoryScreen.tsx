@@ -20,7 +20,7 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { i18n } from "../../i18n/i18n";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
@@ -42,7 +42,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
       const v = await getVehicle(vehicleId);
       setVehicle(v);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     }
   }, [vehicleId, t]);
 
@@ -58,7 +58,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
       const loaded = await listPublicPages(vehicleId);
       setReports(loaded);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
       const loaded = await listPublicPages(vehicleId);
       setReports(loaded);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setRefreshing(false);
     }
@@ -92,7 +92,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
             setReports((prev) => prev.filter((r) => r.id !== report.id));
             toastSuccess(t("share.reportDeleted"));
           } catch (e: any) {
-            toastError(e?.message ?? t("common.error"));
+            toastCaughtError(e, t("common.error"));
           }
         },
       },
@@ -116,7 +116,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
               toastSuccess(t("publicReport.titleUpdated"));
               await loadReports();
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
@@ -137,7 +137,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
         generatedAt: `${t("share.generatedOn")} ${formatShortDisplayDate(report.created_at, i18n.language)}`,
       });
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     }
   }
 

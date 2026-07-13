@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 import * as Notifications from "expo-notifications";
 import { StatusBar } from "expo-status-bar";
 
@@ -23,6 +24,7 @@ import { OnboardingLayout } from "../../layouts";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { useTheme } from "../../ui/ThemeProvider";
 import { Button } from "../../ui/components/common/Button";
+import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import type { VehicleType } from "../../types/domain";
 import {
@@ -41,7 +43,7 @@ import {
 import { uploadVehiclePhoto } from "../../services/vehicles/uploadPhoto";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { supabase } from "../../services/supabase/client";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import {
   getPremiumUpgradeAlertButtons,
   handleAndShowLimitErrorAlert,
@@ -161,12 +163,43 @@ export function OnboardingScreen({ navigation }: Props) {
     setCurrentStep((s) => previousStepIndex(s));
   }
 
-  async function pickPhotoFromGallery() {
+  function applyPickedPhoto(asset: {
+    uri: string;
+    mimeType?: string | null;
+    fileName?: string | null;
+  }) {
+    if (!asset.uri) throw new Error(t("attachments.noFileSelected"));
+    setPhoto({
+      uri: asset.uri,
+      mimeType: asset.mimeType ?? null,
+      fileName: asset.fileName ?? null,
+    });
+  }
+
+  async function pickFromCamera() {
+    try {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted)
+        throw new Error(t("attachments.cameraPermissionDenied"));
+      const result = await ImagePicker.launchCameraAsync({ quality: 1 });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      applyPickedPhoto({
+        uri: asset.uri,
+        mimeType: asset.mimeType,
+        fileName: asset.fileName,
+      });
+    } catch (e: any) {
+      toastCaughtError(e, t("common.error"));
+    }
+  }
+
+  async function pickFromGallery() {
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted)
         throw new Error(t("attachments.galleryPermissionDenied"));
-
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         quality: 1,
@@ -175,15 +208,41 @@ export function OnboardingScreen({ navigation }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-      setPhoto({
+      applyPickedPhoto({
         uri: asset.uri,
-        mimeType: asset.mimeType ?? null,
-        fileName: asset.fileName ?? null,
+        mimeType: asset.mimeType,
+        fileName: asset.fileName,
       });
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     }
   }
+
+  async function pickFromFiles() {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "image/*",
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      applyPickedPhoto({
+        uri: asset.uri,
+        mimeType: asset.mimeType,
+        fileName: asset.name,
+      });
+    } catch (e: any) {
+      toastCaughtError(e, t("common.error"));
+    }
+  }
+
+  const photoSourceHandlers = {
+    onCamera: () => void pickFromCamera(),
+    onPhotos: () => void pickFromGallery(),
+    onFiles: () => void pickFromFiles(),
+  };
 
   async function ensureVehicleCreated(): Promise<string | null> {
     if (createdVehicleId) return createdVehicleId;
@@ -237,7 +296,7 @@ export function OnboardingScreen({ navigation }: Props) {
       });
     } catch (e: any) {
       if (handleAndShowLimitErrorAlert(e, t, navigation)) return null;
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
       return null;
     }
 
@@ -255,7 +314,7 @@ export function OnboardingScreen({ navigation }: Props) {
       } catch (e: any) {
         // Don't block onboarding if upload fails.
         console.error("Failed to upload onboarding photo:", e);
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       }
     }
 
@@ -278,7 +337,7 @@ export function OnboardingScreen({ navigation }: Props) {
     try {
       setCurrentStep((s) => nextStepIndex(s));
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -361,7 +420,7 @@ export function OnboardingScreen({ navigation }: Props) {
       toastSuccess(t("onboarding.complete.doneToast"));
       navigation.replace("Vehicles");
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -653,49 +712,51 @@ export function OnboardingScreen({ navigation }: Props) {
                 />
               </View>
             ) : (
-              <Pressable
-                onPress={() => void pickPhotoFromGallery()}
+              <AttachmentSourcePicker
                 disabled={saving}
-                style={({ pressed }) => [
-                  styles.photoPlaceholderCard,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                  pressed && { opacity: 0.9 },
-                ]}
+                handlers={photoSourceHandlers}
               >
                 <View
                   style={[
-                    styles.photoPlaceholderIcon,
-                    { backgroundColor: hexToRgba(theme.colors.accent, 0.14) },
+                    styles.photoPlaceholderCard,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.card,
+                    },
+                    saving && { opacity: 0.5 },
                   ]}
                 >
-                  <Ionicons
-                    name="camera-outline"
-                    size={28}
-                    color={theme.colors.accent}
-                  />
+                  <View
+                    style={[
+                      styles.photoPlaceholderIcon,
+                      { backgroundColor: hexToRgba(theme.colors.accent, 0.14) },
+                    ]}
+                  >
+                    <Ionicons
+                      name="camera-outline"
+                      size={28}
+                      color={theme.colors.accent}
+                    />
+                  </View>
+                  <Text
+                    style={[
+                      styles.photoPlaceholderTitle,
+                      { color: theme.colors.fg },
+                    ]}
+                  >
+                    {t("onboarding.vehicle.photo.addPhoto")}
+                  </Text>
                 </View>
-                <Text
-                  style={[
-                    styles.photoPlaceholderTitle,
-                    { color: theme.colors.fg },
-                  ]}
-                >
-                  {t("onboarding.vehicle.photo.addPhoto")}
-                </Text>
-              </Pressable>
+              </AttachmentSourcePicker>
             )}
 
             {photo ? (
-              <Button
-                variant="outlined"
-                onPress={() => void pickPhotoFromGallery()}
+              <AttachmentSourcePicker
                 disabled={saving}
-              >
-                {t("onboarding.vehicle.photo.changePhoto")}
-              </Button>
+                handlers={photoSourceHandlers}
+                label={t("onboarding.vehicle.photo.changePhoto")}
+                triggerStyle={styles.changePhotoButton}
+              />
             ) : null}
 
             <Pressable
@@ -1134,6 +1195,9 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
       textAlign: "center",
+    },
+    changePhotoButton: {
+      marginTop: theme.spacing.xs,
     },
     photoPlaceholderSubtitle: {
       fontSize: theme.typography.small,

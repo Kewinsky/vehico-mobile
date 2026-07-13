@@ -17,7 +17,7 @@ import { Button } from "../../ui/components/common/Button";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import { Logo } from "../../ui/components/branding/Logo";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportOptions">;
@@ -63,7 +63,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
         toastError(t("share.cannotOpenUrl"));
       }
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     }
   }
 
@@ -71,7 +71,7 @@ export function PublicReportOptionsScreen({ navigation, route }: Props) {
     try {
       await Share.share(Platform.OS === "ios" ? { url } : { message: url });
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     }
   }
 

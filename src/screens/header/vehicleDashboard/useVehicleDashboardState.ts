@@ -56,7 +56,7 @@ import { useEntitlements } from "../../../app/providers/EntitlementsProvider";
 import { useUnitDisplay } from "../../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../../app/providers/UserSettingsProvider";
 import { useTheme } from "../../../ui/ThemeProvider";
-import { toastError, toastSuccess } from "../../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../../ui/toast/toast";
 import { getPremiumUpgradeAlertButtons } from "../../../ui/limits/entitlementAlerts";
 import { RichCalloutText } from "../../../ui/components/dashboard/RichCalloutText";
 import { openAndroidNativeDatePicker } from "../../../ui/components/common/NativeDateTrigger";
@@ -424,7 +424,7 @@ export function useVehicleDashboardState({
           : null;
         setPublicReportUrl(reportUrl);
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       } finally {
         if (showLoading) setLoading(false);
       }
@@ -475,7 +475,7 @@ export function useVehicleDashboardState({
         toastError(t("share.cannotOpenUrl"));
       }
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     }
   }
 
@@ -485,7 +485,7 @@ export function useVehicleDashboardState({
       await Clipboard.setStringAsync(publicReportUrl);
       toastSuccess(t("share.linkCopied"));
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     }
   }
 
@@ -508,7 +508,7 @@ export function useVehicleDashboardState({
               await deleteVehicle(vehicleId);
               navigation.popToTop();
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
@@ -592,7 +592,7 @@ export function useVehicleDashboardState({
               );
               setVehicle(updatedVehicle);
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
@@ -738,7 +738,7 @@ export function useVehicleDashboardState({
               }
               toastSuccess(t("dashboard.oilBanner.doneSuccess"));
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
@@ -771,7 +771,7 @@ export function useVehicleDashboardState({
       const telHref = `tel:${phone.replace(/[^\d+#*;,.]/g, "")}`;
       await Linking.openURL(telHref);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setOilBookLoading(false);
     }
@@ -792,7 +792,7 @@ export function useVehicleDashboardState({
         });
         setVehicle(updatedVehicle);
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       }
     },
     [t, vehicleId],

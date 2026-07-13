@@ -17,7 +17,7 @@ import { useAuth } from "../../app/providers/AuthProvider";
 import { normalizeDisplayName } from "../../utils/displayName";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import { supabase } from "../../services/supabase/client";
 import { Card } from "../../ui/components/common/Card";
 import { ENV } from "../../config/env";
@@ -81,7 +81,7 @@ export function SettingsScreen({ navigation }: Props) {
         if (error) throw error;
         toastSuccess(t("profile.displayNameUpdated"));
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       } finally {
         setSaving(false);
       }
@@ -110,7 +110,7 @@ export function SettingsScreen({ navigation }: Props) {
 
   const onSignOut = useCallback(() => {
     signOut().catch((e: any) => {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     });
   }, [signOut, t]);
 
@@ -131,7 +131,7 @@ export function SettingsScreen({ navigation }: Props) {
       toastSuccess(t("profile.deleteAccountSuccess"));
       await signOut();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setDeletingAccount(false);
     }

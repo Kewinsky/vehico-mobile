@@ -1,4 +1,5 @@
 import { type ReactNode, useMemo } from "react";
+import { type StyleProp, type ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -13,10 +14,12 @@ export type AttachmentSourceHandlers = {
 };
 
 type AttachmentSourcePickerProps = {
-  children: ReactNode;
+  children?: ReactNode;
   disabled?: boolean;
   handlers: AttachmentSourceHandlers;
   includeFiles?: boolean;
+  label?: string;
+  triggerStyle?: StyleProp<ViewStyle>;
 };
 
 export function AttachmentSourcePicker({
@@ -24,6 +27,8 @@ export function AttachmentSourcePicker({
   disabled,
   handlers,
   includeFiles = true,
+  label,
+  triggerStyle,
 }: AttachmentSourcePickerProps) {
   const { t } = useTranslation();
 
@@ -56,7 +61,12 @@ export function AttachmentSourcePicker({
   }, [handlers, includeFiles, t]);
 
   return (
-    <SourcePickerMenu disabled={disabled} items={items}>
+    <SourcePickerMenu
+      disabled={disabled}
+      items={items}
+      triggerLabel={label}
+      triggerStyle={triggerStyle}
+    >
       {children}
     </SourcePickerMenu>
   );

@@ -41,7 +41,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { groupThousands } from "../../utils/numberFormatting";
@@ -218,7 +218,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
         const urls = photos.map((photo) => getVehiclePhotoUrl(photo));
         setPhotoUrls(urls);
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       } finally {
         if (showLoading) setLoading(false);
       }
@@ -254,7 +254,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
               await deleteVehicle(vehicleId);
               navigation.popToTop();
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },

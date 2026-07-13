@@ -35,7 +35,7 @@ import {
   type RevenueCatProductId,
 } from "../../services/payments/revenuecat";
 import { ENV } from "../../config/env";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
 import { Logo } from "../../ui/components/branding/Logo";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
@@ -170,7 +170,7 @@ export function ShopScreen({ navigation }: Props) {
       ) {
         return;
       }
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setPurchasing(null);
     }
@@ -194,7 +194,7 @@ export function ShopScreen({ navigation }: Props) {
       await refresh();
       toastSuccess(t("shop.purchaseSuccess"));
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setActionLoading(null);
     }

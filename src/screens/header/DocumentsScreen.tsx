@@ -36,7 +36,8 @@ import {
   uploadVehicleDocument,
 } from "../../services/vehicleDocuments/vehicleDocumentsRepo";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { getUserFacingErrorMessage } from "../../ui/errors/userFacingError";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
@@ -65,7 +66,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
         setVehicleDocs(d);
         setAttachments(a);
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       } finally {
         if (showLoading) setLoading(false);
       }
@@ -89,7 +90,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       toastError(
         e instanceof LocalFileNotFoundError
           ? t("documents.fileNotFound")
-          : (e?.message ?? t("common.error")),
+          : getUserFacingErrorMessage(e, t("common.error")),
       );
     }
   }
@@ -105,7 +106,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       toastError(
         e instanceof LocalFileNotFoundError
           ? t("documents.fileNotFound")
-          : (e?.message ?? t("common.error")),
+          : getUserFacingErrorMessage(e, t("common.error")),
       );
     }
   }
@@ -128,7 +129,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -155,7 +156,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -180,7 +181,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -260,7 +261,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
               );
               toastSuccess(t("documents.descriptionUpdated"));
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
@@ -284,7 +285,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
               await deleteVehicleDocument(doc);
               setVehicleDocs((prev) => prev.filter((x) => x.id !== doc.id));
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
@@ -306,7 +307,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
               await deleteAttachment(att);
               setAttachments((prev) => prev.filter((x) => x.id !== att.id));
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
