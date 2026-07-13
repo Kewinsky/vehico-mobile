@@ -14,7 +14,7 @@ export function useOverviewPanelStyles() {
       alignItems: "flex-start",
       justifyContent: "space-between",
       gap: theme.spacing.sm,
-      marginBottom: theme.spacing.md,
+      marginBottom: theme.spacing.sm,
     },
     vehicleHeaderText: {
       flex: 1,

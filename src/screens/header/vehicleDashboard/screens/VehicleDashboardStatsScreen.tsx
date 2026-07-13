@@ -48,7 +48,9 @@ export function VehicleDashboardStatsScreen() {
           onShowQrCode={handleShowPublicReportQr}
           showPublicQr={false}
         />
-        <StatisticsPeriodTabs value={period} onChange={setPeriod} />
+        <View style={styles.periodTabs}>
+          <StatisticsPeriodTabs value={period} onChange={setPeriod} />
+        </View>
       </View>
       <View style={[styles.page, { width: windowWidth }]}>
         <StatisticsPanel

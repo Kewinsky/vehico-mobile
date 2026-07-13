@@ -55,7 +55,8 @@
           "organization": "ktasoftware"
         }
       ],
-      "react-native-bottom-tabs"
+      "react-native-bottom-tabs",
+      "expo-splash-screen"
     ],
     "scheme": "vehico",
     "extra": {

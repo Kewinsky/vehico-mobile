@@ -1,5 +1,4 @@
 import React from "react";
-import { ActivityIndicator, View } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import type { MarketplaceReportOptions, ReportOptions } from "../../types/reportOptions";
@@ -171,15 +170,7 @@ export type AppStackParamList = {
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
 export function RootNavigator() {
-  const { session, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator />
-      </View>
-    );
-  }
+  const { session } = useAuth();
 
   return (
     <Stack.Navigator

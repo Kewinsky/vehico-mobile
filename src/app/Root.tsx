@@ -3,11 +3,10 @@ import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as LinkingModule from "expo-linking";
-import { useFonts } from "expo-font";
 import * as Notifications from "expo-notifications";
 
-import { BRAND_FONT_FAMILY } from "../ui/components/branding/BrandHero";
 import "../i18n/i18n";
+import { AppBootGate } from "./AppBootGate";
 import { RootNavigator } from "./navigation/RootNavigator";
 import { navigationRef } from "./navigationRef";
 import { PremiumDowngradeHandler } from "./PremiumDowngradeHandler";
@@ -100,29 +99,23 @@ function AppContent() {
 }
 
 export function Root() {
-  const [fontsLoaded] = useFonts({
-    [BRAND_FONT_FAMILY]: require("../../fonts/ChironGoRoundTC-ExtraBold.ttf"),
-  });
-
-  if (!fontsLoaded) {
-    return null;
-  }
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <AuthProvider>
-          <UserSettingsProvider>
-            <EntitlementsProvider>
-              <ThemeProvider>
-                <ExclusiveSwipeProvider>
-                  <ErrorBoundary>
-                    <AppContent />
-                  </ErrorBoundary>
-                </ExclusiveSwipeProvider>
-              </ThemeProvider>
-            </EntitlementsProvider>
-          </UserSettingsProvider>
+          <AppBootGate>
+            <UserSettingsProvider>
+              <EntitlementsProvider>
+                <ThemeProvider>
+                  <ExclusiveSwipeProvider>
+                    <ErrorBoundary>
+                      <AppContent />
+                    </ErrorBoundary>
+                  </ExclusiveSwipeProvider>
+                </ThemeProvider>
+              </EntitlementsProvider>
+            </UserSettingsProvider>
+          </AppBootGate>
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

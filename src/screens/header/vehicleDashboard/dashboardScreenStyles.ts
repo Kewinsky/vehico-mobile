@@ -35,7 +35,9 @@ export function makeDashboardScreenStyles(
     },
     page: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      paddingTop: theme.spacing.md,
+    },
+    periodTabs: {
+      marginBottom: theme.spacing.xs,
     },
     tilesWrap: {
       flexDirection: "row",

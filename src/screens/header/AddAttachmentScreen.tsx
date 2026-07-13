@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,8 +18,7 @@ import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastCaughtError, toastError } from "../../ui/toast/toast";
-import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
+import { toastCaughtError } from "../../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "AddAttachment">;
 
@@ -159,6 +158,33 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     }
   }
 
+  const openAttachmentSourceAlert = useCallback(
+    (serviceEntryId: string) => {
+      if (uploading) return;
+      Alert.alert(
+        t("attachments.addPickerTitle"),
+        t("attachments.addPickerBody"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("attachments.camera"),
+            onPress: () => void pickFromCamera(serviceEntryId),
+          },
+          {
+            text: t("attachments.photos"),
+            onPress: () => void pickFromGallery(serviceEntryId),
+          },
+          {
+            text: t("attachments.files"),
+            onPress: () => void pickFromFiles(serviceEntryId),
+          },
+        ],
+        { cancelable: true },
+      );
+    },
+    [t, uploading],
+  );
+
   const filteredItems = useMemo(() => {
     const q = query.trim().toLowerCase();
     let list = items;
@@ -227,26 +253,19 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         refreshing={refreshing}
         onRefresh={() => void load({ refreshing: true })}
         renderItem={({ item }) => (
-          <AttachmentSourcePicker
+          <Pressable
             disabled={uploading}
-            handlers={{
-              onCamera: () => void pickFromCamera(item.id),
-              onPhotos: () => void pickFromGallery(item.id),
-              onFiles: () => void pickFromFiles(item.id),
-            }}
+            onPress={() => openAttachmentSourceAlert(item.id)}
+            style={({ pressed }) => [
+              styles.card,
+              pressed && !uploading ? styles.cardPressed : null,
+            ]}
           >
-            <Pressable
-              disabled={uploading}
-              style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
-            >
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardMeta}>
-                  {String(item.service_date).slice(0, 10)}
-                </Text>
-              </View>
-            </Pressable>
-          </AttachmentSourcePicker>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardMeta}>
+              {String(item.service_date).slice(0, 10)}
+            </Text>
+          </Pressable>
         )}
         ListEmptyComponent={
           <EmptyState body={t("documents.noServiceEntries")} />
@@ -260,8 +279,11 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     card: {
       borderRadius: theme.radius.xl,
-      padding: theme.spacing.sm,
+      padding: theme.spacing.md,
       backgroundColor: theme.colors.card,
+    },
+    cardPressed: {
+      opacity: 0.92,
     },
     cardTitle: {
       color: theme.colors.fg,
