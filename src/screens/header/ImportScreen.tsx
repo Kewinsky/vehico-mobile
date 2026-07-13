@@ -326,7 +326,6 @@ export function ImportScreen({ navigation, route }: Props) {
   return (
     <HeaderLayout
       onBack={() => navigation.goBack()}
-      showProfileAvatar
       showShopIcon={!isPremium}
       footer={
         <>
