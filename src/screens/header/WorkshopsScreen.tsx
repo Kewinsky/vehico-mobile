@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
-import { Alert } from "react-native";
+import { Alert, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { HeaderButton } from "@react-navigation/elements";
+import { Plus, RefreshCcw, SlidersHorizontal } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -10,14 +12,17 @@ import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
+import {
+  SourcePickerMenu,
+  type SourcePickerMenuItem,
+} from "../../ui/components/common/SourcePickerMenu";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
-import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { WorkshopItem } from "../../ui/components/list/WorkshopItem";
-import { toastCaughtError, toastError } from "../../ui/toast/toast";
+import { useTheme } from "../../ui/ThemeProvider";
+import { toastCaughtError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
-import { openAlertPicker } from "../../ui/components/common/openAlertPicker";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Workshops">;
 
@@ -32,6 +37,7 @@ const WORKSHOP_TYPE_OPTIONS: WorkshopType[] = [
 
 export function WorkshopsScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
 
   const [items, setItems] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,51 +111,77 @@ export function WorkshopsScreen({ navigation }: Props) {
     navigation.navigate("WorkshopForm", {});
   }, [isPremium, items.length, navigation, t, workshopsLimit]);
 
-  const openFilters = useCallback(() => {
-    openAlertPicker({
-      cancelLabel: t("common.cancel"),
-      choices: [
-        { label: t("workshops.typeAll"), onPress: () => setTypeFilter("all") },
-        ...WORKSHOP_TYPE_OPTIONS.map((type) => ({
-          label: t(`workshopForm.types.${type}`),
-          onPress: () => setTypeFilter(type),
-        })),
-      ],
-    });
-  }, [t]);
+  const filterMenuItems = useMemo(
+    (): SourcePickerMenuItem[] => [
+      {
+        id: "all",
+        label: t("workshops.typeAll"),
+        onPress: () => setTypeFilter("all"),
+      },
+      ...WORKSHOP_TYPE_OPTIONS.map((type) => ({
+        id: type,
+        label: t(`workshopForm.types.${type}`),
+        onPress: () => setTypeFilter(type),
+      })),
+    ],
+    [t],
+  );
 
   const resetFilters = useCallback(() => {
     setTypeFilter("all");
   }, []);
 
-  const headerActions: HeaderAction[] = useMemo(
-    () => [
-      ...(hasActiveFilters
-        ? [
-            {
-              type: "filterReset",
-              onPress: resetFilters,
-            } as HeaderAction,
-          ]
-        : []),
-      {
-        type: "filter",
-        onPress: openFilters,
-        hasActive: hasActiveFilters,
-      },
-      {
-        type: "add",
-        onPress: onAddWorkshopPress,
-      },
+  const headerRight = useMemo(
+    () => (
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: theme.spacing.sm,
+        }}
+      >
+        {hasActiveFilters ? (
+          <HeaderButton
+            onPress={resetFilters}
+            tintColor={theme.colors.accent}
+            accessibilityLabel="Reset filters"
+          >
+            <RefreshCcw size={20} color={theme.colors.accent} />
+          </HeaderButton>
+        ) : null}
+        <SourcePickerMenu items={filterMenuItems}>
+          <HeaderButton
+            onPress={() => undefined}
+            tintColor={theme.colors.accent}
+            accessibilityLabel="Filter"
+          >
+            <SlidersHorizontal size={20} color={theme.colors.accent} />
+          </HeaderButton>
+        </SourcePickerMenu>
+        <HeaderButton
+          onPress={onAddWorkshopPress}
+          tintColor={theme.colors.accent}
+          accessibilityLabel="Add"
+        >
+          <Plus size={20} color={theme.colors.accent} />
+        </HeaderButton>
+      </View>
+    ),
+    [
+      filterMenuItems,
+      hasActiveFilters,
+      onAddWorkshopPress,
+      resetFilters,
+      theme.colors.accent,
+      theme.spacing.sm,
     ],
-    [hasActiveFilters, onAddWorkshopPress, openFilters, resetFilters],
   );
 
   return (
     <HeaderLayout
       loading={loading}
       onBack={() => navigation.goBack()}
-      actions={headerActions}
+      right={headerRight}
     >
       <CustomFlatList<Workshop>
         data={filtered}

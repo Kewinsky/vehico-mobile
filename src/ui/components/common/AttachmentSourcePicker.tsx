@@ -1,7 +1,8 @@
-import { type ReactNode, useMemo } from "react";
-import { type StyleProp, type ViewStyle } from "react-native";
+import { useCallback, useMemo, type ReactNode } from "react";
+import { Alert, type StyleProp, type ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "./Button";
 import {
   SourcePickerMenu,
   type SourcePickerMenuItem,
@@ -60,13 +61,45 @@ export function AttachmentSourcePicker({
     return menuItems;
   }, [handlers, includeFiles, t]);
 
+  const openSourceAlert = useCallback(() => {
+    if (disabled) return;
+
+    const buttons: NonNullable<Parameters<typeof Alert.alert>[2]> = [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("attachments.camera"), onPress: handlers.onCamera },
+      { text: t("attachments.photos"), onPress: handlers.onPhotos },
+    ];
+
+    if (includeFiles) {
+      buttons.push({
+        text: t("attachments.files"),
+        onPress: handlers.onFiles,
+      });
+    }
+
+    Alert.alert(
+      t("attachments.addPickerTitle"),
+      t("attachments.addPickerBody"),
+      buttons,
+      { cancelable: true },
+    );
+  }, [disabled, handlers, includeFiles, t]);
+
+  if (label) {
+    return (
+      <Button
+        variant="ghost"
+        onPress={openSourceAlert}
+        disabled={disabled}
+        style={triggerStyle}
+      >
+        {label}
+      </Button>
+    );
+  }
+
   return (
-    <SourcePickerMenu
-      disabled={disabled}
-      items={items}
-      triggerLabel={label}
-      triggerStyle={triggerStyle}
-    >
+    <SourcePickerMenu disabled={disabled} items={items}>
       {children}
     </SourcePickerMenu>
   );

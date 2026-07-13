@@ -1,5 +1,7 @@
 import { Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { HeaderButton } from "@react-navigation/elements";
+import { Plus, RefreshCcw, SlidersHorizontal } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { useCallback, useMemo, useState } from "react";
 
@@ -14,15 +16,17 @@ import {
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { EmptyState } from "../../ui/components/common/EmptyState";
+import {
+  SourcePickerMenu,
+  type SourcePickerMenuItem,
+} from "../../ui/components/common/SourcePickerMenu";
 import { useTheme } from "../../ui/ThemeProvider";
-import { openAlertPicker } from "../../ui/components/common/openAlertPicker";
-import { toastCaughtError, toastError } from "../../ui/toast/toast";
+import { toastCaughtError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import { TiresItem } from "../../ui/components/list/TiresItem";
-import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 
 type Props = NativeStackScreenProps<AppStackParamList, "TiresList">;
 
@@ -162,52 +166,71 @@ export function TiresListScreen({ route, navigation }: Props) {
     navigation.navigate("TireForm", { vehicleId });
   }, [isPremium, navigation, t, tires.length, tiresPerVehicleLimit, vehicleId]);
 
-  const openFilters = useCallback(() => {
-    openAlertPicker({
-      title: "",
-      cancelLabel: t("common.cancel"),
-      choices: [
-        { label: t("common.all"), onPress: () => setTireTypeFilter("all") },
-        ...TIRE_TYPE_OPTIONS.map((type) => ({
-          label: t(`tireForm.types.${type}`),
-          onPress: () => setTireTypeFilter(type),
-        })),
-      ],
-    });
-  }, [t]);
+  const filterMenuItems = useMemo(
+    (): SourcePickerMenuItem[] => [
+      {
+        id: "all",
+        label: t("common.all"),
+        onPress: () => setTireTypeFilter("all"),
+      },
+      ...TIRE_TYPE_OPTIONS.map((type) => ({
+        id: type,
+        label: t(`tireForm.types.${type}`),
+        onPress: () => setTireTypeFilter(type),
+      })),
+    ],
+    [t],
+  );
 
   const resetFilters = useCallback(() => {
     setTireTypeFilter("all");
   }, []);
 
-  const headerActions: HeaderAction[] = useMemo(
-    () => [
-      ...(hasActiveFilters
-        ? [
-            {
-              type: "filterReset",
-              onPress: resetFilters,
-            } as HeaderAction,
-          ]
-        : []),
-      {
-        type: "filter",
-        onPress: openFilters,
-        hasActive: hasActiveFilters,
-      },
-      {
-        type: "add",
-        onPress: onAddTirePress,
-      },
+  const headerRight = useMemo(
+    () => (
+      <View style={styles.headerRight}>
+        {hasActiveFilters ? (
+          <HeaderButton
+            onPress={resetFilters}
+            tintColor={theme.colors.accent}
+            accessibilityLabel="Reset filters"
+          >
+            <RefreshCcw size={20} color={theme.colors.accent} />
+          </HeaderButton>
+        ) : null}
+        <SourcePickerMenu items={filterMenuItems}>
+          <HeaderButton
+            onPress={() => undefined}
+            tintColor={theme.colors.accent}
+            accessibilityLabel="Filter"
+          >
+            <SlidersHorizontal size={20} color={theme.colors.accent} />
+          </HeaderButton>
+        </SourcePickerMenu>
+        <HeaderButton
+          onPress={onAddTirePress}
+          tintColor={theme.colors.accent}
+          accessibilityLabel="Add"
+        >
+          <Plus size={20} color={theme.colors.accent} />
+        </HeaderButton>
+      </View>
+    ),
+    [
+      filterMenuItems,
+      hasActiveFilters,
+      onAddTirePress,
+      resetFilters,
+      styles.headerRight,
+      theme.colors.accent,
     ],
-    [hasActiveFilters, onAddTirePress, openFilters, resetFilters],
   );
 
   return (
     <HeaderLayout
       loading={loading}
       onBack={() => navigation.goBack()}
-      actions={headerActions}
+      right={headerRight}
     >
       <View style={styles.listWrap}>
         <CustomFlatList
