@@ -25,7 +25,6 @@ import { ImportScreen } from "../../screens/header/ImportScreen";
 import { AddAttachmentScreen } from "../../screens/header/AddAttachmentScreen";
 import { AddAttachmentFiltersScreen } from "../../screens/modal/AddAttachmentFiltersScreen";
 import { ShareScreen } from "../../screens/header/ShareScreen";
-import { StatisticsScreen } from "../../screens/header/StatisticsScreen";
 import { MarketplaceScreen } from "../../screens/header/MarketplaceScreen";
 import { MarketplaceConfigureScreen } from "../../screens/header/MarketplaceConfigureScreen";
 import { MarketplaceSummaryScreen } from "../../screens/header/MarketplaceSummaryScreen";
@@ -49,6 +48,7 @@ import { ExampleListingScreen } from "../../screens/modal/ExampleListingScreen";
 import { AppearanceScreen } from "../../screens/modal/AppearanceScreen";
 import { DashboardSectionOrderScreen } from "../../screens/header/DashboardSectionOrderScreen";
 import { OnboardingScreen } from "../../screens/onboarding/OnboardingScreen";
+import type { VehicleDashboardTabName } from "../../screens/header/vehicleDashboard/navigationTypes";
 
 const nativeHeaderScreenOptions = {
   headerShown: true,
@@ -64,7 +64,10 @@ export type AppStackParamList = {
   Settings: undefined;
   Appearance: undefined;
   DashboardSectionOrder: undefined;
-  VehicleDashboard: { vehicleId: string };
+  VehicleDashboard: {
+    vehicleId: string;
+    screen?: VehicleDashboardTabName;
+  };
   ServiceHistory: { vehicleId: string };
   ServiceHistoryFilters: {
     vehicleId: string;
@@ -86,7 +89,6 @@ export type AppStackParamList = {
     minCost?: string;
     maxCost?: string;
   };
-  Statistics: { vehicleId: string };
   Reminders: { vehicleId: string };
   RemindersFilters: {
     vehicleId: string;
@@ -281,11 +283,6 @@ export function RootNavigator() {
               headerShown: true,
               headerShadowVisible: false,
             }}
-          />
-          <Stack.Screen
-            name="Statistics"
-            component={StatisticsScreen}
-            options={nativeHeaderScreenOptions}
           />
           <Stack.Screen
             name="FuelingEntryForm"

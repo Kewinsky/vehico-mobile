@@ -1,19 +1,21 @@
 import { Alert, Animated, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { HeaderButton } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { useCallback, useMemo, useState } from "react";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
-import { SquarePen, Trash2 } from "lucide-react-native";
+import { Plus, SquarePen, Trash2 } from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { SearchBar } from "../../ui/components/common/SearchBar";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { EmptyState } from "../../ui/components/common/EmptyState";
-import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
+import { SourcePickerMenu } from "../../ui/components/common/SourcePickerMenu";
+import type { SourcePickerMenuItem } from "../../ui/components/common/SourcePickerMenu";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import type { Attachment, VehicleDocument } from "../../types/domain";
@@ -34,7 +36,8 @@ import {
   uploadVehicleDocument,
 } from "../../services/vehicleDocuments/vehicleDocumentsRepo";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { getUserFacingErrorMessage } from "../../ui/errors/userFacingError";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
@@ -63,7 +66,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
         setVehicleDocs(d);
         setAttachments(a);
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       } finally {
         if (showLoading) setLoading(false);
       }
@@ -87,7 +90,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       toastError(
         e instanceof LocalFileNotFoundError
           ? t("documents.fileNotFound")
-          : (e?.message ?? t("common.error")),
+          : getUserFacingErrorMessage(e, t("common.error")),
       );
     }
   }
@@ -103,27 +106,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
       toastError(
         e instanceof LocalFileNotFoundError
           ? t("documents.fileNotFound")
-          : (e?.message ?? t("common.error")),
+          : getUserFacingErrorMessage(e, t("common.error")),
       );
     }
-  }
-
-  function pickVehicleDocument() {
-    Alert.alert("", t("attachments.addPickerBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("attachments.camera"),
-        onPress: () => void pickDocFromCamera(),
-      },
-      {
-        text: t("attachments.photos"),
-        onPress: () => void pickDocFromGallery(),
-      },
-      {
-        text: t("attachments.files"),
-        onPress: () => void pickDocFromFiles(),
-      },
-    ]);
   }
 
   async function pickDocFromCamera() {
@@ -144,7 +129,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -171,7 +156,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -196,28 +181,66 @@ export function DocumentsScreen({ route, navigation }: Props) {
       });
       await load();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploading(false);
     }
   }
 
-  function openAddPicker() {
-    Alert.alert("", "", [
-      { text: t("common.cancel"), style: "cancel" },
+  const documentsAddMenuItems = useMemo(
+    (): SourcePickerMenuItem[] => [
       {
-        text: t("documents.addVehicleDocument"),
-        onPress: () => pickVehicleDocument(),
+        id: "vehicle-document",
+        label: t("documents.addVehicleDocument"),
+        systemImage: "doc.badge.plus",
+        items: [
+          {
+            id: "camera",
+            label: t("attachments.camera"),
+            systemImage: "camera",
+            onPress: () => void pickDocFromCamera(),
+          },
+          {
+            id: "photos",
+            label: t("attachments.photos"),
+            systemImage: "photo.on.rectangle",
+            onPress: () => void pickDocFromGallery(),
+          },
+          {
+            id: "files",
+            label: t("attachments.files"),
+            systemImage: "doc",
+            onPress: () => void pickDocFromFiles(),
+          },
+        ],
       },
       {
-        text: t("documents.addAttachment"),
+        id: "attachment",
+        label: t("documents.addAttachment"),
+        systemImage: "paperclip",
         onPress: () =>
           navigation.navigate("AddAttachment", {
             vehicleId: route.params.vehicleId,
           }),
       },
-    ]);
-  }
+    ],
+    [navigation, route.params.vehicleId, t],
+  );
+
+  const headerRight = useMemo(
+    () => (
+      <SourcePickerMenu items={documentsAddMenuItems}>
+        <HeaderButton
+          onPress={() => undefined}
+          tintColor={theme.colors.accent}
+          accessibilityLabel="Add"
+        >
+          <Plus size={20} color={theme.colors.accent} />
+        </HeaderButton>
+      </SourcePickerMenu>
+    ),
+    [documentsAddMenuItems, theme.colors.accent],
+  );
 
   async function editDocumentDescription(doc: VehicleDocument) {
     Alert.prompt(
@@ -238,7 +261,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
               );
               toastSuccess(t("documents.descriptionUpdated"));
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
@@ -262,7 +285,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
               await deleteVehicleDocument(doc);
               setVehicleDocs((prev) => prev.filter((x) => x.id !== doc.id));
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
@@ -284,24 +307,13 @@ export function DocumentsScreen({ route, navigation }: Props) {
               await deleteAttachment(att);
               setAttachments((prev) => prev.filter((x) => x.id !== att.id));
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
       ],
     );
   }
-
-  const headerActions: HeaderAction[] = useMemo(
-    () => [
-      {
-        type: "add",
-        onPress: () => openAddPicker(),
-      },
-    ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- openAddPicker uses stable route/t handlers
-    [t, navigation, route.params.vehicleId],
-  );
 
   function renderDocumentRightActions(
     item: VehicleDocument,
@@ -348,7 +360,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
     <HeaderContentScreen
       loading={loading}
       onBack={() => navigation.goBack()}
-      actions={headerActions}
+      right={headerRight}
       title={t("dashboard.tiles.docsTitle")}
     >
       <SearchBar

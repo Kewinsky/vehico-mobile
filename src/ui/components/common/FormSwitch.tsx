@@ -1,8 +1,7 @@
 import { useMemo } from "react";
-import { Platform, Switch as RNSwitch, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Host, Switch as SwiftUISwitch } from "@expo/ui/swift-ui";
 import { disabled, fixedSize } from "@expo/ui/swift-ui/modifiers";
-import { Switch as ComposeSwitch } from "@expo/ui/jetpack-compose";
 
 import { useTheme } from "../../ThemeProvider";
 
@@ -20,63 +19,27 @@ export function FormSwitch({
   const { theme, mode: themeMode } = useTheme();
   const styles = useMemo(() => makeStyles(), []);
 
-  if (Platform.OS === "ios") {
-    return (
-      <View
-        pointerEvents={isDisabled ? "none" : "auto"}
-        style={isDisabled ? styles.disabled : undefined}
+  return (
+    <View
+      pointerEvents={isDisabled ? "none" : "auto"}
+      style={isDisabled ? styles.disabled : undefined}
+    >
+      <Host
+        matchContents={{ horizontal: true, vertical: true }}
+        colorScheme={themeMode === "dark" ? "dark" : "light"}
+        style={styles.host}
       >
-        <Host
-          matchContents={{ horizontal: true, vertical: true }}
-          colorScheme={themeMode === "dark" ? "dark" : "light"}
-          style={styles.host}
-        >
-          <SwiftUISwitch
-            value={value}
-            onValueChange={onValueChange}
-            color={theme.colors.accent}
-            modifiers={[
-              fixedSize({ horizontal: true, vertical: true }),
-              ...(isDisabled ? [disabled()] : []),
-            ]}
-          />
-        </Host>
-      </View>
-    );
-  }
-
-  if (Platform.OS === "android") {
-    return (
-      <View
-        pointerEvents={isDisabled ? "none" : "auto"}
-        style={isDisabled ? styles.disabled : undefined}
-      >
-        <ComposeSwitch
+        <SwiftUISwitch
           value={value}
           onValueChange={onValueChange}
           color={theme.colors.accent}
-          elementColors={{
-            checkedTrackColor: theme.colors.accent,
-            uncheckedTrackColor: theme.colors.border,
-            checkedThumbColor: "#fff",
-            uncheckedThumbColor: "#fff",
-          }}
+          modifiers={[
+            fixedSize({ horizontal: true, vertical: true }),
+            ...(isDisabled ? [disabled()] : []),
+          ]}
         />
-      </View>
-    );
-  }
-
-  return (
-    <RNSwitch
-      value={value}
-      onValueChange={onValueChange}
-      disabled={isDisabled}
-      trackColor={{
-        false: theme.colors.border,
-        true: theme.colors.accent,
-      }}
-      thumbColor="#fff"
-    />
+      </Host>
+    </View>
   );
 }
 

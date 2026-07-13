@@ -38,7 +38,7 @@ import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormSwitch } from "../../ui/components/common/FormSwitch";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import {
   getPremiumUpgradeAlertButtons,
   handleAndShowLimitErrorAlert,
@@ -126,7 +126,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
         setWeight(wheel.weight_kg != null ? String(wheel.weight_kg) : "");
         setIsCurrentlyFitted(wheel.is_currently_fitted);
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       }
     })();
   }, [wheelId, t]);
@@ -143,7 +143,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
             await deleteVehicleWheel(wheelId);
             navigation.goBack();
           } catch (e: any) {
-            toastError(e?.message ?? t("common.error"));
+            toastCaughtError(e, t("common.error"));
           }
         },
       },
@@ -195,7 +195,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
       } else if (handleAndShowLimitErrorAlert(e, t, navigation)) {
         return;
       } else {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       }
     } finally {
       setSaving(false);

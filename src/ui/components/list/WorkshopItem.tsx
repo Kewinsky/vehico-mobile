@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { Navigation, Phone } from "lucide-react-native";
 import {
   Linking,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -92,16 +91,10 @@ export function WorkshopItem({
   async function openNavigation() {
     if (!canNavigate) return;
     const encodedAddress = encodeURIComponent(addressTrimmed);
-    const nativeUrls =
-      Platform.OS === "ios"
-        ? [
-            `comgooglemaps://?q=${encodedAddress}`,
-            `maps://?q=${encodedAddress}`,
-          ]
-        : [
-            `google.navigation:q=${encodedAddress}`,
-            `geo:0,0?q=${encodedAddress}`,
-          ];
+    const nativeUrls = [
+      `comgooglemaps://?q=${encodedAddress}`,
+      `maps://?q=${encodedAddress}`,
+    ];
     const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
 
     for (const url of nativeUrls) {

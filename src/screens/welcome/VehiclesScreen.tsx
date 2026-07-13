@@ -29,7 +29,7 @@ import {
 import { Button } from "../../ui/components/common/Button";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
@@ -415,7 +415,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
           setInitialVisualReady(true);
         }
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
         if (shouldShowLoading) setInitialVisualReady(true);
       } finally {
         if (shouldShowLoading) {
@@ -564,6 +564,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
                 }
                 navigation.navigate("VehicleDashboard", {
                   vehicleId: item.id,
+                  screen: "Overview",
                 });
               }}
               style={({ pressed }) => [

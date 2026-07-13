@@ -40,7 +40,7 @@ import { FormSwitch } from "../../ui/components/common/FormSwitch";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import {
   getPremiumUpgradeAlertButtons,
   handleAndShowLimitErrorAlert,
@@ -104,7 +104,7 @@ export function TireFormScreen({ navigation, route }: Props) {
         setDot(tire.dot ?? "");
         setIsCurrentlyFitted(tire.is_currently_fitted);
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       }
     })();
   }, [tireId, t]);
@@ -121,7 +121,7 @@ export function TireFormScreen({ navigation, route }: Props) {
             await deleteVehicleTire(tireId);
             navigation.goBack();
           } catch (e: any) {
-            toastError(e?.message ?? t("common.error"));
+            toastCaughtError(e, t("common.error"));
           }
         },
       },
@@ -171,7 +171,7 @@ export function TireFormScreen({ navigation, route }: Props) {
       } else if (handleAndShowLimitErrorAlert(e, t, navigation)) {
         return;
       } else {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       }
     } finally {
       setSaving(false);

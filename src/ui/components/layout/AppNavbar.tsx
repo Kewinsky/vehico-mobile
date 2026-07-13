@@ -106,10 +106,7 @@ export function useNativeHeaderAsAppNavbar({
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Reset filters"
               >
-                <RefreshCcw
-                  size={headerIconSize}
-                  color={theme.colors.accent}
-                />
+                <RefreshCcw size={headerIconSize} color={theme.colors.accent} />
               </HeaderButton>
             );
           }
@@ -196,7 +193,10 @@ export function useNativeHeaderAsAppNavbar({
               accessibilityLabel={undefined}
             >
               {backIcon ?? (
-                <ChevronLeft size={headerIconSize} color={theme.colors.accent} />
+                <ChevronLeft
+                  size={headerIconSize}
+                  color={theme.colors.accent}
+                />
               )}
             </HeaderButton>
           )
@@ -291,10 +291,7 @@ export function AppNavbar({
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Reset filters"
               >
-                <RefreshCcw
-                  size={headerIconSize}
-                  color={theme.colors.accent}
-                />
+                <RefreshCcw size={headerIconSize} color={theme.colors.accent} />
               </HeaderButton>
             );
           }
@@ -349,10 +346,7 @@ export function AppNavbar({
               tintColor={theme.colors.accent}
               accessibilityLabel="Shop"
             >
-              <Crown
-                size={headerIconSize}
-                color={theme.colors.accent}
-              />
+              <Crown size={headerIconSize} color={theme.colors.accent} />
             </HeaderButton>
             {showProfileAvatar && user && (
               <HeaderButton

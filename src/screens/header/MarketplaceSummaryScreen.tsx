@@ -29,7 +29,7 @@ import {
 import { Button } from "../../ui/components/common/Button";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { groupThousands } from "../../utils/numberFormatting";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
@@ -82,7 +82,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
       setTiresCount(tires.length);
       setWheelsCount(wheels.length);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -160,7 +160,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
         ],
       });
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setGenerating(false);
     }

@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { InteractionManager, Platform } from "react-native";
+import { InteractionManager } from "react-native";
 import Purchases, {
   type CustomerInfo,
   type PurchasesEntitlementInfo,
@@ -63,8 +63,7 @@ const PREMIUM_UNLIMITED = 999;
 /** Max limits for free plan; clamp DB values so free users never see more even if DB is stale. */
 const FREE_WORKSHOPS_LIMIT = 3;
 const FREE_REMINDERS_LIMIT = 5;
-const IS_REVENUECAT_PLATFORM =
-  Platform.OS === "ios" || Platform.OS === "android";
+const IS_REVENUECAT_PLATFORM = true;
 
 /**
  * Monetization (see `supabase/functions/revenuecat-webhook`):

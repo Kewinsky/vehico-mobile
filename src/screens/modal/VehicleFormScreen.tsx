@@ -44,6 +44,7 @@ import {
   uploadVehiclePhoto,
 } from "../../services/vehicles/uploadPhoto";
 import { Button } from "../../ui/components/common/Button";
+import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
@@ -57,7 +58,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import {
   getPremiumUpgradeAlertButtons,
   handleAndShowLimitErrorAlert,
@@ -165,7 +166,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         })),
       );
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -245,30 +246,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     [t],
   );
 
-  function pickSource() {
-    const photoCount = draftPhotos.length;
-    const remainingSlots = 6 - photoCount;
-    if (remainingSlots <= 0) {
-      toastError(t("vehicleForm.maxPhotosReached"));
-      return;
-    }
-    Alert.alert("", t("attachments.addPickerBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("attachments.camera"),
-        onPress: () => void pickFromCamera(),
-      },
-      {
-        text: t("attachments.photos"),
-        onPress: () => void pickFromGallery(),
-      },
-      {
-        text: t("attachments.files"),
-        onPress: () => void pickFromFiles(),
-      },
-    ]);
-  }
-
   async function pickFromCamera() {
     try {
       const remainingSlots = 6 - draftPhotos.length;
@@ -298,7 +275,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         },
       ]);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploadingPhoto(false);
     }
@@ -340,7 +317,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         .filter((photo) => !!photo.previewUri);
       setDraftPhotos((prev) => [...prev, ...newPhotos]);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploadingPhoto(false);
     }
@@ -378,7 +355,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         .filter((photo) => !!photo.previewUri);
       setDraftPhotos((prev) => [...prev, ...newPhotos]);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setUploadingPhoto(false);
     }
@@ -530,14 +507,14 @@ export function VehicleFormScreen({ navigation, route }: Props) {
           }
         } catch (e: any) {
           console.error("Failed to upload photos:", e);
-          toastError(e?.message ?? t("common.error"));
+          toastCaughtError(e, t("common.error"));
         }
       }
 
       navigation.goBack();
     } catch (e: any) {
       if (handleAndShowLimitErrorAlert(e, t, navigation)) return;
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -601,14 +578,16 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   </View>
                 )}
                 {draftPhotos.length < 6 && (
-                  <Button
-                    onPress={pickSource}
+                  <AttachmentSourcePicker
+                    label={t("vehicleForm.addPhoto")}
                     disabled={saving || uploadingPhoto}
-                    variant="ghost"
-                    style={{ marginTop: theme.spacing.sm / 2 }}
-                  >
-                    {t("vehicleForm.addPhoto")}
-                  </Button>
+                    triggerStyle={{ marginTop: theme.spacing.sm / 2 }}
+                    handlers={{
+                      onCamera: () => void pickFromCamera(),
+                      onPhotos: () => void pickFromGallery(),
+                      onFiles: () => void pickFromFiles(),
+                    }}
+                  />
                 )}
               </View>
 
@@ -736,7 +715,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                           name="close-circle"
                           size={20}
                           color={theme.colors.muted}
-                          style={{ marginLeft: theme.spacing.xs }}
                         />
                       </Pressable>
                     ) : null
@@ -863,7 +841,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                           name="close-circle"
                           size={20}
                           color={theme.colors.muted}
-                          style={{ marginLeft: theme.spacing.xs }}
                         />
                       </Pressable>
                     ) : null
@@ -888,7 +865,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                           name="close-circle"
                           size={20}
                           color={theme.colors.muted}
-                          style={{ marginLeft: theme.spacing.xs }}
                         />
                       </Pressable>
                     ) : null

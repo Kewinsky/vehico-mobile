@@ -37,7 +37,7 @@ import { uploadAllReportPhotos } from "../../services/publicPages/uploadReportPh
 import { Button } from "../../ui/components/common/Button";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
 import { ReportOptionsCard } from "../../ui/components/common/ReportOptionsCard";
@@ -106,7 +106,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
         });
       setVehiclePhotoUrls(urlMap);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -192,7 +192,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
         ],
       });
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setGenerating(false);
     }

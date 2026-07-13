@@ -15,7 +15,7 @@ import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -65,11 +65,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
         const data = await listVehicleWheels(vehicleId, wheelOptions);
         setWheels(data);
       } catch (err: unknown) {
-        const message =
-          err && typeof err === "object" && "message" in err
-            ? String((err as any).message)
-            : t("common.error");
-        toastError(message);
+        toastCaughtError(err, t("common.error"));
       } finally {
         if (showLoading) setLoading(false);
       }
@@ -110,7 +106,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
           );
           return;
         }
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       }
     },
     [t],
@@ -128,7 +124,7 @@ export function WheelsListScreen({ route, navigation }: Props) {
               await deleteVehicleWheel(wheel.id);
               setWheels((prev) => prev.filter((item) => item.id !== wheel.id));
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },

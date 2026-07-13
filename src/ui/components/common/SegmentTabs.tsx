@@ -7,7 +7,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { Picker as ComposePicker } from "@expo/ui/jetpack-compose";
 import { Host, Picker as SwiftUIPicker } from "@expo/ui/swift-ui";
 import { frame } from "@expo/ui/swift-ui/modifiers";
 
@@ -25,6 +24,8 @@ type Props<T extends string> = {
   onChange: (next: T) => void;
   size?: "sm" | "md";
   variant?: Variant;
+  /** Use Pressable tabs instead of native segmented control. */
+  preferFallback?: boolean;
 };
 
 type Variant = "default" | "secondary";
@@ -32,11 +33,7 @@ type Variant = "default" | "secondary";
 const IOS_MIN_VERSION = 17;
 
 function supportsNativeSegmentTabs() {
-  if (Platform.OS === "android") return true;
-  if (Platform.OS === "ios") {
-    return Number.parseFloat(String(Platform.Version)) >= IOS_MIN_VERSION;
-  }
-  return false;
+  return Number.parseFloat(String(Platform.Version)) >= IOS_MIN_VERSION;
 }
 
 function SegmentTabsFallback<T extends string>({
@@ -129,8 +126,8 @@ function SegmentTabsFallback<T extends string>({
 const NATIVE_SEGMENT_HEIGHT = 44;
 
 export function SegmentTabs<T extends string>(props: Props<T>) {
-  const { value, options, onChange, variant = "default" } = props;
-  const { theme, mode: themeMode } = useTheme();
+  const { value, options, onChange, preferFallback = false } = props;
+  const { mode: themeMode } = useTheme();
   const styles = useMemo(() => makeNativeStyles(), []);
 
   const pickerOptions = useMemo(
@@ -152,57 +149,27 @@ export function SegmentTabs<T extends string>(props: Props<T>) {
     [onChange, options, value],
   );
 
-  const androidElementColors = useMemo(
-    () => ({
-      activeContainerColor: hexToRgba(theme.colors.accent, 0.15),
-      activeContentColor: theme.colors.accent,
-      activeBorderColor: theme.colors.accent,
-      inactiveContainerColor:
-        variant === "secondary" ? theme.colors.card : theme.colors.bg,
-      inactiveContentColor: theme.colors.muted,
-      inactiveBorderColor: theme.colors.border,
-    }),
-    [theme, variant],
-  );
-
-  if (!supportsNativeSegmentTabs()) {
+  if (preferFallback || !supportsNativeSegmentTabs()) {
     return <SegmentTabsFallback {...props} />;
-  }
-
-  if (Platform.OS === "ios") {
-    return (
-      <View style={styles.wrap}>
-        <Host
-          matchContents={{ vertical: true }}
-          colorScheme={themeMode === "dark" ? "dark" : "light"}
-          style={styles.nativeHost}
-        >
-          <SwiftUIPicker
-            variant="segmented"
-            options={pickerOptions}
-            selectedIndex={selectedIndex}
-            onOptionSelected={({ nativeEvent }) => {
-              handleSelect(nativeEvent.index);
-            }}
-            modifiers={[frame({ maxWidth: 10_000 })]}
-          />
-        </Host>
-      </View>
-    );
   }
 
   return (
     <View style={styles.wrap}>
-      <ComposePicker
-        variant="segmented"
+      <Host
+        matchContents={{ vertical: true }}
+        colorScheme={themeMode === "dark" ? "dark" : "light"}
         style={styles.nativeHost}
-        options={pickerOptions}
-        selectedIndex={selectedIndex}
-        elementColors={androidElementColors}
-        onOptionSelected={({ nativeEvent }) => {
-          handleSelect(nativeEvent.index);
-        }}
-      />
+      >
+        <SwiftUIPicker
+          variant="segmented"
+          options={pickerOptions}
+          selectedIndex={selectedIndex}
+          onOptionSelected={({ nativeEvent }) => {
+            handleSelect(nativeEvent.index);
+          }}
+          modifiers={[frame({ maxWidth: 10_000 })]}
+        />
+      </Host>
     </View>
   );
 }

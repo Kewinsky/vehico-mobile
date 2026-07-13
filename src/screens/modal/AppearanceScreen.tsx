@@ -10,7 +10,7 @@ import { ModalLayout } from "../../layouts";
 import type { UserSettings } from "../../app/providers/UserSettingsProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import { Card } from "../../ui/components/common/Card";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { APP_CURRENCY_OPTIONS } from "../../utils/currencies";
@@ -96,7 +96,7 @@ export function AppearanceScreen({ navigation }: Props) {
     try {
       await setSettings({ [key]: value } as Partial<UserSettings>);
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     }
   }
 
@@ -104,7 +104,7 @@ export function AppearanceScreen({ navigation }: Props) {
     try {
       await setSettings(settingsPatchForUnitGroup(groupId));
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     }
   }
 

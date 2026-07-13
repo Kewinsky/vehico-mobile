@@ -18,7 +18,7 @@ import {
 } from "../../services/reminders/remindersRepo";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import { promptAddServiceEntryFromReminder } from "../../services/reminders/reminderServiceEntryPrompt";
 import { ReminderItem } from "../../ui/components/list/ReminderItem";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
@@ -69,7 +69,7 @@ export function RemindersScreen({ route, navigation }: Props) {
         setItems(data);
         setVehicle(vehicleData);
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       } finally {
         if (opts?.showLoading !== false) {
           if (opts?.refreshing) setRefreshing(false);
@@ -173,11 +173,11 @@ export function RemindersScreen({ route, navigation }: Props) {
         promptAddServiceEntryFromReminder(reminder, t, {
           onCreated: () =>
             toastSuccess(t("reminders.serviceEntryFromReminderCreated")),
-          onError: (message) => toastError(message),
+          onError: (e) => toastCaughtError(e, t("common.error")),
         });
       }
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     }
   }
 
@@ -192,7 +192,7 @@ export function RemindersScreen({ route, navigation }: Props) {
             await deleteReminder(reminder.id);
             setItems((prev) => prev.filter((item) => item.id !== reminder.id));
           } catch (e: any) {
-            toastError(e?.message ?? t("common.error"));
+            toastCaughtError(e, t("common.error"));
           }
         },
       },

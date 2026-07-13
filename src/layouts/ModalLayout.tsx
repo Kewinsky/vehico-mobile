@@ -19,6 +19,7 @@ export type ModalLayoutProps = PropsWithChildren<{
     disabled?: boolean;
     loading?: boolean;
   };
+  right?: ReactNode;
   loading?: boolean;
   ready?: boolean;
   minLoadingMs?: number;
@@ -35,6 +36,7 @@ export function ModalLayout({
   title = "",
   cancel,
   done,
+  right,
   loading = false,
   ready = true,
   minLoadingMs = 0,
@@ -83,13 +85,16 @@ export function ModalLayout({
                 {...(done.label ? { children: done.label } : {})}
               />
             )
-          : undefined,
+          : right != null
+            ? () => right
+            : undefined,
     });
   }, [
     navigation,
     title,
     cancel,
     done,
+    right,
     theme.colors.bg,
     theme.colors.fg,
     theme.typography.fontWeight.bold,

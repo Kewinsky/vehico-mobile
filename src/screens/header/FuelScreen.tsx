@@ -6,11 +6,14 @@ import type { FuelFiltersParams } from "../modal/FuelFiltersScreen";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
-import { listFuelingEntries , deleteFuelingEntry } from "../../services/fuel/fuelingEntriesRepo";
+import {
+  listFuelingEntries,
+  deleteFuelingEntry,
+} from "../../services/fuel/fuelingEntriesRepo";
 import type { FuelingEntry, GasStation } from "../../types/domain";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError } from "../../ui/toast/toast";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { FuelItem } from "../../ui/components/list/FuelItem";
@@ -43,7 +46,7 @@ export function FuelScreen({ route, navigation }: Props) {
         const f = await listFuelingEntries(route.params.vehicleId);
         setFueling(f);
       } catch (err: any) {
-        toastError(err?.message ?? t("common.error"));
+        toastCaughtError(err, t("common.error"));
       } finally {
         if (showLoading) setLoading(false);
       }
@@ -176,9 +179,11 @@ export function FuelScreen({ route, navigation }: Props) {
             onPress: async () => {
               try {
                 await deleteFuelingEntry(entry.id);
-                setFueling((prev) => prev.filter((item) => item.id !== entry.id));
+                setFueling((prev) =>
+                  prev.filter((item) => item.id !== entry.id),
+                );
               } catch (e: any) {
-                toastError(e?.message ?? t("common.error"));
+                toastCaughtError(e, t("common.error"));
               }
             },
           },

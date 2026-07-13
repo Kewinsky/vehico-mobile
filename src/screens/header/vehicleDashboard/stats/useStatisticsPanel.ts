@@ -1,20 +1,15 @@
-import type {
-  NativeStackNavigationProp,
-  NativeStackScreenProps,
-} from "@react-navigation/native-stack";
-import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, View, useWindowDimensions } from "react-native";
-import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
-import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
-import { listMileageAudit } from "../../services/mileage/mileageAuditRepo";
-import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
-import { listWorkshops } from "../../services/workshops/workshopsRepo";
-import { getVehicle } from "../../services/vehicles/vehiclesRepo";
+import { Alert, useWindowDimensions } from "react-native";
+
+import type { AppStackParamList } from "../../../../app/navigation/RootNavigator";
+import { useScreenFocusReload } from "../../../../app/useScreenFocusReload";
+import { useUnitDisplay } from "../../../../app/hooks/useUnitDisplay";
+import { useEntitlements } from "../../../../app/providers/EntitlementsProvider";
+import { useUserSettings } from "../../../../app/providers/UserSettingsProvider";
+import { listMileageAudit } from "../../../../services/mileage/mileageAuditRepo";
+import { listWorkshops } from "../../../../services/workshops/workshopsRepo";
 import type {
   FuelingEntry,
   MileageAudit,
@@ -22,17 +17,12 @@ import type {
   ServiceEntryCategory,
   Vehicle,
   Workshop,
-} from "../../types/domain";
-import { SERVICE_CATEGORY_COLORS } from "../../ui/theme/serviceCategoryColors";
-import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/layout/ContentHeader";
-import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
-import { useTheme } from "../../ui/ThemeProvider";
-import { toastError } from "../../ui/toast/toast";
-import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
-import { useScreenFocusReload } from "../../app/useScreenFocusReload";
-import { formatShortDisplayDate } from "../../utils/dateFormatting";
-import { groupThousands } from "../../utils/numberFormatting";
+} from "../../../../types/domain";
+import { SERVICE_CATEGORY_COLORS } from "../../../../ui/theme/serviceCategoryColors";
+import { useTheme } from "../../../../ui/ThemeProvider";
+import { toastCaughtError, toastError } from "../../../../ui/toast/toast";
+import { formatShortDisplayDate } from "../../../../utils/dateFormatting";
+import { groupThousands } from "../../../../utils/numberFormatting";
 import {
   clampNonNeg,
   fmtMoney,
@@ -45,16 +35,7 @@ import {
   listMonthKeysInclusive,
   monthKey,
   parseDateLoose,
-} from "./statistics/domain/math";
-import { StatisticsPanelContent } from "./vehicleDashboard/stats/StatisticsPanelContent";
-import type {
-  PeriodKey,
-  StatisticsPanelProps,
-} from "./vehicleDashboard/stats/types";
-import {
-  OIL_CHANGE_INTERVAL_DAYS,
-  OIL_CHANGE_INTERVAL_KM,
-} from "./vehicleDashboard/stats/constants";
+} from "../../statistics/domain/math";
 import {
   CHART_BAR_HEIGHT,
   CHART_LINE_HEIGHT,
@@ -62,21 +43,28 @@ import {
   getChartScale,
   getMileageChartScale,
   getScrollableChartWidth,
-} from "./vehicleDashboard/stats/charts/charts";
-import { useStatsPanelStyles } from "./vehicleDashboard/stats/statsPanelStyles";
+} from "./charts/charts";
+import { OIL_CHANGE_INTERVAL_DAYS, OIL_CHANGE_INTERVAL_KM } from "./constants";
+import { useStatsPanelStyles } from "./statsPanelStyles";
+import type { PeriodKey, StatisticsPanelProps } from "./types";
 
-type ScreenProps = NativeStackScreenProps<AppStackParamList, "Statistics">;
-type EmbeddedProps = {
+export type UseStatisticsPanelInput = {
   vehicleId: string;
-  embedded: true;
+  period: PeriodKey;
+  vehicle: Vehicle | null;
+  serviceEntries: ServiceEntry[];
+  fuelingEntries: FuelingEntry[];
+  navigation: NativeStackNavigationProp<AppStackParamList>;
 };
-type Props = ScreenProps | EmbeddedProps;
 
-function isEmbeddedProps(props: Props): props is EmbeddedProps {
-  return "embedded" in props && props.embedded === true;
-}
-
-export function StatisticsScreen(props: Props) {
+export function useStatisticsPanel({
+  vehicleId,
+  period,
+  vehicle,
+  serviceEntries,
+  fuelingEntries,
+  navigation,
+}: UseStatisticsPanelInput): StatisticsPanelProps {
   const { t, i18n } = useTranslation();
   const chartLocale = i18n.language === "pl" ? "pl" : "en";
   const formatChartMonth = (key: string) =>
@@ -86,82 +74,50 @@ export function StatisticsScreen(props: Props) {
   const { theme } = useTheme();
   const { settings } = useUserSettings();
   const { width: windowWidth } = useWindowDimensions();
-  const embedded = isEmbeddedProps(props);
-  const vehicleId = embedded ? props.vehicleId : props.route.params.vehicleId;
-  const navigation =
-    useNavigation<NativeStackNavigationProp<AppStackParamList>>();
-  const { isPremium, refresh: refreshEntitlements } = useEntitlements();
+  const { isPremium } = useEntitlements();
 
-  const [period, setPeriod] = useState<PeriodKey>("3m");
   const [legendShowPercent, setLegendShowPercent] = useState(true);
   const [showAllCategoryLegend, setShowAllCategoryLegend] = useState(false);
   const [oilLastChangeShowDate, setOilLastChangeShowDate] = useState(true);
   const [oilAvgIntervalShowMonths, setOilAvgIntervalShowMonths] =
     useState(true);
   const [lastRefuelShowAmount, setLastRefuelShowAmount] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
-  const [service, setService] = useState<ServiceEntry[]>([]);
-  const [fueling, setFueling] = useState<FuelingEntry[]>([]);
   const [mileageAudit, setMileageAudit] = useState<MileageAudit[]>([]);
   const [workshopsById, setWorkshopsById] = useState<Record<string, Workshop>>(
     {},
   );
 
   const styles = useStatsPanelStyles();
-
   const currency = settings?.currency ?? "PLN";
   const { distanceUnitLabel, fuelUnitShort, consumptionUnitLine } =
     useUnitDisplay();
   const fuelUnitLabel = fuelUnitShort;
 
-  const load = useCallback(
-    async (opts?: { showLoading?: boolean }) => {
-      const showLoading = opts?.showLoading !== false;
-      try {
-        if (showLoading) setLoading(true);
-        const [v, s, f, auditRows, workshops] = await Promise.all([
-          getVehicle(vehicleId),
-          listServiceEntries(vehicleId),
-          listFuelingEntries(vehicleId),
-          listMileageAudit(vehicleId),
-          listWorkshops(),
-        ]);
-        setVehicle(v);
-        setService(s);
-        setFueling(f);
-        setMileageAudit(auditRows);
-        const workshopMap = workshops.reduce<Record<string, Workshop>>(
-          (acc, workshop) => {
-            acc[workshop.id] = workshop;
-            return acc;
-          },
-          {},
-        );
-        setWorkshopsById(workshopMap);
-      } catch (err: any) {
-        toastError(err?.message ?? t("common.error"));
-      } finally {
-        if (showLoading) setLoading(false);
-      }
-    },
-    [vehicleId, t],
-  );
+  const load = useCallback(async () => {
+    try {
+      const [auditRows, workshops] = await Promise.all([
+        listMileageAudit(vehicleId),
+        listWorkshops(),
+      ]);
+      setMileageAudit(auditRows);
+      const workshopMap = workshops.reduce<Record<string, Workshop>>(
+        (acc, workshop) => {
+          acc[workshop.id] = workshop;
+          return acc;
+        },
+        {},
+      );
+      setWorkshopsById(workshopMap);
+    } catch (err: any) {
+      toastCaughtError(err, t("common.error"));
+    }
+  }, [vehicleId, t]);
 
   useScreenFocusReload({
     initialLoad: () => load(),
-    beforeFocusReload: refreshEntitlements,
-    onFocusReload: () => load({ showLoading: false }),
+    onFocusReload: () => load(),
     deferFocusReload: true,
   });
-
-  const periodOptions: { key: PeriodKey; label: string }[] = [
-    { key: "1m", label: t("dashboard.stats.periods.1m") },
-    { key: "3m", label: t("dashboard.stats.periods.3m") },
-    { key: "6m", label: t("dashboard.stats.periods.6m") },
-    { key: "1y", label: t("dashboard.stats.periods.1y") },
-    { key: "all", label: t("dashboard.stats.periods.all") },
-  ];
 
   const filtered = useMemo(() => {
     const today = new Date();
@@ -181,7 +137,7 @@ export function StatisticsScreen(props: Props) {
         startDate.getMonth() + 1,
       ).padStart(2, "0")}`;
     }
-    const serviceIn = service.filter((x) => {
+    const serviceIn = serviceEntries.filter((x) => {
       const entryDateStr = x.service_date.slice(0, 10);
       if (entryDateStr > todayStr) return false;
       if (period === "all") return true;
@@ -190,7 +146,7 @@ export function StatisticsScreen(props: Props) {
         entryMonthStr >= startMonthStr! && entryMonthStr <= currentMonthStr
       );
     });
-    const fuelingIn = fueling.filter((x) => {
+    const fuelingIn = fuelingEntries.filter((x) => {
       const entryDateStr = x.date;
       if (entryDateStr > todayStr) return false;
       if (period === "all") return true;
@@ -213,7 +169,7 @@ export function StatisticsScreen(props: Props) {
       fueling: fuelingIn,
       mileageAudit: mileageAuditIn,
     };
-  }, [period, fueling, mileageAudit, service]);
+  }, [period, fuelingEntries, mileageAudit, serviceEntries]);
 
   const monthRange = useMemo(() => {
     const today = new Date();
@@ -330,14 +286,14 @@ export function StatisticsScreen(props: Props) {
   }, [filtered.service, filtered.fueling, period, monthRange]);
 
   const recentServiceEntries = useMemo(() => {
-    return [...service]
+    return [...serviceEntries]
       .sort(
         (a, b) =>
           new Date(b.service_date).getTime() -
           new Date(a.service_date).getTime(),
       )
       .slice(0, 3);
-  }, [service]);
+  }, [serviceEntries]);
 
   const lastFueling = useMemo(() => {
     if (filtered.fueling.length === 0) return null;
@@ -421,7 +377,7 @@ export function StatisticsScreen(props: Props) {
   }, [filtered.mileageAudit, filtered.service, period, monthRange]);
 
   const lastOilChange = useMemo(() => {
-    const oilEntries = service
+    const oilEntries = serviceEntries
       .filter((e) => (e.category ?? "other") === "oil_change")
       .sort(
         (a, b) =>
@@ -429,10 +385,10 @@ export function StatisticsScreen(props: Props) {
           new Date(a.service_date).getTime(),
       );
     return oilEntries[0] ?? null;
-  }, [service]);
+  }, [serviceEntries]);
 
   const oilIntervals = useMemo(() => {
-    const oilEntries = service
+    const oilEntries = serviceEntries
       .filter((e) => (e.category ?? "other") === "oil_change")
       .sort(
         (a, b) =>
@@ -473,12 +429,13 @@ export function StatisticsScreen(props: Props) {
         ? monthDeltas.reduce((a, b) => a + b, 0) / monthDeltas.length
         : Number.NaN;
     return { avgKm, avgMonths };
-  }, [service]);
+  }, [serviceEntries]);
 
   const lastOilChangeDateLabel = formatShortDisplayDate(
     lastOilChange?.service_date ?? null,
     i18n.language,
   );
+
   const oilLife = useMemo(() => {
     if (!lastOilChange?.service_date) return null;
     const lastDate = parseDateLoose(lastOilChange.service_date);
@@ -533,10 +490,12 @@ export function StatisticsScreen(props: Props) {
       isOverdue,
       isDueSoon,
     };
-  }, [lastOilChange?.service_date, lastOilChange?.mileage, vehicle?.mileage]);
+  }, [lastOilChange, vehicle]);
+
   const fuelStatsDistance =
     totals.totalDistance > 0 ? totals.totalDistance : null;
   const lastRefuelAmount = Number(lastFueling?.fuel_amount ?? Number.NaN);
+
   const formatStatNumber = useCallback(
     (value: number, fractionDigits: number) => {
       if (!Number.isFinite(value)) return "–";
@@ -552,9 +511,11 @@ export function StatisticsScreen(props: Props) {
     },
     [i18n.language],
   );
+
   const lastRefuelAmountMain = Number.isFinite(lastRefuelAmount)
     ? formatStatNumber(lastRefuelAmount, 0)
     : "–";
+
   const daysSinceLastRefuel = useMemo(() => {
     if (!lastFueling?.date) return null;
     const parsed = parseDateLoose(lastFueling.date);
@@ -574,7 +535,8 @@ export function StatisticsScreen(props: Props) {
       (todayStart.getTime() - fuelDateStart.getTime()) / (1000 * 60 * 60 * 24),
     );
     return Math.max(0, diff);
-  }, [lastFueling?.date]);
+  }, [lastFueling]);
+
   const lastRefuelHint =
     daysSinceLastRefuel != null
       ? t("dashboard.stats.daysAgo", { days: daysSinceLastRefuel })
@@ -591,20 +553,12 @@ export function StatisticsScreen(props: Props) {
     : undefined;
 
   const navigateToServiceHistory = useCallback(() => {
-    if (embedded) {
-      navigation.navigate("ServiceHistory", { vehicleId });
-      return;
-    }
-    props.navigation.navigate("ServiceHistory", { vehicleId });
-  }, [embedded, navigation, props, vehicleId]);
+    navigation.navigate("ServiceHistory", { vehicleId });
+  }, [navigation, vehicleId]);
 
   const navigateToFuel = useCallback(() => {
-    if (embedded) {
-      navigation.navigate("Fuel", { vehicleId });
-      return;
-    }
-    props.navigation.navigate("Fuel", { vehicleId });
-  }, [embedded, navigation, props, vehicleId]);
+    navigation.navigate("Fuel", { vehicleId });
+  }, [navigation, vehicleId]);
 
   const showChartInfo = useCallback(
     (
@@ -673,7 +627,7 @@ export function StatisticsScreen(props: Props) {
   );
   const categorySeries = useMemo(
     () =>
-      expensesByCategory.map((x, idx) => ({
+      expensesByCategory.map((x) => ({
         ...x,
         color:
           x.key in SERVICE_CATEGORY_COLORS
@@ -703,16 +657,6 @@ export function StatisticsScreen(props: Props) {
   const formatExpenseChartValue = useCallback(
     (value: number) => fmtMoney(value, currency),
     [currency],
-  );
-
-  const filterPanelContent = (
-    <SegmentTabs<PeriodKey>
-      value={period}
-      options={periodOptions.map((p) => ({ value: p.key, label: p.label }))}
-      onChange={setPeriod}
-      size="sm"
-      variant="secondary"
-    />
   );
 
   const formatExpenseAmount = (value: number) =>
@@ -748,7 +692,7 @@ export function StatisticsScreen(props: Props) {
     [navigation, vehicleId],
   );
 
-  const panelProps: StatisticsPanelProps = {
+  return {
     styles,
     theme,
     t,
@@ -756,7 +700,6 @@ export function StatisticsScreen(props: Props) {
     currency,
     period,
     vehicleId,
-    embedded,
     isPremium,
     navigation,
     onServiceEntryPress,
@@ -822,34 +765,4 @@ export function StatisticsScreen(props: Props) {
     groupThousands,
     fmtPct,
   };
-
-  const cardContent = <StatisticsPanelContent {...panelProps} />;
-
-  if (embedded) {
-    return (
-      <View style={{ paddingBottom: theme.spacing.xl }}>
-        {filterPanelContent}
-        {cardContent}
-      </View>
-    );
-  }
-
-  return (
-    <HeaderLayout
-      loading={loading}
-      onBack={() => props.navigation.goBack()}
-      showProfileAvatar
-      showShopIcon={!isPremium}
-    >
-      <NativeHeaderScrollView
-        contentContainerStyle={{ paddingBottom: theme.spacing.xl }}
-      >
-        <ContentHeader
-          title={t("dashboard.stats.title")}
-          filterPanel={filterPanelContent}
-        />
-        {cardContent}
-      </NativeHeaderScrollView>
-    </HeaderLayout>
-  );
 }

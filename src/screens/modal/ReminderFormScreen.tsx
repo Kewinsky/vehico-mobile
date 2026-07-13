@@ -42,7 +42,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import { promptAddServiceEntryFromReminder } from "../../services/reminders/reminderServiceEntryPrompt";
 import {
   getPremiumUpgradeAlertButtons,
@@ -224,7 +224,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
           }
         }
       } catch (err: unknown) {
-        toastError((err as Error)?.message ?? t("common.error"));
+        toastCaughtError(err, t("common.error"));
       }
     })();
   }, [reminderId, t]);
@@ -261,7 +261,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
               await deleteReminder(reminderId);
               navigation.goBack();
             } catch (e: unknown) {
-              toastError((e as Error)?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
@@ -308,7 +308,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         promptAddServiceEntryFromReminder(saved, t, {
           onCreated: () =>
             toastSuccess(t("reminders.serviceEntryFromReminderCreated")),
-          onError: (message) => toastError(message),
+          onError: (e) => toastCaughtError(e, t("common.error")),
           onDismiss: () => navigation.goBack(),
         });
       } else {
@@ -316,7 +316,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       }
     } catch (e: unknown) {
       if (handleAndShowLimitErrorAlert(e, t, navigation)) return;
-      toastError((e as Error)?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setSaving(false);
     }

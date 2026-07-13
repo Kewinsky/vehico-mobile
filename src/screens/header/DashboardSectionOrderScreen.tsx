@@ -16,7 +16,7 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { HeaderLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import { Button } from "../../ui/components/common/Button";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -106,8 +106,7 @@ export function DashboardSectionOrderScreen({ navigation }: Props) {
       toastSuccess(t("dashboard.sectionOrder.saved"));
       navigation.goBack();
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : t("common.error");
-      toastError(message);
+      toastCaughtError(e, t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -121,8 +120,7 @@ export function DashboardSectionOrderScreen({ navigation }: Props) {
       setRows(defaultIdList.map((id) => ({ key: id })));
       toastSuccess(t("dashboard.sectionOrder.resetSuccess"));
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : t("common.error");
-      toastError(message);
+      toastCaughtError(e, t("common.error"));
     } finally {
       setResetting(false);
     }

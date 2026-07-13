@@ -58,6 +58,7 @@ import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
+import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
@@ -66,7 +67,11 @@ import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastError } from "../../ui/toast/toast";
+import {
+  alertCaughtError,
+  getUserFacingErrorMessage,
+} from "../../ui/errors/userFacingError";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { Ionicons } from "@expo/vector-icons";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
@@ -181,7 +186,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         setDefaultMileage(mileageValue);
         setMileage((prev) => (prev.trim().length ? prev : mileageValue));
       } catch (err: any) {
-        toastError(err?.message ?? t("common.error"));
+        toastCaughtError(err, t("common.error"));
       }
     })();
   }, [vehicleId, entryId, t]);
@@ -206,7 +211,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         setMode("single");
         await reloadAttachments(entryId);
       } catch (err: any) {
-        toastError(err?.message ?? t("common.error"));
+        toastCaughtError(err, t("common.error"));
       }
     })();
   }, [entryId, reloadAttachments, t]);
@@ -253,7 +258,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       toastError(
         e instanceof LocalFileNotFoundError
           ? t("documents.fileNotFound")
-          : (e?.message ?? t("common.error")),
+          : getUserFacingErrorMessage(e, t("common.error")),
       );
     }
   }
@@ -272,7 +277,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               await deleteAttachment(att);
               setAttachments((prev) => prev.filter((x) => x.id !== att.id));
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
@@ -302,7 +307,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 ),
               );
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
@@ -398,7 +403,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             await deleteServiceEntry(entryId);
             navigation.goBack();
           } catch (e: any) {
-            toastError(e?.message ?? t("common.error"));
+            toastCaughtError(e, t("common.error"));
           }
         },
       },
@@ -433,18 +438,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     setPendingFiles([]);
   }
 
-  function pickAttachment() {
-    Alert.alert("", t("attachments.addPickerBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      { text: t("attachments.camera"), onPress: () => void pickFromCamera() },
-      {
-        text: t("attachments.photos"),
-        onPress: () => void pickFromGallery(),
-      },
-      { text: t("attachments.files"), onPress: () => void pickFromFiles() },
-    ]);
-  }
-
   async function pickFromCamera() {
     try {
       const perm = await ImagePicker.requestCameraPermissionsAsync();
@@ -476,7 +469,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         ]);
       }
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      alertCaughtError(t("common.error"), e, t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -516,7 +509,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         ]);
       }
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      alertCaughtError(t("common.error"), e, t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -550,7 +543,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         ]);
       }
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      alertCaughtError(t("common.error"), e, t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -614,7 +607,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert(t("common.error"), e?.message ?? String(e));
+      alertCaughtError(t("common.error"), e, t("common.error"));
     } finally {
       setSaving(false);
       setUploading(false);
@@ -912,13 +905,15 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               </View>
               <View style={{ height: theme.spacing.sm }} />
               <View style={styles.insetContent}>
-                <Button
-                  onPress={pickAttachment}
-                  variant="ghost"
+                <AttachmentSourcePicker
+                  label={t("entryForm.addAttachment")}
                   disabled={saving || uploading}
-                >
-                  {t("entryForm.addAttachment")}
-                </Button>
+                  handlers={{
+                    onCamera: () => void pickFromCamera(),
+                    onPhotos: () => void pickFromGallery(),
+                    onFiles: () => void pickFromFiles(),
+                  }}
+                />
               </View>
               <View style={{ height: theme.spacing.sm }} />
 

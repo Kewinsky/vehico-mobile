@@ -34,7 +34,7 @@ export function ContentHeader({
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     headerBlock: {
-      paddingVertical: theme.spacing.md,
+      paddingBottom: theme.spacing.md,
     },
     title: {
       fontSize: theme.typography.largeTitle,

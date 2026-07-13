@@ -32,7 +32,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import { Ionicons } from "@expo/vector-icons";
 import { Droplet, Fuel } from "lucide-react-native";
 
@@ -89,7 +89,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         setFuelType(entry.fuel_type ?? null);
         setGasStation(entry.gas_station ?? null);
       } catch (err: any) {
-        toastError(err?.message ?? t("common.error"));
+        toastCaughtError(err, t("common.error"));
       }
       return;
     }
@@ -105,7 +105,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         setGasStation((prev) => prev ?? last.gas_station);
       }
     } catch (err: any) {
-      toastError(err?.message ?? t("common.error"));
+      toastCaughtError(err, t("common.error"));
     }
   }, [entryId, vehicleId, t]);
 
@@ -128,7 +128,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               await deleteFuelingEntry(entryId);
               navigation.goBack();
             } catch (e: any) {
-              toastError(e?.message ?? t("common.error"));
+              toastCaughtError(e, t("common.error"));
             }
           },
         },
@@ -156,7 +156,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       else await createFuelingEntry(payload);
       navigation.goBack();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setSaving(false);
     }

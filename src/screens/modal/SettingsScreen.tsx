@@ -2,6 +2,8 @@ import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Linking from "expo-linking";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { HeaderButton } from "@react-navigation/elements";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import {
   Crown,
@@ -9,7 +11,6 @@ import {
   MessageCircleQuestionMark,
   SquarePen,
   SlidersHorizontal,
-  Trash2,
 } from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -17,9 +18,13 @@ import { useAuth } from "../../app/providers/AuthProvider";
 import { normalizeDisplayName } from "../../utils/displayName";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import { supabase } from "../../services/supabase/client";
 import { Card } from "../../ui/components/common/Card";
+import {
+  SourcePickerMenu,
+  type SourcePickerMenuItem,
+} from "../../ui/components/common/SourcePickerMenu";
 import { ENV } from "../../config/env";
 import { deleteAccount } from "../../services/account/deleteAccount";
 
@@ -81,7 +86,7 @@ export function SettingsScreen({ navigation }: Props) {
         if (error) throw error;
         toastSuccess(t("profile.displayNameUpdated"));
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       } finally {
         setSaving(false);
       }
@@ -110,7 +115,7 @@ export function SettingsScreen({ navigation }: Props) {
 
   const onSignOut = useCallback(() => {
     signOut().catch((e: any) => {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     });
   }, [signOut, t]);
 
@@ -131,7 +136,7 @@ export function SettingsScreen({ navigation }: Props) {
       toastSuccess(t("profile.deleteAccountSuccess"));
       await signOut();
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     } finally {
       setDeletingAccount(false);
     }
@@ -152,6 +157,35 @@ export function SettingsScreen({ navigation }: Props) {
       ],
     );
   }, [deletingAccount, handleDeleteAccount, t]);
+
+  const headerMenuItems = useMemo(
+    (): SourcePickerMenuItem[] => [
+      {
+        id: "deleteAccount",
+        label: t("profile.deleteAccount"),
+        systemImage: "trash",
+        role: "destructive",
+        onPress: openDeleteAccountMenu,
+      },
+    ],
+    [openDeleteAccountMenu, t],
+  );
+
+  const headerRight = (
+    <SourcePickerMenu items={headerMenuItems} disabled={deletingAccount}>
+      <HeaderButton
+        onPress={() => undefined}
+        tintColor={theme.colors.fg}
+        accessibilityLabel={t("settings.moreActions")}
+      >
+        <Ionicons
+          name="ellipsis-horizontal"
+          size={theme.icons.headerButton}
+          color={theme.colors.accent}
+        />
+      </HeaderButton>
+    </SourcePickerMenu>
+  );
 
   const rows: RowItem[] = useMemo(
     (): RowItem[] => [
@@ -179,13 +213,6 @@ export function SettingsScreen({ navigation }: Props) {
         onPress: onSupport,
       },
       {
-        id: "deleteAccount",
-        icon: <Trash2 size={22} color={theme.colors.danger} />,
-        title: t("profile.deleteAccount"),
-        subtitle: t("settings.deleteAccountSubtitle"),
-        onPress: openDeleteAccountMenu,
-      },
-      {
         id: "signout",
         icon: <LogOut size={22} color={theme.colors.danger} />,
         title: t("profile.signOut"),
@@ -193,15 +220,7 @@ export function SettingsScreen({ navigation }: Props) {
         onPress: onSignOut,
       },
     ],
-    [
-      t,
-      navigation,
-      onSignOut,
-      onSupport,
-      openDeleteAccountMenu,
-      theme.colors.accent,
-      theme.colors.danger,
-    ],
+    [t, navigation, onSignOut, onSupport, theme.colors.accent, theme.colors.danger],
   );
 
   return (
@@ -211,6 +230,7 @@ export function SettingsScreen({ navigation }: Props) {
         onPress: () => navigation.goBack(),
         label: t("common.cancel"),
       }}
+      right={headerRight}
       useNativeHeaderScrollView
     >
       <View style={styles.container}>
@@ -255,7 +275,6 @@ export function SettingsScreen({ navigation }: Props) {
               <View key={row.id}>
                 <Pressable
                   onPress={row.onPress}
-                  disabled={row.id === "deleteAccount" && deletingAccount}
                   style={({ pressed }) => [
                     styles.row,
                     pressed && styles.rowPressed,

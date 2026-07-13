@@ -19,7 +19,7 @@ import { Card, CardRow } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
-import { toastError } from "../../ui/toast/toast";
+import { toastCaughtError, toastError } from "../../ui/toast/toast";
 import { RimIcon } from "../../ui/components/icons/RimIcon";
 import { TireIcon } from "../../ui/components/icons/TireIcon";
 
@@ -86,7 +86,7 @@ export function WheelsOverviewScreen({ navigation, route }: Props) {
         setTires(tiresData);
         setWheels(wheelsData);
       } catch (e: any) {
-        toastError(e?.message ?? t("common.error"));
+        toastCaughtError(e, t("common.error"));
       } finally {
         if (showLoading) setLoading(false);
       }

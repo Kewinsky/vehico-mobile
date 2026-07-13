@@ -36,7 +36,7 @@ import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
-import { toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import { Textarea } from "../../ui/components/common/Textarea";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Import">;
@@ -118,7 +118,7 @@ export function ImportScreen({ navigation, route }: Props) {
       await Clipboard.setStringAsync(headerLine);
       toastSuccess(t("import.columnsCopied"));
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     }
   }
 
@@ -138,7 +138,7 @@ export function ImportScreen({ navigation, route }: Props) {
               setCsv("");
               toastSuccess(t(`${entryTypeKey}.successBody`));
             } catch (err: any) {
-              toastError(err?.message ?? t("common.error"));
+              toastCaughtError(err, t("common.error"));
             } finally {
               setImporting(false);
             }
@@ -319,14 +319,13 @@ export function ImportScreen({ navigation, route }: Props) {
         }
       });
     } catch (e: any) {
-      toastError(e?.message ?? t("common.error"));
+      toastCaughtError(e, t("common.error"));
     }
   }
 
   return (
     <HeaderLayout
       onBack={() => navigation.goBack()}
-      showProfileAvatar
       showShopIcon={!isPremium}
       footer={
         <>

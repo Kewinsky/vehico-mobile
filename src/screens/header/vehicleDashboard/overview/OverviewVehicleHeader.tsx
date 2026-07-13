@@ -17,6 +17,7 @@ type OverviewVehicleHeaderProps = {
   publicReportUrl: string | null;
   onCopyVin: () => void;
   onShowQrCode: () => void;
+  showPublicQr?: boolean;
 };
 
 export function OverviewVehicleHeader({
@@ -27,6 +28,7 @@ export function OverviewVehicleHeader({
   publicReportUrl,
   onCopyVin,
   onShowQrCode,
+  showPublicQr = true,
 }: OverviewVehicleHeaderProps) {
   const { t } = useTranslation();
 
@@ -48,7 +50,7 @@ export function OverviewVehicleHeader({
           </Pressable>
         ) : null}
       </View>
-      {isPremium && publicReportUrl ? (
+      {showPublicQr && isPremium && publicReportUrl ? (
         <Pressable
           onPress={onShowQrCode}
           style={styles.publicPageCircleButton}
