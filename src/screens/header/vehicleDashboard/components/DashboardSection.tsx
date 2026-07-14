@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { useTheme } from "../../../../ui/ThemeProvider";
+import { DashboardSectionHeader } from "./DashboardSectionHeader";
 
 type DashboardSectionProps = {
   title?: string;
@@ -20,16 +21,14 @@ export function DashboardSection({
   return (
     <View style={styles.sectionBlock}>
       {title || headerRight ? (
-        <View style={styles.sectionHeaderRow}>
-          {title ? (
-            <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-              {title}
-            </Text>
-          ) : (
+        title ? (
+          <DashboardSectionHeader title={title} right={headerRight} />
+        ) : (
+          <View style={styles.sectionHeaderRow}>
             <View style={styles.headerSpacer} />
-          )}
-          {headerRight}
-        </View>
+            {headerRight}
+          </View>
+        )
       ) : null}
       {children}
     </View>
@@ -46,11 +45,6 @@ const makeStyles = (theme: ReturnType<typeof useTheme>["theme"]) =>
       alignItems: "center",
       justifyContent: "space-between",
       gap: theme.spacing.sm,
-    },
-    sectionTitle: {
-      fontSize: theme.typography.title,
-      fontWeight: theme.typography.fontWeight.bold,
-      flex: 1,
     },
     headerSpacer: {
       flex: 1,

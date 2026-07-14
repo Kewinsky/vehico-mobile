@@ -846,6 +846,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
             <Text style={styles.photosCount}>
               {t("publicReport.photosCount", {
                 count: totalPhotoCount,
+                limit: MAX_PHOTOS,
               })}
             </Text>
           </View>

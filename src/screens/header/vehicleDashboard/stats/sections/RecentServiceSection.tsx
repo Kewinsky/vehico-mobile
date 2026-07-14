@@ -3,6 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { SERVICE_CATEGORY_ICON_BACKGROUND } from "../../../../../ui/theme/serviceCategoryColors";
 import { ServiceCategoryIcon } from "../../../../../ui/components/service/ServiceCategoryIcon";
 import { ServiceItem } from "../../../../../ui/components/list/ServiceItem";
+import { DashboardSectionHeader } from "../../components/DashboardSectionHeader";
 import type { ServiceEntryCategory } from "../../../../../types/domain";
 import type { StatisticsPanelProps } from "../types";
 
@@ -18,16 +19,18 @@ export function RecentServiceSection({
 }: StatisticsPanelProps) {
   return (
       <View style={styles.section}>
-        <View style={styles.sectionHeaderRow}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-            {t("dashboard.stats.recentService")}
-          </Text>
-          <Pressable onPress={navigateToServiceHistory} hitSlop={8}>
-            <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
-              {t("dashboard.stats.viewAll")}
-            </Text>
-          </Pressable>
-        </View>
+        <DashboardSectionHeader
+          title={t("dashboard.stats.recentService")}
+          right={
+            <Pressable onPress={navigateToServiceHistory} hitSlop={8}>
+              <Text
+                style={[styles.viewAllLink, { color: theme.colors.accent }]}
+              >
+                {t("dashboard.stats.viewAll")}
+              </Text>
+            </Pressable>
+          }
+        />
         {recentServiceEntries.length > 0 ? (
           <View style={styles.recentServiceList}>
             {recentServiceEntries.map((entry) => {

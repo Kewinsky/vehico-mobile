@@ -2,6 +2,7 @@ import { Alert, Pressable, Text, View } from "react-native";
 import { CircleHelp } from "lucide-react-native";
 
 import { DashboardSection } from "../../components/DashboardSection";
+import { DashboardSectionHeader } from "../../components/DashboardSectionHeader";
 import type { OverviewPanelProps } from "../types";
 
 export function QuickMetricsSection({
@@ -24,20 +25,20 @@ export function QuickMetricsSection({
 
   return (
     <DashboardSection>
-      <View style={styles.sectionHeaderInline}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-          {t("dashboard.sectionOrder.quickMetrics")}
-        </Text>
-        <Pressable
-          style={styles.infoIconButton}
-          onPress={showQuickMetricsInfo}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={t("dashboard.stats.chartInfo.open")}
-        >
-          <CircleHelp size={18} color={theme.colors.muted} />
-        </Pressable>
-      </View>
+      <DashboardSectionHeader
+        title={t("dashboard.sectionOrder.quickMetrics")}
+        inlineTrailing={
+          <Pressable
+            style={styles.infoIconButton}
+            onPress={showQuickMetricsInfo}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t("dashboard.stats.chartInfo.open")}
+          >
+            <CircleHelp size={18} color={theme.colors.muted} />
+          </Pressable>
+        }
+      />
       <View
         style={[styles.quickMetricsCard, { backgroundColor: theme.colors.card }]}
       >

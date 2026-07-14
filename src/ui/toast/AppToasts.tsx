@@ -1,13 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Animated,
-  StyleSheet,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { Animated, StyleSheet, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Host, Label } from "@expo/ui/swift-ui";
-import { glassEffect, padding, tint } from "@expo/ui/swift-ui/modifiers";
+import { Host, HStack, Image, Text as SwiftUIText } from "@expo/ui/swift-ui";
+import { frame, glassEffect, padding } from "@expo/ui/swift-ui/modifiers";
 import type { SFSymbol } from "sf-symbols-typescript";
 
 import { useTheme } from "../ThemeProvider";
@@ -55,6 +50,7 @@ export function AppToasts() {
     240,
     windowWidth - theme.layout.contentPaddingHorizontal * 2,
   );
+  const toastTextMaxWidth = toastWidth - 32 - 28;
 
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(20)).current;
@@ -116,22 +112,39 @@ export function AppToasts() {
       >
         {toast ? (
           <Host
-            matchContents={{ vertical: true }}
+            matchContents={{ vertical: true, horizontal: false }}
             colorScheme={mode === "dark" ? "dark" : "light"}
-            style={{ width: toastWidth }}
+            style={{ width: toastWidth, maxWidth: toastWidth }}
           >
-            <Label
-              title={toastMessage(toast)}
-              systemImage={TOAST_SYMBOLS[toast.type]}
+            <HStack
+              spacing={10}
+              alignment="center"
+              fixedSize={false}
               modifiers={[
                 padding({ horizontal: 16, vertical: 12 }),
+                frame({ maxWidth: toastWidth }),
                 glassEffect({
                   glass: { variant: "regular", interactive: false },
                   shape: "capsule",
                 }),
-                tint(iconTint),
               ]}
-            />
+            >
+              <Image
+                systemName={TOAST_SYMBOLS[toast.type]}
+                color={iconTint}
+                size={20}
+                fixedSize
+              />
+              <SwiftUIText
+                fixedSize={false}
+                frame={{ maxWidth: toastTextMaxWidth }}
+                color={theme.colors.fg}
+                size={15}
+                weight="medium"
+              >
+                {toastMessage(toast)}
+              </SwiftUIText>
+            </HStack>
           </Host>
         ) : null}
       </Animated.View>

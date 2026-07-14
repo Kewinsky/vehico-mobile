@@ -173,24 +173,7 @@ export function makeDashboardScreenStyles(
       fontWeight: theme.typography.fontWeight.semibold,
     },
     qrWrap: {
-      position: "relative",
-      width: 220,
-      height: 220,
-      alignItems: "center",
-      justifyContent: "center",
       margin: theme.spacing.xl,
-    },
-    qrLogoOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    qrLogoBadge: {
-      backgroundColor: "#000000",
-      borderRadius: 999,
-      padding: theme.spacing.xs,
-      alignItems: "center",
-      justifyContent: "center",
     },
   });
 }

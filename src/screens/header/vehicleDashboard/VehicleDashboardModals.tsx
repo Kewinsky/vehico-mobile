@@ -16,14 +16,13 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import QRCode from "react-native-qrcode-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 
 import { FormGlassSurface } from "../../../ui/components/common/FormGlassSurface";
 import { FormShareLink } from "../../../ui/components/common/FormShareLink";
 import { Button } from "../../../ui/components/common/Button";
-import { Logo } from "../../../ui/components/branding/Logo";
+import { BrandedQrCode } from "../../../ui/components/branding/BrandedQrCode";
 import { useTheme } from "../../../ui/ThemeProvider";
 import { localeCodeFromLanguage } from "../../../utils/numberFormatting";
 import { formatYmd, parseYmd } from "../../../utils/dateYmd";
@@ -46,7 +45,6 @@ export function VehicleDashboardModals() {
     setIsPublicQrVisible,
     formalityOverlay,
     setFormalityOverlay,
-    handleCopyPublicReportLink,
     handleOpenPublicReportInBrowser,
     saveFormalitiesDate,
   } = useVehicleDashboard();
@@ -84,34 +82,12 @@ export function VehicleDashboardModals() {
             {publicReportUrl ? (
               <>
                 <Text
-                  style={[
-                    styles.qrModalSubtitle,
-                    { color: theme.colors.muted },
-                  ]}
+                  style={[styles.qrModalSubtitle, { color: theme.colors.fg }]}
                 >
                   {t("share.qrCodeSubtitle")}
                 </Text>
                 <View style={styles.qrWrap}>
-                  <QRCode
-                    value={publicReportUrl}
-                    size={220}
-                    color={mode === "dark" ? "#ffffff" : "#000000"}
-                    backgroundColor={theme.colors.bg}
-                    ecl="H"
-                  />
-                  <View style={styles.qrLogoOverlay} pointerEvents="none">
-                    <View
-                      style={[
-                        styles.qrLogoBadge,
-                        {
-                          backgroundColor:
-                            mode === "dark" ? "#FFFFFF" : "#000000",
-                        },
-                      ]}
-                    >
-                      <Logo width={34} height={34} />
-                    </View>
-                  </View>
+                  <BrandedQrCode value={publicReportUrl} size={220} />
                 </View>
                 <View style={styles.qrModalActions}>
                   <FormShareLink
@@ -145,15 +121,21 @@ export function VehicleDashboardModals() {
                   </FormShareLink>
                   <Button
                     variant="ghost"
-                    onPress={() => void handleCopyPublicReportLink()}
-                  >
-                    {t("share.copyLink")}
-                  </Button>
-                  <Button
-                    variant="ghost"
                     onPress={() => void handleOpenPublicReportInBrowser()}
                   >
-                    {t("share.openInBrowser")}
+                    <Ionicons
+                      name="globe-outline"
+                      size={18}
+                      color={theme.colors.fg}
+                    />
+                    <Text
+                      style={[
+                        styles.qrShareButtonText,
+                        { color: theme.colors.fg },
+                      ]}
+                    >
+                      {t("share.openInBrowser")}
+                    </Text>
                   </Button>
                 </View>
               </>

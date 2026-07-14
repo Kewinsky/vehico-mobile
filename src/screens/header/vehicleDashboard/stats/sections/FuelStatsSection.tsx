@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 
+import { DashboardSectionHeader } from "../../components/DashboardSectionHeader";
 import { StatTile } from "../components/StatTile";
 import type { StatisticsPanelProps } from "../types";
 
@@ -27,16 +28,16 @@ export function FuelStatsSection({
 }: StatisticsPanelProps) {
   return (
     <View style={styles.section}>
-      <View style={styles.sectionHeaderRow}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.fg }]}>
-          {t("dashboard.stats.fuelStats")}
-        </Text>
-        <Pressable onPress={navigateToFuel} hitSlop={8}>
-          <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
-            {t("dashboard.stats.viewAll")}
-          </Text>
-        </Pressable>
-      </View>
+      <DashboardSectionHeader
+        title={t("dashboard.stats.fuelStats")}
+        right={
+          <Pressable onPress={navigateToFuel} hitSlop={8}>
+            <Text style={[styles.viewAllLink, { color: theme.colors.accent }]}>
+              {t("dashboard.stats.viewAll")}
+            </Text>
+          </Pressable>
+        }
+      />
       <View style={styles.tilesRow}>
         <StatTile
           theme={theme}
