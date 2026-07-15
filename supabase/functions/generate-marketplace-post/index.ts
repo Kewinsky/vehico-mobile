@@ -550,13 +550,6 @@ ${isPL ? "Przebieg początkowy" : "Initial mileage"}: ${formatValue(
     specExtras.length > 0 ? spec + "\n" + specExtras.join("\n") : spec;
   sections.push(specFull);
 
-  if (options.includeServiceEntries) {
-    const historyTitle = isPL ? "HISTORIA SERWISOWA" : "SERVICE HISTORY";
-    const history = `=== ${historyTitle} ===
-${formatServiceHistory(serviceEntries, language)}`;
-    sections.push(history);
-  }
-
   if (options.includeFuelingStats || options.includeServiceStats) {
     const exploitationTitle = isPL ? "EKSPLOATACJA" : "EXPLOITATION";
     const exploitation = `=== ${exploitationTitle} ===
@@ -575,11 +568,11 @@ ${formatExploitationSection(
     sections.push(exploitation);
   }
 
-  if (options.includeNotes && vehicle.notes) {
-    const notesTitle = isPL ? "NOTATKI" : "NOTES";
-    const notesSection = `=== ${notesTitle} ===
-${vehicle.notes}`;
-    sections.push(notesSection);
+  if (options.includeServiceEntries) {
+    const historyTitle = isPL ? "HISTORIA SERWISOWA" : "SERVICE HISTORY";
+    const history = `=== ${historyTitle} ===
+${formatServiceHistory(serviceEntries, language)}`;
+    sections.push(history);
   }
 
   if (options.includeWheelsTires && (tires.length > 0 || wheels.length > 0)) {
@@ -587,6 +580,13 @@ ${vehicle.notes}`;
     const wheelsSection = `=== ${wheelsTitle} ===
 ${formatWheelsAndTiresSection(tires, wheels, language)}`;
     sections.push(wheelsSection);
+  }
+
+  if (options.includeNotes && vehicle.notes) {
+    const notesTitle = isPL ? "NOTATKI" : "NOTES";
+    const notesSection = `=== ${notesTitle} ===
+${vehicle.notes}`;
+    sections.push(notesSection);
   }
 
   if (options.publicReportUrl) {
