@@ -23,7 +23,6 @@ export function OilChangeSection({
   oilLife,
   oilLifeStatusText,
   oilLifeProgressPercent,
-  oilLifeOverlayTextWidthPercent,
   fmtNumber,
   fmtMonths,
   groupThousands,
@@ -141,26 +140,6 @@ export function OilChangeSection({
               >
                 {oilLifeStatusText}
               </Text>
-            </View>
-            <View
-              pointerEvents="none"
-              style={[
-                styles.oilLifeProgressTextOverlay,
-                { width: `${oilLifeProgressPercent}%` },
-              ]}
-            >
-              <View
-                style={[
-                  styles.oilLifeProgressTextOverlayInner,
-                  { width: `${oilLifeOverlayTextWidthPercent}%` },
-                ]}
-              >
-                <Text
-                  style={[styles.oilLifeProgressText, { color: "#000000" }]}
-                >
-                  {oilLifeStatusText}
-                </Text>
-              </View>
             </View>
           </View>
         </View>

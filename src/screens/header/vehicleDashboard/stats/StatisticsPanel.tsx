@@ -19,22 +19,8 @@ type StatisticsPanelProps = {
   navigation: NativeStackNavigationProp<AppStackParamList>;
 };
 
-export function StatisticsPanel({
-  vehicleId,
-  period,
-  vehicle,
-  serviceEntries,
-  fuelingEntries,
-  navigation,
-}: StatisticsPanelProps) {
-  const panelProps = useStatisticsPanel({
-    vehicleId,
-    period,
-    vehicle,
-    serviceEntries,
-    fuelingEntries,
-    navigation,
-  });
+export function StatisticsPanel(props: StatisticsPanelProps) {
+  const panelProps = useStatisticsPanel(props);
 
-  return <StatisticsPanelContent key={period} {...panelProps} />;
+  return <StatisticsPanelContent key={props.period} {...panelProps} />;
 }

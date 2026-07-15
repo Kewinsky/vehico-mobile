@@ -136,7 +136,7 @@ export function generateNiceTicksForRange(
 
   let tickMin = Math.floor(minBound / step) * step;
   while (tickMin + intervals * step < maxBound) {
-    tickMin -= step;
+    tickMin += step;
   }
 
   const ticks = Array.from({ length: tickCount }, (_, index) =>

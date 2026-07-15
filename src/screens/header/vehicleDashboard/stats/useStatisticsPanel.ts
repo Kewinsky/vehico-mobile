@@ -20,7 +20,7 @@ import type {
 } from "../../../../types/domain";
 import { SERVICE_CATEGORY_COLORS } from "../../../../ui/theme/serviceCategoryColors";
 import { useTheme } from "../../../../ui/ThemeProvider";
-import { toastCaughtError, toastError } from "../../../../ui/toast/toast";
+import { toastCaughtError } from "../../../../ui/toast/toast";
 import { formatShortDisplayDate } from "../../../../utils/dateFormatting";
 import { groupThousands } from "../../../../utils/numberFormatting";
 import {
@@ -56,6 +56,13 @@ export type UseStatisticsPanelInput = {
   fuelingEntries: FuelingEntry[];
   navigation: NativeStackNavigationProp<AppStackParamList>;
 };
+
+function entryDateOnly(value: string | null | undefined): string | null {
+  if (value == null) return null;
+  const normalized = String(value).trim();
+  if (!normalized) return null;
+  return normalized.slice(0, 10);
+}
 
 export function useStatisticsPanel({
   vehicleId,
@@ -138,8 +145,8 @@ export function useStatisticsPanel({
       ).padStart(2, "0")}`;
     }
     const serviceIn = serviceEntries.filter((x) => {
-      const entryDateStr = x.service_date.slice(0, 10);
-      if (entryDateStr > todayStr) return false;
+      const entryDateStr = entryDateOnly(x.service_date);
+      if (!entryDateStr || entryDateStr > todayStr) return false;
       if (period === "all") return true;
       const entryMonthStr = entryDateStr.slice(0, 7);
       return (
@@ -147,8 +154,8 @@ export function useStatisticsPanel({
       );
     });
     const fuelingIn = fuelingEntries.filter((x) => {
-      const entryDateStr = x.date;
-      if (entryDateStr > todayStr) return false;
+      const entryDateStr = entryDateOnly(x.date);
+      if (!entryDateStr || entryDateStr > todayStr) return false;
       if (period === "all") return true;
       const entryMonthStr = entryDateStr.slice(0, 7);
       return (
@@ -156,8 +163,8 @@ export function useStatisticsPanel({
       );
     });
     const mileageAuditIn = mileageAudit.filter((row) => {
-      const entryDateStr = row.reading_date.slice(0, 10);
-      if (entryDateStr > todayStr) return false;
+      const entryDateStr = entryDateOnly(row.reading_date);
+      if (!entryDateStr || entryDateStr > todayStr) return false;
       if (period === "all") return true;
       const entryMonthStr = entryDateStr.slice(0, 7);
       return (
@@ -682,9 +689,6 @@ export function useStatisticsPanel({
   const oilLifeProgressPercent = oilLife
     ? Math.max(0, Math.min(100, oilLife.progressPercent))
     : 0;
-  const oilLifeOverlayTextWidthPercent =
-    oilLifeProgressPercent > 0 ? 100 / (oilLifeProgressPercent / 100) : 100;
-
   const onServiceEntryPress = useCallback(
     (entryId: string) => {
       navigation.navigate("ServiceEntryForm", { entryId, vehicleId });
@@ -758,7 +762,6 @@ export function useStatisticsPanel({
     oilLife,
     oilLifeStatusText,
     oilLifeProgressPercent,
-    oilLifeOverlayTextWidthPercent,
     fmtNumber,
     fmtMonths,
     fmtMoney,

@@ -248,17 +248,6 @@ export const makeStatsPanelStyles = (
       bottom: 0,
       justifyContent: "center",
     },
-    oilLifeProgressTextOverlay: {
-      position: "absolute",
-      left: 0,
-      top: 0,
-      bottom: 0,
-      overflow: "hidden",
-      justifyContent: "center",
-    },
-    oilLifeProgressTextOverlayInner: {
-      justifyContent: "center",
-    },
     recentServiceList: {
       gap: theme.spacing.sm,
     },

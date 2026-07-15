@@ -112,7 +112,6 @@ export type StatisticsPanelProps = {
   } | null;
   oilLifeStatusText: string;
   oilLifeProgressPercent: number;
-  oilLifeOverlayTextWidthPercent: number;
   fmtNumber: (n: number, digits: number, locale: string) => string;
   fmtMonths: (n: number, locale: string) => string;
   fmtMoney: (value: number, currency: string) => string;

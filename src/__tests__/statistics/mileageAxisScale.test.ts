@@ -20,6 +20,15 @@ describe("generateNiceTicksForRange", () => {
     expect(ticks[ticks.length - 1]).toBeGreaterThanOrEqual(149_500);
     expect(new Set(ticks).size).toBe(5);
   });
+
+  it("does not hang on auto-zoom padding around ~88k km (seed vehicles)", () => {
+    const ticks = generateNiceTicksForRange(87_180, 89_100);
+    expect(ticks).toHaveLength(5);
+    expect(ticks[ticks.length - 1]).toBeGreaterThanOrEqual(89_100);
+    expect(ticks[0]).toBeLessThan(88_900);
+    expect(ticks.every((tick) => tick >= 0)).toBe(true);
+    expect(new Set(ticks).size).toBe(5);
+  });
 });
 
 describe("mileageAxisScaleForData", () => {
@@ -55,5 +64,17 @@ describe("mileageAxisScaleForData", () => {
     const { tickValues } = mileageAxisScaleForData([]);
     expect(tickValues).toHaveLength(5);
     expect(new Set(tickValues).size).toBe(5);
+  });
+
+  it("handles seed-style 3m mileage spread without hanging", () => {
+    const { minY, maxY, tickValues } = mileageAxisScaleForData([
+      87_380, 88_160, 88_900,
+    ]);
+    expect(tickValues).toHaveLength(5);
+    expect(maxY).toBeGreaterThanOrEqual(88_900);
+    expect(minY).toBeLessThan(88_900);
+    expect(tickValues.every((tick) => Number.isFinite(tick) && tick >= 0)).toBe(
+      true,
+    );
   });
 });
