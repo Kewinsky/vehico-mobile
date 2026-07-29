@@ -1,13 +1,5 @@
-import type { ReactNode } from "react";
 import { useState } from "react";
-import {
-  Platform,
-  StyleSheet,
-  View,
-  type LayoutRectangle,
-  type StyleProp,
-  type ViewStyle,
-} from "react-native";
+import { StyleSheet, View, type LayoutRectangle } from "react-native";
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -16,17 +8,9 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "../../ThemeProvider";
 import { localeCodeFromLanguage } from "../../../utils/numberFormatting";
 import { formatYmd, parseYmd } from "../../../utils/dateYmd";
+import type { NativeDateTriggerProps } from "./NativeDateTrigger.types";
 
-type Props = {
-  /** `YYYY-MM-DD` or empty string when optional. */
-  value: string;
-  onChange: (ymd: string) => void;
-  disabled?: boolean;
-  style?: StyleProp<ViewStyle>;
-  children: ReactNode;
-  onLongPress?: () => void;
-  onDismiss?: () => void;
-};
+export type { NativeDateTriggerProps } from "./NativeDateTrigger.types";
 
 /**
  * Custom label/tile is shown instead of the native compact pill; tap near the
@@ -39,22 +23,16 @@ export function NativeDateTrigger({
   style,
   children,
   onDismiss,
-}: Props) {
+}: NativeDateTriggerProps) {
   const { mode: themeMode } = useTheme();
   const { i18n } = useTranslation();
   const [layout, setLayout] = useState<LayoutRectangle | null>(null);
-  const [androidPickerVisible, setAndroidPickerVisible] = useState(false);
-
-  const isAndroid = Platform.OS === "android";
 
   const hasValue = value.trim().length === 10;
   const pickerDate = parseYmd(hasValue ? value : formatYmd(new Date()));
   const locale = localeCodeFromLanguage(i18n.language);
 
   function handleChange(event: DateTimePickerEvent, selectedDate?: Date) {
-    if (isAndroid) {
-      setAndroidPickerVisible(false);
-    }
     if (event.type === "dismissed") {
       onDismiss?.();
       return;
@@ -65,28 +43,6 @@ export function NativeDateTrigger({
 
   if (disabled) {
     return <View style={style}>{children}</View>;
-  }
-
-  if (isAndroid) {
-    return (
-      <View
-        style={[style, styles.fill]}
-        onStartShouldSetResponder={() => true}
-        onResponderRelease={() => setAndroidPickerVisible(true)}
-        accessibilityRole="button"
-      >
-        {children}
-        {androidPickerVisible ? (
-          <DateTimePicker
-            value={pickerDate}
-            mode="date"
-            display="default"
-            locale={locale}
-            onChange={handleChange}
-          />
-        ) : null}
-      </View>
-    );
   }
 
   return (

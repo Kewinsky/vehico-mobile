@@ -292,6 +292,7 @@ export const en = {
     sortFieldDate: "Date",
     sortFieldTitle: "Title",
     sortFieldAmount: "Amount",
+    sortOrderDirection: "Direction",
     sortOrderNewest: "Newest",
     sortOrderOldest: "Oldest",
     sortOrderHighest: "Highest",

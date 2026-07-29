@@ -15,12 +15,9 @@ import {
 import { frame, glassEffect } from "@expo/ui/swift-ui/modifiers";
 
 import { useTheme } from "../../ThemeProvider";
+import type { FormGlassSurfaceProps } from "./FormGlassSurface.types";
 
-export type FormGlassSurfaceProps = {
-  style?: StyleProp<ViewStyle>;
-  shape?: "capsule" | "rounded";
-  cornerRadius?: number;
-};
+export type { FormGlassSurfaceProps } from "./FormGlassSurface.types";
 
 export function FormGlassSurface({
   style,

@@ -3,7 +3,7 @@ import { useLayoutEffect, useMemo } from "react";
 import { Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { HeaderButton } from "@react-navigation/elements";
+import { HeaderIconButton } from "../ui/components/layout/HeaderIconButton";
 import { Crown, Settings } from "lucide-react-native";
 
 import { AppLayout } from "../ui/components/layout/AppLayout";
@@ -54,7 +54,7 @@ export function WelcomeHeaderLayout({
         }}
       >
         {showShopIcon && (
-          <HeaderButton
+          <HeaderIconButton
             onPress={() => navigation.navigate("Shop")}
             tintColor={theme.colors.accent}
             accessibilityLabel="Shop"
@@ -63,10 +63,10 @@ export function WelcomeHeaderLayout({
               size={theme.icons.headerButton}
               color={theme.colors.accent}
             />
-          </HeaderButton>
+          </HeaderIconButton>
         )}
         {showSettingsIcon && (
-          <HeaderButton
+          <HeaderIconButton
             onPress={() => navigation.navigate("Settings")}
             tintColor={theme.colors.accent}
             accessibilityLabel="Settings"
@@ -75,7 +75,7 @@ export function WelcomeHeaderLayout({
               size={theme.icons.headerButton}
               color={theme.colors.accent}
             />
-          </HeaderButton>
+          </HeaderIconButton>
         )}
         {right}
       </View>

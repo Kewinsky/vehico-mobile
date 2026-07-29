@@ -295,6 +295,7 @@ export const pl = {
     sortFieldDate: "Data",
     sortFieldTitle: "Tytuł",
     sortFieldAmount: "Kwota",
+    sortOrderDirection: "Kierunek",
     sortOrderNewest: "Najnowsze",
     sortOrderOldest: "Najstarsze",
     sortOrderHighest: "Najwyższy",

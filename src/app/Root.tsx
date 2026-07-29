@@ -1,5 +1,9 @@
-import React, { useEffect } from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import React, { useEffect, useMemo } from "react";
+import {
+  DarkTheme,
+  DefaultTheme,
+  NavigationContainer,
+} from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as LinkingModule from "expo-linking";
@@ -13,10 +17,11 @@ import { PremiumDowngradeHandler } from "./PremiumDowngradeHandler";
 import { AuthProvider } from "./providers/AuthProvider";
 import { UserSettingsProvider } from "./providers/UserSettingsProvider";
 import { EntitlementsProvider } from "./providers/EntitlementsProvider";
-import { ThemeProvider } from "../ui/ThemeProvider";
+import { ThemeProvider, useTheme } from "../ui/ThemeProvider";
 import { ExclusiveSwipeProvider } from "../ui/components/common/ExclusiveSwipeable";
 import { ErrorBoundary } from "../ui/components/common/ErrorBoundary";
 import { AppToasts } from "../ui/toast/AppToasts";
+import { TextPromptHost } from "../ui/prompt/TextPromptHost";
 import { FormalityNotificationsBootstrap } from "./FormalityNotificationsBootstrap";
 
 function AppContent() {
@@ -86,14 +91,36 @@ function AppContent() {
     },
   };
 
+  const { theme, mode } = useTheme();
+  const navigationTheme = useMemo(() => {
+    const base = mode === "dark" ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        primary: theme.colors.accent,
+        background: theme.colors.bg,
+        card: theme.colors.card,
+        text: theme.colors.fg,
+        border: theme.colors.border,
+        notification: theme.colors.danger,
+      },
+    };
+  }, [mode, theme]);
+
   return (
     <>
       <FormalityNotificationsBootstrap />
-      <NavigationContainer ref={navigationRef} linking={linking}>
+      <NavigationContainer
+        ref={navigationRef}
+        linking={linking}
+        theme={navigationTheme}
+      >
         <RootNavigator />
         <PremiumDowngradeHandler />
       </NavigationContainer>
       <AppToasts />
+      <TextPromptHost />
     </>
   );
 }

@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 
 import { AppLayout } from "../ui/components/layout/AppLayout";
 import { ModalButton } from "../ui/components/layout/ModalButton";
-import { useTheme } from "../ui/ThemeProvider";
+import { ModalHeaderTitle } from "../ui/components/layout/ModalHeaderTitle";
 import { NativeHeaderScrollView } from "../ui/components/layout/NativeHeaderScrollView";
 
 export type ModalLayoutProps = PropsWithChildren<{
@@ -47,21 +47,18 @@ export function ModalLayout({
   scrollEnabled,
   useHorizontalContentInset = true,
 }: ModalLayoutProps) {
-  const { theme } = useTheme();
   const navigation = useNavigation();
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: title,
+      headerTitle: title
+        ? () => <ModalHeaderTitle>{title}</ModalHeaderTitle>
+        : "",
+      headerTitleAlign: "center",
       headerBackVisible: false,
       headerTransparent: true,
       headerStyle: {
         backgroundColor: "transparent",
-      },
-      headerTitleStyle: {
-        color: theme.colors.fg,
-        fontWeight: theme.typography.fontWeight.bold,
-        fontSize: theme.typography.title,
       },
       headerShadowVisible: false,
       headerLeft:
@@ -89,17 +86,7 @@ export function ModalLayout({
             ? () => right
             : undefined,
     });
-  }, [
-    navigation,
-    title,
-    cancel,
-    done,
-    right,
-    theme.colors.bg,
-    theme.colors.fg,
-    theme.typography.fontWeight.bold,
-    theme.typography.title,
-  ]);
+  }, [navigation, title, cancel, done, right]);
 
   const content = useNativeHeaderScrollView ? (
     <NativeHeaderScrollView scrollEnabled={scrollEnabled}>

@@ -72,6 +72,7 @@ import {
   getUserFacingErrorMessage,
 } from "../../ui/errors/userFacingError";
 import { toastCaughtError, toastError } from "../../ui/toast/toast";
+import { promptAlert } from "../../ui/prompt/promptAlert";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { Ionicons } from "@expo/vector-icons";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
@@ -286,7 +287,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }
 
   function handleEditAttachmentName(att: Attachment) {
-    Alert.prompt(
+    promptAlert(
       t("attachments.editAttachmentNameTitle"),
       t("attachments.editAttachmentNameBody"),
       [
@@ -321,7 +322,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     index: number,
     currentFileName: string | null | undefined,
   ) {
-    Alert.prompt(
+    promptAlert(
       t("attachments.editAttachmentNameTitle"),
       t("attachments.editAttachmentNameBody"),
       [

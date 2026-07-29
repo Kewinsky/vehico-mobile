@@ -137,6 +137,9 @@ export function makeDashboardScreenStyles(
       alignItems: "center",
       justifyContent: "center",
       overflow: "hidden",
+      backgroundColor: theme.colors.card,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.border,
     },
     qrModalClose: {
       position: "absolute",
@@ -166,7 +169,7 @@ export function makeDashboardScreenStyles(
       gap: theme.spacing.xs,
       paddingVertical: theme.spacing.sm,
       borderRadius: theme.radius.lg,
-      backgroundColor: theme.colors.card,
+      backgroundColor: theme.colors.bg,
     },
     qrShareButtonText: {
       fontSize: theme.typography.body,

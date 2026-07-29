@@ -1,6 +1,6 @@
 import { Alert, Animated, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { HeaderButton } from "@react-navigation/elements";
+import { HeaderIconButton } from "../../ui/components/layout/HeaderIconButton";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
@@ -38,6 +38,7 @@ import {
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { getUserFacingErrorMessage } from "../../ui/errors/userFacingError";
 import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
+import { promptAlert } from "../../ui/prompt/promptAlert";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
 
@@ -230,20 +231,20 @@ export function DocumentsScreen({ route, navigation }: Props) {
   const headerRight = useMemo(
     () => (
       <SourcePickerMenu items={documentsAddMenuItems}>
-        <HeaderButton
+        <HeaderIconButton
           onPress={() => undefined}
           tintColor={theme.colors.accent}
           accessibilityLabel="Add"
         >
           <Plus size={20} color={theme.colors.accent} />
-        </HeaderButton>
+        </HeaderIconButton>
       </SourcePickerMenu>
     ),
     [documentsAddMenuItems, theme.colors.accent],
   );
 
   async function editDocumentDescription(doc: VehicleDocument) {
-    Alert.prompt(
+    promptAlert(
       t("documents.editDescriptionTitle"),
       t("documents.editDescriptionBody"),
       [

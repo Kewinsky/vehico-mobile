@@ -5,15 +5,9 @@ import { Host, ShareLink } from "@expo/ui/swift-ui";
 
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
+import type { FormShareLinkProps } from "./FormShareLink.types";
 
-export type FormShareLinkProps = {
-  item: string;
-  subject?: string;
-  message?: string;
-  preview?: { title: string; image: string };
-  disabled?: boolean;
-  children: ReactNode;
-};
+export type { FormShareLinkProps } from "./FormShareLink.types";
 
 export function FormShareLink({
   item,

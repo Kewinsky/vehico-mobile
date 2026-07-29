@@ -166,7 +166,7 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
         />
         <FormPickerRow<SortOption>
           iconComponent={<ListFilter size={20} color={theme.colors.accent} />}
-          label={t("timeline.sortOrderNewest")}
+          label={t("timeline.sortOrderDirection")}
           value={sortOption}
           options={sortOrderOptions}
           getLabel={(value) => {

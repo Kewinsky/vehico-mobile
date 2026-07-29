@@ -4,12 +4,9 @@ import { Host, Switch as SwiftUISwitch } from "@expo/ui/swift-ui";
 import { disabled, fixedSize } from "@expo/ui/swift-ui/modifiers";
 
 import { useTheme } from "../../ThemeProvider";
+import type { FormSwitchProps } from "./FormSwitch.types";
 
-export type FormSwitchProps = {
-  value: boolean;
-  onValueChange: (value: boolean) => void;
-  disabled?: boolean;
-};
+export type { FormSwitchProps } from "./FormSwitch.types";
 
 export function FormSwitch({
   value,

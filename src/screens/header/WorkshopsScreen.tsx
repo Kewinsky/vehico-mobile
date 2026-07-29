@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { Alert, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { HeaderButton } from "@react-navigation/elements";
+import { HeaderIconButton } from "../../ui/components/layout/HeaderIconButton";
 import { Plus, RefreshCcw, SlidersHorizontal } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
@@ -141,30 +141,30 @@ export function WorkshopsScreen({ navigation }: Props) {
         }}
       >
         {hasActiveFilters ? (
-          <HeaderButton
+          <HeaderIconButton
             onPress={resetFilters}
             tintColor={theme.colors.accent}
             accessibilityLabel="Reset filters"
           >
             <RefreshCcw size={20} color={theme.colors.accent} />
-          </HeaderButton>
+          </HeaderIconButton>
         ) : null}
         <SourcePickerMenu items={filterMenuItems}>
-          <HeaderButton
+          <HeaderIconButton
             onPress={() => undefined}
             tintColor={theme.colors.accent}
             accessibilityLabel="Filter"
           >
             <SlidersHorizontal size={20} color={theme.colors.accent} />
-          </HeaderButton>
+          </HeaderIconButton>
         </SourcePickerMenu>
-        <HeaderButton
+        <HeaderIconButton
           onPress={onAddWorkshopPress}
           tintColor={theme.colors.accent}
           accessibilityLabel="Add"
         >
           <Plus size={20} color={theme.colors.accent} />
-        </HeaderButton>
+        </HeaderIconButton>
       </View>
     ),
     [

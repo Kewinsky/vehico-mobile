@@ -1,5 +1,5 @@
 import React from "react";
-import { Animated, ScrollView, type ScrollViewProps } from "react-native";
+import { Animated, Platform, ScrollView, type ScrollViewProps } from "react-native";
 import { useHeaderHeight } from "@react-navigation/elements";
 
 import { useTheme } from "../../ThemeProvider";
@@ -17,9 +17,10 @@ export function NativeHeaderScrollView({
 }: NativeHeaderScrollViewProps & { paddingHorizontal?: boolean }) {
   const headerHeight = useHeaderHeight();
   const { theme } = useTheme();
+  const androidHeaderInset = Platform.OS === "android" ? theme.spacing.md : 0;
 
   const baseContentStyle = {
-    paddingTop: headerHeight,
+    paddingTop: headerHeight + androidHeaderInset,
     paddingHorizontal: paddingHorizontal
       ? theme.layout.contentPaddingHorizontal
       : 0,

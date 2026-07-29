@@ -3,7 +3,7 @@ import { useLayoutEffect, useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { HeaderButton } from "@react-navigation/elements";
+import { HeaderIconButton } from "./HeaderIconButton";
 import {
   ChevronLeft,
   Crown,
@@ -85,7 +85,7 @@ export function useNativeHeaderAsAppNavbar({
         {actions.map((action, index) => {
           if (action.type === "filter") {
             return (
-              <HeaderButton
+              <HeaderIconButton
                 key={`action-filter-${index}`}
                 onPress={action.onPress}
                 tintColor={theme.colors.accent}
@@ -95,31 +95,31 @@ export function useNativeHeaderAsAppNavbar({
                   size={headerIconSize}
                   color={theme.colors.accent}
                 />
-              </HeaderButton>
+              </HeaderIconButton>
             );
           }
           if (action.type === "filterReset") {
             return (
-              <HeaderButton
+              <HeaderIconButton
                 key={`action-filter-reset-${index}`}
                 onPress={action.onPress}
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Reset filters"
               >
                 <RefreshCcw size={headerIconSize} color={theme.colors.accent} />
-              </HeaderButton>
+              </HeaderIconButton>
             );
           }
           if (action.type === "add") {
             return (
-              <HeaderButton
+              <HeaderIconButton
                 key={`action-add-${index}`}
                 onPress={action.onPress}
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Add"
               >
                 <Plus size={headerIconSize} color={theme.colors.accent} />
-              </HeaderButton>
+              </HeaderIconButton>
             );
           }
           return null;
@@ -137,34 +137,34 @@ export function useNativeHeaderAsAppNavbar({
           gap: theme.spacing.sm,
         }}
       >
-        <HeaderButton
+        <HeaderIconButton
           onPress={() => navigation.navigate("Shop")}
           tintColor={theme.colors.accent}
           accessibilityLabel="Shop"
         >
           <Crown size={headerIconSize} color={theme.colors.accent} />
-        </HeaderButton>
+        </HeaderIconButton>
         {showProfileAvatar && user && (
-          <HeaderButton
+          <HeaderIconButton
             onPress={() => navigation.navigate("Settings")}
             tintColor={theme.colors.accent}
             accessibilityLabel="Settings"
           >
             <Settings size={headerIconSize} color={theme.colors.accent} />
-          </HeaderButton>
+          </HeaderIconButton>
         )}
         {right}
       </View>
     ) : right !== undefined ? (
       right
     ) : showInitials ? (
-      <HeaderButton
+      <HeaderIconButton
         onPress={() => navigation.navigate("Settings")}
         tintColor={theme.colors.accent}
         accessibilityLabel="Settings"
       >
         <Settings size={headerIconSize} color={theme.colors.accent} />
-      </HeaderButton>
+      </HeaderIconButton>
     ) : null;
 
     const combinedRight =
@@ -187,7 +187,7 @@ export function useNativeHeaderAsAppNavbar({
       headerTransparent: true,
       headerLeft: onBack
         ? () => (
-            <HeaderButton
+            <HeaderIconButton
               onPress={onBack}
               tintColor={theme.colors.accent}
               accessibilityLabel={undefined}
@@ -198,7 +198,7 @@ export function useNativeHeaderAsAppNavbar({
                   color={theme.colors.accent}
                 />
               )}
-            </HeaderButton>
+            </HeaderIconButton>
           )
         : undefined,
       headerRight: combinedRight ? () => combinedRight : undefined,
@@ -270,7 +270,7 @@ export function AppNavbar({
         {actions.map((action, index) => {
           if (action.type === "filter") {
             return (
-              <HeaderButton
+              <HeaderIconButton
                 key={`action-filter-${index}`}
                 onPress={action.onPress}
                 tintColor={theme.colors.accent}
@@ -280,31 +280,31 @@ export function AppNavbar({
                   size={headerIconSize}
                   color={theme.colors.accent}
                 />
-              </HeaderButton>
+              </HeaderIconButton>
             );
           }
           if (action.type === "filterReset") {
             return (
-              <HeaderButton
+              <HeaderIconButton
                 key={`action-filter-reset-${index}`}
                 onPress={action.onPress}
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Reset filters"
               >
                 <RefreshCcw size={headerIconSize} color={theme.colors.accent} />
-              </HeaderButton>
+              </HeaderIconButton>
             );
           }
           if (action.type === "add") {
             return (
-              <HeaderButton
+              <HeaderIconButton
                 key={`action-add-${index}`}
                 onPress={action.onPress}
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Add"
               >
                 <Plus size={headerIconSize} color={theme.colors.accent} />
-              </HeaderButton>
+              </HeaderIconButton>
             );
           }
           return null;
@@ -317,7 +317,7 @@ export function AppNavbar({
     <View style={styles.root}>
       <View style={styles.left}>
         {onBack ? (
-          <HeaderButton
+          <HeaderIconButton
             onPress={onBack}
             tintColor={theme.colors.accent}
             accessibilityLabel={undefined}
@@ -325,7 +325,7 @@ export function AppNavbar({
             {backIcon ?? (
               <ChevronLeft size={headerIconSize} color={theme.colors.accent} />
             )}
-          </HeaderButton>
+          </HeaderIconButton>
         ) : null}
       </View>
       {title ? (
@@ -341,21 +341,21 @@ export function AppNavbar({
       <View style={styles.right}>
         {showShopIcon ? (
           <View style={styles.rightIcons}>
-            <HeaderButton
+            <HeaderIconButton
               onPress={() => navigation.navigate("Shop")}
               tintColor={theme.colors.accent}
               accessibilityLabel="Shop"
             >
               <Crown size={headerIconSize} color={theme.colors.accent} />
-            </HeaderButton>
+            </HeaderIconButton>
             {showProfileAvatar && user && (
-              <HeaderButton
+              <HeaderIconButton
                 onPress={() => navigation.navigate("Settings")}
                 tintColor={theme.colors.accent}
                 accessibilityLabel="Settings"
               >
                 <Settings size={headerIconSize} color={theme.colors.accent} />
-              </HeaderButton>
+              </HeaderIconButton>
             )}
             {right}
             {actionsContent}
@@ -366,13 +366,13 @@ export function AppNavbar({
             {actionsContent}
           </View>
         ) : showInitials ? (
-          <HeaderButton
+          <HeaderIconButton
             onPress={() => navigation.navigate("Settings")}
             tintColor={theme.colors.accent}
             accessibilityLabel="Settings"
           >
             <Settings size={headerIconSize} color={theme.colors.accent} />
-          </HeaderButton>
+          </HeaderIconButton>
         ) : null}
       </View>
     </View>

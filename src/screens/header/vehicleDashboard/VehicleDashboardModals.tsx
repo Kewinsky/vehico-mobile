@@ -3,6 +3,7 @@ import {
   Dimensions,
   FlatList,
   Modal,
+  Platform,
   Pressable,
   Text,
   View,
@@ -71,7 +72,6 @@ export function VehicleDashboardModals() {
       >
         <View style={styles.qrModalOverlay}>
           <View style={styles.qrModalCard}>
-            <FormGlassSurface shape="rounded" cornerRadius={theme.radius.xl} />
             <Pressable
               style={styles.qrModalClose}
               onPress={() => setIsPublicQrVisible(false)}
@@ -122,6 +122,7 @@ export function VehicleDashboardModals() {
                   <Button
                     variant="ghost"
                     onPress={() => void handleOpenPublicReportInBrowser()}
+                    style={{ backgroundColor: theme.colors.bg }}
                   >
                     <Ionicons
                       name="globe-outline"
@@ -199,7 +200,30 @@ export function VehicleDashboardModals() {
         </View>
       </Modal>
 
-      {formalityOverlay ? (
+      {formalityOverlay && Platform.OS === "android" ? (
+        // Android date dialog has its own OK/Cancel buttons; no custom card needed.
+        <DateTimePicker
+          key={formalityOverlay.field}
+          value={parseYmd(
+            formalityOverlay.value.length === 10
+              ? formalityOverlay.value
+              : formatYmd(new Date()),
+          )}
+          mode="date"
+          display="default"
+          locale={localeCodeFromLanguage(i18n.language)}
+          onChange={(event, selectedDate) => {
+            setFormalityOverlay(null);
+            if (event.type === "dismissed" || !selectedDate) return;
+            void saveFormalitiesDate(
+              formalityOverlay.field,
+              formatYmd(selectedDate),
+            );
+          }}
+        />
+      ) : null}
+
+      {formalityOverlay && Platform.OS !== "android" ? (
         <Modal
           key={formalityOverlay.field}
           transparent

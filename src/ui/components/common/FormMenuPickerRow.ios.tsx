@@ -6,9 +6,9 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "../../ThemeProvider";
 import { CardRow } from "./Card";
-import type { FormMenuPickerRowProps } from "./FormMenuPickerRow";
+import type { FormMenuPickerRowProps } from "./FormMenuPickerRow.types";
 
-export type { FormMenuPickerRowProps } from "./FormMenuPickerRow";
+export type { FormMenuPickerRowProps } from "./FormMenuPickerRow.types";
 
 export function FormMenuPickerRow({
   icon,

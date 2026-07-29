@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Dimensions,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -8,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { Image } from "expo-image";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { useIsFocused } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -300,8 +302,16 @@ export function VehiclesScreen({ navigation, route }: Props) {
   const { theme, mode } = useTheme();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
   const isFocused = useIsFocused();
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
+  const listContentStyle = useMemo(
+    () =>
+      Platform.OS === "android"
+        ? { paddingTop: headerHeight + theme.spacing.lg }
+        : undefined,
+    [headerHeight, theme.spacing.lg],
+  );
   const [items, setItems] = useState<Vehicle[]>([]);
   const [photoUrlsMap, setPhotoUrlsMap] = useState<Map<string, string[]>>(
     new Map(),
@@ -550,6 +560,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
         refreshing={refreshing}
         onRefresh={() => void load({ refreshing: true })}
         nestedScrollEnabled={true}
+        contentContainerStyle={listContentStyle}
         ListEmptyComponent={<EmptyState body={t("vehicles.emptyTitle")} />}
         renderItem={({ item }) => {
           const isLocked =

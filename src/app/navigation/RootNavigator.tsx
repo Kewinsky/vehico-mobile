@@ -1,7 +1,10 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import type { MarketplaceReportOptions, ReportOptions } from "../../types/reportOptions";
+import type {
+  MarketplaceReportOptions,
+  ReportOptions,
+} from "../../types/reportOptions";
 import { useAuth } from "../providers/AuthProvider";
 import { AuthScreen } from "../../screens/modal/AuthScreen";
 import { VehiclesScreen } from "../../screens/welcome/VehiclesScreen";
