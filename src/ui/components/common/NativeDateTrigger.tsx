@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import {
+  Platform,
   StyleSheet,
   View,
   type LayoutRectangle,
@@ -42,12 +43,18 @@ export function NativeDateTrigger({
   const { mode: themeMode } = useTheme();
   const { i18n } = useTranslation();
   const [layout, setLayout] = useState<LayoutRectangle | null>(null);
+  const [androidPickerVisible, setAndroidPickerVisible] = useState(false);
+
+  const isAndroid = Platform.OS === "android";
 
   const hasValue = value.trim().length === 10;
   const pickerDate = parseYmd(hasValue ? value : formatYmd(new Date()));
   const locale = localeCodeFromLanguage(i18n.language);
 
   function handleChange(event: DateTimePickerEvent, selectedDate?: Date) {
+    if (isAndroid) {
+      setAndroidPickerVisible(false);
+    }
     if (event.type === "dismissed") {
       onDismiss?.();
       return;
@@ -58,6 +65,28 @@ export function NativeDateTrigger({
 
   if (disabled) {
     return <View style={style}>{children}</View>;
+  }
+
+  if (isAndroid) {
+    return (
+      <View
+        style={[style, styles.fill]}
+        onStartShouldSetResponder={() => true}
+        onResponderRelease={() => setAndroidPickerVisible(true)}
+        accessibilityRole="button"
+      >
+        {children}
+        {androidPickerVisible ? (
+          <DateTimePicker
+            value={pickerDate}
+            mode="date"
+            display="default"
+            locale={locale}
+            onChange={handleChange}
+          />
+        ) : null}
+      </View>
+    );
   }
 
   return (

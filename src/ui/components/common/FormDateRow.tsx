@@ -1,6 +1,7 @@
 import type { ComponentProps, ReactNode } from "react";
 import { useMemo, useState } from "react";
 import {
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -53,6 +54,9 @@ export function FormDateRow({
   const pickerDate = parseYmd(hasValue ? value : formatYmd(new Date()));
 
   const [iosPickerActive, setIosPickerActive] = useState(false);
+  const [androidPickerVisible, setAndroidPickerVisible] = useState(false);
+
+  const isAndroid = Platform.OS === "android";
 
   const displayText = hasValue
     ? formatDateDisplay(`${value}T12:00:00`, i18n.language)
@@ -60,9 +64,12 @@ export function FormDateRow({
 
   const pickerLocale = localeCodeFromLanguage(i18n.language);
 
-  const showIosCompact = !disabled && (hasValue || iosPickerActive);
+  const showIosCompact = !isAndroid && !disabled && (hasValue || iosPickerActive);
 
   function handleChange(event: DateTimePickerEvent, selectedDate?: Date) {
+    if (isAndroid) {
+      setAndroidPickerVisible(false);
+    }
     if (event.type === "dismissed") {
       if (!hasValue) setIosPickerActive(false);
       return;
@@ -74,6 +81,10 @@ export function FormDateRow({
 
   function openPicker() {
     if (disabled) return;
+    if (isAndroid) {
+      setAndroidPickerVisible(true);
+      return;
+    }
     if (!hasValue) setIosPickerActive(true);
   }
 
@@ -138,6 +149,15 @@ export function FormDateRow({
         </View>
       </Pressable>
       {trailing}
+      {isAndroid && androidPickerVisible ? (
+        <DateTimePicker
+          value={pickerDate}
+          mode="date"
+          display="default"
+          locale={pickerLocale}
+          onChange={handleChange}
+        />
+      ) : null}
     </CardRow>
   );
 }

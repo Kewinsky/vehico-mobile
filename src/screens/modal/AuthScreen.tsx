@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Dimensions,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -137,6 +138,8 @@ export function AuthScreen({ navigation }: Props) {
       isValidEmailOtpLength(otpTrimmed.length) && !isVerifying && !isSubmitting,
     [otpTrimmed, isVerifying, isSubmitting],
   );
+
+  const showAppleSignIn = appleSignInAvailable || Platform.OS === "android";
 
   const legalFooter = (
     <View style={styles.bottomLegalFooter}>
@@ -599,7 +602,7 @@ export function AuthScreen({ navigation }: Props) {
 
           <View style={styles.socialSection}>
             <View style={styles.socialButtons}>
-              {appleSignInAvailable ? (
+              {showAppleSignIn ? (
                 <Pressable
                   onPress={() => void signInWithApple()}
                   disabled={!!isSocialLoading}

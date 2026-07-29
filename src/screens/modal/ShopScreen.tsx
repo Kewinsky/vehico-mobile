@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   Dimensions,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -576,7 +577,9 @@ export function ShopScreen({ navigation }: Props) {
                 <Text
                   style={[styles.autoRenewNote, { color: theme.colors.muted }]}
                 >
-                  {t("shop.autoRenewDisclaimer")}
+                  {Platform.OS === "android"
+                    ? t("shop.autoRenewDisclaimerAndroid")
+                    : t("shop.autoRenewDisclaimer")}
                 </Text>
               ) : null}
             </>

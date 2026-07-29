@@ -11,10 +11,13 @@ function getAppEnv(): AppEnv {
 }
 
 const appEnv = getAppEnv();
-const revenuecatKey = trimOrEmpty(process.env.EXPO_PUBLIC_REVENUECAT_API_KEY);
-if (appEnv === "production" && !revenuecatKey) {
+const revenuecatIosKey = trimOrEmpty(process.env.EXPO_PUBLIC_REVENUECAT_API_KEY);
+const revenuecatAndroidKey = trimOrEmpty(
+  process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY,
+);
+if (appEnv === "production" && !revenuecatIosKey && !revenuecatAndroidKey) {
   throw new Error(
-    "Missing EXPO_PUBLIC_REVENUECAT_API_KEY. Set it for production builds.",
+    "Missing RevenueCat API key. Set EXPO_PUBLIC_REVENUECAT_API_KEY (iOS) and/or EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY for production builds.",
   );
 }
 
@@ -50,7 +53,8 @@ export const ENV = {
   SUPABASE_URL: supabaseUrl,
   SUPABASE_ANON_KEY: supabaseAnonKey,
   REPORTS_APP_URL: reportsAppUrl,
-  REVENUECAT_API_KEY: revenuecatKey,
+  REVENUECAT_API_KEY: revenuecatIosKey,
+  REVENUECAT_ANDROID_API_KEY: revenuecatAndroidKey ?? revenuecatIosKey,
   WEB_APP_URL: webAppUrl,
   SUPPORT_EMAIL: supportEmail,
 } as const;

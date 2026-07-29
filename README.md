@@ -31,6 +31,7 @@ A React Native mobile application for tracking vehicle maintenance, fuel consump
 - npm or yarn
 - Expo
 - iOS Simulator (for iOS development)
+- Android Studio / emulator (for Android development)
 - Supabase account and project
 
 ## Installation
@@ -78,6 +79,7 @@ A React Native mobile application for tracking vehicle maintenance, fuel consump
 
    ```bash
    npm run ios      # iOS
+   npm run android  # Android
    ```
 
 ## Project Structure
@@ -118,6 +120,7 @@ vehico/
 
 - `npm start` - Start Expo development server
 - `npm run ios` - Run on iOS simulator
+- `npm run android` - Run on Android emulator or device
 - `npm run typecheck` - Run TypeScript type checking
 - `npm test` - Run Jest tests
 - `npm run test:coverage` - Run Jest with coverage report
@@ -193,6 +196,25 @@ See `supabase/schema.sql` for the complete schema with RLS policies.
    pod install
    cd ..
    npx expo run:ios --configuration Release
+   ```
+
+### Android
+
+1. **Generate native code**
+
+   ```bash
+   npx expo prebuild --platform android
+   ```
+
+2. **Build with EAS (recommended)**
+
+   ```bash
+   eas build --platform android
+   ```
+
+3. **Or build locally**
+   ```bash
+   npx expo run:android --variant release
    ```
 
 ## Features in Detail
