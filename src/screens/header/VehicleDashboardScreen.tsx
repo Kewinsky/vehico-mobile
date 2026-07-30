@@ -1,8 +1,8 @@
-import { useMemo } from "react";
-import { View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Platform, View } from "react-native";
 import { createNativeBottomTabNavigator } from "@bottom-tabs/react-navigation";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { HeaderButton } from "@react-navigation/elements";
+import { HeaderIconButton } from "../../ui/components/layout/HeaderIconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { Settings, Warehouse } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
@@ -29,6 +29,7 @@ import type {
   VehicleDashboardTabName,
   VehicleDashboardTabParamList,
 } from "./vehicleDashboard/navigationTypes";
+import { ensureVehicleDashboardAndroidTabIconsLoaded } from "./vehicleDashboard/vehicleDashboardAndroidTabIcons";
 import { getVehicleDashboardTabOptions } from "./vehicleDashboard/vehicleDashboardNativeTabOptions";
 
 /** Set to true to show the floating action button (add service/fuel/reminder). */
@@ -49,6 +50,27 @@ function VehicleDashboardTabs({
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = makeDashboardScreenStyles(theme, insets);
+  const [androidTabIconsReady, setAndroidTabIconsReady] = useState(
+    Platform.OS !== "android",
+  );
+
+  useEffect(() => {
+    if (Platform.OS !== "android") {
+      return;
+    }
+
+    let cancelled = false;
+    void ensureVehicleDashboardAndroidTabIconsLoaded().then(() => {
+      if (!cancelled) {
+        setAndroidTabIconsReady(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const {
     loading,
     isPremium,
@@ -90,7 +112,7 @@ function VehicleDashboardTabs({
   const headerRight = (
     <View style={styles.headerRightActions}>
       <SourcePickerMenu items={actionsMenuItems}>
-        <HeaderButton
+        <HeaderIconButton
           onPress={() => undefined}
           tintColor={theme.colors.fg}
           accessibilityLabel={undefined}
@@ -100,15 +122,15 @@ function VehicleDashboardTabs({
             size={theme.icons.headerButton}
             color={theme.colors.accent}
           />
-        </HeaderButton>
+        </HeaderIconButton>
       </SourcePickerMenu>
-      <HeaderButton
+      <HeaderIconButton
         onPress={() => navigation.navigate("Settings")}
         tintColor={theme.colors.fg}
         accessibilityLabel={undefined}
       >
         <Settings size={theme.icons.headerButton} color={theme.colors.accent} />
-      </HeaderButton>
+      </HeaderIconButton>
     </View>
   );
 
@@ -123,37 +145,42 @@ function VehicleDashboardTabs({
       right={headerRight}
       paddingHorizontal={false}
     >
-      <Tab.Navigator
-        initialRouteName={initialTab ?? "Overview"}
-        labeled
-        hapticFeedbackEnabled
-        scrollEdgeAppearance="transparent"
-        tabBarActiveTintColor={theme.colors.accent}
-        tabBarInactiveTintColor={theme.colors.muted}
-        screenOptions={{
-          lazy: true,
-          sceneStyle: { backgroundColor: "transparent" },
-        }}
-      >
-        <Tab.Screen
-          name="Menu"
-          component={VehicleDashboardMenuScreen}
-          initialParams={{ vehicleId }}
-          options={getVehicleDashboardTabOptions("Menu", t)}
-        />
-        <Tab.Screen
-          name="Overview"
-          component={VehicleDashboardOverviewScreen}
-          initialParams={{ vehicleId }}
-          options={getVehicleDashboardTabOptions("Overview", t)}
-        />
-        <Tab.Screen
-          name="Stats"
-          component={VehicleDashboardStatsScreen}
-          initialParams={{ vehicleId }}
-          options={getVehicleDashboardTabOptions("Stats", t)}
-        />
-      </Tab.Navigator>
+      {androidTabIconsReady ? (
+        <Tab.Navigator
+          initialRouteName={initialTab ?? "Overview"}
+          labeled
+          hapticFeedbackEnabled
+          scrollEdgeAppearance="transparent"
+          tabBarActiveTintColor={theme.colors.accent}
+          tabBarInactiveTintColor={theme.colors.muted}
+          tabBarStyle={{ backgroundColor: theme.colors.card }}
+          activeIndicatorColor={`${theme.colors.accent}33`}
+          rippleColor={`${theme.colors.accent}22`}
+          screenOptions={{
+            lazy: true,
+            sceneStyle: { backgroundColor: "transparent" },
+          }}
+        >
+          <Tab.Screen
+            name="Menu"
+            component={VehicleDashboardMenuScreen}
+            initialParams={{ vehicleId }}
+            options={getVehicleDashboardTabOptions("Menu", t)}
+          />
+          <Tab.Screen
+            name="Overview"
+            component={VehicleDashboardOverviewScreen}
+            initialParams={{ vehicleId }}
+            options={getVehicleDashboardTabOptions("Overview", t)}
+          />
+          <Tab.Screen
+            name="Stats"
+            component={VehicleDashboardStatsScreen}
+            initialParams={{ vehicleId }}
+            options={getVehicleDashboardTabOptions("Stats", t)}
+          />
+        </Tab.Navigator>
+      ) : null}
 
       <VehicleDashboardModals />
 

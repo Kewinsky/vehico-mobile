@@ -1,12 +1,5 @@
-import type { ReactNode } from "react";
 import { useState } from "react";
-import {
-  StyleSheet,
-  View,
-  type LayoutRectangle,
-  type StyleProp,
-  type ViewStyle,
-} from "react-native";
+import { StyleSheet, View, type LayoutRectangle } from "react-native";
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -15,17 +8,9 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "../../ThemeProvider";
 import { localeCodeFromLanguage } from "../../../utils/numberFormatting";
 import { formatYmd, parseYmd } from "../../../utils/dateYmd";
+import type { NativeDateTriggerProps } from "./NativeDateTrigger.types";
 
-type Props = {
-  /** `YYYY-MM-DD` or empty string when optional. */
-  value: string;
-  onChange: (ymd: string) => void;
-  disabled?: boolean;
-  style?: StyleProp<ViewStyle>;
-  children: ReactNode;
-  onLongPress?: () => void;
-  onDismiss?: () => void;
-};
+export type { NativeDateTriggerProps } from "./NativeDateTrigger.types";
 
 /**
  * Custom label/tile is shown instead of the native compact pill; tap near the
@@ -38,7 +23,7 @@ export function NativeDateTrigger({
   style,
   children,
   onDismiss,
-}: Props) {
+}: NativeDateTriggerProps) {
   const { mode: themeMode } = useTheme();
   const { i18n } = useTranslation();
   const [layout, setLayout] = useState<LayoutRectangle | null>(null);

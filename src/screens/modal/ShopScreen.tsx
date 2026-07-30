@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   Dimensions,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -35,7 +36,11 @@ import {
   type RevenueCatProductId,
 } from "../../services/payments/revenuecat";
 import { ENV } from "../../config/env";
-import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
+import {
+  toastCaughtError,
+  toastError,
+  toastSuccess,
+} from "../../ui/toast/toast";
 import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
 import { Logo } from "../../ui/components/branding/Logo";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
@@ -576,7 +581,9 @@ export function ShopScreen({ navigation }: Props) {
                 <Text
                   style={[styles.autoRenewNote, { color: theme.colors.muted }]}
                 >
-                  {t("shop.autoRenewDisclaimer")}
+                  {Platform.OS === "android"
+                    ? t("shop.autoRenewDisclaimerAndroid")
+                    : t("shop.autoRenewDisclaimer")}
                 </Text>
               ) : null}
             </>

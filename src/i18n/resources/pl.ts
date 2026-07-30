@@ -295,6 +295,7 @@ export const pl = {
     sortFieldDate: "Data",
     sortFieldTitle: "Tytuł",
     sortFieldAmount: "Kwota",
+    sortOrderDirection: "Kierunek",
     sortOrderNewest: "Najnowsze",
     sortOrderOldest: "Najstarsze",
     sortOrderHighest: "Najwyższy",
@@ -686,6 +687,8 @@ export const pl = {
     billedMonthly: "Rozliczane jako {{price}} miesięcznie",
     autoRenewDisclaimer:
       "Płatność zostanie pobrana z konta Apple ID po potwierdzeniu zakupu. Subskrypcje odnawiają się automatycznie, chyba że anulujesz je co najmniej 24 godziny przed końcem bieżącego okresu. Zarządzaj lub anuluj w ustawieniach konta App Store.",
+    autoRenewDisclaimerAndroid:
+      "Płatność zostanie pobrana z konta Google Play po potwierdzeniu zakupu. Subskrypcje odnawiają się automatycznie, chyba że anulujesz je co najmniej 24 godziny przed końcem bieżącego okresu. Zarządzaj lub anuluj w ustawieniach konta Google Play.",
     selectedPlanLabel: "Wybrany plan",
     tapToPurchase: "Kliknij, aby kupić",
     planActive: "Plan aktywny",

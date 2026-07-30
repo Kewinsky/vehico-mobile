@@ -57,6 +57,7 @@ import { useUnitDisplay } from "../../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../../app/providers/UserSettingsProvider";
 import { useTheme } from "../../../ui/ThemeProvider";
 import { toastCaughtError, toastError, toastSuccess } from "../../../ui/toast/toast";
+import { promptAlert } from "../../../ui/prompt/promptAlert";
 import { getPremiumUpgradeAlertButtons } from "../../../ui/limits/entitlementAlerts";
 import { RichCalloutText } from "../../../ui/components/dashboard/RichCalloutText";
 import { useScreenFocusReload } from "../../../app/useScreenFocusReload";
@@ -571,7 +572,7 @@ export function useVehicleDashboardState({
         });
 
   const handleQuickMileageEdit = useCallback(() => {
-    Alert.prompt(
+    promptAlert(
       t("dashboard.mileageUpdated.cta"),
       `${t("vehicleForm.mileageLabel")} (${distanceUnitLabel})`,
       [
@@ -689,7 +690,7 @@ export function useVehicleDashboardState({
   }, [oilChangeDueState, t, i18n.language, distanceUnitLabel, theme]);
 
   const handleOilChangeDone = useCallback(() => {
-    Alert.prompt(
+    promptAlert(
       t("dashboard.oilBanner.donePromptTitle"),
       t("dashboard.oilBanner.donePromptMessage", {
         unit: distanceUnitLabel,
@@ -807,7 +808,7 @@ export function useVehicleDashboardState({
       const ymd = currentValue?.slice(0, 10) ?? "";
       setFormalityOverlay({ field, value: ymd, title });
     },
-    [saveFormalitiesDate],
+    [],
   );
 
   const tiles: DashboardTile[] = useMemo(

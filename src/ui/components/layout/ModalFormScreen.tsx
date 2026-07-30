@@ -5,7 +5,7 @@ import { FormScreen } from "./FormScreen";
 import { NativeHeaderScrollView } from "./NativeHeaderScrollView";
 
 export type ModalFormScreenProps = PropsWithChildren<{
-  title: string;
+  title?: string;
   onCancel: () => void;
   onDone: () => void;
   doneLabel?: string;
@@ -16,7 +16,7 @@ export type ModalFormScreenProps = PropsWithChildren<{
 }>;
 
 export function ModalFormScreen({
-  title,
+  title = "",
   onCancel,
   onDone,
   doneLabel,

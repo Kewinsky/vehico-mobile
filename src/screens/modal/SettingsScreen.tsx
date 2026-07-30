@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Linking from "expo-linking";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { HeaderButton } from "@react-navigation/elements";
+import { HeaderIconButton } from "../../ui/components/layout/HeaderIconButton";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import {
@@ -18,7 +18,11 @@ import { useAuth } from "../../app/providers/AuthProvider";
 import { normalizeDisplayName } from "../../utils/displayName";
 import { ModalLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
+import {
+  toastCaughtError,
+  toastError,
+  toastSuccess,
+} from "../../ui/toast/toast";
 import { supabase } from "../../services/supabase/client";
 import { Card } from "../../ui/components/common/Card";
 import {
@@ -27,6 +31,7 @@ import {
 } from "../../ui/components/common/SourcePickerMenu";
 import { ENV } from "../../config/env";
 import { deleteAccount } from "../../services/account/deleteAccount";
+import { promptAlert } from "../../ui/prompt/promptAlert";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Settings">;
 
@@ -96,7 +101,7 @@ export function SettingsScreen({ navigation }: Props) {
 
   function openEditNamePrompt() {
     if (saving) return;
-    Alert.prompt(
+    promptAlert(
       t("profile.displayName"),
       t("profile.displayNamePlaceholder"),
       [
@@ -173,7 +178,7 @@ export function SettingsScreen({ navigation }: Props) {
 
   const headerRight = (
     <SourcePickerMenu items={headerMenuItems} disabled={deletingAccount}>
-      <HeaderButton
+      <HeaderIconButton
         onPress={() => undefined}
         tintColor={theme.colors.fg}
         accessibilityLabel={t("settings.moreActions")}
@@ -183,7 +188,7 @@ export function SettingsScreen({ navigation }: Props) {
           size={theme.icons.headerButton}
           color={theme.colors.accent}
         />
-      </HeaderButton>
+      </HeaderIconButton>
     </SourcePickerMenu>
   );
 
@@ -220,7 +225,14 @@ export function SettingsScreen({ navigation }: Props) {
         onPress: onSignOut,
       },
     ],
-    [t, navigation, onSignOut, onSupport, theme.colors.accent, theme.colors.danger],
+    [
+      t,
+      navigation,
+      onSignOut,
+      onSupport,
+      theme.colors.accent,
+      theme.colors.danger,
+    ],
   );
 
   return (

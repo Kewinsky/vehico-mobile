@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo } from "react";
+import { useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,7 +6,6 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
-import type { SFSymbol } from "sf-symbols-typescript";
 import {
   Host,
   Button as SwiftUIButton,
@@ -15,42 +14,29 @@ import {
 } from "@expo/ui/swift-ui";
 
 import { useTheme } from "../../ThemeProvider";
+import type {
+  SourcePickerMenuItem,
+  SourcePickerMenuProps,
+} from "./SourcePickerMenu.types";
 
-export type SourcePickerMenuActionItem = {
-  id: string;
-  type?: "item";
-  label: string;
-  systemImage?: SFSymbol;
-  role?: "default" | "cancel" | "destructive";
-  onPress?: () => void;
-  items?: SourcePickerMenuItem[];
-};
-
-export type SourcePickerMenuDividerItem = {
-  id: string;
-  type: "divider";
-};
-
-export type SourcePickerMenuItem =
-  | SourcePickerMenuActionItem
-  | SourcePickerMenuDividerItem;
+export type {
+  SourcePickerMenuActionItem,
+  SourcePickerMenuDividerItem,
+  SourcePickerMenuItem,
+} from "./SourcePickerMenu.types";
 
 function isDividerItem(
   item: SourcePickerMenuItem,
-): item is SourcePickerMenuDividerItem {
+): item is { id: string; type: "divider" } {
   return item.type === "divider";
 }
 
-type SourcePickerMenuProps = {
-  children?: ReactNode;
-  disabled?: boolean;
-  items: SourcePickerMenuItem[];
-  /** Ghost-style label trigger (passive View inside ContextMenu). */
-  triggerLabel?: string;
-  triggerStyle?: StyleProp<ViewStyle>;
-};
-
-function makeGhostTriggerStyles(theme: { spacing: any; radius: any; typography: any; colors: any }) {
+function makeGhostTriggerStyles(theme: {
+  spacing: any;
+  radius: any;
+  typography: any;
+  colors: any;
+}) {
   return StyleSheet.create({
     ghost: {
       height: theme.spacing.lg * 2,
@@ -171,10 +157,7 @@ export function SourcePickerMenu({
   }
 
   return (
-    <Host
-      matchContents
-      colorScheme={themeMode === "dark" ? "dark" : "light"}
-    >
+    <Host matchContents colorScheme={themeMode === "dark" ? "dark" : "light"}>
       <SwiftUIContextMenu activationMethod="singlePress">
         <SwiftUIContextMenu.Items>
           {renderMenuItems(items)}

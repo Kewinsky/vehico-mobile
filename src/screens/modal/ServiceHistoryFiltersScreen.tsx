@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { ServiceEntryCategory } from "../../types/domain";
@@ -166,7 +166,7 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
         />
         <FormPickerRow<SortOption>
           iconComponent={<ListFilter size={20} color={theme.colors.accent} />}
-          label={t("timeline.sortOrderNewest")}
+          label={t("timeline.sortOrderDirection")}
           value={sortOption}
           options={sortOrderOptions}
           getLabel={(value) => {

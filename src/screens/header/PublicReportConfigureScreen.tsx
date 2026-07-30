@@ -388,11 +388,11 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   }
 
   function addPhotosFromAssets(
-    assets: Array<{
+    assets: {
       uri: string;
       mimeType?: string | null;
       fileName?: string | null;
-    }>,
+    }[],
   ) {
     const remainingSlots = MAX_PHOTOS - totalPhotoCount;
     if (remainingSlots <= 0) {

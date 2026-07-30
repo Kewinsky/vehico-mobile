@@ -292,6 +292,7 @@ export const en = {
     sortFieldDate: "Date",
     sortFieldTitle: "Title",
     sortFieldAmount: "Amount",
+    sortOrderDirection: "Direction",
     sortOrderNewest: "Newest",
     sortOrderOldest: "Oldest",
     sortOrderHighest: "Highest",
@@ -681,6 +682,8 @@ export const en = {
     billedMonthly: "Billed as {{price}} per month",
     autoRenewDisclaimer:
       "Payment is charged to your Apple ID account at confirmation of purchase. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period. Manage or cancel in your App Store account settings.",
+    autoRenewDisclaimerAndroid:
+      "Payment is charged to your Google Play account at confirmation of purchase. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period. Manage or cancel in your Google Play account settings.",
     selectedPlanLabel: "Selected plan",
     tapToPurchase: "Tap to purchase",
     planActive: "Plan active",

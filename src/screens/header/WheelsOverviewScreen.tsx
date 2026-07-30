@@ -19,7 +19,7 @@ import { Card, CardRow } from "../../ui/components/common/Card";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
-import { toastCaughtError, toastError } from "../../ui/toast/toast";
+import { toastCaughtError } from "../../ui/toast/toast";
 import { RimIcon } from "../../ui/components/icons/RimIcon";
 import { TireIcon } from "../../ui/components/icons/TireIcon";
 

@@ -62,7 +62,7 @@ import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSou
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
-import { Card, CardRow } from "../../ui/components/common/Card";
+import { Card } from "../../ui/components/common/Card";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
@@ -72,8 +72,8 @@ import {
   getUserFacingErrorMessage,
 } from "../../ui/errors/userFacingError";
 import { toastCaughtError, toastError } from "../../ui/toast/toast";
+import { promptAlert } from "../../ui/prompt/promptAlert";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
-import { Ionicons } from "@expo/vector-icons";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { Textarea } from "../../ui/components/common/Textarea";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
@@ -286,7 +286,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }
 
   function handleEditAttachmentName(att: Attachment) {
-    Alert.prompt(
+    promptAlert(
       t("attachments.editAttachmentNameTitle"),
       t("attachments.editAttachmentNameBody"),
       [
@@ -321,7 +321,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     index: number,
     currentFileName: string | null | undefined,
   ) {
-    Alert.prompt(
+    promptAlert(
       t("attachments.editAttachmentNameTitle"),
       t("attachments.editAttachmentNameBody"),
       [

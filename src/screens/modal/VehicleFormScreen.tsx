@@ -43,7 +43,6 @@ import {
   reorderVehiclePhotos,
   uploadVehiclePhoto,
 } from "../../services/vehicles/uploadPhoto";
-import { Button } from "../../ui/components/common/Button";
 import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
@@ -51,7 +50,7 @@ import { ModalLayout } from "../../layouts";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { Hash, CalendarCheck, Fuel } from "lucide-react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Card, CardRow } from "../../ui/components/common/Card";
+import { Card } from "../../ui/components/common/Card";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { useTheme } from "../../ui/ThemeProvider";

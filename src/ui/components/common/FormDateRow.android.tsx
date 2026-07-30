@@ -1,12 +1,5 @@
-import type { ComponentProps, ReactNode } from "react";
 import { useMemo, useState } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -18,20 +11,9 @@ import { formatDateDisplay } from "../../../utils/dateFormatting";
 import { localeCodeFromLanguage } from "../../../utils/numberFormatting";
 import { formatYmd, parseYmd } from "../../../utils/dateYmd";
 import { CardRow } from "./Card";
+import type { FormDateRowProps } from "./FormDateRow.types";
 
-export type FormDateRowProps = {
-  label: string;
-  /** `YYYY-MM-DD` or empty string when optional. */
-  value: string;
-  onChange: (ymd: string) => void;
-  icon?: ComponentProps<typeof Ionicons>["name"];
-  iconComponent?: ReactNode;
-  placeholder?: string;
-  disabled?: boolean;
-  rowStyle?: ViewStyle;
-  trailing?: ReactNode;
-  error?: boolean;
-};
+export type { FormDateRowProps } from "./FormDateRow.types";
 
 export function FormDateRow({
   label,
@@ -45,14 +27,13 @@ export function FormDateRow({
   trailing,
   error = false,
 }: FormDateRowProps) {
-  const { theme, mode: themeMode } = useTheme();
+  const { theme } = useTheme();
   const { t, i18n } = useTranslation();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const hasValue = value.trim().length === 10;
   const pickerDate = parseYmd(hasValue ? value : formatYmd(new Date()));
-
-  const [iosPickerActive, setIosPickerActive] = useState(false);
+  const [androidPickerVisible, setAndroidPickerVisible] = useState(false);
 
   const displayText = hasValue
     ? formatDateDisplay(`${value}T12:00:00`, i18n.language)
@@ -60,28 +41,23 @@ export function FormDateRow({
 
   const pickerLocale = localeCodeFromLanguage(i18n.language);
 
-  const showIosCompact = !disabled && (hasValue || iosPickerActive);
-
   function handleChange(event: DateTimePickerEvent, selectedDate?: Date) {
-    if (event.type === "dismissed") {
-      if (!hasValue) setIosPickerActive(false);
-      return;
-    }
+    setAndroidPickerVisible(false);
+    if (event.type === "dismissed") return;
     if (!selectedDate) return;
     onChange(formatYmd(selectedDate));
-    if (!hasValue) setIosPickerActive(true);
   }
 
   function openPicker() {
     if (disabled) return;
-    if (!hasValue) setIosPickerActive(true);
+    setAndroidPickerVisible(true);
   }
 
   return (
     <CardRow style={rowStyle} error={error}>
       <Pressable
         onPress={openPicker}
-        disabled={disabled || (showIosCompact && hasValue)}
+        disabled={disabled}
         style={styles.pressableRow}
       >
         {(icon || iconComponent) && (
@@ -110,34 +86,30 @@ export function FormDateRow({
           </Text>
         ) : null}
         <View style={styles.valueWrap}>
-          {showIosCompact ? (
-            <DateTimePicker
-              value={pickerDate}
-              mode="date"
-              display="compact"
-              locale={pickerLocale}
-              accentColor={theme.colors.accent}
-              themeVariant={themeMode === "dark" ? "dark" : "light"}
-              onChange={handleChange}
-              style={styles.nativeDatePicker}
-            />
-          ) : (
-            <Text
-              style={[
-                styles.valueText,
-                {
-                  color: hasValue ? theme.colors.fg : theme.colors.muted,
-                  textAlign: "right",
-                },
-              ]}
-              numberOfLines={1}
-            >
-              {displayText}
-            </Text>
-          )}
+          <Text
+            style={[
+              styles.valueText,
+              {
+                color: hasValue ? theme.colors.fg : theme.colors.muted,
+                textAlign: "right",
+              },
+            ]}
+            numberOfLines={1}
+          >
+            {displayText}
+          </Text>
         </View>
       </Pressable>
       {trailing}
+      {androidPickerVisible ? (
+        <DateTimePicker
+          value={pickerDate}
+          mode="date"
+          display="default"
+          locale={pickerLocale}
+          onChange={handleChange}
+        />
+      ) : null}
     </CardRow>
   );
 }
@@ -171,10 +143,5 @@ const makeStyles = (theme: any) =>
       flex: 1,
       minWidth: 0,
       fontSize: theme.typography.body,
-    },
-    nativeDatePicker: {
-      flex: 1,
-      minWidth: 0,
-      alignSelf: "flex-end",
     },
   });

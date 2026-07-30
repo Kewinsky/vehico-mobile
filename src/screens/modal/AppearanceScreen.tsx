@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
@@ -10,7 +10,7 @@ import { ModalLayout } from "../../layouts";
 import type { UserSettings } from "../../app/providers/UserSettingsProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastCaughtError, toastError } from "../../ui/toast/toast";
+import { toastCaughtError } from "../../ui/toast/toast";
 import { Card } from "../../ui/components/common/Card";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 import { APP_CURRENCY_OPTIONS } from "../../utils/currencies";
@@ -32,11 +32,39 @@ type SettingItem = {
   options: Option<string>[];
 };
 
+/** Android native dialogs follow OS theme; in-app light/dark override is iOS-only. */
+const SUPPORTS_APP_THEME_OVERRIDE = Platform.OS === "ios";
+
 function buildCardConfig(t: TFunction): {
   cardLabelKey: string;
   items: SettingItem[];
   unitGroup?: boolean;
 }[] {
+  const displayItems: SettingItem[] = [];
+
+  if (SUPPORTS_APP_THEME_OVERRIDE) {
+    displayItems.push({
+      key: "theme",
+      icon: "sunny-outline",
+      labelKey: "settings.theme",
+      options: [
+        { value: "system", label: t("settings.themeSystem") },
+        { value: "light", label: t("settings.themeLight") },
+        { value: "dark", label: t("settings.themeDark") },
+      ],
+    });
+  }
+
+  displayItems.push({
+    key: "language",
+    icon: "language-outline",
+    labelKey: "settings.language",
+    options: [
+      { value: "pl", label: t("settings.languagePl") },
+      { value: "en", label: t("settings.languageEn") },
+    ],
+  });
+
   return [
     {
       cardLabelKey: "settings.tabUnits",
@@ -52,27 +80,7 @@ function buildCardConfig(t: TFunction): {
     },
     {
       cardLabelKey: "settings.tabDisplay",
-      items: [
-        {
-          key: "theme",
-          icon: "sunny-outline",
-          labelKey: "settings.theme",
-          options: [
-            { value: "system", label: t("settings.themeSystem") },
-            { value: "light", label: t("settings.themeLight") },
-            { value: "dark", label: t("settings.themeDark") },
-          ],
-        },
-        {
-          key: "language",
-          icon: "language-outline",
-          labelKey: "settings.language",
-          options: [
-            { value: "pl", label: t("settings.languagePl") },
-            { value: "en", label: t("settings.languageEn") },
-          ],
-        },
-      ],
+      items: displayItems,
     },
   ];
 }
@@ -84,10 +92,7 @@ export function AppearanceScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const cardConfig = useMemo(() => buildCardConfig(t), [t]);
 
-  const unitGroupIds = useMemo(
-    () => UNIT_GROUPS.map((group) => group.id),
-    [],
-  );
+  const unitGroupIds = useMemo(() => UNIT_GROUPS.map((group) => group.id), []);
 
   async function pick<K extends keyof UserSettings>(
     key: K,

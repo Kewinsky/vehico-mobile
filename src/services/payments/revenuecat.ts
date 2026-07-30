@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import type {
   CustomerInfo,
   PurchasesEntitlementInfo,
@@ -29,7 +30,10 @@ export {
   type IapProductKind as RevenueCatProductKind,
 } from "../../../shared/payments/iapProducts";
 
-export const REVENUECAT_PUBLIC_API_KEY = ENV.REVENUECAT_API_KEY;
+export const REVENUECAT_PUBLIC_API_KEY =
+  Platform.OS === "android"
+    ? ENV.REVENUECAT_ANDROID_API_KEY
+    : ENV.REVENUECAT_API_KEY;
 export const REVENUECAT_PREMIUM_ENTITLEMENT_ID = "vehico Premium";
 
 export type RevenueCatProductsMap = Record<

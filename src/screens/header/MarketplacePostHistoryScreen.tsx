@@ -19,7 +19,8 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
-import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastSuccess } from "../../ui/toast/toast";
+import { promptAlert } from "../../ui/prompt/promptAlert";
 
 import { formatShortDisplayDate } from "../../utils/dateFormatting";
 import { i18n } from "../../i18n/i18n";
@@ -107,7 +108,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
   }
 
   function handleEditTitle(post: MarketplacePost) {
-    Alert.prompt(
+    promptAlert(
       t("marketplace.editTitleTitle"),
       t("marketplace.editTitleBody"),
       [

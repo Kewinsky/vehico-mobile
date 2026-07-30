@@ -15,5 +15,8 @@ module.exports = ({ config }) => {
         NSPhotoLibraryAddUsageDescription: `${APP_DISPLAY_NAME} may save exported images to your photo library when you choose to do so.`,
       },
     },
+    android: {
+      ...config.android,
+    },
   };
 };

@@ -1,0 +1,17 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logo scaled to ~52% safe zone for Android adaptive icons -->
+  <g transform="translate(246.4 246.4) scale(8.32)">
+    <circle cx="46" cy="21" r="9" fill="url(#g0)"/>
+    <path d="M19 21L32 48" stroke="url(#g1)" stroke-width="18" stroke-linecap="round"/>
+  </g>
+  <defs>
+    <linearGradient id="g0" x1="39" y1="8" x2="52" y2="35" gradientUnits="userSpaceOnUse">
+      <stop offset="0.192308" stop-color="#FFB803"/>
+      <stop offset="0.745192" stop-color="#996E02"/>
+    </linearGradient>
+    <linearGradient id="g1" x1="31.5825" y1="48.1856" x2="19.4175" y2="20.8144" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#996E02"/>
+      <stop offset="1" stop-color="#FFB803"/>
+    </linearGradient>
+  </defs>
+</svg>

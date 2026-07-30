@@ -1,4 +1,4 @@
-import { Alert, Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,6 +17,8 @@ import { SearchBar } from "../../ui/components/common/SearchBar";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
+import { openSourcePickerAlert } from "../../ui/components/common/sourcePickerAlert";
+import type { SourcePickerMenuItem } from "../../ui/components/common/SourcePickerMenu";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastCaughtError } from "../../ui/toast/toast";
 
@@ -161,27 +163,32 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
   const openAttachmentSourceAlert = useCallback(
     (serviceEntryId: string) => {
       if (uploading) return;
-      Alert.alert(
+      const items: SourcePickerMenuItem[] = [
+        {
+          id: "camera",
+          label: t("attachments.camera"),
+          onPress: () => void pickFromCamera(serviceEntryId),
+        },
+        {
+          id: "photos",
+          label: t("attachments.photos"),
+          onPress: () => void pickFromGallery(serviceEntryId),
+        },
+        {
+          id: "files",
+          label: t("attachments.files"),
+          onPress: () => void pickFromFiles(serviceEntryId),
+        },
+      ];
+      openSourcePickerAlert(
+        items,
+        t("common.cancel"),
         t("attachments.addPickerTitle"),
         t("attachments.addPickerBody"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("attachments.camera"),
-            onPress: () => void pickFromCamera(serviceEntryId),
-          },
-          {
-            text: t("attachments.photos"),
-            onPress: () => void pickFromGallery(serviceEntryId),
-          },
-          {
-            text: t("attachments.files"),
-            onPress: () => void pickFromFiles(serviceEntryId),
-          },
-        ],
-        { cancelable: true },
       );
     },
+    // Pickers are plain functions; including them would churn this callback every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [t, uploading],
   );
 

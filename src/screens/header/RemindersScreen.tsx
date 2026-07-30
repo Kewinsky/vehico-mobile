@@ -18,7 +18,7 @@ import {
 } from "../../services/reminders/remindersRepo";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { getPremiumUpgradeAlertButtons } from "../../ui/limits/entitlementAlerts";
-import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastSuccess } from "../../ui/toast/toast";
 import { promptAddServiceEntryFromReminder } from "../../services/reminders/reminderServiceEntryPrompt";
 import { ReminderItem } from "../../ui/components/list/ReminderItem";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";

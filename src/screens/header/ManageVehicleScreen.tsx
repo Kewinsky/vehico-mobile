@@ -12,7 +12,7 @@ import {
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { HeaderButton } from "@react-navigation/elements";
+import { HeaderIconButton } from "../../ui/components/layout/HeaderIconButton";
 import { useTranslation } from "react-i18next";
 import { Hash, CalendarCheck, Fuel } from "lucide-react-native";
 import {
@@ -41,7 +41,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
-import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastSuccess } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { groupThousands } from "../../utils/numberFormatting";
@@ -279,7 +279,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
   }
 
   const headerRight = vehicle ? (
-    <HeaderButton
+    <HeaderIconButton
       onPress={openActions}
       tintColor={theme.colors.fg}
       accessibilityLabel={undefined}
@@ -289,7 +289,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
         size={theme.icons.headerButton}
         color={theme.colors.accent}
       />
-    </HeaderButton>
+    </HeaderIconButton>
   ) : null;
 
   return (

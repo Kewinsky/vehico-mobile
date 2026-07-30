@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useWindowDimensions, View } from "react-native";
 
 import { OverviewVehicleHeader } from "../overview/OverviewVehicleHeader";

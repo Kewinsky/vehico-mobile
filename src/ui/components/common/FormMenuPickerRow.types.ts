@@ -14,7 +14,3 @@ export type FormMenuPickerRowProps = {
   disabled?: boolean;
   rowStyle?: ViewStyle;
 };
-
-export function FormMenuPickerRow(_props: FormMenuPickerRowProps): null {
-  return null;
-}
