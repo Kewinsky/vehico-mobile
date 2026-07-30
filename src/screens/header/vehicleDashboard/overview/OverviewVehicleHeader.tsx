@@ -31,21 +31,17 @@ export function OverviewVehicleHeader({
   showPublicQr = true,
 }: OverviewVehicleHeaderProps) {
   const { t } = useTranslation();
+  const vin = vehicle?.vin?.trim() || null;
 
   return (
     <View style={styles.vehicleHeaderRow}>
       <View style={styles.vehicleHeaderText}>
-        <Text
-          style={[
-            styles.title,
-            { paddingBottom: vehicle?.vin ? 0 : theme.spacing.md },
-          ]}
-        >
+        <Text style={styles.title}>
           {vehicle ? `${vehicle.make} ${vehicle.model}` : ""}
         </Text>
-        {vehicle?.vin ? (
+        {vin ? (
           <Pressable onPress={onCopyVin} style={styles.vinRow} hitSlop={10}>
-            <Text style={styles.vinText}>{vehicle.vin}</Text>
+            <Text style={styles.vinText}>{vin}</Text>
             <Copy size={16} color={theme.colors.muted} strokeWidth={2} />
           </Pressable>
         ) : null}
