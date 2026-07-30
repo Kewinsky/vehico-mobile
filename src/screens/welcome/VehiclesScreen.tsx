@@ -307,8 +307,10 @@ export function VehiclesScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme, insets), [theme, insets]);
   const listContentStyle = useMemo(
     () =>
-      Platform.OS === "android" ? { paddingTop: headerHeight } : undefined,
-    [headerHeight],
+      Platform.OS === "android"
+        ? { paddingTop: headerHeight + theme.spacing.sm }
+        : undefined,
+    [headerHeight, theme.spacing.sm],
   );
   const [items, setItems] = useState<Vehicle[]>([]);
   const [photoUrlsMap, setPhotoUrlsMap] = useState<Map<string, string[]>>(
