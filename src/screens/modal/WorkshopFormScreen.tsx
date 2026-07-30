@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
@@ -42,7 +42,6 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { isPremium, workshopsLimit, freePlanWorkshopIds } = useEntitlements();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { workshopId } = route.params ?? {};
 
   const [name, setName] = useState("");
@@ -221,44 +220,4 @@ export function WorkshopFormScreen({ navigation, route }: Props) {
       </FormScreen>
     </ModalLayout>
   );
-}
-
-function makeStyles(theme: any) {
-  return StyleSheet.create({
-    h1: {
-      fontSize: theme.typography.largeTitle,
-      marginVertical: theme.spacing.md,
-      fontWeight: theme.typography.fontWeight.bold,
-      color: theme.colors.fg,
-    },
-    rowLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-      flex: 0,
-      flexShrink: 1,
-    },
-    rowRight: {
-      flex: 1,
-      minWidth: 0,
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      alignItems: "center",
-    },
-    input: {
-      flex: 1,
-      minWidth: 0,
-      fontSize: theme.typography.body,
-      paddingVertical: 0,
-    },
-    label: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    valueText: {
-      flex: 1,
-      minWidth: 0,
-      fontSize: theme.typography.body,
-    },
-  });
 }

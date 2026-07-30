@@ -13,7 +13,7 @@ import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderS
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { Button } from "../../ui/components/common/Button";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastSuccess, toastCaughtError, toastError } from "../../ui/toast/toast";
+import { toastSuccess, toastCaughtError } from "../../ui/toast/toast";
 
 type Props = NativeStackScreenProps<
   AppStackParamList,

@@ -808,7 +808,7 @@ export function useVehicleDashboardState({
       const ymd = currentValue?.slice(0, 10) ?? "";
       setFormalityOverlay({ field, value: ymd, title });
     },
-    [saveFormalitiesDate],
+    [],
   );
 
   const tiles: DashboardTile[] = useMemo(

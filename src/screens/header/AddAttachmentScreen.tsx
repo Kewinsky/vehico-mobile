@@ -187,6 +187,8 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         t("attachments.addPickerBody"),
       );
     },
+    // Pickers are plain functions; including them would churn this callback every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [t, uploading],
   );
 

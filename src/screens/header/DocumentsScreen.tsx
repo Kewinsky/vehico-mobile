@@ -225,6 +225,8 @@ export function DocumentsScreen({ route, navigation }: Props) {
           }),
       },
     ],
+    // Pickers are plain functions; including them would churn this memo every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [navigation, route.params.vehicleId, t],
   );
 

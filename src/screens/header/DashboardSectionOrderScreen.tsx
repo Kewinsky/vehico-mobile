@@ -16,7 +16,7 @@ import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { HeaderLayout } from "../../layouts";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
+import { toastCaughtError, toastSuccess } from "../../ui/toast/toast";
 import { Button } from "../../ui/components/common/Button";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";

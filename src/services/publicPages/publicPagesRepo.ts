@@ -1,6 +1,6 @@
 import { supabase } from "../supabase/client";
 import { ENV } from "../../config/env";
-import type { Currency, PublicReportSnapshot } from "../../types/domain";
+import type { PublicReportSnapshot } from "../../types/domain";
 import type { ReportOptions } from "../../types/reportOptions";
 import type { ReportPhotoUpload } from "./uploadReportPhoto";
 

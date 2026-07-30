@@ -31,7 +31,7 @@ import {
 import { Button } from "../../ui/components/common/Button";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
-import { toastCaughtError, toastError } from "../../ui/toast/toast";
+import { toastCaughtError } from "../../ui/toast/toast";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";

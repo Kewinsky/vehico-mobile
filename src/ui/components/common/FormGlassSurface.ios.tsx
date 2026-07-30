@@ -3,8 +3,6 @@ import {
   StyleSheet,
   View,
   type LayoutChangeEvent,
-  type StyleProp,
-  type ViewStyle,
 } from "react-native";
 import {
   Capsule,

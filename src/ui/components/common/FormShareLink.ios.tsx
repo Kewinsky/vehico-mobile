@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Host, ShareLink } from "@expo/ui/swift-ui";

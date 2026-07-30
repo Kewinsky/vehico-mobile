@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert, View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
@@ -24,7 +24,7 @@ import { Button } from "../../ui/components/common/Button";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
-import { Card, CardRow } from "../../ui/components/common/Card";
+import { Card} from "../../ui/components/common/Card";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
@@ -32,8 +32,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
-import { toastCaughtError, toastError } from "../../ui/toast/toast";
-import { Ionicons } from "@expo/vector-icons";
+import { toastCaughtError } from "../../ui/toast/toast";
 import { Droplet, Fuel } from "lucide-react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "FuelingEntryForm">;
@@ -41,7 +40,6 @@ type Props = NativeStackScreenProps<AppStackParamList, "FuelingEntryForm">;
 export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const styles = makeStyles(theme);
   const { vehicleId, entryId } = route.params;
   const { distanceUnitLabel, fuelUnitShort } = useUnitDisplay();
   const { settings } = useUserSettings();
@@ -263,36 +261,3 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     </ModalLayout>
   );
 }
-
-const makeStyles = (theme: any) =>
-  StyleSheet.create({
-    rowLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-      flex: 0,
-      flexShrink: 1,
-    },
-    rowRight: {
-      flex: 1,
-      minWidth: 0,
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      alignItems: "center",
-    },
-    input: {
-      flex: 1,
-      minWidth: 0,
-      fontSize: theme.typography.body,
-      paddingVertical: 0,
-    },
-    label: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    valueText: {
-      flex: 1,
-      minWidth: 0,
-      fontSize: theme.typography.body,
-    },
-  });

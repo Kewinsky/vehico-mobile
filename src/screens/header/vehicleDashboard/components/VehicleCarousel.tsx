@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import Carousel, { Pagination } from "react-native-reanimated-carousel";
