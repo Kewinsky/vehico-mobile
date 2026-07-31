@@ -10,6 +10,7 @@ import type {
 import { ENV } from "../../config/env";
 import {
   createEmptyIapProductsMap,
+  normalizeIapProductId,
   type IapProductId,
 } from "../../../shared/payments/iapProducts";
 
@@ -65,8 +66,12 @@ export function findPackageForProductId(
   productId: IapProductId,
 ): PurchasesPackage | null {
   return (
-    offering?.availablePackages.find(
-      (candidate) => candidate.product.identifier === productId,
-    ) ?? null
+    offering?.availablePackages.find((candidate) => {
+      const identifier = candidate.product.identifier;
+      return (
+        identifier === productId ||
+        normalizeIapProductId(identifier) === productId
+      );
+    }) ?? null
   );
 }

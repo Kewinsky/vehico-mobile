@@ -299,8 +299,12 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
         (candidate) => candidate.product,
       ) ?? []),
     ]) {
-      if (isRevenueCatProductId(maybeProduct.identifier)) {
-        nextProducts[maybeProduct.identifier] = maybeProduct;
+      const mappedId =
+        (isRevenueCatProductId(maybeProduct.identifier)
+          ? maybeProduct.identifier
+          : null) ?? normalizeProductIdFromRC(maybeProduct.identifier);
+      if (mappedId) {
+        nextProducts[mappedId] = maybeProduct;
       }
     }
 

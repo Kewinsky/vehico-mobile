@@ -45,6 +45,12 @@ describe("revenuecat helpers", () => {
     expect(normalizeProductIdFromRC("monthly:base_plan")).toBe(
       IAP_PRODUCT_IDS.monthly,
     );
+    expect(normalizeProductIdFromRC("monthly_premium:monthly-premium")).toBe(
+      IAP_PRODUCT_IDS.monthly,
+    );
+    expect(normalizeProductIdFromRC("yearly_premium:yearly-premium")).toBe(
+      IAP_PRODUCT_IDS.yearly,
+    );
     expect(normalizeProductIdFromRC("YEARLY:plan")).toBe(IAP_PRODUCT_IDS.yearly);
     expect(normalizeProductIdFromRC("com.app.lifetime_unlock")).toBe(
       IAP_PRODUCT_IDS.lifetime,
@@ -77,5 +83,22 @@ describe("revenuecat helpers", () => {
         .identifier,
     ).toBe(IAP_PRODUCT_IDS.yearly);
     expect(findPackageForProductId(offering, IAP_PRODUCT_IDS.lifetime)).toBeNull();
+  });
+
+  it("findPackageForProductId matches Android productId:basePlanId", () => {
+    const offering = {
+      availablePackages: [
+        { product: { identifier: "monthly_premium:monthly-premium" } },
+        { product: { identifier: "yearly_premium:yearly-premium" } },
+      ],
+    } as any;
+    expect(
+      findPackageForProductId(offering, IAP_PRODUCT_IDS.monthly)?.product
+        .identifier,
+    ).toBe("monthly_premium:monthly-premium");
+    expect(
+      findPackageForProductId(offering, IAP_PRODUCT_IDS.yearly)?.product
+        .identifier,
+    ).toBe("yearly_premium:yearly-premium");
   });
 });
