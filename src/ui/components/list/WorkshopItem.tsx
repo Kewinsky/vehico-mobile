@@ -1,12 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Navigation, Phone } from "lucide-react-native";
-import {
-  Linking,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../common/SwipeActions";
 
@@ -201,7 +195,7 @@ const makeStyles = (theme: AppTheme) =>
     card: {
       flex: 1,
       borderRadius: theme.radius.xl,
-      padding: theme.spacing.sm,
+      padding: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
       backgroundColor: theme.colors.card,
       gap: theme.spacing.sm,

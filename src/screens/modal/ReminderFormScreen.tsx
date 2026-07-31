@@ -6,7 +6,6 @@ import {
   Text,
   TextInput,
   View,
-  ScrollView,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -37,6 +36,7 @@ import {
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { Button } from "../../ui/components/common/Button";
+import { FormPresetChips } from "../../ui/components/common/FormPresetChips";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { useTheme } from "../../ui/ThemeProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
@@ -139,34 +139,40 @@ export function ReminderFormScreen({ navigation, route }: Props) {
   const { fieldError, validateBeforeSave, resetFieldErrors } =
     useFormFieldErrors(canSave);
 
-  function getPresetRecurrenceParts(preset: ReminderPreset): string[] {
-    const parts: string[] = [];
-    if (
-      preset.dateRepeats &&
-      preset.recurrenceValue != null &&
-      preset.recurrenceUnit
-    ) {
-      const unitKey =
-        preset.recurrenceUnit === "days"
-          ? "presetsEveryDays"
-          : preset.recurrenceUnit === "weeks"
-            ? "presetsEveryWeeks"
-            : preset.recurrenceUnit === "months"
-              ? "presetsEveryMonths"
-              : "presetsEveryYears";
-      parts.push(
-        t(`reminderForm.${unitKey}`, { value: preset.recurrenceValue }),
-      );
-    }
-    if (preset.mileageRepeats && preset.recurrenceKm != null) {
-      parts.push(
-        t("reminderForm.presetsEveryKm", {
-          value: groupThousands(preset.recurrenceKm, 0, i18n.language),
-        }),
-      );
-    }
-    return parts;
-  }
+  const presetChipItems = useMemo(() => {
+    return REMINDER_PRESETS.map((preset) => {
+      const summaryLines: string[] = [];
+      if (
+        preset.dateRepeats &&
+        preset.recurrenceValue != null &&
+        preset.recurrenceUnit
+      ) {
+        const unitKey =
+          preset.recurrenceUnit === "days"
+            ? "presetsEveryDays"
+            : preset.recurrenceUnit === "weeks"
+              ? "presetsEveryWeeks"
+              : preset.recurrenceUnit === "months"
+                ? "presetsEveryMonths"
+                : "presetsEveryYears";
+        summaryLines.push(
+          t(`reminderForm.${unitKey}`, { value: preset.recurrenceValue }),
+        );
+      }
+      if (preset.mileageRepeats && preset.recurrenceKm != null) {
+        summaryLines.push(
+          t("reminderForm.presetsEveryKm", {
+            value: groupThousands(preset.recurrenceKm, 0, i18n.language),
+          }),
+        );
+      }
+      return {
+        id: preset.titleKey,
+        title: t(`reminderForm.${preset.titleKey}`),
+        summaryLines,
+      };
+    });
+  }, [t, i18n.language]);
 
   function applyPreset(preset: ReminderPreset) {
     setTitle(t(`reminderForm.${preset.titleKey}`));
@@ -375,63 +381,14 @@ export function ReminderFormScreen({ navigation, route }: Props) {
       <FormScreen noLayout>
         <NativeHeaderScrollView>
           {!reminderId ? (
-            <>
-              <Text
-                style={[
-                  styles.presetsSectionLabel,
-                  { color: theme.colors.muted },
-                ]}
-              >
-                {t("reminderForm.presetsTitle")}
-              </Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.presetsScrollContent}
-                style={styles.presetsScroll}
-              >
-                {REMINDER_PRESETS.map((preset) => {
-                  const summaryParts = getPresetRecurrenceParts(preset);
-                  return (
-                    <Pressable
-                      key={preset.titleKey}
-                      onPress={() => applyPreset(preset)}
-                      style={({ pressed }) => [
-                        styles.presetChip,
-                        pressed && { opacity: 0.85 },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.presetChipTitle,
-                          { color: theme.colors.fg },
-                        ]}
-                        numberOfLines={2}
-                      >
-                        {t(`reminderForm.${preset.titleKey}`)}
-                      </Text>
-                      {summaryParts.length ? (
-                        <View style={styles.presetChipSummaryWrap}>
-                          {summaryParts.slice(0, 2).map((line, idx) => (
-                            <Text
-                              key={`${preset.titleKey}-summary-${idx}`}
-                              style={[
-                                styles.presetChipSummary,
-                                { color: theme.colors.muted },
-                              ]}
-                              numberOfLines={1}
-                            >
-                              {line}
-                            </Text>
-                          ))}
-                        </View>
-                      ) : null}
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-              <View style={{ height: theme.spacing.sm }} />
-            </>
+            <FormPresetChips
+              sectionTitle={t("reminderForm.presetsTitle")}
+              items={presetChipItems}
+              onSelect={(id) => {
+                const preset = REMINDER_PRESETS.find((p) => p.titleKey === id);
+                if (preset) applyPreset(preset);
+              }}
+            />
           ) : null}
 
           {reminderId ? (
@@ -707,35 +664,6 @@ const makeStyles = (theme: any) =>
       marginVertical: theme.spacing.md,
       fontWeight: theme.typography.fontWeight.bold,
       color: theme.colors.fg,
-    },
-    presetsSectionLabel: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.semibold,
-      marginBottom: theme.spacing.sm,
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    presetsScroll: {
-      maxHeight: 90,
-    },
-    presetsScrollContent: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      gap: theme.spacing.sm,
-    },
-    presetChip: {
-      borderRadius: theme.radius.xl,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
-      backgroundColor: theme.colors.card,
-    },
-    presetChipTitle: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    presetChipSummaryWrap: {
-      marginTop: theme.spacing.sm,
-    },
-    presetChipSummary: {
-      fontSize: theme.typography.small,
     },
     card: {
       marginHorizontal: theme.layout.contentPaddingHorizontal,

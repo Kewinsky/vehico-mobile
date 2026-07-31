@@ -80,7 +80,7 @@ export function MarketplacePostOptionsScreen({ navigation, route }: Props) {
             multiline
             textAlignVertical="top"
             editable={false}
-            scrollEnabled={true}
+            scrollEnabled
             keyboardAppearance={mode === "dark" ? "dark" : "light"}
           />
         </View>
@@ -102,7 +102,7 @@ const makeStyles = (theme: any) =>
       backgroundColor: theme.colors.card,
       minHeight: 300,
       maxHeight: 500,
-      padding: theme.spacing.sm,
+      padding: theme.spacing.xs,
     },
     contentText: {
       flex: 1,

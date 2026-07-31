@@ -37,7 +37,11 @@ import {
 } from "../../services/vehicleDocuments/vehicleDocumentsRepo";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { getUserFacingErrorMessage } from "../../ui/errors/userFacingError";
-import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
+import {
+  toastCaughtError,
+  toastError,
+  toastSuccess,
+} from "../../ui/toast/toast";
 import { promptAlert } from "../../ui/prompt/promptAlert";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Documents">;
@@ -497,7 +501,7 @@ const makeStyles = (theme: any) =>
     },
     card: {
       borderRadius: theme.radius.xl,
-      padding: theme.spacing.sm,
+      padding: theme.spacing.md,
       backgroundColor: theme.colors.card,
     },
     cardRow: {

@@ -656,29 +656,6 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       marginVertical: theme.spacing.md,
     },
-    muted: {
-      marginTop: theme.spacing.sm / 2,
-      color: theme.colors.muted,
-      lineHeight: theme.typography.body + 4,
-    },
-    cardRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-    },
-    card: {
-      backgroundColor: theme.colors.card,
-      borderRadius: theme.radius.xl,
-      padding: theme.spacing.sm,
-      gap: theme.spacing.sm / 2,
-    },
-    cardTitle: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-      color: theme.colors.fg,
-    },
-    cardMeta: { fontSize: theme.typography.small, color: theme.colors.muted },
-
     scrollContent: {
       paddingTop: 0,
     },

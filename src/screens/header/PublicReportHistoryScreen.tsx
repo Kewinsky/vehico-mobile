@@ -166,10 +166,7 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
   }
 
   return (
-    <HeaderLayout
-      loading={loading}
-      onBack={() => navigation.goBack()}
-    >
+    <HeaderLayout loading={loading} onBack={() => navigation.goBack()}>
       <View style={styles.listWrap}>
         <CustomFlatList
           data={reports}
@@ -207,10 +204,6 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     listWrap: { flex: 1 },
     list: { flex: 1 },
-    reportCard: {
-      borderRadius: theme.radius.xl,
-      padding: theme.spacing.sm,
-    },
     cardRow: {
       flexDirection: "row",
       alignItems: "center",

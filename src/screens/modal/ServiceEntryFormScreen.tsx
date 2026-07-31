@@ -4,7 +4,6 @@ import {
   Animated,
   FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -58,6 +57,7 @@ import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
+import { FormPresetChips } from "../../ui/components/common/FormPresetChips";
 import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
@@ -424,6 +424,18 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     setPendingFiles([]);
   }
 
+  const presetChipItems = useMemo(
+    () =>
+      SERVICE_ENTRY_PRESETS.map((preset) => ({
+        id: preset.titleKey,
+        title: t(`reminderForm.${preset.titleKey}`),
+        summaryLines: [
+          t(`entryForm.categories.${preset.category}` as any),
+        ],
+      })),
+    [t],
+  );
+
   function clearForm() {
     setMode("single");
     resetFieldErrors();
@@ -657,57 +669,16 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               <View style={{ height: theme.spacing.sm }} />
 
               {!isMulti ? (
-                <>
-                  <Text
-                    style={[
-                      styles.presetsSectionLabel,
-                      { color: theme.colors.muted },
-                    ]}
-                  >
-                    {t("entryForm.presetsTitle")}
-                  </Text>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.presetsScrollContent}
-                    style={styles.presetsScroll}
-                  >
-                    {SERVICE_ENTRY_PRESETS.map((preset) => (
-                      <Pressable
-                        key={preset.titleKey}
-                        onPress={() => applyPreset(preset)}
-                        style={({ pressed }) => [
-                          styles.presetChip,
-                          pressed && { opacity: 0.85 },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.presetChipTitle,
-                            { color: theme.colors.fg },
-                          ]}
-                          numberOfLines={2}
-                        >
-                          {t(`reminderForm.${preset.titleKey}`)}
-                        </Text>
-                        <View style={styles.presetChipSummaryWrap}>
-                          <Text
-                            style={[
-                              styles.presetChipSummary,
-                              { color: theme.colors.muted },
-                            ]}
-                            numberOfLines={1}
-                          >
-                            {t(
-                              `entryForm.categories.${preset.category}` as any,
-                            )}
-                          </Text>
-                        </View>
-                      </Pressable>
-                    ))}
-                  </ScrollView>
-                  <View style={{ height: theme.spacing.sm }} />
-                </>
+                <FormPresetChips
+                  sectionTitle={t("entryForm.presetsTitle")}
+                  items={presetChipItems}
+                  onSelect={(id) => {
+                    const preset = SERVICE_ENTRY_PRESETS.find(
+                      (p) => p.titleKey === id,
+                    );
+                    if (preset) applyPreset(preset);
+                  }}
+                />
               ) : null}
             </>
           ) : null}
@@ -1018,35 +989,6 @@ const makeStyles = (theme: any) =>
   StyleSheet.create({
     segmentTabs: {
       marginHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    presetsSectionLabel: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.semibold,
-      marginBottom: theme.spacing.sm,
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    presetsScroll: {
-      maxHeight: 90,
-    },
-    presetsScrollContent: {
-      paddingHorizontal: theme.layout.contentPaddingHorizontal,
-      gap: theme.spacing.sm,
-    },
-    presetChip: {
-      borderRadius: theme.radius.xl,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
-      backgroundColor: theme.colors.card,
-    },
-    presetChipTitle: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-    },
-    presetChipSummaryWrap: {
-      marginTop: theme.spacing.sm,
-    },
-    presetChipSummary: {
-      fontSize: theme.typography.small,
     },
     card: {
       marginHorizontal: theme.layout.contentPaddingHorizontal,

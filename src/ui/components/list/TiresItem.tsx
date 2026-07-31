@@ -138,7 +138,7 @@ const makeStyles = (theme: AppTheme) =>
     card: {
       flex: 1,
       borderRadius: theme.radius.xl,
-      padding: theme.spacing.sm,
+      padding: theme.spacing.md,
       backgroundColor: theme.colors.card,
     },
     content: {

@@ -15,7 +15,7 @@ import {
 } from "../../services/portability/exportData";
 import { HeaderLayout } from "../../layouts";
 import { Button } from "../../ui/components/common/Button";
-import { Card, CardDivider } from "../../ui/components/common/Card";
+import { Card } from "../../ui/components/common/Card";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
@@ -258,16 +258,14 @@ export function ExportScreen({ navigation, route }: Props) {
               {t("export.dataTypesLabel")}
             </Text>
           </View>
-          {EXPORT_DATA_TYPES.map((type, index) => (
-            <View key={type}>
-              {index > 0 ? <CardDivider /> : null}
-              <CheckboxRow
-                label={t(`export.dataTypes.${type}`)}
-                checked={selectedTypes.includes(type)}
-                onPress={() => toggleDataType(type)}
-                disabled={exporting}
-              />
-            </View>
+          {EXPORT_DATA_TYPES.map((type) => (
+            <CheckboxRow
+              key={type}
+              label={t(`export.dataTypes.${type}`)}
+              checked={selectedTypes.includes(type)}
+              onPress={() => toggleDataType(type)}
+              disabled={exporting}
+            />
           ))}
         </Card>
 
@@ -284,7 +282,6 @@ export function ExportScreen({ navigation, route }: Props) {
           />
           {timeRange === "custom" ? (
             <>
-              <CardDivider />
               <FormDateRow
                 label={t("export.customFrom")}
                 value={customFromYmd}
@@ -292,7 +289,6 @@ export function ExportScreen({ navigation, route }: Props) {
                 disabled={exporting}
                 error={fieldError(customFromFieldInvalid)}
               />
-              <CardDivider />
               <FormDateRow
                 label={t("export.customTo")}
                 value={customToYmd}
