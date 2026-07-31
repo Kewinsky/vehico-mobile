@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -166,6 +166,12 @@ export function OnboardingScreen({ navigation }: Props) {
     if (!canGoBack) return;
     setCurrentStep((s) => previousStepIndex(s));
   }
+
+  const onSignOut = useCallback(() => {
+    signOut().catch((e: unknown) => {
+      toastCaughtError(e, t("common.error"));
+    });
+  }, [signOut, t]);
 
   function applyPickedPhoto(asset: {
     uri: string;
@@ -931,7 +937,7 @@ export function OnboardingScreen({ navigation }: Props) {
           ]}
         >
           {showProgress ? (
-            <View style={styles.progressWrap}>
+            <View style={styles.progressWrap} pointerEvents="none">
               <View style={styles.progressSegmentsRow}>
                 {Array.from({ length: progressSegmentCount }).map((_, i) => {
                   const w = progressAnim.interpolate({
@@ -959,11 +965,20 @@ export function OnboardingScreen({ navigation }: Props) {
               </View>
             </View>
           ) : (
-            <View style={styles.progressWrap} />
+            <View style={styles.progressWrap} pointerEvents="none" />
           )}
 
           {currentStep === 0 ? (
-            <Pressable onPress={() => void signOut()} hitSlop={10}>
+            <Pressable
+              onPress={onSignOut}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={t("common.signOut")}
+              style={({ pressed }) => [
+                styles.signOutBtn,
+                pressed && { opacity: 0.7 },
+              ]}
+            >
               <Text
                 style={{
                   color: theme.colors.danger,
@@ -1052,6 +1067,12 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       justifyContent: "space-between",
       paddingHorizontal: theme.spacing.sm,
       borderBottomWidth: 1,
+      zIndex: 2,
+    },
+    signOutBtn: {
+      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.sm,
+      marginLeft: "auto",
     },
     backBtn: {
       width: theme.spacing.xl + theme.spacing.xs,

@@ -34,17 +34,17 @@ export function OnboardingLayout({
         },
       ]}
     >
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <View pointerEvents="none" style={styles.backgroundLayer}>
         <DecorativeBackground variant="onboarding" />
       </View>
 
       {background != null ? (
-        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <View pointerEvents="none" style={styles.backgroundLayer}>
           {background}
         </View>
       ) : null}
 
-      {header}
+      {header != null ? <View style={styles.foreground}>{header}</View> : null}
 
       {loading ? (
         <LoadingView />
@@ -52,6 +52,7 @@ export function OnboardingLayout({
         <View
           style={[
             styles.content,
+            styles.foreground,
             { paddingHorizontal: theme.layout.contentPaddingHorizontal },
           ]}
         >
@@ -63,6 +64,7 @@ export function OnboardingLayout({
         <View
           style={[
             styles.footerWrap,
+            styles.foreground,
             {
               paddingHorizontal: theme.layout.contentPaddingHorizontal,
               paddingBottom: insets.bottom,
@@ -79,6 +81,13 @@ export function OnboardingLayout({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  backgroundLayer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+  },
+  foreground: {
+    zIndex: 1,
   },
   content: {
     flex: 1,
