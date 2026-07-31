@@ -43,7 +43,11 @@ import {
 import { uploadVehiclePhoto } from "../../services/vehicles/uploadPhoto";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { supabase } from "../../services/supabase/client";
-import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
+import {
+  toastCaughtError,
+  toastError,
+  toastSuccess,
+} from "../../ui/toast/toast";
 import {
   getPremiumUpgradeAlertButtons,
   handleAndShowLimitErrorAlert,
@@ -694,50 +698,52 @@ export function OnboardingScreen({ navigation }: Props) {
                 model: model.trim(),
               })}
             />
-            {photo?.uri ? (
-              <View
-                style={[
-                  styles.photoCard,
-                  {
-                    borderColor: theme.colors.border,
-                    backgroundColor: theme.colors.card,
-                  },
-                ]}
-              >
+            <View
+              style={[
+                styles.photoCard,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.card,
+                },
+              ]}
+            >
+              {photo?.uri ? (
                 <Image
                   source={{ uri: photo.uri }}
                   style={styles.photo}
                   contentFit="cover"
                   transition={200}
                 />
-              </View>
-            ) : (
-              <AttachmentSourcePicker
-                disabled={saving}
-                handlers={photoSourceHandlers}
+              ) : null}
+
+              <View
+                style={[
+                  styles.photoMenuCenter,
+                  photo?.uri ? styles.photoMenuCenterOverlay : null,
+                ]}
               >
-                <View
-                  style={[
-                    styles.photoPlaceholderCard,
-                    {
-                      borderColor: theme.colors.border,
-                      backgroundColor: theme.colors.card,
-                    },
-                    saving && { opacity: 0.5 },
-                  ]}
+                <AttachmentSourcePicker
+                  disabled={saving}
+                  handlers={photoSourceHandlers}
                 >
                   <View
                     style={[
-                      styles.photoPlaceholderIcon,
-                      { backgroundColor: hexToRgba(theme.colors.accent, 0.14) },
+                      styles.photoMenuButton,
+                      {
+                        backgroundColor: hexToRgba(theme.colors.accent, 0.18),
+                        borderColor: hexToRgba(theme.colors.accent, 0.35),
+                      },
+                      saving && { opacity: 0.5 },
                     ]}
                   >
                     <Ionicons
-                      name="camera-outline"
+                      name="add"
                       size={28}
                       color={theme.colors.accent}
                     />
                   </View>
+                </AttachmentSourcePicker>
+                {!photo?.uri ? (
                   <Text
                     style={[
                       styles.photoPlaceholderTitle,
@@ -746,18 +752,9 @@ export function OnboardingScreen({ navigation }: Props) {
                   >
                     {t("onboarding.vehicle.photo.addPhoto")}
                   </Text>
-                </View>
-              </AttachmentSourcePicker>
-            )}
-
-            {photo ? (
-              <AttachmentSourcePicker
-                disabled={saving}
-                handlers={photoSourceHandlers}
-                label={t("onboarding.vehicle.photo.changePhoto")}
-                triggerStyle={styles.changePhotoButton}
-              />
-            ) : null}
+                ) : null}
+              </View>
+            </View>
 
             <Pressable
               onPress={() => {
@@ -1171,41 +1168,39 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       fontWeight: theme.typography.fontWeight.bold,
     },
     photoCard: {
-      borderRadius: theme.radius.xl,
-      overflow: "hidden",
-      marginBottom: theme.spacing.xs,
-    },
-    photoPlaceholderCard: {
+      position: "relative",
+      height: 220,
       borderWidth: 1,
       borderRadius: theme.radius.xl,
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.lg,
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      marginBottom: theme.spacing.xs,
-    },
-    photoPlaceholderIcon: {
-      width: 44,
-      height: 44,
-      borderRadius: 999,
+      overflow: "hidden",
       alignItems: "center",
       justifyContent: "center",
     },
+    photoMenuCenter: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: theme.spacing.md,
+      zIndex: 2,
+    },
+    photoMenuCenterOverlay: {
+      ...StyleSheet.absoluteFillObject,
+    },
     photoPlaceholderTitle: {
+      marginTop: theme.spacing.md,
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.bold,
       textAlign: "center",
     },
-    changePhotoButton: {
-      marginTop: theme.spacing.xs,
-    },
-    photoPlaceholderSubtitle: {
-      fontSize: theme.typography.small,
-      textAlign: "center",
+    photoMenuButton: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      borderWidth: StyleSheet.hairlineWidth,
+      alignItems: "center",
+      justifyContent: "center",
     },
     photo: {
-      width: "100%",
-      height: 220,
+      ...StyleSheet.absoluteFillObject,
     },
     detailsCard: {
       borderRadius: theme.radius.xl,
