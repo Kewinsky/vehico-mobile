@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Dimensions,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -139,7 +138,7 @@ export function AuthScreen({ navigation }: Props) {
     [otpTrimmed, isVerifying, isSubmitting],
   );
 
-  const showAppleSignIn = appleSignInAvailable || Platform.OS === "android";
+  const showAppleSignIn = appleSignInAvailable;
 
   const legalFooter = (
     <View style={styles.bottomLegalFooter}>
