@@ -1,5 +1,5 @@
-import * as ImageManipulator from "expo-image-manipulator";
 import { fetchBlob, randomId } from "../../services/storage/uploadUtils";
+import { compressImageForUpload } from "../../services/storage/compressImageForUpload";
 import { mockStorageBucket, supabase } from "../../test/supabaseMock";
 import {
   copyVehiclePhotoToReport,
@@ -7,9 +7,9 @@ import {
   uploadReportPhoto,
 } from "../../services/publicPages/uploadReportPhoto";
 
-jest.mock("expo-image-manipulator", () => ({
-  manipulateAsync: jest.fn(),
-  SaveFormat: { JPEG: "jpeg" },
+jest.mock("../../services/storage/compressImageForUpload", () => ({
+  compressImageForUpload: jest.fn(),
+  UPLOAD_IMAGE_CACHE_CONTROL: "31536000",
 }));
 
 jest.mock("../../services/storage/uploadUtils", () => ({
@@ -25,9 +25,9 @@ describe("uploadReportPhoto", () => {
     );
     jest.spyOn(Date, "now").mockReturnValue(1700000000000);
     (randomId as jest.Mock).mockReturnValue("rid");
-    (ImageManipulator.manipulateAsync as jest.Mock).mockResolvedValue({
-      uri: "file:///converted.jpg",
-    });
+    (compressImageForUpload as jest.Mock).mockResolvedValue(
+      "file:///converted.jpg",
+    );
     (fetchBlob as jest.Mock).mockResolvedValue("blob-data");
     mockStorageBucket.upload.mockResolvedValue({ error: null });
   });
@@ -43,15 +43,15 @@ describe("uploadReportPhoto", () => {
       displayOrder: 2,
     });
 
-    expect(ImageManipulator.manipulateAsync).toHaveBeenCalledWith(
-      "file:///orig.png",
-      [],
-      { compress: 0.9, format: "jpeg" },
-    );
+    expect(compressImageForUpload).toHaveBeenCalledWith("file:///orig.png");
     expect(mockStorageBucket.upload).toHaveBeenCalledWith(
       "rep1/1700000000000-rid.jpg",
       "blob-data",
-      { contentType: "image/jpeg", upsert: false },
+      {
+        contentType: "image/jpeg",
+        cacheControl: "31536000",
+        upsert: false,
+      },
     );
     expect(out).toEqual({
       storage_path: "rep1/1700000000000-rid.jpg",
@@ -105,7 +105,11 @@ describe("uploadReportPhoto", () => {
     expect(mockStorageBucket.upload).toHaveBeenCalledWith(
       "rep1/1700000000000-rid.jpg",
       buffer,
-      { contentType: "image/jpeg", upsert: false },
+      {
+        contentType: "image/jpeg",
+        cacheControl: "31536000",
+        upsert: false,
+      },
     );
     expect(out.storage_path).toBe("rep1/1700000000000-rid.jpg");
   });

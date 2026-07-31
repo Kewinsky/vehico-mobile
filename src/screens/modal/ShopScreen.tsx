@@ -50,6 +50,7 @@ import {
   getStoreFormattingLocale,
 } from "../../utils/currencyDisplay";
 import { formatRollingGroupedNumber } from "../../utils/numberFormatting";
+import { getStoreProductPricing } from "../../services/payments/storeProductPricing";
 import { ShopCompareRowIcon } from "../../ui/components/shop/ShopCompareRowIcon";
 import { Glow } from "../../ui/components/dashboard/Glow";
 import { getShopComparisonRows, type ShopCompareRow } from "./shopComparison";
@@ -92,7 +93,11 @@ export function ShopScreen({ navigation }: Props) {
   );
 
   const selectedProduct = revenueCatProducts[selectedId];
-  const selectedPriceString = selectedProduct?.priceString ?? "–";
+  const selectedPricing = useMemo(
+    () => getStoreProductPricing(selectedProduct),
+    [selectedProduct],
+  );
+  const selectedPriceString = selectedPricing?.priceString?.trim() || "–";
 
   const selectedDisclosure = useMemo(
     () => getSubscriptionDisclosure(selectedId, selectedProduct, t),
@@ -100,11 +105,11 @@ export function ShopScreen({ navigation }: Props) {
   );
 
   const priceRollingValue = useMemo(() => {
-    const raw = selectedProduct?.price;
+    const raw = selectedPricing?.price;
     if (raw == null || !Number.isFinite(raw) || raw <= 0) return null;
     if (isYearlyProduct(selectedId)) return raw / 12;
     return raw;
-  }, [selectedId, selectedProduct?.price]);
+  }, [selectedId, selectedPricing?.price]);
 
   const priceRollingFormattedText = useMemo(() => {
     if (priceRollingValue == null) return undefined;
@@ -117,10 +122,12 @@ export function ShopScreen({ navigation }: Props) {
     }, [refresh]),
   );
 
-  const monthlyPremiumPrice =
-    revenueCatProducts[REVENUECAT_PRODUCT_IDS.monthly]?.price;
-  const yearlyPremiumPrice =
-    revenueCatProducts[REVENUECAT_PRODUCT_IDS.yearly]?.price;
+  const monthlyPremiumPrice = getStoreProductPricing(
+    revenueCatProducts[REVENUECAT_PRODUCT_IDS.monthly],
+  )?.price;
+  const yearlyPremiumPrice = getStoreProductPricing(
+    revenueCatProducts[REVENUECAT_PRODUCT_IDS.yearly],
+  )?.price;
 
   const yearlySavePercent = useMemo(() => {
     if (
@@ -216,15 +223,15 @@ export function ShopScreen({ navigation }: Props) {
   const showPerMonthSuffix = !isLifetimeProduct(selectedId);
 
   const priceCurrencyDisplay = useMemo(() => {
-    if (priceRollingValue == null || !selectedProduct?.currencyCode) {
+    if (priceRollingValue == null || !selectedPricing?.currencyCode) {
       return null;
     }
     return getStoreCurrencyAffixes(
       priceRollingValue,
-      selectedProduct.currencyCode,
+      selectedPricing.currencyCode,
       storeLocale,
     );
-  }, [priceRollingValue, selectedProduct?.currencyCode, storeLocale]);
+  }, [priceRollingValue, selectedPricing?.currencyCode, storeLocale]);
 
   async function openExampleLink(row: ShopCompareRow) {
     const link = row.exampleLink;

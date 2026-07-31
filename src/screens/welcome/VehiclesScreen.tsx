@@ -73,10 +73,27 @@ function VehicleCarousel({
 }: VehicleCarouselProps) {
   if (photoUrls.length === 0) return null;
 
+  // Locked: static first photo – avoids Android carousel still swiping.
+  if (isLocked) {
+    return (
+      <View style={{ width, height, overflow: "hidden" }}>
+        <Image
+          source={{ uri: photoUrls[0] }}
+          style={{
+            width: "100%",
+            height: "100%",
+            backgroundColor: theme.colors.card,
+          }}
+          contentFit="cover"
+          transition={200}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={{ position: "relative", width, height, overflow: "hidden" }}>
       <Carousel
-        enabled={!isLocked}
         loop={true}
         snapEnabled={true}
         pagingEnabled={true}
@@ -204,28 +221,21 @@ function VehicleCardImage({
             alignItems: "center",
             justifyContent: "center",
           }}
-          pointerEvents="none"
+          pointerEvents="auto"
         >
           <BlurView
             intensity={60}
             tint="dark"
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            }}
+            experimentalBlurMethod={
+              Platform.OS === "android" ? "dimezisBlurView" : undefined
+            }
+            style={StyleSheet.absoluteFill}
           />
           <View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0,0,0,0.35)",
-            }}
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: "rgba(0,0,0,0.35)" },
+            ]}
           />
           <Ionicons
             name="lock-closed"
@@ -580,7 +590,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
               }}
               style={({ pressed }) => [
                 styles.vehicleCard,
-                pressed && styles.vehicleCardPressed,
+                pressed && !isLocked && styles.vehicleCardPressed,
               ]}
             >
               <View style={styles.vehicleImageContainer}>
@@ -602,33 +612,26 @@ export function VehiclesScreen({ navigation, route }: Props) {
                               alignItems: "center",
                               justifyContent: "center",
                             }}
-                            pointerEvents="none"
+                            pointerEvents="auto"
                           >
                             <BlurView
                               intensity={60}
                               tint="dark"
-                              style={{
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
-                              }}
+                              experimentalBlurMethod={
+              Platform.OS === "android" ? "dimezisBlurView" : undefined
+            }
+                              style={StyleSheet.absoluteFill}
                             />
                             <View
-                              style={{
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
-                                backgroundColor: "rgba(0,0,0,0.35)",
-                              }}
+                              style={[
+                                StyleSheet.absoluteFill,
+                                { backgroundColor: "rgba(0,0,0,0.35)" },
+                              ]}
                             />
                             <Ionicons
                               name="lock-closed"
                               size={48}
-                              color="rgba(255,255,255,0.9)"
+                              color={hexToRgba(theme.colors.accent, 0.5)}
                             />
                           </View>
                         )}

@@ -37,4 +37,27 @@ describe("getSubscriptionDisclosure", () => {
     );
     expect(yearly.pricePerUnit).toContain("per month");
   });
+
+  it("falls back to Android fullPricePhase when top-level price is empty", () => {
+    const yearly = getSubscriptionDisclosure(
+      IAP_PRODUCT_IDS.yearly,
+      {
+        price: 0,
+        priceString: "",
+        currencyCode: "",
+        defaultOption: {
+          fullPricePhase: {
+            price: {
+              amountMicros: 119_990_000,
+              formatted: "119,99 zł",
+              currencyCode: "PLN",
+            },
+          },
+        },
+      } as any,
+      t,
+    );
+    expect(yearly.price).toBe("119,99 zł");
+    expect(yearly.pricePerUnit).toContain("per month");
+  });
 });

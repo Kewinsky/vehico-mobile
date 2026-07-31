@@ -7,13 +7,13 @@ import {
   reorderVehiclePhotos,
 } from "../../services/vehicles/uploadPhoto";
 import { createPostgrestChain, mockStorageBucket, supabase } from "../../test/supabaseMock";
-import * as ImageManipulator from "expo-image-manipulator";
+import { compressImageForUpload } from "../../services/storage/compressImageForUpload";
 import { fetchBlob, randomId } from "../../services/storage/uploadUtils";
 import type { VehiclePhoto } from "../../types/domain";
 
-jest.mock("expo-image-manipulator", () => ({
-  manipulateAsync: jest.fn(),
-  SaveFormat: { JPEG: "jpeg" },
+jest.mock("../../services/storage/compressImageForUpload", () => ({
+  compressImageForUpload: jest.fn(),
+  UPLOAD_IMAGE_CACHE_CONTROL: "31536000",
 }));
 
 jest.mock("../../services/storage/uploadUtils", () => ({
@@ -25,9 +25,9 @@ describe("uploadPhoto (storage + photos table)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Date, "now").mockReturnValue(1700000000000);
-    (ImageManipulator.manipulateAsync as jest.Mock).mockResolvedValue({
-      uri: "file:///converted.jpg",
-    });
+    (compressImageForUpload as jest.Mock).mockResolvedValue(
+      "file:///converted.jpg",
+    );
     (fetchBlob as jest.Mock).mockResolvedValue("blob-data");
     (randomId as jest.Mock).mockReturnValue("rid");
     mockStorageBucket.upload.mockResolvedValue({ error: null });
@@ -163,15 +163,15 @@ describe("uploadPhoto (storage + photos table)", () => {
       fileUri: "file:///a.png",
     });
 
-    expect(ImageManipulator.manipulateAsync).toHaveBeenCalledWith(
-      "file:///a.png",
-      [],
-      { compress: 0.9, format: "jpeg" },
-    );
+    expect(compressImageForUpload).toHaveBeenCalledWith("file:///a.png");
     expect(mockStorageBucket.upload).toHaveBeenCalledWith(
       "v1/1700000000000-rid.jpg",
       "blob-data",
-      { contentType: "image/jpeg", upsert: false },
+      {
+        contentType: "image/jpeg",
+        cacheControl: "31536000",
+        upsert: false,
+      },
     );
     expect(out.id).toBe("ph-new");
   });

@@ -1,7 +1,10 @@
 import type { VehiclePhoto } from "../../types/domain";
 import { supabase } from "../supabase/client";
+import {
+  compressImageForUpload,
+  UPLOAD_IMAGE_CACHE_CONTROL,
+} from "../storage/compressImageForUpload";
 import { fetchBlob, randomId } from "../storage/uploadUtils";
-import * as ImageManipulator from "expo-image-manipulator";
 
 const BUCKET = "report-photos";
 
@@ -43,19 +46,16 @@ export async function uploadReportPhoto(params: {
   mimeType?: string | null;
   fileName?: string | null;
 }): Promise<ReportPhotoUpload> {
-  const manipulated = await ImageManipulator.manipulateAsync(
-    params.fileUri,
-    [],
-    { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG },
-  );
+  const compressedUri = await compressImageForUpload(params.fileUri);
 
   const storagePath = `${params.reportId}/${Date.now()}-${randomId()}.jpg`;
-  const fileData = await fetchBlob(manipulated.uri);
+  const fileData = await fetchBlob(compressedUri);
 
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
     .upload(storagePath, fileData, {
       contentType: "image/jpeg",
+      cacheControl: UPLOAD_IMAGE_CACHE_CONTROL,
       upsert: false,
     });
 
@@ -82,6 +82,7 @@ export async function copyVehiclePhotoToReport(params: {
     .from(BUCKET)
     .upload(storagePath, fileData, {
       contentType: "image/jpeg",
+      cacheControl: UPLOAD_IMAGE_CACHE_CONTROL,
       upsert: false,
     });
 

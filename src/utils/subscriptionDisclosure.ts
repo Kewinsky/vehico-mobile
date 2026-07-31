@@ -14,6 +14,7 @@ import {
   formatStoreCurrency,
   getStoreFormattingLocale,
 } from "./currencyDisplay";
+import { getStoreProductPricing } from "../services/payments/storeProductPricing";
 
 export type SubscriptionDisclosureLines = {
   title: string;
@@ -35,20 +36,21 @@ export function getSubscriptionDisclosure(
     kind != null
       ? t(`shop.subscriptionPeriod.${IAP_SUBSCRIPTION_PERIOD_I18N_KEY[kind]}`)
       : "";
-  const price = product?.priceString?.trim() || "–";
+  const pricing = getStoreProductPricing(product);
+  const price = pricing?.priceString?.trim() || "–";
   const isAutoRenewable = isSubscriptionIapProduct(productId);
 
   let pricePerUnit: string | null = null;
   if (
     isYearlyIapProduct(productId) &&
-    product?.price != null &&
-    product.price > 0 &&
-    product.currencyCode
+    pricing != null &&
+    pricing.price > 0 &&
+    pricing.currencyCode
   ) {
-    const perMonth = product.price / 12;
+    const perMonth = pricing.price / 12;
     const formatted = formatStoreCurrency(
       perMonth,
-      product.currencyCode,
+      pricing.currencyCode,
       getStoreFormattingLocale(),
     );
     pricePerUnit = t("shop.pricePerMonth", { price: formatted });

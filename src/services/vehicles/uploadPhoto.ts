@@ -1,7 +1,10 @@
 import type { VehiclePhoto } from "../../types/domain";
 import { supabase } from "../supabase/client";
+import {
+  compressImageForUpload,
+  UPLOAD_IMAGE_CACHE_CONTROL,
+} from "../storage/compressImageForUpload";
 import { fetchBlob, randomId } from "../storage/uploadUtils";
-import * as ImageManipulator from "expo-image-manipulator";
 
 const DEFAULT_MAX_PHOTOS = 6;
 
@@ -80,23 +83,20 @@ export async function uploadVehiclePhoto(params: {
     throw new Error(`Maximum ${maxPhotos} photos allowed`);
   }
 
-  // Convert all photos to JPEG for maximum compatibility
-  const manipulated = await ImageManipulator.manipulateAsync(
-    params.fileUri,
-    [], // No transformations, just conversion
-    { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
-  );
+  // Resize + JPEG compress to cut Storage egress on every later download
+  const compressedUri = await compressImageForUpload(params.fileUri);
 
   const bucket = "images";
   const storagePath = `${params.vehicleId}/${Date.now()}-${randomId()}.jpg`;
 
-  const fileData = await fetchBlob(manipulated.uri);
+  const fileData = await fetchBlob(compressedUri);
 
   // Upload new photo as JPEG
   const { error: uploadError } = await supabase.storage
     .from(bucket)
     .upload(storagePath, fileData, {
       contentType: "image/jpeg",
+      cacheControl: UPLOAD_IMAGE_CACHE_CONTROL,
       upsert: false,
     });
 
@@ -187,8 +187,8 @@ export async function reorderVehiclePhotos(
 }
 
 /**
- * Gets public URL for a vehicle photo
- * Note: Bucket is public, so we use public URLs directly
+ * Gets public URL for a vehicle photo.
+ * Bucket is public – plain URLs only (no Image Transformations add-on).
  */
 export function getVehiclePhotoUrl(photo: VehiclePhoto): string {
   const { data } = supabase.storage
