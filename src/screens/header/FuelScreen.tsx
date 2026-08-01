@@ -226,6 +226,7 @@ export function FuelScreen({ route, navigation }: Props) {
             fuelUnitLabel={fuelUnitLabel}
             cost={Number(entry.fuel_cost)}
             currency={currency}
+            distance={entry.distance}
             onPress={() =>
               navigation.navigate("FuelingEntryForm", {
                 vehicleId: route.params.vehicleId,

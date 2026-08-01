@@ -100,6 +100,32 @@ export function getUnitDisplay(
   };
 }
 
+/**
+ * Per-fill consumption from fuel amount + trip distance.
+ * Returns null when either value is missing or not positive.
+ */
+export function computeTripConsumption(input: {
+  unitGroup: UnitGroupId;
+  fuelAmount: number;
+  distance: number | null | undefined;
+}): number | null {
+  const fuel = Number(input.fuelAmount);
+  const distance = Number(input.distance);
+  if (!(fuel > 0) || !(distance > 0) || !Number.isFinite(fuel) || !Number.isFinite(distance)) {
+    return null;
+  }
+  switch (input.unitGroup) {
+    case "european":
+      return (fuel / distance) * 100;
+    case "metric":
+    case "uk":
+    case "imperial":
+      return distance / fuel;
+    default:
+      return (fuel / distance) * 100;
+  }
+}
+
 export function settingsPatchForUnitGroup(
   groupId: UnitGroupId,
 ): Pick<UserSettings, "unitGroup" | "distanceUnit" | "fuelUnit"> {

@@ -264,7 +264,7 @@ const makeStyles = (theme: AppTheme) =>
       letterSpacing: 0.4,
     },
     metaText: {
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.medium,
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
     },
   });

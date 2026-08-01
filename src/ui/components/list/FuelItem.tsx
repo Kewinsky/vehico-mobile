@@ -1,12 +1,15 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Trash2 } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../common/SwipeActions";
 import { useTranslation } from "react-i18next";
 
+import { useUnitDisplay } from "../../../app/hooks/useUnitDisplay";
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
 import { formatShortDisplayDate } from "../../../utils/dateFormatting";
+import { computeTripConsumption } from "../../../utils/unitGroups";
 
 type FuelItemProps = {
   date: string;
@@ -16,9 +19,44 @@ type FuelItemProps = {
   fuelUnitLabel: string;
   cost: number;
   currency: string;
+  /** Trip distance for this fill-up; when set with amount, shows avg consumption. */
+  distance?: number | null;
   onPress?: () => void;
   onDelete?: () => void;
 };
+
+function Metric({
+  icon,
+  iconColor,
+  value,
+  unit,
+  valueColor,
+  unitColor,
+  styles,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  iconColor: string;
+  value: string;
+  unit: string;
+  valueColor: string;
+  unitColor: string;
+  styles: ReturnType<typeof makeStyles>;
+}) {
+  return (
+    <View style={styles.metric}>
+      <Ionicons name={icon} size={16} color={iconColor} />
+      <View style={styles.metricTextWrap}>
+        <Text style={[styles.metricValue, { color: valueColor }]} numberOfLines={1}>
+          {value}
+        </Text>
+        <Text style={[styles.metricUnit, { color: unitColor }]} numberOfLines={1}>
+          {" "}
+          {unit}
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 export function FuelItem({
   date,
@@ -28,38 +66,64 @@ export function FuelItem({
   fuelUnitLabel,
   cost,
   currency,
+  distance,
   onPress,
   onDelete,
 }: FuelItemProps) {
   const { i18n } = useTranslation();
   const { theme } = useTheme();
+  const { unitGroup, consumptionUnitLine } = useUnitDisplay();
   const styles = makeStyles(theme);
   const formattedDate = formatShortDisplayDate(date, i18n.language);
   const details =
     [formattedDate, fuelTypeLabel, stationLabel].filter(Boolean).join(" · ") ||
     "–";
 
+  const consumption = computeTripConsumption({
+    unitGroup,
+    fuelAmount: amount,
+    distance: distance ?? null,
+  });
+
   const content = (
     <View style={styles.card}>
-      <View style={styles.topRow}>
-        <Text
-          style={[styles.details, { color: theme.colors.muted }]}
-          numberOfLines={1}
-        >
-          {details}
-        </Text>
-      </View>
-      <View style={styles.bottomRow}>
-        <View style={styles.valueWrap}>
-          <Text style={styles.amountText}>{Number(amount).toFixed(1)}</Text>
-          <Text style={styles.amountUnitText}> {fuelUnitLabel}</Text>
-        </View>
-        <View style={styles.valueWrap}>
-          <Text style={[styles.costText, { color: theme.colors.fg }]}>
-            {Number(cost).toFixed(2)}
-          </Text>
-          <Text style={styles.costCurrencyText}> {currency}</Text>
-        </View>
+      <Text
+        style={[styles.details, { color: theme.colors.muted }]}
+        numberOfLines={1}
+      >
+        {details}
+      </Text>
+
+      <View style={styles.metricsRow}>
+        <Metric
+          icon="water"
+          iconColor="#0ea5e9"
+          value={Number(amount).toFixed(1)}
+          unit={fuelUnitLabel}
+          valueColor={theme.colors.fg}
+          unitColor={theme.colors.muted}
+          styles={styles}
+        />
+        {consumption != null ? (
+          <Metric
+            icon="speedometer-outline"
+            iconColor={theme.colors.accent}
+            value={consumption.toFixed(1)}
+            unit={consumptionUnitLine}
+            valueColor={theme.colors.fg}
+            unitColor={theme.colors.muted}
+            styles={styles}
+          />
+        ) : null}
+        <Metric
+          icon="cash-outline"
+          iconColor="#22c55e"
+          value={Number(cost).toFixed(2)}
+          unit={currency}
+          valueColor={theme.colors.fg}
+          unitColor={theme.colors.muted}
+          styles={styles}
+        />
       </View>
     </View>
   );
@@ -105,49 +169,36 @@ const makeStyles = (theme: AppTheme) =>
       borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       backgroundColor: theme.colors.card,
-      gap: theme.spacing.xs,
+      gap: theme.spacing.sm,
     },
     details: {
-      flex: 1,
-      minWidth: 0,
       fontSize: theme.typography.small,
       lineHeight: theme.typography.small + 4,
     },
-    topRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.sm,
-    },
-    bottomRow: {
+    metricsRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       gap: theme.spacing.sm,
     },
-    amountText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-      color: theme.colors.fg,
+    metric: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      minWidth: 0,
     },
-    amountUnitText: {
-      fontSize: theme.typography.small,
-      color: theme.colors.muted,
-      fontWeight: theme.typography.fontWeight.regular,
-    },
-    costText: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-      textAlign: "right",
-    },
-    costCurrencyText: {
-      fontSize: theme.typography.small,
-      color: theme.colors.muted,
-      fontWeight: theme.typography.fontWeight.regular,
-    },
-    valueWrap: {
+    metricTextWrap: {
       flexDirection: "row",
       alignItems: "baseline",
       minWidth: 0,
       flexShrink: 1,
+    },
+    metricValue: {
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    metricUnit: {
+      fontSize: theme.typography.xs,
+      fontWeight: theme.typography.fontWeight.medium,
     },
   });
