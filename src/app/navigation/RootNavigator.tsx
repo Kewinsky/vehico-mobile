@@ -7,6 +7,7 @@ import type {
 } from "../../types/reportOptions";
 import { useAuth } from "../providers/AuthProvider";
 import { AuthScreen } from "../../screens/modal/AuthScreen";
+import { AuthResendOtpScreen } from "../../screens/modal/AuthResendOtpScreen";
 import { VehiclesScreen } from "../../screens/welcome/VehiclesScreen";
 import { VehicleFormScreen } from "../../screens/modal/VehicleFormScreen";
 import { VehicleDashboardScreen } from "../../screens/header/VehicleDashboardScreen";
@@ -60,6 +61,7 @@ const nativeHeaderScreenOptions = {
 
 export type AppStackParamList = {
   Auth: undefined;
+  AuthResendOtp: { email: string };
   Onboarding: undefined;
   Vehicles: { showVehiclePicker?: boolean } | undefined;
   VehicleForm: { vehicleId?: string };
@@ -188,18 +190,31 @@ export function RootNavigator() {
       }
     >
       {!session ? (
-        <Stack.Screen
-          name="Auth"
-          component={AuthScreen}
-          options={{
-            presentation: "card",
-            headerShown: true,
-            title: "",
-            headerShadowVisible: false,
-            headerTransparent: true,
-            headerBackVisible: false,
-          }}
-        />
+        <>
+          <Stack.Screen
+            name="Auth"
+            component={AuthScreen}
+            options={{
+              presentation: "card",
+              headerShown: true,
+              title: "",
+              headerShadowVisible: false,
+              headerTransparent: true,
+              headerBackVisible: false,
+            }}
+          />
+          <Stack.Screen
+            name="AuthResendOtp"
+            component={AuthResendOtpScreen}
+            options={{
+              presentation: "card",
+              headerShown: true,
+              title: "",
+              headerShadowVisible: false,
+              headerTransparent: true,
+            }}
+          />
+        </>
       ) : (
         <>
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />

@@ -21,6 +21,12 @@ import {
   isValidEmailOtpLength,
   normalizeEmailOtpInput,
 } from "../../services/auth/emailOtp";
+import {
+  isCaptchaError,
+  isOtpExpiredOrInvalid,
+  isRateLimitError,
+} from "../../services/auth/authRequestErrors";
+import { requestEmailOtp } from "../../services/auth/requestEmailOtp";
 import { supabase } from "../../services/supabase/client";
 import { Button } from "../../ui/components/common/Button";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
@@ -41,30 +47,11 @@ import { LegalLinksRow } from "../../ui/components/common/LegalLinksRow";
 import { Logo } from "../../ui/components/branding/Logo";
 import { BRAND_FONT_FAMILY } from "../../ui/components/branding/BrandHero";
 import { Glow } from "../../ui/components/dashboard/Glow";
+import { TurnstileCaptcha } from "../../ui/components/auth/TurnstileCaptcha";
 
 WebBrowser.maybeCompleteAuthSession();
 
 type Props = NativeStackScreenProps<AppStackParamList, "Auth">;
-
-function isRateLimitError(message: string | undefined): boolean {
-  const msg = message?.toLowerCase() ?? "";
-  return (
-    msg.includes("rate limit") ||
-    msg.includes("too many") ||
-    msg.includes("429") ||
-    msg.includes("email rate limit")
-  );
-}
-
-function isOtpExpiredOrInvalid(message: string | undefined): boolean {
-  const msg = message?.toLowerCase() ?? "";
-  return (
-    msg.includes("expired") ||
-    msg.includes("invalid") ||
-    msg.includes("otp") ||
-    msg.includes("token")
-  );
-}
 
 export function AuthScreen({ navigation }: Props) {
   const { t } = useTranslation();
@@ -80,6 +67,7 @@ export function AuthScreen({ navigation }: Props) {
       style={styles.backgroundGlow}
     />
   );
+  const captchaEnabled = !!ENV.TURNSTILE_SITE_KEY;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otpCode, setOtpCode] = useState("");
@@ -89,17 +77,18 @@ export function AuthScreen({ navigation }: Props) {
   const [appleSignInAvailable, setAppleSignInAvailable] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [sentEmail, setSentEmail] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
+
   useEffect(() => {
     void AppleAuthentication.isAvailableAsync().then(setAppleSignInAvailable);
   }, []);
 
   useFocusEffect(
     React.useCallback(() => {
-      setEmail("");
-      setPassword("");
-      setOtpCode("");
-      setOtpSent(false);
-      setSentEmail("");
+      // Refresh captcha when returning to this screen; keep OTP mid-flow state.
+      setCaptchaToken(null);
+      setCaptchaResetKey((k) => k + 1);
     }, []),
   );
 
@@ -121,10 +110,16 @@ export function AuthScreen({ navigation }: Props) {
     [emailTrimmed],
   );
 
+  const hasCaptchaToken = !captchaEnabled || !!captchaToken;
+
   const canSendCode = useMemo(
     () =>
-      emailTrimmed.length > 0 && isValidEmail && !isSubmitting && !isVerifying,
-    [emailTrimmed, isValidEmail, isSubmitting, isVerifying],
+      emailTrimmed.length > 0 &&
+      isValidEmail &&
+      !isSubmitting &&
+      !isVerifying &&
+      hasCaptchaToken,
+    [emailTrimmed, isValidEmail, isSubmitting, isVerifying, hasCaptchaToken],
   );
 
   const canReviewSignIn = useMemo(
@@ -149,32 +144,40 @@ export function AuthScreen({ navigation }: Props) {
     </View>
   );
 
-  async function requestOtpForEmail(
-    targetEmail: string,
-    options?: { resend?: boolean },
-  ) {
-    const { error } = await supabase.auth.signInWithOtp({
-      email: targetEmail,
-      options: {
-        shouldCreateUser: true,
-      },
-    });
+  function resetCaptcha() {
+    setCaptchaToken(null);
+    setCaptchaResetKey((k) => k + 1);
+  }
 
-    if (error) {
-      if (isRateLimitError(error.message)) {
+  async function requestOtpForEmail(targetEmail: string) {
+    if (captchaEnabled && !captchaToken) {
+      toastError(t("auth.captchaRequired"));
+      return false;
+    }
+
+    const result = await requestEmailOtp({
+      email: targetEmail,
+      captchaToken,
+    });
+    resetCaptcha();
+
+    if (!result.ok) {
+      if (result.kind === "rate_limit") {
         toastError(
           `${t("auth.rateLimitExceeded")}. ${t("auth.rateLimitMessage")}`,
         );
         return false;
       }
-      throw error;
+      if (result.kind === "captcha") {
+        toastError(t("auth.captchaFailed"));
+        return false;
+      }
+      throw result.error ?? new Error(t("common.error"));
     }
 
-    if (!options?.resend) {
-      setOtpSent(true);
-      setSentEmail(targetEmail);
-      setEmail("");
-    }
+    setOtpSent(true);
+    setSentEmail(targetEmail);
+    setEmail("");
     setOtpCode("");
     toastSuccess(t("auth.otpSent"));
     return true;
@@ -183,21 +186,7 @@ export function AuthScreen({ navigation }: Props) {
   async function sendOtpCode() {
     try {
       setIsSubmitting(true);
-      // Same API as magic link; Supabase sends OTP when the email template includes {{ .Token }}.
-      // https://supabase.com/docs/guides/auth/auth-email-passwordless#with-otp
       await requestOtpForEmail(emailTrimmed);
-    } catch (e: any) {
-      toastCaughtError(e, t("common.error"));
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function resendOtpCode() {
-    if (!sentEmail.trim()) return;
-    try {
-      setIsSubmitting(true);
-      await requestOtpForEmail(sentEmail.trim(), { resend: true });
     } catch (e: any) {
       toastCaughtError(e, t("common.error"));
     } finally {
@@ -252,6 +241,7 @@ export function AuthScreen({ navigation }: Props) {
     setSentEmail("");
     setOtpCode("");
     setEmail("");
+    resetCaptcha();
   }
 
   async function handleOAuthCallback(callbackUrl: string) {
@@ -384,12 +374,24 @@ export function AuthScreen({ navigation }: Props) {
   }) {
     try {
       setIsSubmitting(true);
+      if (captchaEnabled && !captchaToken) {
+        toastError(t("auth.captchaRequired"));
+        return;
+      }
       const { error } = await supabase.auth.signInWithPassword({
         email: input.email.trim(),
         password: input.password,
+        options: captchaToken ? { captchaToken } : undefined,
       });
+      resetCaptcha();
 
-      if (error) throw error;
+      if (error) {
+        if (isCaptchaError(error.message)) {
+          toastError(t("auth.captchaFailed"));
+          return;
+        }
+        throw error;
+      }
       if (input.forceOnboardingFalse) {
         const { error: updateError } = await supabase.auth.updateUser({
           data: { has_completed_onboarding: false },
@@ -421,7 +423,10 @@ export function AuthScreen({ navigation }: Props) {
 
     return (
       <ModalLayout
-        cancel={stackCancel}
+        cancel={{
+          onPress: resetOtpFlow,
+          label: t("auth.changeEmail"),
+        }}
         footer={legalFooter}
         background={glowBackground}
       >
@@ -489,20 +494,14 @@ export function AuthScreen({ navigation }: Props) {
 
               <Button
                 variant="outlined"
-                onPress={resendOtpCode}
-                disabled={isSubmitting || isVerifying}
+                onPress={() =>
+                  navigation.navigate("AuthResendOtp", {
+                    email: sentEmail.trim(),
+                  })
+                }
+                disabled={isVerifying || !sentEmail.trim()}
               >
-                {isSubmitting
-                  ? t("auth.sendingCode")
-                  : t("auth.sendAnotherCode")}
-              </Button>
-
-              <Button
-                variant="ghost"
-                onPress={resetOtpFlow}
-                disabled={isVerifying}
-              >
-                {t("auth.changeEmail")}
+                {t("auth.sendAnotherCode")}
               </Button>
             </View>
           </NativeHeaderScrollView>
@@ -579,6 +578,13 @@ export function AuthScreen({ navigation }: Props) {
                   ? t("auth.signIn")
                   : t("common.continue")}
             </Button>
+
+            {captchaEnabled ? (
+              <TurnstileCaptcha
+                resetKey={captchaResetKey}
+                onTokenChange={setCaptchaToken}
+              />
+            ) : null}
           </View>
 
           <View style={styles.divider}>

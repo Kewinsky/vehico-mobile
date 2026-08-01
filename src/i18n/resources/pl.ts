@@ -101,8 +101,12 @@ export const pl = {
     sendingCode: "Wysyłanie…",
     sendAnotherCode: "Wyślij nowy kod",
     changeEmail: "Inny adres e-mail",
+    resendOtpTitle: "Wyślij nowy kod",
+    resendOtpBody: "Wyślemy nowy kod logowania na adres {{email}}.",
     rateLimitExceeded: "Zbyt wiele prób przy logowaniu",
     rateLimitMessage: "Poczekaj kilka minut przed ponownym wysłaniem kodu.",
+    captchaRequired: "Potwierdź weryfikację bezpieczeństwa, aby kontynuować.",
+    captchaFailed: "Weryfikacja bezpieczeństwa nie powiodła się. Spróbuj ponownie.",
   },
   onboarding: {
     welcome: {

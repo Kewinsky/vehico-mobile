@@ -100,8 +100,12 @@ export const en = {
     sendingCode: "Sending…",
     sendAnotherCode: "Request a new code",
     changeEmail: "Use a different email",
+    resendOtpTitle: "Request a new code",
+    resendOtpBody: "We'll send a new sign-in code to {{email}}.",
     rateLimitExceeded: "Too many sign-in attempts",
     rateLimitMessage: "Please wait a few minutes before trying again.",
+    captchaRequired: "Complete the security check to continue.",
+    captchaFailed: "Security check failed. Please try again.",
   },
   onboarding: {
     welcome: {

@@ -48,6 +48,10 @@ if (!reportsAppUrl) {
   );
 }
 
+const turnstileSiteKey = trimOrEmpty(
+  process.env.EXPO_PUBLIC_TURNSTILE_SITE_KEY,
+);
+
 export const ENV = {
   APP_ENV: appEnv,
   SUPABASE_URL: supabaseUrl,
@@ -57,4 +61,6 @@ export const ENV = {
   REVENUECAT_ANDROID_API_KEY: revenuecatAndroidKey ?? revenuecatIosKey,
   WEB_APP_URL: webAppUrl,
   SUPPORT_EMAIL: supportEmail,
+  /** Public Turnstile site key. Secret stays only in Supabase dashboard. */
+  TURNSTILE_SITE_KEY: turnstileSiteKey,
 } as const;

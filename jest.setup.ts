@@ -8,8 +8,24 @@ jest.mock("./src/config/env", () => ({
     REPORTS_APP_URL: "https://reports.test",
     REVENUECAT_API_KEY: "revenuecat-public-key-test",
     WEB_APP_URL: "https://web.test",
+    SUPPORT_EMAIL: "support@test.dev",
+    TURNSTILE_SITE_KEY: undefined,
   },
 }));
+
+jest.mock("react-native-webview", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return {
+    __esModule: true,
+    WebView: React.forwardRef((props: object, ref: unknown) =>
+      React.createElement(View, { ...props, ref }),
+    ),
+    default: React.forwardRef((props: object, ref: unknown) =>
+      React.createElement(View, { ...props, ref }),
+    ),
+  };
+});
 
 jest.mock("react-native-purchases", () => {
   const api = {
