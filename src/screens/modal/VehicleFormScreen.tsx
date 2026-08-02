@@ -288,9 +288,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
         return;
       }
       setUploadingPhoto(true);
-      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted)
-        throw new Error(t("attachments.galleryPermissionDenied"));
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         quality: 1,

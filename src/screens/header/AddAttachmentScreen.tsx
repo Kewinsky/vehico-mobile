@@ -113,9 +113,6 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
   async function pickFromGallery(serviceEntryId: string) {
     try {
       setUploading(true);
-      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted)
-        throw new Error(t("attachments.galleryPermissionDenied"));
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         quality: 1,

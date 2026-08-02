@@ -143,9 +143,6 @@ export function DocumentsScreen({ route, navigation }: Props) {
   async function pickDocFromGallery() {
     try {
       setUploading(true);
-      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted)
-        throw new Error(t("attachments.galleryPermissionDenied"));
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         quality: 1,
