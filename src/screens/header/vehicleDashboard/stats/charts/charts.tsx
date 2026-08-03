@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Svg, {
   Circle,
+  G,
   Line as SvgLine,
   Path,
   Polyline,
@@ -14,6 +15,9 @@ import {
   mileageAxisScaleForData,
   niceMaxValue,
 } from "../../../statistics/domain/math";
+
+/** Fully transparent fills are not touchable on Android (react-native-svg). */
+const SVG_HIT_FILL = "rgba(255,255,255,0.011)";
 
 type XY = { x: string; y: number };
 export type ChartYTick = { value: number; y: number };
@@ -265,7 +269,7 @@ function SvgChartTooltip({
   );
 
   return (
-    <>
+    <G pointerEvents="none">
       <Rect
         x={tooltipX}
         y={tooltipY}
@@ -315,7 +319,7 @@ function SvgChartTooltip({
           </SvgText>,
         ];
       })}
-    </>
+    </G>
   );
 }
 
@@ -484,23 +488,19 @@ export function SimpleStackedBarChart({
         );
         return <Path key={`service-bar-${i}`} d={d} fill={serviceFill} />;
       })}
-      {bars.map((bar, i) => {
-        const topY = bar.serviceHeight > 0 ? bar.serviceY : bar.fuelY;
-        const totalHeight = bar.fuelHeight + bar.serviceHeight;
-        return (
-          <Rect
-            key={`bar-hitbox-${i}`}
-            x={bar.x}
-            y={topY}
-            width={bar.width}
-            height={Math.max(totalHeight, 24)}
-            fill="transparent"
-            onPress={() =>
-              setSelectedBarIndex((prev) => (prev === i ? null : i))
-            }
-          />
-        );
-      })}
+      {bars.map((bar, i) => (
+        <Rect
+          key={`bar-hitbox-${i}`}
+          x={bar.x}
+          y={CHART_PLOT_PADDING_TOP}
+          width={bar.width}
+          height={plotH}
+          fill={SVG_HIT_FILL}
+          onPressIn={() =>
+            setSelectedBarIndex((prev) => (prev === i ? null : i))
+          }
+        />
+      ))}
       <SvgChartTooltip
         visible={selectedBar != null}
         anchorX={tooltipAnchorX}
@@ -677,18 +677,31 @@ export function SimpleLineChart({
         />
       ))}
       {tooltipEnabled
-        ? points.map((point, i) => (
-            <Circle
-              key={`point-hitbox-${i}`}
-              cx={point.x}
-              cy={point.y}
-              r={14}
-              fill="transparent"
-              onPress={() =>
-                setSelectedPointIndex((prev) => (prev === i ? null : i))
-              }
-            />
-          ))
+        ? points.map((point, i) => {
+            const leftBound =
+              i === 0
+                ? lineStartX
+                : (points[i - 1]!.x + point.x) / 2;
+            const rightBound =
+              i === points.length - 1
+                ? lineEndX
+                : (point.x + points[i + 1]!.x) / 2;
+            const hitX = Math.min(leftBound, rightBound);
+            const hitW = Math.max(24, Math.abs(rightBound - leftBound));
+            return (
+              <Rect
+                key={`point-hitbox-${i}`}
+                x={hitX}
+                y={CHART_PLOT_PADDING_TOP}
+                width={hitW}
+                height={plotH}
+                fill={SVG_HIT_FILL}
+                onPressIn={() =>
+                  setSelectedPointIndex((prev) => (prev === i ? null : i))
+                }
+              />
+            );
+          })
         : null}
       {tooltipEnabled ? (
         <SvgChartTooltip
