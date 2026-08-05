@@ -10,6 +10,8 @@ import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { Tile } from "../../ui/components/common/Tile";
 import { useTheme } from "../../ui/ThemeProvider";
+import { useEntitlements } from "../../app/providers/EntitlementsProvider";
+import { showPremiumRequiredAlert } from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Share">;
 
@@ -18,6 +20,7 @@ export function ShareScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
+  const { isPremium } = useEntitlements();
   const { width: windowWidth } = useWindowDimensions();
   const tileWidth =
     (windowWidth -
@@ -43,10 +46,16 @@ export function ShareScreen({ navigation, route }: Props) {
         key: "workshopIntake",
         title: t("share.workshopIntake"),
         icon: "qr-code" as const,
-        onPress: () => navigation.navigate("WorkshopIntake", { vehicleId }),
+        onPress: () => {
+          if (!isPremium) {
+            showPremiumRequiredAlert(t, navigation);
+            return;
+          }
+          navigation.navigate("WorkshopIntake", { vehicleId });
+        },
       },
     ],
-    [t, navigation, vehicleId],
+    [t, navigation, vehicleId, isPremium],
   );
 
   return (

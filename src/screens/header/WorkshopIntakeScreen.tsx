@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
@@ -15,6 +15,7 @@ import {
 } from "../../services/workshopIntake/workshopIntakeRepo";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
+import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
@@ -26,6 +27,7 @@ import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { useTheme } from "../../ui/ThemeProvider";
 import type { AppTheme } from "../../ui/theme";
 import { toastCaughtError, toastSuccess } from "../../ui/toast/toast";
+import { showPremiumRequiredAlert } from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "WorkshopIntake">;
 
@@ -36,12 +38,19 @@ export function WorkshopIntakeScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
   const { width } = useWindowDimensions();
+  const { isPremium } = useEntitlements();
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+
+  useEffect(() => {
+    if (isPremium) return;
+    showPremiumRequiredAlert(t, navigation);
+    navigation.goBack();
+  }, [isPremium, navigation, t]);
 
   const qrSize = useMemo(() => {
     const max = 240;
@@ -80,6 +89,10 @@ export function WorkshopIntakeScreen({ navigation, route }: Props) {
 
   const handleToggle = useCallback(
     async (value: boolean) => {
+      if (value && !isPremium) {
+        showPremiumRequiredAlert(t, navigation);
+        return;
+      }
       setToggling(true);
       try {
         const updated = await setVehicleIntakeEnabled(vehicleId, value);
@@ -90,7 +103,7 @@ export function WorkshopIntakeScreen({ navigation, route }: Props) {
         setToggling(false);
       }
     },
-    [vehicleId, t],
+    [vehicleId, t, isPremium, navigation],
   );
 
   const handleCopyLink = useCallback(async () => {

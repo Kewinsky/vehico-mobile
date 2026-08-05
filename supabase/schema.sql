@@ -2279,6 +2279,7 @@ set search_path = public
 as $$
 declare
   v_row public.vehicles;
+  v_entitlement public.entitlements;
 begin
   if auth.uid() is null then
     raise exception 'Not authenticated';
@@ -2295,12 +2296,22 @@ begin
   end if;
 
   if p_enabled then
+    select * into v_entitlement
+    from public.entitlements e
+    where e.user_id = auth.uid();
+
+    if v_entitlement is null
+       or not public.is_entitlement_premium_active(v_entitlement) then
+      raise exception 'Premium required to enable workshop intake';
+    end if;
+
     if v_row.intake_token is null then
       v_row.intake_token := replace(gen_random_uuid()::text, '-', '');
     end if;
     v_row.intake_enabled := true;
   else
     v_row.intake_enabled := false;
+    -- Keep token so re-enable reuses the same QR/link.
   end if;
 
   update public.vehicles

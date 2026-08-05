@@ -596,17 +596,19 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
               <View style={{ height: theme.spacing.xl }} />
 
-              <FormPickerRow<VehicleType>
-                icon="car-outline"
-                label={t("vehicleForm.type")}
-                value={type}
-                options={VEHICLE_TYPES}
-                getLabel={(value) => t(`vehicleForm.${value}` as const)}
-                onChange={(value) => {
-                  if (value) setType(value);
-                }}
-                disabled={saving}
-              />
+              <Card>
+                <FormPickerRow<VehicleType>
+                  icon="car-outline"
+                  label={t("vehicleForm.type")}
+                  value={type}
+                  options={VEHICLE_TYPES}
+                  getLabel={(value) => t(`vehicleForm.${value}` as const)}
+                  onChange={(value) => {
+                    if (value) setType(value);
+                  }}
+                  disabled={saving}
+                />
+              </Card>
 
               <View style={{ height: theme.spacing.sm }} />
 

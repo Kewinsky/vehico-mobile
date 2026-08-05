@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { ChevronRight } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -114,7 +113,6 @@ export function PendingWorkshopEntriesScreen({ navigation, route }: Props) {
                           })}
                         </Text>
                       </View>
-                      <ChevronRight size={20} color={theme.colors.muted} />
                     </View>
                   </Card>
                 </Pressable>

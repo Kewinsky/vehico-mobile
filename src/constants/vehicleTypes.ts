@@ -37,7 +37,7 @@ export function getVehicleTypeMciIcon(type: VehicleType): string {
     case "camper":
       return "caravan";
     case "trailer":
-      return "trailer";
+      return "truck-trailer";
     case "other":
       return "car-multiple";
     default:

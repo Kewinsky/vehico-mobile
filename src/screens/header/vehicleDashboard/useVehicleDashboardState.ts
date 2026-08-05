@@ -579,8 +579,17 @@ export function useVehicleDashboardState({
   }, [navigation, vehicleId]);
 
   const handleWorkshopIntakePress = useCallback(() => {
-    navigation.navigate("WorkshopIntake", { vehicleId });
-  }, [navigation, vehicleId]);
+    if (isPremium) {
+      navigation.navigate("WorkshopIntake", { vehicleId });
+      return;
+    }
+
+    Alert.alert(
+      t("limits.premiumRequiredTitle"),
+      t("limits.premiumRequiredBody"),
+      getPremiumUpgradeAlertButtons(t, navigation),
+    );
+  }, [isPremium, navigation, vehicleId, t]);
 
   const handlePendingWorkshopPress = useCallback(() => {
     navigation.navigate("PendingWorkshopEntries", { vehicleId });

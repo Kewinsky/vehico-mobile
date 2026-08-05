@@ -166,6 +166,16 @@ export async function applyRevenueCatEntitlementUpdate(
         return { error: { message: clearError.message } };
       }
     }
+
+    // Workshop QR intake is Premium-only – turn off on downgrade (keep tokens).
+    const { error: intakeError } = await supabase
+      .from("vehicles")
+      .update({ intake_enabled: false })
+      .eq("owner_id", userId)
+      .eq("intake_enabled", true);
+    if (intakeError) {
+      return { error: { message: intakeError.message } };
+    }
   }
 
   return { error: null };
