@@ -4,10 +4,7 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import {
-  matchesServiceCategoryFilter,
-  type ServiceHistoryCategoryFilter,
-} from "../../constants/vehicleTypes";
+import type { ServiceHistoryCategoryFilter } from "../../constants/vehicleTypes";
 import type { ServiceEntryCategory } from "../../types/domain";
 import { setPendingModalResult } from "../../app/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
