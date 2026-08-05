@@ -30,6 +30,7 @@ import {
 } from "../../services/vehicles/uploadPhoto";
 import { Button } from "../../ui/components/common/Button";
 import { EmptyState } from "../../ui/components/common/EmptyState";
+import { Glow } from "../../ui/components/dashboard/Glow";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastCaughtError } from "../../ui/toast/toast";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -42,7 +43,7 @@ import { groupThousands } from "../../utils/numberFormatting";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { WelcomeHeaderLayout } from "../../layouts";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
-import { Glow } from "../../ui/components/dashboard/Glow";
+import { getVehicleTypeMciIcon } from "../../constants/vehicleTypes";
 import {
   getPremiumUpgradeAlertButtons,
   showPremiumRequiredAlert,
@@ -638,7 +639,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
                         <View style={styles.vehicleImagePlaceholder}>
                           <MaterialCommunityIcons
                             name={
-                              item.type === "car" ? "car-outline" : "motorbike"
+                              getVehicleTypeMciIcon(item.type) as any
                             }
                             size={theme.spacing.xl * 2}
                             color={theme.colors.muted}

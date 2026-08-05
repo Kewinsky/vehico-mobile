@@ -2,6 +2,7 @@ import { Dimensions, ScrollView, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { getVehicleTypeMciIcon } from "../../../../constants/vehicleTypes";
 import { Glow } from "../../../../ui/components/dashboard/Glow";
 import { useTheme } from "../../../../ui/ThemeProvider";
 import { VehicleCarousel } from "../components/VehicleCarousel";
@@ -50,7 +51,7 @@ export function VehicleDashboardOverviewScreen() {
           <View style={styles.vehicleImagePlaceholder}>
             <MaterialCommunityIcons
               name={
-                dashboard.vehicle?.type === "car" ? "car-outline" : "motorbike"
+                getVehicleTypeMciIcon(dashboard.vehicle?.type ?? "car") as any
               }
               size={theme.spacing.xl * 2}
               color={theme.colors.muted}
@@ -75,6 +76,7 @@ export function VehicleDashboardOverviewScreen() {
         mileageStaleTitle={dashboard.mileageStaleTitle}
         handleQuickMileageEdit={dashboard.handleQuickMileageEdit}
         insuranceCalloutCopy={dashboard.insuranceCalloutCopy}
+        acCalloutCopy={dashboard.acCalloutCopy}
         inspectionCalloutCopy={dashboard.inspectionCalloutCopy}
         oilChangeDueState={dashboard.oilChangeDueState}
         oilBannerCopy={dashboard.oilBannerCopy}
@@ -89,6 +91,7 @@ export function VehicleDashboardOverviewScreen() {
         handleAddReminder={dashboard.handleAddReminder}
         upcomingReminders={dashboard.upcomingReminders}
         insuranceDaysUntil={dashboard.insuranceDaysUntil}
+        acDaysUntil={dashboard.acDaysUntil}
         inspectionDaysUntil={dashboard.inspectionDaysUntil}
         openFormalitiesDateEditor={dashboard.openFormalitiesDateEditor}
         fittedTiresLines={dashboard.fittedTiresLines}

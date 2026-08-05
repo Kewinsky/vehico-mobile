@@ -21,7 +21,10 @@ describe("marketplaceRepo", () => {
       reportOptions: {
         include_technical_data: true,
         include_insurance: false,
+        include_ac: false,
         include_inspection: false,
+        include_modifications: false,
+        include_equipment: false,
         include_notes: true,
         include_wheels: true,
         include_tires: false,
@@ -59,7 +62,10 @@ describe("marketplaceRepo", () => {
         reportOptions: {
           include_technical_data: false,
           include_insurance: false,
+          include_ac: false,
           include_inspection: false,
+          include_modifications: false,
+          include_equipment: false,
           include_notes: false,
           include_wheels: false,
           include_tires: false,

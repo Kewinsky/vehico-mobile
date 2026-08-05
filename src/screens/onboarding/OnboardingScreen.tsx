@@ -28,6 +28,11 @@ import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSou
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import type { VehicleType } from "../../types/domain";
 import {
+  getVehicleTypeMciIcon,
+  isMotorcycleVehicleType,
+  VEHICLE_TYPES,
+} from "../../constants/vehicleTypes";
+import {
   resolveOAuthUserDisplayName,
   shouldPromptDisplayNameInOnboarding,
 } from "../../services/auth/signInProviders";
@@ -504,94 +509,53 @@ export function OnboardingScreen({ navigation }: Props) {
         return (
           <View style={styles.step}>
             <ContentHeader title={t("onboarding.vehicle.type.title")} />
-            <View style={styles.vehicleTypeRow}>
-              <Pressable
-                onPress={() => setVehicleType("car")}
-                disabled={saving}
-                hitSlop={10}
-                style={({ pressed }) => [
-                  styles.vehicleTypeCard,
-                  {
-                    borderColor:
-                      vehicleType === "car"
-                        ? theme.colors.accent
-                        : theme.colors.border,
-                    backgroundColor:
-                      vehicleType === "car"
-                        ? hexToRgba(theme.colors.accent, 0.15)
-                        : theme.colors.card,
-                  },
-                  pressed && { transform: [{ scale: 0.985 }] },
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name="car-outline"
-                  size={35}
-                  color={
-                    vehicleType === "car"
-                      ? theme.colors.accent
-                      : theme.colors.muted
-                  }
-                />
-                <Text
-                  style={[
-                    styles.vehicleTypeLabel,
+            <View style={styles.vehicleTypeGrid}>
+              {VEHICLE_TYPES.map((vt) => (
+                <Pressable
+                  key={vt}
+                  onPress={() => setVehicleType(vt)}
+                  disabled={saving}
+                  hitSlop={10}
+                  style={({ pressed }) => [
+                    styles.vehicleTypeCard,
                     {
-                      color:
-                        vehicleType === "car"
-                          ? theme.colors.fg
-                          : theme.colors.muted,
+                      borderColor:
+                        vehicleType === vt
+                          ? theme.colors.accent
+                          : theme.colors.border,
+                      backgroundColor:
+                        vehicleType === vt
+                          ? hexToRgba(theme.colors.accent, 0.15)
+                          : theme.colors.card,
                     },
+                    pressed && { transform: [{ scale: 0.985 }] },
                   ]}
-                  numberOfLines={1}
                 >
-                  {t("onboarding.vehicle.type.car")}
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => setVehicleType("motorcycle")}
-                disabled={saving}
-                hitSlop={10}
-                style={({ pressed }) => [
-                  styles.vehicleTypeCard,
-                  {
-                    borderColor:
-                      vehicleType === "motorcycle"
+                  <MaterialCommunityIcons
+                    name={getVehicleTypeMciIcon(vt) as any}
+                    size={30}
+                    color={
+                      vehicleType === vt
                         ? theme.colors.accent
-                        : theme.colors.border,
-                    backgroundColor:
-                      vehicleType === "motorcycle"
-                        ? hexToRgba(theme.colors.accent, 0.15)
-                        : theme.colors.card,
-                  },
-                  pressed && { transform: [{ scale: 0.985 }] },
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name="motorbike"
-                  size={35}
-                  color={
-                    vehicleType === "motorcycle"
-                      ? theme.colors.accent
-                      : theme.colors.muted
-                  }
-                />
-                <Text
-                  style={[
-                    styles.vehicleTypeLabel,
-                    {
-                      color:
-                        vehicleType === "motorcycle"
-                          ? theme.colors.fg
-                          : theme.colors.muted,
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {t("onboarding.vehicle.type.motorcycle")}
-                </Text>
-              </Pressable>
+                        : theme.colors.muted
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.vehicleTypeLabel,
+                      {
+                        color:
+                          vehicleType === vt
+                            ? theme.colors.fg
+                            : theme.colors.muted,
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {t(`vehicleForm.${vt}`)}
+                  </Text>
+                </Pressable>
+              ))}
             </View>
           </View>
         );
@@ -606,7 +570,7 @@ export function OnboardingScreen({ navigation }: Props) {
                 value={make}
                 onChangeText={setMake}
                 placeholder={
-                  vehicleType === "motorcycle"
+                  isMotorcycleVehicleType(vehicleType ?? "car")
                     ? t("vehicleForm.placeholderMakeMotorcycle")
                     : t("vehicleForm.placeholderMake")
                 }
@@ -620,7 +584,7 @@ export function OnboardingScreen({ navigation }: Props) {
                 value={model}
                 onChangeText={setModel}
                 placeholder={
-                  vehicleType === "motorcycle"
+                  isMotorcycleVehicleType(vehicleType ?? "car")
                     ? t("vehicleForm.placeholderModelMotorcycle")
                     : t("vehicleForm.placeholderModel")
                 }
@@ -633,7 +597,7 @@ export function OnboardingScreen({ navigation }: Props) {
                 value={year}
                 onChangeText={setYear}
                 placeholder={
-                  vehicleType === "motorcycle"
+                  isMotorcycleVehicleType(vehicleType ?? "car")
                     ? t("vehicleForm.placeholderYearMotorcycle")
                     : t("vehicleForm.placeholderYear")
                 }
@@ -647,7 +611,7 @@ export function OnboardingScreen({ navigation }: Props) {
                 value={mileage}
                 onChangeText={setMileage}
                 placeholder={
-                  vehicleType === "motorcycle"
+                  isMotorcycleVehicleType(vehicleType ?? "car")
                     ? t("vehicleForm.placeholderMileageMotorcycle")
                     : t("vehicleForm.placeholderMileage")
                 }
@@ -808,7 +772,7 @@ export function OnboardingScreen({ navigation }: Props) {
                   >
                     <MaterialCommunityIcons
                       name={
-                        vehicleType === "motorcycle"
+                        isMotorcycleVehicleType(vehicleType ?? "car")
                           ? "motorbike"
                           : "car-outline"
                       }
@@ -1305,13 +1269,18 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       flexDirection: "row",
       gap: theme.spacing.sm,
     },
+    vehicleTypeGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: theme.spacing.sm,
+    },
     vehicleTypeCard: {
       borderWidth: 1,
       borderRadius: theme.radius.xl,
       paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
-      flex: 1,
-      minHeight: 120,
+      width: "48%",
+      minHeight: 100,
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",

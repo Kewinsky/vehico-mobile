@@ -158,11 +158,20 @@ export function useOverviewPanelStyles() {
     },
     tilesRow: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: theme.spacing.sm,
       alignItems: "stretch",
     },
+    formalitiesStack: {
+      gap: theme.spacing.sm,
+    },
     formalityTileTrigger: {
       flex: 1,
+      minWidth: 0,
+      alignSelf: "stretch",
+    },
+    formalityTileTriggerFull: {
+      width: "100%",
       alignSelf: "stretch",
     },
     notesText: {

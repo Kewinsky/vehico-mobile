@@ -18,7 +18,7 @@
 import {
   createClient,
   type SupabaseClient,
-} from "https://esm.sh/@supabase/supabase-js@2";
+} from "npm:@supabase/supabase-js@2.49.1";
 
 const RETENTION_DAYS = 90;
 const corsHeaders = {

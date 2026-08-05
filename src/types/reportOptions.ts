@@ -9,11 +9,14 @@ export const MIN_MILEAGE_CHART_POINTS = 3;
 export type ReportOptions = {
   include_technical_data: boolean;
   include_insurance: boolean;
+  include_ac: boolean;
   include_inspection: boolean;
   include_notes: boolean;
   include_wheels: boolean;
   include_tires: boolean;
+  include_equipment: boolean;
   include_service_history: boolean;
+  include_modifications: boolean;
   include_service_stats: boolean;
   include_fueling_stats: boolean;
   include_expenses_by_category_chart: boolean;
@@ -29,10 +32,13 @@ export type MarketplaceReportOptions = Pick<
   ReportOptions,
   | "include_technical_data"
   | "include_insurance"
+  | "include_ac"
   | "include_inspection"
+  | "include_modifications"
   | "include_notes"
   | "include_wheels"
   | "include_tires"
+  | "include_equipment"
   | "include_service_history"
   | "include_service_stats"
   | "include_fueling_stats"

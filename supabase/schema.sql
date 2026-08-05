@@ -48,11 +48,11 @@ $$;
 -- Tables
 -- ================
 
--- Vehicles (cars + motorcycles)
+-- Vehicles (multiple types)
 create table public.vehicles (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null default auth.uid(),
-  type text not null check (type in ('car', 'motorcycle')),
+  type text not null check (type in ('car', 'motorcycle', 'van', 'truck', 'camper', 'trailer', 'other')),
   vin text,
   make text not null,
   model text not null,
@@ -69,6 +69,7 @@ create table public.vehicles (
   drive_type text check (drive_type in ('FWD', 'RWD', 'AWD')),
   notes text,
   insurance_valid_until date,
+  ac_valid_until date,
   inspection_valid_until date,
   created_at timestamptz not null default now()
 );
@@ -257,6 +258,26 @@ create table public.wheels (
 create index wheels_vehicle_id_idx on public.wheels(vehicle_id);
 create index wheels_is_currently_fitted_idx on public.wheels(vehicle_id, is_currently_fitted) where is_currently_fitted = true;
 
+-- Vehicle equipment (preset + custom checklist per vehicle)
+create table public.vehicle_equipment (
+  id uuid primary key default gen_random_uuid(),
+  vehicle_id uuid not null references public.vehicles(id) on delete cascade,
+  preset_key text,
+  label text not null,
+  created_at timestamptz not null default now(),
+  constraint vehicle_equipment_label_not_empty check (length(trim(label)) > 0)
+);
+
+create index vehicle_equipment_vehicle_id_idx on public.vehicle_equipment(vehicle_id);
+
+create unique index vehicle_equipment_vehicle_preset_key_idx
+  on public.vehicle_equipment(vehicle_id, preset_key)
+  where preset_key is not null;
+
+create unique index vehicle_equipment_vehicle_custom_label_idx
+  on public.vehicle_equipment(vehicle_id, lower(label))
+  where preset_key is null;
+
 -- ================
 -- Row Level Security (RLS)
 -- ================
@@ -272,6 +293,7 @@ alter table public.photos enable row level security;
 alter table public.posts enable row level security;
 alter table public.tires enable row level security;
 alter table public.wheels enable row level security;
+alter table public.vehicle_equipment enable row level security;
 
 -- Vehicles: owner can CRUD (authenticated only, no public access)
 create policy vehicles_select_own
@@ -675,6 +697,40 @@ using (
   exists (
     select 1 from public.vehicles v
     where v.id = wheels.vehicle_id and v.owner_id = auth.uid()
+  )
+);
+
+-- Vehicle equipment: allowed if vehicle belongs to user
+create policy vehicle_equipment_select_own_vehicle
+on public.vehicle_equipment for select
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_equipment.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+create policy vehicle_equipment_insert_own_vehicle
+on public.vehicle_equipment for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_equipment.vehicle_id
+      and v.owner_id = auth.uid()
+  )
+);
+
+create policy vehicle_equipment_delete_own_vehicle
+on public.vehicle_equipment for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.vehicles v
+    where v.id = vehicle_equipment.vehicle_id
+      and v.owner_id = auth.uid()
   )
 );
 
@@ -1162,13 +1218,17 @@ declare
   v_vehicle_photos jsonb;
   v_vehicle_tires jsonb;
   v_vehicle_wheels jsonb;
+  v_vehicle_equipment jsonb;
   v_include_service_history boolean;
   v_include_service_stats boolean;
+  v_include_modifications boolean;
   v_include_notes boolean;
   v_include_insurance boolean;
+  v_include_ac boolean;
   v_include_inspection boolean;
   v_include_wheels boolean;
   v_include_tires boolean;
+  v_include_equipment boolean;
   v_include_fueling_stats boolean;
   v_distance_unit text := 'km';
   v_fuel_unit text := 'liters';
@@ -1176,11 +1236,14 @@ declare
 begin
   v_include_service_history := coalesce((p_report_options->>'include_service_history')::boolean, false);
   v_include_service_stats := coalesce((p_report_options->>'include_service_stats')::boolean, false);
+  v_include_modifications := coalesce((p_report_options->>'include_modifications')::boolean, false);
   v_include_notes := coalesce((p_report_options->>'include_notes')::boolean, false);
   v_include_insurance := coalesce((p_report_options->>'include_insurance')::boolean, true);
+  v_include_ac := coalesce((p_report_options->>'include_ac')::boolean, true);
   v_include_inspection := coalesce((p_report_options->>'include_inspection')::boolean, true);
   v_include_wheels := coalesce((p_report_options->>'include_wheels')::boolean, false);
   v_include_tires := coalesce((p_report_options->>'include_tires')::boolean, false);
+  v_include_equipment := coalesce((p_report_options->>'include_equipment')::boolean, false);
   v_include_fueling_stats := coalesce((p_report_options->>'include_fueling_stats')::boolean, false);
   v_distance_unit := coalesce((p_report_options->>'distance_unit')::text, 'km');
   v_fuel_unit := coalesce((p_report_options->>'fuel_unit')::text, 'liters');
@@ -1202,12 +1265,15 @@ begin
   if not v_include_insurance then
     v_vehicle := v_vehicle || jsonb_build_object('insurance_valid_until', null);
   end if;
+  if not v_include_ac then
+    v_vehicle := v_vehicle || jsonb_build_object('ac_valid_until', null);
+  end if;
   if not v_include_inspection then
     v_vehicle := v_vehicle || jsonb_build_object('inspection_valid_until', null);
   end if;
 
   -- Get service entries (if included)
-  if v_include_service_history or v_include_service_stats then
+  if v_include_service_history or v_include_service_stats or v_include_modifications then
     select coalesce(jsonb_agg(
       jsonb_build_object(
         'id', se.id,
@@ -1223,6 +1289,17 @@ begin
     from public.service_entries se
     where se.vehicle_id = p_vehicle_id;
   else
+    v_service_entries := '[]'::jsonb;
+  end if;
+
+  if v_include_service_history then
+    null;
+  elsif v_include_modifications then
+    select coalesce(jsonb_agg(elem order by (elem->>'service_date') desc), '[]'::jsonb)
+    into v_service_entries
+    from jsonb_array_elements(v_service_entries) elem
+    where elem->>'category' = 'upgrade';
+  elsif not v_include_service_stats then
     v_service_entries := '[]'::jsonb;
   end if;
 
@@ -1280,6 +1357,21 @@ begin
     v_vehicle_wheels := '[]'::jsonb;
   end if;
 
+  if v_include_equipment then
+    select coalesce(jsonb_agg(
+      jsonb_build_object(
+        'id', ve.id,
+        'preset_key', ve.preset_key,
+        'label', ve.label,
+        'created_at', ve.created_at
+      ) order by ve.created_at asc
+    ), '[]'::jsonb) into v_vehicle_equipment
+    from public.vehicle_equipment ve
+    where ve.vehicle_id = p_vehicle_id;
+  else
+    v_vehicle_equipment := '[]'::jsonb;
+  end if;
+
   v_vehicle_photos := '[]'::jsonb;
 
   -- Build complete snapshot
@@ -1289,6 +1381,7 @@ begin
     'vehicle_photos', v_vehicle_photos,
     'vehicle_tires', v_vehicle_tires,
     'vehicle_wheels', v_vehicle_wheels,
+    'vehicle_equipment', v_vehicle_equipment,
     'units', jsonb_build_object(
       'distance_unit', v_distance_unit,
       'fuel_unit', v_fuel_unit,
@@ -1784,6 +1877,7 @@ create or replace function public.create_vehicle(
   p_drive_type text,
   p_notes text,
   p_insurance_valid_until date,
+  p_ac_valid_until date,
   p_inspection_valid_until date
 )
 returns public.vehicles
@@ -1820,6 +1914,7 @@ begin
     drive_type,
     notes,
     insurance_valid_until,
+    ac_valid_until,
     inspection_valid_until,
     created_at
   ) values (
@@ -1841,6 +1936,7 @@ begin
     p_drive_type,
     p_notes,
     p_insurance_valid_until,
+    p_ac_valid_until,
     p_inspection_valid_until,
     now()
   )
@@ -1855,7 +1951,7 @@ begin
 end;
 $$;
 
-grant execute on function public.create_vehicle(text, text, text, text, integer, integer, date, text, integer, integer, text, text, text, text, date, date) to authenticated;
+grant execute on function public.create_vehicle(text, text, text, text, integer, integer, date, text, integer, integer, text, text, text, text, date, date, date) to authenticated;
 
 -- Create tire with entitlement check
 create or replace function public.create_tire(

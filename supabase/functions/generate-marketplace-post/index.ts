@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,8 +19,10 @@ interface GenerateRequest {
   includeWheelsTires?: boolean;
   includeWheels?: boolean;
   includeTires?: boolean;
+  includeEquipment?: boolean;
   includeNotes?: boolean;
   includeInsurance?: boolean;
+  includeAc?: boolean;
   includeInspection?: boolean;
   publicReportUrl?: string | null;
   // Deprecated, kept for backward compat
@@ -29,7 +31,7 @@ interface GenerateRequest {
 
 interface VehicleData {
   id: string;
-  type: "car" | "motorcycle";
+  type: "car" | "motorcycle" | "van" | "truck" | "camper" | "trailer" | "other";
   title: string;
   vin: string | null;
   make: string;
@@ -43,6 +45,7 @@ interface VehicleData {
   transmission: "manual" | "automatic" | null;
   notes: string | null;
   insurance_valid_until?: string | null;
+  ac_valid_until?: string | null;
   inspection_valid_until?: string | null;
 }
 
@@ -118,10 +121,16 @@ function getTransmissionLabel(
 }
 
 function getTypeLabel(type: string, lang: "en" | "pl"): string {
-  if (type === "car") {
-    return lang === "pl" ? "Samochód osobowy" : "Car";
-  }
-  return lang === "pl" ? "Motocykl" : "Motorcycle";
+  const labels: Record<string, { en: string; pl: string }> = {
+    car: { en: "Car", pl: "Samochód" },
+    motorcycle: { en: "Motorcycle", pl: "Motocykl" },
+    van: { en: "Van", pl: "Van" },
+    truck: { en: "Truck", pl: "Ciężarówka" },
+    camper: { en: "Camper", pl: "Kamper" },
+    trailer: { en: "Trailer", pl: "Przyczepa" },
+    other: { en: "Other", pl: "Inne" },
+  };
+  return labels[type]?.[lang] || type;
 }
 
 function getCategoryLabel(category: string, lang: "en" | "pl"): string {
@@ -129,7 +138,7 @@ function getCategoryLabel(category: string, lang: "en" | "pl"): string {
     maintenance: { en: "Maintenance", pl: "Serwis" },
     repair: { en: "Repair", pl: "Naprawa" },
     inspection: { en: "Inspection", pl: "Przegląd" },
-    upgrade: { en: "Upgrade", pl: "Ulepszenie" },
+    upgrade: { en: "Modifications", pl: "Modyfikacje" },
     oil_change: { en: "Oil change", pl: "Wymiana oleju" },
     other: { en: "Other", pl: "Inne" },
   };
@@ -456,8 +465,10 @@ type MarketplaceOptions = {
   includeFuelingStats: boolean;
   includeServiceStats: boolean;
   includeWheelsTires: boolean;
+  includeEquipment: boolean;
   includeNotes: boolean;
   includeInsurance: boolean;
+  includeAc: boolean;
   includeInspection: boolean;
   publicReportUrl: string | null;
 };
@@ -468,6 +479,7 @@ function generateMarketplacePostForLang(
   fuelingEntries: FuelingEntry[],
   tires: VehicleTire[],
   wheels: VehicleWheel[],
+  equipment: { label: string }[],
   language: "en" | "pl",
   options: MarketplaceOptions
 ): string {
@@ -533,9 +545,13 @@ ${isPL ? "Przebieg początkowy" : "Initial mileage"}: ${formatValue(
   )} km`;
   const insuranceLine =
     options.includeInsurance && vehicle.insurance_valid_until
-      ? `${isPL ? "Ubezpieczenie ważne do" : "Insurance valid until"}: ${
+      ? `${isPL ? "OC ważne do" : "OC valid until"}: ${
           vehicle.insurance_valid_until
         }`
+      : null;
+  const acLine =
+    options.includeAc && vehicle.ac_valid_until
+      ? `${isPL ? "AC ważne do" : "AC valid until"}: ${vehicle.ac_valid_until}`
       : null;
   const inspectionLine =
     options.includeInspection && vehicle.inspection_valid_until
@@ -545,7 +561,7 @@ ${isPL ? "Przebieg początkowy" : "Initial mileage"}: ${formatValue(
             : "Technical inspection valid until"
         }: ${vehicle.inspection_valid_until}`
       : null;
-  const specExtras = [insuranceLine, inspectionLine].filter(Boolean);
+  const specExtras = [insuranceLine, acLine, inspectionLine].filter(Boolean);
   const specFull =
     specExtras.length > 0 ? spec + "\n" + specExtras.join("\n") : spec;
   sections.push(specFull);
@@ -580,6 +596,12 @@ ${formatServiceHistory(serviceEntries, language)}`;
     const wheelsSection = `=== ${wheelsTitle} ===
 ${formatWheelsAndTiresSection(tires, wheels, language)}`;
     sections.push(wheelsSection);
+  }
+
+  if (options.includeEquipment && equipment.length > 0) {
+    const equipmentTitle = isPL ? "WYPOSAŻENIE" : "EQUIPMENT";
+    const equipmentLines = equipment.map((item) => `• ${item.label}`).join("\n");
+    sections.push(`=== ${equipmentTitle} ===\n${equipmentLines}`);
   }
 
   if (options.includeNotes && vehicle.notes) {
@@ -647,8 +669,10 @@ serve(async (req) => {
       includeWheelsTires = false,
       includeWheels,
       includeTires,
+      includeEquipment = false,
       includeNotes = false,
       includeInsurance = true,
+      includeAc = true,
       includeInspection = true,
       publicReportUrl = null,
     } = reqBody;
@@ -737,6 +761,16 @@ serve(async (req) => {
       wheels = (wheelsData || []) as VehicleWheel[];
     }
 
+    let equipment: { label: string }[] = [];
+    if (includeEquipment) {
+      const { data: equipmentData } = await supabaseClient
+        .from("vehicle_equipment")
+        .select("label")
+        .eq("vehicle_id", vehicleId)
+        .order("created_at", { ascending: true });
+      equipment = (equipmentData || []) as { label: string }[];
+    }
+
     const options: MarketplaceOptions = {
       includePrice,
       price: price ?? null,
@@ -745,8 +779,10 @@ serve(async (req) => {
       includeFuelingStats,
       includeServiceStats,
       includeWheelsTires: vIncludeWheelsTires,
+      includeEquipment,
       includeNotes,
       includeInsurance,
+      includeAc,
       includeInspection,
       publicReportUrl,
     };
@@ -757,6 +793,7 @@ serve(async (req) => {
       fuelingEntries,
       tires,
       wheels,
+      equipment,
       "pl",
       options
     );
@@ -766,6 +803,7 @@ serve(async (req) => {
       fuelingEntries,
       tires,
       wheels,
+      equipment,
       "en",
       options
     );

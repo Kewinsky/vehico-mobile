@@ -19,7 +19,9 @@ import {
   listVehiclePhotos,
   getVehiclePhotoUrl,
 } from "../../services/vehicles/uploadPhoto";
+import { isModificationCategory } from "../../constants/vehicleTypes";
 import type { Vehicle, VehiclePhoto } from "../../types/domain";
+import { listVehicleEquipment } from "../../services/equipment/vehicleEquipmentRepo";
 import {
   MIN_MILEAGE_CHART_POINTS,
   MIN_STATS_ENTRIES,
@@ -79,21 +81,26 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   const [vehiclePhotos, setVehiclePhotos] = useState<VehiclePhoto[]>([]);
   const [fuelingCount, setFuelingCount] = useState(0);
   const [serviceEntriesCount, setServiceEntriesCount] = useState(0);
+  const [modificationsCount, setModificationsCount] = useState(0);
   const [serviceEntriesWithMileageCount, setServiceEntriesWithMileageCount] =
     useState(0);
   const [mileageAuditCount, setMileageAuditCount] = useState(0);
   const [tiresCount, setTiresCount] = useState(0);
   const [wheelsCount, setWheelsCount] = useState(0);
+  const [equipmentCount, setEquipmentCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const hasInsurance =
     (vehicle?.insurance_valid_until?.trim() ?? "").length > 0;
+  const hasAc = (vehicle?.ac_valid_until?.trim() ?? "").length > 0;
   const hasInspection =
     (vehicle?.inspection_valid_until?.trim() ?? "").length > 0;
   const hasNotes = (vehicle?.notes?.trim() ?? "").length > 0;
   const hasWheels = wheelsCount > 0;
   const hasTires = tiresCount > 0;
+  const hasEquipment = equipmentCount > 0;
   const hasServiceHistory = serviceEntriesCount > 0;
+  const hasModifications = modificationsCount > 0;
   const hasServiceStats = hasEnoughStatsEntries(serviceEntriesCount);
   const hasFuelingStats = hasEnoughStatsEntries(fuelingCount);
   const hasExpensesCharts = hasEnoughStatsEntries(serviceEntriesCount);
@@ -104,11 +111,14 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
 
   const [includeTechnicalData] = useState(true);
   const [includeInsurance, setIncludeInsurance] = useState(false);
+  const [includeAc, setIncludeAc] = useState(false);
   const [includeInspection, setIncludeInspection] = useState(false);
   const [includeNotes, setIncludeNotes] = useState(false);
   const [includeWheels, setIncludeWheels] = useState(false);
   const [includeTires, setIncludeTires] = useState(false);
+  const [includeEquipment, setIncludeEquipment] = useState(false);
   const [includeServiceHistory, setIncludeServiceHistory] = useState(false);
+  const [includeModifications, setIncludeModifications] = useState(false);
   const [includeServiceStats, setIncludeServiceStats] = useState(false);
   const [includeFuelingStats, setIncludeFuelingStats] = useState(false);
   const [includeExpensesByCategoryChart, setIncludeExpensesByCategoryChart] =
@@ -128,8 +138,16 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [v, photos, fuelings, serviceEntries, mileageAudit, tires, wheels] =
-        await Promise.all([
+      const [
+        v,
+        photos,
+        fuelings,
+        serviceEntries,
+        mileageAudit,
+        tires,
+        wheels,
+        equipment,
+      ] = await Promise.all([
           getVehicle(vehicleId),
           listVehiclePhotos(vehicleId),
           listFuelingEntries(vehicleId),
@@ -137,11 +155,17 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           listMileageAudit(vehicleId),
           listVehicleTires(vehicleId),
           listVehicleWheels(vehicleId),
+          listVehicleEquipment(vehicleId),
         ]);
       setVehicle(v);
       setVehiclePhotos(photos);
       setFuelingCount(fuelings.length);
       setServiceEntriesCount(serviceEntries.length);
+      setModificationsCount(
+        serviceEntries.filter((entry) =>
+          isModificationCategory(entry.category),
+        ).length,
+      );
       setServiceEntriesWithMileageCount(
         serviceEntries.filter(
           (entry) =>
@@ -153,6 +177,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       setMileageAuditCount(mileageAudit.length);
       setTiresCount(tires.length);
       setWheelsCount(wheels.length);
+      setEquipmentCount(equipment.length);
       setSelectedVehiclePhotoIds(new Set(photos.map((p) => p.id)));
     } catch (e: any) {
       toastCaughtError(e, t("common.error"));
@@ -213,12 +238,24 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           setChecked: setIncludeInsurance,
         },
         {
+          enabled: hasAc,
+          checked: includeAc,
+          setChecked: setIncludeAc,
+        },
+        {
           enabled: hasInspection,
           checked: includeInspection,
           setChecked: setIncludeInspection,
         },
       ]),
-    [hasInsurance, hasInspection, includeInsurance, includeInspection],
+    [
+      hasInsurance,
+      hasAc,
+      hasInspection,
+      includeInsurance,
+      includeAc,
+      includeInspection,
+    ],
   );
 
   const wheelsGroupState = useMemo(
@@ -296,6 +333,11 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         setChecked: setIncludeServiceHistory,
       },
       {
+        enabled: hasModifications,
+        checked: includeModifications,
+        setChecked: setIncludeModifications,
+      },
+      {
         enabled: hasNotes,
         checked: includeNotes,
         setChecked: setIncludeNotes,
@@ -304,6 +346,11 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         enabled: hasInsurance,
         checked: includeInsurance,
         setChecked: setIncludeInsurance,
+      },
+      {
+        enabled: hasAc,
+        checked: includeAc,
+        setChecked: setIncludeAc,
       },
       {
         enabled: hasInspection,
@@ -319,6 +366,11 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
         enabled: hasWheels,
         checked: includeWheels,
         setChecked: setIncludeWheels,
+      },
+      {
+        enabled: hasEquipment,
+        checked: includeEquipment,
+        setChecked: setIncludeEquipment,
       },
       {
         enabled: hasServiceStats,
@@ -353,21 +405,27 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
     ];
   }, [
     hasServiceHistory,
+    hasModifications,
     hasNotes,
     hasInsurance,
+    hasAc,
     hasInspection,
     hasTires,
     hasWheels,
+    hasEquipment,
     hasServiceStats,
     hasFuelingStats,
     hasMileageChart,
     hasExpensesCharts,
     includeServiceHistory,
+    includeModifications,
     includeNotes,
     includeInsurance,
+    includeAc,
     includeInspection,
     includeTires,
     includeWheels,
+    includeEquipment,
     includeServiceStats,
     includeFuelingStats,
     includeMileageOverTimeChart,
@@ -570,11 +628,14 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       reportOptions: {
         include_technical_data: includeTechnicalData,
         include_insurance: includeInsurance,
+        include_ac: includeAc,
         include_inspection: includeInspection,
         include_notes: includeNotes,
         include_wheels: includeWheels,
         include_tires: includeTires,
+        include_equipment: includeEquipment,
         include_service_history: includeServiceHistory,
+        include_modifications: includeModifications,
         include_service_stats: includeServiceStats,
         include_fueling_stats: includeFuelingStats,
         include_expenses_by_category_chart: includeExpensesByCategoryChart,
@@ -636,6 +697,14 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
             unavailableBody={t("publicReport.optionServiceHistoryUnavailable")}
           />
           <ReportOptionRow
+            label={t("publicReport.optionModifications")}
+            checked={includeModifications}
+            onPress={() => setIncludeModifications(!includeModifications)}
+            disabled={!hasModifications}
+            unavailableTitle={t("publicReport.optionModifications")}
+            unavailableBody={t("publicReport.optionModificationsUnavailable")}
+          />
+          <ReportOptionRow
             label={t("publicReport.optionNotes", { vehicleTitle })}
             checked={includeNotes}
             onPress={() => setIncludeNotes(!includeNotes)}
@@ -658,6 +727,11 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
                 setChecked: setIncludeInsurance,
               },
               {
+                enabled: hasAc,
+                checked: includeAc,
+                setChecked: setIncludeAc,
+              },
+              {
                 enabled: hasInspection,
                 checked: includeInspection,
                 setChecked: setIncludeInspection,
@@ -666,11 +740,19 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           }
         >
           <ReportOptionRow
-            label={t("publicReport.optionInsurance")}
+            label={t("publicReport.optionInsuranceOc")}
             checked={includeInsurance}
             onPress={() => setIncludeInsurance(!includeInsurance)}
             disabled={!hasInsurance}
-            unavailableTitle={t("publicReport.optionInsurance")}
+            unavailableTitle={t("publicReport.optionInsuranceOc")}
+            unavailableBody={t("publicReport.unavailableNoData")}
+          />
+          <ReportOptionRow
+            label={t("publicReport.optionInsuranceAc")}
+            checked={includeAc}
+            onPress={() => setIncludeAc(!includeAc)}
+            disabled={!hasAc}
+            unavailableTitle={t("publicReport.optionInsuranceAc")}
             unavailableBody={t("publicReport.unavailableNoData")}
           />
           <ReportOptionRow
@@ -721,6 +803,18 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
             isLast
           />
         </ReportOptionGroup>
+
+        <ReportOptionsCard>
+          <ReportOptionRow
+            label={t("publicReport.optionEquipment")}
+            checked={includeEquipment}
+            onPress={() => setIncludeEquipment(!includeEquipment)}
+            disabled={!hasEquipment}
+            unavailableTitle={t("publicReport.optionEquipment")}
+            unavailableBody={t("publicReport.unavailableNoData")}
+            isLast
+          />
+        </ReportOptionsCard>
 
         <ReportOptionGroup
           title={t("publicReport.exploitationStatsGroup")}

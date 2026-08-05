@@ -28,6 +28,7 @@ import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { listVehicleTires } from "../../services/tires/tiresRepo";
 import { listVehicleWheels } from "../../services/wheels/wheelsRepo";
+import { listVehicleEquipment } from "../../services/equipment/vehicleEquipmentRepo";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
 import { listPublicPages } from "../../services/publicPages/publicPagesRepo";
 import type { Vehicle, PublicReportSnapshot } from "../../types/domain";
@@ -68,6 +69,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   const [serviceEntriesCount, setServiceEntriesCount] = useState(0);
   const [tiresCount, setTiresCount] = useState(0);
   const [wheelsCount, setWheelsCount] = useState(0);
+  const [equipmentCount, setEquipmentCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const [publicReports, setPublicReports] = useState<PublicReportSnapshot[]>(
@@ -76,21 +78,25 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
 
   const hasInsurance =
     (vehicle?.insurance_valid_until?.trim() ?? "").length > 0;
+  const hasAc = (vehicle?.ac_valid_until?.trim() ?? "").length > 0;
   const hasInspection =
     (vehicle?.inspection_valid_until?.trim() ?? "").length > 0;
   const hasNotes = (vehicle?.notes?.trim() ?? "").length > 0;
   const hasWheels = wheelsCount > 0;
   const hasTires = tiresCount > 0;
+  const hasEquipment = equipmentCount > 0;
   const hasServiceHistory = serviceEntriesCount > 0;
   const hasServiceStats = hasEnoughStatsEntries(serviceEntriesCount);
   const hasFuelingStats = hasEnoughStatsEntries(fuelingCount);
 
   const [includeTechnicalData] = useState(true);
   const [includeInsurance, setIncludeInsurance] = useState(false);
+  const [includeAc, setIncludeAc] = useState(false);
   const [includeInspection, setIncludeInspection] = useState(false);
   const [includeNotes, setIncludeNotes] = useState(false);
   const [includeWheels, setIncludeWheels] = useState(false);
   const [includeTires, setIncludeTires] = useState(false);
+  const [includeEquipment, setIncludeEquipment] = useState(false);
   const [includeServiceHistory, setIncludeServiceHistory] = useState(false);
   const [includeServiceStats, setIncludeServiceStats] = useState(false);
   const [includeFuelingStats, setIncludeFuelingStats] = useState(false);
@@ -122,13 +128,14 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [v, fuelings, serviceEntries, tires, wheels, reports] =
+      const [v, fuelings, serviceEntries, tires, wheels, equipment, reports] =
         await Promise.all([
           getVehicle(vehicleId),
           listFuelingEntries(vehicleId),
           listServiceEntries(vehicleId),
           listVehicleTires(vehicleId),
           listVehicleWheels(vehicleId),
+          listVehicleEquipment(vehicleId),
           listPublicPages(vehicleId),
         ]);
       setVehicle(v);
@@ -136,6 +143,7 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
       setServiceEntriesCount(serviceEntries.length);
       setTiresCount(tires.length);
       setWheelsCount(wheels.length);
+      setEquipmentCount(equipment.length);
       setPublicReports(reports);
     } catch (e: any) {
       toastCaughtError(e, t("common.error"));
@@ -163,12 +171,24 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
           setChecked: setIncludeInsurance,
         },
         {
+          enabled: hasAc,
+          checked: includeAc,
+          setChecked: setIncludeAc,
+        },
+        {
           enabled: hasInspection,
           checked: includeInspection,
           setChecked: setIncludeInspection,
         },
       ]),
-    [hasInsurance, hasInspection, includeInsurance, includeInspection],
+    [
+      hasInsurance,
+      hasAc,
+      hasInspection,
+      includeInsurance,
+      includeAc,
+      includeInspection,
+    ],
   );
 
   const wheelsGroupState = useMemo(
@@ -228,6 +248,11 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
         setChecked: setIncludeInsurance,
       },
       {
+        enabled: hasAc,
+        checked: includeAc,
+        setChecked: setIncludeAc,
+      },
+      {
         enabled: hasInspection,
         checked: includeInspection,
         setChecked: setIncludeInspection,
@@ -241,6 +266,11 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
         enabled: hasWheels,
         checked: includeWheels,
         setChecked: setIncludeWheels,
+      },
+      {
+        enabled: hasEquipment,
+        checked: includeEquipment,
+        setChecked: setIncludeEquipment,
       },
       {
         enabled: hasServiceStats,
@@ -267,17 +297,21 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
     hasServiceHistory,
     hasNotes,
     hasInsurance,
+    hasAc,
     hasInspection,
     hasTires,
     hasWheels,
+    hasEquipment,
     hasServiceStats,
     hasFuelingStats,
     includeServiceHistory,
     includeNotes,
     includeInsurance,
+    includeAc,
     includeInspection,
     includeTires,
     includeWheels,
+    includeEquipment,
     includeServiceStats,
     includeFuelingStats,
     includePrice,
@@ -340,11 +374,14 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
       reportOptions: {
         include_technical_data: includeTechnicalData,
         include_insurance: includeInsurance,
+        include_ac: includeAc,
         include_inspection: includeInspection,
         include_notes: includeNotes,
         include_wheels: includeWheels,
         include_tires: includeTires,
+        include_equipment: includeEquipment,
         include_service_history: includeServiceHistory,
+        include_modifications: false,
         include_service_stats: includeServiceStats,
         include_fueling_stats: includeFuelingStats,
       },
@@ -415,6 +452,11 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                       setChecked: setIncludeInsurance,
                     },
                     {
+                      enabled: hasAc,
+                      checked: includeAc,
+                      setChecked: setIncludeAc,
+                    },
+                    {
                       enabled: hasInspection,
                       checked: includeInspection,
                       setChecked: setIncludeInspection,
@@ -423,11 +465,19 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                 }
               >
                 <ReportOptionRow
-                  label={t("publicReport.optionInsurance")}
+                  label={t("publicReport.optionInsuranceOc")}
                   checked={includeInsurance}
                   onPress={() => setIncludeInsurance(!includeInsurance)}
                   disabled={!hasInsurance}
-                  unavailableTitle={t("publicReport.optionInsurance")}
+                  unavailableTitle={t("publicReport.optionInsuranceOc")}
+                  unavailableBody={t("publicReport.unavailableNoData")}
+                />
+                <ReportOptionRow
+                  label={t("publicReport.optionInsuranceAc")}
+                  checked={includeAc}
+                  onPress={() => setIncludeAc(!includeAc)}
+                  disabled={!hasAc}
+                  unavailableTitle={t("publicReport.optionInsuranceAc")}
                   unavailableBody={t("publicReport.unavailableNoData")}
                 />
                 <ReportOptionRow
@@ -478,6 +528,18 @@ export function MarketplaceConfigureScreen({ navigation, route }: Props) {
                   isLast
                 />
               </ReportOptionGroup>
+
+              <ReportOptionsCard>
+                <ReportOptionRow
+                  label={t("publicReport.optionEquipment")}
+                  checked={includeEquipment}
+                  onPress={() => setIncludeEquipment(!includeEquipment)}
+                  disabled={!hasEquipment}
+                  unavailableTitle={t("publicReport.optionEquipment")}
+                  unavailableBody={t("publicReport.unavailableNoData")}
+                  isLast
+                />
+              </ReportOptionsCard>
 
               <ReportOptionGroup
                 title={t("publicReport.exploitationStatsGroup")}

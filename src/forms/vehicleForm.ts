@@ -27,6 +27,7 @@ export type VehicleFormState = {
   driveType: DriveType | null;
   notes: string;
   insuranceValidUntil: string;
+  acValidUntil: string;
   inspectionValidUntil: string;
 };
 
@@ -91,6 +92,9 @@ export function buildVehiclePayload(form: VehicleFormState) {
     notes: form.notes.trim().length ? form.notes.trim() : null,
     insurance_valid_until: form.insuranceValidUntil.trim().length
       ? form.insuranceValidUntil.trim()
+      : null,
+    ac_valid_until: form.acValidUntil.trim().length
+      ? form.acValidUntil.trim()
       : null,
     inspection_valid_until: form.inspectionValidUntil.trim().length
       ? form.inspectionValidUntil.trim()

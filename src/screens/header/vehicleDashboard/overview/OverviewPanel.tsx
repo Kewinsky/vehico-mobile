@@ -46,6 +46,7 @@ export function OverviewPanel(props: OverviewPanelProps) {
         mileageStaleTitle={props.mileageStaleTitle}
         handleQuickMileageEdit={props.handleQuickMileageEdit}
         insuranceCalloutCopy={props.insuranceCalloutCopy}
+        acCalloutCopy={props.acCalloutCopy}
         inspectionCalloutCopy={props.inspectionCalloutCopy}
         oilChangeDueState={props.oilChangeDueState}
         oilBannerCopy={props.oilBannerCopy}

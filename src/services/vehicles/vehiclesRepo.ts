@@ -29,6 +29,7 @@ type NewVehicleInput = {
   drive_type?: "FWD" | "RWD" | "AWD" | null;
   notes?: string | null;
   insurance_valid_until?: string | null;
+  ac_valid_until?: string | null;
   inspection_valid_until?: string | null;
 };
 
@@ -71,6 +72,7 @@ export async function createVehicle(input: NewVehicleInput): Promise<Vehicle> {
     p_drive_type: input.drive_type ?? null,
     p_notes: input.notes ?? null,
     p_insurance_valid_until: input.insurance_valid_until ?? null,
+    p_ac_valid_until: input.ac_valid_until ?? null,
     p_inspection_valid_until: input.inspection_valid_until ?? null,
   });
   if (error) throw error;

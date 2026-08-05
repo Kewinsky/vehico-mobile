@@ -35,10 +35,7 @@ export function VehicleTechnicalDataSummary({ vehicle }: Props) {
     ) =>
       v != null && String(v).trim() !== "" ? String(v).trim() : fallback;
 
-    const typeVal =
-      vehicle.type === "car"
-        ? t("vehicleForm.car")
-        : t("vehicleForm.motorcycle");
+    const typeVal = t(`vehicleForm.${vehicle.type}` as const);
     const fuelVal =
       vehicle.fuel_type != null
         ? t(

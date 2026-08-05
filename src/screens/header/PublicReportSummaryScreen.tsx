@@ -18,12 +18,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
+import { isModificationCategory } from "../../constants/vehicleTypes";
 import type { Vehicle, VehiclePhoto } from "../../types/domain";
 import { hasEnoughStatsEntries } from "../../types/reportOptions";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listVehicleTires } from "../../services/tires/tiresRepo";
 import { listVehicleWheels } from "../../services/wheels/wheelsRepo";
+import { listVehicleEquipment } from "../../services/equipment/vehicleEquipmentRepo";
 import {
   listVehiclePhotos,
   getVehiclePhotoUrl,
@@ -58,9 +60,11 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [serviceEntriesCount, setServiceEntriesCount] = useState<number>(0);
+  const [modificationsCount, setModificationsCount] = useState(0);
   const [fuelingEntriesCount, setFuelingEntriesCount] = useState<number>(0);
   const [tiresCount, setTiresCount] = useState(0);
   const [wheelsCount, setWheelsCount] = useState(0);
+  const [equipmentCount, setEquipmentCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -77,7 +81,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [v, serviceEntries, fuelingEntries, photos, tires, wheels] =
+      const [v, serviceEntries, fuelingEntries, photos, tires, wheels, equipment] =
         await Promise.all([
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
@@ -85,12 +89,19 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
           listVehiclePhotos(vehicleId),
           listVehicleTires(vehicleId),
           listVehicleWheels(vehicleId),
+          listVehicleEquipment(vehicleId),
         ]);
       setVehicle(v);
       setServiceEntriesCount(serviceEntries.length);
+      setModificationsCount(
+        serviceEntries.filter((entry) =>
+          isModificationCategory(entry.category),
+        ).length,
+      );
       setFuelingEntriesCount(fuelingEntries.length);
       setTiresCount(tires.length);
       setWheelsCount(wheels.length);
+      setEquipmentCount(equipment.length);
       setVehiclePhotos(photos);
 
       const selectedIds = new Set(
@@ -216,6 +227,7 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
 
   const hasInsurance =
     (vehicle?.insurance_valid_until?.trim() ?? "").length > 0;
+  const hasAc = (vehicle?.ac_valid_until?.trim() ?? "").length > 0;
   const hasInspection =
     (vehicle?.inspection_valid_until?.trim() ?? "").length > 0;
   const hasNotes = (vehicle?.notes?.trim() ?? "").length > 0;
@@ -333,6 +345,18 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                 }
               />
               <ReportSummaryOptionRow
+                label={t("publicReport.optionModifications")}
+                status={reportSummaryStatus(
+                  reportOptions.include_modifications,
+                  modificationsCount > 0,
+                )}
+                count={
+                  reportOptions.include_modifications && modificationsCount > 0
+                    ? modificationsCount
+                    : undefined
+                }
+              />
+              <ReportSummaryOptionRow
                 label={t("publicReport.optionNotes", { vehicleTitle })}
                 status={reportSummaryStatus(
                   reportOptions.include_notes,
@@ -346,10 +370,17 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
               title={t("publicReport.formalitiesGroup")}
             >
               <ReportSummaryOptionRow
-                label={t("publicReport.optionInsurance")}
+                label={t("publicReport.optionInsuranceOc")}
                 status={reportSummaryStatus(
                   reportOptions.include_insurance,
                   hasInsurance,
+                )}
+              />
+              <ReportSummaryOptionRow
+                label={t("publicReport.optionInsuranceAc")}
+                status={reportSummaryStatus(
+                  reportOptions.include_ac,
+                  hasAc,
                 )}
               />
               <ReportSummaryOptionRow
@@ -379,6 +410,22 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                 isLast
               />
             </ReportSummaryOptionGroup>
+
+            <ReportOptionsCard>
+              <ReportSummaryOptionRow
+                label={t("publicReport.optionEquipment")}
+                status={reportSummaryStatus(
+                  reportOptions.include_equipment,
+                  equipmentCount > 0,
+                )}
+                count={
+                  reportOptions.include_equipment && equipmentCount > 0
+                    ? equipmentCount
+                    : undefined
+                }
+                isLast
+              />
+            </ReportOptionsCard>
 
             <ReportSummaryOptionGroup
               title={t("publicReport.exploitationStatsGroup")}

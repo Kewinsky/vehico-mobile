@@ -2,7 +2,7 @@
  * Single write path for `public.entitlements` from RevenueCat: map a resolved plan update + free-plan
  * side effects in one place. Called only from `revenuecat-webhook` (the app does not sync plan here).
  */
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.49.1";
 
 import {
   FREE_TIER_ENTITLEMENT_LIMITS,

@@ -25,6 +25,7 @@ import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import { useSharedValue } from "react-native-reanimated";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import { getVehicleTypeMciIcon } from "../../constants/vehicleTypes";
 import type { Vehicle } from "../../types/domain";
 import {
   deleteVehicle,
@@ -333,9 +334,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                 ) : (
                   <View style={styles.vehicleImagePlaceholder}>
                     <MaterialCommunityIcons
-                      name={
-                        vehicle.type === "car" ? "car-outline" : "motorbike"
-                      }
+                      name={getVehicleTypeMciIcon(vehicle.type) as any}
                       size={theme.spacing.xl * 2}
                       color={theme.colors.muted}
                     />
@@ -533,6 +532,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
 
                   {/* Row 5: Ubezpieczenie + Przegląd (gdy ustawione) */}
                   {(vehicle.insurance_valid_until != null ||
+                    vehicle.ac_valid_until != null ||
                     vehicle.inspection_valid_until != null) && (
                     <View style={styles.detailsRow}>
                       {vehicle.insurance_valid_until != null && (
@@ -544,8 +544,21 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                               color={theme.colors.accent}
                             />
                           }
-                          label={t("manageVehicle.insuranceLabel")}
+                          label={t("manageVehicle.insuranceOcLabel")}
                           value={vehicle.insurance_valid_until}
+                        />
+                      )}
+                      {vehicle.ac_valid_until != null && (
+                        <DetailItem
+                          icon={
+                            <Ionicons
+                              name="shield-checkmark-outline"
+                              size={detailIconSize}
+                              color={theme.colors.accent}
+                            />
+                          }
+                          label={t("manageVehicle.insuranceAcLabel")}
+                          value={vehicle.ac_valid_until}
                         />
                       )}
                       {vehicle.inspection_valid_until != null && (

@@ -14,6 +14,10 @@ import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { DraggableGrid } from "react-native-draggable-grid";
 
+import {
+  isMotorcycleVehicleType,
+  VEHICLE_TYPES,
+} from "../../constants/vehicleTypes";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
   buildVehiclePayload,
@@ -47,7 +51,6 @@ import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSou
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
-import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { Hash, CalendarCheck, Fuel } from "lucide-react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Card } from "../../ui/components/common/Card";
@@ -98,6 +101,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
   const [driveType, setDriveType] = useState<DriveType | null>(null);
   const [notes, setNotes] = useState("");
   const [insuranceValidUntil, setInsuranceValidUntil] = useState("");
+  const [acValidUntil, setAcValidUntil] = useState("");
   const [inspectionValidUntil, setInspectionValidUntil] = useState("");
   const [saving, setSaving] = useState(false);
   type PhotoFile = {
@@ -149,6 +153,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       setDriveType(v.drive_type);
       setNotes(v.notes ?? "");
       setInsuranceValidUntil(v.insurance_valid_until ?? "");
+      setAcValidUntil(v.ac_valid_until ?? "");
       setInspectionValidUntil(v.inspection_valid_until ?? "");
 
       const photosList = await listVehiclePhotos(
@@ -193,6 +198,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       driveType,
       notes,
       insuranceValidUntil,
+      acValidUntil,
       inspectionValidUntil,
     }),
     [
@@ -212,6 +218,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       driveType,
       notes,
       insuranceValidUntil,
+      acValidUntil,
       inspectionValidUntil,
     ],
   );
@@ -589,14 +596,16 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
               <View style={{ height: theme.spacing.xl }} />
 
-              <SegmentTabs<VehicleType>
-                variant="secondary"
+              <FormPickerRow<VehicleType>
+                icon="car-outline"
+                label={t("vehicleForm.type")}
                 value={type}
-                options={[
-                  { value: "car", label: t("vehicleForm.car") },
-                  { value: "motorcycle", label: t("vehicleForm.motorcycle") },
-                ]}
-                onChange={setType}
+                options={VEHICLE_TYPES}
+                getLabel={(value) => t(`vehicleForm.${value}` as const)}
+                onChange={(value) => {
+                  if (value) setType(value);
+                }}
+                disabled={saving}
               />
 
               <View style={{ height: theme.spacing.sm }} />
@@ -610,7 +619,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   autoCapitalize="characters"
                   editable={!saving}
                   placeholder={
-                    type === "motorcycle"
+                    isMotorcycleVehicleType(type)
                       ? t("vehicleForm.placeholderVinMotorcycle")
                       : t("vehicleForm.placeholderVin")
                   }
@@ -623,7 +632,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   onChangeText={setMake}
                   editable={!saving}
                   placeholder={
-                    type === "motorcycle"
+                    isMotorcycleVehicleType(type)
                       ? t("vehicleForm.placeholderMakeMotorcycle")
                       : t("vehicleForm.placeholderMake")
                   }
@@ -637,7 +646,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   onChangeText={setModel}
                   editable={!saving}
                   placeholder={
-                    type === "motorcycle"
+                    isMotorcycleVehicleType(type)
                       ? t("vehicleForm.placeholderModelMotorcycle")
                       : t("vehicleForm.placeholderModel")
                   }
@@ -653,7 +662,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   maxLength={4}
                   editable={!saving}
                   placeholder={
-                    type === "motorcycle"
+                    isMotorcycleVehicleType(type)
                       ? t("vehicleForm.placeholderYearMotorcycle")
                       : t("vehicleForm.placeholderYear")
                   }
@@ -668,7 +677,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   keyboardType="number-pad"
                   editable={!saving}
                   placeholder={
-                    type === "motorcycle"
+                    isMotorcycleVehicleType(type)
                       ? t("vehicleForm.placeholderInitialMileageMotorcycle")
                       : t("vehicleForm.placeholderInitialMileage")
                   }
@@ -683,7 +692,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   keyboardType="number-pad"
                   editable={!saving}
                   placeholder={
-                    type === "motorcycle"
+                    isMotorcycleVehicleType(type)
                       ? t("vehicleForm.placeholderMileageMotorcycle")
                       : t("vehicleForm.placeholderMileage")
                   }
@@ -754,7 +763,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   keyboardType="number-pad"
                   editable={!saving}
                   placeholder={
-                    type === "motorcycle"
+                    isMotorcycleVehicleType(type)
                       ? t("vehicleForm.placeholderEngineCapacityMotorcycle")
                       : t("vehicleForm.placeholderEngineCapacity")
                   }
@@ -769,7 +778,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   keyboardType="number-pad"
                   editable={!saving}
                   placeholder={
-                    type === "motorcycle"
+                    isMotorcycleVehicleType(type)
                       ? t("vehicleForm.placeholderPowerHpMotorcycle")
                       : t("vehicleForm.placeholderPowerHp")
                   }
@@ -820,7 +829,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
               <Card>
                 <FormDateRow
                   icon="shield-checkmark-outline"
-                  label={t("manageVehicle.insuranceLabel")}
+                  label={t("manageVehicle.insuranceOcLabel")}
                   value={insuranceValidUntil}
                   onChange={setInsuranceValidUntil}
                   disabled={saving}
@@ -828,6 +837,30 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     insuranceValidUntil ? (
                       <Pressable
                         onPress={() => setInsuranceValidUntil("")}
+                        hitSlop={10}
+                        style={({ pressed }) => [
+                          { opacity: pressed ? 0.7 : 1 },
+                        ]}
+                      >
+                        <Ionicons
+                          name="close-circle"
+                          size={20}
+                          color={theme.colors.muted}
+                        />
+                      </Pressable>
+                    ) : null
+                  }
+                />
+                <FormDateRow
+                  icon="shield-checkmark-outline"
+                  label={t("manageVehicle.insuranceAcLabel")}
+                  value={acValidUntil}
+                  onChange={setAcValidUntil}
+                  disabled={saving}
+                  trailing={
+                    acValidUntil ? (
+                      <Pressable
+                        onPress={() => setAcValidUntil("")}
                         hitSlop={10}
                         style={({ pressed }) => [
                           { opacity: pressed ? 0.7 : 1 },
@@ -897,7 +930,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                       editable={!saving}
                       multiline
                       placeholder={
-                        type === "motorcycle"
+                        isMotorcycleVehicleType(type)
                           ? t("vehicleForm.placeholderNotesMotorcycle")
                           : t("vehicleForm.placeholderNotes")
                       }

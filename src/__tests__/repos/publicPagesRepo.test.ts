@@ -34,7 +34,10 @@ describe("publicPagesRepo", () => {
     const out = await generatePublicPageWithOptions("v1", {
       include_technical_data: true,
       include_insurance: true,
+      include_ac: true,
       include_inspection: true,
+      include_modifications: false,
+      include_equipment: false,
       include_notes: false,
       include_wheels: false,
       include_tires: false,
@@ -70,6 +73,7 @@ describe("publicPagesRepo", () => {
         include_notes: true,
         include_wheels: false,
         include_tires: false,
+        include_equipment: false,
         include_service_history: false,
         include_service_stats: false,
         include_fueling_stats: false,

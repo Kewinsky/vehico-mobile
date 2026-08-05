@@ -21,6 +21,7 @@ import type {
   VehicleTire,
   VehicleWheel,
 } from "../../../types/domain";
+import type { VehicleFormalityDateField } from "../../../constants/vehicleTypes";
 import {
   deleteVehicle,
   getVehicle,
@@ -115,7 +116,7 @@ export function useVehicleDashboardState({
   const [loading, setLoading] = useState(true);
   const [oilBookLoading, setOilBookLoading] = useState(false);
   const [formalityOverlay, setFormalityOverlay] = useState<{
-    field: "insurance_valid_until" | "inspection_valid_until";
+    field: VehicleFormalityDateField;
     value: string;
     title: string;
   } | null>(null);
@@ -209,12 +210,18 @@ export function useVehicleDashboardState({
     [vehicle?.insurance_valid_until],
   );
 
+  const acDaysUntil = useMemo(
+    () => getDaysUntilDate(vehicle?.ac_valid_until),
+    [vehicle?.ac_valid_until],
+  );
+
   const inspectionDaysUntil = useMemo(
     () => getDaysUntilDate(vehicle?.inspection_valid_until),
     [vehicle?.inspection_valid_until],
   );
 
   const showInsuranceCallout = shouldShowFormalityCallout(insuranceDaysUntil);
+  const showAcCallout = shouldShowFormalityCallout(acDaysUntil);
   const showInspectionCallout = shouldShowFormalityCallout(inspectionDaysUntil);
 
   const insuranceCalloutCopy = useMemo(() => {
@@ -242,6 +249,35 @@ export function useVehicleDashboardState({
     showInsuranceCallout,
     insuranceDaysUntil,
     vehicle?.insurance_valid_until,
+    i18n.language,
+    t,
+  ]);
+
+  const acCalloutCopy = useMemo(() => {
+    if (!showAcCallout || acDaysUntil == null) return null;
+    const date = formatShortDisplayDate(
+      vehicle?.ac_valid_until,
+      i18n.language,
+    );
+    const title =
+      acDaysUntil < 0
+        ? t("dashboard.acBanner.titleOverdue")
+        : acDaysUntil === 0
+          ? t("dashboard.acBanner.titleDueToday")
+          : t("dashboard.acBanner.titleDueSoon", {
+              days: acDaysUntil,
+            });
+    return {
+      title,
+      description: createElement(RichCalloutText, {
+        i18nKey: "dashboard.acBanner.validUntil",
+        values: { date },
+      }),
+    };
+  }, [
+    showAcCallout,
+    acDaysUntil,
+    vehicle?.ac_valid_until,
     i18n.language,
     t,
   ]);
@@ -778,10 +814,7 @@ export function useVehicleDashboardState({
   }, [oilChangeDueState.lastOilChange?.workshop_id, t]);
 
   const saveFormalitiesDate = useCallback(
-    async (
-      field: "insurance_valid_until" | "inspection_valid_until",
-      value: string | null,
-    ) => {
+    async (field: VehicleFormalityDateField, value: string | null) => {
       if (value != null && value.length > 0 && !isValidDate(value)) {
         toastError(t("validation.invalidDate"));
         return;
@@ -800,7 +833,7 @@ export function useVehicleDashboardState({
 
   const openFormalitiesDateEditor = useCallback(
     (
-      field: "insurance_valid_until" | "inspection_valid_until",
+      field: VehicleFormalityDateField,
       currentValue: string | null | undefined,
       title: string,
       _prompt: string,
@@ -836,6 +869,12 @@ export function useVehicleDashboardState({
         title: t("dashboard.tiles.remindersTitle"),
         icon: "notifications",
         onPress: () => navigation.navigate("Reminders", { vehicleId }),
+      },
+      {
+        key: "equipment",
+        title: t("dashboard.tiles.equipmentTitle"),
+        icon: "list",
+        onPress: () => navigation.navigate("VehicleEquipment", { vehicleId }),
       },
       {
         key: "wheels",
@@ -895,10 +934,13 @@ export function useVehicleDashboardState({
     upcomingReminders,
     activeRemindersCount,
     insuranceDaysUntil,
+    acDaysUntil,
     inspectionDaysUntil,
     showInsuranceCallout,
+    showAcCallout,
     showInspectionCallout,
     insuranceCalloutCopy,
+    acCalloutCopy,
     inspectionCalloutCopy,
     quickMetrics,
     mileageStaleTitle,

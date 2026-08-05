@@ -4,6 +4,10 @@ import { useTranslation } from "react-i18next";
 import { StyleSheet } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
+import {
+  matchesServiceCategoryFilter,
+  type ServiceHistoryCategoryFilter,
+} from "../../constants/vehicleTypes";
 import type { ServiceEntryCategory } from "../../types/domain";
 import { setPendingModalResult } from "../../app/pendingModalResult";
 import { Button } from "../../ui/components/common/Button";
@@ -16,7 +20,7 @@ import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
 
 export type ServiceHistoryFiltersParams = {
-  categoryFilter: "all" | ServiceEntryCategory;
+  categoryFilter: ServiceHistoryCategoryFilter;
   dateFrom: string;
   dateTo: string;
   minCost: string;
@@ -41,8 +45,9 @@ const CATEGORY_OPTIONS: ServiceEntryCategory[] = [
 
 const CATEGORY_FILTER_OPTIONS = [
   "all",
+  "modifications",
   ...CATEGORY_OPTIONS,
-] as const satisfies readonly ("all" | ServiceEntryCategory)[];
+] as const satisfies readonly ServiceHistoryCategoryFilter[];
 
 const SORT_FIELD_OPTIONS = ["date", "title", "cost"] as const;
 
@@ -55,9 +60,9 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
 
   const params = route.params;
 
-  const [categoryFilter, setCategoryFilter] = useState<
-    "all" | ServiceEntryCategory
-  >((params.categoryFilter as "all" | ServiceEntryCategory) ?? "all");
+  const [categoryFilter, setCategoryFilter] = useState<ServiceHistoryCategoryFilter>(
+    (params.categoryFilter as ServiceHistoryCategoryFilter) ?? "all",
+  );
   const [dateFrom, setDateFrom] = useState(params.dateFrom ?? "");
   const [dateTo, setDateTo] = useState(params.dateTo ?? "");
   const [minCost, setMinCost] = useState(params.minCost ?? "");
@@ -131,16 +136,18 @@ export function ServiceHistoryFiltersScreen({ navigation, route }: Props) {
       }
     >
       <Card>
-        <FormPickerRow<"all" | ServiceEntryCategory>
+        <FormPickerRow<ServiceHistoryCategoryFilter>
           icon="pricetag-outline"
           label={t("timeline.filterCategory")}
           value={categoryFilter}
           options={categoryOptions}
-          getLabel={(value) =>
-            value === "all"
-              ? t("common.all")
-              : t(`entryForm.categories.${value}` as any)
-          }
+          getLabel={(value) => {
+            if (value === "all") return t("common.all");
+            if (value === "modifications") {
+              return t("timeline.filterModifications");
+            }
+            return t(`entryForm.categories.${value}` as any);
+          }}
           onChange={(value) => {
             if (value) setCategoryFilter(value);
           }}

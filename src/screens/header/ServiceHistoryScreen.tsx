@@ -11,6 +11,10 @@ import type {
 } from "../../types/domain";
 import type { ServiceHistoryFiltersParams } from "../modal/ServiceHistoryFiltersScreen";
 import {
+  matchesServiceCategoryFilter,
+  type ServiceHistoryCategoryFilter,
+} from "../../constants/vehicleTypes";
+import {
   deleteServiceEntry,
   listServiceEntries,
 } from "../../services/serviceEntries/serviceEntriesRepo";
@@ -43,9 +47,8 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
   const currency = settings?.currency ?? "PLN";
 
   const [query, setQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<
-    "all" | ServiceEntryCategory
-  >("all");
+  const [categoryFilter, setCategoryFilter] =
+    useState<ServiceHistoryCategoryFilter>("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [minCost, setMinCost] = useState("");
@@ -97,7 +100,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     pendingModalKey: "serviceHistory",
     applyPendingModalResult: (pending) => {
       setCategoryFilter(
-        (pending.categoryFilter as "all" | ServiceEntryCategory) ?? "all",
+        (pending.categoryFilter as ServiceHistoryCategoryFilter) ?? "all",
       );
       setDateFrom(pending.dateFrom ?? "");
       setDateTo(pending.dateTo ?? "");
@@ -166,7 +169,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     const serviceRows = items
       .filter((e) => {
         const cat = (e.category ?? "other") as ServiceEntryCategory;
-        if (categoryFilter !== "all" && cat !== categoryFilter) return false;
+        if (!matchesServiceCategoryFilter(cat, categoryFilter)) return false;
         const d = String(e.service_date).slice(0, 10);
         if (from && d < from) return false;
         if (to && d > to) return false;

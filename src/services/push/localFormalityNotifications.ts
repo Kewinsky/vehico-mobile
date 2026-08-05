@@ -12,7 +12,7 @@ const PREFIX = "vehico-formality-";
 /** Days before expiry to notify: 7, 3, and on the expiry date (0). */
 export const FORMALITY_NOTIFICATION_OFFSETS_DAYS = [7, 3, 0] as const;
 
-export type FormalityKind = "insurance" | "inspection";
+export type FormalityKind = "insurance" | "ac" | "inspection";
 
 export type FormalityForSchedule = {
   vehicleId: string;
@@ -76,19 +76,21 @@ function notificationBody(
   dateFormatted: string,
 ): string {
   if (daysBefore === 0) {
-    return i18n.t(
+    const key =
       kind === "insurance"
         ? "dashboard.formalityNotification.insuranceToday"
-        : "dashboard.formalityNotification.inspectionToday",
-      { vehicle: vehicleLabel },
-    );
+        : kind === "ac"
+          ? "dashboard.formalityNotification.acToday"
+          : "dashboard.formalityNotification.inspectionToday";
+    return i18n.t(key, { vehicle: vehicleLabel });
   }
-  return i18n.t(
+  const key =
     kind === "insurance"
       ? "dashboard.formalityNotification.insuranceBefore"
-      : "dashboard.formalityNotification.inspectionBefore",
-    { vehicle: vehicleLabel, days: daysBefore, date: dateFormatted },
-  );
+      : kind === "ac"
+        ? "dashboard.formalityNotification.acBefore"
+        : "dashboard.formalityNotification.inspectionBefore";
+  return i18n.t(key, { vehicle: vehicleLabel, days: daysBefore, date: dateFormatted });
 }
 
 export async function cancelFormalityNotifications(
@@ -111,6 +113,7 @@ export async function cancelVehicleFormalityNotifications(
 ): Promise<void> {
   await Promise.all([
     cancelFormalityNotifications(vehicleId, "insurance"),
+    cancelFormalityNotifications(vehicleId, "ac"),
     cancelFormalityNotifications(vehicleId, "inspection"),
   ]);
 }
@@ -174,6 +177,12 @@ export async function rescheduleVehicleFormalityNotifications(
       vehicleLabel,
       kind: "insurance",
       validUntil: vehicle.insurance_valid_until,
+    }),
+    scheduleFormalityNotifications({
+      vehicleId: vehicle.id,
+      vehicleLabel,
+      kind: "ac",
+      validUntil: vehicle.ac_valid_until,
     }),
     scheduleFormalityNotifications({
       vehicleId: vehicle.id,

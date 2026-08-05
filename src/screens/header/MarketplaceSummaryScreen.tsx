@@ -18,6 +18,7 @@ import { listServiceEntries } from "../../services/serviceEntries/serviceEntries
 import { listFuelingEntries } from "../../services/fuel/fuelingEntriesRepo";
 import { listVehicleTires } from "../../services/tires/tiresRepo";
 import { listVehicleWheels } from "../../services/wheels/wheelsRepo";
+import { listVehicleEquipment } from "../../services/equipment/vehicleEquipmentRepo";
 import {
   getPublicPageUrl,
   listPublicPages,
@@ -61,6 +62,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   const [fuelingEntriesCount, setFuelingEntriesCount] = useState<number>(0);
   const [tiresCount, setTiresCount] = useState(0);
   const [wheelsCount, setWheelsCount] = useState(0);
+  const [equipmentCount, setEquipmentCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -68,19 +70,21 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [v, serviceEntries, fuelingEntries, tires, wheels] =
+      const [v, serviceEntries, fuelingEntries, tires, wheels, equipment] =
         await Promise.all([
           getVehicle(vehicleId),
           listServiceEntries(vehicleId),
           listFuelingEntries(vehicleId),
           listVehicleTires(vehicleId),
           listVehicleWheels(vehicleId),
+          listVehicleEquipment(vehicleId),
         ]);
       setVehicle(v);
       setServiceEntriesCount(serviceEntries.length);
       setFuelingEntriesCount(fuelingEntries.length);
       setTiresCount(tires.length);
       setWheelsCount(wheels.length);
+      setEquipmentCount(equipment.length);
     } catch (e: any) {
       toastCaughtError(e, t("common.error"));
     } finally {
@@ -168,6 +172,7 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
 
   const hasInsurance =
     (vehicle?.insurance_valid_until?.trim() ?? "").length > 0;
+  const hasAc = (vehicle?.ac_valid_until?.trim() ?? "").length > 0;
   const hasInspection =
     (vehicle?.inspection_valid_until?.trim() ?? "").length > 0;
   const hasNotes = (vehicle?.notes?.trim() ?? "").length > 0;
@@ -242,10 +247,17 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
               title={t("publicReport.formalitiesGroup")}
             >
               <ReportSummaryOptionRow
-                label={t("publicReport.optionInsurance")}
+                label={t("publicReport.optionInsuranceOc")}
                 status={reportSummaryStatus(
                   reportOptions.include_insurance,
                   hasInsurance,
+                )}
+              />
+              <ReportSummaryOptionRow
+                label={t("publicReport.optionInsuranceAc")}
+                status={reportSummaryStatus(
+                  reportOptions.include_ac,
+                  hasAc,
                 )}
               />
               <ReportSummaryOptionRow
@@ -275,6 +287,22 @@ export function MarketplaceSummaryScreen({ navigation, route }: Props) {
                 isLast
               />
             </ReportSummaryOptionGroup>
+
+            <ReportOptionsCard>
+              <ReportSummaryOptionRow
+                label={t("publicReport.optionEquipment")}
+                status={reportSummaryStatus(
+                  reportOptions.include_equipment,
+                  equipmentCount > 0,
+                )}
+                count={
+                  reportOptions.include_equipment && equipmentCount > 0
+                    ? equipmentCount
+                    : undefined
+                }
+                isLast
+              />
+            </ReportOptionsCard>
 
             <ReportSummaryOptionGroup
               title={t("publicReport.exploitationStatsGroup")}

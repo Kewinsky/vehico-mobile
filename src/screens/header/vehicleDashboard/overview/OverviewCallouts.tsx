@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { CheckCheck, Clock, ShieldCheck } from "lucide-react-native";
 import type { TFunction } from "i18next";
 
+import type { VehicleFormalityDateField } from "../../../../constants/vehicleTypes";
 import { DashboardCalloutCard } from "../../../../ui/components/dashboard/DashboardCalloutCard";
 import { SERVICE_CATEGORY_COLORS } from "../../../../ui/theme/serviceCategoryColors";
 import type { Vehicle } from "../../../../types/domain";
@@ -15,6 +16,10 @@ type OverviewCalloutsProps = {
   mileageStaleTitle: string | null;
   handleQuickMileageEdit: () => void;
   insuranceCalloutCopy: {
+    title: string;
+    description?: ReactNode;
+  } | null;
+  acCalloutCopy: {
     title: string;
     description?: ReactNode;
   } | null;
@@ -32,7 +37,7 @@ type OverviewCalloutsProps = {
   handleOilChangeBook: () => void | Promise<void>;
   oilBookLoading: boolean;
   openFormalitiesDateEditor: (
-    field: "insurance_valid_until" | "inspection_valid_until",
+    field: VehicleFormalityDateField,
     currentValue: string | null | undefined,
     label: string,
     prompt: string,
@@ -47,6 +52,7 @@ export function OverviewCallouts({
   mileageStaleTitle,
   handleQuickMileageEdit,
   insuranceCalloutCopy,
+  acCalloutCopy,
   inspectionCalloutCopy,
   oilChangeDueState,
   oilBannerCopy,
@@ -97,8 +103,35 @@ export function OverviewCallouts({
                 openFormalitiesDateEditor(
                   "insurance_valid_until",
                   vehicle?.insurance_valid_until,
-                  t("dashboard.stats.insurance"),
+                  t("dashboard.stats.insuranceOc"),
                   t("dashboard.formalitiesUpdate.insurancePrompt"),
+                ),
+            },
+          ]}
+        />
+      ) : null}
+      {isPremium && acCalloutCopy ? (
+        <DashboardCalloutCard
+          accentColor={theme.colors.accent}
+          buttonColor={theme.colors.accent}
+          icon={
+            <ShieldCheck
+              size={26}
+              color={theme.colors.accent}
+              strokeWidth={2}
+            />
+          }
+          title={acCalloutCopy.title}
+          description={acCalloutCopy.description}
+          actions={[
+            {
+              label: t("dashboard.acBanner.cta"),
+              onPress: () =>
+                openFormalitiesDateEditor(
+                  "ac_valid_until",
+                  vehicle?.ac_valid_until,
+                  t("dashboard.stats.insuranceAc"),
+                  t("dashboard.formalitiesUpdate.acPrompt"),
                 ),
             },
           ]}

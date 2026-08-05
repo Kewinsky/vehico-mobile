@@ -3,6 +3,7 @@ import type { TFunction } from "i18next";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { AppStackParamList } from "../../../../app/navigation/RootNavigator";
+import type { VehicleFormalityDateField } from "../../../../constants/vehicleTypes";
 import type { Reminder, Vehicle } from "../../../../types/domain";
 import type { OilChangeDueState } from "../../../../utils/oilChangeDue";
 import type { OverviewPanelStyles } from "./overviewStyles";
@@ -45,6 +46,10 @@ export type OverviewPanelProps = {
     title: string;
     description?: ReactNode;
   } | null;
+  acCalloutCopy: {
+    title: string;
+    description?: ReactNode;
+  } | null;
   inspectionCalloutCopy: {
     title: string;
     description?: ReactNode;
@@ -66,9 +71,10 @@ export type OverviewPanelProps = {
   handleAddReminder: () => void;
   upcomingReminders: Reminder[];
   insuranceDaysUntil: number | null;
+  acDaysUntil: number | null;
   inspectionDaysUntil: number | null;
   openFormalitiesDateEditor: (
-    field: "insurance_valid_until" | "inspection_valid_until",
+    field: VehicleFormalityDateField,
     currentValue: string | null | undefined,
     label: string,
     prompt: string,

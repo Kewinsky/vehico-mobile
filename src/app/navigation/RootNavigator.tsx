@@ -13,6 +13,7 @@ import { VehicleFormScreen } from "../../screens/modal/VehicleFormScreen";
 import { VehicleDashboardScreen } from "../../screens/header/VehicleDashboardScreen";
 import { ServiceHistoryScreen } from "../../screens/header/ServiceHistoryScreen";
 import { ServiceHistoryFiltersScreen } from "../../screens/modal/ServiceHistoryFiltersScreen";
+import { VehicleEquipmentScreen } from "../../screens/header/VehicleEquipmentScreen";
 import { ManageVehicleScreen } from "../../screens/header/ManageVehicleScreen";
 import { DocumentsScreen } from "../../screens/header/DocumentsScreen";
 import { FuelScreen } from "../../screens/header/FuelScreen";
@@ -145,6 +146,7 @@ export type AppStackParamList = {
   };
   PublicReportHistory: { vehicleId: string };
   ManageVehicle: { vehicleId: string };
+  VehicleEquipment: { vehicleId: string };
   DataPortability: { vehicleId: string };
   Export: { vehicleId: string };
   Import: { vehicleId: string };
@@ -374,6 +376,11 @@ export function RootNavigator() {
           <Stack.Screen
             name="ManageVehicle"
             component={ManageVehicleScreen}
+            options={nativeHeaderScreenOptions}
+          />
+          <Stack.Screen
+            name="VehicleEquipment"
+            component={VehicleEquipmentScreen}
             options={nativeHeaderScreenOptions}
           />
           <Stack.Screen

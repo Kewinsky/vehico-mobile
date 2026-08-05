@@ -1,4 +1,11 @@
-export type VehicleType = "car" | "motorcycle";
+export type VehicleType =
+  | "car"
+  | "motorcycle"
+  | "van"
+  | "truck"
+  | "camper"
+  | "trailer"
+  | "other";
 
 export type FuelType = "petrol" | "diesel" | "hybrid" | "electric" | "lpg";
 export type TransmissionType = "manual" | "automatic";
@@ -24,6 +31,7 @@ export type Vehicle = {
   drive_type: DriveType | null;
   notes: string | null;
   insurance_valid_until?: string | null;
+  ac_valid_until?: string | null;
   inspection_valid_until?: string | null;
   created_at: string;
 };
@@ -89,6 +97,14 @@ export type VehicleWheel = {
   created_at: string;
 };
 
+export type VehicleEquipment = {
+  id: string;
+  vehicle_id: string;
+  preset_key: string | null;
+  label: string;
+  created_at: string;
+};
+
 export type WorkshopType =
   | "mechanic"
   | "electrician"
@@ -149,10 +165,13 @@ export type PublicReportSnapshot = {
     report_options?: {
       include_technical_data?: boolean;
       include_insurance?: boolean;
+      include_ac?: boolean;
       include_inspection?: boolean;
+      include_modifications?: boolean;
       include_notes?: boolean;
       include_wheels?: boolean;
       include_tires?: boolean;
+      include_equipment?: boolean;
       include_service_history?: boolean;
       include_service_stats?: boolean;
       include_fueling_stats?: boolean;
@@ -163,6 +182,7 @@ export type PublicReportSnapshot = {
     };
     vehicle_tires?: VehicleTire[];
     vehicle_wheels?: VehicleWheel[];
+    vehicle_equipment?: VehicleEquipment[];
     units?: {
       distance_unit?: DistanceUnit;
       fuel_unit?: FuelUnit;
