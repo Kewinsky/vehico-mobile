@@ -33,6 +33,8 @@ export type Vehicle = {
   insurance_valid_until?: string | null;
   ac_valid_until?: string | null;
   inspection_valid_until?: string | null;
+  intake_token?: string | null;
+  intake_enabled?: boolean;
   created_at: string;
 };
 
@@ -47,6 +49,9 @@ export type MileageAudit = {
   created_at: string;
 };
 
+export type ServiceEntrySource = "owner" | "workshop";
+export type ServiceEntryStatus = "approved" | "pending" | "rejected";
+
 export type ServiceEntry = {
   id: string;
   vehicle_id: string;
@@ -58,6 +63,11 @@ export type ServiceEntry = {
   cost: number | null;
   workshop_id: string | null;
   workshop_snapshot: string | null;
+  source: ServiceEntrySource;
+  status: ServiceEntryStatus;
+  submitted_workshop_name: string | null;
+  submitted_workshop_phone: string | null;
+  reviewed_at: string | null;
   created_at: string;
 };
 

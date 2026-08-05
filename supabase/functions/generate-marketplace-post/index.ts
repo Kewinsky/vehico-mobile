@@ -715,13 +715,15 @@ serve(async (req) => {
       });
     }
 
-    // Fetch service entries (if needed)
+    // Fetch service entries (if needed) - only approved entries, never
+    // pending/rejected workshop submissions.
     let serviceEntries: ServiceEntry[] = [];
     if (vIncludeServiceEntries || includeServiceStats) {
       const { data } = await supabaseClient
         .from("service_entries")
         .select("*")
         .eq("vehicle_id", vehicleId)
+        .eq("status", "approved")
         .order("service_date", { ascending: false });
       serviceEntries = (data || []) as ServiceEntry[];
     }

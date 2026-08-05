@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { CheckCheck, Clock, ShieldCheck } from "lucide-react-native";
+import { CheckCheck, ClipboardCheck, Clock, ShieldCheck } from "lucide-react-native";
 import type { TFunction } from "i18next";
 
 import type { VehicleFormalityDateField } from "../../../../constants/vehicleTypes";
@@ -36,6 +36,8 @@ type OverviewCalloutsProps = {
   handleOilChangeDone: () => void;
   handleOilChangeBook: () => void | Promise<void>;
   oilBookLoading: boolean;
+  pendingWorkshopCount: number;
+  handlePendingWorkshopPress: () => void;
   openFormalitiesDateEditor: (
     field: VehicleFormalityDateField,
     currentValue: string | null | undefined,
@@ -59,10 +61,34 @@ export function OverviewCallouts({
   handleOilChangeDone,
   handleOilChangeBook,
   oilBookLoading,
+  pendingWorkshopCount,
+  handlePendingWorkshopPress,
   openFormalitiesDateEditor,
 }: OverviewCalloutsProps) {
   return (
     <>
+      {pendingWorkshopCount > 0 ? (
+        <DashboardCalloutCard
+          accentColor={theme.colors.accent}
+          buttonColor={theme.colors.accent}
+          icon={
+            <ClipboardCheck
+              size={26}
+              color={theme.colors.accent}
+              strokeWidth={2}
+            />
+          }
+          title={t("dashboard.pendingWorkshopBanner.title", {
+            count: pendingWorkshopCount,
+          })}
+          actions={[
+            {
+              label: t("dashboard.pendingWorkshopBanner.cta"),
+              onPress: handlePendingWorkshopPress,
+            },
+          ]}
+        />
+      ) : null}
       {mileageStaleTitle ? (
         <DashboardCalloutCard
           accentColor={SERVICE_CATEGORY_COLORS.maintenance}

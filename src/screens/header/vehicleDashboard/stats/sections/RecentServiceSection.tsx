@@ -35,6 +35,18 @@ export function RecentServiceSection({
           <View style={styles.recentServiceList}>
             {recentServiceEntries.map((entry) => {
               const cat = (entry.category ?? "other") as ServiceEntryCategory;
+              const badge =
+                entry.source === "workshop"
+                  ? t("serviceHistory.workshopBadge", {
+                      name:
+                        entry.submitted_workshop_name ||
+                        (entry.workshop_id
+                          ? workshopsById[entry.workshop_id]?.name
+                          : null) ||
+                        entry.workshop_snapshot ||
+                        "",
+                    })
+                  : null;
               return (
                 <ServiceItem
                   key={entry.id}
@@ -43,11 +55,7 @@ export function RecentServiceSection({
                   iconBackgroundColor={SERVICE_CATEGORY_ICON_BACKGROUND[cat]}
                   date={entry.service_date}
                   mileage={entry.mileage}
-                  workshopName={
-                    entry.workshop_id
-                      ? workshopsById[entry.workshop_id]?.name
-                      : null
-                  }
+                  badge={badge}
                   cost={entry.cost}
                   currency={currency}
                   onPress={() => onServiceEntryPress(entry.id)}

@@ -71,11 +71,16 @@ create table public.vehicles (
   insurance_valid_until date,
   ac_valid_until date,
   inspection_valid_until date,
+  intake_token text,
+  intake_enabled boolean not null default false,
   created_at timestamptz not null default now()
 );
 
 create index vehicles_owner_id_idx on public.vehicles(owner_id);
 create index vehicles_created_at_idx on public.vehicles(created_at desc);
+create unique index vehicles_intake_token_uidx
+  on public.vehicles (intake_token)
+  where intake_token is not null;
 
 -- Workshops (per user, not per vehicle)
 create table public.workshops (
@@ -106,12 +111,26 @@ create table public.service_entries (
   cost numeric,
   workshop_id uuid references public.workshops(id) on delete set null,
   workshop_snapshot text,
-  created_at timestamptz not null default now()
+  source text not null default 'owner' check (source in ('owner', 'workshop')),
+  status text not null default 'approved' check (status in ('approved', 'pending', 'rejected')),
+  submitted_workshop_name text,
+  submitted_workshop_phone text,
+  reviewed_at timestamptz,
+  created_at timestamptz not null default now(),
+  constraint service_entries_workshop_name_when_workshop check (
+    source <> 'workshop'
+    or (
+      submitted_workshop_name is not null
+      and length(trim(submitted_workshop_name)) > 0
+    )
+  )
 );
 
 create index service_entries_vehicle_id_idx on public.service_entries(vehicle_id);
 create index service_entries_service_date_idx on public.service_entries(service_date desc);
 create index service_entries_workshop_id_idx on public.service_entries(workshop_id);
+create index service_entries_vehicle_status_idx on public.service_entries(vehicle_id, status);
+create index service_entries_vehicle_source_idx on public.service_entries(vehicle_id, source);
 alter table public.service_entries add column if not exists workshop_snapshot text;
 
 -- Manual odometer updates from vehicle profile (audit for mileage-over-time chart)
@@ -1272,6 +1291,9 @@ begin
     v_vehicle := v_vehicle || jsonb_build_object('inspection_valid_until', null);
   end if;
 
+  -- Never expose intake credentials in public snapshots
+  v_vehicle := v_vehicle - 'intake_token' - 'intake_enabled' - 'owner_id';
+
   -- Get service entries (if included)
   if v_include_service_history or v_include_service_stats or v_include_modifications then
     select coalesce(jsonb_agg(
@@ -1283,11 +1305,15 @@ begin
         'title', se.title,
         'description', se.description,
         'cost', se.cost,
+        'source', se.source,
+        'workshop_snapshot', se.workshop_snapshot,
+        'submitted_workshop_name', se.submitted_workshop_name,
         'created_at', se.created_at
       ) order by se.service_date desc
     ), '[]'::jsonb) into v_service_entries
     from public.service_entries se
-    where se.vehicle_id = p_vehicle_id;
+    where se.vehicle_id = p_vehicle_id
+      and se.status = 'approved';
   else
     v_service_entries := '[]'::jsonb;
   end if;
@@ -2230,6 +2256,300 @@ grant execute on function public.create_reminder(
 ) to authenticated;
 
 -- ================
+-- Workshop QR intake (Epic B MVP)
+-- ================
+
+create table if not exists public.workshop_intake_rate_limits (
+  intake_token text primary key,
+  window_started_at timestamptz not null default now(),
+  submission_count integer not null default 0
+    check (submission_count >= 0)
+);
+
+alter table public.workshop_intake_rate_limits enable row level security;
+
+create or replace function public.set_vehicle_intake_enabled(
+  p_vehicle_id uuid,
+  p_enabled boolean
+)
+returns public.vehicles
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_row public.vehicles;
+begin
+  if auth.uid() is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  select * into v_row
+  from public.vehicles v
+  where v.id = p_vehicle_id
+    and v.owner_id = auth.uid()
+  for update;
+
+  if not found then
+    raise exception 'Vehicle not found';
+  end if;
+
+  if p_enabled then
+    if v_row.intake_token is null then
+      v_row.intake_token := replace(gen_random_uuid()::text, '-', '');
+    end if;
+    v_row.intake_enabled := true;
+  else
+    v_row.intake_enabled := false;
+  end if;
+
+  update public.vehicles
+  set
+    intake_token = v_row.intake_token,
+    intake_enabled = v_row.intake_enabled
+  where id = p_vehicle_id
+  returning * into v_row;
+
+  return v_row;
+end;
+$$;
+grant execute on function public.set_vehicle_intake_enabled(uuid, boolean) to authenticated;
+
+create or replace function public.regenerate_vehicle_intake_token(p_vehicle_id uuid)
+returns public.vehicles
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_row public.vehicles;
+begin
+  if auth.uid() is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  update public.vehicles
+  set intake_token = replace(gen_random_uuid()::text, '-', '')
+  where id = p_vehicle_id
+    and owner_id = auth.uid()
+  returning * into v_row;
+
+  if not found then
+    raise exception 'Vehicle not found';
+  end if;
+
+  return v_row;
+end;
+$$;
+grant execute on function public.regenerate_vehicle_intake_token(uuid) to authenticated;
+
+create or replace function public.get_vehicle_intake_by_token(p_token text)
+returns table (
+  make text,
+  model text,
+  production_year integer,
+  type text
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_token is null or length(trim(p_token)) < 16 then
+    return;
+  end if;
+
+  return query
+  select v.make, v.model, v.production_year, v.type
+  from public.vehicles v
+  where v.intake_token = trim(p_token)
+    and v.intake_enabled = true
+  limit 1;
+end;
+$$;
+grant execute on function public.get_vehicle_intake_by_token(text) to anon, authenticated;
+
+create or replace function public.submit_workshop_service_entry(
+  p_token text,
+  p_title text,
+  p_description text,
+  p_service_date date,
+  p_mileage integer,
+  p_workshop_name text,
+  p_workshop_phone text default null,
+  p_category text default 'other'
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_vehicle public.vehicles;
+  v_title text;
+  v_description text;
+  v_workshop_name text;
+  v_workshop_phone text;
+  v_category text;
+  v_entry_id uuid;
+  v_limit public.workshop_intake_rate_limits;
+  v_max_per_hour constant integer := 10;
+begin
+  if p_token is null or length(trim(p_token)) < 16 then
+    raise exception 'invalid_token' using errcode = 'P0001';
+  end if;
+
+  v_title := trim(coalesce(p_title, ''));
+  v_description := trim(coalesce(p_description, ''));
+  v_workshop_name := trim(coalesce(p_workshop_name, ''));
+  v_workshop_phone := nullif(trim(coalesce(p_workshop_phone, '')), '');
+  v_category := coalesce(nullif(trim(coalesce(p_category, '')), ''), 'other');
+
+  if length(v_title) < 2 or length(v_title) > 120 then
+    raise exception 'invalid_title' using errcode = 'P0001';
+  end if;
+  if length(v_description) > 2000 then
+    raise exception 'invalid_description' using errcode = 'P0001';
+  end if;
+  if length(v_workshop_name) < 2 or length(v_workshop_name) > 120 then
+    raise exception 'invalid_workshop_name' using errcode = 'P0001';
+  end if;
+  if v_workshop_phone is not null then
+    if length(v_workshop_phone) > 40
+       or v_workshop_phone !~ '^\+?[0-9[:space:]\-().]+$'
+       or length(regexp_replace(v_workshop_phone, '[^0-9]', '', 'g')) < 7
+       or length(regexp_replace(v_workshop_phone, '[^0-9]', '', 'g')) > 15
+    then
+      raise exception 'invalid_workshop_phone' using errcode = 'P0001';
+    end if;
+  end if;
+  if p_service_date is null
+     or p_service_date > (current_date + 1)
+     or p_service_date < (current_date - interval '3650 days')::date then
+    raise exception 'invalid_service_date' using errcode = 'P0001';
+  end if;
+  if p_mileage is not null and (p_mileage < 0 or p_mileage > 5000000) then
+    raise exception 'invalid_mileage' using errcode = 'P0001';
+  end if;
+  if v_category not in (
+    'maintenance', 'repair', 'inspection', 'upgrade', 'oil_change', 'other'
+  ) then
+    raise exception 'invalid_category' using errcode = 'P0001';
+  end if;
+
+  select * into v_vehicle
+  from public.vehicles v
+  where v.intake_token = trim(p_token)
+    and v.intake_enabled = true
+  for share;
+
+  if not found then
+    raise exception 'intake_unavailable' using errcode = 'P0001';
+  end if;
+
+  select * into v_limit
+  from public.workshop_intake_rate_limits r
+  where r.intake_token = v_vehicle.intake_token
+  for update;
+
+  if not found then
+    insert into public.workshop_intake_rate_limits (
+      intake_token, window_started_at, submission_count
+    ) values (v_vehicle.intake_token, now(), 1);
+  elsif v_limit.window_started_at < now() - interval '1 hour' then
+    update public.workshop_intake_rate_limits
+    set window_started_at = now(), submission_count = 1
+    where intake_token = v_vehicle.intake_token;
+  elsif v_limit.submission_count >= v_max_per_hour then
+    raise exception 'rate_limited' using errcode = 'P0001';
+  else
+    update public.workshop_intake_rate_limits
+    set submission_count = submission_count + 1
+    where intake_token = v_vehicle.intake_token;
+  end if;
+
+  insert into public.service_entries (
+    vehicle_id, service_date, mileage, category, title, description, cost,
+    workshop_id, workshop_snapshot, source, status,
+    submitted_workshop_name, submitted_workshop_phone, reviewed_at
+  ) values (
+    v_vehicle.id, p_service_date, p_mileage, v_category, v_title, v_description,
+    null, null, v_workshop_name, 'workshop', 'pending',
+    v_workshop_name, v_workshop_phone, null
+  )
+  returning id into v_entry_id;
+
+  return jsonb_build_object('ok', true, 'id', v_entry_id);
+end;
+$$;
+grant execute on function public.submit_workshop_service_entry(
+  text, text, text, date, integer, text, text, text
+) to anon, authenticated;
+
+create or replace function public.approve_workshop_service_entry(p_entry_id uuid)
+returns public.service_entries
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_entry public.service_entries;
+begin
+  if auth.uid() is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  update public.service_entries se
+  set status = 'approved', reviewed_at = now()
+  from public.vehicles v
+  where se.id = p_entry_id
+    and se.vehicle_id = v.id
+    and v.owner_id = auth.uid()
+    and se.source = 'workshop'
+    and se.status = 'pending'
+  returning se.* into v_entry;
+
+  if not found then
+    raise exception 'Entry not found or not pending';
+  end if;
+
+  return v_entry;
+end;
+$$;
+grant execute on function public.approve_workshop_service_entry(uuid) to authenticated;
+
+create or replace function public.reject_workshop_service_entry(p_entry_id uuid)
+returns public.service_entries
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_entry public.service_entries;
+begin
+  if auth.uid() is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  delete from public.service_entries se
+  using public.vehicles v
+  where se.id = p_entry_id
+    and se.vehicle_id = v.id
+    and v.owner_id = auth.uid()
+    and se.source = 'workshop'
+    and se.status = 'pending'
+  returning se.* into v_entry;
+
+  if not found then
+    raise exception 'Entry not found or not pending';
+  end if;
+
+  return v_entry;
+end;
+$$;
+grant execute on function public.reject_workshop_service_entry(uuid) to authenticated;
+
+-- ================
 -- Table privileges for PostgREST roles
 -- NOTE: RLS policies still decide which rows are accessible.
 -- These grants prevent "permission denied for table ..." when RLS exists.
@@ -2261,3 +2581,6 @@ grant usage, select on sequences to service_role;
 revoke all on table public.entitlements from authenticated;
 grant select on table public.entitlements to authenticated;
 grant select, update on table public.entitlements to service_role;
+
+-- Rate-limit table is RPC-only (security definer); no client access.
+revoke all on table public.workshop_intake_rate_limits from anon, authenticated;

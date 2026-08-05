@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Alert, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
+import { ClipboardCheck } from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type {
@@ -18,12 +19,15 @@ import {
   deleteServiceEntry,
   listServiceEntries,
 } from "../../services/serviceEntries/serviceEntriesRepo";
+import { countPendingWorkshopEntries } from "../../services/workshopIntake/workshopIntakeRepo";
 import { listWorkshops } from "../../services/workshops/workshopsRepo";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { ServiceItem } from "../../ui/components/list/ServiceItem";
+import { DashboardCalloutCard } from "../../ui/components/dashboard/DashboardCalloutCard";
+import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { toastCaughtError } from "../../ui/toast/toast";
@@ -36,12 +40,14 @@ type Props = NativeStackScreenProps<AppStackParamList, "ServiceHistory">;
 
 export function ServiceHistoryScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const { settings } = useUserSettings();
   const { vehicleId } = route.params;
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [workshopsById, setWorkshopsById] = useState<Record<string, Workshop>>(
     {},
   );
+  const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const currency = settings?.currency ?? "PLN";
@@ -69,9 +75,10 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           if (opts?.refreshing) setRefreshing(true);
           else setLoading(true);
         }
-        const [data, workshops] = await Promise.all([
+        const [data, workshops, pending] = await Promise.all([
           listServiceEntries(vehicleId),
           listWorkshops(),
+          countPendingWorkshopEntries(vehicleId),
         ]);
         setItems(data);
         const workshopMap = workshops.reduce<Record<string, Workshop>>(
@@ -82,6 +89,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           {},
         );
         setWorkshopsById(workshopMap);
+        setPendingCount(pending);
       } catch (e: any) {
         toastCaughtError(e, t("common.error"));
       } finally {
@@ -304,6 +312,31 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           listHeaderComponent={
             <>
               <ContentHeader title={t("dashboard.tiles.serviceTitle")} />
+              {pendingCount > 0 ? (
+                <DashboardCalloutCard
+                  accentColor={theme.colors.accent}
+                  buttonColor={theme.colors.accent}
+                  icon={
+                    <ClipboardCheck
+                      size={26}
+                      color={theme.colors.accent}
+                      strokeWidth={2}
+                    />
+                  }
+                  title={t("serviceHistory.pendingBanner", {
+                    count: pendingCount,
+                  })}
+                  actions={[
+                    {
+                      label: t("pendingWorkshop.title"),
+                      onPress: () =>
+                        navigation.navigate("PendingWorkshopEntries", {
+                          vehicleId,
+                        }),
+                    },
+                  ]}
+                />
+              ) : null}
               <SearchBar
                 value={query}
                 onChangeText={setQuery}
@@ -317,6 +350,18 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
           renderItem={({ item: rowItem }) => {
             const e = rowItem.entry;
             const cat = (e.category ?? "other") as ServiceEntryCategory;
+            const badge =
+              e.source === "workshop"
+                ? t("serviceHistory.workshopBadge", {
+                    name:
+                      e.submitted_workshop_name ||
+                      (e.workshop_id
+                        ? workshopsById[e.workshop_id]?.name
+                        : null) ||
+                      e.workshop_snapshot ||
+                      "",
+                  })
+                : null;
             return (
               <ServiceItem
                 title={e.title}
@@ -324,7 +369,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
                 iconBackgroundColor={SERVICE_CATEGORY_ICON_BACKGROUND[cat]}
                 date={e.service_date}
                 mileage={e.mileage}
-                workshopName={e.workshop_id ? workshopsById[e.workshop_id]?.name : null}
+                badge={badge}
                 cost={e.cost}
                 currency={currency}
                 onPress={() =>

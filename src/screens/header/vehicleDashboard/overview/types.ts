@@ -63,6 +63,8 @@ export type OverviewPanelProps = {
   handleOilChangeDone: () => void;
   handleOilChangeBook: () => void | Promise<void>;
   oilBookLoading: boolean;
+  pendingWorkshopCount: number;
+  handlePendingWorkshopPress: () => void;
   quickMetrics: OverviewQuickMetrics;
   currency: string;
   distanceUnitLabel: string;

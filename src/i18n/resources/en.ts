@@ -316,6 +316,47 @@ export const en = {
     sortOptionMileageHighest: "Mileage (highest)",
     sortOptionMileageLowest: "Mileage (lowest)",
   },
+  serviceHistory: {
+    workshopBadge: "Workshop · {{name}}",
+    pendingBanner: "{{count}} workshop entries awaiting approval",
+  },
+  pendingWorkshop: {
+    title: "Pending approvals",
+    subtitle: "Choose a workshop to review submitted entries.",
+    groupSubtitle: "Select entries, then approve or reject them.",
+    empty: "No entries awaiting approval.",
+    submittedAt: "Sent: {{date}}",
+    approve: "Approve",
+    approved: "Entry approved",
+    approvedMany: "{{count}} entries approved",
+    reject: "Reject",
+    rejectTitle: "Reject entries?",
+    rejectConfirm:
+      "Are you sure you want to reject this workshop-submitted service entry? This cannot be undone.",
+    rejectConfirmMany:
+      "Are you sure you want to reject {{count}} selected entries? This cannot be undone.",
+    rejected: "Entry rejected",
+    rejectedMany: "{{count}} entries rejected",
+  },
+  workshopIntake: {
+    title: "Workshop QR code",
+    subtitle:
+      "Share a QR code with a workshop so they can add a service entry to this vehicle's history without signing in.",
+    enable: "Enable workshop code",
+    disable: "Disable workshop code",
+    disabledHint: "Enable this to generate a QR code and link for workshops.",
+    qrHint:
+      "Any workshop can scan this code to submit a service entry for approval.",
+    copyLink: "Copy link",
+    linkCopied: "Link copied to clipboard",
+    regenerate: "Generate new code",
+    regenerateTitle: "Generate a new code?",
+    regenerateConfirm:
+      "The old QR code and link will stop working. Are you sure you want to generate a new one?",
+    regenerated: "New code generated",
+    pending: "Pending approvals",
+    pendingWithCount: "Pending approvals ({{count}})",
+  },
   entryForm: {
     title: "New service entry",
     editTitle: "Edit service entry",
@@ -542,6 +583,10 @@ export const en = {
         "{{vehicle}} – inspection due in {{days}} days ({{date}})",
       inspectionToday: "{{vehicle}} – inspection due today",
     },
+    pendingWorkshopBanner: {
+      title: "{{count}} workshop entries awaiting approval",
+      cta: "Review",
+    },
     quickMetrics: {
       costSubtitle: "Cost/day",
       distanceSubtitle: "Distance",
@@ -677,6 +722,8 @@ export const en = {
       equipmentTitle: "Equipment",
       equipmentSubtitle: "Checklist of vehicle features.",
       workshopsTitle: "Workshops",
+      workshopIntakeTitle: "Workshop QR code",
+      workshopIntakeSubtitle: "Share a QR code with a workshop.",
       workshopsSubtitle: "Your workshop phonebook.",
     },
     quickActions: {
@@ -1390,6 +1437,7 @@ Detailed report available at: https://report.vehico.app/report/example`,
     pdfReport: "PDF report",
     onlineReport: "Online report",
     marketplacePost: "Marketplace post",
+    workshopIntake: "Workshop QR code",
     reportHistory: "Report history",
     notAvailableTitle: "Not available yet",
     notAvailableBody: "This feature isn't available yet. We're working on it.",

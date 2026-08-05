@@ -51,6 +51,7 @@ import {
   createServiceEntry,
   listServiceEntries,
 } from "../../../services/serviceEntries/serviceEntriesRepo";
+import { countPendingWorkshopEntries } from "../../../services/workshopIntake/workshopIntakeRepo";
 import { getWorkshop } from "../../../services/workshops/workshopsRepo";
 import { computeOilChangeDueState } from "../../../utils/oilChangeDue";
 import { useEntitlements } from "../../../app/providers/EntitlementsProvider";
@@ -109,6 +110,7 @@ export function useVehicleDashboardState({
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [fuelingEntries, setFuelingEntries] = useState<FuelingEntry[]>([]);
   const [serviceEntries, setServiceEntries] = useState<ServiceEntry[]>([]);
+  const [pendingWorkshopCount, setPendingWorkshopCount] = useState(0);
   const [publicReportUrl, setPublicReportUrl] = useState<string | null>(null);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [fullScreenIndex, setFullScreenIndex] = useState<number | null>(null);
@@ -437,6 +439,7 @@ export function useVehicleDashboardState({
           remindersData,
           fuelingData,
           serviceData,
+          pendingWorkshopCountData,
         ] = await Promise.all([
           getVehicle(vehicleId),
           listVehiclePhotos(vehicleId),
@@ -446,6 +449,7 @@ export function useVehicleDashboardState({
           listReminders(vehicleId, reminderOptions),
           listFuelingEntries(vehicleId),
           listServiceEntries(vehicleId),
+          countPendingWorkshopEntries(vehicleId),
         ]);
         setVehicle(v);
         setPhotoUrls(photos.map((photo) => getVehiclePhotoUrl(photo)));
@@ -454,6 +458,7 @@ export function useVehicleDashboardState({
         setReminders(remindersData);
         setFuelingEntries(fuelingData);
         setServiceEntries(serviceData);
+        setPendingWorkshopCount(pendingWorkshopCountData);
         const latestReport = reports[0];
         const reportUrl = latestReport?.public_id
           ? await getPublicPageUrl(latestReport.public_id)
@@ -571,6 +576,14 @@ export function useVehicleDashboardState({
 
   const handleAddService = useCallback(() => {
     navigation.navigate("ServiceEntryForm", { vehicleId });
+  }, [navigation, vehicleId]);
+
+  const handleWorkshopIntakePress = useCallback(() => {
+    navigation.navigate("WorkshopIntake", { vehicleId });
+  }, [navigation, vehicleId]);
+
+  const handlePendingWorkshopPress = useCallback(() => {
+    navigation.navigate("PendingWorkshopEntries", { vehicleId });
   }, [navigation, vehicleId]);
 
   const handleAddFuel = useCallback(() => {
@@ -889,6 +902,12 @@ export function useVehicleDashboardState({
         onPress: () => navigation.navigate("Workshops"),
       },
       {
+        key: "workshopIntake",
+        title: t("dashboard.tiles.workshopIntakeTitle"),
+        icon: "qr-code",
+        onPress: handleWorkshopIntakePress,
+      },
+      {
         key: "share",
         title: t("dashboard.tiles.shareTitle"),
         icon: "share-social",
@@ -901,7 +920,7 @@ export function useVehicleDashboardState({
         onPress: () => navigation.navigate("DataPortability", { vehicleId }),
       },
     ],
-    [t, navigation, vehicleId, handleSharePress],
+    [t, navigation, vehicleId, handleSharePress, handleWorkshopIntakePress],
   );
 
   return {
@@ -917,6 +936,7 @@ export function useVehicleDashboardState({
     reminders,
     fuelingEntries,
     serviceEntries,
+    pendingWorkshopCount,
     publicReportUrl,
     photoUrls,
     loading,
@@ -962,6 +982,8 @@ export function useVehicleDashboardState({
     handleAddService,
     handleAddFuel,
     handleAddReminder,
+    handleWorkshopIntakePress,
+    handlePendingWorkshopPress,
     handleQuickMileageEdit,
     handleOilChangeDone,
     handleOilChangeBook,

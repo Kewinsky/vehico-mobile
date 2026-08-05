@@ -53,6 +53,8 @@ export function OverviewPanel(props: OverviewPanelProps) {
         handleOilChangeDone={props.handleOilChangeDone}
         handleOilChangeBook={props.handleOilChangeBook}
         oilBookLoading={props.oilBookLoading}
+        pendingWorkshopCount={props.pendingWorkshopCount}
+        handlePendingWorkshopPress={props.handlePendingWorkshopPress}
         openFormalitiesDateEditor={props.openFormalitiesDateEditor}
       />
 

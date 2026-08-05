@@ -17,11 +17,19 @@ type NewServiceEntryInput = {
 
 export async function listServiceEntries(
   vehicleId: string,
+  options?: { status?: ServiceEntry["status"] | "all" },
 ): Promise<ServiceEntry[]> {
-  const { data, error } = await supabase
+  let query = supabase
     .from("service_entries")
     .select("*")
-    .eq("vehicle_id", vehicleId)
+    .eq("vehicle_id", vehicleId);
+
+  const status = options?.status ?? "approved";
+  if (status !== "all") {
+    query = query.eq("status", status);
+  }
+
+  const { data, error } = await query
     .order("service_date", { ascending: false })
     .order("created_at", { ascending: false });
 

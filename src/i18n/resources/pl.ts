@@ -319,6 +319,48 @@ export const pl = {
     sortOptionMileageHighest: "Przebieg (najwyższy)",
     sortOptionMileageLowest: "Przebieg (najniższy)",
   },
+  serviceHistory: {
+    workshopBadge: "Warsztat · {{name}}",
+    pendingBanner: "{{count}} wpisów z warsztatu czeka na akceptację",
+  },
+  pendingWorkshop: {
+    title: "Do akceptacji",
+    subtitle: "Wybierz warsztat, żeby sprawdzić przesłane wpisy.",
+    groupSubtitle: "Zaznacz wpisy, a potem zatwierdź lub odrzuć.",
+    empty: "Brak wpisów oczekujących na akceptację.",
+    submittedAt: "Wysłano: {{date}}",
+    approve: "Zatwierdź",
+    approved: "Wpis zatwierdzony",
+    approvedMany: "Zatwierdzono {{count}} wpisów",
+    reject: "Odrzuć",
+    rejectTitle: "Odrzucić wpisy?",
+    rejectConfirm:
+      "Czy na pewno chcesz odrzucić ten wpis serwisowy przesłany przez warsztat? Tej operacji nie można cofnąć.",
+    rejectConfirmMany:
+      "Czy na pewno chcesz odrzucić {{count}} zaznaczonych wpisów? Tej operacji nie można cofnąć.",
+    rejected: "Wpis odrzucony",
+    rejectedMany: "Odrzucono {{count}} wpisów",
+  },
+  workshopIntake: {
+    title: "Kod dla warsztatu",
+    subtitle:
+      "Udostępnij kod QR warsztatowi, aby mógł dodać wpis serwisowy do historii pojazdu bez logowania.",
+    enable: "Włącz kod dla warsztatu",
+    disable: "Wyłącz kod dla warsztatu",
+    disabledHint:
+      "Włącz tę opcję, aby wygenerować kod QR i link dla warsztatu.",
+    qrHint:
+      "Każdy warsztat może zeskanować ten kod, aby dodać wpis serwisowy do akceptacji.",
+    copyLink: "Kopiuj link",
+    linkCopied: "Link skopiowany do schowka",
+    regenerate: "Wygeneruj nowy kod",
+    regenerateTitle: "Wygenerować nowy kod?",
+    regenerateConfirm:
+      "Stary kod QR i link przestaną działać. Czy na pewno chcesz wygenerować nowy?",
+    regenerated: "Wygenerowano nowy kod",
+    pending: "Wpisy do akceptacji",
+    pendingWithCount: "Wpisy do akceptacji ({{count}})",
+  },
   entryForm: {
     title: "Nowy wpis serwisowy",
     editTitle: "Edytuj wpis serwisowy",
@@ -548,6 +590,10 @@ export const pl = {
         "{{vehicle}} – przegląd wygasa za {{days}} dni ({{date}})",
       inspectionToday: "{{vehicle}} – przegląd wygasa dziś",
     },
+    pendingWorkshopBanner: {
+      title: "{{count}} wpisów z warsztatu czeka na akceptację",
+      cta: "Sprawdź",
+    },
     quickMetrics: {
       costSubtitle: "Koszt/dzień",
       distanceSubtitle: "Dystans",
@@ -685,6 +731,8 @@ export const pl = {
       equipmentSubtitle: "Lista elementów wyposażenia pojazdu.",
       workshopsTitle: "Warsztaty",
       workshopsSubtitle: "Twoja książka warsztatów.",
+      workshopIntakeTitle: "Kod dla warsztatu",
+      workshopIntakeSubtitle: "Udostępnij kod QR warsztatowi.",
     },
     quickActions: {
       addService: "Serwis",
@@ -1399,6 +1447,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     pdfReport: "Raport PDF",
     onlineReport: "Raport online",
     marketplacePost: "Ogłoszenie marketplace",
+    workshopIntake: "Kod dla warsztatu",
     reportHistory: "Historia raportów",
     notAvailableTitle: "Jeszcze niedostępne",
     notAvailableBody:

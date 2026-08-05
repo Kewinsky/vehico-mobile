@@ -29,6 +29,9 @@ import { ImportScreen } from "../../screens/header/ImportScreen";
 import { AddAttachmentScreen } from "../../screens/header/AddAttachmentScreen";
 import { AddAttachmentFiltersScreen } from "../../screens/modal/AddAttachmentFiltersScreen";
 import { ShareScreen } from "../../screens/header/ShareScreen";
+import { WorkshopIntakeScreen } from "../../screens/header/WorkshopIntakeScreen";
+import { PendingWorkshopEntriesScreen } from "../../screens/header/PendingWorkshopEntriesScreen";
+import { PendingWorkshopGroupScreen } from "../../screens/header/PendingWorkshopGroupScreen";
 import { MarketplaceScreen } from "../../screens/header/MarketplaceScreen";
 import { MarketplaceConfigureScreen } from "../../screens/header/MarketplaceConfigureScreen";
 import { MarketplaceSummaryScreen } from "../../screens/header/MarketplaceSummaryScreen";
@@ -102,6 +105,13 @@ export type AppStackParamList = {
     statusFilter?: "all" | "active" | "done";
   };
   Share: { vehicleId: string };
+  WorkshopIntake: { vehicleId: string };
+  PendingWorkshopEntries: { vehicleId: string };
+  PendingWorkshopGroup: {
+    vehicleId: string;
+    workshopKey: string;
+    workshopName: string;
+  };
   Marketplace: { vehicleId: string };
   MarketplaceConfigure: { vehicleId: string };
   MarketplaceSummary: {
@@ -321,6 +331,21 @@ export function RootNavigator() {
           <Stack.Screen
             name="Share"
             component={ShareScreen}
+            options={nativeHeaderScreenOptions}
+          />
+          <Stack.Screen
+            name="WorkshopIntake"
+            component={WorkshopIntakeScreen}
+            options={nativeHeaderScreenOptions}
+          />
+          <Stack.Screen
+            name="PendingWorkshopEntries"
+            component={PendingWorkshopEntriesScreen}
+            options={nativeHeaderScreenOptions}
+          />
+          <Stack.Screen
+            name="PendingWorkshopGroup"
+            component={PendingWorkshopGroupScreen}
             options={nativeHeaderScreenOptions}
           />
           <Stack.Screen

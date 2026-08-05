@@ -10,12 +10,13 @@ import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
 import { formatShortDisplayDate } from "../../../utils/dateFormatting";
 import { groupThousands } from "../../../utils/numberFormatting";
+import { hexToRgba } from "../common/ChoiceChip";
 
 type ServiceItemProps = {
   title: string;
   date?: string | null;
   mileage?: number | null;
-  workshopName?: string | null;
+  badge?: string | null;
   cost?: number | null;
   currency: string;
   icon?: ReactNode;
@@ -28,7 +29,7 @@ export function ServiceItem({
   title,
   date,
   mileage,
-  workshopName,
+  badge,
   cost,
   currency,
   icon,
@@ -91,6 +92,21 @@ export function ServiceItem({
             >
               {metaLine}
             </Text>
+          ) : null}
+          {badge != null && badge.length > 0 ? (
+            <View
+              style={[
+                styles.badge,
+                { backgroundColor: hexToRgba(theme.colors.accent, 0.15) },
+              ]}
+            >
+              <Text
+                style={[styles.badgeText, { color: theme.colors.accent }]}
+                numberOfLines={1}
+              >
+                {badge}
+              </Text>
+            </View>
           ) : null}
         </View>
 
@@ -176,6 +192,17 @@ const makeStyles = (theme: AppTheme) =>
     meta: {
       fontSize: theme.typography.small,
       lineHeight: theme.typography.body + 2,
+    },
+    badge: {
+      alignSelf: "flex-start",
+      borderRadius: theme.radius.md,
+      paddingHorizontal: theme.spacing.xs,
+      paddingVertical: 2,
+      marginTop: theme.spacing.xs / 2,
+    },
+    badgeText: {
+      fontSize: theme.typography.small - 1,
+      fontWeight: theme.typography.fontWeight.bold,
     },
     rowValue: {
       flex: 1,

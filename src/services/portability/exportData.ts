@@ -297,7 +297,7 @@ async function fetchExportData(
   ] = await Promise.all([
     needsVehicle ? getVehicle(vehicleId) : Promise.resolve(null),
     dataTypes.includes("service_entries")
-      ? listServiceEntries(vehicleId)
+      ? listServiceEntries(vehicleId, { status: "all" })
       : Promise.resolve([]),
     dataTypes.includes("fueling_entries")
       ? listFuelingEntries(vehicleId)

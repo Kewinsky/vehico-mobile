@@ -83,6 +83,8 @@ export function VehicleDashboardOverviewScreen() {
         handleOilChangeDone={dashboard.handleOilChangeDone}
         handleOilChangeBook={dashboard.handleOilChangeBook}
         oilBookLoading={dashboard.oilBookLoading}
+        pendingWorkshopCount={dashboard.pendingWorkshopCount}
+        handlePendingWorkshopPress={dashboard.handlePendingWorkshopPress}
         quickMetrics={dashboard.quickMetrics}
         currency={dashboard.currency}
         distanceUnitLabel={dashboard.distanceUnitLabel}
