@@ -733,7 +733,10 @@ export const pl = {
       workshopsSubtitle: "Twoja książka warsztatów.",
       workshopIntakeTitle: "Kod dla warsztatu",
       workshopIntakeSubtitle: "Udostępnij kod QR warsztatowi.",
+      aiMechanicTitle: "AI asystent",
     },
+    aiMechanicComingSoon:
+      "Wkrótce pojawi się asystent AI, który pomoże Ci interpretować historię serwisową, podpowiadać kolejne kroki i odpowiadać na pytania o Twój pojazd.",
     quickActions: {
       addService: "Serwis",
       addFuel: "Paliwo",

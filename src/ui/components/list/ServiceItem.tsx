@@ -18,7 +18,8 @@ type ServiceItemProps = {
   mileage?: number | null;
   badge?: string | null;
   cost?: number | null;
-  currency: string;
+  currency?: string;
+  hideCost?: boolean;
   icon?: ReactNode;
   iconBackgroundColor?: string;
   onPress?: () => void;
@@ -31,7 +32,8 @@ export function ServiceItem({
   mileage,
   badge,
   cost,
-  currency,
+  currency = "PLN",
+  hideCost = false,
   icon,
   iconBackgroundColor,
   onPress,
@@ -110,17 +112,19 @@ export function ServiceItem({
           ) : null}
         </View>
 
-        <View style={styles.costWrap}>
-          <Text style={[styles.costValue, { color: theme.colors.fg }]}>
-            {costMain}
-          </Text>
-          {hasCost ? (
-            <Text style={[styles.costCurrency, { color: theme.colors.muted }]}>
-              {" "}
-              {currency}
+        {hideCost ? null : (
+          <View style={styles.costWrap}>
+            <Text style={[styles.costValue, { color: theme.colors.fg }]}>
+              {costMain}
             </Text>
-          ) : null}
-        </View>
+            {hasCost ? (
+              <Text style={[styles.costCurrency, { color: theme.colors.muted }]}>
+                {" "}
+                {currency}
+              </Text>
+            ) : null}
+          </View>
+        )}
       </View>
     </View>
   );

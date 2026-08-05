@@ -725,7 +725,10 @@ export const en = {
       workshopIntakeTitle: "Workshop QR code",
       workshopIntakeSubtitle: "Share a QR code with a workshop.",
       workshopsSubtitle: "Your workshop phonebook.",
+      aiMechanicTitle: "AI assistant",
     },
+    aiMechanicComingSoon:
+      "Soon you’ll get an AI assistant that helps interpret service history, suggest next steps, and answer questions about your vehicle.",
     quickActions: {
       addService: "Service",
       addFuel: "Fuel",

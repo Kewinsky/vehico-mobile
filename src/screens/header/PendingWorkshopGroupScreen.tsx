@@ -20,35 +20,28 @@ import {
   rejectWorkshopServiceEntry,
 } from "../../services/workshopIntake/workshopIntakeRepo";
 import { workshopGroupKey } from "../../services/workshopIntake/pendingWorkshopGroups";
-import { useUserSettings } from "../../app/providers/UserSettingsProvider";
-import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
-import { Card } from "../../ui/components/common/Card";
 import { Button } from "../../ui/components/common/Button";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { EmptyState } from "../../ui/components/common/EmptyState";
+import { ServiceItem } from "../../ui/components/list/ServiceItem";
 import { ServiceCategoryIcon } from "../../ui/components/service/ServiceCategoryIcon";
 import { SERVICE_CATEGORY_ICON_BACKGROUND } from "../../ui/theme/serviceCategoryColors";
 import { useTheme } from "../../ui/ThemeProvider";
 import type { AppTheme } from "../../ui/theme";
 import { toastCaughtError, toastSuccess } from "../../ui/toast/toast";
-import { formatShortDisplayDate } from "../../utils/dateFormatting";
-import { groupThousands } from "../../utils/numberFormatting";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PendingWorkshopGroup">;
 
 export function PendingWorkshopGroupScreen({ navigation, route }: Props) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { settings } = useUserSettings();
-  const { distanceUnitLabel } = useUnitDisplay();
   const { vehicleId, workshopKey, workshopName } = route.params;
-  const currency = settings?.currency ?? "PLN";
 
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -247,69 +240,27 @@ export function PendingWorkshopGroupScreen({ navigation, route }: Props) {
               const cat = (entry.category ?? "other") as ServiceEntryCategory;
               const selected = selectedIds.has(entry.id);
               return (
-                <Pressable
+                <View
                   key={entry.id}
-                  onPress={() => toggleSelected(entry.id)}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: selected }}
+                  style={[
+                    styles.itemWrap,
+                    {
+                      borderColor: selected
+                        ? theme.colors.accent
+                        : "transparent",
+                    },
+                  ]}
                 >
-                  <Card
-                    withoutDividers
-                    style={[
-                      styles.card,
-                      {
-                        borderColor: selected
-                          ? theme.colors.accent
-                          : theme.colors.border,
-                      },
-                    ]}
-                  >
-                    <View style={styles.topRow}>
-                      <View
-                        style={[
-                          styles.iconContainer,
-                          {
-                            backgroundColor:
-                              SERVICE_CATEGORY_ICON_BACKGROUND[cat],
-                          },
-                        ]}
-                      >
-                        <ServiceCategoryIcon category={cat} />
-                      </View>
-                      <View style={styles.headerText}>
-                        <Text style={styles.title} numberOfLines={2}>
-                          {entry.title}
-                        </Text>
-                        <Text style={styles.meta}>
-                          {formatShortDisplayDate(
-                            entry.service_date,
-                            i18n.language,
-                          )}
-                          {entry.mileage != null
-                            ? ` · ${groupThousands(
-                                entry.mileage,
-                                0,
-                                i18n.language,
-                              )} ${distanceUnitLabel}`
-                            : ""}
-                          {entry.cost != null
-                            ? ` · ${groupThousands(
-                                entry.cost,
-                                0,
-                                i18n.language,
-                              )} ${currency}`
-                            : ""}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {entry.description?.trim() ? (
-                      <Text style={styles.description}>
-                        {entry.description}
-                      </Text>
-                    ) : null}
-                  </Card>
-                </Pressable>
+                  <ServiceItem
+                    title={entry.title}
+                    date={entry.service_date}
+                    mileage={entry.mileage}
+                    hideCost
+                    icon={<ServiceCategoryIcon category={cat} />}
+                    iconBackgroundColor={SERVICE_CATEGORY_ICON_BACKGROUND[cat]}
+                    onPress={() => toggleSelected(entry.id)}
+                  />
+                </View>
               );
             })}
           </View>
@@ -335,40 +286,9 @@ const makeStyles = (theme: AppTheme) =>
     list: {
       gap: theme.spacing.md,
     },
-    card: {
-      padding: theme.spacing.md,
-      gap: theme.spacing.sm,
-      borderWidth: 1,
-    },
-    topRow: {
-      flexDirection: "row",
-      gap: theme.spacing.sm,
-    },
-    iconContainer: {
-      width: 44,
-      height: 44,
-      borderRadius: 999,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    headerText: {
-      flex: 1,
-      minWidth: 0,
-      gap: theme.spacing.xs / 2,
-    },
-    title: {
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-      color: theme.colors.fg,
-    },
-    meta: {
-      fontSize: theme.typography.small,
-      color: theme.colors.muted,
-    },
-    description: {
-      fontSize: theme.typography.small,
-      color: theme.colors.fg,
-      lineHeight: theme.typography.small + 4,
+    itemWrap: {
+      borderRadius: theme.radius.xl,
+      borderWidth: 2,
     },
     footer: {
       flexDirection: "row",

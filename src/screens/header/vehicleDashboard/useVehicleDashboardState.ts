@@ -80,6 +80,7 @@ export type DashboardTile = {
   title: string;
   icon: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
+  muted?: boolean;
 };
 
 type UseVehicleDashboardStateParams = {
@@ -911,12 +912,6 @@ export function useVehicleDashboardState({
         onPress: () => navigation.navigate("Workshops"),
       },
       {
-        key: "workshopIntake",
-        title: t("dashboard.tiles.workshopIntakeTitle"),
-        icon: "qr-code",
-        onPress: handleWorkshopIntakePress,
-      },
-      {
         key: "share",
         title: t("dashboard.tiles.shareTitle"),
         icon: "share-social",
@@ -928,8 +923,21 @@ export function useVehicleDashboardState({
         icon: "download",
         onPress: () => navigation.navigate("DataPortability", { vehicleId }),
       },
+      {
+        key: "aiMechanic",
+        title: t("dashboard.tiles.aiMechanicTitle"),
+        icon: "sparkles",
+        muted: true,
+        onPress: () => {
+          Alert.alert(
+            t("dashboard.tiles.aiMechanicTitle"),
+            t("dashboard.aiMechanicComingSoon"),
+            [{ text: t("common.ok") }],
+          );
+        },
+      },
     ],
-    [t, navigation, vehicleId, handleSharePress, handleWorkshopIntakePress],
+    [t, navigation, vehicleId, handleSharePress],
   );
 
   return {
