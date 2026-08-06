@@ -1233,7 +1233,7 @@ declare
   v_snapshot jsonb;
   v_vehicle jsonb;
   v_service_entries jsonb;
-  v_avg_fueling numeric;
+  v_fueling_stats jsonb;
   v_vehicle_photos jsonb;
   v_vehicle_tires jsonb;
   v_vehicle_wheels jsonb;
@@ -1329,15 +1329,27 @@ begin
     v_service_entries := '[]'::jsonb;
   end if;
 
-  -- Ready-to-display avg L/100 km (null when no usable tank data)
+  -- Fueling aggregates for public report (avg + totals)
   if v_include_fueling_stats then
-    select
-      case
-        when coalesce(sum(fe.distance), 0) > 0 then
-          (coalesce(sum(fe.fuel_amount), 0) / sum(fe.distance)) * 100
-        else null
-      end
-    into v_avg_fueling
+    select jsonb_build_object(
+      'avg_consumption',
+        case
+          when coalesce(sum(fe.distance), 0) > 0 then
+            (coalesce(sum(fe.fuel_amount), 0) / sum(fe.distance)) * 100
+          else null
+        end,
+      'total_distance', coalesce(sum(fe.distance), 0),
+      'total_fuel', coalesce(sum(fe.fuel_amount), 0),
+      'total_cost', coalesce(sum(fe.fuel_cost), 0),
+      'entry_count', count(*)::int,
+      'avg_cost_per_liter',
+        case
+          when coalesce(sum(fe.fuel_amount), 0) > 0 then
+            coalesce(sum(fe.fuel_cost), 0) / sum(fe.fuel_amount)
+          else null
+        end
+    )
+    into v_fueling_stats
     from public.fueling_entries fe
     where fe.vehicle_id = p_vehicle_id;
   end if;
@@ -1421,7 +1433,14 @@ begin
   if v_include_fueling_stats then
     v_snapshot := v_snapshot || jsonb_build_object(
       'fueling_stats',
-      to_jsonb(v_avg_fueling)
+      coalesce(v_fueling_stats, jsonb_build_object(
+        'avg_consumption', null,
+        'total_distance', 0,
+        'total_fuel', 0,
+        'total_cost', 0,
+        'entry_count', 0,
+        'avg_cost_per_liter', null
+      ))
     );
   end if;
 
