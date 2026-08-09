@@ -104,17 +104,36 @@ export function ShopScreen({ navigation }: Props) {
     [selectedId, selectedProduct, t],
   );
 
+  // Billed amount must be the most conspicuous price (App Store 3.1.2(c)).
+  // Do not divide yearly by 12 for the hero figure – monthly equivalents stay subordinate.
   const priceRollingValue = useMemo(() => {
     const raw = selectedPricing?.price;
     if (raw == null || !Number.isFinite(raw) || raw <= 0) return null;
-    if (isYearlyProduct(selectedId)) return raw / 12;
     return raw;
-  }, [selectedId, selectedPricing?.price]);
+  }, [selectedPricing?.price]);
 
   const priceRollingFormattedText = useMemo(() => {
     if (priceRollingValue == null) return undefined;
     return formatRollingGroupedNumber(priceRollingValue, 2);
   }, [priceRollingValue]);
+
+  const pricePeriodLabel = useMemo(() => {
+    if (isLifetimeProduct(selectedId)) return null;
+    if (isYearlyProduct(selectedId)) return t("shop.perYear");
+    if (isMonthlyProduct(selectedId)) return t("shop.perMonth");
+    return null;
+  }, [selectedId, t]);
+
+  const priceSublineText = useMemo(() => {
+    if (isLifetimeProduct(selectedId)) {
+      return `${selectedDisclosure.length} · ${selectedPriceString}`;
+    }
+    // Yearly: period + monthly equivalent only (subordinate to billed amount above).
+    if (isYearlyProduct(selectedId) && selectedDisclosure.pricePerUnit) {
+      return `${selectedDisclosure.length} · ${selectedDisclosure.pricePerUnit}`;
+    }
+    return selectedDisclosure.length;
+  }, [selectedDisclosure, selectedId, selectedPriceString]);
 
   useFocusEffect(
     useCallback(() => {
@@ -219,8 +238,6 @@ export function ShopScreen({ navigation }: Props) {
 
   const canPurchase =
     purchasing === null && actionLoading === null && !isPremium;
-
-  const showPerMonthSuffix = !isLifetimeProduct(selectedId);
 
   const priceCurrencyDisplay = useMemo(() => {
     if (priceRollingValue == null || !selectedPricing?.currencyCode) {
@@ -533,14 +550,14 @@ export function ShopScreen({ navigation }: Props) {
                         {priceCurrencyDisplay.suffix}
                       </Text>
                     ) : null}
-                    {showPerMonthSuffix ? (
+                    {pricePeriodLabel ? (
                       <Text
                         style={[
                           styles.pricePeriod,
                           { color: theme.colors.muted },
                         ]}
                       >
-                        {t("shop.perMonth")}
+                        {pricePeriodLabel}
                       </Text>
                     ) : null}
                   </View>
@@ -549,19 +566,13 @@ export function ShopScreen({ navigation }: Props) {
                     style={[styles.priceFallback, { color: theme.colors.fg }]}
                   >
                     {selectedPriceString}
-                    {showPerMonthSuffix ? ` ${t("shop.perMonth")}` : ""}
+                    {pricePeriodLabel ? ` ${pricePeriodLabel}` : ""}
                   </Text>
                 )}
                 <Text
                   style={[styles.priceSubline, { color: theme.colors.muted }]}
                 >
-                  {isLifetimeProduct(selectedId)
-                    ? `${selectedDisclosure.length} · ${selectedPriceString}`
-                    : `${selectedDisclosure.length} · ${selectedPriceString}${
-                        isYearlyProduct(selectedId)
-                          ? ` ${t("shop.perYear")}`
-                          : ""
-                      }`}
+                  {priceSublineText}
                 </Text>
               </View>
 
