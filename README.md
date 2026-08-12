@@ -1,38 +1,46 @@
 # Vericar
 
-A React Native mobile application for tracking vehicle maintenance, fuel consumption, expenses, and service history. Built with Expo, TypeScript, and Supabase.
+React Native mobile app for vehicle ownership: service history, fuel, reminders, wheels/tires, workshops, public reports, and marketplace listings. Built with Expo, TypeScript, and Supabase.
+
+Display name: **Vericar** · npm/slug/scheme: **vehico** · Current app version: **1.4.0** (iOS build 55 / Android versionCode 12)
 
 ## Features
 
-- 🚗 **Vehicle Management**: Add and manage multiple vehicles (cars and motorcycles)
-- 📋 **Service History**: Track service entries with categories, dates, mileage, and costs
-- ⛽ **Fuel Tracking**: Monitor fuel consumption and costs
-- 💰 **Expense Tracking**: Record vehicle-related expenses
-- 📅 **Reminders**: Set time- or mileage-based reminders for maintenance
-- 📎 **Documents**: Attach photos and documents to vehicles and service entries
-- 🌐 **Multi-language**: Support for English and Polish
-- 🎨 **Theme Support**: Light and dark mode
-- 📊 **Statistics**: View expenses and fuel consumption analytics
-- 🔗 **Public Sharing**: Generate public links to share vehicle service history
+- **Vehicle management** – cars, motorcycles, vans, trucks, campers, trailers, and other; photos, notes, equipment checklist, formalities (OC/AC insurance, inspection)
+- **Service history** – categories, mileage, cost, workshops, attachments; pending workshop-submitted entries
+- **Fuel tracking** – consumption, cost, stations, efficiency and stats
+- **Reminders** – time- and mileage-based, with local push notifications
+- **Wheels & tires** – sets, fitted status, seasons/dimensions
+- **Workshops** – phonebook plus QR workshop intake (premium) for guest service submissions
+- **Public reports** – shareable vehicle report links (web app)
+- **Marketplace posts** – AI-assisted listing copy (PL/EN) ready to paste on classifieds
+- **Documents & attachments** – local-first files (SQLite + filesystem) tied to vehicles/entries
+- **Data portability** – export/import flows
+- **Premium (RevenueCat)** – Free vs Premium limits, subscriptions and lifetime, entitlement sync
+- **Auth** – email OTP, Apple Sign In, Google; optional Cloudflare Turnstile
+- **i18n & theme** – English/Polish, light/dark, units and currency preferences
 
 ## Tech Stack
 
-- **Framework**: React Native with Expo (~54.0.32)
+- **Framework**: React Native (0.81) + Expo (~54), New Architecture enabled
 - **Language**: TypeScript
-- **Navigation**: React Navigation (Native Stack)
-- **Backend**: Supabase (PostgreSQL, Storage, Auth)
-- **State Management**: React Context API
-- **Internationalization**: react-i18next
-- **UI Components**: Custom components with theme support
+- **Navigation**: React Navigation (native stack + native bottom tabs)
+- **Backend**: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
+- **Local data**: expo-sqlite + AsyncStorage (settings, attachments, documents)
+- **Payments**: RevenueCat (`react-native-purchases`)
+- **Observability**: Sentry (`@sentry/react-native`)
+- **i18n**: react-i18next
+- **UI**: custom components, Reanimated, Skia (QR), theme provider
 
 ## Prerequisites
 
-- Node.js (v18 or higher)
-- npm or yarn
-- Expo
-- iOS Simulator (for iOS development)
-- Android Studio / emulator (for Android development)
-- Supabase account and project
+- Node.js 20+ (CI uses Node 20)
+- npm
+- Expo CLI / EAS CLI for device builds
+- iOS Simulator and/or Android emulator (or physical device with dev client)
+- Supabase project
+- RevenueCat keys for production builds
+- Optional: Cloudflare Turnstile site key for auth CAPTCHA
 
 ## Installation
 
@@ -55,19 +63,29 @@ A React Native mobile application for tracking vehicle maintenance, fuel consump
    cp env.example .env.local
    ```
 
-   Edit `.env.local` and add your Supabase credentials:
+   Required / commonly used values (see `env.example`):
 
    ```env
    EXPO_PUBLIC_APP_ENV=development
    EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
    EXPO_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
    EXPO_PUBLIC_REPORTS_APP_URL=http://localhost:3000
+   # Production reports/web: https://www.vericar.pl
+   # EXPO_PUBLIC_REVENUECAT_API_KEY=appl_xxx
+   # EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY=goog_xxx
+   # EXPO_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAAAAA...
+   # EXPO_PUBLIC_APP_DISPLAY_NAME=Vericar
+   # EXPO_PUBLIC_SUPPORT_EMAIL=support@vericar.pl
    ```
 
-4. **Set up Supabase database**
-   - Run the SQL schema from `supabase/schema.sql` in your Supabase SQL Editor
-   - Create storage buckets for attachments (configured in schema)
-   - Set up Row Level Security (RLS) policies (included in schema)
+   Production builds require at least one RevenueCat API key (`EXPO_PUBLIC_REVENUECAT_API_KEY` and/or `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY`).
+
+4. **Set up Supabase**
+
+   - Apply `supabase/schema.sql` (or run migrations under `supabase/migrations/`)
+   - Configure storage buckets and RLS (included in schema)
+   - Deploy Edge Functions under `supabase/functions/` (`revenuecat-webhook`, `retention-cleanup`, `delete-account`, `generate-marketplace-post`)
+   - Optional seed scripts: `supabase/seed.sql`, `seed_data_pl.sql`, `seed_data_eng.sql`
 
 5. **Start the development server**
 
@@ -75,11 +93,11 @@ A React Native mobile application for tracking vehicle maintenance, fuel consump
    npm start
    ```
 
-   Or run on specific platform:
+   Or run a native build:
 
    ```bash
-   npm run ios      # iOS
-   npm run android  # Android
+   npm run ios
+   npm run android
    ```
 
 ## Project Structure
@@ -87,203 +105,141 @@ A React Native mobile application for tracking vehicle maintenance, fuel consump
 ```
 vehico/
 ├── src/
-│   ├── app/                    # App shell (navigation, providers)
-│   │   ├── navigation/         # Navigation configuration
-│   │   └── providers/          # Context providers (Auth, Settings, i18n)
-│   ├── config/                 # Configuration files
-│   ├── i18n/                   # Internationalization
-│   │   ├── resources/          # Translation files (en.ts, pl.ts)
-│   │   └── i18n.ts             # i18n configuration
-│   ├── screens/                # Screen components
-│   ├── services/               # Data layer (Supabase repositories)
-│   │   ├── vehicles/
-│   │   ├── serviceEntries/
-│   │   ├── fuel/
-│   │   ├── expenses/
-│   │   ├── reminders/
-│   │   ├── attachments/
-│   │   └── ...
-│   ├── types/                  # TypeScript type definitions
-│   └── ui/                     # UI components and theme
-│       ├── components/         # Reusable components
-│       ├── theme.ts            # Theme configuration
-│       └── ThemeProvider.tsx   # Theme context
-├── assets/                     # Images, icons, fonts
-├── supabase/                   # Database schema and migrations
-│   ├── schema.sql              # Complete database schema
-│   └── migrations/             # Migration scripts
-├── app.json                    # Expo configuration
+│   ├── app/                 # Boot, Root, navigation, providers (Auth, Settings, Entitlements)
+│   ├── config/              # Env, brand, App Store review helpers
+│   ├── constants/           # Vehicle types, equipment presets
+│   ├── forms/               # Form models / validation helpers
+│   ├── i18n/                # en / pl resources
+│   ├── layouts/             # Screen layout shells
+│   ├── screens/             # header / modal / onboarding / welcome
+│   ├── services/            # Repositories & integrations (Supabase, local, payments, push)
+│   ├── types/               # Domain types
+│   ├── ui/                  # Theme, components, toasts, prompts
+│   ├── utils/               # Formatting, validation, dashboard helpers
+│   └── __tests__/           # Jest tests
+├── shared/payments/         # Shared IAP product IDs (app + webhook)
+├── supabase/                # schema.sql, migrations/, functions/
+├── email-templates/         # Hosted email HTML snippets
+├── store/google-play/       # Store listing assets
+├── assets/ · fonts/
+├── app.json · app.config.js # Expo config (+ display name override)
+├── eas.json
+├── env.example
 └── package.json
 ```
 
 ## Available Scripts
 
-- `npm start` - Start Expo development server
-- `npm run ios` - Run on iOS simulator
-- `npm run android` - Run on Android emulator or device
-- `npm run typecheck` - Run TypeScript type checking
-- `npm test` - Run Jest tests
-- `npm run test:coverage` - Run Jest with coverage report
-- `npm run test:watch` - Run Jest in watch mode
+| Script | Description |
+| --- | --- |
+| `npm start` | Expo development server |
+| `npm run ios` | Native iOS run (`expo run:ios`) |
+| `npm run android` | Native Android run (`expo run:android`) |
+| `npm run typecheck` | TypeScript (`tsc --noEmit`) |
+| `npm run lint` / `lint:fix` | ESLint via `expo lint` |
+| `npm test` | Jest |
+| `npm run test:coverage` | Jest with coverage |
+| `npm run test:watch` | Jest watch mode |
+| `npm run precheck` | typecheck + lint + tests (local gate) |
 
 ## Testing and CI
 
-- Unit/integration tests use Jest (`jest-expo`) and focus on `src/services`, `src/utils`, and `src/config`.
-- Coverage scope is configured in `jest.config.js` (`collectCoverageFrom`) to measure logic-heavy layers rather than UI-only files.
-- CI is defined in `.github/workflows/ci.yml` and runs:
-  - install (`npm ci`)
-  - typecheck (`npm run typecheck`)
-  - lint (`npm run lint --if-present`)
-  - tests (`npm test -- --ci --runInBand`)
-  - coverage (`npm run test:coverage -- --ci --runInBand`)
+- Tests use Jest (`jest-expo`); coverage focuses on `src/services`, `src/utils`, and `src/config` (`jest.config.js`).
+- GitHub Actions (`.github/workflows/ci.yml`) on `main` / `develop` and PRs:
+  - `npm ci` → typecheck → lint → tests → coverage
+  - On push: deploy Supabase Edge Functions (`revenuecat-webhook`, `retention-cleanup`, `delete-account`, `generate-marketplace-post`) using environment `PROD` (main) or `DEV` (other)
 
 ## Configuration
 
-### Environment Variables
+### Environment variables
 
-- `EXPO_PUBLIC_APP_ENV`: Environment mode (`development` or `production`)
-- `EXPO_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-- `EXPO_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
-- `EXPO_PUBLIC_REPORTS_APP_URL`: URL for the reports web app (optional)
+| Variable | Purpose |
+| --- | --- |
+| `EXPO_PUBLIC_APP_ENV` | `development` or `production` |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
+| `EXPO_PUBLIC_REPORTS_APP_URL` | Public reports / web app base URL |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat iOS (or shared test) key |
+| `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY` | RevenueCat Android key (falls back to iOS key) |
+| `EXPO_PUBLIC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile public site key |
+| `EXPO_PUBLIC_APP_DISPLAY_NAME` | Optional home-screen / permission string name |
+| `EXPO_PUBLIC_SUPPORT_EMAIL` | Support address (default `support@vericar.pl`) |
 
-### App Configuration
+Runtime validation lives in `src/config/env.ts`.
 
-Edit `app.json` to customize:
+### App / EAS
 
-- App name and slug
-- Bundle identifier / package name
-- Icons and splash screens
-- Platform-specific settings
+- Expo app config: `app.json` + `app.config.js` (display name from `app-brand.js`)
+- Bundle IDs: `com.ktasoftware.vehico`
+- EAS profiles: `development` (dev client), `preview`, `production` (`eas.json`)
 
 ## Database Schema
 
-The application uses Supabase (PostgreSQL) with the following main tables:
+Main Postgres tables (see `supabase/schema.sql` + migrations):
 
-- `vehicles` - Vehicle information
-- `service_entries` - Service history entries
-- `fueling_entries` - Fuel consumption records
-- `reminders` - Maintenance reminders
-- `photos` - Vehicle photos
-- `reports` - Public report snapshots
-- `posts` - Marketplace post snapshots
-- `workshops` - User workshops
-- `tires` / `wheels` - Wheel and tire sets
-- `entitlements` - Plan/limits and monetization state
-- User preferences (appearance, units, language) – **AsyncStorage** on device (`UserSettingsProvider`), not a Postgres table
-- Attachments and vehicle documents – **local-first** (SQLite + file system), not primary Supabase tables
+- `vehicles`, `vehicle_equipment`
+- `service_entries`, `mileage_audit`
+- `fueling_entries`, `reminders`, `photos`
+- `workshops`, workshop intake / rate-limit helpers
+- `tires`, `wheels`
+- `reports`, `posts` (public report / marketplace snapshots)
+- `entitlements` (plan limits & monetization state)
 
-See `supabase/schema.sql` for the complete schema with RLS policies.
+Not primary Supabase tables:
+
+- User preferences (appearance, units, language) – **AsyncStorage** via `UserSettingsProvider`
+- Attachments and vehicle documents – **local-first** (SQLite + filesystem)
 
 ## Building for Production
 
-### iOS
+Prefer EAS:
 
-1. **Generate native code**
+```bash
+eas build --platform ios
+eas build --platform android
+eas submit --platform ios   # when ready
+```
 
-   ```bash
-   npx expo prebuild --clean
-   ```
+Local native release (after prebuild):
 
-2. **Build with EAS (recommended)**
+```bash
+npx expo prebuild --clean
+npx expo run:ios --configuration Release
+npx expo run:android --variant release
+```
 
-   ```bash
-   eas build --platform ios
-   ```
+Ensure production env includes Supabase, reports URL, and RevenueCat keys.
 
-3. **Or build locally**
-   ```bash
-   cd ios
-   pod install
-   cd ..
-   npx expo run:ios --configuration Release
-   ```
+## Feature Notes
 
-### Android
+### Premium & limits
 
-1. **Generate native code**
+Free plan caps vehicles, tires/wheels, workshops, reminders, photos, and some share/marketplace features. Premium unlocks higher/unlimited quotas; downgrade flow locks extra vehicles and schedules retention cleanup. Product IDs live in `shared/payments/iapProducts.ts`.
 
-   ```bash
-   npx expo prebuild --platform android
-   ```
+### Workshop intake
 
-2. **Build with EAS (recommended)**
+Premium users can enable a per-vehicle QR/link. Workshops submit service entries without an account; owners approve or reject pending entries in-app.
 
-   ```bash
-   eas build --platform android
-   ```
+### Marketplace & public reports
 
-3. **Or build locally**
-   ```bash
-   npx expo run:android --variant release
-   ```
+Configure what to include (history, fuel stats, equipment, formalities, etc.), then generate a public report URL and/or bilingual marketplace copy via the `generate-marketplace-post` Edge Function.
 
-## Features in Detail
+### AI assistant
 
-### Vehicle Management
-
-- Add vehicles with detailed information (make, model, year, VIN, etc.)
-- Upload profile photos
-- Edit and delete vehicles
-- Support for cars and motorcycles
-
-### Service History
-
-- Chronological timeline of service entries
-- Categories: Maintenance, Repair, Inspection, Upgrade, Other
-- Attach documents and photos
-- Filter by category, date range, and cost
-- Search functionality
-
-### Fuel Tracking
-
-- Record fuel consumption with distance, amount, and cost
-- Automatic calculation of fuel efficiency
-- Filter by date and cost range
-- Monthly/yearly statistics
-
-### Reminders
-
-- Time-based reminders (due date)
-- Mileage-based reminders (due at specific mileage)
-- Mark as done/active
-- Filter and search
-
-### Documents
-
-- Upload vehicle photos
-- Attach documents to service entries
-- Support for images and files
-- Delete with confirmation
-
-### Settings
-
-- Currency selection (PLN, EUR)
-- Distance unit (km, miles)
-- Fuel unit (liters, gallons)
-- Theme (light, dark)
-- Language (English, Polish)
+In-app menu includes an **AI assistant** placeholder (coming soon); marketplace listing generation already uses server-side generation.
 
 ## Development
 
-### Code Style
-
-- TypeScript strict mode
-- Functional components with hooks
-- Custom hooks for data fetching
-- Context API for global state
-
-### Adding New Features
-
-1. Add types to `src/types/domain.ts`
-2. Create repository in `src/services/`
-3. Add screen in `src/screens/`
-4. Update navigation in `src/app/navigation/`
-5. Add translations to `src/i18n/resources/`
+- TypeScript strict mode, functional components/hooks
+- Domain types in `src/types/`; repositories under `src/services/`
+- Screens under `src/screens/`; wire routes in `src/app/navigation/RootNavigator.tsx`
+- Translations in `src/i18n/resources/` (`en.ts`, `pl.ts`)
+- Prefer `npm run precheck` before opening a PR
 
 ## License
 
-Private project - All rights reserved
+Private project – All rights reserved
 
 ## Support
 
-For issues and questions, please contact the development team.
+Contact: `support@vericar.pl` (or `EXPO_PUBLIC_SUPPORT_EMAIL`).
