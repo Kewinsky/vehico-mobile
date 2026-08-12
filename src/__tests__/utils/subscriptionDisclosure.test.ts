@@ -1,7 +1,7 @@
 import { IAP_PRODUCT_IDS } from "../../../shared/payments/iapProducts";
 import { getSubscriptionDisclosure } from "../../utils/subscriptionDisclosure";
 
-const t = ((key: string, opts?: { price?: string }) => {
+const t = ((key: string, opts?: { price?: string; days?: number }) => {
   const map: Record<string, string> = {
     "shop.products.premium_monthly.name": "Premium Monthly",
     "shop.products.premium_yearly.name": "Premium Yearly",
@@ -11,6 +11,8 @@ const t = ((key: string, opts?: { price?: string }) => {
     "shop.subscriptionPeriod.lifetime": "One-time purchase (not a subscription)",
     "shop.pricePerMonth": `${opts?.price ?? ""} per month`,
     "shop.billedMonthly": `Billed as ${opts?.price ?? ""} per month`,
+    "shop.trialThenPrice": `${opts?.days ?? ""}-day free trial, then ${opts?.price ?? ""}`,
+    "shop.trialThenPriceUnknownDays": `Free trial, then ${opts?.price ?? ""}`,
   };
   return map[key] ?? key;
 }) as any;
@@ -20,9 +22,34 @@ describe("getSubscriptionDisclosure", () => {
     const monthly = getSubscriptionDisclosure(IAP_PRODUCT_IDS.monthly, null, t);
     expect(monthly.isAutoRenewable).toBe(true);
     expect(monthly.title).toBe("Premium Monthly");
+    expect(monthly.hasFreeTrial).toBe(false);
 
     const lifetime = getSubscriptionDisclosure(IAP_PRODUCT_IDS.lifetime, null, t);
     expect(lifetime.isAutoRenewable).toBe(false);
+  });
+
+  it("surfaces free trial offer line when introPrice is free", () => {
+    const monthly = getSubscriptionDisclosure(
+      IAP_PRODUCT_IDS.monthly,
+      {
+        priceString: "29,99 zł",
+        price: 29.99,
+        currencyCode: "PLN",
+        introPrice: {
+          price: 0,
+          priceString: "Free",
+          cycles: 1,
+          period: "P14D",
+          periodUnit: "DAY",
+          periodNumberOfUnits: 14,
+        },
+      } as any,
+      t,
+    );
+    expect(monthly.hasFreeTrial).toBe(true);
+    expect(monthly.trialDays).toBe(14);
+    expect(monthly.trialOfferLine).toContain("14");
+    expect(monthly.trialOfferLine).toContain("29,99 zł");
   });
 
   it("computes yearly price per month when product price is available", () => {

@@ -23,16 +23,23 @@ import { ErrorBoundary } from "../ui/components/common/ErrorBoundary";
 import { AppToasts } from "../ui/toast/AppToasts";
 import { TextPromptHost } from "../ui/prompt/TextPromptHost";
 import { FormalityNotificationsBootstrap } from "./FormalityNotificationsBootstrap";
+import { PremiumExpiryNotificationsBootstrap } from "./PremiumExpiryNotificationsBootstrap";
 
 function AppContent() {
-  // Handle tap on local notification (reminder) – navigate to ReminderForm (edit)
+  // Handle tap on local notification (reminder / formality / premium expiry).
   useEffect(() => {
     const navigateFromNotification = (data: {
       reminderId?: string;
       vehicleId?: string;
       formalityKind?: "insurance" | "inspection";
+      openShop?: boolean;
     }) => {
-      if (!data?.vehicleId || !navigationRef.isReady()) return;
+      if (!navigationRef.isReady()) return;
+      if (data?.openShop) {
+        navigationRef.navigate("Shop");
+        return;
+      }
+      if (!data?.vehicleId) return;
       if (data.reminderId) {
         navigationRef.navigate("ReminderForm", {
           vehicleId: data.vehicleId,
@@ -55,6 +62,7 @@ function AppContent() {
               reminderId?: string;
               vehicleId?: string;
               formalityKind?: "insurance" | "inspection";
+              openShop?: boolean;
             }
           | undefined;
         navigateFromNotification(data ?? {});
@@ -68,6 +76,7 @@ function AppContent() {
             reminderId?: string;
             vehicleId?: string;
             formalityKind?: "insurance" | "inspection";
+            openShop?: boolean;
           }
         | undefined;
       const id = setInterval(() => {
@@ -111,6 +120,7 @@ function AppContent() {
   return (
     <>
       <FormalityNotificationsBootstrap />
+      <PremiumExpiryNotificationsBootstrap />
       <NavigationContainer
         ref={navigationRef}
         linking={linking}

@@ -32,11 +32,19 @@ export function PremiumDowngradeHandler() {
     // Only treat premium→free as "downgrade" when user is still logged in. On logout, isPremium becomes false but we must not show the alert or reset to Vehicles (that screen isn't in the unauthenticated stack).
     if (!session) {
       prevIsPremium.current = isPremium;
+      alertShownForDowngrade.current = false;
       return;
     }
 
     if (prevIsPremium.current == null) {
       prevIsPremium.current = isPremium;
+      return;
+    }
+
+    // Allow another alert if the user re-subscribes (or starts a new trial) later.
+    if (isPremium) {
+      alertShownForDowngrade.current = false;
+      prevIsPremium.current = true;
       return;
     }
 

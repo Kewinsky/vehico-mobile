@@ -210,6 +210,10 @@ npx expo run:android --variant release
 
 Ensure production env includes Supabase, reports URL, and RevenueCat keys.
 
+### Premium free trial (store intro offer)
+
+App support is client-side (RevenueCat `periodType`, Shop copy, home banner, local pushes). Configure the 14-day free trial in App Store Connect / Google Play and sync products in RevenueCat – see **[docs/premium-trial-setup.md](docs/premium-trial-setup.md)**. No database migration required.
+
 ## Feature Notes
 
 ### Premium & limits

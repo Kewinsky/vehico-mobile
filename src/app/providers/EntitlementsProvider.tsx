@@ -25,10 +25,15 @@ import {
   createEmptyRevenueCatProducts,
   findPackageForProductId,
   getPremiumEntitlement,
+  isLifetimeProduct,
   isRevenueCatProductId,
   isSubscriptionProduct,
   normalizeProductIdFromRC,
 } from "../../services/payments/revenuecat";
+import {
+  buildSubscriptionStatusSnapshot,
+  type PremiumEndingKind,
+} from "../../services/payments/subscriptionStatus";
 import { useAuth } from "./AuthProvider";
 
 export type EntitlementPlan = "free" | "premium" | "lifetime";
@@ -123,6 +128,17 @@ type EntitlementsContextValue = {
   downgradedAt: string | null;
   /** Days until hidden vehicles data is deleted (90-day retention). Null when premium or no downgraded_at. */
   daysUntilHiddenDataDeletion: number | null;
+  /** True when RC reports the active entitlement period is a free trial. */
+  isTrial: boolean;
+  /** Whether the active subscription will renew; null when free/lifetime/unknown. */
+  willRenew: boolean | null;
+  /** ISO expiry for current Premium period (trial or paid). Null for lifetime/free. */
+  premiumExpiresAt: string | null;
+  /** Whole days left until premiumExpiresAt; 0 means today/overdue. */
+  daysUntilPremiumExpiry: number | null;
+  /** Home banner: trial ending soon, or cancelled subscription ending soon. */
+  showPremiumEndingBanner: boolean;
+  premiumEndingKind: PremiumEndingKind | null;
   /** Set free plan vehicle (call when user saves picker choice). */
   setFreePlanVehicleId: (vehicleId: string) => Promise<void>;
 
@@ -669,9 +685,19 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     const premiumUntil = entitlements?.premium_until ?? null;
     const plan = entitlements?.plan ?? null;
-    if (!premiumUntil || plan !== "premium") return;
+    const rcExpiration = getPremiumEntitlement(
+      revenueCatCustomerInfo,
+    )?.expirationDate;
+    const expiryIso =
+      (premiumUntil && plan === "premium" ? premiumUntil : null) ??
+      rcExpiration ??
+      null;
+    if (!expiryIso) return;
 
-    const untilMs = nextLocal3amMs(premiumUntil);
+    const untilMs =
+      premiumUntil && plan === "premium"
+        ? nextLocal3amMs(premiumUntil)
+        : Date.parse(expiryIso);
     if (untilMs == null || !Number.isFinite(untilMs)) return;
 
     const nowMs = Date.now();
@@ -685,7 +711,11 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       setEntitlementsClockMs(Date.now());
     }, msLeft + 500);
     return () => clearTimeout(id);
-  }, [entitlements?.premium_until, entitlements?.plan]);
+  }, [
+    entitlements?.premium_until,
+    entitlements?.plan,
+    revenueCatCustomerInfo,
+  ]);
 
   const RETENTION_DAYS = 90;
 
@@ -709,6 +739,12 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
         freePlanWheelId: null,
         downgradedAt: null,
         daysUntilHiddenDataDeletion: null,
+        isTrial: false,
+        willRenew: null,
+        premiumExpiresAt: null,
+        daysUntilPremiumExpiry: null,
+        showPremiumEndingBanner: false,
+        premiumEndingKind: null,
         setFreePlanVehicleId,
       };
     }
@@ -752,6 +788,20 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
           : normalizeProductIdFromRC(premiumEntitlement?.productIdentifier)) ??
         null)
       : null;
+
+    const isLifetime =
+      entitlements.plan === "lifetime" ||
+      (currentPlanProductId != null && isLifetimeProduct(currentPlanProductId));
+
+    const subscriptionStatus = buildSubscriptionStatusSnapshot({
+      isPremium,
+      isLifetime,
+      periodType: premiumEntitlement?.periodType,
+      willRenew: premiumEntitlement?.willRenew,
+      entitlementExpirationDate: premiumEntitlement?.expirationDate,
+      premiumUntilDb: entitlements.premium_until,
+      nowMs: entitlementsClockMs,
+    });
 
     const downgradedAt = entitlements.downgraded_at ?? null;
     let daysUntilHiddenDataDeletion: number | null = null;
@@ -803,6 +853,12 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
         : (entitlements.free_plan_wheel_id ?? null),
       downgradedAt,
       daysUntilHiddenDataDeletion,
+      isTrial: subscriptionStatus.isTrial,
+      willRenew: subscriptionStatus.willRenew,
+      premiumExpiresAt: subscriptionStatus.premiumExpiresAt,
+      daysUntilPremiumExpiry: subscriptionStatus.daysUntilPremiumExpiry,
+      showPremiumEndingBanner: subscriptionStatus.showPremiumEndingBanner,
+      premiumEndingKind: subscriptionStatus.premiumEndingKind,
       setFreePlanVehicleId,
     };
   }, [

@@ -40,14 +40,17 @@ import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { normalizeDisplayName } from "../../utils/displayName";
 import { groupThousands } from "../../utils/numberFormatting";
+import { formatDateDisplay } from "../../utils/dateFormatting";
 import { hexToRgba } from "../../ui/components/common/ChoiceChip";
 import { WelcomeHeaderLayout } from "../../layouts";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
+import { DashboardCalloutCard } from "../../ui/components/dashboard/DashboardCalloutCard";
 import { getVehicleTypeMciIcon } from "../../constants/vehicleTypes";
 import {
   getPremiumUpgradeAlertButtons,
   showPremiumRequiredAlert,
 } from "../../ui/limits/entitlementAlerts";
+import { Crown } from "lucide-react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Vehicles">;
 
@@ -342,8 +345,51 @@ export function VehiclesScreen({ navigation, route }: Props) {
     daysUntilHiddenDataDeletion,
     isLoading: entitlementsLoading,
     refresh: refreshEntitlements,
+    showPremiumEndingBanner,
+    premiumEndingKind,
+    daysUntilPremiumExpiry,
+    premiumExpiresAt,
+    willRenew,
+    isTrial,
   } = useEntitlements();
   const { distanceUnitLabel } = useUnitDisplay();
+
+  const premiumEndingBannerCopy = useMemo(() => {
+    if (!showPremiumEndingBanner || !premiumEndingKind) return null;
+    const days = daysUntilPremiumExpiry ?? 0;
+    const date = premiumExpiresAt
+      ? formatDateDisplay(premiumExpiresAt, i18n.language)
+      : "";
+    if (premiumEndingKind === "trial") {
+      return {
+        title:
+          days <= 0
+            ? t("vehicles.premiumEnding.trialTitleToday")
+            : t("vehicles.premiumEnding.trialTitle", { count: days }),
+        description:
+          willRenew === true
+            ? t("vehicles.premiumEnding.trialBodyConverts", { date })
+            : t("vehicles.premiumEnding.trialBodyEnds", { date }),
+        cta: t("vehicles.premiumEnding.ctaManage"),
+      };
+    }
+    return {
+      title:
+        days <= 0
+          ? t("vehicles.premiumEnding.subscriptionTitleToday")
+          : t("vehicles.premiumEnding.subscriptionTitle", { count: days }),
+      description: t("vehicles.premiumEnding.subscriptionBody", { date }),
+      cta: t("vehicles.premiumEnding.ctaRenew"),
+    };
+  }, [
+    daysUntilPremiumExpiry,
+    i18n.language,
+    premiumEndingKind,
+    premiumExpiresAt,
+    showPremiumEndingBanner,
+    t,
+    willRenew,
+  ]);
 
   const visibleVehicleId: string | null = isPremium
     ? null
@@ -546,7 +592,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
     <WelcomeHeaderLayout
       title={headerTitle}
       showProfileAvatar
-      showShopIcon={!isPremium}
+      showShopIcon={!isPremium || showPremiumEndingBanner || isTrial}
       loading={loading}
       ready={initialVisualReady}
       background={
@@ -572,6 +618,31 @@ export function VehiclesScreen({ navigation, route }: Props) {
         onRefresh={() => void load({ refreshing: true })}
         nestedScrollEnabled={true}
         contentContainerStyle={listContentStyle}
+        listHeaderComponent={
+          premiumEndingBannerCopy ? (
+            <View style={styles.premiumEndingBannerWrap}>
+              <DashboardCalloutCard
+                accentColor={theme.colors.accent}
+                buttonColor={theme.colors.accent}
+                icon={
+                  <Crown
+                    size={26}
+                    color={theme.colors.accent}
+                    strokeWidth={2}
+                  />
+                }
+                title={premiumEndingBannerCopy.title}
+                description={premiumEndingBannerCopy.description}
+                actions={[
+                  {
+                    label: premiumEndingBannerCopy.cta,
+                    onPress: () => navigation.navigate("Shop"),
+                  },
+                ]}
+              />
+            </View>
+          ) : null
+        }
         ListEmptyComponent={<EmptyState body={t("vehicles.emptyTitle")} />}
         renderItem={({ item }) => {
           const isLocked =
@@ -686,6 +757,9 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       position: "absolute",
       top: 0,
       left: 0,
+    },
+    premiumEndingBannerWrap: {
+      marginBottom: theme.spacing.md,
     },
     vehicleCard: {
       borderRadius: theme.radius.xl,

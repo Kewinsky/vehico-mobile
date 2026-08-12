@@ -14,7 +14,10 @@ import {
   formatStoreCurrency,
   getStoreFormattingLocale,
 } from "./currencyDisplay";
-import { getStoreProductPricing } from "../services/payments/storeProductPricing";
+import {
+  getStoreProductPricing,
+  getStoreProductTrialOffer,
+} from "../services/payments/storeProductPricing";
 
 export type SubscriptionDisclosureLines = {
   title: string;
@@ -22,6 +25,10 @@ export type SubscriptionDisclosureLines = {
   price: string;
   pricePerUnit: string | null;
   isAutoRenewable: boolean;
+  /** True when the selected store product currently exposes a free trial. */
+  hasFreeTrial: boolean;
+  trialDays: number | null;
+  trialOfferLine: string | null;
 };
 
 export function getSubscriptionDisclosure(
@@ -39,6 +46,16 @@ export function getSubscriptionDisclosure(
   const pricing = getStoreProductPricing(product);
   const price = pricing?.priceString?.trim() || "–";
   const isAutoRenewable = isSubscriptionIapProduct(productId);
+  const trialOffer = isAutoRenewable
+    ? getStoreProductTrialOffer(product)
+    : null;
+  const hasFreeTrial = trialOffer?.isFree === true;
+  const trialDays = trialOffer?.days ?? null;
+  const trialOfferLine = hasFreeTrial
+    ? trialDays != null
+      ? t("shop.trialThenPrice", { days: trialDays, price })
+      : t("shop.trialThenPriceUnknownDays", { price })
+    : null;
 
   let pricePerUnit: string | null = null;
   if (
@@ -58,5 +75,14 @@ export function getSubscriptionDisclosure(
     pricePerUnit = t("shop.billedMonthly", { price });
   }
 
-  return { title, length, price, pricePerUnit, isAutoRenewable };
+  return {
+    title,
+    length,
+    price,
+    pricePerUnit,
+    isAutoRenewable,
+    hasFreeTrial,
+    trialDays,
+    trialOfferLine,
+  };
 }
