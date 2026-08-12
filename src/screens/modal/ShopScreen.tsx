@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Dimensions,
   Modal,
@@ -251,6 +251,31 @@ export function ShopScreen({ navigation }: Props) {
   ]);
 
   const selectedHasFreeTrial = selectedDisclosure.hasFreeTrial;
+
+  useEffect(() => {
+    if (!__DEV__) return;
+    console.log("[shop trial debug]", {
+      selectedId,
+      identifier: selectedProduct?.identifier ?? null,
+      hasFreeTrial: selectedHasFreeTrial,
+      trialDays: selectedDisclosure.trialDays,
+      trialOfferLine: selectedDisclosure.trialOfferLine,
+      introPrice: selectedProduct?.introPrice ?? null,
+      freePhase: selectedProduct?.defaultOption?.freePhase ?? null,
+      subscriptionOptions:
+        selectedProduct?.subscriptionOptions?.map((option) => ({
+          id: option.id,
+          freePhase: option.freePhase ?? null,
+          introPhase: option.introPhase ?? null,
+        })) ?? null,
+    });
+  }, [
+    selectedDisclosure.trialDays,
+    selectedDisclosure.trialOfferLine,
+    selectedHasFreeTrial,
+    selectedId,
+    selectedProduct,
+  ]);
 
   async function handlePurchase(productId: RevenueCatProductId) {
     if (purchasing) return;
