@@ -52,6 +52,10 @@ import {
 import { formatRollingGroupedNumber } from "../../utils/numberFormatting";
 import { formatDateDisplay } from "../../utils/dateFormatting";
 import { getStoreProductPricing } from "../../services/payments/storeProductPricing";
+import {
+  fetchSubscriptionIntroEligibility,
+  type IntroEligibilityByProductId,
+} from "../../services/payments/introEligibility";
 import { ShopCompareRowIcon } from "../../ui/components/shop/ShopCompareRowIcon";
 import { Glow } from "../../ui/components/dashboard/Glow";
 import { getShopComparisonRows, type ShopCompareRow } from "./shopComparison";
@@ -87,6 +91,8 @@ export function ShopScreen({ navigation }: Props) {
   const [customerCenterVisible, setCustomerCenterVisible] = useState(false);
   const [selectedSubscription, setSelectedSubscription] =
     useState<RevenueCatProductId>(REVENUECAT_DEFAULT_SUBSCRIPTION);
+  const [introEligibilityByProduct, setIntroEligibilityByProduct] =
+    useState<IntroEligibilityByProductId>({});
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const storeLocale = useMemo(() => getStoreFormattingLocale(), []);
 
@@ -106,8 +112,11 @@ export function ShopScreen({ navigation }: Props) {
   const selectedPriceString = selectedPricing?.priceString?.trim() || "–";
 
   const selectedDisclosure = useMemo(
-    () => getSubscriptionDisclosure(selectedId, selectedProduct, t),
-    [selectedId, selectedProduct, t],
+    () =>
+      getSubscriptionDisclosure(selectedId, selectedProduct, t, {
+        introEligibility: introEligibilityByProduct[selectedId] ?? null,
+      }),
+    [introEligibilityByProduct, selectedId, selectedProduct, t],
   );
 
   // Billed amount must be the most conspicuous price (App Store 3.1.2(c)).
@@ -144,6 +153,9 @@ export function ShopScreen({ navigation }: Props) {
   useFocusEffect(
     useCallback(() => {
       void refresh();
+      void fetchSubscriptionIntroEligibility().then((next) => {
+        setIntroEligibilityByProduct(next);
+      });
     }, [refresh]),
   );
 
@@ -260,6 +272,8 @@ export function ShopScreen({ navigation }: Props) {
       hasFreeTrial: selectedHasFreeTrial,
       trialDays: selectedDisclosure.trialDays,
       trialOfferLine: selectedDisclosure.trialOfferLine,
+      introEligibilityStatus:
+        introEligibilityByProduct[selectedId]?.status ?? null,
       introPrice: selectedProduct?.introPrice ?? null,
       freePhase: selectedProduct?.defaultOption?.freePhase ?? null,
       subscriptionOptions:
@@ -270,6 +284,7 @@ export function ShopScreen({ navigation }: Props) {
         })) ?? null,
     });
   }, [
+    introEligibilityByProduct,
     selectedDisclosure.trialDays,
     selectedDisclosure.trialOfferLine,
     selectedHasFreeTrial,

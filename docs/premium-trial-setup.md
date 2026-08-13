@@ -40,7 +40,7 @@ Product IDs must keep matching `shared/payments/iapProducts.ts`:
 
 | Area | Behavior |
 | --- | --- |
-| Shop (not subscribed) | CTA **Start free trial** when store product exposes a free intro; disclosure “N-day free trial, then price” |
+| Shop (not subscribed) | CTA **Start free trial** when store product exposes a free intro **or** intro eligibility is eligible/unknown; disclosure “N-day free trial, then price” (falls back to 14 days from `STORE_INTRO_FREE_TRIAL_DAYS` when `introPrice` is missing) |
 | Shop (current plan) | Badge **Trial** / **Ends soon**; shows ends/converts/renews date from RC + DB |
 | Home (Vehicles) | Banner in last 3 days of trial, or last 7 days of a **cancelled** subscription |
 | Push | Local notifications at 3 days, 1 day, and day-of for trial end / cancelled sub end; tap opens Shop |

@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import type { IntroEligibility } from "react-native-purchases";
 import type { PurchasesStoreProduct } from "react-native-purchases";
 
 import {
@@ -8,12 +9,14 @@ import {
   isMonthlyIapProduct,
   isSubscriptionIapProduct,
   isYearlyIapProduct,
+  STORE_INTRO_FREE_TRIAL_DAYS,
   type IapProductId,
 } from "../../shared/payments/iapProducts";
 import {
   formatStoreCurrency,
   getStoreFormattingLocale,
 } from "./currencyDisplay";
+import { shouldShowStoreFreeTrialForEligibility } from "../services/payments/introEligibility";
 import {
   getStoreProductPricing,
   getStoreProductTrialOffer,
@@ -31,10 +34,16 @@ export type SubscriptionDisclosureLines = {
   trialOfferLine: string | null;
 };
 
+export type SubscriptionDisclosureOptions = {
+  /** From `Purchases.checkTrialOrIntroductoryPriceEligibility`. */
+  introEligibility?: IntroEligibility | null;
+};
+
 export function getSubscriptionDisclosure(
   productId: IapProductId,
   product: PurchasesStoreProduct | null | undefined,
   t: TFunction,
+  options?: SubscriptionDisclosureOptions,
 ): SubscriptionDisclosureLines {
   const kind = getIapProductKind(productId);
   const i18nKey = IAP_PRODUCT_NAME_I18N_KEY[productId];
@@ -49,8 +58,13 @@ export function getSubscriptionDisclosure(
   const trialOffer = isAutoRenewable
     ? getStoreProductTrialOffer(product)
     : null;
-  const hasFreeTrial = trialOffer?.isFree === true;
-  const trialDays = trialOffer?.days ?? null;
+  const eligibleByStatus =
+    isAutoRenewable &&
+    shouldShowStoreFreeTrialForEligibility(options?.introEligibility?.status);
+  const hasFreeTrial = trialOffer?.isFree === true || eligibleByStatus;
+  const trialDays = hasFreeTrial
+    ? (trialOffer?.days ?? STORE_INTRO_FREE_TRIAL_DAYS)
+    : null;
   const trialOfferLine = hasFreeTrial
     ? trialDays != null
       ? t("shop.trialThenPrice", { days: trialDays, price })
