@@ -213,6 +213,22 @@ export const en = {
     lockedVehicleAlertBody:
       "This vehicle is hidden on the Free plan. Renew Premium to access it. Data for hidden vehicles will be permanently deleted in {{days}} days.",
     lockedVehicleAlertCTA: "Go to Premium",
+    premiumEnding: {
+      trialTitle_one: "Trial ends in {{count}} day",
+      trialTitle_other: "Trial ends in {{count}} days",
+      trialTitleToday: "Trial ends today",
+      trialBodyConverts:
+        "Your free trial ends on {{date}}. You’ll then be charged for Premium unless you cancel.",
+      trialBodyEnds:
+        "Your free trial ends on {{date}}. Renew to keep Premium features.",
+      subscriptionTitle_one: "Premium ends in {{count}} day",
+      subscriptionTitle_other: "Premium ends in {{count}} days",
+      subscriptionTitleToday: "Premium ends today",
+      subscriptionBody:
+        "Your subscription ends on {{date}}. Renew to keep unlimited vehicles and Premium features.",
+      ctaManage: "Manage plan",
+      ctaRenew: "Renew Premium",
+    },
   },
   vehicleForm: {
     title: "New vehicle",
@@ -799,7 +815,22 @@ export const en = {
       advancedChartsPremium: "Advanced",
     },
     subscribeCta: "Subscribe {{plan}}",
+    startFreeTrialCta: "Start {{days}}-day free trial",
+    startFreeTrialCtaUnknown: "Start free trial",
     subscribeSubtitle: "Cancel anytime. No commitment.",
+    freeTrialSubtitle:
+      "Cancel before the trial ends to avoid being charged.",
+    trialThenPrice: "{{days}}-day free trial, then {{price}}",
+    trialThenPriceUnknownDays: "Free trial, then {{price}}",
+    trialBadge: "Trial",
+    trialPlanName: "Premium trial",
+    trialEndsOn: "Trial ends on {{date}}",
+    trialConvertsOn: "Converts to paid on {{date}}",
+    subscriptionEndsOn: "Ends on {{date}}",
+    renewsOn: "Renews on {{date}}",
+    daysRemaining_one: "{{count}} day remaining",
+    daysRemaining_other: "{{count}} days remaining",
+    planEndsSoon: "Ends soon",
     saveBadge: "SAVE {{percent}}%",
     monthlyBadge: "FLEXIBLE",
     lifetimeBadge: "BEST DEAL",
@@ -1696,5 +1727,21 @@ Detailed report available at: https://report.vehico.app/report/example`,
     section6Title: "6. Changes to This Policy",
     section6Content:
       "We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the 'Last updated' date. You are advised to review this Privacy Policy periodically for any changes.",
+  },
+  premiumExpiry: {
+    notification: {
+      trialEndsBefore:
+        "Your Premium trial ends in {{days}} days ({{date}}). Open the app to manage your plan.",
+      trialEndsToday:
+        "Your Premium trial ends today. Renew or manage your plan to keep Premium features.",
+      trialConvertsBefore:
+        "Your free trial ends in {{days}} days ({{date}}). You’ll then be charged unless you cancel.",
+      trialConvertsToday:
+        "Your free trial ends today. You’ll be charged for Premium unless you cancel first.",
+      subscriptionEndsBefore:
+        "Your Premium subscription ends in {{days}} days ({{date}}). Renew to keep access.",
+      subscriptionEndsToday:
+        "Your Premium subscription ends today. Renew to keep unlimited vehicles and Premium features.",
+    },
   },
 };

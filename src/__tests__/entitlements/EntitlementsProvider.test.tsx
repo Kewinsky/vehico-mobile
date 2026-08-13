@@ -187,6 +187,55 @@ describe("EntitlementsProvider (Supabase entitlements + computed limits)", () =>
     expect(result.current.freePlanVehicleId).toBe("v2");
   });
 
+  it("exposes trial ending status from RevenueCat entitlement", async () => {
+    const expiresAt = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+    supabase.from.mockImplementation(() =>
+      createPostgrestChain({
+        data: {
+          plan: "premium",
+          vehicles_limit: 1,
+          photos_per_vehicle_limit: 6,
+          tires_per_vehicle_limit: 1,
+          wheels_per_vehicle_limit: 1,
+          workshops_limit: 3,
+          reminders_limit: 5,
+          premium_until: expiresAt,
+          product_id: IAP_PRODUCT_IDS.yearly,
+          free_plan_vehicle_id: null,
+          downgraded_at: null,
+          free_plan_workshop_ids: [],
+          free_plan_reminder_ids: [],
+          free_plan_tire_id: null,
+          free_plan_wheel_id: null,
+        },
+        error: null,
+      }),
+    );
+    (Purchases.getCustomerInfo as any).mockResolvedValue({
+      entitlements: {
+        active: {
+          "vehico Premium": {
+            isActive: true,
+            periodType: "TRIAL",
+            willRenew: true,
+            expirationDate: expiresAt,
+            productIdentifier: IAP_PRODUCT_IDS.yearly,
+          },
+        },
+      },
+    });
+
+    const { result } = renderHook(() => useEntitlements(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await waitFor(() => expect(result.current.isRevenueCatReady).toBe(true));
+    await waitFor(() => expect(result.current.isTrial).toBe(true));
+
+    expect(result.current.isPremium).toBe(true);
+    expect(result.current.willRenew).toBe(true);
+    expect(result.current.showPremiumEndingBanner).toBe(true);
+    expect(result.current.premiumEndingKind).toBe("trial");
+  });
+
   it("restoreRevenueCatPurchases calls RevenueCat restore flow", async () => {
     supabase.from.mockImplementation(() =>
       createPostgrestChain({

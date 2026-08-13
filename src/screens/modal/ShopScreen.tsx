@@ -50,7 +50,12 @@ import {
   getStoreFormattingLocale,
 } from "../../utils/currencyDisplay";
 import { formatRollingGroupedNumber } from "../../utils/numberFormatting";
+import { formatDateDisplay } from "../../utils/dateFormatting";
 import { getStoreProductPricing } from "../../services/payments/storeProductPricing";
+import {
+  fetchSubscriptionIntroEligibility,
+  type IntroEligibilityByProductId,
+} from "../../services/payments/introEligibility";
 import { ShopCompareRowIcon } from "../../ui/components/shop/ShopCompareRowIcon";
 import { Glow } from "../../ui/components/dashboard/Glow";
 import { getShopComparisonRows, type ShopCompareRow } from "./shopComparison";
@@ -62,7 +67,7 @@ const SHOP_GLOW_ANGLE = 180;
 type PlanBadge = { label: string; tone: "save" | "deal" | "monthly" };
 
 export function ShopScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme, mode } = useTheme();
   const insets = useSafeAreaInsets();
   const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
@@ -73,6 +78,11 @@ export function ShopScreen({ navigation }: Props) {
     revenueCatProducts,
     purchaseRevenueCatProduct,
     restoreRevenueCatPurchases,
+    isTrial,
+    willRenew,
+    premiumExpiresAt,
+    daysUntilPremiumExpiry,
+    showPremiumEndingBanner,
   } = useEntitlements();
   const [purchasing, setPurchasing] = useState<RevenueCatProductId | null>(
     null,
@@ -81,6 +91,8 @@ export function ShopScreen({ navigation }: Props) {
   const [customerCenterVisible, setCustomerCenterVisible] = useState(false);
   const [selectedSubscription, setSelectedSubscription] =
     useState<RevenueCatProductId>(REVENUECAT_DEFAULT_SUBSCRIPTION);
+  const [introEligibilityByProduct, setIntroEligibilityByProduct] =
+    useState<IntroEligibilityByProductId>({});
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const storeLocale = useMemo(() => getStoreFormattingLocale(), []);
 
@@ -100,8 +112,11 @@ export function ShopScreen({ navigation }: Props) {
   const selectedPriceString = selectedPricing?.priceString?.trim() || "–";
 
   const selectedDisclosure = useMemo(
-    () => getSubscriptionDisclosure(selectedId, selectedProduct, t),
-    [selectedId, selectedProduct, t],
+    () =>
+      getSubscriptionDisclosure(selectedId, selectedProduct, t, {
+        introEligibility: introEligibilityByProduct[selectedId] ?? null,
+      }),
+    [introEligibilityByProduct, selectedId, selectedProduct, t],
   );
 
   // Billed amount must be the most conspicuous price (App Store 3.1.2(c)).
@@ -138,6 +153,9 @@ export function ShopScreen({ navigation }: Props) {
   useFocusEffect(
     useCallback(() => {
       void refresh();
+      void fetchSubscriptionIntroEligibility().then((next) => {
+        setIntroEligibilityByProduct(next);
+      });
     }, [refresh]),
   );
 
@@ -183,9 +201,68 @@ export function ShopScreen({ navigation }: Props) {
 
   const activePlanLabel = useMemo(() => {
     if (!isPremium) return null;
+    if (isTrial) return t("shop.trialPlanName");
     if (currentPlanProductId) return planLabels[currentPlanProductId];
     return t("shop.premiumActive");
-  }, [currentPlanProductId, isPremium, planLabels, t]);
+  }, [currentPlanProductId, isPremium, isTrial, planLabels, t]);
+
+  const activePlanBadgeLabel = useMemo(() => {
+    if (!isPremium) return null;
+    if (isTrial) return t("shop.trialBadge");
+    if (showPremiumEndingBanner) return t("shop.planEndsSoon");
+    return t("shop.planActive");
+  }, [isPremium, isTrial, showPremiumEndingBanner, t]);
+
+  const activePlanDetailLines = useMemo(() => {
+    if (!isPremium) return [] as string[];
+    const lines: string[] = [];
+    if (currentPlanProductId && !isTrial) {
+      lines.push(planLabels[currentPlanProductId]);
+    }
+    if (premiumExpiresAt) {
+      const date = formatDateDisplay(premiumExpiresAt, i18n.language);
+      if (isTrial) {
+        lines.push(
+          willRenew === true
+            ? t("shop.trialConvertsOn", { date })
+            : t("shop.trialEndsOn", { date }),
+        );
+      } else if (willRenew === false) {
+        lines.push(t("shop.subscriptionEndsOn", { date }));
+      } else if (willRenew === true) {
+        lines.push(t("shop.renewsOn", { date }));
+      } else if (activePlanDisclosure?.length) {
+        lines.push(activePlanDisclosure.length);
+      }
+    } else if (activePlanDisclosure?.length) {
+      lines.push(activePlanDisclosure.length);
+    }
+    if (
+      daysUntilPremiumExpiry != null &&
+      daysUntilPremiumExpiry <= 7 &&
+      (isTrial || willRenew === false)
+    ) {
+      lines.push(
+        t("shop.daysRemaining", {
+          count: daysUntilPremiumExpiry,
+        }),
+      );
+    }
+    return lines;
+  }, [
+    activePlanDisclosure?.length,
+    currentPlanProductId,
+    daysUntilPremiumExpiry,
+    i18n.language,
+    isPremium,
+    isTrial,
+    planLabels,
+    premiumExpiresAt,
+    t,
+    willRenew,
+  ]);
+
+  const selectedHasFreeTrial = selectedDisclosure.hasFreeTrial;
 
   async function handlePurchase(productId: RevenueCatProductId) {
     if (purchasing) return;
@@ -435,7 +512,7 @@ export function ShopScreen({ navigation }: Props) {
                       ]}
                     >
                       <Text style={styles.currentPlanBadgeText}>
-                        {t("shop.planActive")}
+                        {activePlanBadgeLabel}
                       </Text>
                     </View>
                   </View>
@@ -444,16 +521,17 @@ export function ShopScreen({ navigation }: Props) {
                   >
                     {activePlanLabel}
                   </Text>
-                  {activePlanDisclosure?.length ? (
+                  {activePlanDetailLines.map((line) => (
                     <Text
+                      key={line}
                       style={[
                         styles.currentPlanDetail,
                         { color: theme.colors.muted },
                       ]}
                     >
-                      {activePlanDisclosure.length}
+                      {line}
                     </Text>
-                  ) : null}
+                  ))}
                 </View>
               </Card>
 
@@ -572,7 +650,7 @@ export function ShopScreen({ navigation }: Props) {
                 <Text
                   style={[styles.priceSubline, { color: theme.colors.muted }]}
                 >
-                  {priceSublineText}
+                  {selectedDisclosure.trialOfferLine ?? priceSublineText}
                 </Text>
               </View>
 
@@ -581,9 +659,15 @@ export function ShopScreen({ navigation }: Props) {
                 disabled={!canPurchase}
                 loading={purchasing !== null}
               >
-                {t("shop.subscribeCta", {
-                  plan: planLabels[selectedId],
-                })}
+                {selectedHasFreeTrial
+                  ? selectedDisclosure.trialDays != null
+                    ? t("shop.startFreeTrialCta", {
+                        days: selectedDisclosure.trialDays,
+                      })
+                    : t("shop.startFreeTrialCtaUnknown")
+                  : t("shop.subscribeCta", {
+                      plan: planLabels[selectedId],
+                    })}
               </Button>
 
               <Text
@@ -592,7 +676,9 @@ export function ShopScreen({ navigation }: Props) {
                   { color: theme.colors.muted },
                 ]}
               >
-                {t("shop.subscribeSubtitle")}
+                {selectedHasFreeTrial
+                  ? t("shop.freeTrialSubtitle")
+                  : t("shop.subscribeSubtitle")}
               </Text>
 
               {selectedDisclosure.isAutoRenewable ? (

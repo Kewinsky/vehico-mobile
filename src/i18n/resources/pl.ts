@@ -216,6 +216,26 @@ export const pl = {
     lockedVehicleAlertBody:
       "Ten pojazd jest ukryty na planie Free. Odnów Premium, aby uzyskać dostęp. Dane ukrytych pojazdów zostaną trwale usunięte za {{days}} dni.",
     lockedVehicleAlertCTA: "Przejdź do Premium",
+    premiumEnding: {
+      trialTitle_one: "Okres próbny kończy się za {{count}} dzień",
+      trialTitle_few: "Okres próbny kończy się za {{count}} dni",
+      trialTitle_many: "Okres próbny kończy się za {{count}} dni",
+      trialTitle_other: "Okres próbny kończy się za {{count}} dni",
+      trialTitleToday: "Okres próbny kończy się dziś",
+      trialBodyConverts:
+        "Twój okres próbny kończy się {{date}}. Potem zostanie naliczona opłata za Premium, chyba że anulujesz.",
+      trialBodyEnds:
+        "Twój okres próbny kończy się {{date}}. Odnów, aby zachować funkcje Premium.",
+      subscriptionTitle_one: "Premium kończy się za {{count}} dzień",
+      subscriptionTitle_few: "Premium kończy się za {{count}} dni",
+      subscriptionTitle_many: "Premium kończy się za {{count}} dni",
+      subscriptionTitle_other: "Premium kończy się za {{count}} dni",
+      subscriptionTitleToday: "Premium kończy się dziś",
+      subscriptionBody:
+        "Twoja subskrypcja kończy się {{date}}. Odnów, aby zachować nielimitowane pojazdy i funkcje Premium.",
+      ctaManage: "Zarządzaj planem",
+      ctaRenew: "Odnów Premium",
+    },
   },
   vehicleForm: {
     title: "Nowy pojazd",
@@ -808,7 +828,24 @@ export const pl = {
       advancedChartsPremium: "Zaawansowane",
     },
     subscribeCta: "Subskrybuj {{plan}}",
+    startFreeTrialCta: "Rozpocznij {{days}}-dniowy okres próbny",
+    startFreeTrialCtaUnknown: "Rozpocznij okres próbny",
     subscribeSubtitle: "Anuluj w dowolnym momencie. Bez zobowiązań.",
+    freeTrialSubtitle:
+      "Anuluj przed końcem okresu próbnego, aby uniknąć obciążenia.",
+    trialThenPrice: "{{days}} dni za darmo, potem {{price}}",
+    trialThenPriceUnknownDays: "Okres próbny, potem {{price}}",
+    trialBadge: "Trial",
+    trialPlanName: "Premium – okres próbny",
+    trialEndsOn: "Okres próbny kończy się {{date}}",
+    trialConvertsOn: "Przejście na płatny plan: {{date}}",
+    subscriptionEndsOn: "Kończy się {{date}}",
+    renewsOn: "Odnawia się {{date}}",
+    daysRemaining_one: "Pozostał {{count}} dzień",
+    daysRemaining_few: "Pozostały {{count}} dni",
+    daysRemaining_many: "Pozostało {{count}} dni",
+    daysRemaining_other: "Pozostało {{count}} dni",
+    planEndsSoon: "Wkrótce się kończy",
     saveBadge: "OSZCZĘDŹ {{percent}}%",
     monthlyBadge: "ELASTYCZNE",
     lifetimeBadge: "NAJLEPSZA OFERTA",
@@ -1708,5 +1745,21 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     section6Title: "6. Zmiany w polityce",
     section6Content:
       "Możemy od czasu do czasu aktualizować niniejszą Politykę Prywatności. Powiadomimy Cię o wszelkich zmianach, publikując nową Politykę Prywatności na tej stronie i aktualizując datę 'Ostatniej aktualizacji'. Zalecamy okresowe przeglądanie tej Polityki Prywatności pod kątem jakichkolwiek zmian.",
+  },
+  premiumExpiry: {
+    notification: {
+      trialEndsBefore:
+        "Twój okres próbny Premium kończy się za {{days}} dni ({{date}}). Otwórz aplikację, aby zarządzać planem.",
+      trialEndsToday:
+        "Twój okres próbny Premium kończy się dziś. Odnów lub zarządzaj planem, aby zachować funkcje Premium.",
+      trialConvertsBefore:
+        "Twój okres próbny kończy się za {{days}} dni ({{date}}). Potem zostanie naliczona opłata, chyba że anulujesz.",
+      trialConvertsToday:
+        "Twój okres próbny kończy się dziś. Zostaniesz obciążony za Premium, chyba że wcześniej anulujesz.",
+      subscriptionEndsBefore:
+        "Twoja subskrypcja Premium kończy się za {{days}} dni ({{date}}). Odnów, aby zachować dostęp.",
+      subscriptionEndsToday:
+        "Twoja subskrypcja Premium kończy się dziś. Odnów, aby zachować nielimitowane pojazdy i funkcje Premium.",
+    },
   },
 };
