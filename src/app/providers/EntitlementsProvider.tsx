@@ -30,6 +30,7 @@ import {
   isSubscriptionProduct,
   normalizeProductIdFromRC,
 } from "../../services/payments/revenuecat";
+import { mergeStoreProductsPreservingIntro } from "../../services/payments/storeProductPricing";
 import {
   buildSubscriptionStatusSnapshot,
   type PremiumEndingKind,
@@ -320,7 +321,10 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
           ? maybeProduct.identifier
           : null) ?? normalizeProductIdFromRC(maybeProduct.identifier);
       if (mappedId) {
-        nextProducts[mappedId] = maybeProduct;
+        nextProducts[mappedId] = mergeStoreProductsPreservingIntro(
+          nextProducts[mappedId],
+          maybeProduct,
+        );
       }
     }
 

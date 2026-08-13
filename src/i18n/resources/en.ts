@@ -815,10 +815,11 @@ export const en = {
       advancedChartsPremium: "Advanced",
     },
     subscribeCta: "Subscribe {{plan}}",
-    startFreeTrialCta: "Start free trial · {{plan}}",
+    startFreeTrialCta: "Start {{days}}-day free trial",
+    startFreeTrialCtaUnknown: "Start free trial",
     subscribeSubtitle: "Cancel anytime. No commitment.",
     freeTrialSubtitle:
-      "Free trial available. Cancel anytime before it ends to avoid being charged.",
+      "Cancel before the trial ends to avoid being charged.",
     trialThenPrice: "{{days}}-day free trial, then {{price}}",
     trialThenPriceUnknownDays: "Free trial, then {{price}}",
     trialBadge: "Trial",

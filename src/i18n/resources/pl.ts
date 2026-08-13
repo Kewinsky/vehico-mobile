@@ -828,10 +828,11 @@ export const pl = {
       advancedChartsPremium: "Zaawansowane",
     },
     subscribeCta: "Subskrybuj {{plan}}",
-    startFreeTrialCta: "Rozpocznij okres próbny · {{plan}}",
+    startFreeTrialCta: "Rozpocznij {{days}}-dniowy okres próbny",
+    startFreeTrialCtaUnknown: "Rozpocznij okres próbny",
     subscribeSubtitle: "Anuluj w dowolnym momencie. Bez zobowiązań.",
     freeTrialSubtitle:
-      "Dostępny okres próbny. Anuluj przed jego końcem, aby uniknąć obciążenia.",
+      "Anuluj przed końcem okresu próbnego, aby uniknąć obciążenia.",
     trialThenPrice: "{{days}} dni za darmo, potem {{price}}",
     trialThenPriceUnknownDays: "Okres próbny, potem {{price}}",
     trialBadge: "Trial",

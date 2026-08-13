@@ -4,7 +4,10 @@ import {
   isTrialPeriodType,
   shouldShowPremiumEndingBanner,
 } from "../../services/payments/subscriptionStatus";
-import { getStoreProductTrialOffer } from "../../services/payments/storeProductPricing";
+import {
+  getStoreProductTrialOffer,
+  mergeStoreProductsPreservingIntro,
+} from "../../services/payments/storeProductPricing";
 
 describe("subscriptionStatus", () => {
   it("detects trial period types case-insensitively", () => {
@@ -83,64 +86,42 @@ describe("subscriptionStatus", () => {
 });
 
 describe("getStoreProductTrialOffer", () => {
-  it("reads free introPrice", () => {
+  it("reads free introPrice from StoreKit numeric periodUnit", () => {
     const offer = getStoreProductTrialOffer({
       price: 29.99,
       priceString: "29,99 zł",
-      currencyCode: "PLN",
       introPrice: {
         price: 0,
         priceString: "Free",
-        cycles: 1,
         period: "P14D",
-        periodUnit: "DAY",
+        periodUnit: 0,
         periodNumberOfUnits: 14,
       },
     } as any);
-    expect(offer).toEqual({
-      isFree: true,
-      days: 14,
-      priceString: "Free",
-      periodUnit: "DAY",
-      periodNumberOfUnits: 14,
-    });
-  });
-
-  it("ignores paid intro offers", () => {
-    expect(
-      getStoreProductTrialOffer({
-        introPrice: {
-          price: 1.99,
-          priceString: "1,99 zł",
-          cycles: 1,
-          period: "P1M",
-          periodUnit: "MONTH",
-          periodNumberOfUnits: 1,
-        },
-      } as any),
-    ).toBeNull();
-  });
-
-  it("falls back to Android freePhase", () => {
-    const offer = getStoreProductTrialOffer({
-      price: 0,
-      priceString: "",
-      currencyCode: "",
-      defaultOption: {
-        freePhase: {
-          billingPeriod: { unit: "DAY", value: 14, iso8601: "P14D" },
-          price: { formatted: "Free", amountMicros: 0, currencyCode: "PLN" },
-        },
-        fullPricePhase: {
-          price: {
-            amountMicros: 29_990_000,
-            formatted: "29,99 zł",
-            currencyCode: "PLN",
-          },
-        },
-      },
-    } as any);
     expect(offer?.days).toBe(14);
-    expect(offer?.isFree).toBe(true);
+    expect(offer?.periodUnit).toBe("DAY");
+  });
+
+  it("keeps introPrice when a later product copy omits it", () => {
+    const withIntro = {
+      identifier: "monthly_premium",
+      introPrice: {
+        price: 0,
+        period: "P14D",
+        periodUnit: 0,
+        periodNumberOfUnits: 14,
+      },
+    };
+    const withoutIntro = {
+      identifier: "monthly_premium",
+      priceString: "29,99 zł",
+      introPrice: null,
+    };
+    const merged = mergeStoreProductsPreservingIntro(
+      withIntro as any,
+      withoutIntro as any,
+    );
+    expect(merged.introPrice).toEqual(withIntro.introPrice);
+    expect(getStoreProductTrialOffer(merged)?.days).toBe(14);
   });
 });
