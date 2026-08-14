@@ -40,7 +40,7 @@ Product IDs must keep matching `shared/payments/iapProducts.ts`:
 
 | Area | Behavior |
 | --- | --- |
-| Shop (not subscribed) | CTA **Start free trial** when store product exposes a free intro **or** intro eligibility is eligible/unknown; disclosure “N-day free trial, then price” (falls back to 14 days from `STORE_INTRO_FREE_TRIAL_DAYS` when `introPrice` is missing) |
+| Shop (not subscribed) | CTA **Start free trial** only when StoreKit eligibility is **eligible**, or product metadata exposes a free intro (`introPrice` / Android `freePhase`). **Unknown** eligibility alone never shows trial. Days come from store metadata only – no hardcoded fallback. |
 | Shop (current plan) | Badge **Trial** / **Ends soon**; shows ends/converts/renews date from RC + DB |
 | Home (Vehicles) | Banner in last 3 days of trial, or last 7 days of a **cancelled** subscription |
 | Push | Local notifications at 3 days, 1 day, and day-of for trial end / cancelled sub end; tap opens Shop |
@@ -54,7 +54,26 @@ Product IDs must keep matching `shared/payments/iapProducts.ts`:
 - [ ] Converted trial → paid period, `willRenew: true`, no “ending” banner
 - [ ] App Review disclosures mention free trial length and price after trial (Shop copy covers this when offer is present)
 
-## 6. Out of scope (this MVP)
+## 6. Shop vs Apple payment sheet (source of truth)
+
+Pre-purchase trial copy must match the native sheet. **No database migration is required** for this – StoreKit / Play Billing is the source of truth via RevenueCat:
+
+| Signal | Role |
+| --- | --- |
+| `Purchases.checkTrialOrIntroductoryPriceEligibility()` | iOS StoreKit receipt check – same basis Apple uses for the sheet (`ELIGIBLE` / `INELIGIBLE` / `NO_INTRO_OFFER_EXISTS`) |
+| `product.introPrice` / Android `freePhase` | Intro duration and “free” flag from store product metadata |
+| `CustomerInfo.periodType === "TRIAL"` (post-purchase) | Active trial state – already synced to Supabase via webhook (`premium_until`) |
+
+Rules in `resolveStoreFreeTrialDisplay`:
+
+- **INELIGIBLE** or **NO_INTRO_OFFER** → never show trial on Shop (even if `introPrice` is present).
+- **ELIGIBLE** → show trial (matches sheet when ASC intro exists, even if RC omits `introPrice`).
+- **UNKNOWN** (common on Android) → show trial only when product metadata exposes a free intro.
+- Do **not** treat UNKNOWN as eligible on iOS – that caused Shop to advertise trial when the sheet did not.
+
+Optional hardening (not in MVP): upgrade `react-native-purchases` to ≥10.2.2 for Test Store free-trial metadata; native StoreKit 2 module would duplicate what RC already wraps.
+
+## 7. Out of scope (this MVP)
 
 - Custom “grant Premium without IAP” trials
 - DB columns for trial state

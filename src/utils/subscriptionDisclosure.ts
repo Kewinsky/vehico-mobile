@@ -9,14 +9,13 @@ import {
   isMonthlyIapProduct,
   isSubscriptionIapProduct,
   isYearlyIapProduct,
-  STORE_INTRO_FREE_TRIAL_DAYS,
   type IapProductId,
 } from "../../shared/payments/iapProducts";
 import {
   formatStoreCurrency,
   getStoreFormattingLocale,
 } from "./currencyDisplay";
-import { shouldShowStoreFreeTrialForEligibility } from "../services/payments/introEligibility";
+import { resolveStoreFreeTrialDisplay } from "../services/payments/introEligibility";
 import {
   getStoreProductPricing,
   getStoreProductTrialOffer,
@@ -37,6 +36,8 @@ export type SubscriptionDisclosureLines = {
 export type SubscriptionDisclosureOptions = {
   /** From `Purchases.checkTrialOrIntroductoryPriceEligibility`. */
   introEligibility?: IntroEligibility | null;
+  /** False until the first eligibility fetch for this Shop visit completes. */
+  introEligibilityLoaded?: boolean;
 };
 
 export function getSubscriptionDisclosure(
@@ -58,13 +59,13 @@ export function getSubscriptionDisclosure(
   const trialOffer = isAutoRenewable
     ? getStoreProductTrialOffer(product)
     : null;
-  const eligibleByStatus =
-    isAutoRenewable &&
-    shouldShowStoreFreeTrialForEligibility(options?.introEligibility?.status);
-  const hasFreeTrial = trialOffer?.isFree === true || eligibleByStatus;
-  const trialDays = hasFreeTrial
-    ? (trialOffer?.days ?? STORE_INTRO_FREE_TRIAL_DAYS)
-    : null;
+  const { hasFreeTrial, trialDays } = isAutoRenewable
+    ? resolveStoreFreeTrialDisplay({
+        trialOffer,
+        introEligibility: options?.introEligibility,
+        introEligibilityLoaded: options?.introEligibilityLoaded,
+      })
+    : { hasFreeTrial: false, trialDays: null };
   const trialOfferLine = hasFreeTrial
     ? trialDays != null
       ? t("shop.trialThenPrice", { days: trialDays, price })

@@ -68,14 +68,15 @@ describe("getSubscriptionDisclosure", () => {
           status: INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_ELIGIBLE,
           description: "eligible",
         } as any,
+        introEligibilityLoaded: true,
       },
     );
     expect(yearly.hasFreeTrial).toBe(true);
-    expect(yearly.trialDays).toBe(14);
-    expect(yearly.trialOfferLine).toContain("14-day free trial");
+    expect(yearly.trialDays).toBeNull();
+    expect(yearly.trialOfferLine).toContain("Free trial, then");
   });
 
-  it("hides trial when intro eligibility is ineligible", () => {
+  it("hides trial for unknown eligibility without product intro", () => {
     const yearly = getSubscriptionDisclosure(
       IAP_PRODUCT_IDS.yearly,
       {
@@ -87,9 +88,39 @@ describe("getSubscriptionDisclosure", () => {
       t,
       {
         introEligibility: {
+          status: INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_UNKNOWN,
+          description: "unknown",
+        } as any,
+        introEligibilityLoaded: true,
+      },
+    );
+    expect(yearly.hasFreeTrial).toBe(false);
+    expect(yearly.trialOfferLine).toBeNull();
+  });
+
+  it("hides trial when ineligible even if introPrice exists", () => {
+    const yearly = getSubscriptionDisclosure(
+      IAP_PRODUCT_IDS.yearly,
+      {
+        priceString: "119,99 zł",
+        price: 119.99,
+        currencyCode: "PLN",
+        introPrice: {
+          price: 0,
+          priceString: "Free",
+          cycles: 1,
+          period: "P14D",
+          periodUnit: "DAY",
+          periodNumberOfUnits: 14,
+        },
+      } as any,
+      t,
+      {
+        introEligibility: {
           status: INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_INELIGIBLE,
           description: "ineligible",
         } as any,
+        introEligibilityLoaded: true,
       },
     );
     expect(yearly.hasFreeTrial).toBe(false);
