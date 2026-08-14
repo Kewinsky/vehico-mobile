@@ -93,6 +93,7 @@ export function ShopScreen({ navigation }: Props) {
     useState<RevenueCatProductId>(REVENUECAT_DEFAULT_SUBSCRIPTION);
   const [introEligibilityByProduct, setIntroEligibilityByProduct] =
     useState<IntroEligibilityByProductId>({});
+  const [introEligibilityLoaded, setIntroEligibilityLoaded] = useState(false);
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const storeLocale = useMemo(() => getStoreFormattingLocale(), []);
 
@@ -115,8 +116,9 @@ export function ShopScreen({ navigation }: Props) {
     () =>
       getSubscriptionDisclosure(selectedId, selectedProduct, t, {
         introEligibility: introEligibilityByProduct[selectedId] ?? null,
+        introEligibilityLoaded,
       }),
-    [introEligibilityByProduct, selectedId, selectedProduct, t],
+    [introEligibilityByProduct, introEligibilityLoaded, selectedId, selectedProduct, t],
   );
 
   // Billed amount must be the most conspicuous price (App Store 3.1.2(c)).
@@ -153,9 +155,14 @@ export function ShopScreen({ navigation }: Props) {
   useFocusEffect(
     useCallback(() => {
       void refresh();
-      void fetchSubscriptionIntroEligibility().then((next) => {
-        setIntroEligibilityByProduct(next);
-      });
+      setIntroEligibilityLoaded(false);
+      void fetchSubscriptionIntroEligibility()
+        .then((next) => {
+          setIntroEligibilityByProduct(next);
+        })
+        .finally(() => {
+          setIntroEligibilityLoaded(true);
+        });
     }, [refresh]),
   );
 
@@ -216,9 +223,6 @@ export function ShopScreen({ navigation }: Props) {
   const activePlanDetailLines = useMemo(() => {
     if (!isPremium) return [] as string[];
     const lines: string[] = [];
-    if (currentPlanProductId && !isTrial) {
-      lines.push(planLabels[currentPlanProductId]);
-    }
     if (premiumExpiresAt) {
       const date = formatDateDisplay(premiumExpiresAt, i18n.language);
       if (isTrial) {
@@ -251,12 +255,10 @@ export function ShopScreen({ navigation }: Props) {
     return lines;
   }, [
     activePlanDisclosure?.length,
-    currentPlanProductId,
     daysUntilPremiumExpiry,
     i18n.language,
     isPremium,
     isTrial,
-    planLabels,
     premiumExpiresAt,
     t,
     willRenew,
