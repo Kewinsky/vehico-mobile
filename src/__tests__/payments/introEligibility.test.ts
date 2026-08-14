@@ -81,7 +81,7 @@ describe("resolveStoreFreeTrialDisplay", () => {
     ).toEqual({ hasFreeTrial: false, trialDays: null });
   });
 
-  it("does not infer trial from unknown eligibility without product intro", () => {
+  it("shows trial when eligibility is unknown", () => {
     expect(
       resolveStoreFreeTrialDisplay({
         trialOffer: null,
@@ -91,10 +91,10 @@ describe("resolveStoreFreeTrialDisplay", () => {
         } as any,
         introEligibilityLoaded: true,
       }),
-    ).toEqual({ hasFreeTrial: false, trialDays: null });
+    ).toEqual({ hasFreeTrial: true, trialDays: null });
   });
 
-  it("trusts product intro metadata when eligibility is unknown (Android)", () => {
+  it("uses product intro days when eligibility is unknown", () => {
     expect(
       resolveStoreFreeTrialDisplay({
         trialOffer: freeTrialOffer,

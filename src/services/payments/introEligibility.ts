@@ -34,11 +34,11 @@ export function isIntroOfferBlockedForUser(
 /**
  * Align Shop trial copy with the native payment sheet (StoreKit / Play Billing).
  *
- * Priority:
- * 1. Block when StoreKit eligibility is INELIGIBLE or NO_INTRO_OFFER_EXISTS.
- * 2. Show when eligibility is ELIGIBLE (matches Apple sheet even if RC omits introPrice).
- * 3. When eligibility is UNKNOWN (common on Android), trust only product intro metadata.
- * 4. While eligibility is still loading, show trial only when product metadata exposes it.
+ * Same rules on iOS and Android:
+ * 1. Block when eligibility is INELIGIBLE or NO_INTRO_OFFER_EXISTS.
+ * 2. Show when ELIGIBLE or UNKNOWN (UNKNOWN = not enough local data; the native
+ *    sheet still typically applies a store intro for a new store account).
+ * 3. While eligibility is still loading, show trial only when product metadata exposes it.
  */
 export function resolveStoreFreeTrialDisplay(options: {
   trialOffer: StoreProductTrialOffer | null;
@@ -58,20 +58,12 @@ export function resolveStoreFreeTrialDisplay(options: {
   }
 
   if (
-    status === INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_ELIGIBLE
+    status === INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_ELIGIBLE ||
+    status === INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_UNKNOWN
   ) {
     return {
       hasFreeTrial: true,
       trialDays: trialOffer?.days ?? null,
-    };
-  }
-
-  if (
-    status === INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_UNKNOWN
-  ) {
-    return {
-      hasFreeTrial: hasStoreIntro,
-      trialDays: hasStoreIntro ? (trialOffer?.days ?? null) : null,
     };
   }
 

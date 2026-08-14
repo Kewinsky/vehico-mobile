@@ -223,9 +223,6 @@ export function ShopScreen({ navigation }: Props) {
   const activePlanDetailLines = useMemo(() => {
     if (!isPremium) return [] as string[];
     const lines: string[] = [];
-    if (currentPlanProductId && !isTrial) {
-      lines.push(planLabels[currentPlanProductId]);
-    }
     if (premiumExpiresAt) {
       const date = formatDateDisplay(premiumExpiresAt, i18n.language);
       if (isTrial) {
@@ -258,12 +255,10 @@ export function ShopScreen({ navigation }: Props) {
     return lines;
   }, [
     activePlanDisclosure?.length,
-    currentPlanProductId,
     daysUntilPremiumExpiry,
     i18n.language,
     isPremium,
     isTrial,
-    planLabels,
     premiumExpiresAt,
     t,
     willRenew,

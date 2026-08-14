@@ -620,27 +620,21 @@ export function VehiclesScreen({ navigation, route }: Props) {
         contentContainerStyle={listContentStyle}
         listHeaderComponent={
           premiumEndingBannerCopy ? (
-            <View style={styles.premiumEndingBannerWrap}>
-              <DashboardCalloutCard
-                accentColor={theme.colors.accent}
-                buttonColor={theme.colors.accent}
-                icon={
-                  <Crown
-                    size={26}
-                    color={theme.colors.accent}
-                    strokeWidth={2}
-                  />
-                }
-                title={premiumEndingBannerCopy.title}
-                description={premiumEndingBannerCopy.description}
-                actions={[
-                  {
-                    label: premiumEndingBannerCopy.cta,
-                    onPress: () => navigation.navigate("Shop"),
-                  },
-                ]}
-              />
-            </View>
+            <DashboardCalloutCard
+              accentColor={theme.colors.accent}
+              buttonColor={theme.colors.accent}
+              icon={
+                <Crown size={26} color={theme.colors.accent} strokeWidth={2} />
+              }
+              title={premiumEndingBannerCopy.title}
+              description={premiumEndingBannerCopy.description}
+              actions={[
+                {
+                  label: premiumEndingBannerCopy.cta,
+                  onPress: () => navigation.navigate("Shop"),
+                },
+              ]}
+            />
           ) : null
         }
         ListEmptyComponent={<EmptyState body={t("vehicles.emptyTitle")} />}
@@ -690,8 +684,10 @@ export function VehiclesScreen({ navigation, route }: Props) {
                               intensity={60}
                               tint="dark"
                               experimentalBlurMethod={
-              Platform.OS === "android" ? "dimezisBlurView" : undefined
-            }
+                                Platform.OS === "android"
+                                  ? "dimezisBlurView"
+                                  : undefined
+                              }
                               style={StyleSheet.absoluteFill}
                             />
                             <View
@@ -709,9 +705,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
                         )}
                         <View style={styles.vehicleImagePlaceholder}>
                           <MaterialCommunityIcons
-                            name={
-                              getVehicleTypeMciIcon(item.type) as any
-                            }
+                            name={getVehicleTypeMciIcon(item.type) as any}
                             size={theme.spacing.xl * 2}
                             color={theme.colors.muted}
                           />
@@ -757,9 +751,6 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       position: "absolute",
       top: 0,
       left: 0,
-    },
-    premiumEndingBannerWrap: {
-      marginBottom: theme.spacing.md,
     },
     vehicleCard: {
       borderRadius: theme.radius.xl,

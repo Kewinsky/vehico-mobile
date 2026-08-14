@@ -76,7 +76,7 @@ describe("getSubscriptionDisclosure", () => {
     expect(yearly.trialOfferLine).toContain("Free trial, then");
   });
 
-  it("hides trial for unknown eligibility without product intro", () => {
+  it("shows trial for unknown eligibility to match the native sheet", () => {
     const yearly = getSubscriptionDisclosure(
       IAP_PRODUCT_IDS.yearly,
       {
@@ -94,8 +94,8 @@ describe("getSubscriptionDisclosure", () => {
         introEligibilityLoaded: true,
       },
     );
-    expect(yearly.hasFreeTrial).toBe(false);
-    expect(yearly.trialOfferLine).toBeNull();
+    expect(yearly.hasFreeTrial).toBe(true);
+    expect(yearly.trialOfferLine).toContain("Free trial, then");
   });
 
   it("hides trial when ineligible even if introPrice exists", () => {
