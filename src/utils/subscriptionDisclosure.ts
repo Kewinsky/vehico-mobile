@@ -1,5 +1,4 @@
 import type { TFunction } from "i18next";
-import type { IntroEligibility } from "react-native-purchases";
 import type { PurchasesStoreProduct } from "react-native-purchases";
 
 import {
@@ -15,11 +14,7 @@ import {
   formatStoreCurrency,
   getStoreFormattingLocale,
 } from "./currencyDisplay";
-import { resolveStoreFreeTrialDisplay } from "../services/payments/introEligibility";
-import {
-  getStoreProductPricing,
-  getStoreProductTrialOffer,
-} from "../services/payments/storeProductPricing";
+import { getStoreProductPricing } from "../services/payments/storeProductPricing";
 
 export type SubscriptionDisclosureLines = {
   title: string;
@@ -27,24 +22,12 @@ export type SubscriptionDisclosureLines = {
   price: string;
   pricePerUnit: string | null;
   isAutoRenewable: boolean;
-  /** True when the selected store product currently exposes a free trial. */
-  hasFreeTrial: boolean;
-  trialDays: number | null;
-  trialOfferLine: string | null;
-};
-
-export type SubscriptionDisclosureOptions = {
-  /** From `Purchases.checkTrialOrIntroductoryPriceEligibility`. */
-  introEligibility?: IntroEligibility | null;
-  /** False until the first eligibility fetch for this Shop visit completes. */
-  introEligibilityLoaded?: boolean;
 };
 
 export function getSubscriptionDisclosure(
   productId: IapProductId,
   product: PurchasesStoreProduct | null | undefined,
   t: TFunction,
-  options?: SubscriptionDisclosureOptions,
 ): SubscriptionDisclosureLines {
   const kind = getIapProductKind(productId);
   const i18nKey = IAP_PRODUCT_NAME_I18N_KEY[productId];
@@ -56,21 +39,6 @@ export function getSubscriptionDisclosure(
   const pricing = getStoreProductPricing(product);
   const price = pricing?.priceString?.trim() || "–";
   const isAutoRenewable = isSubscriptionIapProduct(productId);
-  const trialOffer = isAutoRenewable
-    ? getStoreProductTrialOffer(product)
-    : null;
-  const { hasFreeTrial, trialDays } = isAutoRenewable
-    ? resolveStoreFreeTrialDisplay({
-        trialOffer,
-        introEligibility: options?.introEligibility,
-        introEligibilityLoaded: options?.introEligibilityLoaded,
-      })
-    : { hasFreeTrial: false, trialDays: null };
-  const trialOfferLine = hasFreeTrial
-    ? trialDays != null
-      ? t("shop.trialThenPrice", { days: trialDays, price })
-      : t("shop.trialThenPriceUnknownDays", { price })
-    : null;
 
   let pricePerUnit: string | null = null;
   if (
@@ -96,8 +64,5 @@ export function getSubscriptionDisclosure(
     price,
     pricePerUnit,
     isAutoRenewable,
-    hasFreeTrial,
-    trialDays,
-    trialOfferLine,
   };
 }

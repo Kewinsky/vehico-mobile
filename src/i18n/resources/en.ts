@@ -518,6 +518,10 @@ export const en = {
   dashboard: {
     backToVehicles: "Back to vehicles",
     specification: "Specification",
+    specEngine: "Engine",
+    specDrivetrain: "Drivetrain",
+    specRegistration: "Registration",
+    completeSpecification: "Complete in vehicle edit",
     quickActionsTitle: "Add",
     pager: {
       menu: "Menu",
@@ -814,14 +818,8 @@ export const en = {
       basicCharts: "Basic",
       advancedChartsPremium: "Advanced",
     },
-    subscribeCta: "Subscribe {{plan}}",
-    startFreeTrialCta: "Start {{days}}-day free trial",
-    startFreeTrialCtaUnknown: "Start free trial",
+    continueCta: "Continue",
     subscribeSubtitle: "Cancel anytime. No commitment.",
-    freeTrialSubtitle:
-      "Cancel before the trial ends to avoid being charged.",
-    trialThenPrice: "{{days}}-day free trial, then {{price}}",
-    trialThenPriceUnknownDays: "Free trial, then {{price}}",
     trialBadge: "Trial",
     trialPlanName: "Premium trial",
     trialEndsOn: "Trial ends on {{date}}",

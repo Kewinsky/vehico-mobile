@@ -28,12 +28,6 @@ jest.mock("react-native-webview", () => {
 });
 
 jest.mock("react-native-purchases", () => {
-  const INTRO_ELIGIBILITY_STATUS = {
-    INTRO_ELIGIBILITY_STATUS_UNKNOWN: 0,
-    INTRO_ELIGIBILITY_STATUS_INELIGIBLE: 1,
-    INTRO_ELIGIBILITY_STATUS_ELIGIBLE: 2,
-    INTRO_ELIGIBILITY_STATUS_NO_INTRO_OFFER_EXISTS: 3,
-  };
   const api = {
     getCustomerInfo: jest.fn(),
     getOfferings: jest.fn(),
@@ -49,7 +43,6 @@ jest.mock("react-native-purchases", () => {
     restorePurchases: jest.fn(),
     purchasePackage: jest.fn(),
     purchaseStoreProduct: jest.fn(),
-    checkTrialOrIntroductoryPriceEligibility: jest.fn(),
     isConfigured: jest.fn(),
     setLogLevel: jest.fn(),
     configure: jest.fn(),
@@ -63,12 +56,10 @@ jest.mock("react-native-purchases", () => {
     PURCHASES_ERROR_CODE: {
       PURCHASE_CANCELLED_ERROR: "PURCHASE_CANCELLED_ERROR",
     },
-    INTRO_ELIGIBILITY_STATUS,
   };
   return {
     __esModule: true,
     default: api,
-    INTRO_ELIGIBILITY_STATUS,
   };
 });
 

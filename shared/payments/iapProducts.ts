@@ -39,13 +39,6 @@ export const IAP_PLAN_ORDER: readonly IapProductId[] = [
 
 export const IAP_DEFAULT_SUBSCRIPTION = IAP_PRODUCT_IDS.yearly;
 
-/**
- * Store intro free-trial length configured in App Store Connect / Play.
- * Used when StoreKit/RC omits `introPrice` on the product but the user is
- * still eligible (common on iOS – Apple sheet shows trial, product.introPrice is null).
- */
-export const STORE_INTRO_FREE_TRIAL_DAYS = 14;
-
 /** `shop.products.*` i18n suffix (not the store product id). */
 export const IAP_PRODUCT_NAME_I18N_KEY: Record<IapProductId, string> = {
   [IAP_PRODUCT_IDS.monthly]: "premium_monthly",

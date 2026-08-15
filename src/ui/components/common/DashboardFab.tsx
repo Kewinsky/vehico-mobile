@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { Fuel } from "lucide-react-native";
 
+import { hexToRgba } from "./ChoiceChip";
 import { useTheme } from "../../ThemeProvider";
 
 export type DashboardFabProps = {
@@ -127,12 +128,13 @@ export function DashboardFab({
               pressed && styles.menuItemPressed,
             ]}
           >
-            <View style={styles.menuItemIconContainer}>
-              <Ionicons
-                name="construct"
-                size={20}
-                color={theme.colors.accent}
-              />
+            <View
+              style={[
+                styles.menuItemIconContainer,
+                { backgroundColor: hexToRgba("#2563EB", 0.18) },
+              ]}
+            >
+              <Ionicons name="construct" size={20} color="#2563EB" />
             </View>
             <Text style={[styles.menuItemText, { color: theme.colors.fg }]}>
               {t("dashboard.quickActions.addService")}
@@ -145,8 +147,13 @@ export function DashboardFab({
               pressed && styles.menuItemPressed,
             ]}
           >
-            <View style={styles.menuItemIconContainer}>
-              <Fuel size={20} color={theme.colors.accent} />
+            <View
+              style={[
+                styles.menuItemIconContainer,
+                { backgroundColor: hexToRgba("#D97706", 0.18) },
+              ]}
+            >
+              <Fuel size={20} color="#D97706" />
             </View>
             <Text style={[styles.menuItemText, { color: theme.colors.fg }]}>
               {t("dashboard.quickActions.addFuel")}
@@ -159,12 +166,13 @@ export function DashboardFab({
               pressed && styles.menuItemPressed,
             ]}
           >
-            <View style={styles.menuItemIconContainer}>
-              <Ionicons
-                name="notifications"
-                size={20}
-                color={theme.colors.accent}
-              />
+            <View
+              style={[
+                styles.menuItemIconContainer,
+                { backgroundColor: hexToRgba("#7C3AED", 0.18) },
+              ]}
+            >
+              <Ionicons name="notifications" size={20} color="#7C3AED" />
             </View>
             <Text style={[styles.menuItemText, { color: theme.colors.fg }]}>
               {t("dashboard.quickActions.addReminder")}
@@ -249,6 +257,9 @@ function makeStyles(theme: any) {
       gap: theme.spacing.sm,
     },
     menuItemIconContainer: {
+      width: 32,
+      height: 32,
+      borderRadius: theme.radius.md,
       alignItems: "center" as const,
       justifyContent: "center" as const,
     },

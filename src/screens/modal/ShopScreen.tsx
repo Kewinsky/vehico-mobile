@@ -52,10 +52,6 @@ import {
 import { formatRollingGroupedNumber } from "../../utils/numberFormatting";
 import { formatDateDisplay } from "../../utils/dateFormatting";
 import { getStoreProductPricing } from "../../services/payments/storeProductPricing";
-import {
-  fetchSubscriptionIntroEligibility,
-  type IntroEligibilityByProductId,
-} from "../../services/payments/introEligibility";
 import { ShopCompareRowIcon } from "../../ui/components/shop/ShopCompareRowIcon";
 import { Glow } from "../../ui/components/dashboard/Glow";
 import { getShopComparisonRows, type ShopCompareRow } from "./shopComparison";
@@ -91,9 +87,6 @@ export function ShopScreen({ navigation }: Props) {
   const [customerCenterVisible, setCustomerCenterVisible] = useState(false);
   const [selectedSubscription, setSelectedSubscription] =
     useState<RevenueCatProductId>(REVENUECAT_DEFAULT_SUBSCRIPTION);
-  const [introEligibilityByProduct, setIntroEligibilityByProduct] =
-    useState<IntroEligibilityByProductId>({});
-  const [introEligibilityLoaded, setIntroEligibilityLoaded] = useState(false);
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const storeLocale = useMemo(() => getStoreFormattingLocale(), []);
 
@@ -113,12 +106,8 @@ export function ShopScreen({ navigation }: Props) {
   const selectedPriceString = selectedPricing?.priceString?.trim() || "–";
 
   const selectedDisclosure = useMemo(
-    () =>
-      getSubscriptionDisclosure(selectedId, selectedProduct, t, {
-        introEligibility: introEligibilityByProduct[selectedId] ?? null,
-        introEligibilityLoaded,
-      }),
-    [introEligibilityByProduct, introEligibilityLoaded, selectedId, selectedProduct, t],
+    () => getSubscriptionDisclosure(selectedId, selectedProduct, t),
+    [selectedId, selectedProduct, t],
   );
 
   // Billed amount must be the most conspicuous price (App Store 3.1.2(c)).
@@ -155,14 +144,6 @@ export function ShopScreen({ navigation }: Props) {
   useFocusEffect(
     useCallback(() => {
       void refresh();
-      setIntroEligibilityLoaded(false);
-      void fetchSubscriptionIntroEligibility()
-        .then((next) => {
-          setIntroEligibilityByProduct(next);
-        })
-        .finally(() => {
-          setIntroEligibilityLoaded(true);
-        });
     }, [refresh]),
   );
 
@@ -263,8 +244,6 @@ export function ShopScreen({ navigation }: Props) {
     t,
     willRenew,
   ]);
-
-  const selectedHasFreeTrial = selectedDisclosure.hasFreeTrial;
 
   async function handlePurchase(productId: RevenueCatProductId) {
     if (purchasing) return;
@@ -652,7 +631,7 @@ export function ShopScreen({ navigation }: Props) {
                 <Text
                   style={[styles.priceSubline, { color: theme.colors.muted }]}
                 >
-                  {selectedDisclosure.trialOfferLine ?? priceSublineText}
+                  {priceSublineText}
                 </Text>
               </View>
 
@@ -661,15 +640,7 @@ export function ShopScreen({ navigation }: Props) {
                 disabled={!canPurchase}
                 loading={purchasing !== null}
               >
-                {selectedHasFreeTrial
-                  ? selectedDisclosure.trialDays != null
-                    ? t("shop.startFreeTrialCta", {
-                        days: selectedDisclosure.trialDays,
-                      })
-                    : t("shop.startFreeTrialCtaUnknown")
-                  : t("shop.subscribeCta", {
-                      plan: planLabels[selectedId],
-                    })}
+                {t("shop.continueCta")}
               </Button>
 
               <Text
@@ -678,9 +649,7 @@ export function ShopScreen({ navigation }: Props) {
                   { color: theme.colors.muted },
                 ]}
               >
-                {selectedHasFreeTrial
-                  ? t("shop.freeTrialSubtitle")
-                  : t("shop.subscribeSubtitle")}
+                {t("shop.subscribeSubtitle")}
               </Text>
 
               {selectedDisclosure.isAutoRenewable ? (

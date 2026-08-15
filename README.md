@@ -212,7 +212,7 @@ Ensure production env includes Supabase, reports URL, and RevenueCat keys.
 
 ### Premium free trial (store intro offer)
 
-App support is client-side (RevenueCat `periodType`, Shop copy, home banner, local pushes). Configure the 14-day free trial in App Store Connect / Google Play and sync products in RevenueCat – see **[docs/premium-trial-setup.md](docs/premium-trial-setup.md)**. No database migration required.
+App support is client-side (RevenueCat `periodType`, Shop current-plan card, home banner, local pushes). The native App Store / Play sheet shows the free trial when the store account is eligible. Configure the intro in App Store Connect / Google Play and sync products in RevenueCat. No database migration required.
 
 ## Feature Notes
 

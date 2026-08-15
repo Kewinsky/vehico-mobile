@@ -529,6 +529,10 @@ export const pl = {
   dashboard: {
     backToVehicles: "Wróć do pojazdów",
     specification: "Specyfikacja",
+    specEngine: "Silnik",
+    specDrivetrain: "Napęd",
+    specRegistration: "Rejestracja",
+    completeSpecification: "Uzupełnij w edycji pojazdu",
     quickActionsTitle: "Dodaj",
     pager: {
       menu: "Menu",
@@ -827,14 +831,8 @@ export const pl = {
       basicCharts: "Podstawowe",
       advancedChartsPremium: "Zaawansowane",
     },
-    subscribeCta: "Subskrybuj {{plan}}",
-    startFreeTrialCta: "Rozpocznij {{days}}-dniowy okres próbny",
-    startFreeTrialCtaUnknown: "Rozpocznij okres próbny",
+    continueCta: "Kontynuuj",
     subscribeSubtitle: "Anuluj w dowolnym momencie. Bez zobowiązań.",
-    freeTrialSubtitle:
-      "Anuluj przed końcem okresu próbnego, aby uniknąć obciążenia.",
-    trialThenPrice: "{{days}} dni za darmo, potem {{price}}",
-    trialThenPriceUnknownDays: "Okres próbny, potem {{price}}",
     trialBadge: "Trial",
     trialPlanName: "Premium – okres próbny",
     trialEndsOn: "Okres próbny kończy się {{date}}",

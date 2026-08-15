@@ -122,14 +122,6 @@ export function useOverviewPanelStyles() {
       fontSize: theme.typography.title,
       fontWeight: theme.typography.fontWeight.bold,
     },
-    detailsGrid: {
-      gap: theme.spacing.lg,
-    },
-    detailsRow: {
-      flexDirection: "row",
-      gap: theme.spacing.xs,
-      alignItems: "flex-start",
-    },
     quickActionsRow: {
       flexDirection: "row",
       alignItems: "stretch",

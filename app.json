@@ -8,11 +8,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash-light.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff",
       "dark": {
-        "image": "./assets/splash-icon.png",
+        "image": "./assets/splash-dark.png",
         "backgroundColor": "#000000"
       }
     },
