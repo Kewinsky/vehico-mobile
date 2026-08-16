@@ -529,9 +529,9 @@ export const pl = {
   dashboard: {
     backToVehicles: "Wróć do pojazdów",
     specification: "Specyfikacja",
+    specIdentity: "Identyfikacja",
     specEngine: "Silnik",
     specDrivetrain: "Napęd",
-    specRegistration: "Rejestracja",
     completeSpecification: "Uzupełnij w edycji pojazdu",
     copiedVin: "Skopiowano VIN",
     copiedLicensePlate: "Skopiowano rejestrację",

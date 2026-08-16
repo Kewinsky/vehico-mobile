@@ -487,13 +487,6 @@ export function useVehicleDashboardState({
     onFocusReload: () => load({ showLoading: false }),
   });
 
-  async function onCopyVin() {
-    if (vehicle?.vin) {
-      await Clipboard.setStringAsync(vehicle.vin);
-      toastSuccess(t("manageVehicle.vinCopied"));
-    }
-  }
-
   const handleSharePress = useCallback(() => {
     if (isPremium) {
       navigation.navigate("Share", { vehicleId });
@@ -988,7 +981,6 @@ export function useVehicleDashboardState({
     distanceUnitLabel,
     consumptionUnitLine,
     load,
-    onCopyVin,
     handleSharePress,
     handleOpenPublicReportInBrowser,
     handleCopyPublicReportLink,

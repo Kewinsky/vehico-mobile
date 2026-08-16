@@ -31,10 +31,8 @@ export function OverviewPanel(props: OverviewPanelProps) {
       <OverviewVehicleHeader
         styles={styles}
         vehicle={props.vehicle}
-        theme={props.theme}
         isPremium={props.isPremium}
         publicReportUrl={props.publicReportUrl}
-        onCopyVin={props.onCopyVin}
         onShowQrCode={props.onShowQrCode}
       />
 

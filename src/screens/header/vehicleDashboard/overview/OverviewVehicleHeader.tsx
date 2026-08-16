@@ -8,13 +8,8 @@ import type { OverviewPanelStyles } from "./overviewStyles";
 type OverviewVehicleHeaderProps = {
   styles: OverviewPanelStyles;
   vehicle: Vehicle | null;
-  theme: {
-    colors: { fg: string; muted: string };
-    spacing: { md: number };
-  };
   isPremium: boolean;
   publicReportUrl: string | null;
-  onCopyVin: () => void;
   onShowQrCode: () => void;
   showPublicQr?: boolean;
 };
@@ -22,15 +17,12 @@ type OverviewVehicleHeaderProps = {
 export function OverviewVehicleHeader({
   styles,
   vehicle,
-  theme,
   isPremium,
   publicReportUrl,
-  onCopyVin,
   onShowQrCode,
   showPublicQr = true,
 }: OverviewVehicleHeaderProps) {
   const { t } = useTranslation();
-  const vin = vehicle?.vin?.trim() || null;
 
   return (
     <View style={styles.vehicleHeaderRow}>
@@ -38,18 +30,6 @@ export function OverviewVehicleHeader({
         <Text style={styles.title}>
           {vehicle ? `${vehicle.make} ${vehicle.model}` : ""}
         </Text>
-        {vin ? (
-          <Pressable
-            onPress={onCopyVin}
-            style={styles.vinRow}
-            hitSlop={10}
-            accessibilityRole="button"
-            accessibilityLabel={t("vehicleForm.vinLabel")}
-            accessibilityHint={t("manageVehicle.vinCopied")}
-          >
-            <Text style={[styles.vinText, styles.vinCopyableText]}>{vin}</Text>
-          </Pressable>
-        ) : null}
       </View>
       {showPublicQr && isPremium && publicReportUrl ? (
         <Pressable

@@ -68,6 +68,12 @@ export function SpecificationSection({
       : null;
 
   const engineRows: SpecRowItem[] = [
+    vehicle
+      ? {
+          label: t("vehicleForm.yearLabel"),
+          value: String(vehicle.production_year),
+        }
+      : null,
     vehicle?.engine_capacity
       ? {
           label: t("vehicleForm.engineCapacityLabel"),
@@ -102,9 +108,9 @@ export function SpecificationSection({
     firstRegistrationRaw,
     language,
   );
-  const registrationRows: SpecRowItem[] = [];
+  const identityRows: SpecRowItem[] = [];
   if (vin) {
-    registrationRows.push({
+    identityRows.push({
       label: t("vehicleForm.vinLabel"),
       value: vin,
       copyText: vin,
@@ -112,21 +118,15 @@ export function SpecificationSection({
     });
   }
   if (plate && plateCopyText) {
-    registrationRows.push({
+    identityRows.push({
       label: t("vehicleForm.licensePlateLabel"),
       value: plate,
       copyText: plateCopyText,
       copiedMessage: t("dashboard.copiedLicensePlate"),
     });
   }
-  if (vehicle) {
-    registrationRows.push({
-      label: t("vehicleForm.yearLabel"),
-      value: String(vehicle.production_year),
-    });
-  }
   if (firstRegistrationRaw && firstRegistration !== "–") {
-    registrationRows.push({
+    identityRows.push({
       label: t("vehicleForm.firstRegistrationDateLabel"),
       value: firstRegistration,
       copyText: firstRegistration,
@@ -160,6 +160,18 @@ export function SpecificationSection({
     <DashboardSection title={t("dashboard.specification")}>
       <View style={specStyles.stack}>
         <SpecCard
+          title={t("dashboard.specIdentity")}
+          rows={identityRows}
+          cardStyle={[
+            styles.infoCard,
+            specStyles.card,
+            { backgroundColor: theme.colors.card },
+          ]}
+          styles={specStyles}
+          theme={appTheme}
+          onCopyValue={onCopyValue}
+        />
+        <SpecCard
           title={t("dashboard.specEngine")}
           rows={engineRows}
           cardStyle={[
@@ -174,18 +186,6 @@ export function SpecificationSection({
         <SpecCard
           title={t("dashboard.specDrivetrain")}
           rows={drivetrainRows}
-          cardStyle={[
-            styles.infoCard,
-            specStyles.card,
-            { backgroundColor: theme.colors.card },
-          ]}
-          styles={specStyles}
-          theme={appTheme}
-          onCopyValue={onCopyValue}
-        />
-        <SpecCard
-          title={t("dashboard.specRegistration")}
-          rows={registrationRows}
           cardStyle={[
             styles.infoCard,
             specStyles.card,

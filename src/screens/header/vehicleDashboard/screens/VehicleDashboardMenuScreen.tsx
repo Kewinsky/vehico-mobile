@@ -19,7 +19,6 @@ export function VehicleDashboardMenuScreen() {
     vehicle,
     isPremium,
     publicReportUrl,
-    onCopyVin,
     handleShowPublicReportQr,
     tiles,
     activeRemindersCount,
@@ -35,10 +34,8 @@ export function VehicleDashboardMenuScreen() {
         <OverviewVehicleHeader
           styles={overviewStyles}
           vehicle={vehicle}
-          theme={theme}
           isPremium={isPremium}
           publicReportUrl={publicReportUrl}
-          onCopyVin={onCopyVin}
           onShowQrCode={handleShowPublicReportQr}
           showPublicQr={false}
         />

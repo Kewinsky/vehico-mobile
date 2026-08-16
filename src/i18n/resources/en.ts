@@ -518,9 +518,9 @@ export const en = {
   dashboard: {
     backToVehicles: "Back to vehicles",
     specification: "Specification",
+    specIdentity: "Identity",
     specEngine: "Engine",
     specDrivetrain: "Drivetrain",
-    specRegistration: "Registration",
     completeSpecification: "Complete in vehicle edit",
     copiedVin: "VIN copied",
     copiedLicensePlate: "Plate copied",

@@ -25,21 +25,6 @@ export function useOverviewPanelStyles() {
       fontSize: theme.typography.largeTitle,
       fontWeight: theme.typography.fontWeight.bold,
     },
-    vinRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-      marginTop: theme.spacing.xs,
-    },
-    vinText: {
-      color: theme.colors.muted,
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.medium,
-    },
-    vinCopyableText: {
-      textDecorationLine: "underline",
-      textDecorationColor: theme.colors.muted,
-    },
     publicPageCircleButton: {
       width: 44,
       height: 44,
