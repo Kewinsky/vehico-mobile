@@ -102,38 +102,37 @@ export function SpecificationSection({
     firstRegistrationRaw,
     language,
   );
-  const registrationRows: SpecRowItem[] = [
-    vin
-      ? {
-          label: t("vehicleForm.vinLabel"),
-          value: vin,
-          copyText: vin,
-          copiedMessage: t("dashboard.copiedVin"),
-        }
-      : null,
-    plate && plateCopyText
-      ? {
-          label: t("vehicleForm.licensePlateLabel"),
-          value: plate,
-          copyText: plateCopyText,
-          copiedMessage: t("dashboard.copiedLicensePlate"),
-        }
-      : null,
-    vehicle
-      ? {
-          label: t("vehicleForm.yearLabel"),
-          value: String(vehicle.production_year),
-        }
-      : null,
-    firstRegistrationRaw && firstRegistration !== "–"
-      ? {
-          label: t("vehicleForm.firstRegistrationDateLabel"),
-          value: firstRegistration,
-          copyText: firstRegistration,
-          copiedMessage: t("dashboard.copiedRegistrationDate"),
-        }
-      : null,
-  ].filter((row): row is SpecRowItem => row != null);
+  const registrationRows: SpecRowItem[] = [];
+  if (vin) {
+    registrationRows.push({
+      label: t("vehicleForm.vinLabel"),
+      value: vin,
+      copyText: vin,
+      copiedMessage: t("dashboard.copiedVin"),
+    });
+  }
+  if (plate && plateCopyText) {
+    registrationRows.push({
+      label: t("vehicleForm.licensePlateLabel"),
+      value: plate,
+      copyText: plateCopyText,
+      copiedMessage: t("dashboard.copiedLicensePlate"),
+    });
+  }
+  if (vehicle) {
+    registrationRows.push({
+      label: t("vehicleForm.yearLabel"),
+      value: String(vehicle.production_year),
+    });
+  }
+  if (firstRegistrationRaw && firstRegistration !== "–") {
+    registrationRows.push({
+      label: t("vehicleForm.firstRegistrationDateLabel"),
+      value: firstRegistration,
+      copyText: firstRegistration,
+      copiedMessage: t("dashboard.copiedRegistrationDate"),
+    });
+  }
 
   const optionalFields = [
     vehicle?.vin,
