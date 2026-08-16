@@ -10,12 +10,18 @@ import { groupThousands } from "../../../../../utils/numberFormatting";
 import { DashboardSection } from "../../components/DashboardSection";
 import type { OverviewPanelProps } from "../types";
 
+const EMPTY_VALUE = "–";
+
 type SpecRowItem = {
   label: string;
   value: string;
-  /** Raw string to put on the clipboard; when set, the value is tappable. */
   copyText?: string;
   copiedMessage?: string;
+};
+
+type SpecGroupItem = {
+  title: string;
+  rows: SpecRowItem[];
 };
 
 function enumLabel(
@@ -33,6 +39,15 @@ function isFilled(value: string | number | null | undefined): boolean {
   return true;
 }
 
+function formatDistance(
+  value: number | null | undefined,
+  language: string,
+  unit: string,
+) {
+  if (value == null) return EMPTY_VALUE;
+  return `${groupThousands(value, 0, language)} ${unit}`;
+}
+
 export function SpecificationSection({
   styles,
   theme,
@@ -41,6 +56,7 @@ export function SpecificationSection({
   language,
   vehicleId,
   navigation,
+  distanceUnitLabel,
 }: Pick<
   OverviewPanelProps,
   | "styles"
@@ -50,14 +66,23 @@ export function SpecificationSection({
   | "language"
   | "vehicleId"
   | "navigation"
+  | "distanceUnitLabel"
 >) {
   const { theme: appTheme } = useTheme();
   const specStyles = makeSpecStyles(appTheme);
 
+  const vin = vehicle?.vin?.trim() || "";
+  const plate = vehicle?.license_plate?.trim() || "";
+  const plateCopyText = plate.replace(/\s+/g, "");
+  const firstRegistrationRaw = vehicle?.first_registration_date?.trim() || "";
+  const firstRegistration = firstRegistrationRaw
+    ? formatShortDisplayDate(firstRegistrationRaw, language)
+    : EMPTY_VALUE;
+
   const fuelValue =
     vehicle?.fuel_type != null
       ? enumLabel("vehicleForm.fuelType", vehicle.fuel_type as FuelType, t)
-      : null;
+      : EMPTY_VALUE;
   const transmissionValue =
     vehicle?.transmission != null
       ? enumLabel(
@@ -65,74 +90,73 @@ export function SpecificationSection({
           vehicle.transmission as TransmissionType,
           t,
         )
-      : null;
+      : EMPTY_VALUE;
 
-  const engineRows: SpecRowItem[] = [
-    vehicle
-      ? {
-          label: t("vehicleForm.yearLabel"),
-          value: String(vehicle.production_year),
-        }
-      : null,
-    vehicle?.engine_capacity
-      ? {
-          label: t("vehicleForm.engineCapacityLabel"),
-          value: `${groupThousands(vehicle.engine_capacity, 0, language)} cm³`,
-        }
-      : null,
-    vehicle?.power_hp
-      ? {
-          label: t("vehicleForm.powerHpLabel"),
-          value: `${groupThousands(vehicle.power_hp, 0, language)} ${t("vehicleForm.powerOutputUnit")}`,
-        }
-      : null,
-    fuelValue
-      ? { label: t("vehicleForm.fuelTypeLabel"), value: fuelValue }
-      : null,
-  ].filter((row): row is SpecRowItem => row != null);
-
-  const drivetrainRows: SpecRowItem[] = [
-    transmissionValue
-      ? { label: t("vehicleForm.transmissionLabel"), value: transmissionValue }
-      : null,
-    vehicle?.drive_type
-      ? { label: t("vehicleForm.driveTypeLabel"), value: vehicle.drive_type }
-      : null,
-  ].filter((row): row is SpecRowItem => row != null);
-
-  const vin = vehicle?.vin?.trim() || null;
-  const plate = vehicle?.license_plate?.trim() || null;
-  const plateCopyText = plate ? plate.replace(/\s+/g, "") : null;
-  const firstRegistrationRaw = vehicle?.first_registration_date?.trim() || null;
-  const firstRegistration = formatShortDisplayDate(
-    firstRegistrationRaw,
-    language,
-  );
-  const identityRows: SpecRowItem[] = [];
-  if (vin) {
-    identityRows.push({
+  const identityRows: SpecRowItem[] = [
+    {
       label: t("vehicleForm.vinLabel"),
-      value: vin,
-      copyText: vin,
+      value: vin || EMPTY_VALUE,
+      copyText: vin || undefined,
       copiedMessage: t("dashboard.copiedVin"),
-    });
-  }
-  if (plate && plateCopyText) {
-    identityRows.push({
+    },
+    {
       label: t("vehicleForm.licensePlateLabel"),
-      value: plate,
-      copyText: plateCopyText,
+      value: plate || EMPTY_VALUE,
+      copyText: plateCopyText || undefined,
       copiedMessage: t("dashboard.copiedLicensePlate"),
-    });
-  }
-  if (firstRegistrationRaw && firstRegistration !== "–") {
-    identityRows.push({
+    },
+    {
       label: t("vehicleForm.firstRegistrationDateLabel"),
-      value: firstRegistration,
-      copyText: firstRegistration,
+      value: firstRegistration !== "–" ? firstRegistration : EMPTY_VALUE,
+      copyText:
+        firstRegistrationRaw && firstRegistration !== "–"
+          ? firstRegistration
+          : undefined,
       copiedMessage: t("dashboard.copiedRegistrationDate"),
-    });
-  }
+    },
+  ];
+
+  const powertrainRows: SpecRowItem[] = [
+    { label: t("vehicleForm.fuelTypeLabel"), value: fuelValue },
+    {
+      label: t("vehicleForm.engineCapacityLabel"),
+      value: vehicle?.engine_capacity
+        ? `${groupThousands(vehicle.engine_capacity, 0, language)} cm³`
+        : EMPTY_VALUE,
+    },
+    {
+      label: t("vehicleForm.powerHpLabel"),
+      value: vehicle?.power_hp
+        ? `${groupThousands(vehicle.power_hp, 0, language)} ${t("vehicleForm.powerOutputUnit")}`
+        : EMPTY_VALUE,
+    },
+    { label: t("vehicleForm.transmissionLabel"), value: transmissionValue },
+    {
+      label: t("vehicleForm.driveTypeLabel"),
+      value: vehicle?.drive_type || EMPTY_VALUE,
+    },
+  ];
+
+  const mileageRows: SpecRowItem[] = [
+    {
+      label: t("vehicleForm.initialMileageLabel"),
+      value: formatDistance(
+        vehicle?.initial_mileage,
+        language,
+        distanceUnitLabel,
+      ),
+    },
+    {
+      label: t("vehicleForm.mileageLabel"),
+      value: formatDistance(vehicle?.mileage, language, distanceUnitLabel),
+    },
+  ];
+
+  const groups: SpecGroupItem[] = [
+    { title: t("dashboard.specIdentity"), rows: identityRows },
+    { title: t("dashboard.specPowertrain"), rows: powertrainRows },
+    { title: t("dashboard.specMileage"), rows: mileageRows },
+  ];
 
   const optionalFields = [
     vehicle?.vin,
@@ -144,7 +168,9 @@ export function SpecificationSection({
     vehicle?.drive_type,
     vehicle?.first_registration_date,
   ];
-  const missingCount = optionalFields.filter((value) => !isFilled(value)).length;
+  const missingCount = optionalFields.filter(
+    (value) => !isFilled(value),
+  ).length;
   const showCompleteCta = missingCount >= 2 && Boolean(vehicleId);
 
   const onCompleteSpec = useCallback(() => {
@@ -158,135 +184,102 @@ export function SpecificationSection({
 
   return (
     <DashboardSection title={t("dashboard.specification")}>
-      <View style={specStyles.stack}>
-        <SpecCard
-          title={t("dashboard.specIdentity")}
-          rows={identityRows}
-          cardStyle={[
-            styles.infoCard,
-            specStyles.card,
-            { backgroundColor: theme.colors.card },
-          ]}
-          styles={specStyles}
-          theme={appTheme}
-          onCopyValue={onCopyValue}
-        />
-        <SpecCard
-          title={t("dashboard.specEngine")}
-          rows={engineRows}
-          cardStyle={[
-            styles.infoCard,
-            specStyles.card,
-            { backgroundColor: theme.colors.card },
-          ]}
-          styles={specStyles}
-          theme={appTheme}
-          onCopyValue={onCopyValue}
-        />
-        <SpecCard
-          title={t("dashboard.specDrivetrain")}
-          rows={drivetrainRows}
-          cardStyle={[
-            styles.infoCard,
-            specStyles.card,
-            { backgroundColor: theme.colors.card },
-          ]}
-          styles={specStyles}
-          theme={appTheme}
-          onCopyValue={onCopyValue}
-        />
-
-        {showCompleteCta ? (
-          <Pressable
-            onPress={onCompleteSpec}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              specStyles.completeCta,
-              pressed && { opacity: 0.7 },
-            ]}
-          >
-            <Text style={specStyles.completeCtaText}>
-              {t("dashboard.completeSpecification")}
-            </Text>
-          </Pressable>
-        ) : null}
+      <View
+        style={[
+          styles.infoCard,
+          specStyles.card,
+          { backgroundColor: theme.colors.card },
+        ]}
+      >
+        {groups.map((group, groupIndex) => (
+          <SpecGroup
+            key={group.title}
+            title={group.title}
+            rows={group.rows}
+            showTopBorder={groupIndex > 0}
+            styles={specStyles}
+            theme={appTheme}
+            onCopyValue={onCopyValue}
+          />
+        ))}
       </View>
+
+      {showCompleteCta ? (
+        <Pressable
+          onPress={onCompleteSpec}
+          accessibilityRole="button"
+          style={({ pressed }) => [
+            specStyles.completeCta,
+            pressed && { opacity: 0.7 },
+          ]}
+        >
+          <Text style={specStyles.completeCtaText}>
+            {t("dashboard.completeSpecification")}
+          </Text>
+        </Pressable>
+      ) : null}
     </DashboardSection>
   );
 }
 
-function SpecCard({
+function SpecGroup({
   title,
   rows,
-  cardStyle,
+  showTopBorder,
   styles,
   theme,
   onCopyValue,
 }: {
   title: string;
   rows: SpecRowItem[];
-  cardStyle: object;
+  showTopBorder: boolean;
   styles: ReturnType<typeof makeSpecStyles>;
   theme: ReturnType<typeof useTheme>["theme"];
   onCopyValue: (text: string, message: string) => void | Promise<void>;
 }) {
-  if (rows.length === 0) return null;
-
   return (
-    <View style={cardStyle}>
-      <View
-        style={[
-          styles.cardHeader,
-          { borderBottomColor: theme.colors.border },
-        ]}
-      >
-        <Text style={styles.cardTitle}>{title}</Text>
-      </View>
-      {rows.map((row, index) => {
+    <View
+      style={[
+        styles.group,
+        showTopBorder && {
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopColor: theme.colors.border,
+          paddingTop: theme.spacing.md,
+        },
+      ]}
+    >
+      <Text style={styles.groupTitle}>{title}</Text>
+      {rows.map((row) => {
         const isCopyable = Boolean(row.copyText);
         const rowContent = (
           <>
             <Text style={styles.rowLabel}>{row.label}</Text>
-            <Text
-              style={[styles.rowValue, isCopyable && styles.copyableValue]}
-            >
+            <Text style={[styles.rowValue, isCopyable && styles.copyableValue]}>
               {row.value}
             </Text>
           </>
         );
 
+        if (isCopyable) {
+          return (
+            <Pressable
+              key={row.label}
+              onPress={() =>
+                void onCopyValue(row.copyText!, row.copiedMessage ?? row.value)
+              }
+              accessibilityRole="button"
+              accessibilityHint={row.copiedMessage}
+              style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}
+              hitSlop={10}
+            >
+              {rowContent}
+            </Pressable>
+          );
+        }
+
         return (
-          <View
-            key={row.label}
-            style={[
-              styles.rowShell,
-              index < rows.length - 1 && {
-                borderBottomWidth: StyleSheet.hairlineWidth,
-                borderBottomColor: theme.colors.border,
-              },
-            ]}
-          >
-            {isCopyable ? (
-              <Pressable
-                onPress={() =>
-                  void onCopyValue(
-                    row.copyText!,
-                    row.copiedMessage ?? row.value,
-                  )
-                }
-                accessibilityRole="button"
-                accessibilityHint={row.copiedMessage}
-                style={({ pressed }) => [
-                  styles.row,
-                  pressed && { opacity: 0.7 },
-                ]}
-                hitSlop={6}
-              >
-                {rowContent}
-              </Pressable>
-            ) : (
-              <View style={styles.row}>{rowContent}</View>
-            )}
+          <View key={row.label} style={styles.row}>
+            {rowContent}
           </View>
         );
       })}
@@ -296,29 +289,23 @@ function SpecCard({
 
 const makeSpecStyles = (theme: ReturnType<typeof useTheme>["theme"]) =>
   StyleSheet.create({
-    stack: {
+    card: {
       gap: theme.spacing.sm,
     },
-    card: {
-      gap: 0,
+    group: {
+      gap: theme.spacing.xs / 2,
     },
-    cardHeader: {
-      paddingBottom: theme.spacing.sm,
-      marginBottom: theme.spacing.xs / 2,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-    },
-    cardTitle: {
-      fontSize: theme.typography.small,
+    groupTitle: {
+      fontSize: theme.typography.xs,
       fontWeight: theme.typography.fontWeight.semibold,
-      color: theme.colors.fg,
-      letterSpacing: 0.4,
-    },
-    rowShell: {
-      minHeight: 44,
-      justifyContent: "center",
+      color: theme.colors.muted,
+      textTransform: "uppercase",
+      letterSpacing: 0.6,
+      marginBottom: 2,
     },
     row: {
-      minHeight: 44,
+      minHeight: 32,
+      paddingVertical: 4,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
@@ -326,7 +313,7 @@ const makeSpecStyles = (theme: ReturnType<typeof useTheme>["theme"]) =>
     },
     rowLabel: {
       flexShrink: 1,
-      fontSize: theme.typography.body,
+      fontSize: theme.typography.small,
       color: theme.colors.muted,
     },
     rowValue: {
