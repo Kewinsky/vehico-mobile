@@ -96,6 +96,7 @@ export function SpecificationSection({
 
   const vin = vehicle?.vin?.trim() || null;
   const plate = vehicle?.license_plate?.trim() || null;
+  const plateCopyText = plate ? plate.replace(/\s+/g, "") : null;
   const firstRegistrationRaw = vehicle?.first_registration_date?.trim() || null;
   const firstRegistration = formatShortDisplayDate(
     firstRegistrationRaw,
@@ -107,15 +108,15 @@ export function SpecificationSection({
           label: t("vehicleForm.vinLabel"),
           value: vin,
           copyText: vin,
-          copiedMessage: t("manageVehicle.vinCopied"),
+          copiedMessage: t("dashboard.copiedVin"),
         }
       : null,
-    plate
+    plate && plateCopyText
       ? {
           label: t("vehicleForm.licensePlateLabel"),
           value: plate,
-          copyText: plate,
-          copiedMessage: t("common.copied"),
+          copyText: plateCopyText,
+          copiedMessage: t("dashboard.copiedLicensePlate"),
         }
       : null,
     vehicle
@@ -128,8 +129,8 @@ export function SpecificationSection({
       ? {
           label: t("vehicleForm.firstRegistrationDateLabel"),
           value: firstRegistration,
-          copyText: firstRegistrationRaw,
-          copiedMessage: t("common.copied"),
+          copyText: firstRegistration,
+          copiedMessage: t("dashboard.copiedRegistrationDate"),
         }
       : null,
   ].filter((row): row is SpecRowItem => row != null);

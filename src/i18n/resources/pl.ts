@@ -533,6 +533,9 @@ export const pl = {
     specDrivetrain: "Napęd",
     specRegistration: "Rejestracja",
     completeSpecification: "Uzupełnij w edycji pojazdu",
+    copiedVin: "Skopiowano VIN",
+    copiedLicensePlate: "Skopiowano rejestrację",
+    copiedRegistrationDate: "Skopiowano datę rejestracji",
     quickActionsTitle: "Dodaj",
     pager: {
       menu: "Menu",

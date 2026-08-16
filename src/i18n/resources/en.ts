@@ -522,6 +522,9 @@ export const en = {
     specDrivetrain: "Drivetrain",
     specRegistration: "Registration",
     completeSpecification: "Complete in vehicle edit",
+    copiedVin: "VIN copied",
+    copiedLicensePlate: "Plate copied",
+    copiedRegistrationDate: "Registration date copied",
     quickActionsTitle: "Add",
     pager: {
       menu: "Menu",
