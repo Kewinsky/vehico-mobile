@@ -82,7 +82,19 @@
         }
       ],
       "react-native-bottom-tabs",
-      "expo-splash-screen"
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#ffffff",
+          "image": "./assets/splash-light.png",
+          "resizeMode": "contain",
+          "enableFullScreenImage_legacy": true,
+          "dark": {
+            "image": "./assets/splash-dark.png",
+            "backgroundColor": "#000000"
+          }
+        }
+      ]
     ],
     "scheme": "vehico",
     "extra": {
