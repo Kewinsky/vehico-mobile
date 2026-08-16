@@ -1,6 +1,5 @@
 import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Copy } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
 import type { Vehicle } from "../../../../types/domain";
@@ -9,13 +8,8 @@ import type { OverviewPanelStyles } from "./overviewStyles";
 type OverviewVehicleHeaderProps = {
   styles: OverviewPanelStyles;
   vehicle: Vehicle | null;
-  theme: {
-    colors: { fg: string; muted: string };
-    spacing: { md: number };
-  };
   isPremium: boolean;
   publicReportUrl: string | null;
-  onCopyVin: () => void;
   onShowQrCode: () => void;
   showPublicQr?: boolean;
 };
@@ -23,15 +17,12 @@ type OverviewVehicleHeaderProps = {
 export function OverviewVehicleHeader({
   styles,
   vehicle,
-  theme,
   isPremium,
   publicReportUrl,
-  onCopyVin,
   onShowQrCode,
   showPublicQr = true,
 }: OverviewVehicleHeaderProps) {
   const { t } = useTranslation();
-  const vin = vehicle?.vin?.trim() || null;
 
   return (
     <View style={styles.vehicleHeaderRow}>
@@ -39,12 +30,6 @@ export function OverviewVehicleHeader({
         <Text style={styles.title}>
           {vehicle ? `${vehicle.make} ${vehicle.model}` : ""}
         </Text>
-        {vin ? (
-          <Pressable onPress={onCopyVin} style={styles.vinRow} hitSlop={10}>
-            <Text style={styles.vinText}>{vin}</Text>
-            <Copy size={16} color={theme.colors.muted} strokeWidth={2} />
-          </Pressable>
-        ) : null}
       </View>
       {showPublicQr && isPremium && publicReportUrl ? (
         <Pressable

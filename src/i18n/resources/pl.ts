@@ -529,10 +529,13 @@ export const pl = {
   dashboard: {
     backToVehicles: "Wróć do pojazdów",
     specification: "Specyfikacja",
-    specEngine: "Silnik",
-    specDrivetrain: "Napęd",
-    specRegistration: "Rejestracja",
+    specIdentity: "Identyfikacja",
+    specPowertrain: "Układ napędowy",
+    specMileage: "Przebieg",
     completeSpecification: "Uzupełnij w edycji pojazdu",
+    copiedVin: "Skopiowano VIN",
+    copiedLicensePlate: "Skopiowano rejestrację",
+    copiedRegistrationDate: "Skopiowano datę rejestracji",
     quickActionsTitle: "Dodaj",
     pager: {
       menu: "Menu",

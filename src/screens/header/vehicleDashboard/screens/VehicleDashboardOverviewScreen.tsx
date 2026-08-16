@@ -71,7 +71,6 @@ export function VehicleDashboardOverviewScreen() {
         theme={theme}
         isPremium={dashboard.isPremium}
         publicReportUrl={dashboard.publicReportUrl}
-        onCopyVin={dashboard.onCopyVin}
         onShowQrCode={dashboard.handleShowPublicReportQr}
         mileageStaleTitle={dashboard.mileageStaleTitle}
         handleQuickMileageEdit={dashboard.handleQuickMileageEdit}

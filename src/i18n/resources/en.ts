@@ -518,10 +518,13 @@ export const en = {
   dashboard: {
     backToVehicles: "Back to vehicles",
     specification: "Specification",
-    specEngine: "Engine",
-    specDrivetrain: "Drivetrain",
-    specRegistration: "Registration",
+    specIdentity: "Identity",
+    specPowertrain: "Powertrain",
+    specMileage: "Mileage",
     completeSpecification: "Complete in vehicle edit",
+    copiedVin: "VIN copied",
+    copiedLicensePlate: "Plate copied",
+    copiedRegistrationDate: "Registration date copied",
     quickActionsTitle: "Add",
     pager: {
       menu: "Menu",

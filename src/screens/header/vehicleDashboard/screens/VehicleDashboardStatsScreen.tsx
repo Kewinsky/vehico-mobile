@@ -28,7 +28,6 @@ export function VehicleDashboardStatsScreen() {
     navigation,
     isPremium,
     publicReportUrl,
-    onCopyVin,
     handleShowPublicReportQr,
   } = useVehicleDashboard();
 
@@ -42,10 +41,8 @@ export function VehicleDashboardStatsScreen() {
         <OverviewVehicleHeader
           styles={overviewStyles}
           vehicle={vehicle}
-          theme={theme}
           isPremium={isPremium}
           publicReportUrl={publicReportUrl}
-          onCopyVin={onCopyVin}
           onShowQrCode={handleShowPublicReportQr}
           showPublicQr={false}
         />
