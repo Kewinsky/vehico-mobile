@@ -36,6 +36,10 @@ export function useOverviewPanelStyles() {
       fontSize: theme.typography.small,
       fontWeight: theme.typography.fontWeight.medium,
     },
+    vinCopyableText: {
+      textDecorationLine: "underline",
+      textDecorationColor: theme.colors.muted,
+    },
     publicPageCircleButton: {
       width: 44,
       height: 44,

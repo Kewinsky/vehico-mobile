@@ -1,8 +1,10 @@
 import { useCallback } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import * as Clipboard from "expo-clipboard";
 
 import type { FuelType, TransmissionType } from "../../../../../types/domain";
 import { useTheme } from "../../../../../ui/ThemeProvider";
+import { toastSuccess } from "../../../../../ui/toast/toast";
 import { formatShortDisplayDate } from "../../../../../utils/dateFormatting";
 import { groupThousands } from "../../../../../utils/numberFormatting";
 import { DashboardSection } from "../../components/DashboardSection";
@@ -11,6 +13,9 @@ import type { OverviewPanelProps } from "../types";
 type SpecRowItem = {
   label: string;
   value: string;
+  /** Raw string to put on the clipboard; when set, the value is tappable. */
+  copyText?: string;
+  copiedMessage?: string;
 };
 
 function enumLabel(
@@ -89,14 +94,29 @@ export function SpecificationSection({
       : null,
   ].filter((row): row is SpecRowItem => row != null);
 
+  const vin = vehicle?.vin?.trim() || null;
   const plate = vehicle?.license_plate?.trim() || null;
+  const firstRegistrationRaw = vehicle?.first_registration_date?.trim() || null;
   const firstRegistration = formatShortDisplayDate(
-    vehicle?.first_registration_date ?? null,
+    firstRegistrationRaw,
     language,
   );
   const registrationRows: SpecRowItem[] = [
+    vin
+      ? {
+          label: t("vehicleForm.vinLabel"),
+          value: vin,
+          copyText: vin,
+          copiedMessage: t("manageVehicle.vinCopied"),
+        }
+      : null,
     plate
-      ? { label: t("vehicleForm.licensePlateLabel"), value: plate }
+      ? {
+          label: t("vehicleForm.licensePlateLabel"),
+          value: plate,
+          copyText: plate,
+          copiedMessage: t("common.copied"),
+        }
       : null,
     vehicle
       ? {
@@ -104,10 +124,12 @@ export function SpecificationSection({
           value: String(vehicle.production_year),
         }
       : null,
-    firstRegistration !== "–"
+    firstRegistrationRaw && firstRegistration !== "–"
       ? {
           label: t("vehicleForm.firstRegistrationDateLabel"),
           value: firstRegistration,
+          copyText: firstRegistrationRaw,
+          copiedMessage: t("common.copied"),
         }
       : null,
   ].filter((row): row is SpecRowItem => row != null);
@@ -129,6 +151,11 @@ export function SpecificationSection({
     navigation.navigate("VehicleForm", { vehicleId });
   }, [navigation, vehicleId]);
 
+  const onCopyValue = useCallback(async (text: string, message: string) => {
+    await Clipboard.setStringAsync(text);
+    toastSuccess(message);
+  }, []);
+
   return (
     <DashboardSection title={t("dashboard.specification")}>
       <View style={specStyles.stack}>
@@ -142,6 +169,7 @@ export function SpecificationSection({
           ]}
           styles={specStyles}
           theme={appTheme}
+          onCopyValue={onCopyValue}
         />
         <SpecCard
           title={t("dashboard.specDrivetrain")}
@@ -153,6 +181,7 @@ export function SpecificationSection({
           ]}
           styles={specStyles}
           theme={appTheme}
+          onCopyValue={onCopyValue}
         />
         <SpecCard
           title={t("dashboard.specRegistration")}
@@ -164,6 +193,7 @@ export function SpecificationSection({
           ]}
           styles={specStyles}
           theme={appTheme}
+          onCopyValue={onCopyValue}
         />
 
         {showCompleteCta ? (
@@ -191,12 +221,14 @@ function SpecCard({
   cardStyle,
   styles,
   theme,
+  onCopyValue,
 }: {
   title: string;
   rows: SpecRowItem[];
   cardStyle: object;
   styles: ReturnType<typeof makeSpecStyles>;
   theme: ReturnType<typeof useTheme>["theme"];
+  onCopyValue: (text: string, message: string) => void | Promise<void>;
 }) {
   if (rows.length === 0) return null;
 
@@ -210,21 +242,54 @@ function SpecCard({
       >
         <Text style={styles.cardTitle}>{title}</Text>
       </View>
-      {rows.map((row, index) => (
-        <View
-          key={row.label}
-          style={[
-            styles.row,
-            index < rows.length - 1 && {
-              borderBottomWidth: StyleSheet.hairlineWidth,
-              borderBottomColor: theme.colors.border,
-            },
-          ]}
-        >
-          <Text style={styles.rowLabel}>{row.label}</Text>
-          <Text style={styles.rowValue}>{row.value}</Text>
-        </View>
-      ))}
+      {rows.map((row, index) => {
+        const isCopyable = Boolean(row.copyText);
+        const rowContent = (
+          <>
+            <Text style={styles.rowLabel}>{row.label}</Text>
+            <Text
+              style={[styles.rowValue, isCopyable && styles.copyableValue]}
+            >
+              {row.value}
+            </Text>
+          </>
+        );
+
+        return (
+          <View
+            key={row.label}
+            style={[
+              styles.rowShell,
+              index < rows.length - 1 && {
+                borderBottomWidth: StyleSheet.hairlineWidth,
+                borderBottomColor: theme.colors.border,
+              },
+            ]}
+          >
+            {isCopyable ? (
+              <Pressable
+                onPress={() =>
+                  void onCopyValue(
+                    row.copyText!,
+                    row.copiedMessage ?? row.value,
+                  )
+                }
+                accessibilityRole="button"
+                accessibilityHint={row.copiedMessage}
+                style={({ pressed }) => [
+                  styles.row,
+                  pressed && { opacity: 0.7 },
+                ]}
+                hitSlop={6}
+              >
+                {rowContent}
+              </Pressable>
+            ) : (
+              <View style={styles.row}>{rowContent}</View>
+            )}
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -248,6 +313,10 @@ const makeSpecStyles = (theme: ReturnType<typeof useTheme>["theme"]) =>
       color: theme.colors.fg,
       letterSpacing: 0.4,
     },
+    rowShell: {
+      minHeight: 44,
+      justifyContent: "center",
+    },
     row: {
       minHeight: 44,
       flexDirection: "row",
@@ -266,6 +335,10 @@ const makeSpecStyles = (theme: ReturnType<typeof useTheme>["theme"]) =>
       fontSize: theme.typography.body,
       fontWeight: theme.typography.fontWeight.semibold,
       color: theme.colors.fg,
+    },
+    copyableValue: {
+      textDecorationLine: "underline",
+      textDecorationColor: theme.colors.muted,
     },
     completeCta: {
       minHeight: 44,

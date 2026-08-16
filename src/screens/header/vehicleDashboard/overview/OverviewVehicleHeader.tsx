@@ -1,6 +1,5 @@
 import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Copy } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
 import type { Vehicle } from "../../../../types/domain";
@@ -40,9 +39,15 @@ export function OverviewVehicleHeader({
           {vehicle ? `${vehicle.make} ${vehicle.model}` : ""}
         </Text>
         {vin ? (
-          <Pressable onPress={onCopyVin} style={styles.vinRow} hitSlop={10}>
-            <Text style={styles.vinText}>{vin}</Text>
-            <Copy size={16} color={theme.colors.muted} strokeWidth={2} />
+          <Pressable
+            onPress={onCopyVin}
+            style={styles.vinRow}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={t("vehicleForm.vinLabel")}
+            accessibilityHint={t("manageVehicle.vinCopied")}
+          >
+            <Text style={[styles.vinText, styles.vinCopyableText]}>{vin}</Text>
           </Pressable>
         ) : null}
       </View>
