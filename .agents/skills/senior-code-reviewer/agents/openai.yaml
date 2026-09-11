@@ -1,0 +1,4 @@
+interface:
+  display_name: "Senior Code Reviewer"
+  short_description: "Review code for correctness, security, and risk"
+  default_prompt: "Use $senior-code-reviewer to review these changes for production risks and actionable defects."
