@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Implementer"
+  short_description: "Implement approved plans with focused, tested changes"
+  default_prompt: "Use $ai-implementer to implement this approved plan with small, tested changes."

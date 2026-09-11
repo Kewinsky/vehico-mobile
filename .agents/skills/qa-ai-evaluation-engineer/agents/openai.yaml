@@ -1,0 +1,4 @@
+interface:
+  display_name: "QA and AI Evaluation Engineer"
+  short_description: "Test software and evaluate AI system quality"
+  default_prompt: "Use $qa-ai-evaluation-engineer to assess test coverage, AI quality, and failure modes."

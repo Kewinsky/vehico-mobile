@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Engineering Mentor"
+  short_description: "Learn and design robust software and AI systems"
+  default_prompt: "Use $ai-engineering-mentor to teach me the concepts and design a robust solution for this task."
