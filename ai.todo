@@ -1,173 +1,187 @@
-# Vericar AI — lista zadań Vehicle Advisora
+# Vericar AI — Context-Aware Vehicle Chat
 
-Zadania wykonujemy po kolei. Następny etap rozpoczynamy dopiero wtedy, gdy bieżący spełnia kryterium zakończenia.
+Realizujemy etapy po kolei. Proaktywne rekomendacje rozpoczynamy dopiero po zbudowaniu i sprawdzeniu silnika czatu.
 
-## 1. Advisor Contract & Safety
+## 1. LLM Fundamentals
 
-- [ ] Zdefiniować dwa tryby: proaktywny przegląd pojazdu i analiza objawów.
-- [ ] Zdefiniować poziomy pilności: informacyjny, zaplanuj kontrolę, pilny warsztat, zatrzymaj pojazd.
-- [ ] Zdefiniować jakościowe poziomy hipotez bez nieskalibrowanych procentów.
-- [ ] Zdefiniować structured output: podsumowanie, przyczyny, kontrole, koszty, braki, źródła i ograniczenia.
-- [ ] Określić niedozwolone odpowiedzi, w tym pewną diagnozę i instrukcje ryzykownej naprawy.
-- [ ] Zdefiniować czerwone flagi wymagające natychmiastowego ostrzeżenia.
-- [ ] Przygotować przypadki testowe PL i EN dla porad, usterek, kosztów i bezpieczeństwa.
-- [ ] Określić zachowanie przy braku danych lub sprzecznych informacjach.
-- [ ] Kryterium zakończenia: każda odpowiedź ma mierzalny kontrakt i zasady bezpieczeństwa.
+- [ ] Wybrać pierwszy model na podstawie jakości, kosztu, szybkości i obsługi structured output.
+- [ ] Ustalić limit tokenów i kosztu pojedynczego żądania.
+- [ ] Dodać sekret API wyłącznie po stronie Supabase.
+- [ ] Utworzyć Edge Function czatu.
+- [ ] Zdefiniować i walidować kontrakt request/response.
+- [ ] Dodać pierwszy wersjonowany prompt systemowy.
+- [ ] Dodać timeout i bezpieczne typy błędów.
+- [ ] Przygotować pierwsze przypadki testowe PL i EN.
+- [ ] Przetestować poprawną, błędną i przerwaną odpowiedź modelu.
+- [ ] Kryterium zakończenia: backend zwraca zwalidowaną odpowiedź bez ujawniania sekretów.
 
-## 2. LLM Fundamentals
+## 2. Minimal Chat & Streaming
 
-- [ ] Wybrać pierwszy model i ustalić limit kosztu pojedynczego żądania.
-- [ ] Dodać sekret dostawcy po stronie Supabase, nigdy w `EXPO_PUBLIC_*`.
-- [ ] Utworzyć Edge Function Vehicle Advisora.
-- [ ] Dodać runtime validation żądania.
-- [ ] Dodać wersjonowany system prompt.
-- [ ] Wymusić i walidować structured output.
-- [ ] Dodać limity wejścia, wyjścia i tokenów.
-- [ ] Dodać timeout oraz przewidywalne typy błędów.
-- [ ] Dodać testy poprawnej, błędnej, niekompletnej i przerwanej odpowiedzi modelu.
-- [ ] Udokumentować przepływ prompt → tokeny → model → walidacja → odpowiedź.
-- [ ] Kryterium zakończenia: testowy przypadek diagnostyczny zwraca bezpieczną, zwalidowaną strukturę.
-
-## 3. Vehicle Context
-
-- [ ] Zdefiniować kontrakt wejściowy z `vehicleId`, pytaniem, językiem i regionem.
-- [ ] Uwierzytelnić użytkownika w Edge Function przez `auth.getUser()`.
-- [ ] Korzystać z klienta Supabase działającego z tokenem użytkownika i RLS.
-- [ ] Sprawdzić własność pojazdu niezależnie od modelu.
-- [ ] Pobierać profil pojazdu i wyłącznie zatwierdzoną historię serwisową.
-- [ ] Rozróżnić dane użytkownika, historię, objawy i dane nieznane.
-- [ ] Ograniczyć liczbę rekordów i rozmiar kontekstu.
-- [ ] Oznaczać niejednoznaczną wersję silnika lub brak kodu silnika.
-- [ ] Nie przekazywać VIN-u do modelu lub wyszukiwarki bez konkretnej potrzeby i zgody.
-- [ ] Dodać testy izolacji użytkowników i pojazdów.
-- [ ] Dodać testy pustej historii, błędnych danych oraz wpisów oczekujących i odrzuconych.
-- [ ] Kryterium zakończenia: model otrzymuje tylko dozwolony kontekst właściwego pojazdu.
-
-## 4. Web-grounded Knowledge
-
-- [ ] Dodać web search po stronie backendu.
-- [ ] Budować zapytania na podstawie marki, modelu, silnika, wieku, przebiegu i objawu.
-- [ ] Preferować producentów, dokumentację techniczną i wiarygodne serwisy.
-- [ ] Oznaczać źródła jako oficjalne, branżowe lub społecznościowe.
-- [ ] Zwracać adres, tytuł i datę źródła.
-- [ ] Walidować, że cytowane źródło było częścią wyniku wyszukiwania.
-- [ ] Traktować znalezioną treść jako dane, a nie instrukcje dla modelu.
-- [ ] Chronić system przed prompt injection i niedozwolonymi adresami.
-- [ ] Dodać odpowiedź częściową, gdy wyszukiwanie jest niedostępne.
-- [ ] Dodać testy sprzecznych, starych i niskiej jakości źródeł.
-- [ ] Kryterium zakończenia: aktualna porada ma źródła albo oznaczenie ogólnej wiedzy modelu.
-
-## 5. Proactive Vehicle Review
-
-- [ ] Zdefiniować obszary: silnik, chłodzenie, hamulce, zawieszenie, układ kierowniczy, skrzynia, opony i formalności.
-- [ ] Połączyć profil, przebieg i historię z wiedzą o typowych problemach.
-- [ ] Klasyfikować obszary jako udokumentowane, wymagające uwagi, wymagające diagnostyki lub nieznane.
-- [ ] Wyjaśniać, które wpisy historii wspierają daną ocenę.
-- [ ] Wykrywać brak informacji bez uznawania go automatycznie za usterkę.
-- [ ] Generować krótką listę rekomendacji według pilności.
-- [ ] Nie opisywać podzespołu jako sprawnego bez wyników badań.
-- [ ] Dodać ewaluacje dla różnych roczników, przebiegów i jakości historii.
-- [ ] Kryterium zakończenia: użytkownik otrzymuje uzasadnione priorytety, a nie streszczenie danych.
-
-## 6. Symptom Analysis
-
-- [ ] Zdefiniować format opisu problemu i kontekst bieżącej rozmowy.
-- [ ] Wykrywać brakujące informacje potrzebne do analizy.
-- [ ] Generować ograniczoną liczbę krótkich pytań uzupełniających.
-- [ ] Budować listę możliwych przyczyn po zebraniu minimalnego kontekstu.
-- [ ] Dla każdej przyczyny podawać argumenty za, przeciw i brakujące dane.
-- [ ] Porządkować hipotezy jakościowo, bez udawanej precyzji procentowej.
-- [ ] Uwzględniać historię bez traktowania jej jako dowodu sprawności.
-- [ ] Dodać obsługę „nie wiem” i skierowanie do warsztatu.
-- [ ] Dodać testy niejednoznacznych objawów i wielu możliwych przyczyn.
-- [ ] Kryterium zakończenia: asystent prowadzi krótki wywiad i nie przedstawia hipotezy jako diagnozy.
-
-## 7. Diagnostic Guidance & Safety Triage
-
-- [ ] Zdefiniować katalog bezpiecznych kategorii badań diagnostycznych.
-- [ ] Wyjaśniać cel każdego badania i jego związek z hipotezą.
-- [ ] Oznaczać badania wymagające warsztatu lub specjalistycznego sprzętu.
-- [ ] Dodać deterministyczne reguły dla czerwonych flag.
-- [ ] Uniemożliwić modelowi osłabienie deterministycznego ostrzeżenia.
-- [ ] Odpowiadać na pytanie o możliwość dalszej jazdy z bezpiecznym zachowaniem domyślnym.
-- [ ] Nie generować instrukcji ingerencji w hamulce, paliwo, układ wysokiego napięcia ani podnoszenia pojazdu.
-- [ ] Dodać testy przegrzania, ciśnienia oleju, hamulców, dymu i utraty mocy.
-- [ ] Kryterium zakończenia: użytkownik otrzymuje bezpieczny następny krok i właściwy poziom pilności.
-
-## 8. Cost Estimation
-
-- [ ] Pobierać kraj, walutę i datę oszacowania.
-- [ ] Wyszukiwać aktualne zakresy kosztów diagnozy, części i robocizny.
-- [ ] Rozdzielać koszt diagnostyki od kosztu potencjalnej naprawy.
-- [ ] Zwracać przedział cenowy zamiast jednej kwoty.
-- [ ] Zapisywać założenia użyte przy wycenie.
-- [ ] Wskazywać źródła oraz datę publikacji lub pobrania.
-- [ ] Poszerzać zakres, gdy wersja pojazdu albo diagnoza jest niepewna.
-- [ ] Nie wyceniać dokładnej naprawy przed potwierdzeniem przyczyny.
-- [ ] Dodać testy różnych regionów, walut i braku wiarygodnych danych.
-- [ ] Kryterium zakończenia: koszt jest zakresem z regionem, datą, źródłem i jawnymi założeniami.
-
-## 9. Vehicle Advisor UI
-
-- [ ] Dodać typowaną trasę Vehicle Advisora do `RootNavigator`.
+- [ ] Dodać typowaną trasę czatu do `RootNavigator`.
 - [ ] Aktywować istniejący kafelek AI na dashboardzie.
 - [ ] Dodać repozytorium klienta wywołujące Edge Function.
-- [ ] Dodać wybór „Przeanalizuj mój pojazd” i „Opisz problem”.
-- [ ] Dodać pole objawów i obsługę pytań uzupełniających.
-- [ ] Oddzielnie prezentować pilność, przyczyny, badania, koszty, braki i źródła.
-- [ ] Dodać jasne ograniczenia i ostrzeżenia bezpieczeństwa.
-- [ ] Dodać stany ładowania, streamingu, błędu, anulowania i ponowienia.
+- [ ] Dodać ekran listy wiadomości i pole wpisywania tekstu.
+- [ ] Dodać streaming odpowiedzi.
+- [ ] Dodać anulowanie, ponowienie i obsługę błędów.
+- [ ] Przechowywać historię tylko w bieżącej sesji.
 - [ ] Dodać tłumaczenia PL i EN.
-- [ ] Dodać testy repozytorium oraz kluczowych stanów ekranu.
-- [ ] Kryterium zakończenia: oba główne scenariusze działają w aplikacji i są czytelnie przedstawione.
+- [ ] Dodać testy repozytorium oraz stanów ekranu.
+- [ ] Kryterium zakończenia: użytkownik może przeprowadzić prostą rozmowę z modelem.
 
-## 10. Cloud Documents & Invoice Reader
+## 3. Vehicle & Service Context
+
+- [ ] Rozszerzyć request o `vehicleId`, język i region.
+- [ ] Uwierzytelnić użytkownika w Edge Function przez `auth.getUser()`.
+- [ ] Używać klienta Supabase działającego z tokenem użytkownika i RLS.
+- [ ] Sprawdzać własność pojazdu niezależnie od modelu.
+- [ ] Pobierać profil pojazdu i tylko zatwierdzoną historię serwisową.
+- [ ] Rozróżniać dane użytkownika, potwierdzoną historię i dane nieznane.
+- [ ] Ograniczyć liczbę rekordów oraz rozmiar kontekstu.
+- [ ] Oznaczać brak dokładnej wersji lub kodu silnika.
+- [ ] Zwracać cytowania konkretnych rekordów historii.
+- [ ] Dodać testy izolacji użytkowników i pojazdów.
+- [ ] Dodać testy pustej, błędnej i sprzecznej historii.
+- [ ] Kryterium zakończenia: czat odpowiada na podstawie właściwego pojazdu bez wycieku danych.
+
+## 4. Cloud Documents
 
 - [ ] Ustalić zasady zgody, retencji, eksportu i usuwania dokumentów.
-- [ ] Utworzyć prywatny bucket Supabase Storage i tabelę metadanych.
+- [ ] Utworzyć prywatny bucket Supabase Storage.
+- [ ] Utworzyć tabelę metadanych dokumentów.
 - [ ] Dodać migrację z RLS, indeksami i Storage Policies.
-- [ ] Dodać upload, synchronizację oraz usuwanie po stronie klienta.
-- [ ] Przygotować niedestrukcyjną migrację istniejących lokalnych dokumentów.
-- [ ] Zdefiniować schemat danych odczytywanych z faktury.
-- [ ] Dodać analizę obrazu lub PDF przez model multimodalny.
-- [ ] Walidować i normalizować daty, przebieg, części, czynności i koszt.
-- [ ] Pokazywać wynik jako wersję roboczą do korekty.
-- [ ] Zapisywać historię dopiero po potwierdzeniu użytkownika.
-- [ ] Po zapisie ponownie uruchamiać analizę rekomendacji.
-- [ ] Dodać testy RLS, uploadu, ekstrakcji, korekty i usuwania konta.
-- [ ] Kryterium zakończenia: zatwierdzona faktura bezpiecznie wzbogaca historię i rekomendacje pojazdu.
+- [ ] Dodać upload, pobieranie, synchronizację i usuwanie po stronie klienta.
+- [ ] Pokazywać stan synchronizacji oraz obsłużyć przerwany upload.
+- [ ] Przygotować niedestrukcyjną migrację istniejących plików lokalnych.
+- [ ] Dodać sprzątanie osieroconych rekordów i plików.
+- [ ] Dodać testy RLS, Storage Policies i usuwania konta.
+- [ ] Kryterium zakończenia: backend odczytuje wyłącznie dokument właściciela pojazdu.
 
-## 11. Document RAG
+## 5. Document Indexing
 
-- [ ] Wyciągać tekst z dokumentów z zachowaniem numeru strony.
-- [ ] Zdefiniować i przetestować strategię chunkingu.
-- [ ] Wybrać model embeddingowy i ustalić wymiar wektora.
+- [ ] Zdefiniować obsługiwane formaty oraz limity plików.
+- [ ] Wyciągać tekst z zachowaniem numeru strony.
+- [ ] Zaprojektować i przetestować strategię chunkingu.
+- [ ] Wybrać model embeddingowy oraz wymiar wektora.
 - [ ] Włączyć rozszerzenie `pgvector` w migracji.
-- [ ] Utworzyć tabelę fragmentów powiązanych z użytkownikiem, pojazdem i dokumentem.
-- [ ] Dodać RLS i indeks wektorowy.
-- [ ] Zaimplementować indeksowanie i ponowne indeksowanie dokumentu.
-- [ ] Zaimplementować similarity search filtrowane po użytkowniku i pojeździe.
+- [ ] Utworzyć tabelę fragmentów z metadanymi użytkownika, pojazdu i dokumentu.
+- [ ] Dodać RLS oraz indeks wektorowy.
+- [ ] Zaimplementować generowanie embeddings i zapis fragmentów.
+- [ ] Zaimplementować ponowne indeksowanie po zmianie dokumentu.
 - [ ] Usuwać fragmenty po usunięciu dokumentu.
+- [ ] Kryterium zakończenia: dokument ma kompletny, odtwarzalny i izolowany indeks.
+
+## 6. Document RAG
+
+- [ ] Generować embedding pytania.
+- [ ] Zaimplementować similarity search.
+- [ ] Zawsze filtrować po użytkowniku i pojeździe przed doborem kontekstu.
+- [ ] Ograniczyć liczbę oraz łączny rozmiar fragmentów.
+- [ ] Przekazywać znalezione fragmenty do LLM jako niezaufane dane.
 - [ ] Zwracać cytowanie dokumentu i strony.
-- [ ] Mierzyć recall wyszukiwania oraz poprawność cytowań.
-- [ ] Kryterium zakończenia: odpowiedź korzysta z właściwego fragmentu bez dostępu do cudzych danych.
+- [ ] Odrzucać cytowania fragmentów nieprzekazanych modelowi.
+- [ ] Przygotować zestaw pytań i oczekiwanych fragmentów.
+- [ ] Mierzyć retrieval recall, jakość odpowiedzi i poprawność cytowań.
+- [ ] Dodać test braku dostępu do dokumentów innego użytkownika.
+- [ ] Kryterium zakończenia: czat odpowiada na podstawie właściwych fragmentów dokumentu.
 
-## 12. Actions & Production Hardening
+## 7. Web Search & Hybrid Retrieval
 
-- [ ] Zacząć od `draft_reminder` i `draft_service_entry`.
-- [ ] Dodać podgląd, korektę i jawne potwierdzenie operacji.
-- [ ] Ponownie sprawdzać sesję, własność i uprawnienia przy zapisie.
-- [ ] Wykorzystać istniejące RPC i reguły biznesowe.
-- [ ] Dodać idempotency key oraz bezpieczny ślad audytowy.
-- [ ] Dodać ograniczoną pętlę agenta tylko dla uzasadnionych zadań wieloetapowych.
-- [ ] Ograniczyć liczbę kroków, czas, tokeny i koszt agenta.
-- [ ] Dodać jawną i usuwalną pamięć dopiero po wykazaniu potrzeby.
-- [ ] Rozważyć MCP wyłącznie dla stabilnych narzędzi wymagających integracji.
-- [ ] Dodać per-user rate limiting i budżety kosztowe.
-- [ ] Mierzyć czas odpowiedzi, tokeny, koszt, błędy i jakość.
-- [ ] Usuwać PII, VIN, opisy problemów i dokumenty z Sentry oraz logów.
-- [ ] Dodać wersjonowanie promptów i modeli, retry oraz fallback modelu.
-- [ ] Dodać feature flag i kill switch.
-- [ ] Zbudować regresyjne ewaluacje porad, diagnoz, kosztów, cytowań, vision, tools i agentów.
-- [ ] Zdefiniować progi jakości, kosztu i opóźnienia blokujące release.
-- [ ] Kryterium zakończenia: funkcja ma kontrolowany rollout, obserwowalną jakość i bezpieczny rollback.
+- [ ] Dodać kontrolowane web search po stronie backendu.
+- [ ] Budować zapytania z profilu pojazdu i pytania użytkownika.
+- [ ] Preferować producentów, dokumentację i wiarygodne źródła branżowe.
+- [ ] Oznaczać typ, adres i datę źródła.
+- [ ] Chronić system przed prompt injection w znalezionej treści.
+- [ ] Połączyć wyniki SQL, full-text search, vector search i web search.
+- [ ] Dodać odpowiedź częściową, gdy jedno źródło jest niedostępne.
+- [ ] Zmierzyć jakość wyszukiwania przed dodaniem rerankera.
+- [ ] Dodać reranking tylko wtedy, gdy poprawi ustaloną metrykę.
+- [ ] Dodać testy sprzecznych, starych i niskiej jakości źródeł.
+- [ ] Kryterium zakończenia: odpowiedź rozróżnia dane użytkownika, dokumenty i internet.
+
+## 8. Multimodal & Vision
+
+- [ ] Zdefiniować obsługiwane obrazy i dokumenty PDF.
+- [ ] Dodać analizę obrazu przez model vision.
+- [ ] Zdefiniować structured extraction dla faktury.
+- [ ] Walidować datę, przebieg, czynności, części i koszt.
+- [ ] Pokazywać niepewne lub brakujące pola.
+- [ ] Dodać podgląd i korektę przed zapisaniem danych.
+- [ ] Zapisywać historię dopiero po potwierdzeniu użytkownika.
+- [ ] Pozwalać dołączyć zdjęcie do bieżącej rozmowy.
+- [ ] Nie przedstawiać rozpoznania ze zdjęcia jako pewnej diagnozy.
+- [ ] Przygotować zanonimizowany zestaw obrazów do ewaluacji.
+- [ ] Kryterium zakończenia: obraz stanowi zwalidowany kontekst rozmowy, a nie automatyczną diagnozę.
+
+## 9. Tool & Function Calling
+
+- [ ] Zdefiniować narzędzia `get_vehicle` i `get_service_history`.
+- [ ] Dodać `search_vehicle_documents` oraz `search_web`.
+- [ ] Dodać deterministyczne narzędzia obliczeniowe tam, gdzie model nie powinien liczyć.
+- [ ] Zdefiniować ścisłe schematy argumentów i wyników narzędzi.
+- [ ] Walidować argumenty przed każdym wywołaniem.
+- [ ] Ponownie sprawdzać autoryzację przy każdym dostępie do danych.
+- [ ] Ograniczyć liczbę wywołań i rozmiar wyniku.
+- [ ] Traktować wyniki narzędzi jako niezaufane dane.
+- [ ] Dodać `draft_reminder` i `draft_service_entry` bez automatycznego zapisu.
+- [ ] Wymagać podglądu i potwierdzenia każdej zmiany danych.
+- [ ] Dodać testy błędnych argumentów, odmowy dostępu i duplikatów.
+- [ ] Kryterium zakończenia: model wybiera narzędzia, ale backend kontroluje dane i akcje.
+
+## 10. Context Engineering, Memory & Bounded Agent
+
+- [ ] Dobierać tylko źródła potrzebne do bieżącego pytania.
+- [ ] Ustalić budżet tokenów dla instrukcji, rozmowy i retrieved context.
+- [ ] Skracać lub streszczać starsze wiadomości.
+- [ ] Zapobiegać wypieraniu ważnych instrukcji przez długi kontekst.
+- [ ] Ustalić retencję rozmów przed ich trwałym zapisywaniem.
+- [ ] Dodać jawną, edytowalną i usuwalną pamięć tylko po wykazaniu potrzeby.
+- [ ] Zaimplementować ograniczoną pętlę model → narzędzie → wynik → model.
+- [ ] Ograniczyć liczbę kroków, czas, tokeny i koszt pętli.
+- [ ] Wykrywać powtarzające się wywołania i warunki zakończenia.
+- [ ] Dodać agent evaluation dla wyboru narzędzi i ukończenia zadania.
+- [ ] Kryterium zakończenia: czat wykonuje kontrolowane zadania wieloetapowe w ustalonym budżecie.
+
+## 11. Proactive Recommendations
+
+- [ ] Wydzielić wspólny serwis budowania kontekstu używany przez czat i rekomendacje.
+- [ ] Zdefiniować zdarzenia uruchamiające analizę, np. zmianę przebiegu lub nowy wpis.
+- [ ] Generować krótką listę priorytetów wraz z uzasadnieniem i źródłami.
+- [ ] Rozróżniać brak informacji od dowodu usterki.
+- [ ] Nie generować fikcyjnego procentowego wyniku stanu pojazdu.
+- [ ] Zapisywać wersję kontekstu i promptu użytego do rekomendacji.
+- [ ] Pokazać rekomendacje na dashboardzie z możliwością przejścia do czatu.
+- [ ] Pozwolić oznaczyć rekomendację jako przydatną, błędną lub wykonaną.
+- [ ] Dodać ewaluacje stabilności, trafności i bezpieczeństwa rekomendacji.
+- [ ] Kryterium zakończenia: rekomendacje wykorzystują istniejący silnik czatu bez duplikowania logiki.
+
+## 12. Production Hardening & Optional MCP
+
+- [ ] Dodać guardrails dla treści diagnostycznych i czerwonych flag.
+- [ ] Przetestować prompt injection z pytań, dokumentów, internetu i wyników narzędzi.
+- [ ] Dodać per-user rate limiting oraz budżety kosztowe.
+- [ ] Dodać tracing całego żądania i poszczególnych etapów retrieval.
+- [ ] Logować wyłącznie bezpieczne metadane bez VIN-u, dokumentów i treści rozmowy.
+- [ ] Mierzyć tokeny, koszt i czas odpowiedzi.
+- [ ] Dodać dashboard monitoringu błędów, jakości, kosztów i opóźnień.
+- [ ] Wersjonować prompty, modele, embeddingi i konfigurację retrieval.
+- [ ] Porównać modele na wspólnym zbiorze ewaluacyjnym.
+- [ ] Dodać ograniczony retry, fallback modelu i circuit breaker.
+- [ ] Dodać idempotencję operacji zapisujących.
+- [ ] Dodać feature flag, etapowy rollout i kill switch.
+- [ ] Uruchamiać regresyjne evaluation, RAG evaluation i agent evaluation przed wydaniem.
+- [ ] Rozważyć MCP tylko wtedy, gdy narzędzia mają być używane poza aplikacją.
+- [ ] Kryterium zakończenia: system ma mierzalną jakość, koszt i niezawodność oraz bezpieczny rollback.
+
+## Pokrycie tematów edukacyjnych
+
+- [ ] Potwierdzić pokrycie LLM APIs, prompting, structured outputs, streaming i tokens.
+- [ ] Potwierdzić pokrycie embeddings, chunking, vector database, `pgvector` i similarity search.
+- [ ] Potwierdzić pokrycie metadata filtering, RAG, hybrid retrieval, reranking i citations.
+- [ ] Potwierdzić pokrycie multimodal AI oraz vision models.
+- [ ] Potwierdzić pokrycie tool calling, function calling, agent loop i ReAct-style flow.
+- [ ] Potwierdzić pokrycie memory oraz context engineering.
+- [ ] Potwierdzić pokrycie guardrails, prompt injection protection i AI security.
+- [ ] Potwierdzić pokrycie evaluation, RAG evaluation i agent evaluation.
+- [ ] Potwierdzić pokrycie observability, tracing, logging, kosztów i latency.
+- [ ] Potwierdzić pokrycie monitoringu, model selection, fallbacks, rate limiting i reliability patterns.
+- [ ] Udokumentować decyzję o zastosowaniu albo świadomym pominięciu MCP.
