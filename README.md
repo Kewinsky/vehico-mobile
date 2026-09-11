@@ -85,7 +85,7 @@ Display name: **Vericar** · npm/slug/scheme: **vehico** · Current app version:
    - Apply `supabase/schema.sql` (or run migrations under `supabase/migrations/`)
    - Configure storage buckets and RLS (included in schema)
    - Deploy Edge Functions under `supabase/functions/` (`revenuecat-webhook`, `retention-cleanup`, `delete-account`, `generate-marketplace-post`)
-   - Optional seed scripts: `supabase/seed.sql`, `seed_data_pl.sql`, `seed_data_eng.sql`
+   - Optional seed scripts: `supabase/seed_data_pl.sql`, `supabase/seed_data_eng.sql`
 
 5. **Start the development server**
 
@@ -242,7 +242,7 @@ In-app menu includes an **AI assistant** placeholder (coming soon); marketplace 
 
 ## License
 
-Private project – All rights reserved
+Proprietary software – see [`LICENSE`](LICENSE). All rights reserved.
 
 ## Support
 
