@@ -762,8 +762,6 @@ export const pl = {
       workshopIntakeSubtitle: "Udostępnij kod QR warsztatowi.",
       aiMechanicTitle: "AI asystent",
     },
-    aiMechanicComingSoon:
-      "Wkrótce pojawi się asystent AI, który pomoże Ci interpretować historię serwisową, podpowiadać kolejne kroki i odpowiadać na pytania o Twój pojazd.",
     quickActions: {
       addService: "Serwis",
       addFuel: "Paliwo",
@@ -771,6 +769,12 @@ export const pl = {
     },
     publicLinkTitle: "Link publiczny",
     publicLinkBody: "Public ID: {{id}}",
+  },
+  vehicleChat: {
+    title: "Asystent AI",
+    subtitle: "Zapytaj o objawy i bezpieczne kolejne kroki.",
+    emptyTitle: "Jak mogę pomóc?",
+    emptyBody: "Opisz objaw, kontrolkę lub dźwięk, który Cię niepokoi.",
   },
   profile: {
     title: "Profil",

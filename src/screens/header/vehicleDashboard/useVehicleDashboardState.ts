@@ -920,14 +920,7 @@ export function useVehicleDashboardState({
         key: "aiMechanic",
         title: t("dashboard.tiles.aiMechanicTitle"),
         icon: "sparkles",
-        muted: true,
-        onPress: () => {
-          Alert.alert(
-            t("dashboard.tiles.aiMechanicTitle"),
-            t("dashboard.aiMechanicComingSoon"),
-            [{ text: t("common.ok") }],
-          );
-        },
+        onPress: () => navigation.navigate("VehicleChat", { vehicleId }),
       },
     ],
     [t, navigation, vehicleId, handleSharePress],

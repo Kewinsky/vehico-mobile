@@ -750,8 +750,6 @@ export const en = {
       workshopsSubtitle: "Your workshop phonebook.",
       aiMechanicTitle: "AI assistant",
     },
-    aiMechanicComingSoon:
-      "Soon you’ll get an AI assistant that helps interpret service history, suggest next steps, and answer questions about your vehicle.",
     quickActions: {
       addService: "Service",
       addFuel: "Fuel",
@@ -760,6 +758,12 @@ export const en = {
     },
     publicLinkTitle: "Public link",
     publicLinkBody: "Public ID: {{id}}",
+  },
+  vehicleChat: {
+    title: "AI assistant",
+    subtitle: "Ask about symptoms and safe next steps.",
+    emptyTitle: "How can I help?",
+    emptyBody: "Describe a symptom, warning light, or sound that concerns you.",
   },
   profile: {
     title: "Profile",

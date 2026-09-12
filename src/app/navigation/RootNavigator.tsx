@@ -54,6 +54,7 @@ import { ShopScreen } from "../../screens/modal/ShopScreen";
 import { ExampleListingScreen } from "../../screens/modal/ExampleListingScreen";
 import { AppearanceScreen } from "../../screens/modal/AppearanceScreen";
 import { DashboardSectionOrderScreen } from "../../screens/header/DashboardSectionOrderScreen";
+import { VehicleChatScreen } from "../../screens/header/VehicleChatScreen";
 import { OnboardingScreen } from "../../screens/onboarding/OnboardingScreen";
 import type { VehicleDashboardTabName } from "../../screens/header/vehicleDashboard/navigationTypes";
 
@@ -76,6 +77,7 @@ export type AppStackParamList = {
     vehicleId: string;
     screen?: VehicleDashboardTabName;
   };
+  VehicleChat: { vehicleId: string };
   ServiceHistory: { vehicleId: string };
   ServiceHistoryFilters: {
     vehicleId: string;
@@ -270,6 +272,11 @@ export function RootNavigator() {
           <Stack.Screen
             name="VehicleDashboard"
             component={VehicleDashboardScreen}
+            options={nativeHeaderScreenOptions}
+          />
+          <Stack.Screen
+            name="VehicleChat"
+            component={VehicleChatScreen}
             options={nativeHeaderScreenOptions}
           />
           <Stack.Screen
