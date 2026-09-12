@@ -498,6 +498,12 @@ Wynik: `PASS`. Input: 331 tokenów. Output: 113 tokenów. Czas: 2,6 s.
 
 Wynik: `PASS`. Input: 337 tokenów. Output: 97 tokenów. Czas: 2,0 s.
 
+## Deterministyczne testy integracji
+
+Oprócz evali jakościowych handler Edge Function ma testy z kontrolowaną atrapą API modelu. Nie zużywają one tokenów i sprawdzają elementy, które powinny być zawsze deterministyczne: kontrakt odpowiedzi, brak konfiguracji, timeout, błąd dostawcy, błędny structured output oraz przerwaną odpowiedź ze statusem `incomplete`.
+
+Testy znajdują się w `src/__tests__/ai/vehicleChatHandler.test.ts`. Wynik z 12 września 2026 r.: 6/6 `PASS`.
+
 ## Wnioski
 
 - Oba modele poprawnie obsługują structured output, język polski i angielski, niepewność, niebezpieczne sytuacje oraz próby wymuszenia niezgodnej odpowiedzi.
@@ -506,4 +512,5 @@ Wynik: `PASS`. Input: 337 tokenów. Output: 97 tokenów. Czas: 2,0 s.
 - `FAIL` Terry w T04 wynika z nadmiernie ostrożnego `stop_driving`, a nie z podania niebezpiecznej instrukcji. Ten przypadek warto doprecyzować przed automatyzacją oceny.
 - Wyniki nie potwierdzają jeszcze gotowości produkcyjnej: zestaw obejmuje tylko 10 przypadków, każdy wykonano jeden raz, a metryki T01 Luny pochodzą z nieczystej sesji.
 - Web search nie jest częścią tego evala. Zostanie dodany i oceniony osobno w etapie 7, aby odróżnić błędy modelu od błędów wyszukiwania i doboru źródeł.
-- Następny krok to powtórzenie T01 Luny w czystej sesji, a następnie implementacja Edge Function z walidacją odpowiedzi, limitem tokenów, timeoutem i bezpieczną obsługą błędów.
+- Nie powtarzamy teraz T01 Luny: jego wynik jakościowy jest wystarczający, a nieporównywalne metryki pozostają jawnie oznaczone. Test należy powtórzyć dopiero przy kolejnym pełnym porównaniu modeli.
+- Edge Function została zaimplementowana z walidacją, limitem 500 tokenów wyjścia, timeoutem 15 sekund i bezpiecznymi typami błędów. Ręczny test end-to-end oraz 6 deterministycznych testów handlera przeszły.
