@@ -4,16 +4,16 @@ Realizujemy etapy po kolei. Proaktywne rekomendacje rozpoczynamy dopiero po zbud
 
 ## 1. LLM Fundamentals
 
-- [ ] Wybrać pierwszy model na podstawie jakości, kosztu, szybkości i obsługi structured output.
-- [ ] Ustalić limit tokenów i kosztu pojedynczego żądania.
-- [ ] Dodać sekret API wyłącznie po stronie Supabase.
-- [ ] Utworzyć Edge Function czatu.
-- [ ] Zdefiniować i walidować kontrakt request/response.
-- [ ] Dodać pierwszy wersjonowany prompt systemowy.
-- [ ] Dodać timeout i bezpieczne typy błędów.
-- [ ] Przygotować pierwsze przypadki testowe PL i EN.
-- [ ] Przetestować poprawną, błędną i przerwaną odpowiedź modelu.
-- [ ] Kryterium zakończenia: backend zwraca zwalidowaną odpowiedź bez ujawniania sekretów.
+- [x] Wybrać pierwszy model na podstawie jakości, kosztu, szybkości i obsługi structured output.
+- [x] Ustalić limit tokenów i kosztu pojedynczego żądania.
+- [x] Dodać sekret API wyłącznie po stronie Supabase.
+- [x] Utworzyć Edge Function czatu.
+- [x] Zdefiniować i walidować kontrakt request/response.
+- [x] Dodać pierwszy wersjonowany prompt systemowy.
+- [x] Dodać timeout i bezpieczne typy błędów.
+- [x] Przygotować pierwsze przypadki testowe PL i EN.
+- [x] Przetestować poprawną, błędną i przerwaną odpowiedź modelu.
+- [x] Kryterium zakończenia: backend zwraca zwalidowaną odpowiedź bez ujawniania sekretów.
 
 ## 2. Minimal Chat & Streaming
 
