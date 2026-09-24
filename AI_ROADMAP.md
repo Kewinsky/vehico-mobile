@@ -70,16 +70,19 @@ Streaming odpowiedzi pozostaje poza zakresem MVP. Można wrócić do niego po po
 
 **Rezultat:** użytkownik może prowadzić prostą rozmowę z modelem, ale model nie zna jeszcze jego pojazdu.
 
-## Etap 3 — kontekst pojazdu i historii
+## Etap 3 — pełny kontekst pojazdu
 
 - uwierzytelnienie użytkownika,
 - sprawdzenie własności pojazdu przez RLS i backend,
 - pobieranie profilu pojazdu,
 - pobieranie wyłącznie zatwierdzonej historii serwisowej,
+- przekazywanie prywatnościowo odfiltrowanego snapshotu przebiegu, przypomnień, opon, felg, wyposażenia, warsztatów i uproszczonych wpisów paliwowych,
+- pomijanie VIN-u, tablicy rejestracyjnej, `owner_id`, `intake_token`, technicznych dat utworzenia, raportów i ogłoszeń marketplace,
+- maksymalnie 100 najnowszych kompaktowych wpisów serwisowych i 100 najnowszych wpisów paliwowych,
 - wyraźne oznaczenie danych podanych przez użytkownika i danych nieznanych,
-- cytowanie konkretnych rekordów historii.
+- wewnętrzna walidacja pól bezpieczeństwa i odwołań do rekordów bez wyświetlania metadanych użytkownikowi.
 
-**Rezultat:** czat zna wybrany pojazd i jego historię, lecz nie ma jeszcze dostępu do dokumentów ani aktualnego internetu.
+**Rezultat:** czat zna odfiltrowany snapshot danych wybranego pojazdu i użytkownika dostępny w chmurze, lecz nie otrzymuje VIN-u, tablicy rejestracyjnej, pól autoryzacyjnych, raportów, ogłoszeń, nadmiarowych pól tankowań, lokalnych zdjęć, dokumentów, załączników ani aktualnego internetu.
 
 ## Etap 4 — dokumenty w chmurze
 

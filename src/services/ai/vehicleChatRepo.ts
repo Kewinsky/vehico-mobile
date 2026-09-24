@@ -2,17 +2,9 @@ import { ENV } from "../../config/env";
 import { supabase } from "../supabase/client";
 
 export type VehicleChatLanguage = "pl" | "en";
-export type VehicleChatUrgency =
-  | "monitor"
-  | "service_soon"
-  | "stop_driving"
-  | "unknown";
 
 export type VehicleChatAnswer = {
   answer: string;
-  urgency: VehicleChatUrgency;
-  uncertainty: string;
-  nextStep: string;
 };
 
 export type VehicleChatHistoryMessage = {
@@ -37,6 +29,7 @@ export class VehicleChatError extends Error {
 }
 
 type VehicleChatRequest = {
+  vehicleId: string;
   message: string;
   language: VehicleChatLanguage;
   history?: VehicleChatHistoryMessage[];
@@ -73,41 +66,21 @@ type ErrorPayload = {
   };
 };
 
-function isUrgency(value: unknown): value is VehicleChatUrgency {
-  return (
-    value === "monitor" ||
-    value === "service_soon" ||
-    value === "stop_driving" ||
-    value === "unknown"
-  );
-}
-
 function parseAnswer(value: unknown): VehicleChatAnswer | null {
   if (
     typeof value !== "object" ||
     value === null ||
-    !("answer" in value) ||
-    !("urgency" in value) ||
-    !("uncertainty" in value) ||
-    !("nextStep" in value)
+    !("answer" in value)
   ) {
     return null;
   }
 
-  const { answer, urgency, uncertainty, nextStep } = value;
-  if (
-    typeof answer !== "string" ||
-    !isUrgency(urgency) ||
-    typeof uncertainty !== "string" ||
-    typeof nextStep !== "string" ||
-    answer.length === 0 ||
-    uncertainty.length === 0 ||
-    nextStep.length === 0
-  ) {
+  const { answer } = value;
+  if (typeof answer !== "string" || answer.length === 0) {
     return null;
   }
 
-  return { answer, urgency, uncertainty, nextStep };
+  return { answer };
 }
 
 function parseErrorPayload(value: unknown): ErrorPayload | null {
@@ -151,6 +124,7 @@ export function createVehicleChatRequester({
   getAccessToken,
 }: VehicleChatDependencies) {
   return async function requestVehicleChat({
+    vehicleId,
     message,
     language,
     history = [],
@@ -174,7 +148,12 @@ export function createVehicleChatRequester({
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message, language, history }),
+        body: JSON.stringify({
+          vehicleId,
+          message,
+          language,
+          history,
+        }),
         signal,
       });
     } catch (error) {

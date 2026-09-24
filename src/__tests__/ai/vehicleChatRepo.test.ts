@@ -7,9 +7,6 @@ import {
 
 const ANSWER = {
   answer: "Stop safely.",
-  urgency: "stop_driving" as const,
-  uncertainty: "The cause cannot be confirmed remotely.",
-  nextStep: "Arrange roadside assistance.",
 };
 
 type TestFetch = Parameters<typeof createVehicleChatRequester>[0]["fetch"];
@@ -32,6 +29,7 @@ describe("vehicleChatRepo", () => {
 
     await expect(
       request({
+        vehicleId: "11111111-1111-4111-8111-111111111111",
         message: "Oil warning light",
         language: "en",
         history: [
@@ -54,7 +52,17 @@ describe("vehicleChatRepo", () => {
     );
     const requestBody = JSON.parse(
       String(fetch.mock.calls[0]?.[1].body),
-    ) as { history: unknown[]; stream?: unknown };
+    ) as {
+      vehicleId: string;
+      language: string;
+      history: unknown[];
+      stream?: unknown;
+    };
+    expect(requestBody.vehicleId).toBe(
+      "11111111-1111-4111-8111-111111111111",
+    );
+    expect(requestBody.language).toBe("en");
+    expect(requestBody).not.toHaveProperty("region");
     expect(requestBody.history).toHaveLength(2);
     expect(requestBody.stream).toBeUndefined();
   });
@@ -70,6 +78,7 @@ describe("vehicleChatRepo", () => {
 
     await expect(
       request({
+        vehicleId: "11111111-1111-4111-8111-111111111111",
         message: "Oil warning light",
         language: "en",
         signal: new AbortController().signal,
@@ -91,6 +100,7 @@ describe("vehicleChatRepo", () => {
 
     await expect(
       request({
+        vehicleId: "11111111-1111-4111-8111-111111111111",
         message: "Oil warning light",
         language: "en",
         signal: new AbortController().signal,
@@ -106,11 +116,12 @@ describe("vehicleChatRepo", () => {
   it("rejects a malformed successful response", async () => {
     const fetch = jest
       .fn<ReturnType<TestFetch>, Parameters<TestFetch>>()
-      .mockResolvedValue(Response.json({ answer: "Incomplete" }));
+      .mockResolvedValue(Response.json({ answer: "" }));
     const request = createRequester(fetch);
 
     await expect(
       request({
+        vehicleId: "11111111-1111-4111-8111-111111111111",
         message: "Oil warning light",
         language: "en",
         signal: new AbortController().signal,

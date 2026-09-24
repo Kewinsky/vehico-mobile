@@ -92,7 +92,7 @@ function toRequestHistory(messages: ChatMessage[]): VehicleChatHistoryMessage[] 
   return history;
 }
 
-export function VehicleChatScreen({ navigation }: Props) {
+export function VehicleChatScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const headerHeight = useHeaderHeight();
@@ -134,9 +134,13 @@ export function VehicleChatScreen({ navigation }: Props) {
     setActiveAssistantId(assistantId);
 
     try {
+      const language = languageFromLocale(
+        i18n.resolvedLanguage ?? i18n.language,
+      );
       const answer = await requestVehicleChat({
+        vehicleId: route.params.vehicleId,
         message: prompt,
-        language: languageFromLocale(i18n.resolvedLanguage ?? i18n.language),
+        language,
         history,
         signal: controller.signal,
       });
@@ -146,11 +150,7 @@ export function VehicleChatScreen({ navigation }: Props) {
           message.id === assistantId && message.role === "assistant"
             ? {
                 ...message,
-                text: [
-                  answer.answer,
-                  answer.uncertainty,
-                  answer.nextStep,
-                ].join("\n\n"),
+                text: answer.answer,
                 answer,
                 status: "complete",
               }

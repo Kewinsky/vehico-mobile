@@ -50,15 +50,8 @@ jest.mock("../../ui/components/layout/ContentHeader", () => {
 
 const ANSWER = {
   answer: "Stop safely.",
-  urgency: "stop_driving" as const,
-  uncertainty: "The cause cannot be confirmed remotely.",
-  nextStep: "Arrange roadside assistance.",
 };
-const DISPLAYED_ANSWER = [
-  ANSWER.answer,
-  ANSWER.uncertainty,
-  ANSWER.nextStep,
-].join("\n\n");
+const DISPLAYED_ANSWER = ANSWER.answer;
 
 const mockedRequestVehicleChat = jest.mocked(requestVehicleChat);
 
@@ -118,6 +111,10 @@ describe("VehicleChatScreen", () => {
     await waitFor(() => expect(mockedRequestVehicleChat).toHaveBeenCalledTimes(1));
     expect(mockedRequestVehicleChat.mock.calls[0]?.[0].message).toBe(
       "How should I prepare my car for a long trip?",
+    );
+    expect(mockedRequestVehicleChat.mock.calls[0]?.[0].vehicleId).toBe("v1");
+    expect(mockedRequestVehicleChat.mock.calls[0]?.[0]).not.toHaveProperty(
+      "region",
     );
   });
 
