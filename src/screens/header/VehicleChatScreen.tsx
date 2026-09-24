@@ -1,5 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Send, Square } from "lucide-react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
+import { ArrowUp, Sparkles, Square } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -101,6 +102,7 @@ function toRequestHistory(messages: ChatMessage[]): VehicleChatHistoryMessage[] 
 export function VehicleChatScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
+  const headerHeight = useHeaderHeight();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -184,8 +186,8 @@ export function VehicleChatScreen({ navigation }: Props) {
     }
   }
 
-  function sendMessage() {
-    const prompt = input.trim();
+  function sendPrompt(value: string) {
+    const prompt = value.trim();
     if (!prompt || activeRequest.current) return;
 
     const userMessage: UserMessage = {
@@ -208,6 +210,10 @@ export function VehicleChatScreen({ navigation }: Props) {
       prompt,
       toRequestHistory(messages),
     );
+  }
+
+  function sendMessage() {
+    sendPrompt(input);
   }
 
   function cancelRequest() {
@@ -287,7 +293,7 @@ export function VehicleChatScreen({ navigation }: Props) {
         {isStreaming ? (
           <Square color="#000000" fill="#000000" size={18} />
         ) : (
-          <Send color="#000000" size={20} />
+          <ArrowUp color="#000000" size={22} strokeWidth={2.5} />
         )}
       </Pressable>
     </View>
@@ -318,21 +324,87 @@ export function VehicleChatScreen({ navigation }: Props) {
             />
           )}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.messageList}
+          contentContainerStyle={[
+            styles.messageList,
+            {
+              paddingTop:
+                headerHeight + (Platform.OS === "android" ? theme.spacing.md : 0),
+            },
+          ]}
           ListHeaderComponent={
             <View style={styles.header}>
               <ContentHeader
                 title={t("vehicleChat.title")}
                 subtitle={t("vehicleChat.subtitle")}
               />
-              {messages.length === 0 ? (
-                <Text style={styles.emptyBody}>{t("vehicleChat.emptyBody")}</Text>
-              ) : null}
             </View>
+          }
+          ListEmptyComponent={
+            <ChatEmptyState
+              disabled={isStreaming}
+              onSelect={sendPrompt}
+              styles={styles}
+              theme={theme}
+              t={t}
+            />
           }
         />
       </HeaderLayout>
     </KeyboardAvoidingView>
+  );
+}
+
+type ChatEmptyStateProps = {
+  disabled: boolean;
+  onSelect: (prompt: string) => void;
+  styles: ReturnType<typeof makeStyles>;
+  theme: AppTheme;
+  t: ReturnType<typeof useTranslation>["t"];
+};
+
+function ChatEmptyState({
+  disabled,
+  onSelect,
+  styles,
+  theme,
+  t,
+}: ChatEmptyStateProps) {
+  const prompts = [
+    t("vehicleChat.suggestions.inspection"),
+    t("vehicleChat.suggestions.fuelCosts"),
+    t("vehicleChat.suggestions.roadTrip"),
+    t("vehicleChat.suggestions.warningLight"),
+  ];
+
+  return (
+    <View style={styles.emptyState}>
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={styles.emptyIllustration}
+      >
+        <View style={styles.emptyIllustrationInner}>
+          <Sparkles color={theme.colors.muted} size={38} strokeWidth={1.5} />
+        </View>
+      </View>
+      <View style={styles.suggestions}>
+        {prompts.map((prompt) => (
+          <Pressable
+            key={prompt}
+            accessibilityRole="button"
+            disabled={disabled}
+            onPress={() => onSelect(prompt)}
+            style={({ pressed }) => [
+              styles.suggestionButton,
+              disabled ? styles.composerButtonDisabled : null,
+              pressed ? styles.pressed : null,
+            ]}
+          >
+            <Text style={styles.suggestionText}>{prompt}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
   );
 }
 
@@ -381,9 +453,11 @@ function MessageBubble({
       ) : null}
       {message.status === "complete" && message.answer ? (
         <View style={styles.details}>
-          <Text style={styles.detailLabel}>
-            {t(`vehicleChat.urgency.${message.answer.urgency}`)}
-          </Text>
+          {message.answer.urgency !== "unknown" ? (
+            <Text style={styles.detailLabel}>
+              {t(`vehicleChat.urgency.${message.answer.urgency}`)}
+            </Text>
+          ) : null}
           <Text style={styles.detailText}>{message.answer.uncertainty}</Text>
           <Text style={styles.detailLabel}>{t("vehicleChat.nextStep")}</Text>
           <Text style={styles.detailText}>{message.answer.nextStep}</Text>
@@ -420,16 +494,54 @@ const makeStyles = (theme: AppTheme) =>
     header: {
       marginBottom: theme.spacing.lg,
     },
-    emptyBody: {
-      color: theme.colors.muted,
-      fontSize: theme.typography.body,
-      lineHeight: 24,
-      marginTop: theme.spacing.md,
-      textAlign: "center",
-    },
     messageList: {
       flexGrow: 1,
       paddingBottom: theme.spacing.lg,
+    },
+    emptyState: {
+      alignItems: "center",
+      flex: 1,
+      justifyContent: "center",
+      paddingBottom: theme.spacing.xl,
+    },
+    emptyIllustration: {
+      alignItems: "center",
+      borderColor: theme.colors.border,
+      borderRadius: 56,
+      borderWidth: 1,
+      height: 112,
+      justifyContent: "center",
+      marginBottom: theme.spacing.xl,
+      opacity: 0.8,
+      width: 112,
+    },
+    emptyIllustrationInner: {
+      alignItems: "center",
+      backgroundColor: theme.colors.card,
+      borderRadius: 40,
+      height: 80,
+      justifyContent: "center",
+      width: 80,
+    },
+    suggestions: {
+      alignSelf: "stretch",
+      gap: theme.spacing.xs,
+    },
+    suggestionButton: {
+      alignItems: "center",
+      borderColor: theme.colors.border,
+      borderRadius: theme.radius.lg,
+      borderWidth: 1,
+      justifyContent: "center",
+      minHeight: 48,
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: theme.spacing.sm,
+    },
+    suggestionText: {
+      color: theme.colors.muted,
+      fontSize: theme.typography.small,
+      lineHeight: 19,
+      textAlign: "center",
     },
     bubble: {
       borderRadius: theme.radius.md,
@@ -526,6 +638,7 @@ const makeStyles = (theme: AppTheme) =>
       borderRadius: 24,
       height: 48,
       justifyContent: "center",
+      padding: 0,
       width: 48,
     },
     composerButtonDisabled: {

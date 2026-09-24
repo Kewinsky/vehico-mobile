@@ -772,10 +772,9 @@ export const pl = {
   },
   vehicleChat: {
     title: "Asystent AI",
-    subtitle: "Zapytaj o objawy i bezpieczne kolejne kroki.",
-    emptyBody: "Opisz objaw, kontrolkę lub dźwięk, który Cię niepokoi.",
+    subtitle: "Zapytaj o samochód, eksploatację i bezpieczne kolejne kroki.",
     inputLabel: "Wiadomość do asystenta AI",
-    inputPlaceholder: "Opisz problem z pojazdem…",
+    inputPlaceholder: "Zapytaj o swój samochód…",
     sendAccessibilityLabel: "Wyślij wiadomość",
     cancelAccessibilityLabel: "Zatrzymaj odpowiedź",
     error: "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie.",
@@ -787,6 +786,12 @@ export const pl = {
       service_soon: "Umów serwis",
       stop_driving: "Zatrzymaj pojazd",
       unknown: "Pilność nieznana",
+    },
+    suggestions: {
+      inspection: "Jak sprawdzić termin badania technicznego?",
+      fuelCosts: "Jak obliczyć średnie miesięczne wydatki na paliwo?",
+      roadTrip: "Jak przygotować samochód do dłuższej trasy?",
+      warningLight: "Co może oznaczać czerwona kontrolka oleju?",
     },
   },
   profile: {

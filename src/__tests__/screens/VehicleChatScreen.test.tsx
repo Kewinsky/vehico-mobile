@@ -9,6 +9,10 @@ jest.mock("../../services/ai/vehicleChatRepo", () => ({
   streamVehicleChat: jest.fn(),
 }));
 
+jest.mock("@react-navigation/elements", () => ({
+  useHeaderHeight: () => 96,
+}));
+
 jest.mock("../../ui/ThemeProvider", () => ({
   useTheme: () => ({
     theme: jest.requireActual("../../ui/theme").lightTheme,
@@ -68,17 +72,41 @@ describe("VehicleChatScreen", () => {
     mockedStreamVehicleChat.mockReset();
   });
 
-  it("shows the screen description without the removed empty-state subheader", () => {
+  it("shows the broader screen description and predefined prompts", () => {
     const screen = renderScreen();
 
     expect(screen.getByText("AI assistant")).toBeTruthy();
-    expect(screen.getByText("Ask about symptoms and safe next steps.")).toBeTruthy();
+    expect(
+      screen.getByText("Ask about your car, ownership, and safe next steps."),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("How can I check when my vehicle inspection expires?"),
+    ).toBeTruthy();
     expect(
       screen.getByText(
-        "Describe a symptom, warning light, or sound that concerns you.",
+        "How can I calculate my average monthly fuel spending?",
       ),
     ).toBeTruthy();
     expect(screen.queryByText("How can I help?")).toBeNull();
+    expect(
+      screen.queryByText(
+        "Describe a symptom, warning light, or sound that concerns you.",
+      ),
+    ).toBeNull();
+  });
+
+  it("sends a predefined prompt with one tap", async () => {
+    mockedStreamVehicleChat.mockResolvedValue(ANSWER);
+    const screen = renderScreen();
+
+    fireEvent.press(
+      screen.getByText("How should I prepare my car for a long trip?"),
+    );
+
+    await waitFor(() => expect(mockedStreamVehicleChat).toHaveBeenCalledTimes(1));
+    expect(mockedStreamVehicleChat.mock.calls[0]?.[0].message).toBe(
+      "How should I prepare my car for a long trip?",
+    );
   });
 
   it("adds the user message, renders streamed text, and shows final details", async () => {

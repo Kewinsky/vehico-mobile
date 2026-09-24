@@ -6,12 +6,12 @@ const MODEL_TIMEOUT_MS = 15_000;
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const MODEL = "gpt-5.6-luna";
 
-const SYSTEM_PROMPT_V1 = `You are the Vericar vehicle assistant.
+const SYSTEM_PROMPT_V2 = `You are the Vericar vehicle assistant.
 
-Help users understand vehicle symptoms and choose a safe next step.
+Help users with general vehicle ownership, maintenance, symptoms, operating costs, and safe next steps.
 
 Rules:
-- Use only information contained in the user's question.
+- Use only information contained in the current conversation.
 - You do not have access to the user's vehicle, service history, documents, measurements, or current internet sources.
 - Never claim that you have confirmed a diagnosis.
 - Clearly communicate missing information and uncertainty.
@@ -249,7 +249,7 @@ function isTimeoutError(error: unknown): boolean {
 function modelRequestBody(request: VehicleChatRequest): string {
   return JSON.stringify({
     model: MODEL,
-    instructions: SYSTEM_PROMPT_V1,
+    instructions: SYSTEM_PROMPT_V2,
     input: [
       ...request.history,
       {

@@ -761,10 +761,9 @@ export const en = {
   },
   vehicleChat: {
     title: "AI assistant",
-    subtitle: "Ask about symptoms and safe next steps.",
-    emptyBody: "Describe a symptom, warning light, or sound that concerns you.",
+    subtitle: "Ask about your car, ownership, and safe next steps.",
     inputLabel: "Message to the AI assistant",
-    inputPlaceholder: "Describe the vehicle problem…",
+    inputPlaceholder: "Ask about your car…",
     sendAccessibilityLabel: "Send message",
     cancelAccessibilityLabel: "Stop response",
     error: "Could not get an answer. Try again.",
@@ -776,6 +775,12 @@ export const en = {
       service_soon: "Arrange service",
       stop_driving: "Stop driving",
       unknown: "Urgency unknown",
+    },
+    suggestions: {
+      inspection: "How can I check when my vehicle inspection expires?",
+      fuelCosts: "How can I calculate my average monthly fuel spending?",
+      roadTrip: "How should I prepare my car for a long trip?",
+      warningLight: "What could a red oil warning light mean?",
     },
   },
   profile: {
