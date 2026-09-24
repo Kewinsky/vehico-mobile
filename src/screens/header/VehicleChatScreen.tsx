@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { ArrowUp, Square } from "lucide-react-native";
+import { ArrowUp, MessageCircleQuestionMark, Square } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -106,6 +106,7 @@ export function VehicleChatScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(true);
   const [activeAssistantId, setActiveAssistantId] = useState<string | null>(
     null,
   );
@@ -195,6 +196,7 @@ export function VehicleChatScreen({ navigation }: Props) {
     };
 
     setInput("");
+    setShowSuggestions(false);
     setMessages((current) => [...current, userMessage, assistantMessage]);
     void requestAnswer(
       assistantMessage.id,
@@ -265,6 +267,28 @@ export function VehicleChatScreen({ navigation }: Props) {
       />
       <Pressable
         accessibilityLabel={
+          showSuggestions
+            ? t("vehicleChat.hideSuggestionsAccessibilityLabel")
+            : t("vehicleChat.showSuggestionsAccessibilityLabel")
+        }
+        accessibilityRole="button"
+        accessibilityState={{ expanded: showSuggestions }}
+        hitSlop={8}
+        onPress={() => setShowSuggestions((current) => !current)}
+        style={({ pressed }) => [
+          styles.suggestionsButton,
+          showSuggestions ? styles.suggestionsButtonExpanded : null,
+          pressed ? styles.pressed : null,
+        ]}
+      >
+        <MessageCircleQuestionMark
+          color={showSuggestions ? "#000000" : theme.colors.muted}
+          size={22}
+          strokeWidth={2}
+        />
+      </Pressable>
+      <Pressable
+        accessibilityLabel={
           isRequestActive
             ? t("vehicleChat.cancelAccessibilityLabel")
             : t("vehicleChat.sendAccessibilityLabel")
@@ -331,12 +355,25 @@ export function VehicleChatScreen({ navigation }: Props) {
             </View>
           }
           ListEmptyComponent={
-            <ChatEmptyState
-              disabled={isRequestActive}
-              onSelect={sendPrompt}
-              styles={styles}
-              t={t}
-            />
+            showSuggestions ? (
+              <ChatSuggestions
+                disabled={isRequestActive}
+                empty
+                onSelect={sendPrompt}
+                styles={styles}
+                t={t}
+              />
+            ) : null
+          }
+          ListFooterComponent={
+            messages.length > 0 && showSuggestions ? (
+              <ChatSuggestions
+                disabled={isRequestActive}
+                onSelect={sendPrompt}
+                styles={styles}
+                t={t}
+              />
+            ) : null
           }
         />
       </HeaderLayout>
@@ -344,19 +381,21 @@ export function VehicleChatScreen({ navigation }: Props) {
   );
 }
 
-type ChatEmptyStateProps = {
+type ChatSuggestionsProps = {
   disabled: boolean;
+  empty?: boolean;
   onSelect: (prompt: string) => void;
   styles: ReturnType<typeof makeStyles>;
   t: ReturnType<typeof useTranslation>["t"];
 };
 
-function ChatEmptyState({
+function ChatSuggestions({
   disabled,
+  empty = false,
   onSelect,
   styles,
   t,
-}: ChatEmptyStateProps) {
+}: ChatSuggestionsProps) {
   const prompts = [
     t("vehicleChat.suggestions.inspection"),
     t("vehicleChat.suggestions.fuelCosts"),
@@ -367,7 +406,7 @@ function ChatEmptyState({
   ];
 
   return (
-    <View style={styles.emptyState}>
+    <View style={empty ? styles.emptyState : styles.suggestionsPanel}>
       <View style={styles.suggestions}>
         {prompts.map((prompt) => (
           <Pressable
@@ -490,6 +529,10 @@ const makeStyles = (theme: AppTheme) =>
       alignSelf: "stretch",
       gap: theme.spacing.xs,
     },
+    suggestionsPanel: {
+      alignItems: "center",
+      paddingTop: theme.spacing.sm,
+    },
     suggestionButton: {
       alignItems: "center",
       borderColor: theme.colors.border,
@@ -604,6 +647,20 @@ const makeStyles = (theme: AppTheme) =>
       justifyContent: "center",
       padding: 0,
       width: 48,
+    },
+    suggestionsButton: {
+      alignItems: "center",
+      backgroundColor: theme.colors.card,
+      borderColor: theme.colors.border,
+      borderRadius: 24,
+      borderWidth: 1,
+      height: 48,
+      justifyContent: "center",
+      width: 48,
+    },
+    suggestionsButtonExpanded: {
+      backgroundColor: theme.colors.accent,
+      borderColor: theme.colors.accent,
     },
     composerButtonDisabled: {
       opacity: 0.45,

@@ -777,6 +777,8 @@ export const pl = {
     inputPlaceholder: "Zapytaj o swój samochód…",
     sendAccessibilityLabel: "Wyślij wiadomość",
     cancelAccessibilityLabel: "Zatrzymaj odpowiedź",
+    showSuggestionsAccessibilityLabel: "Pokaż sugerowane pytania",
+    hideSuggestionsAccessibilityLabel: "Ukryj sugerowane pytania",
     error: "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie.",
     cancelled: "Odpowiedź została zatrzymana.",
     retry: "Spróbuj ponownie",

@@ -115,6 +115,29 @@ describe("VehicleChatScreen", () => {
     );
   });
 
+  it("lets the user reopen predefined prompts after the chat starts", async () => {
+    mockedRequestVehicleChat.mockResolvedValue(ANSWER);
+    const screen = renderScreen();
+
+    fireEvent.changeText(
+      screen.getByLabelText("Message to the AI assistant"),
+      "Oil warning light",
+    );
+    fireEvent.press(screen.getByLabelText("Send message"));
+
+    await waitFor(() => expect(screen.getByText("Stop safely.")).toBeTruthy());
+    expect(
+      screen.queryByText("How often should engine oil be changed?"),
+    ).toBeNull();
+
+    fireEvent.press(screen.getByLabelText("Show suggested questions"));
+
+    expect(
+      screen.getByText("How often should engine oil be changed?"),
+    ).toBeTruthy();
+    expect(screen.getByLabelText("Hide suggested questions")).toBeTruthy();
+  });
+
   it("adds the user message and shows the validated answer", async () => {
     mockedRequestVehicleChat.mockResolvedValue(ANSWER);
     const screen = renderScreen();

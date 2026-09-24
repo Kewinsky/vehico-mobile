@@ -766,6 +766,8 @@ export const en = {
     inputPlaceholder: "Ask about your car…",
     sendAccessibilityLabel: "Send message",
     cancelAccessibilityLabel: "Stop response",
+    showSuggestionsAccessibilityLabel: "Show suggested questions",
+    hideSuggestionsAccessibilityLabel: "Hide suggested questions",
     error: "Could not get an answer. Try again.",
     cancelled: "The response was stopped.",
     retry: "Try again",
