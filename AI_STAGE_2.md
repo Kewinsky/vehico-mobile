@@ -63,7 +63,7 @@ To jest proste okno kontekstu. Inteligentne wybieranie, streszczanie i budżetow
 
 ## Stany interfejsu
 
-- pusty ekran zawiera nagłówek „Asystent AI”, dekoracyjny placeholder oraz gotowe przykładowe pytania, bez dodatkowego podnagłówka „Jak mogę Ci pomóc?”;
+- pusty ekran zawiera nagłówek „Asystent AI” oraz gotowe przykładowe pytania, bez dodatkowego podnagłówka „Jak mogę Ci pomóc?”;
 - prompt `SYSTEM_PROMPT_V2` obejmuje również ogólne pytania o eksploatację, utrzymanie i koszty pojazdu, ale nie udaje dostępu do danych użytkownika;
 - wysłana wiadomość od razu pojawia się na liście;
 - przed pierwszym fragmentem odpowiedzi widoczny jest wskaźnik ładowania;

@@ -781,6 +781,8 @@ export const en = {
       fuelCosts: "How can I calculate my average monthly fuel spending?",
       roadTrip: "How should I prepare my car for a long trip?",
       warningLight: "What could a red oil warning light mean?",
+      oilChange: "How often should engine oil be changed?",
+      usedCar: "What should I check when buying a used car?",
     },
   },
   profile: {

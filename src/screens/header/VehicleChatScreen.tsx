@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { ArrowUp, Sparkles, Square } from "lucide-react-native";
+import { ArrowUp, Square } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -344,7 +344,6 @@ export function VehicleChatScreen({ navigation }: Props) {
               disabled={isStreaming}
               onSelect={sendPrompt}
               styles={styles}
-              theme={theme}
               t={t}
             />
           }
@@ -358,7 +357,6 @@ type ChatEmptyStateProps = {
   disabled: boolean;
   onSelect: (prompt: string) => void;
   styles: ReturnType<typeof makeStyles>;
-  theme: AppTheme;
   t: ReturnType<typeof useTranslation>["t"];
 };
 
@@ -366,7 +364,6 @@ function ChatEmptyState({
   disabled,
   onSelect,
   styles,
-  theme,
   t,
 }: ChatEmptyStateProps) {
   const prompts = [
@@ -374,19 +371,12 @@ function ChatEmptyState({
     t("vehicleChat.suggestions.fuelCosts"),
     t("vehicleChat.suggestions.roadTrip"),
     t("vehicleChat.suggestions.warningLight"),
+    t("vehicleChat.suggestions.oilChange"),
+    t("vehicleChat.suggestions.usedCar"),
   ];
 
   return (
     <View style={styles.emptyState}>
-      <View
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        style={styles.emptyIllustration}
-      >
-        <View style={styles.emptyIllustrationInner}>
-          <Sparkles color={theme.colors.muted} size={38} strokeWidth={1.5} />
-        </View>
-      </View>
       <View style={styles.suggestions}>
         {prompts.map((prompt) => (
           <Pressable
@@ -504,26 +494,8 @@ const makeStyles = (theme: AppTheme) =>
       justifyContent: "center",
       paddingBottom: theme.spacing.xl,
     },
-    emptyIllustration: {
-      alignItems: "center",
-      borderColor: theme.colors.border,
-      borderRadius: 56,
-      borderWidth: 1,
-      height: 112,
-      justifyContent: "center",
-      marginBottom: theme.spacing.xl,
-      opacity: 0.8,
-      width: 112,
-    },
-    emptyIllustrationInner: {
-      alignItems: "center",
-      backgroundColor: theme.colors.card,
-      borderRadius: 40,
-      height: 80,
-      justifyContent: "center",
-      width: 80,
-    },
     suggestions: {
+      alignItems: "center",
       alignSelf: "stretch",
       gap: theme.spacing.xs,
     },
@@ -533,6 +505,7 @@ const makeStyles = (theme: AppTheme) =>
       borderRadius: theme.radius.lg,
       borderWidth: 1,
       justifyContent: "center",
+      maxWidth: "100%",
       minHeight: 48,
       paddingHorizontal: theme.spacing.md,
       paddingVertical: theme.spacing.sm,

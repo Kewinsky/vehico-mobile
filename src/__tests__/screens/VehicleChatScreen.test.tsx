@@ -87,6 +87,12 @@ describe("VehicleChatScreen", () => {
         "How can I calculate my average monthly fuel spending?",
       ),
     ).toBeTruthy();
+    expect(
+      screen.getByText("How often should engine oil be changed?"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("What should I check when buying a used car?"),
+    ).toBeTruthy();
     expect(screen.queryByText("How can I help?")).toBeNull();
     expect(
       screen.queryByText(

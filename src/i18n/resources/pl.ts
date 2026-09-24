@@ -792,6 +792,8 @@ export const pl = {
       fuelCosts: "Jak obliczyć średnie miesięczne wydatki na paliwo?",
       roadTrip: "Jak przygotować samochód do dłuższej trasy?",
       warningLight: "Co może oznaczać czerwona kontrolka oleju?",
+      oilChange: "Jak często wymieniać olej silnikowy?",
+      usedCar: "Na co zwrócić uwagę przy zakupie używanego auta?",
     },
   },
   profile: {
