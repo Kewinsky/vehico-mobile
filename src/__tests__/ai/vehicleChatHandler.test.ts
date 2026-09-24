@@ -39,6 +39,7 @@ function modelResponse(output: unknown, status = "completed"): Response {
 function createHandler(fetchModel: jest.MockedFunction<ModelFetch>) {
   return createVehicleChatHandler({
     getOpenAiApiKey: () => "test-api-key",
+    hasPremiumAccess: async () => true,
     fetch: fetchModel,
   });
 }
@@ -76,6 +77,40 @@ describe("vehicle-chat handler", () => {
     expect(fetchModel).toHaveBeenCalledTimes(1);
   });
 
+  it("rejects users without Premium before calling the model", async () => {
+    const fetchModel = jest.fn<Promise<Response>, Parameters<ModelFetch>>();
+    const handler = createVehicleChatHandler({
+      getOpenAiApiKey: () => "test-api-key",
+      hasPremiumAccess: async () => false,
+      fetch: fetchModel,
+    });
+
+    const response = await handler(
+      request(JSON.stringify({ message: "Oil warning light", language: "en" })),
+    );
+
+    await expectError(response, 403, "PREMIUM_REQUIRED");
+    expect(fetchModel).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when Premium access cannot be verified", async () => {
+    const fetchModel = jest.fn<Promise<Response>, Parameters<ModelFetch>>();
+    const handler = createVehicleChatHandler({
+      getOpenAiApiKey: () => "test-api-key",
+      hasPremiumAccess: async () => {
+        throw new Error("database unavailable");
+      },
+      fetch: fetchModel,
+    });
+
+    const response = await handler(
+      request(JSON.stringify({ message: "Oil warning light", language: "en" })),
+    );
+
+    await expectError(response, 503, "AUTHORIZATION_FAILED");
+    expect(fetchModel).not.toHaveBeenCalled();
+  });
+
   it("forwards a bounded conversation history to the model", async () => {
     const fetchModel = jest
       .fn<Promise<Response>, Parameters<ModelFetch>>()
@@ -110,6 +145,7 @@ describe("vehicle-chat handler", () => {
     const fetchModel = jest.fn<Promise<Response>, Parameters<ModelFetch>>();
     const handler = createVehicleChatHandler({
       getOpenAiApiKey: () => undefined,
+      hasPremiumAccess: async () => true,
       fetch: fetchModel,
     });
 

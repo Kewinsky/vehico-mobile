@@ -500,6 +500,19 @@ export function useVehicleDashboardState({
     );
   }, [isPremium, navigation, vehicleId, t]);
 
+  const handleAiPress = useCallback(() => {
+    if (isPremium) {
+      navigation.navigate("VehicleChat", { vehicleId });
+      return;
+    }
+
+    Alert.alert(
+      t("limits.premiumRequiredTitle"),
+      t("limits.premiumRequiredBody"),
+      getPremiumUpgradeAlertButtons(t, navigation),
+    );
+  }, [isPremium, navigation, vehicleId, t]);
+
   async function handleOpenPublicReportInBrowser() {
     if (!publicReportUrl) return;
     try {
@@ -920,10 +933,10 @@ export function useVehicleDashboardState({
         key: "aiMechanic",
         title: t("dashboard.tiles.aiMechanicTitle"),
         icon: "sparkles",
-        onPress: () => navigation.navigate("VehicleChat", { vehicleId }),
+        onPress: handleAiPress,
       },
     ],
-    [t, navigation, vehicleId, handleSharePress],
+    [t, navigation, vehicleId, handleAiPress, handleSharePress],
   );
 
   return {

@@ -69,6 +69,8 @@ interface VehicleChatAnswer {
 
 type ErrorCode =
   | "METHOD_NOT_ALLOWED"
+  | "PREMIUM_REQUIRED"
+  | "AUTHORIZATION_FAILED"
   | "INVALID_JSON"
   | "INVALID_REQUEST"
   | "SERVER_MISCONFIGURATION"
@@ -80,6 +82,7 @@ type ModelFetch = (input: string, init: RequestInit) => Promise<Response>;
 
 interface VehicleChatHandlerDependencies {
   getOpenAiApiKey: () => string | undefined;
+  hasPremiumAccess: (req: Request) => Promise<boolean>;
   fetch: ModelFetch;
 }
 
@@ -270,6 +273,7 @@ function modelRequestBody(request: VehicleChatRequest): string {
 
 export function createVehicleChatHandler({
   getOpenAiApiKey,
+  hasPremiumAccess,
   fetch: fetchModel,
 }: VehicleChatHandlerDependencies): (req: Request) => Promise<Response> {
   return async (req): Promise<Response> => {
@@ -278,6 +282,26 @@ export function createVehicleChatHandler({
         405,
         "METHOD_NOT_ALLOWED",
         "Only POST requests are supported.",
+      );
+    }
+
+    let premiumAccess: boolean;
+
+    try {
+      premiumAccess = await hasPremiumAccess(req);
+    } catch {
+      return errorResponse(
+        503,
+        "AUTHORIZATION_FAILED",
+        "Premium access could not be verified.",
+      );
+    }
+
+    if (!premiumAccess) {
+      return errorResponse(
+        403,
+        "PREMIUM_REQUIRED",
+        "An active Premium plan is required to use the vehicle assistant.",
       );
     }
 
