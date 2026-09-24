@@ -762,8 +762,6 @@ export const pl = {
       workshopIntakeSubtitle: "Udostępnij kod QR warsztatowi.",
       aiMechanicTitle: "AI asystent",
     },
-    aiMechanicComingSoon:
-      "Wkrótce pojawi się asystent AI, który pomoże Ci interpretować historię serwisową, podpowiadać kolejne kroki i odpowiadać na pytania o Twój pojazd.",
     quickActions: {
       addService: "Serwis",
       addFuel: "Paliwo",
@@ -771,6 +769,27 @@ export const pl = {
     },
     publicLinkTitle: "Link publiczny",
     publicLinkBody: "Public ID: {{id}}",
+  },
+  vehicleChat: {
+    title: "Asystent AI",
+    subtitle: "Zapytaj o samochód, eksploatację i bezpieczne kolejne kroki.",
+    inputLabel: "Wiadomość do asystenta AI",
+    inputPlaceholder: "Zapytaj o swój samochód…",
+    sendAccessibilityLabel: "Wyślij wiadomość",
+    cancelAccessibilityLabel: "Zatrzymaj odpowiedź",
+    showSuggestionsAccessibilityLabel: "Pokaż sugerowane pytania",
+    hideSuggestionsAccessibilityLabel: "Ukryj sugerowane pytania",
+    error: "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie.",
+    cancelled: "Odpowiedź została zatrzymana.",
+    retry: "Spróbuj ponownie",
+    suggestions: {
+      inspection: "Jak sprawdzić termin badania technicznego?",
+      fuelCosts: "Jak obliczyć średnie miesięczne wydatki na paliwo?",
+      roadTrip: "Jak przygotować samochód do dłuższej trasy?",
+      warningLight: "Co może oznaczać czerwona kontrolka oleju?",
+      oilChange: "Jak często wymieniać olej silnikowy?",
+      usedCar: "Na co zwrócić uwagę przy zakupie używanego auta?",
+    },
   },
   profile: {
     title: "Profil",

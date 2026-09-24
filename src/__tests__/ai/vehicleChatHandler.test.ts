@@ -12,11 +12,12 @@ const VALID_ANSWER = {
 
 type ModelFetch = (input: string, init: RequestInit) => Promise<Response>;
 
-function request(body: string): Request {
+function request(body: string, signal?: AbortSignal): Request {
   return new Request(REQUEST_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body,
+    signal,
   });
 }
 
@@ -39,6 +40,7 @@ function modelResponse(output: unknown, status = "completed"): Response {
 function createHandler(fetchModel: jest.MockedFunction<ModelFetch>) {
   return createVehicleChatHandler({
     getOpenAiApiKey: () => "test-api-key",
+    hasPremiumAccess: async () => true,
     fetch: fetchModel,
   });
 }
@@ -76,10 +78,75 @@ describe("vehicle-chat handler", () => {
     expect(fetchModel).toHaveBeenCalledTimes(1);
   });
 
+  it("rejects users without Premium before calling the model", async () => {
+    const fetchModel = jest.fn<Promise<Response>, Parameters<ModelFetch>>();
+    const handler = createVehicleChatHandler({
+      getOpenAiApiKey: () => "test-api-key",
+      hasPremiumAccess: async () => false,
+      fetch: fetchModel,
+    });
+
+    const response = await handler(
+      request(JSON.stringify({ message: "Oil warning light", language: "en" })),
+    );
+
+    await expectError(response, 403, "PREMIUM_REQUIRED");
+    expect(fetchModel).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when Premium access cannot be verified", async () => {
+    const fetchModel = jest.fn<Promise<Response>, Parameters<ModelFetch>>();
+    const handler = createVehicleChatHandler({
+      getOpenAiApiKey: () => "test-api-key",
+      hasPremiumAccess: async () => {
+        throw new Error("database unavailable");
+      },
+      fetch: fetchModel,
+    });
+
+    const response = await handler(
+      request(JSON.stringify({ message: "Oil warning light", language: "en" })),
+    );
+
+    await expectError(response, 503, "AUTHORIZATION_FAILED");
+    expect(fetchModel).not.toHaveBeenCalled();
+  });
+
+  it("forwards a bounded conversation history to the model", async () => {
+    const fetchModel = jest
+      .fn<Promise<Response>, Parameters<ModelFetch>>()
+      .mockResolvedValue(modelResponse(VALID_ANSWER));
+    const handler = createHandler(fetchModel);
+
+    const response = await handler(
+      request(
+        JSON.stringify({
+          message: "Can I drive?",
+          language: "en",
+          history: [
+            { role: "user", content: "The oil warning light is red." },
+            { role: "assistant", content: "Stop the engine safely." },
+          ],
+        }),
+      ),
+    );
+
+    expect(response.status).toBe(200);
+    const requestBody = JSON.parse(
+      String(fetchModel.mock.calls[0]?.[1].body),
+    ) as { input: unknown[] };
+    expect(requestBody.input).toEqual([
+      { role: "user", content: "The oil warning light is red." },
+      { role: "assistant", content: "Stop the engine safely." },
+      { role: "user", content: "Language: en\n\nCan I drive?" },
+    ]);
+  });
+
   it("fails safely when the API key is missing", async () => {
     const fetchModel = jest.fn<Promise<Response>, Parameters<ModelFetch>>();
     const handler = createVehicleChatHandler({
       getOpenAiApiKey: () => undefined,
+      hasPremiumAccess: async () => true,
       fetch: fetchModel,
     });
 
@@ -104,6 +171,43 @@ describe("vehicle-chat handler", () => {
     );
 
     await expectError(response, 504, "MODEL_TIMEOUT");
+  });
+
+  it("propagates client cancellation to the model request", async () => {
+    const requestController = new AbortController();
+    let startModelRequest: (() => void) | undefined;
+    const modelRequestStarted = new Promise<void>((resolve) => {
+      startModelRequest = resolve;
+    });
+    let modelSignal: AbortSignal | null = null;
+    const fetchModel = jest
+      .fn<Promise<Response>, Parameters<ModelFetch>>()
+      .mockImplementation((_input, init) => {
+        modelSignal = init.signal as AbortSignal;
+        startModelRequest?.();
+
+        return new Promise((_resolve, reject) => {
+          modelSignal?.addEventListener("abort", () => {
+            const abortError = new Error("Request aborted");
+            abortError.name = "AbortError";
+            reject(abortError);
+          });
+        });
+      });
+    const handler = createHandler(fetchModel);
+
+    const responsePromise = handler(
+      request(
+        JSON.stringify({ message: "Oil warning light", language: "en" }),
+        requestController.signal,
+      ),
+    );
+    await modelRequestStarted;
+    requestController.abort();
+
+    const response = await responsePromise;
+    await expectError(response, 504, "MODEL_TIMEOUT");
+    expect(modelSignal?.aborted).toBe(true);
   });
 
   it("translates an unsuccessful provider response into a safe error", async () => {

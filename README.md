@@ -84,7 +84,7 @@ Display name: **Vericar** · npm/slug/scheme: **vehico** · Current app version:
 
    - Apply `supabase/schema.sql` (or run migrations under `supabase/migrations/`)
    - Configure storage buckets and RLS (included in schema)
-   - Deploy Edge Functions under `supabase/functions/` (`revenuecat-webhook`, `retention-cleanup`, `delete-account`, `generate-marketplace-post`)
+   - Deploy Edge Functions under `supabase/functions/` (`revenuecat-webhook`, `retention-cleanup`, `delete-account`, `generate-marketplace-post`, `vehicle-chat`)
    - Optional seed scripts: `supabase/seed_data_pl.sql`, `supabase/seed_data_eng.sql`
 
 5. **Start the development server**
@@ -147,7 +147,7 @@ vehico/
 - Tests use Jest (`jest-expo`); coverage focuses on `src/services`, `src/utils`, and `src/config` (`jest.config.js`).
 - GitHub Actions (`.github/workflows/ci.yml`) on `main` / `develop` and PRs:
   - `npm ci` → typecheck → lint → tests → coverage
-  - On push: deploy Supabase Edge Functions (`revenuecat-webhook`, `retention-cleanup`, `delete-account`, `generate-marketplace-post`) using environment `PROD` (main) or `DEV` (other)
+  - On push: deploy Supabase Edge Functions (`revenuecat-webhook`, `retention-cleanup`, `delete-account`, `generate-marketplace-post`, `vehicle-chat`) using environment `PROD` (main) or `DEV` (other)
 
 ## Configuration
 

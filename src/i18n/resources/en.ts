@@ -750,8 +750,6 @@ export const en = {
       workshopsSubtitle: "Your workshop phonebook.",
       aiMechanicTitle: "AI assistant",
     },
-    aiMechanicComingSoon:
-      "Soon you’ll get an AI assistant that helps interpret service history, suggest next steps, and answer questions about your vehicle.",
     quickActions: {
       addService: "Service",
       addFuel: "Fuel",
@@ -760,6 +758,27 @@ export const en = {
     },
     publicLinkTitle: "Public link",
     publicLinkBody: "Public ID: {{id}}",
+  },
+  vehicleChat: {
+    title: "AI assistant",
+    subtitle: "Ask about your car, ownership, and safe next steps.",
+    inputLabel: "Message to the AI assistant",
+    inputPlaceholder: "Ask about your car…",
+    sendAccessibilityLabel: "Send message",
+    cancelAccessibilityLabel: "Stop response",
+    showSuggestionsAccessibilityLabel: "Show suggested questions",
+    hideSuggestionsAccessibilityLabel: "Hide suggested questions",
+    error: "Could not get an answer. Try again.",
+    cancelled: "The response was stopped.",
+    retry: "Try again",
+    suggestions: {
+      inspection: "How can I check when my vehicle inspection expires?",
+      fuelCosts: "How can I calculate my average monthly fuel spending?",
+      roadTrip: "How should I prepare my car for a long trip?",
+      warningLight: "What could a red oil warning light mean?",
+      oilChange: "How often should engine oil be changed?",
+      usedCar: "What should I check when buying a used car?",
+    },
   },
   profile: {
     title: "Profile",

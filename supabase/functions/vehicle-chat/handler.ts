@@ -1,15 +1,17 @@
 const MAX_MESSAGE_LENGTH = 2000;
+const MAX_HISTORY_MESSAGES = 8;
+const MAX_HISTORY_LENGTH = 8000;
 const MAX_OUTPUT_TOKENS = 500;
 const MODEL_TIMEOUT_MS = 15_000;
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const MODEL = "gpt-5.6-luna";
 
-const SYSTEM_PROMPT_V1 = `You are the Vericar vehicle assistant.
+const SYSTEM_PROMPT_V2 = `You are the Vericar vehicle assistant.
 
-Help users understand vehicle symptoms and choose a safe next step.
+Help users with general vehicle ownership, maintenance, symptoms, operating costs, and safe next steps.
 
 Rules:
-- Use only information contained in the user's question.
+- Use only information contained in the current conversation.
 - You do not have access to the user's vehicle, service history, documents, measurements, or current internet sources.
 - Never claim that you have confirmed a diagnosis.
 - Clearly communicate missing information and uncertainty.
@@ -18,6 +20,7 @@ Rules:
 - Do not invent service history, vehicle specifications, measurements, prices, or sources.
 - Answer in the language specified by the user.
 - Keep the answer concise and practical.
+- The answer must stand on its own and explicitly communicate urgency and any safety-critical action. Do not rely on the structured metadata alone.
 
 Urgency meanings:
 - monitor: no immediate intervention appears necessary based on the provided information.
@@ -50,6 +53,12 @@ type Urgency = "monitor" | "service_soon" | "stop_driving" | "unknown";
 interface VehicleChatRequest {
   message: string;
   language: SupportedLanguage;
+  history: VehicleChatHistoryMessage[];
+}
+
+interface VehicleChatHistoryMessage {
+  role: "user" | "assistant";
+  content: string;
 }
 
 interface VehicleChatAnswer {
@@ -61,6 +70,8 @@ interface VehicleChatAnswer {
 
 type ErrorCode =
   | "METHOD_NOT_ALLOWED"
+  | "PREMIUM_REQUIRED"
+  | "AUTHORIZATION_FAILED"
   | "INVALID_JSON"
   | "INVALID_REQUEST"
   | "SERVER_MISCONFIGURATION"
@@ -72,6 +83,7 @@ type ModelFetch = (input: string, init: RequestInit) => Promise<Response>;
 
 interface VehicleChatHandlerDependencies {
   getOpenAiApiKey: () => string | undefined;
+  hasPremiumAccess: (req: Request) => Promise<boolean>;
   fetch: ModelFetch;
 }
 
@@ -80,10 +92,7 @@ function errorResponse(
   code: ErrorCode,
   message: string,
 ): Response {
-  return Response.json(
-    { error: { code, message } },
-    { status },
-  );
+  return Response.json({ error: { code, message } }, { status });
 }
 
 function parseRequest(value: unknown): VehicleChatRequest | null {
@@ -97,10 +106,13 @@ function parseRequest(value: unknown): VehicleChatRequest | null {
   }
 
   const { message, language } = value;
+  const history = "history" in value ? value.history : [];
 
   if (
     typeof message !== "string" ||
-    (language !== "pl" && language !== "en")
+    (language !== "pl" && language !== "en") ||
+    !Array.isArray(history) ||
+    history.length > MAX_HISTORY_MESSAGES
   ) {
     return null;
   }
@@ -109,12 +121,32 @@ function parseRequest(value: unknown): VehicleChatRequest | null {
 
   if (
     normalizedMessage.length === 0 ||
-    normalizedMessage.length > MAX_MESSAGE_LENGTH
+    normalizedMessage.length > MAX_MESSAGE_LENGTH ||
+    !history.every(
+      (item): item is VehicleChatHistoryMessage =>
+        typeof item === "object" &&
+        item !== null &&
+        "role" in item &&
+        (item.role === "user" || item.role === "assistant") &&
+        "content" in item &&
+        typeof item.content === "string" &&
+        item.content.trim().length > 0 &&
+        item.content.length <= MAX_MESSAGE_LENGTH,
+    ) ||
+    history.reduce((length, item) => length + item.content.length, 0) >
+      MAX_HISTORY_LENGTH
   ) {
     return null;
   }
 
-  return { message: normalizedMessage, language };
+  return {
+    message: normalizedMessage,
+    language,
+    history: history.map((item) => ({
+      role: item.role,
+      content: item.content.trim(),
+    })),
+  };
 }
 
 function isUrgency(value: unknown): value is Urgency {
@@ -199,6 +231,14 @@ function extractOutputText(value: unknown): string | null {
   return null;
 }
 
+function parseStructuredAnswer(outputText: string): VehicleChatAnswer | null {
+  try {
+    return parseVehicleChatAnswer(JSON.parse(outputText));
+  } catch {
+    return null;
+  }
+}
+
 function isTimeoutError(error: unknown): boolean {
   return (
     error instanceof Error &&
@@ -206,8 +246,35 @@ function isTimeoutError(error: unknown): boolean {
   );
 }
 
+function modelRequestBody(request: VehicleChatRequest): string {
+  return JSON.stringify({
+    model: MODEL,
+    instructions: SYSTEM_PROMPT_V2,
+    input: [
+      ...request.history,
+      {
+        role: "user",
+        content: `Language: ${request.language}\n\n${request.message}`,
+      },
+    ],
+    reasoning: { effort: "low" },
+    text: {
+      verbosity: "low",
+      format: {
+        type: "json_schema",
+        name: "vehicle_chat_answer",
+        strict: true,
+        schema: VEHICLE_CHAT_ANSWER_SCHEMA,
+      },
+    },
+    max_output_tokens: MAX_OUTPUT_TOKENS,
+    store: false,
+  });
+}
+
 export function createVehicleChatHandler({
   getOpenAiApiKey,
+  hasPremiumAccess,
   fetch: fetchModel,
 }: VehicleChatHandlerDependencies): (req: Request) => Promise<Response> {
   return async (req): Promise<Response> => {
@@ -216,6 +283,26 @@ export function createVehicleChatHandler({
         405,
         "METHOD_NOT_ALLOWED",
         "Only POST requests are supported.",
+      );
+    }
+
+    let premiumAccess: boolean;
+
+    try {
+      premiumAccess = await hasPremiumAccess(req);
+    } catch {
+      return errorResponse(
+        503,
+        "AUTHORIZATION_FAILED",
+        "Premium access could not be verified.",
+      );
+    }
+
+    if (!premiumAccess) {
+      return errorResponse(
+        403,
+        "PREMIUM_REQUIRED",
+        "An active Premium plan is required to use the vehicle assistant.",
       );
     }
 
@@ -237,7 +324,7 @@ export function createVehicleChatHandler({
       return errorResponse(
         400,
         "INVALID_REQUEST",
-        "Message must contain 1–2000 characters and language must be pl or en.",
+        "Message, language, or bounded conversation history is invalid.",
       );
     }
 
@@ -260,24 +347,11 @@ export function createVehicleChatHandler({
           Authorization: `Bearer ${openAiApiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          model: MODEL,
-          instructions: SYSTEM_PROMPT_V1,
-          input: `Language: ${request.language}\n\n${request.message}`,
-          reasoning: { effort: "low" },
-          text: {
-            verbosity: "low",
-            format: {
-              type: "json_schema",
-              name: "vehicle_chat_answer",
-              strict: true,
-              schema: VEHICLE_CHAT_ANSWER_SCHEMA,
-            },
-          },
-          max_output_tokens: MAX_OUTPUT_TOKENS,
-          store: false,
-        }),
-        signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
+        body: modelRequestBody(request),
+        signal: AbortSignal.any([
+          req.signal,
+          AbortSignal.timeout(MODEL_TIMEOUT_MS),
+        ]),
       });
     } catch (error) {
       if (isTimeoutError(error)) {
@@ -321,28 +395,7 @@ export function createVehicleChatHandler({
     }
 
     const outputText = extractOutputText(responseBody);
-
-    if (!outputText) {
-      return errorResponse(
-        502,
-        "INVALID_MODEL_RESPONSE",
-        "The vehicle assistant returned an invalid response.",
-      );
-    }
-
-    let parsedOutput: unknown;
-
-    try {
-      parsedOutput = JSON.parse(outputText);
-    } catch {
-      return errorResponse(
-        502,
-        "INVALID_MODEL_RESPONSE",
-        "The vehicle assistant returned an invalid response.",
-      );
-    }
-
-    const answer = parseVehicleChatAnswer(parsedOutput);
+    const answer = outputText ? parseStructuredAnswer(outputText) : null;
 
     if (!answer) {
       return errorResponse(

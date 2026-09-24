@@ -15,18 +15,18 @@ Realizujemy etapy po kolei. Proaktywne rekomendacje rozpoczynamy dopiero po zbud
 - [x] Przetestować poprawną, błędną i przerwaną odpowiedź modelu.
 - [x] Kryterium zakończenia: backend zwraca zwalidowaną odpowiedź bez ujawniania sekretów.
 
-## 2. Minimal Chat & Streaming
+## 2. Minimal Chat
 
-- [ ] Dodać typowaną trasę czatu do `RootNavigator`.
-- [ ] Aktywować istniejący kafelek AI na dashboardzie.
-- [ ] Dodać repozytorium klienta wywołujące Edge Function.
-- [ ] Dodać ekran listy wiadomości i pole wpisywania tekstu.
-- [ ] Dodać streaming odpowiedzi.
-- [ ] Dodać anulowanie, ponowienie i obsługę błędów.
-- [ ] Przechowywać historię tylko w bieżącej sesji.
-- [ ] Dodać tłumaczenia PL i EN.
-- [ ] Dodać testy repozytorium oraz stanów ekranu.
-- [ ] Kryterium zakończenia: użytkownik może przeprowadzić prostą rozmowę z modelem.
+- [x] Dodać typowaną trasę czatu do `RootNavigator`.
+- [x] Aktywować istniejący kafelek AI na dashboardzie.
+- [x] Dodać repozytorium klienta wywołujące Edge Function.
+- [x] Dodać ekran listy wiadomości i pole wpisywania tekstu.
+- [x] Dodać anulowanie, ponowienie i obsługę błędów.
+- [x] Przechowywać historię tylko w bieżącej sesji.
+- [x] Dodać tłumaczenia PL i EN.
+- [x] Dodać testy repozytorium oraz stanów ekranu.
+
+Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej decyzji produktowej.
 
 ## 3. Vehicle & Service Context
 
@@ -174,7 +174,7 @@ Realizujemy etapy po kolei. Proaktywne rekomendacje rozpoczynamy dopiero po zbud
 
 ## Pokrycie tematów edukacyjnych
 
-- [ ] Potwierdzić pokrycie LLM APIs, prompting, structured outputs, streaming i tokens.
+- [ ] Potwierdzić pokrycie LLM APIs, prompting, structured outputs i tokens.
 - [ ] Potwierdzić pokrycie embeddings, chunking, vector database, `pgvector` i similarity search.
 - [ ] Potwierdzić pokrycie metadata filtering, RAG, hybrid retrieval, reranking i citations.
 - [ ] Potwierdzić pokrycie multimodal AI oraz vision models.

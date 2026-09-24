@@ -60,3 +60,4 @@ jobs:
           supabase functions deploy retention-cleanup --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
           supabase functions deploy delete-account --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
           supabase functions deploy generate-marketplace-post --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase functions deploy vehicle-chat --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
