@@ -68,7 +68,7 @@ function toRequestHistory(messages: ChatMessage[]): VehicleChatHistoryMessage[] 
 
     eligible.push(
       { role: "user", content: userMessage.text },
-      { role: "assistant", content: assistantMessage.answer.answer },
+      { role: "assistant", content: assistantMessage.text },
     );
     index += 1;
   }
@@ -146,7 +146,11 @@ export function VehicleChatScreen({ navigation }: Props) {
           message.id === assistantId && message.role === "assistant"
             ? {
                 ...message,
-                text: answer.answer,
+                text: [
+                  answer.answer,
+                  answer.uncertainty,
+                  answer.nextStep,
+                ].join("\n\n"),
                 answer,
                 status: "complete",
               }

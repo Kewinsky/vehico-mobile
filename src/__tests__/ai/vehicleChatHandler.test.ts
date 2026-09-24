@@ -12,11 +12,12 @@ const VALID_ANSWER = {
 
 type ModelFetch = (input: string, init: RequestInit) => Promise<Response>;
 
-function request(body: string): Request {
+function request(body: string, signal?: AbortSignal): Request {
   return new Request(REQUEST_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body,
+    signal,
   });
 }
 
@@ -170,6 +171,43 @@ describe("vehicle-chat handler", () => {
     );
 
     await expectError(response, 504, "MODEL_TIMEOUT");
+  });
+
+  it("propagates client cancellation to the model request", async () => {
+    const requestController = new AbortController();
+    let startModelRequest: (() => void) | undefined;
+    const modelRequestStarted = new Promise<void>((resolve) => {
+      startModelRequest = resolve;
+    });
+    let modelSignal: AbortSignal | null = null;
+    const fetchModel = jest
+      .fn<Promise<Response>, Parameters<ModelFetch>>()
+      .mockImplementation((_input, init) => {
+        modelSignal = init.signal as AbortSignal;
+        startModelRequest?.();
+
+        return new Promise((_resolve, reject) => {
+          modelSignal?.addEventListener("abort", () => {
+            const abortError = new Error("Request aborted");
+            abortError.name = "AbortError";
+            reject(abortError);
+          });
+        });
+      });
+    const handler = createHandler(fetchModel);
+
+    const responsePromise = handler(
+      request(
+        JSON.stringify({ message: "Oil warning light", language: "en" }),
+        requestController.signal,
+      ),
+    );
+    await modelRequestStarted;
+    requestController.abort();
+
+    const response = await responsePromise;
+    await expectError(response, 504, "MODEL_TIMEOUT");
+    expect(modelSignal?.aborted).toBe(true);
   });
 
   it("translates an unsuccessful provider response into a safe error", async () => {

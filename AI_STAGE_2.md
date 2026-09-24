@@ -65,9 +65,9 @@ To jest proste okno kontekstu. Inteligentne wybieranie, streszczanie i budżetow
 - pusty ekran zawiera nagłówek „Asystent AI” oraz gotowe przykładowe pytania;
 - prompt `SYSTEM_PROMPT_V2` obejmuje ogólne pytania o eksploatację, utrzymanie i koszty pojazdu, ale nie udaje dostępu do danych użytkownika;
 - wysłana wiadomość od razu pojawia się na liście;
-- podczas oczekiwania widoczny jest wskaźnik ładowania, a przycisk wysyłania pozwala anulować request;
+- podczas oczekiwania widoczny jest wskaźnik ładowania, a przycisk wysyłania anuluje request mobilny i powiązany request do modelu;
 - anulowana lub błędna odpowiedź ma lokalny komunikat i przycisk ponowienia;
-- po zakończeniu widoczne są odpowiedź, poziom pilności, niepewność i następny krok;
+- po zakończeniu odpowiedź, niepewność i następny krok są widoczne jako jeden naturalny dymek czatu; odpowiedź samodzielnie komunikuje poziom pilności i działania krytyczne dla bezpieczeństwa;
 - teksty i etykiety dostępności istnieją po polsku i angielsku;
 - lista jest wirtualizowana, pole współpracuje z klawiaturą, a przyciski mają co najmniej 44 punkty.
 

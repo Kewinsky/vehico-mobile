@@ -54,6 +54,11 @@ const ANSWER = {
   uncertainty: "The cause cannot be confirmed remotely.",
   nextStep: "Arrange roadside assistance.",
 };
+const DISPLAYED_ANSWER = [
+  ANSWER.answer,
+  ANSWER.uncertainty,
+  ANSWER.nextStep,
+].join("\n\n");
 
 const mockedRequestVehicleChat = jest.mocked(requestVehicleChat);
 
@@ -126,7 +131,7 @@ describe("VehicleChatScreen", () => {
     );
     fireEvent.press(screen.getByLabelText("Send message"));
 
-    await waitFor(() => expect(screen.getByText("Stop safely.")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(DISPLAYED_ANSWER)).toBeTruthy());
     expect(
       screen.queryByText("How often should engine oil be changed?"),
     ).toBeNull();
@@ -150,11 +155,7 @@ describe("VehicleChatScreen", () => {
     fireEvent.press(screen.getByLabelText("Send message"));
 
     expect(screen.getByText("Oil warning light")).toBeTruthy();
-    await waitFor(() => expect(screen.getByText("Stop safely.")).toBeTruthy());
-    expect(
-      screen.queryByText("The cause cannot be confirmed remotely."),
-    ).toBeNull();
-    expect(screen.queryByText("Arrange roadside assistance.")).toBeNull();
+    await waitFor(() => expect(screen.getByText(DISPLAYED_ANSWER)).toBeTruthy());
   });
 
   it("allows retrying a failed answer without duplicating the user message", async () => {
@@ -176,7 +177,7 @@ describe("VehicleChatScreen", () => {
     );
     fireEvent.press(screen.getByText("Try again"));
 
-    await waitFor(() => expect(screen.getByText("Stop safely.")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(DISPLAYED_ANSWER)).toBeTruthy());
     expect(screen.getAllByText("Oil warning light")).toHaveLength(1);
     expect(mockedRequestVehicleChat).toHaveBeenCalledTimes(2);
   });
@@ -191,7 +192,7 @@ describe("VehicleChatScreen", () => {
     );
     fireEvent.press(screen.getByLabelText("Send message"));
     await waitFor(() => expect(mockedRequestVehicleChat).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(screen.getByText("Stop safely.")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(DISPLAYED_ANSWER)).toBeTruthy());
 
     fireEvent.changeText(
       screen.getByLabelText("Message to the AI assistant"),
@@ -204,10 +205,12 @@ describe("VehicleChatScreen", () => {
       { role: "user", content: "Oil warning light" },
       {
         role: "assistant",
-        content: "Stop safely.",
+        content: DISPLAYED_ANSWER,
       },
     ]);
-    await waitFor(() => expect(screen.getAllByText("Stop safely.")).toHaveLength(2));
+    await waitFor(() =>
+      expect(screen.getAllByText(DISPLAYED_ANSWER)).toHaveLength(2),
+    );
   });
 
   it("aborts the active request and exposes retry", async () => {

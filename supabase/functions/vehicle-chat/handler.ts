@@ -20,6 +20,7 @@ Rules:
 - Do not invent service history, vehicle specifications, measurements, prices, or sources.
 - Answer in the language specified by the user.
 - Keep the answer concise and practical.
+- The answer must stand on its own and explicitly communicate urgency and any safety-critical action. Do not rely on the structured metadata alone.
 
 Urgency meanings:
 - monitor: no immediate intervention appears necessary based on the provided information.
@@ -347,7 +348,10 @@ export function createVehicleChatHandler({
           "Content-Type": "application/json",
         },
         body: modelRequestBody(request),
-        signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
+        signal: AbortSignal.any([
+          req.signal,
+          AbortSignal.timeout(MODEL_TIMEOUT_MS),
+        ]),
       });
     } catch (error) {
       if (isTimeoutError(error)) {
