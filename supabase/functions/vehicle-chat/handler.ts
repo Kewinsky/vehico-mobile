@@ -351,8 +351,9 @@ function streamResponse(modelResponse: Response): Response {
       let streamedAnswer = "";
       let completed = false;
 
-      const fail = (code: ErrorCode, message: string) => {
+      const fail = (code: ErrorCode, message: string, cause: string) => {
         if (cancelled) return;
+        console.error("Vehicle chat stream failed", { code, cause });
         controller.enqueue(sseEvent("error", { code, message }));
         controller.close();
       };
@@ -368,6 +369,7 @@ function streamResponse(modelResponse: Response): Response {
           fail(
             "INVALID_MODEL_RESPONSE",
             "The vehicle assistant returned an invalid response.",
+            "invalid_provider_event",
           );
           return false;
         }
@@ -392,11 +394,16 @@ function streamResponse(modelResponse: Response): Response {
         }
 
         if (event.type === "response.completed") {
-          const answer = parseStructuredAnswer(outputText);
+          const completedOutputText =
+            "response" in event ? extractOutputText(event.response) : null;
+          const answer = parseStructuredAnswer(
+            completedOutputText ?? outputText,
+          );
           if (!answer || !answer.answer.startsWith(streamedAnswer)) {
             fail(
               "INVALID_MODEL_RESPONSE",
               "The vehicle assistant returned an invalid response.",
+              "invalid_completed_output",
             );
             return false;
           }
@@ -411,10 +418,15 @@ function streamResponse(modelResponse: Response): Response {
           return false;
         }
 
-        if (event.type === "error" || event.type === "response.incomplete") {
+        if (
+          event.type === "error" ||
+          event.type === "response.failed" ||
+          event.type === "response.incomplete"
+        ) {
           fail(
             "MODEL_REQUEST_FAILED",
             "The vehicle assistant is temporarily unavailable.",
+            String(event.type),
           );
           return false;
         }
@@ -443,6 +455,7 @@ function streamResponse(modelResponse: Response): Response {
           fail(
             "INVALID_MODEL_RESPONSE",
             "The vehicle assistant returned an incomplete response.",
+            "stream_ended_without_completion",
           );
         }
       } catch (error) {
@@ -452,6 +465,7 @@ function streamResponse(modelResponse: Response): Response {
           isTimeoutError(error)
             ? "The vehicle assistant did not respond in time."
             : "The vehicle assistant is temporarily unavailable.",
+          isTimeoutError(error) ? "provider_timeout" : "stream_read_failed",
         );
       }
     },
