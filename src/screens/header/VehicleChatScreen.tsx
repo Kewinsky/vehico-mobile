@@ -68,14 +68,7 @@ function toRequestHistory(messages: ChatMessage[]): VehicleChatHistoryMessage[] 
 
     eligible.push(
       { role: "user", content: userMessage.text },
-      {
-        role: "assistant",
-        content: [
-          assistantMessage.answer.answer,
-          assistantMessage.answer.uncertainty,
-          assistantMessage.answer.nextStep,
-        ].join("\n\n"),
-      },
+      { role: "assistant", content: assistantMessage.answer.answer },
     );
     index += 1;
   }
@@ -265,28 +258,30 @@ export function VehicleChatScreen({ navigation }: Props) {
         style={styles.input}
         value={input}
       />
-      <Pressable
-        accessibilityLabel={
-          showSuggestions
-            ? t("vehicleChat.hideSuggestionsAccessibilityLabel")
-            : t("vehicleChat.showSuggestionsAccessibilityLabel")
-        }
-        accessibilityRole="button"
-        accessibilityState={{ expanded: showSuggestions }}
-        hitSlop={8}
-        onPress={() => setShowSuggestions((current) => !current)}
-        style={({ pressed }) => [
-          styles.suggestionsButton,
-          showSuggestions ? styles.suggestionsButtonExpanded : null,
-          pressed ? styles.pressed : null,
-        ]}
-      >
-        <MessageCircleQuestionMark
-          color={showSuggestions ? "#000000" : theme.colors.muted}
-          size={22}
-          strokeWidth={2}
-        />
-      </Pressable>
+      {messages.length > 0 ? (
+        <Pressable
+          accessibilityLabel={
+            showSuggestions
+              ? t("vehicleChat.hideSuggestionsAccessibilityLabel")
+              : t("vehicleChat.showSuggestionsAccessibilityLabel")
+          }
+          accessibilityRole="button"
+          accessibilityState={{ expanded: showSuggestions }}
+          hitSlop={8}
+          onPress={() => setShowSuggestions((current) => !current)}
+          style={({ pressed }) => [
+            styles.suggestionsButton,
+            showSuggestions ? styles.suggestionsButtonExpanded : null,
+            pressed ? styles.pressed : null,
+          ]}
+        >
+          <MessageCircleQuestionMark
+            color={showSuggestions ? "#000000" : theme.colors.muted}
+            size={22}
+            strokeWidth={2}
+          />
+        </Pressable>
+      ) : null}
       <Pressable
         accessibilityLabel={
           isRequestActive
@@ -355,15 +350,13 @@ export function VehicleChatScreen({ navigation }: Props) {
             </View>
           }
           ListEmptyComponent={
-            showSuggestions ? (
-              <ChatSuggestions
-                disabled={isRequestActive}
-                empty
-                onSelect={sendPrompt}
-                styles={styles}
-                t={t}
-              />
-            ) : null
+            <ChatSuggestions
+              disabled={isRequestActive}
+              empty
+              onSelect={sendPrompt}
+              styles={styles}
+              t={t}
+            />
           }
           ListFooterComponent={
             messages.length > 0 && showSuggestions ? (
@@ -471,18 +464,6 @@ function MessageBubble({
       {message.text.length > 0 ? (
         <Text style={styles.assistantText}>{message.text}</Text>
       ) : null}
-      {message.status === "complete" && message.answer ? (
-        <View style={styles.details}>
-          {message.answer.urgency !== "unknown" ? (
-            <Text style={styles.detailLabel}>
-              {t(`vehicleChat.urgency.${message.answer.urgency}`)}
-            </Text>
-          ) : null}
-          <Text style={styles.detailText}>{message.answer.uncertainty}</Text>
-          <Text style={styles.detailLabel}>{t("vehicleChat.nextStep")}</Text>
-          <Text style={styles.detailText}>{message.answer.nextStep}</Text>
-        </View>
-      ) : null}
       {showRetry ? (
         <View style={styles.errorBlock}>
           <Text accessibilityRole="alert" style={styles.errorText}>
@@ -575,23 +556,6 @@ const makeStyles = (theme: AppTheme) =>
       color: theme.colors.fg,
       fontSize: theme.typography.body,
       lineHeight: 23,
-    },
-    details: {
-      borderTopColor: theme.colors.border,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      gap: theme.spacing.xs,
-      marginTop: theme.spacing.sm,
-      paddingTop: theme.spacing.sm,
-    },
-    detailLabel: {
-      color: theme.colors.fg,
-      fontSize: theme.typography.small,
-      fontWeight: theme.typography.fontWeight.semibold,
-    },
-    detailText: {
-      color: theme.colors.muted,
-      fontSize: theme.typography.small,
-      lineHeight: 19,
     },
     errorBlock: {
       gap: theme.spacing.sm,

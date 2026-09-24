@@ -782,13 +782,6 @@ export const pl = {
     error: "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie.",
     cancelled: "Odpowiedź została zatrzymana.",
     retry: "Spróbuj ponownie",
-    nextStep: "Następny krok",
-    urgency: {
-      monitor: "Obserwuj",
-      service_soon: "Umów serwis",
-      stop_driving: "Zatrzymaj pojazd",
-      unknown: "Pilność nieznana",
-    },
     suggestions: {
       inspection: "Jak sprawdzić termin badania technicznego?",
       fuelCosts: "Jak obliczyć średnie miesięczne wydatki na paliwo?",

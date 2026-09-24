@@ -771,13 +771,6 @@ export const en = {
     error: "Could not get an answer. Try again.",
     cancelled: "The response was stopped.",
     retry: "Try again",
-    nextStep: "Next step",
-    urgency: {
-      monitor: "Monitor",
-      service_soon: "Arrange service",
-      stop_driving: "Stop driving",
-      unknown: "Urgency unknown",
-    },
     suggestions: {
       inspection: "How can I check when my vehicle inspection expires?",
       fuelCosts: "How can I calculate my average monthly fuel spending?",

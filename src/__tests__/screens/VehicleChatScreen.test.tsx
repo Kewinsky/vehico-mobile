@@ -93,6 +93,7 @@ describe("VehicleChatScreen", () => {
     expect(
       screen.getByText("What should I check when buying a used car?"),
     ).toBeTruthy();
+    expect(screen.queryByLabelText("Hide suggested questions")).toBeNull();
     expect(screen.queryByText("How can I help?")).toBeNull();
     expect(
       screen.queryByText(
@@ -150,11 +151,10 @@ describe("VehicleChatScreen", () => {
 
     expect(screen.getByText("Oil warning light")).toBeTruthy();
     await waitFor(() => expect(screen.getByText("Stop safely.")).toBeTruthy());
-    expect(screen.getByText("Stop driving")).toBeTruthy();
     expect(
-      screen.getByText("The cause cannot be confirmed remotely."),
-    ).toBeTruthy();
-    expect(screen.getByText("Arrange roadside assistance.")).toBeTruthy();
+      screen.queryByText("The cause cannot be confirmed remotely."),
+    ).toBeNull();
+    expect(screen.queryByText("Arrange roadside assistance.")).toBeNull();
   });
 
   it("allows retrying a failed answer without duplicating the user message", async () => {
@@ -204,8 +204,7 @@ describe("VehicleChatScreen", () => {
       { role: "user", content: "Oil warning light" },
       {
         role: "assistant",
-        content:
-          "Stop safely.\n\nThe cause cannot be confirmed remotely.\n\nArrange roadside assistance.",
+        content: "Stop safely.",
       },
     ]);
     await waitFor(() => expect(screen.getAllByText("Stop safely.")).toHaveLength(2));
