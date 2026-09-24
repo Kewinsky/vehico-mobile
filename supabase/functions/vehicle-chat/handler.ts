@@ -52,7 +52,6 @@ type Urgency = "monitor" | "service_soon" | "stop_driving" | "unknown";
 interface VehicleChatRequest {
   message: string;
   language: SupportedLanguage;
-  stream: boolean;
   history: VehicleChatHistoryMessage[];
 }
 
@@ -103,13 +102,11 @@ function parseRequest(value: unknown): VehicleChatRequest | null {
   }
 
   const { message, language } = value;
-  const stream = "stream" in value ? value.stream : false;
   const history = "history" in value ? value.history : [];
 
   if (
     typeof message !== "string" ||
     (language !== "pl" && language !== "en") ||
-    typeof stream !== "boolean" ||
     !Array.isArray(history) ||
     history.length > MAX_HISTORY_MESSAGES
   ) {
@@ -141,7 +138,6 @@ function parseRequest(value: unknown): VehicleChatRequest | null {
   return {
     message: normalizedMessage,
     language,
-    stream,
     history: history.map((item) => ({
       role: item.role,
       content: item.content.trim(),
@@ -269,219 +265,6 @@ function modelRequestBody(request: VehicleChatRequest): string {
     },
     max_output_tokens: MAX_OUTPUT_TOKENS,
     store: false,
-    stream: request.stream,
-  });
-}
-
-function sseEvent(event: string, data: unknown): Uint8Array {
-  return new TextEncoder().encode(
-    `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`,
-  );
-}
-
-function eventData(frame: string): string | null {
-  const dataLines = frame
-    .split("\n")
-    .filter((line) => line.startsWith("data:"))
-    .map((line) => line.slice(5).trimStart());
-
-  return dataLines.length > 0 ? dataLines.join("\n") : null;
-}
-
-function extractAnswerPrefix(json: string): string | null {
-  const match = /"answer"\s*:\s*"/.exec(json);
-  if (!match) return null;
-
-  let encoded = "";
-  let index = match.index + match[0].length;
-
-  while (index < json.length) {
-    const character = json[index];
-
-    if (character === '"') break;
-
-    if (character !== "\\") {
-      encoded += character;
-      index += 1;
-      continue;
-    }
-
-    if (index + 1 >= json.length) break;
-
-    const escape = json[index + 1];
-    if (escape === "u") {
-      const unicodeEscape = json.slice(index, index + 6);
-      if (!/^\\u[0-9a-fA-F]{4}$/.test(unicodeEscape)) break;
-      encoded += unicodeEscape;
-      index += 6;
-      continue;
-    }
-
-    if (!'"\\/bfnrt'.includes(escape)) break;
-    encoded += `\\${escape}`;
-    index += 2;
-  }
-
-  try {
-    return JSON.parse(`"${encoded}"`) as string;
-  } catch {
-    return null;
-  }
-}
-
-function streamResponse(modelResponse: Response): Response {
-  const modelBody = modelResponse.body;
-
-  if (!modelBody) {
-    return errorResponse(
-      502,
-      "INVALID_MODEL_RESPONSE",
-      "The vehicle assistant returned an invalid response.",
-    );
-  }
-
-  const reader = modelBody.getReader();
-  let cancelled = false;
-
-  const body = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let outputText = "";
-      let streamedAnswer = "";
-      let completed = false;
-
-      const fail = (code: ErrorCode, message: string, cause: string) => {
-        if (cancelled) return;
-        console.error("Vehicle chat stream failed", { code, cause });
-        controller.enqueue(sseEvent("error", { code, message }));
-        controller.close();
-      };
-
-      const processFrame = (frame: string): boolean => {
-        const data = eventData(frame);
-        if (!data || data === "[DONE]") return true;
-
-        let event: unknown;
-        try {
-          event = JSON.parse(data);
-        } catch {
-          fail(
-            "INVALID_MODEL_RESPONSE",
-            "The vehicle assistant returned an invalid response.",
-            "invalid_provider_event",
-          );
-          return false;
-        }
-
-        if (typeof event !== "object" || event === null || !("type" in event)) {
-          return true;
-        }
-
-        if (
-          event.type === "response.output_text.delta" &&
-          "delta" in event &&
-          typeof event.delta === "string"
-        ) {
-          outputText += event.delta;
-          const answerPrefix = extractAnswerPrefix(outputText);
-          if (answerPrefix !== null && answerPrefix.length > streamedAnswer.length) {
-            const delta = answerPrefix.slice(streamedAnswer.length);
-            streamedAnswer = answerPrefix;
-            controller.enqueue(sseEvent("delta", { text: delta }));
-          }
-          return true;
-        }
-
-        if (event.type === "response.completed") {
-          const completedOutputText =
-            "response" in event ? extractOutputText(event.response) : null;
-          const answer = parseStructuredAnswer(
-            completedOutputText ?? outputText,
-          );
-          if (!answer || !answer.answer.startsWith(streamedAnswer)) {
-            fail(
-              "INVALID_MODEL_RESPONSE",
-              "The vehicle assistant returned an invalid response.",
-              "invalid_completed_output",
-            );
-            return false;
-          }
-
-          const remainingText = answer.answer.slice(streamedAnswer.length);
-          if (remainingText.length > 0) {
-            controller.enqueue(sseEvent("delta", { text: remainingText }));
-          }
-          controller.enqueue(sseEvent("complete", answer));
-          controller.close();
-          completed = true;
-          return false;
-        }
-
-        if (
-          event.type === "error" ||
-          event.type === "response.failed" ||
-          event.type === "response.incomplete"
-        ) {
-          fail(
-            "MODEL_REQUEST_FAILED",
-            "The vehicle assistant is temporarily unavailable.",
-            String(event.type),
-          );
-          return false;
-        }
-
-        return true;
-      };
-
-      try {
-        while (!cancelled && !completed) {
-          const { value, done } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          buffer = buffer.replace(/\r\n/g, "\n");
-          let separatorIndex = buffer.indexOf("\n\n");
-
-          while (separatorIndex >= 0) {
-            const frame = buffer.slice(0, separatorIndex);
-            buffer = buffer.slice(separatorIndex + 2);
-            if (!processFrame(frame)) return;
-            separatorIndex = buffer.indexOf("\n\n");
-          }
-        }
-
-        if (!cancelled && !completed) {
-          fail(
-            "INVALID_MODEL_RESPONSE",
-            "The vehicle assistant returned an incomplete response.",
-            "stream_ended_without_completion",
-          );
-        }
-      } catch (error) {
-        if (cancelled) return;
-        fail(
-          isTimeoutError(error) ? "MODEL_TIMEOUT" : "MODEL_REQUEST_FAILED",
-          isTimeoutError(error)
-            ? "The vehicle assistant did not respond in time."
-            : "The vehicle assistant is temporarily unavailable.",
-          isTimeoutError(error) ? "provider_timeout" : "stream_read_failed",
-        );
-      }
-    },
-    cancel() {
-      cancelled = true;
-      return reader.cancel();
-    },
-  });
-
-  return new Response(body, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/event-stream; charset=utf-8",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-    },
   });
 }
 
@@ -516,7 +299,7 @@ export function createVehicleChatHandler({
       return errorResponse(
         400,
         "INVALID_REQUEST",
-        "Message, language, stream, or bounded conversation history is invalid.",
+        "Message, language, or bounded conversation history is invalid.",
       );
     }
 
@@ -570,8 +353,6 @@ export function createVehicleChatHandler({
         "The vehicle assistant is temporarily unavailable.",
       );
     }
-
-    if (request.stream) return streamResponse(modelResponse);
 
     let responseBody: unknown;
 

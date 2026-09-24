@@ -1,5 +1,3 @@
-import { fetch as expoFetch } from "expo/fetch";
-
 import { ENV } from "../../config/env";
 import { supabase } from "../supabase/client";
 
@@ -38,18 +36,16 @@ export class VehicleChatError extends Error {
   }
 }
 
-type StreamRequest = {
+type VehicleChatRequest = {
   message: string;
   language: VehicleChatLanguage;
   history?: VehicleChatHistoryMessage[];
   signal: AbortSignal;
-  onDelta: (text: string) => void;
 };
 
 type FetchResponse = {
   ok: boolean;
   status: number;
-  body: ReadableStream<Uint8Array> | null;
   json: () => Promise<unknown>;
 };
 
@@ -76,11 +72,6 @@ type ErrorPayload = {
     message: string;
   };
 };
-
-type StreamEvent =
-  | { event: "delta"; data: { text: string } }
-  | { event: "complete"; data: VehicleChatAnswer }
-  | { event: "error"; data: { code: string; message: string } };
 
 function isUrgency(value: unknown): value is VehicleChatUrgency {
   return (
@@ -137,62 +128,6 @@ function parseErrorPayload(value: unknown): ErrorPayload | null {
   return { error: { code: value.error.code, message: value.error.message } };
 }
 
-function parseEvent(frame: string): StreamEvent | null {
-  const lines = frame.split("\n");
-  const eventName = lines
-    .find((line) => line.startsWith("event:"))
-    ?.slice(6)
-    .trim();
-  const data = lines
-    .filter((line) => line.startsWith("data:"))
-    .map((line) => line.slice(5).trimStart())
-    .join("\n");
-
-  if (!eventName || !data) return null;
-
-  let value: unknown;
-  try {
-    value = JSON.parse(data);
-  } catch {
-    return null;
-  }
-
-  if (eventName === "delta") {
-    if (
-      typeof value === "object" &&
-      value !== null &&
-      "text" in value &&
-      typeof value.text === "string"
-    ) {
-      return { event: "delta", data: { text: value.text } };
-    }
-    return null;
-  }
-
-  if (eventName === "complete") {
-    const answer = parseAnswer(value);
-    return answer ? { event: "complete", data: answer } : null;
-  }
-
-  if (eventName === "error") {
-    if (
-      typeof value === "object" &&
-      value !== null &&
-      "code" in value &&
-      "message" in value &&
-      typeof value.code === "string" &&
-      typeof value.message === "string"
-    ) {
-      return {
-        event: "error",
-        data: { code: value.code, message: value.message },
-      };
-    }
-  }
-
-  return null;
-}
-
 async function responseError(response: FetchResponse): Promise<VehicleChatError> {
   try {
     const payload = parseErrorPayload(await response.json());
@@ -209,19 +144,18 @@ async function responseError(response: FetchResponse): Promise<VehicleChatError>
   );
 }
 
-export function createVehicleChatStreamer({
+export function createVehicleChatRequester({
   baseUrl,
   anonKey,
   fetch,
   getAccessToken,
 }: VehicleChatDependencies) {
-  return async function streamVehicleChat({
+  return async function requestVehicleChat({
     message,
     language,
     history = [],
     signal,
-    onDelta,
-  }: StreamRequest): Promise<VehicleChatAnswer> {
+  }: VehicleChatRequest): Promise<VehicleChatAnswer> {
     const accessToken = await getAccessToken();
     if (!accessToken) {
       throw new VehicleChatError(
@@ -235,12 +169,12 @@ export function createVehicleChatStreamer({
       response = await fetch(`${baseUrl}/functions/v1/vehicle-chat`, {
         method: "POST",
         headers: {
-          Accept: "text/event-stream",
+          Accept: "application/json",
           apikey: anonKey,
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message, language, history, stream: true }),
+        body: JSON.stringify({ message, language, history }),
         signal,
       });
     } catch (error) {
@@ -252,62 +186,33 @@ export function createVehicleChatStreamer({
     }
 
     if (!response.ok) throw await responseError(response);
-    if (!response.body) {
+
+    let responseBody: unknown;
+    try {
+      responseBody = await response.json();
+    } catch {
       throw new VehicleChatError(
         "INVALID_RESPONSE",
-        "The vehicle assistant returned an empty response.",
+        "The vehicle assistant returned an invalid response.",
       );
     }
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let completedAnswer: VehicleChatAnswer | null = null;
-
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      buffer = buffer.replace(/\r\n/g, "\n");
-      let separatorIndex = buffer.indexOf("\n\n");
-
-      while (separatorIndex >= 0) {
-        const frame = buffer.slice(0, separatorIndex);
-        buffer = buffer.slice(separatorIndex + 2);
-        separatorIndex = buffer.indexOf("\n\n");
-
-        const event = parseEvent(frame);
-        if (!event) {
-          throw new VehicleChatError(
-            "INVALID_RESPONSE",
-            "The vehicle assistant returned an invalid stream event.",
-          );
-        }
-
-        if (event.event === "delta") onDelta(event.data.text);
-        if (event.event === "complete") completedAnswer = event.data;
-        if (event.event === "error") {
-          throw new VehicleChatError("REQUEST_FAILED", event.data.message);
-        }
-      }
-    }
-
-    if (!completedAnswer) {
+    const answer = parseAnswer(responseBody);
+    if (!answer) {
       throw new VehicleChatError(
         "INVALID_RESPONSE",
-        "The vehicle assistant returned an incomplete response.",
+        "The vehicle assistant returned an invalid response.",
       );
     }
 
-    return completedAnswer;
+    return answer;
   };
 }
 
-export const streamVehicleChat = createVehicleChatStreamer({
+export const requestVehicleChat = createVehicleChatRequester({
   baseUrl: ENV.SUPABASE_URL,
   anonKey: ENV.SUPABASE_ANON_KEY,
-  fetch: (input, init) => expoFetch(input, init),
+  fetch: (input, init) => globalThis.fetch(input, init),
   getAccessToken: async () => {
     const { data, error } = await supabase.auth.getSession();
     if (error) return null;

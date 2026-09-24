@@ -18,7 +18,7 @@ import {
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { HeaderLayout } from "../../layouts";
 import {
-  streamVehicleChat,
+  requestVehicleChat,
   type VehicleChatAnswer,
   type VehicleChatHistoryMessage,
   type VehicleChatLanguage,
@@ -40,7 +40,7 @@ type AssistantMessage = {
   role: "assistant";
   prompt: string;
   text: string;
-  status: "streaming" | "complete" | "error" | "cancelled";
+  status: "loading" | "complete" | "error" | "cancelled";
   answer?: VehicleChatAnswer;
 };
 
@@ -116,7 +116,7 @@ export function VehicleChatScreen({ navigation }: Props) {
   const nextMessageId = useRef(0);
   const listRef = useRef<FlatList<ChatMessage>>(null);
 
-  const isStreaming = activeAssistantId !== null;
+  const isRequestActive = activeAssistantId !== null;
 
   useEffect(() => {
     return () => {
@@ -140,20 +140,11 @@ export function VehicleChatScreen({ navigation }: Props) {
     setActiveAssistantId(assistantId);
 
     try {
-      const answer = await streamVehicleChat({
+      const answer = await requestVehicleChat({
         message: prompt,
         language: languageFromLocale(i18n.resolvedLanguage ?? i18n.language),
         history,
         signal: controller.signal,
-        onDelta: (text) => {
-          setMessages((current) =>
-            current.map((message) =>
-              message.id === assistantId && message.role === "assistant"
-                ? { ...message, text: message.text + text }
-                : message,
-            ),
-          );
-        },
       });
 
       setMessages((current) =>
@@ -200,7 +191,7 @@ export function VehicleChatScreen({ navigation }: Props) {
       role: "assistant",
       prompt,
       text: "",
-      status: "streaming",
+      status: "loading",
     };
 
     setInput("");
@@ -245,7 +236,7 @@ export function VehicleChatScreen({ navigation }: Props) {
               ...item,
               text: "",
               answer: undefined,
-              status: "streaming",
+              status: "loading",
             }
           : item,
       ),
@@ -261,7 +252,7 @@ export function VehicleChatScreen({ navigation }: Props) {
     <View style={styles.composer}>
       <TextInput
         accessibilityLabel={t("vehicleChat.inputLabel")}
-        editable={!isStreaming}
+        editable={!isRequestActive}
         maxLength={2000}
         multiline
         onChangeText={setInput}
@@ -274,23 +265,23 @@ export function VehicleChatScreen({ navigation }: Props) {
       />
       <Pressable
         accessibilityLabel={
-          isStreaming
+          isRequestActive
             ? t("vehicleChat.cancelAccessibilityLabel")
             : t("vehicleChat.sendAccessibilityLabel")
         }
         accessibilityRole="button"
-        disabled={!isStreaming && input.trim().length === 0}
+        disabled={!isRequestActive && input.trim().length === 0}
         hitSlop={8}
-        onPress={isStreaming ? cancelRequest : sendMessage}
+        onPress={isRequestActive ? cancelRequest : sendMessage}
         style={({ pressed }) => [
           styles.composerButton,
-          !isStreaming && input.trim().length === 0
+          !isRequestActive && input.trim().length === 0
             ? styles.composerButtonDisabled
             : null,
           pressed ? styles.pressed : null,
         ]}
       >
-        {isStreaming ? (
+        {isRequestActive ? (
           <Square color="#000000" fill="#000000" size={18} />
         ) : (
           <ArrowUp color="#000000" size={22} strokeWidth={2.5} />
@@ -317,7 +308,7 @@ export function VehicleChatScreen({ navigation }: Props) {
             <MessageBubble
               message={item}
               onRetry={retryMessage}
-              retryDisabled={isStreaming}
+              retryDisabled={isRequestActive}
               styles={styles}
               theme={theme}
               t={t}
@@ -341,7 +332,7 @@ export function VehicleChatScreen({ navigation }: Props) {
           }
           ListEmptyComponent={
             <ChatEmptyState
-              disabled={isStreaming}
+              disabled={isRequestActive}
               onSelect={sendPrompt}
               styles={styles}
               t={t}
@@ -435,7 +426,7 @@ function MessageBubble({
       accessibilityLiveRegion="polite"
       style={[styles.bubble, styles.assistantBubble]}
     >
-      {message.status === "streaming" && message.text.length === 0 ? (
+      {message.status === "loading" ? (
         <ActivityIndicator color={theme.colors.accent} size="small" />
       ) : null}
       {message.text.length > 0 ? (

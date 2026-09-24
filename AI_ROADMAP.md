@@ -59,13 +59,14 @@ Do kontekstu trafiają tylko wiadomości potrzebne do bieżącego pytania. Stars
 
 **Rezultat:** backend potrafi zwrócić zwalidowaną odpowiedź dla testowego pytania bez dostępu do danych użytkownika.
 
-## Etap 2 — Minimalny czat i streaming
+## Etap 2 — Minimalny czat
 
 - ekran czatu dostępny z istniejącego kafelka AI,
 - wysyłanie wiadomości do Edge Function,
-- streaming odpowiedzi,
 - obsługa anulowania, błędu i ponowienia,
 - podstawowa historia rozmowy tylko w bieżącej sesji.
+
+Streaming odpowiedzi pozostaje poza zakresem MVP. Można wrócić do niego po potwierdzeniu potrzeby produktowej.
 
 **Rezultat:** użytkownik może prowadzić prostą rozmowę z modelem, ale model nie zna jeszcze jego pojazdu.
 
@@ -197,7 +198,7 @@ MCP dodajemy tylko wtedy, gdy stabilne narzędzia Vericara mają zostać udostę
 
 ## Pokrycie tematów AI Engineering
 
-- Etapy 1–3: LLM APIs, prompt engineering, structured outputs, streaming i tokens.
+- Etapy 1–3: LLM APIs, prompt engineering, structured outputs i tokens.
 - Etapy 4–6: embeddings, chunking, vector databases, `pgvector`, similarity search, metadata filtering, RAG, citations i RAG evaluation.
 - Etap 7: hybrid retrieval, opcjonalny reranking oraz prompt injection protection.
 - Etap 8: multimodal AI i vision models.

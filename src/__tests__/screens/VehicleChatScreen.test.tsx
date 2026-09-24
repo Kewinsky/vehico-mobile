@@ -3,10 +3,10 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 
 import { i18n } from "../../i18n/i18n";
 import { VehicleChatScreen } from "../../screens/header/VehicleChatScreen";
-import { streamVehicleChat } from "../../services/ai/vehicleChatRepo";
+import { requestVehicleChat } from "../../services/ai/vehicleChatRepo";
 
 jest.mock("../../services/ai/vehicleChatRepo", () => ({
-  streamVehicleChat: jest.fn(),
+  requestVehicleChat: jest.fn(),
 }));
 
 jest.mock("@react-navigation/elements", () => ({
@@ -55,7 +55,7 @@ const ANSWER = {
   nextStep: "Arrange roadside assistance.",
 };
 
-const mockedStreamVehicleChat = jest.mocked(streamVehicleChat);
+const mockedRequestVehicleChat = jest.mocked(requestVehicleChat);
 
 function renderScreen() {
   return render(
@@ -69,7 +69,7 @@ function renderScreen() {
 describe("VehicleChatScreen", () => {
   beforeEach(async () => {
     await i18n.changeLanguage("en");
-    mockedStreamVehicleChat.mockReset();
+    mockedRequestVehicleChat.mockReset();
   });
 
   it("shows the broader screen description and predefined prompts", () => {
@@ -102,25 +102,21 @@ describe("VehicleChatScreen", () => {
   });
 
   it("sends a predefined prompt with one tap", async () => {
-    mockedStreamVehicleChat.mockResolvedValue(ANSWER);
+    mockedRequestVehicleChat.mockResolvedValue(ANSWER);
     const screen = renderScreen();
 
     fireEvent.press(
       screen.getByText("How should I prepare my car for a long trip?"),
     );
 
-    await waitFor(() => expect(mockedStreamVehicleChat).toHaveBeenCalledTimes(1));
-    expect(mockedStreamVehicleChat.mock.calls[0]?.[0].message).toBe(
+    await waitFor(() => expect(mockedRequestVehicleChat).toHaveBeenCalledTimes(1));
+    expect(mockedRequestVehicleChat.mock.calls[0]?.[0].message).toBe(
       "How should I prepare my car for a long trip?",
     );
   });
 
-  it("adds the user message, renders streamed text, and shows final details", async () => {
-    mockedStreamVehicleChat.mockImplementation(async ({ onDelta }) => {
-      onDelta("Stop ");
-      onDelta("safely.");
-      return ANSWER;
-    });
+  it("adds the user message and shows the validated answer", async () => {
+    mockedRequestVehicleChat.mockResolvedValue(ANSWER);
     const screen = renderScreen();
 
     fireEvent.changeText(
@@ -139,7 +135,7 @@ describe("VehicleChatScreen", () => {
   });
 
   it("allows retrying a failed answer without duplicating the user message", async () => {
-    mockedStreamVehicleChat
+    mockedRequestVehicleChat
       .mockRejectedValueOnce(new Error("offline"))
       .mockResolvedValueOnce(ANSWER);
     const screen = renderScreen();
@@ -159,11 +155,11 @@ describe("VehicleChatScreen", () => {
 
     await waitFor(() => expect(screen.getByText("Stop safely.")).toBeTruthy());
     expect(screen.getAllByText("Oil warning light")).toHaveLength(1);
-    expect(mockedStreamVehicleChat).toHaveBeenCalledTimes(2);
+    expect(mockedRequestVehicleChat).toHaveBeenCalledTimes(2);
   });
 
   it("sends completed exchanges as bounded in-session context", async () => {
-    mockedStreamVehicleChat.mockResolvedValue(ANSWER);
+    mockedRequestVehicleChat.mockResolvedValue(ANSWER);
     const screen = renderScreen();
 
     fireEvent.changeText(
@@ -171,7 +167,7 @@ describe("VehicleChatScreen", () => {
       "Oil warning light",
     );
     fireEvent.press(screen.getByLabelText("Send message"));
-    await waitFor(() => expect(mockedStreamVehicleChat).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockedRequestVehicleChat).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(screen.getByText("Stop safely.")).toBeTruthy());
 
     fireEvent.changeText(
@@ -180,8 +176,8 @@ describe("VehicleChatScreen", () => {
     );
     fireEvent.press(screen.getByLabelText("Send message"));
 
-    await waitFor(() => expect(mockedStreamVehicleChat).toHaveBeenCalledTimes(2));
-    expect(mockedStreamVehicleChat.mock.calls[1]?.[0].history).toEqual([
+    await waitFor(() => expect(mockedRequestVehicleChat).toHaveBeenCalledTimes(2));
+    expect(mockedRequestVehicleChat.mock.calls[1]?.[0].history).toEqual([
       { role: "user", content: "Oil warning light" },
       {
         role: "assistant",
@@ -193,7 +189,7 @@ describe("VehicleChatScreen", () => {
   });
 
   it("aborts the active request and exposes retry", async () => {
-    mockedStreamVehicleChat.mockImplementation(
+    mockedRequestVehicleChat.mockImplementation(
       ({ signal }) =>
         new Promise((_, reject) => {
           signal.addEventListener("abort", () => reject(new Error("aborted")));
