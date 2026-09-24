@@ -17,7 +17,7 @@ VehicleChatScreen
   → aktualizacja wiadomości na ekranie
 ```
 
-Klient nie łączy się bezpośrednio z OpenAI i nie zna `OPENAI_API_KEY`. Do Edge Function wysyła publiczny klucz projektu oraz token bieżącej sesji użytkownika.
+Klient nie łączy się bezpośrednio z OpenAI i nie zna `OPENAI_API_KEY`. Do Edge Function wysyła publiczny klucz projektu oraz token bieżącej sesji użytkownika. Wrapper `withSupabase({ auth: "user" })` weryfikuje token przed uruchomieniem handlera, więc endpoint jest dostępny tylko dla zalogowanego użytkownika.
 
 ## Kontrakt streamingu
 
@@ -119,7 +119,7 @@ Po tym teście można zaznaczyć kryterium zakończenia etapu 2 w `ai.todo` i zm
 ## Ograniczenia i następny etap
 
 - Edge Function nie sprawdza jeszcze własności `vehicleId`; dlatego dane pojazdu nie są wysyłane do modelu.
-- Publishable key nie chroni płatnego endpointu przed nadużyciem. Pełna weryfikacja użytkownika i pojazdu jest częścią etapu 3, a rate limiting etapu 12.
+- Token sesji chroni endpoint przed anonimowym wywołaniem, ale funkcja nie autoryzuje jeszcze dostępu do konkretnego pojazdu. Powiązanie użytkownika z `vehicleId` jest częścią etapu 3, a rate limiting etapu 12.
 - Historia nie jest trwała i nie jest jeszcze streszczana.
 - Asystent nie korzysta z historii serwisowej, dokumentów ani internetu.
 

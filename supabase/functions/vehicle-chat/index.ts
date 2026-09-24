@@ -9,5 +9,5 @@ const handler = createVehicleChatHandler({
 });
 
 export default {
-  fetch: withSupabase({ auth: ["publishable", "secret"] }, handler),
+  fetch: withSupabase({ auth: "user" }, handler),
 };
