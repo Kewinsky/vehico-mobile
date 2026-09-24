@@ -773,8 +773,21 @@ export const pl = {
   vehicleChat: {
     title: "Asystent AI",
     subtitle: "Zapytaj o objawy i bezpieczne kolejne kroki.",
-    emptyTitle: "Jak mogę pomóc?",
     emptyBody: "Opisz objaw, kontrolkę lub dźwięk, który Cię niepokoi.",
+    inputLabel: "Wiadomość do asystenta AI",
+    inputPlaceholder: "Opisz problem z pojazdem…",
+    sendAccessibilityLabel: "Wyślij wiadomość",
+    cancelAccessibilityLabel: "Zatrzymaj odpowiedź",
+    error: "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie.",
+    cancelled: "Odpowiedź została zatrzymana.",
+    retry: "Spróbuj ponownie",
+    nextStep: "Następny krok",
+    urgency: {
+      monitor: "Obserwuj",
+      service_soon: "Umów serwis",
+      stop_driving: "Zatrzymaj pojazd",
+      unknown: "Pilność nieznana",
+    },
   },
   profile: {
     title: "Profil",

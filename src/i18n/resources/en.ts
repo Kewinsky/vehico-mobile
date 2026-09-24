@@ -762,8 +762,21 @@ export const en = {
   vehicleChat: {
     title: "AI assistant",
     subtitle: "Ask about symptoms and safe next steps.",
-    emptyTitle: "How can I help?",
     emptyBody: "Describe a symptom, warning light, or sound that concerns you.",
+    inputLabel: "Message to the AI assistant",
+    inputPlaceholder: "Describe the vehicle problem…",
+    sendAccessibilityLabel: "Send message",
+    cancelAccessibilityLabel: "Stop response",
+    error: "Could not get an answer. Try again.",
+    cancelled: "The response was stopped.",
+    retry: "Try again",
+    nextStep: "Next step",
+    urgency: {
+      monitor: "Monitor",
+      service_soon: "Arrange service",
+      stop_driving: "Stop driving",
+      unknown: "Urgency unknown",
+    },
   },
   profile: {
     title: "Profile",

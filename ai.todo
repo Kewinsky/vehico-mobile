@@ -17,16 +17,15 @@ Realizujemy etapy po kolei. Proaktywne rekomendacje rozpoczynamy dopiero po zbud
 
 ## 2. Minimal Chat & Streaming
 
-- [ ] Dodać typowaną trasę czatu do `RootNavigator`.
-- [ ] Aktywować istniejący kafelek AI na dashboardzie.
-- [ ] Dodać repozytorium klienta wywołujące Edge Function.
-- [ ] Dodać ekran listy wiadomości i pole wpisywania tekstu.
-- [ ] Dodać streaming odpowiedzi.
-- [ ] Dodać anulowanie, ponowienie i obsługę błędów.
-- [ ] Przechowywać historię tylko w bieżącej sesji.
-- [ ] Dodać tłumaczenia PL i EN.
-- [ ] Dodać testy repozytorium oraz stanów ekranu.
-- [ ] Kryterium zakończenia: użytkownik może przeprowadzić prostą rozmowę z modelem.
+- [x] Dodać typowaną trasę czatu do `RootNavigator`.
+- [x] Aktywować istniejący kafelek AI na dashboardzie.
+- [x] Dodać repozytorium klienta wywołujące Edge Function.
+- [x] Dodać ekran listy wiadomości i pole wpisywania tekstu.
+- [x] Dodać streaming odpowiedzi.
+- [x] Dodać anulowanie, ponowienie i obsługę błędów.
+- [x] Przechowywać historię tylko w bieżącej sesji.
+- [x] Dodać tłumaczenia PL i EN.
+- [x] Dodać testy repozytorium oraz stanów ekranu.
 
 ## 3. Vehicle & Service Context
 
