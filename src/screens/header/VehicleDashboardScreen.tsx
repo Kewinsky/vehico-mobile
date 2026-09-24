@@ -148,7 +148,7 @@ function VehicleDashboardTabs({
       {androidTabIconsReady ? (
         <Tab.Navigator
           initialRouteName={initialTab ?? "Overview"}
-          labeled
+          labeled={false}
           hapticFeedbackEnabled
           scrollEdgeAppearance="transparent"
           tabBarActiveTintColor={theme.colors.accent}
