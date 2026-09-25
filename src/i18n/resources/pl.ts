@@ -780,6 +780,12 @@ export const pl = {
     showSuggestionsAccessibilityLabel: "Pokaż sugerowane pytania",
     hideSuggestionsAccessibilityLabel: "Ukryj sugerowane pytania",
     error: "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie.",
+    errorTimeout: "Asystent nie odpowiedział na czas. Spróbuj ponownie.",
+    errorInvalidResponse:
+      "Odpowiedź asystenta została przerwana lub była nieprawidłowa. Spróbuj ponownie.",
+    errorUnavailable: "Asystent jest chwilowo niedostępny. Spróbuj ponownie.",
+    errorContextTooLarge:
+      "Dane pojazdu są zbyt obszerne do przetworzenia w jednej odpowiedzi.",
     cancelled: "Odpowiedź została zatrzymana.",
     retry: "Spróbuj ponownie",
     suggestions: {

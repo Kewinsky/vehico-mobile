@@ -3,11 +3,15 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 
 import { i18n } from "../../i18n/i18n";
 import { VehicleChatScreen } from "../../screens/header/VehicleChatScreen";
-import { requestVehicleChat } from "../../services/ai/vehicleChatRepo";
+import {
+  requestVehicleChat,
+  VehicleChatError,
+} from "../../services/ai/vehicleChatRepo";
 
-jest.mock("../../services/ai/vehicleChatRepo", () => ({
-  requestVehicleChat: jest.fn(),
-}));
+jest.mock("../../services/ai/vehicleChatRepo", () => {
+  const actual = jest.requireActual("../../services/ai/vehicleChatRepo");
+  return { ...actual, requestVehicleChat: jest.fn() };
+});
 
 jest.mock("@react-navigation/elements", () => ({
   useHeaderHeight: () => 96,
@@ -50,15 +54,8 @@ jest.mock("../../ui/components/layout/ContentHeader", () => {
 
 const ANSWER = {
   answer: "Stop safely.",
-  urgency: "stop_driving" as const,
-  uncertainty: "The cause cannot be confirmed remotely.",
-  nextStep: "Arrange roadside assistance.",
 };
-const DISPLAYED_ANSWER = [
-  ANSWER.answer,
-  ANSWER.uncertainty,
-  ANSWER.nextStep,
-].join("\n\n");
+const DISPLAYED_ANSWER = ANSWER.answer;
 
 const mockedRequestVehicleChat = jest.mocked(requestVehicleChat);
 
@@ -118,6 +115,10 @@ describe("VehicleChatScreen", () => {
     await waitFor(() => expect(mockedRequestVehicleChat).toHaveBeenCalledTimes(1));
     expect(mockedRequestVehicleChat.mock.calls[0]?.[0].message).toBe(
       "How should I prepare my car for a long trip?",
+    );
+    expect(mockedRequestVehicleChat.mock.calls[0]?.[0].vehicleId).toBe("v1");
+    expect(mockedRequestVehicleChat.mock.calls[0]?.[0]).not.toHaveProperty(
+      "region",
     );
   });
 
@@ -180,6 +181,40 @@ describe("VehicleChatScreen", () => {
     await waitFor(() => expect(screen.getByText(DISPLAYED_ANSWER)).toBeTruthy());
     expect(screen.getAllByText("Oil warning light")).toHaveLength(1);
     expect(mockedRequestVehicleChat).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    [
+      "MODEL_TIMEOUT",
+      "The assistant did not respond in time. Try again.",
+    ],
+    [
+      "INVALID_MODEL_RESPONSE",
+      "The assistant response was interrupted or invalid. Try again.",
+    ],
+    [
+      "MODEL_REQUEST_FAILED",
+      "The assistant is temporarily unavailable. Try again.",
+    ],
+    [
+      "CONTEXT_TOO_LARGE",
+      "The vehicle data is too large to process in a single response.",
+    ],
+  ] as const)("shows a specific %s error", async (code, expectedMessage) => {
+    mockedRequestVehicleChat.mockRejectedValue(
+      new VehicleChatError(code, "Backend error"),
+    );
+    const screen = renderScreen();
+
+    fireEvent.changeText(
+      screen.getByLabelText("Message to the AI assistant"),
+      "List my services",
+    );
+    fireEvent.press(screen.getByLabelText("Send message"));
+
+    await waitFor(() =>
+      expect(screen.getByText(expectedMessage)).toBeTruthy(),
+    );
   });
 
   it("sends completed exchanges as bounded in-session context", async () => {

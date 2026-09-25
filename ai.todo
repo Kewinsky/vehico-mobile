@@ -28,20 +28,25 @@ Realizujemy etapy po kolei. Proaktywne rekomendacje rozpoczynamy dopiero po zbud
 
 Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej decyzji produktowej.
 
-## 3. Vehicle & Service Context
+## 3. Full Vehicle Context
 
-- [ ] Rozszerzyć request o `vehicleId`, język i region.
-- [ ] Uwierzytelnić użytkownika w Edge Function przez `auth.getUser()`.
-- [ ] Używać klienta Supabase działającego z tokenem użytkownika i RLS.
-- [ ] Sprawdzać własność pojazdu niezależnie od modelu.
-- [ ] Pobierać profil pojazdu i tylko zatwierdzoną historię serwisową.
-- [ ] Rozróżniać dane użytkownika, potwierdzoną historię i dane nieznane.
-- [ ] Ograniczyć liczbę rekordów oraz rozmiar kontekstu.
-- [ ] Oznaczać brak dokładnej wersji lub kodu silnika.
-- [ ] Zwracać cytowania konkretnych rekordów historii.
-- [ ] Dodać testy izolacji użytkowników i pojazdów.
-- [ ] Dodać testy pustej, błędnej i sprzecznej historii.
-- [ ] Kryterium zakończenia: czat odpowiada na podstawie właściwego pojazdu bez wycieku danych.
+- [x] Rozszerzyć request o `vehicleId` i język.
+- [x] Uwierzytelnić użytkownika w Edge Function przez `auth.getUser()`.
+- [x] Używać klienta Supabase działającego z tokenem użytkownika i RLS.
+- [x] Sprawdzać własność pojazdu niezależnie od modelu.
+- [x] Pobierać profil pojazdu i tylko zatwierdzoną historię serwisową.
+- [x] Przekazywać odfiltrowany snapshot przypomnień, kół, opon, wyposażenia, warsztatów i przebiegu.
+- [x] Przekazywać wpisy paliwowe tylko jako: data, koszt, rodzaj paliwa, stacja benzynowa i dystans.
+- [x] Pomijać raporty, ogłoszenia, VIN, tablicę rejestracyjną, `owner_id`, `intake_token` i techniczne daty utworzenia.
+- [x] Ograniczyć serwisy i paliwo do 100 najnowszych rekordów każdej kolekcji.
+- [x] Rozróżniać dane użytkownika, potwierdzoną historię i dane nieznane.
+- [x] Ograniczyć liczbę rekordów oraz rozmiar kontekstu.
+- [x] Oznaczać brak dokładnej wersji lub kodu silnika.
+- [x] Walidować cytowania rekordów historii wewnątrz backendu bez zwracania ich klientowi.
+- [x] Walidować `urgency`, `uncertainty` i `nextStep` wewnątrz backendu, a klientowi zwracać wyłącznie `answer`.
+- [x] Dodać testy izolacji użytkowników i pojazdów.
+- [x] Dodać testy pustej, błędnej i sprzecznej historii.
+- [x] Kryterium zakończenia: czat odpowiada na podstawie właściwego pojazdu bez wycieku danych.
 
 ## 4. Cloud Documents
 

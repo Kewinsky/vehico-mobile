@@ -112,9 +112,9 @@ npm run lint
 
 ## Ograniczenia i następny etap
 
-- Edge Function nie sprawdza jeszcze własności `vehicleId`; dlatego dane pojazdu nie są wysyłane do modelu.
-- Token sesji chroni endpoint przed anonimowym wywołaniem, ale funkcja nie autoryzuje jeszcze dostępu do konkretnego pojazdu. Powiązanie użytkownika z `vehicleId` jest częścią etapu 3, a rate limiting etapu 12.
+- Własność `vehicleId`, profil pojazdu i zatwierdzona historia serwisowa zostały dodane w etapie 3 opisanym w `AI_STAGE_3.md`.
+- Rate limiting pozostaje częścią etapu 12.
 - Historia nie jest trwała i nie jest jeszcze streszczana.
 - Asystent nie korzysta z historii serwisowej, dokumentów ani internetu.
 
-Etap 3 doda bezpieczny kontekst właściwego pojazdu i jego zatwierdzonej historii serwisowej.
+Etap 3 dodał bezpieczny kontekst właściwego pojazdu i jego zatwierdzonej historii serwisowej.
