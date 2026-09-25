@@ -47,6 +47,8 @@ Model nadal zwraca backendowi ustrukturyzowane pola `urgency`, `uncertainty`, `n
 
 Odpowiedzi mają limit 1200 tokenów. Zwykła odpowiedź pozostaje krótka, natomiast na wyraźną prośbę o wiele rekordów model może zwrócić dłuższą listę. Każdy rekord ma znaleźć się w osobnym punkcie listy, zamiast w jednym zdaniu rozdzielonym przecinkami.
 
+Reguła stylu zabrania używania znaku em dash (`U+2014`). Model ma zamiast niego stosować przecinki, nawiasy, dwukropki albo zwykły łącznik.
+
 ## Zakres kontekstu
 
 Każdy request zawiera odfiltrowany snapshot domenowy dostępny w chmurze dla wybranego pojazdu i użytkownika:

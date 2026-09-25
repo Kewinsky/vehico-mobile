@@ -161,6 +161,9 @@ describe("vehicle-chat handler", () => {
     expect(modelRequest.instructions).toContain(
       "readable bullet list with one record per line",
     );
+    expect(modelRequest.instructions).toContain(
+      "Never use the em dash character (U+2014)",
+    );
   });
 
   it("requires an authenticated user before checking access or loading context", async () => {
