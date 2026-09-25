@@ -16,7 +16,11 @@ export type VehicleChatErrorCode =
   | "AUTH_REQUIRED"
   | "INVALID_RESPONSE"
   | "NETWORK_ERROR"
-  | "REQUEST_FAILED";
+  | "REQUEST_FAILED"
+  | "MODEL_TIMEOUT"
+  | "INVALID_MODEL_RESPONSE"
+  | "MODEL_REQUEST_FAILED"
+  | "CONTEXT_TOO_LARGE";
 
 export class VehicleChatError extends Error {
   constructor(
@@ -101,11 +105,25 @@ function parseErrorPayload(value: unknown): ErrorPayload | null {
   return { error: { code: value.error.code, message: value.error.message } };
 }
 
+function isVehicleChatErrorCode(value: string): value is VehicleChatErrorCode {
+  return (
+    value === "MODEL_TIMEOUT" ||
+    value === "INVALID_MODEL_RESPONSE" ||
+    value === "MODEL_REQUEST_FAILED" ||
+    value === "CONTEXT_TOO_LARGE"
+  );
+}
+
 async function responseError(response: FetchResponse): Promise<VehicleChatError> {
   try {
     const payload = parseErrorPayload(await response.json());
     if (payload) {
-      return new VehicleChatError("REQUEST_FAILED", payload.error.message);
+      return new VehicleChatError(
+        isVehicleChatErrorCode(payload.error.code)
+          ? payload.error.code
+          : "REQUEST_FAILED",
+        payload.error.message,
+      );
     }
   } catch {
     // The user receives a stable message when the server error body is unreadable.

@@ -45,6 +45,8 @@ Publiczna odpowiedź dla aplikacji upraszcza kontrakt etapu 2:
 
 Model nadal zwraca backendowi ustrukturyzowane pola `urgency`, `uncertainty`, `nextStep` oraz pozycje cytowanych wpisów w tablicy `service_history`. Backend waliduje cały structured output, ale publicznie zwraca tylko samodzielne pole `answer`, które zgodnie z promptem musi już zawierać pilność, istotną niepewność i bezpieczny następny krok. Bazowe UUID nie trafiają do modelu, a cytowania nie trafiają do publicznej odpowiedzi API ani interfejsu.
 
+Odpowiedzi mają limit 1200 tokenów. Zwykła odpowiedź pozostaje krótka, natomiast na wyraźną prośbę o wiele rekordów model może zwrócić dłuższą listę. Każdy rekord ma znaleźć się w osobnym punkcie listy, zamiast w jednym zdaniu rozdzielonym przecinkami.
+
 ## Zakres kontekstu
 
 Każdy request zawiera odfiltrowany snapshot domenowy dostępny w chmurze dla wybranego pojazdu i użytkownika:
@@ -80,6 +82,8 @@ Kontekst jawnie opisuje pochodzenie danych:
 | 502 | `INVALID_MODEL_RESPONSE` | Odpowiedź lub cytowanie nie spełnia kontraktu. |
 
 Pozostałe błędy modelu, Premium, timeoutu i walidacji requestu zachowują kontrakt z etapów 1–2.
+
+UI rozróżnia timeout, przerwaną lub nieprawidłową odpowiedź modelu, chwilową niedostępność dostawcy oraz zbyt duży kontekst. Nie pokazuje użytkownikowi surowych szczegółów technicznych.
 
 ## Testy automatyczne
 

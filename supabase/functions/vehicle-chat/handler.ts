@@ -4,7 +4,7 @@ const MAX_HISTORY_LENGTH = 8000;
 export const MAX_CONTEXT_ROWS_PER_COLLECTION = 500;
 export const MAX_RECENT_SERVICE_AND_FUEL_ROWS = 100;
 const MAX_VEHICLE_CONTEXT_LENGTH = 120_000;
-const MAX_OUTPUT_TOKENS = 500;
+const MAX_OUTPUT_TOKENS = 1200;
 const MODEL_TIMEOUT_MS = 15_000;
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const MODEL = "gpt-5.6-luna";
@@ -28,7 +28,8 @@ Rules:
 - Do not invent service history, vehicle specifications, measurements, prices, or sources. Do not reconcile conflicting records by guessing.
 - Cite an approved service record only when the answer relies on it. Put only its zero-based position in the supplied service_history array in citations. Use an empty citations array otherwise.
 - Answer in the language specified by the user.
-- Keep the answer concise and practical.
+- Keep prose answers concise and practical.
+- When the user asks for multiple records, format them as a readable bullet list with one record per line. Never join multiple records into one comma-separated sentence.
 - The answer must stand on its own and explicitly communicate urgency and any safety-critical action. Do not rely on the structured metadata alone.
 
 Urgency meanings:
@@ -37,7 +38,7 @@ Urgency meanings:
 - stop_driving: continuing to drive may be unsafe or may cause serious damage.
 - unknown: there is not enough information to assess urgency.
 
-The answer should contain 2–5 short sentences.
+Prose answers should contain 2–5 short sentences. Lists may contain as many items as needed to answer the request.
 The uncertainty should explicitly state what cannot be confirmed.
 The next step should be one clear, actionable recommendation.`;
 

@@ -515,7 +515,7 @@ Testy znajdują się w `src/__tests__/ai/vehicleChatHandler.test.ts`. Wynik z 12
 - Wyniki nie potwierdzają jeszcze gotowości produkcyjnej: zestaw obejmuje tylko 10 przypadków, każdy wykonano jeden raz, a metryki T01 Luny pochodzą z nieczystej sesji.
 - Web search nie jest częścią tego evala. Zostanie dodany i oceniony osobno w etapie 7, aby odróżnić błędy modelu od błędów wyszukiwania i doboru źródeł.
 - Nie powtarzamy teraz T01 Luny: jego wynik jakościowy jest wystarczający, a nieporównywalne metryki pozostają jawnie oznaczone. Test należy powtórzyć dopiero przy kolejnym pełnym porównaniu modeli.
-- Edge Function została zaimplementowana z walidacją, limitem 500 tokenów wyjścia, timeoutem 15 sekund i bezpiecznymi typami błędów. Ręczny test end-to-end oraz 6 deterministycznych testów handlera przeszły.
+- Edge Function została zaimplementowana z walidacją, początkowym limitem 500 tokenów wyjścia, timeoutem 15 sekund i bezpiecznymi typami błędów. W etapie 3 limit zwiększono do 1200 tokenów, aby obsłużyć czytelne listy wielu rekordów bez odpowiedzi `incomplete`.
 
 ## Etap 3 — evale kontekstu pojazdu
 

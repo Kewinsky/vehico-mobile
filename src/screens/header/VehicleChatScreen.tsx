@@ -20,6 +20,7 @@ import { HeaderLayout } from "../../layouts";
 import {
   requestVehicleChat,
   type VehicleChatAnswer,
+  VehicleChatError,
   type VehicleChatHistoryMessage,
   type VehicleChatLanguage,
 } from "../../services/ai/vehicleChatRepo";
@@ -41,6 +42,7 @@ type AssistantMessage = {
   prompt: string;
   text: string;
   status: "loading" | "complete" | "error" | "cancelled";
+  errorKind?: "timeout" | "invalidResponse" | "unavailable" | "contextTooLarge";
   answer?: VehicleChatAnswer;
 };
 
@@ -48,6 +50,24 @@ type ChatMessage = UserMessage | AssistantMessage;
 
 function languageFromLocale(locale: string): VehicleChatLanguage {
   return locale.toLowerCase().startsWith("pl") ? "pl" : "en";
+}
+
+function errorKind(error: unknown): AssistantMessage["errorKind"] {
+  if (!(error instanceof VehicleChatError)) return undefined;
+  switch (error.code) {
+    case "MODEL_TIMEOUT":
+      return "timeout";
+    case "INVALID_MODEL_RESPONSE":
+    case "INVALID_RESPONSE":
+      return "invalidResponse";
+    case "MODEL_REQUEST_FAILED":
+    case "NETWORK_ERROR":
+      return "unavailable";
+    case "CONTEXT_TOO_LARGE":
+      return "contextTooLarge";
+    default:
+      return undefined;
+  }
 }
 
 function toRequestHistory(messages: ChatMessage[]): VehicleChatHistoryMessage[] {
@@ -157,12 +177,12 @@ export function VehicleChatScreen({ navigation, route }: Props) {
             : message,
         ),
       );
-    } catch {
+    } catch (error) {
       if (!controller.signal.aborted) {
         setMessages((current) =>
           current.map((message) =>
             message.id === assistantId && message.role === "assistant"
-              ? { ...message, status: "error" }
+              ? { ...message, errorKind: errorKind(error), status: "error" }
               : message,
           ),
         );
@@ -235,6 +255,7 @@ export function VehicleChatScreen({ navigation, route }: Props) {
               ...item,
               text: "",
               answer: undefined,
+              errorKind: undefined,
               status: "loading",
             }
           : item,
@@ -453,9 +474,17 @@ function MessageBubble({
   const showRetry =
     message.status === "error" || message.status === "cancelled";
   const statusText =
-    message.status === "error"
-      ? t("vehicleChat.error")
-      : t("vehicleChat.cancelled");
+    message.status === "cancelled"
+      ? t("vehicleChat.cancelled")
+      : message.errorKind === "timeout"
+        ? t("vehicleChat.errorTimeout")
+        : message.errorKind === "invalidResponse"
+          ? t("vehicleChat.errorInvalidResponse")
+          : message.errorKind === "unavailable"
+            ? t("vehicleChat.errorUnavailable")
+            : message.errorKind === "contextTooLarge"
+              ? t("vehicleChat.errorContextTooLarge")
+              : t("vehicleChat.error");
 
   return (
     <View

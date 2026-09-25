@@ -769,6 +769,12 @@ export const en = {
     showSuggestionsAccessibilityLabel: "Show suggested questions",
     hideSuggestionsAccessibilityLabel: "Hide suggested questions",
     error: "Could not get an answer. Try again.",
+    errorTimeout: "The assistant did not respond in time. Try again.",
+    errorInvalidResponse:
+      "The assistant response was interrupted or invalid. Try again.",
+    errorUnavailable: "The assistant is temporarily unavailable. Try again.",
+    errorContextTooLarge:
+      "The vehicle data is too large to process in a single response.",
     cancelled: "The response was stopped.",
     retry: "Try again",
     suggestions: {

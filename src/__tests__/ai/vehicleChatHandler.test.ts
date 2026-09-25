@@ -154,6 +154,13 @@ describe("vehicle-chat handler", () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual(PUBLIC_ANSWER);
     expect(fetchModel).toHaveBeenCalledTimes(1);
+    const modelRequest = JSON.parse(
+      String(fetchModel.mock.calls[0]?.[1].body),
+    ) as { instructions: string; max_output_tokens: number };
+    expect(modelRequest.max_output_tokens).toBe(1200);
+    expect(modelRequest.instructions).toContain(
+      "readable bullet list with one record per line",
+    );
   });
 
   it("requires an authenticated user before checking access or loading context", async () => {

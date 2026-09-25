@@ -107,7 +107,7 @@ describe("vehicleChatRepo", () => {
       }),
     ).rejects.toEqual(
       expect.objectContaining<Partial<VehicleChatError>>({
-        code: "REQUEST_FAILED",
+        code: "MODEL_TIMEOUT",
         message: "Timed out.",
       }),
     );
