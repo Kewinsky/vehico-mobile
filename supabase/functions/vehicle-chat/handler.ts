@@ -31,7 +31,7 @@ Rules:
 - Keep prose answers concise and practical.
 - Never use the em dash character (U+2014). Use commas, parentheses, colons, or the regular hyphen-minus character instead.
 - When the user asks for multiple records, format them as a readable bullet list with one record per line. Never join multiple records into one comma-separated sentence.
-- The answer must stand on its own and explicitly communicate urgency and any safety-critical action. Do not rely on the structured metadata alone.
+- Keep the answer concise. The application deterministically displays the structured urgency, uncertainty, and next step alongside it.
 
 Urgency meanings:
 - monitor: no immediate intervention appears necessary based on the provided information.
@@ -93,8 +93,7 @@ interface VehicleChatCitation {
   title: string;
 }
 
-interface VehicleChatAnswer
-  extends Omit<ModelVehicleChatAnswer, "citations"> {
+interface VehicleChatAnswer extends Omit<ModelVehicleChatAnswer, "citations"> {
   citations: VehicleChatCitation[];
 }
 
@@ -357,8 +356,7 @@ function nullableString(value: unknown): string | null | undefined {
 }
 
 function nullableNumber(value: unknown): number | null | undefined {
-  return value === null ||
-    (typeof value === "number" && Number.isFinite(value))
+  return value === null || (typeof value === "number" && Number.isFinite(value))
     ? value
     : undefined;
 }
@@ -604,15 +602,11 @@ function buildVehicleContext(
       rows.reminders ?? [],
       [
         "due_date",
-        "id",
-        "vehicle_id",
         "due_mileage",
         "days_before",
         "title",
         "notes",
         "status",
-        "channel_email",
-        "channel_push",
         "enabled",
         "delivered_at",
         "recurrence_interval_value",
@@ -625,8 +619,6 @@ function buildVehicleContext(
       rows.tires ?? [],
       [
         "name",
-        "id",
-        "vehicle_id",
         "width_mm",
         "aspect_ratio",
         "diameter_inch",
@@ -639,8 +631,6 @@ function buildVehicleContext(
       rows.wheels ?? [],
       [
         "name",
-        "id",
-        "vehicle_id",
         "width_inch",
         "diameter_inch",
         "et_offset",
@@ -651,13 +641,10 @@ function buildVehicleContext(
         "is_currently_fitted",
       ],
     ],
-    equipment: [
-      rows.equipment ?? [],
-      ["id", "vehicle_id", "preset_key", "label"],
-    ],
+    equipment: [rows.equipment ?? [], ["preset_key", "label"]],
     workshops: [
       rows.workshops ?? [],
-      ["id", "name", "workshop_type", "phone_number", "address"],
+      ["name", "workshop_type", "phone_number", "address"],
     ],
   } as const;
   const collections: { [key: string]: JsonValue } = {};
@@ -684,7 +671,6 @@ function buildVehicleContext(
 
   const profile = {
     provenance: "user_supplied_profile",
-    id: vehicle.id,
     type: vehicle.type,
     make: vehicle.make,
     model: vehicle.model,
@@ -716,7 +702,7 @@ function buildVehicleContext(
       cost: item.cost,
       workshop:
         item.workshopSnapshot ??
-        (item.workshopId ? workshopNames.get(item.workshopId) ?? null : null),
+        (item.workshopId ? (workshopNames.get(item.workshopId) ?? null) : null),
     })),
     ...collections,
     excluded_data: [
@@ -728,10 +714,7 @@ function buildVehicleContext(
       "sensitive_vehicle_fields",
       "technical_metadata",
     ],
-    unknown_data: [
-      "verified_exact_vehicle_variant",
-      "verified_engine_code",
-    ],
+    unknown_data: ["verified_exact_vehicle_variant", "verified_engine_code"],
     conflicts: detectContextConflicts(vehicle, records),
   };
   const serialized = JSON.stringify(snapshot);
@@ -1006,6 +989,9 @@ export function createVehicleChatHandler({
 
     return Response.json({
       answer: answer.answer,
+      urgency: answer.urgency,
+      uncertainty: answer.uncertainty,
+      nextStep: answer.nextStep,
     });
   };
 }

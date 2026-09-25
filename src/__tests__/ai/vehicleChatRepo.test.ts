@@ -7,6 +7,9 @@ import {
 
 const ANSWER = {
   answer: "Stop safely.",
+  urgency: "stop_driving" as const,
+  uncertainty: "The exact cause cannot be confirmed remotely.",
+  nextStep: "Arrange roadside assistance.",
 };
 
 type TestFetch = Parameters<typeof createVehicleChatRequester>[0]["fetch"];

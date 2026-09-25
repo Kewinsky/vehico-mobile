@@ -54,8 +54,16 @@ jest.mock("../../ui/components/layout/ContentHeader", () => {
 
 const ANSWER = {
   answer: "Stop safely.",
+  urgency: "stop_driving" as const,
+  uncertainty: "The exact cause cannot be confirmed remotely.",
+  nextStep: "Arrange roadside assistance.",
 };
-const DISPLAYED_ANSWER = ANSWER.answer;
+const DISPLAYED_ANSWER = [
+  "Do not continue driving.",
+  ANSWER.answer,
+  ANSWER.uncertainty,
+  ANSWER.nextStep,
+].join("\n\n");
 
 const mockedRequestVehicleChat = jest.mocked(requestVehicleChat);
 
@@ -157,6 +165,33 @@ describe("VehicleChatScreen", () => {
 
     expect(screen.getByText("Oil warning light")).toBeTruthy();
     await waitFor(() => expect(screen.getByText(DISPLAYED_ANSWER)).toBeTruthy());
+  });
+
+  it("shows deterministic safety guidance when the model fields conflict", async () => {
+    mockedRequestVehicleChat.mockResolvedValue({
+      ...ANSWER,
+      answer: "You may continue driving.",
+    });
+    const screen = renderScreen();
+
+    fireEvent.changeText(
+      screen.getByLabelText("Message to the AI assistant"),
+      "The brake pedal is soft",
+    );
+    fireEvent.press(screen.getByLabelText("Send message"));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          [
+            "Do not continue driving.",
+            "You may continue driving.",
+            ANSWER.uncertainty,
+            ANSWER.nextStep,
+          ].join("\n\n"),
+        ),
+      ).toBeTruthy(),
+    );
   });
 
   it("allows retrying a failed answer without duplicating the user message", async () => {

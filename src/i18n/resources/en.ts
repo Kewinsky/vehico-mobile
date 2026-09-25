@@ -775,6 +775,12 @@ export const en = {
     errorUnavailable: "The assistant is temporarily unavailable. Try again.",
     errorContextTooLarge:
       "The vehicle data is too large to process in a single response.",
+    urgency: {
+      monitor: "No immediate action appears necessary based on the available information.",
+      service_soon: "Arrange a vehicle inspection soon.",
+      stop_driving: "Do not continue driving.",
+      unknown: "The urgency cannot be determined from the available information.",
+    },
     cancelled: "The response was stopped.",
     retry: "Try again",
     suggestions: {

@@ -43,7 +43,7 @@ Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej dec
 - [x] Ograniczyć liczbę rekordów oraz rozmiar kontekstu.
 - [x] Oznaczać brak dokładnej wersji lub kodu silnika.
 - [x] Walidować cytowania rekordów historii wewnątrz backendu bez zwracania ich klientowi.
-- [x] Walidować `urgency`, `uncertainty` i `nextStep` wewnątrz backendu, a klientowi zwracać wyłącznie `answer`.
+- [x] Walidować `urgency`, `uncertainty` i `nextStep` w backendzie oraz deterministycznie uwzględniać je w widocznej odpowiedzi.
 - [x] Dodać testy izolacji użytkowników i pojazdów.
 - [x] Dodać testy pustej, błędnej i sprzecznej historii.
 - [x] Kryterium zakończenia: czat odpowiada na podstawie właściwego pojazdu bez wycieku danych.

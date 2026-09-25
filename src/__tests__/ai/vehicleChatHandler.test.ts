@@ -6,14 +6,19 @@ const REQUEST_URL = "http://localhost/functions/v1/vehicle-chat";
 const USER_ID = "user-1";
 const VEHICLE_ID = "11111111-1111-4111-8111-111111111111";
 const SERVICE_ID = "22222222-2222-4222-8222-222222222222";
+const REMINDER_ID = "66666666-6666-4666-8666-666666666666";
+const TIRE_ID = "77777777-7777-4777-8777-777777777777";
+const WHEEL_ID = "88888888-8888-4888-8888-888888888888";
+const EQUIPMENT_ID = "99999999-9999-4999-8999-999999999999";
+const WORKSHOP_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const PUBLIC_ANSWER = {
   answer: "Stop safely and switch off the engine.",
-};
-const VALID_ANSWER = {
-  answer: PUBLIC_ANSWER.answer,
   urgency: "stop_driving",
   uncertainty: "The cause cannot be confirmed remotely.",
   nextStep: "Arrange roadside assistance.",
+};
+const VALID_ANSWER = {
+  ...PUBLIC_ANSWER,
   citations: [],
 };
 
@@ -265,11 +270,11 @@ describe("vehicle-chat handler", () => {
           { id: "f1", date: "2026-08-01", distance: 500, fuel_amount: 40, fuel_cost: 250, fuel_type: "petrol", gas_station: "Station", created_at: "secret" },
           { id: "f2", date: "2026-09-01", distance: 600, fuel_amount: 42, fuel_cost: 270, fuel_type: "petrol", gas_station: "Station", created_at: "secret" },
         ],
-        reminders: [{ id: "r1", vehicle_id: VEHICLE_ID, due_date: "2027-01-01", due_mileage: null, days_before: 7, title: "Inspection", notes: null, status: "active", channel_email: false, channel_push: true, enabled: true, delivered_at: null, recurrence_interval_value: null, recurrence_interval_unit: null, recurrence_interval_km: null, recurrence_anchor_mileage: null, created_at: "secret" }],
-        tires: [{ id: "t1", vehicle_id: VEHICLE_ID, name: "Winter", width_mm: 205, aspect_ratio: 55, diameter_inch: 16, tire_type: "winter", dot: "2425", is_currently_fitted: true, created_at: "secret" }],
-        wheels: [{ id: "w1", vehicle_id: VEHICLE_ID, name: "OEM", width_inch: 7, diameter_inch: 16, et_offset: 40, bolt_pattern: "5x114.3", center_bore_mm: 60.1, bolt_type: "bolt", weight_kg: 9, is_currently_fitted: true, created_at: "secret" }],
-        equipment: [{ id: "e1", vehicle_id: VEHICLE_ID, preset_key: "heated_seats", label: "Heated seats", created_at: "secret" }],
-        workshops: [{ id: "ws1", name: "Example Workshop", workshop_type: "mechanic", phone_number: "123", address: "Main St", created_at: "secret" }],
+        reminders: [{ id: REMINDER_ID, vehicle_id: VEHICLE_ID, due_date: "2027-01-01", due_mileage: null, days_before: 7, title: "Inspection", notes: null, status: "active", channel_email: false, channel_push: true, enabled: true, delivered_at: null, recurrence_interval_value: null, recurrence_interval_unit: null, recurrence_interval_km: null, recurrence_anchor_mileage: null, created_at: "secret" }],
+        tires: [{ id: TIRE_ID, vehicle_id: VEHICLE_ID, name: "Winter", width_mm: 205, aspect_ratio: 55, diameter_inch: 16, tire_type: "winter", dot: "2425", is_currently_fitted: true, created_at: "secret" }],
+        wheels: [{ id: WHEEL_ID, vehicle_id: VEHICLE_ID, name: "OEM", width_inch: 7, diameter_inch: 16, et_offset: 40, bolt_pattern: "5x114.3", center_bore_mm: 60.1, bolt_type: "bolt", weight_kg: 9, is_currently_fitted: true, created_at: "secret" }],
+        equipment: [{ id: EQUIPMENT_ID, vehicle_id: VEHICLE_ID, preset_key: "heated_seats", label: "Heated seats", created_at: "secret" }],
+        workshops: [{ id: WORKSHOP_ID, name: "Example Workshop", workshop_type: "mechanic", phone_number: "123", address: "Main St", created_at: "secret" }],
         reports: [{ id: "rp1", snapshot_data: { mileage: 75_000 } }],
         marketplacePosts: [{ id: "p1", title: "Corolla for sale" }],
       }),
@@ -318,7 +323,22 @@ describe("vehicle-chat handler", () => {
     expect(context).not.toHaveProperty("reports");
     expect(context).not.toHaveProperty("marketplace_posts");
     const serializedContext = JSON.stringify(context);
-    for (const forbidden of ["TESTVIN123456789", "TEST 123", "owner_id", "intake_token", "created_at", "workshop_id", SERVICE_ID]) {
+    for (const forbidden of [
+      "TESTVIN123456789",
+      "TEST 123",
+      "owner_id",
+      "intake_token",
+      "created_at",
+      "vehicle_id",
+      "workshop_id",
+      VEHICLE_ID,
+      SERVICE_ID,
+      REMINDER_ID,
+      TIRE_ID,
+      WHEEL_ID,
+      EQUIPMENT_ID,
+      WORKSHOP_ID,
+    ]) {
       expect(serializedContext).not.toContain(forbidden);
     }
   });

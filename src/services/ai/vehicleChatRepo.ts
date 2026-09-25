@@ -3,8 +3,17 @@ import { supabase } from "../supabase/client";
 
 export type VehicleChatLanguage = "pl" | "en";
 
+export type VehicleChatUrgency =
+  | "monitor"
+  | "service_soon"
+  | "stop_driving"
+  | "unknown";
+
 export type VehicleChatAnswer = {
   answer: string;
+  urgency: VehicleChatUrgency;
+  uncertainty: string;
+  nextStep: string;
 };
 
 export type VehicleChatHistoryMessage = {
@@ -74,17 +83,36 @@ function parseAnswer(value: unknown): VehicleChatAnswer | null {
   if (
     typeof value !== "object" ||
     value === null ||
-    !("answer" in value)
+    !("answer" in value) ||
+    !("urgency" in value) ||
+    !("uncertainty" in value) ||
+    !("nextStep" in value)
   ) {
     return null;
   }
 
-  const { answer } = value;
-  if (typeof answer !== "string" || answer.length === 0) {
+  const { answer, urgency, uncertainty, nextStep } = value;
+  if (
+    typeof answer !== "string" ||
+    answer.trim().length === 0 ||
+    (urgency !== "monitor" &&
+      urgency !== "service_soon" &&
+      urgency !== "stop_driving" &&
+      urgency !== "unknown") ||
+    typeof uncertainty !== "string" ||
+    uncertainty.trim().length === 0 ||
+    typeof nextStep !== "string" ||
+    nextStep.trim().length === 0
+  ) {
     return null;
   }
 
-  return { answer };
+  return {
+    answer: answer.trim(),
+    urgency,
+    uncertainty: uncertainty.trim(),
+    nextStep: nextStep.trim(),
+  };
 }
 
 function parseErrorPayload(value: unknown): ErrorPayload | null {

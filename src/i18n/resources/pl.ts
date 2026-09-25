@@ -786,6 +786,12 @@ export const pl = {
     errorUnavailable: "Asystent jest chwilowo niedostępny. Spróbuj ponownie.",
     errorContextTooLarge:
       "Dane pojazdu są zbyt obszerne do przetworzenia w jednej odpowiedzi.",
+    urgency: {
+      monitor: "Na podstawie dostępnych informacji natychmiastowa interwencja nie wydaje się konieczna.",
+      service_soon: "Umów kontrolę pojazdu w najbliższym czasie.",
+      stop_driving: "Nie kontynuuj jazdy.",
+      unknown: "Nie można określić pilności na podstawie dostępnych informacji.",
+    },
     cancelled: "Odpowiedź została zatrzymana.",
     retry: "Spróbuj ponownie",
     suggestions: {

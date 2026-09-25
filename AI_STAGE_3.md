@@ -35,15 +35,18 @@ Request zawiera identyfikator wybranego pojazdu, język odpowiedzi i ograniczon�
 }
 ```
 
-Publiczna odpowiedź dla aplikacji upraszcza kontrakt etapu 2:
+Publiczna odpowiedź zachowuje zwalidowane pola bezpieczeństwa z etapu 2:
 
 ```json
 {
-  "answer": "..."
+  "answer": "...",
+  "urgency": "stop_driving",
+  "uncertainty": "...",
+  "nextStep": "..."
 }
 ```
 
-Model nadal zwraca backendowi ustrukturyzowane pola `urgency`, `uncertainty`, `nextStep` oraz pozycje cytowanych wpisów w tablicy `service_history`. Backend waliduje cały structured output, ale publicznie zwraca tylko samodzielne pole `answer`, które zgodnie z promptem musi już zawierać pilność, istotną niepewność i bezpieczny następny krok. Bazowe UUID nie trafiają do modelu, a cytowania nie trafiają do publicznej odpowiedzi API ani interfejsu.
+Model zwraca backendowi ustrukturyzowane pola `urgency`, `uncertainty`, `nextStep` oraz pozycje cytowanych wpisów w tablicy `service_history`. Backend waliduje cały structured output i zwraca aplikacji pola bezpieczeństwa, ale zatrzymuje zweryfikowane cytowania wewnątrz backendu. Aplikacja składa `urgency`, `answer`, `uncertainty` i `nextStep` w jeden naturalny dymek. Zdanie wynikające z `urgency` znajduje się jako pierwsze, dlatego krytyczna instrukcja `stop_driving` nie zależy wyłącznie od zgodności tekstu `answer` z promptem. Bazowe UUID nie trafiają do modelu ani publicznej odpowiedzi.
 
 Odpowiedzi mają limit 1200 tokenów. Zwykła odpowiedź pozostaje krótka, natomiast na wyraźną prośbę o wiele rekordów model może zwrócić dłuższą listę. Każdy rekord ma znaleźć się w osobnym punkcie listy, zamiast w jednym zdaniu rozdzielonym przecinkami.
 
@@ -58,7 +61,9 @@ Każdy request zawiera odfiltrowany snapshot domenowy dostępny w chmurze dla wy
 - wpisy paliwowe wyłącznie w prostej formie MVP: data, koszt, rodzaj paliwa, stacja benzynowa i dystans;
 - przypomnienia wraz z cyklicznością i stanem dostarczenia;
 - opony, felgi i wyposażenie;
-- warsztaty użytkownika bez `owner_id` i technicznych dat utworzenia.
+- warsztaty użytkownika bez `owner_id`, źródłowych identyfikatorów i technicznych dat utworzenia.
+
+Źródłowe `id`, `vehicle_id` i `workshop_id` pozostają wyłącznie w backendowych strukturach potrzebnych do autoryzacji, filtrowania oraz zamiany identyfikatora warsztatu na jego nazwę. Nie są częścią serializowanego snapshotu przekazywanego modelowi.
 
 Raporty, ogłoszenia marketplace, zdjęcia, lokalne dokumenty i załączniki są pominięte. Zawartość dokumentów i zdjęć zostanie obsłużona w etapach dokumentów i vision.
 
@@ -97,13 +102,13 @@ Testy deterministyczne obejmują:
 - odfiltrowanie wpisów `pending` oraz rekordów innego pojazdu;
 - pustą historię i błąd pobierania historii;
 - sprzeczne przebiegi oraz jawne oznaczenie nieznanego kodu silnika i wersji;
-- odfiltrowany snapshot bez wskazanych pól prywatnych, raportów, ogłoszeń i technicznych dat utworzenia;
+- odfiltrowany snapshot bez wskazanych pól prywatnych, źródłowych UUID, raportów, ogłoszeń i technicznych dat utworzenia;
 - przekazywanie tylko pięciu dozwolonych pól każdego wpisu paliwowego;
 - ograniczenie historii serwisowej i paliwowej do 100 najnowszych rekordów;
 - jawny błąd po przekroczeniu pozostałych limitów kontekstu;
 - wewnętrzną walidację cytowań, brak ich w publicznej odpowiedzi i odrzucenie cytowania spoza przekazanego kontekstu;
 - przekazanie `vehicleId` i języka przez klienta mobilnego;
-- publiczną odpowiedź API zawierającą wyłącznie `answer` i wyświetlenie tylko tej naturalnej odpowiedzi na ekranie czatu.
+- publiczną odpowiedź API zawierającą komplet pól bezpieczeństwa oraz ich deterministyczne wyświetlenie w jednym naturalnym dymku, także przy sprzecznym `answer` i `urgency`.
 
 Polecenia:
 

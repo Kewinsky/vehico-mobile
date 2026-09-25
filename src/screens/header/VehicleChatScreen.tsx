@@ -164,13 +164,19 @@ export function VehicleChatScreen({ navigation, route }: Props) {
         history,
         signal: controller.signal,
       });
+      const visibleAnswer = [
+        t(`vehicleChat.urgency.${answer.urgency}`),
+        answer.answer,
+        answer.uncertainty,
+        answer.nextStep,
+      ].join("\n\n");
 
       setMessages((current) =>
         current.map((message) =>
           message.id === assistantId && message.role === "assistant"
             ? {
                 ...message,
-                text: answer.answer,
+                text: visibleAnswer,
                 answer,
                 status: "complete",
               }

@@ -80,7 +80,7 @@ Streaming odpowiedzi pozostaje poza zakresem MVP. Można wrócić do niego po po
 - pomijanie VIN-u, tablicy rejestracyjnej, `owner_id`, `intake_token`, technicznych dat utworzenia, raportów i ogłoszeń marketplace,
 - maksymalnie 100 najnowszych kompaktowych wpisów serwisowych i 100 najnowszych wpisów paliwowych,
 - wyraźne oznaczenie danych podanych przez użytkownika i danych nieznanych,
-- wewnętrzna walidacja pól bezpieczeństwa i odwołań do rekordów bez wyświetlania metadanych użytkownikowi.
+- walidacja pól bezpieczeństwa i deterministyczne pokazanie ich użytkownikowi w jednym naturalnym dymku, bez ujawniania wewnętrznych odwołań do rekordów.
 
 **Rezultat:** czat zna odfiltrowany snapshot danych wybranego pojazdu i użytkownika dostępny w chmurze, lecz nie otrzymuje VIN-u, tablicy rejestracyjnej, pól autoryzacyjnych, raportów, ogłoszeń, nadmiarowych pól tankowań, lokalnych zdjęć, dokumentów, załączników ani aktualnego internetu.
 
