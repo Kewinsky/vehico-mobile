@@ -29,7 +29,7 @@ import {
   hasEnoughStatsEntries,
 } from "../../types/reportOptions";
 import { Button } from "../../ui/components/common/Button";
-import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
+import { openAttachmentSourceAlert } from "../../ui/components/common/sourcePickerAlert";
 import { ReportOptionGroup } from "../../ui/components/common/ReportOptionGroup";
 import {
   getReportGroupMasterState,
@@ -554,6 +554,18 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
     }
   }
 
+  function openPhotoSourceAlert() {
+    openAttachmentSourceAlert(
+      {
+        onCamera: () => void pickFromCamera(),
+        onPhotos: () => void pickFromGallery(),
+        onFiles: () => void pickFromFiles(),
+      },
+      t,
+      t("publicReport.addPhotos"),
+    );
+  }
+
   function removeLocalPhoto(id: string) {
     setLocalPhotos(localPhotos.filter((p) => p.id !== id));
   }
@@ -991,15 +1003,13 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
           )}
           {totalPhotoCount < MAX_PHOTOS && (
             <View style={styles.addPhotoButtons}>
-              <AttachmentSourcePicker
-                label={t("publicReport.addPhotos")}
-                triggerStyle={styles.addPhotoButton}
-                handlers={{
-                  onCamera: () => void pickFromCamera(),
-                  onPhotos: () => void pickFromGallery(),
-                  onFiles: () => void pickFromFiles(),
-                }}
-              />
+              <Button
+                variant="ghost"
+                style={styles.addPhotoButton}
+                onPress={openPhotoSourceAlert}
+              >
+                {t("publicReport.addPhotos")}
+              </Button>
             </View>
           )}
         </View>

@@ -57,7 +57,7 @@ import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
 import { FormPresetChips } from "../../ui/components/common/FormPresetChips";
-import { openSourcePickerAlert } from "../../ui/components/common/sourcePickerAlert";
+import { openAttachmentSourceAlert } from "../../ui/components/common/sourcePickerAlert";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
@@ -778,25 +778,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     }
   }
 
-  function openFileSourceAlert(
-    title: string,
-    onCamera: () => void,
-    onPhotos: () => void,
-    onFiles: () => void,
-  ) {
-    if (isPickerDisabled) return;
-    openSourcePickerAlert(
-      [
-        { id: "camera", label: t("attachments.camera"), onPress: onCamera },
-        { id: "photos", label: t("attachments.photos"), onPress: onPhotos },
-        { id: "files", label: t("attachments.files"), onPress: onFiles },
-      ],
-      t("common.cancel"),
-      title,
-      t("attachments.addPickerBody"),
-    );
-  }
-
   async function pickFromCamera() {
     try {
       const perm = await ImagePicker.requestCameraPermissionsAsync();
@@ -990,14 +971,17 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 <Button
                   variant="ghost"
                   disabled={isPickerDisabled}
-                  onPress={() =>
-                    openFileSourceAlert(
+                  onPress={() => {
+                    openAttachmentSourceAlert(
+                      {
+                        onCamera: () => void importDocumentFromCamera(),
+                        onPhotos: () => void importDocumentFromGallery(),
+                        onFiles: () => void importDocumentFromFiles(),
+                      },
+                      t,
                       t("entryForm.importInvoice"),
-                      () => void importDocumentFromCamera(),
-                      () => void importDocumentFromGallery(),
-                      () => void importDocumentFromFiles(),
-                    )
-                  }
+                    );
+                  }}
                 >
                   {analyzingInvoice
                     ? t("entryForm.invoiceAnalyzing")
@@ -1282,14 +1266,16 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 <Button
                   variant="ghost"
                   disabled={isPickerDisabled}
-                  onPress={() =>
-                    openFileSourceAlert(
-                      t("attachments.addPickerTitle"),
-                      () => void pickFromCamera(),
-                      () => void pickFromGallery(),
-                      () => void pickFromFiles(),
-                    )
-                  }
+                  onPress={() => {
+                    openAttachmentSourceAlert(
+                      {
+                        onCamera: () => void pickFromCamera(),
+                        onPhotos: () => void pickFromGallery(),
+                        onFiles: () => void pickFromFiles(),
+                      },
+                      t,
+                    );
+                  }}
                 >
                   {t("entryForm.addAttachment")}
                 </Button>

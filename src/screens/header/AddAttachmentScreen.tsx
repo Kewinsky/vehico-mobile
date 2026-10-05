@@ -17,8 +17,7 @@ import { SearchBar } from "../../ui/components/common/SearchBar";
 import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
 import { EmptyState } from "../../ui/components/common/EmptyState";
-import { openSourcePickerAlert } from "../../ui/components/common/sourcePickerAlert";
-import type { SourcePickerMenuItem } from "../../ui/components/common/SourcePickerMenu";
+import { openAttachmentSourceAlert } from "../../ui/components/common/sourcePickerAlert";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastCaughtError } from "../../ui/toast/toast";
 
@@ -157,31 +156,16 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     }
   }
 
-  const openAttachmentSourceAlert = useCallback(
+  const showAttachmentSourceAlert = useCallback(
     (serviceEntryId: string) => {
       if (uploading) return;
-      const items: SourcePickerMenuItem[] = [
+      openAttachmentSourceAlert(
         {
-          id: "camera",
-          label: t("attachments.camera"),
-          onPress: () => void pickFromCamera(serviceEntryId),
+          onCamera: () => void pickFromCamera(serviceEntryId),
+          onPhotos: () => void pickFromGallery(serviceEntryId),
+          onFiles: () => void pickFromFiles(serviceEntryId),
         },
-        {
-          id: "photos",
-          label: t("attachments.photos"),
-          onPress: () => void pickFromGallery(serviceEntryId),
-        },
-        {
-          id: "files",
-          label: t("attachments.files"),
-          onPress: () => void pickFromFiles(serviceEntryId),
-        },
-      ];
-      openSourcePickerAlert(
-        items,
-        t("common.cancel"),
-        t("attachments.addPickerTitle"),
-        t("attachments.addPickerBody"),
+        t,
       );
     },
     // Pickers are plain functions; including them would churn this callback every render.
@@ -259,7 +243,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         renderItem={({ item }) => (
           <Pressable
             disabled={uploading}
-            onPress={() => openAttachmentSourceAlert(item.id)}
+            onPress={() => showAttachmentSourceAlert(item.id)}
             style={({ pressed }) => [
               styles.card,
               pressed && !uploading ? styles.cardPressed : null,

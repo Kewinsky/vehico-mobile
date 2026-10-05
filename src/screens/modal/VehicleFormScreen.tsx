@@ -47,7 +47,8 @@ import {
   reorderVehiclePhotos,
   uploadVehiclePhoto,
 } from "../../services/vehicles/uploadPhoto";
-import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
+import { Button } from "../../ui/components/common/Button";
+import { openAttachmentSourceAlert } from "../../ui/components/common/sourcePickerAlert";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
@@ -364,6 +365,19 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     }
   }
 
+  function openPhotoSourceAlert() {
+    if (saving || uploadingPhoto) return;
+    openAttachmentSourceAlert(
+      {
+        onCamera: () => void pickFromCamera(),
+        onPhotos: () => void pickFromGallery(),
+        onFiles: () => void pickFromFiles(),
+      },
+      t,
+      t("vehicleForm.addPhoto"),
+    );
+  }
+
   function removeDraftPhoto(key: string) {
     setDraftPhotos((prev) => prev.filter((photo) => photo.key !== key));
   }
@@ -581,16 +595,14 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                   </View>
                 )}
                 {draftPhotos.length < 6 && (
-                  <AttachmentSourcePicker
-                    label={t("vehicleForm.addPhoto")}
+                  <Button
+                    variant="ghost"
                     disabled={saving || uploadingPhoto}
-                    triggerStyle={{ marginTop: theme.spacing.sm / 2 }}
-                    handlers={{
-                      onCamera: () => void pickFromCamera(),
-                      onPhotos: () => void pickFromGallery(),
-                      onFiles: () => void pickFromFiles(),
-                    }}
-                  />
+                    style={{ marginTop: theme.spacing.sm / 2 }}
+                    onPress={openPhotoSourceAlert}
+                  >
+                    {t("vehicleForm.addPhoto")}
+                  </Button>
                 )}
               </View>
 
