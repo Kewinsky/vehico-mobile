@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -16,8 +16,7 @@ import * as DocumentPicker from "expo-document-picker";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
   SERVICE_ENTRY_CATEGORY_OPTIONS,
-  buildServiceEntryBasePayload,
-  buildServiceEntryRowPayload,
+  buildServiceEntryPayloads,
   canSaveServiceEntry,
   serviceEntryFieldErrors,
   type ServiceEntryFormMode,
@@ -80,6 +79,14 @@ import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions"
 import { SquarePen, Trash2 } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
+import {
+  analyzeServiceInvoice,
+  resolveServiceInvoiceMimeType,
+  ServiceInvoiceImportError,
+  type ServiceInvoiceExtraction,
+} from "../../services/ai/serviceInvoiceImportRepo";
+import { buildServiceInvoiceFormDraft } from "../../forms/serviceInvoiceDraft";
+import { showPremiumRequiredAlert } from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryForm">;
 
@@ -88,7 +95,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { isPremium, workshopsLimit, freePlanWorkshopIds } = useEntitlements();
-  const { vehicleId, entryId } = route.params as any;
+  const { vehicleId, entryId, startInvoiceImport } = route.params;
   const { distanceUnitLabel } = useUnitDisplay();
   const { settings } = useUserSettings();
   const currency = settings?.currency ?? "PLN";
@@ -101,7 +108,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   );
   const [mileage, setMileage] = useState("");
   const [category, setCategory] = useState<ServiceEntryCategory | null>(null);
-  const [entries, setEntries] = useState<EntryRow[]>([{ title: "", cost: "" }]);
+  const [entries, setEntries] = useState<EntryRow[]>([
+    { title: "", cost: "", category: null },
+  ]);
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -114,6 +123,13 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [workshopId, setWorkshopId] = useState<string | null>(null);
   const [workshopSnapshot, setWorkshopSnapshot] = useState<string | null>(null);
   const [defaultMileage, setDefaultMileage] = useState("");
+  const [analyzingInvoice, setAnalyzingInvoice] = useState(false);
+  const [invoiceReviewMessage, setInvoiceReviewMessage] = useState<string | null>(
+    null,
+  );
+  const invoiceAbortController = useRef<AbortController | null>(null);
+  const startedRouteImport = useRef(false);
+  const hasInvoiceDraft = useRef(false);
 
   const formValues = useMemo(
     (): ServiceEntryFormState => ({
@@ -184,7 +200,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         const mileageValue =
           vehicle.mileage != null ? String(vehicle.mileage) : "";
         setDefaultMileage(mileageValue);
-        setMileage((prev) => (prev.trim().length ? prev : mileageValue));
+        if (!hasInvoiceDraft.current) {
+          setMileage((prev) => (prev.trim().length ? prev : mileageValue));
+        }
       } catch (err: any) {
         toastCaughtError(err, t("common.error"));
       }
@@ -203,6 +221,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           {
             title: e.title,
             cost: e.cost != null ? String(e.cost) : "",
+            category: (e.category as ServiceEntryCategory | null) ?? "other",
           },
         ]);
         setDescription(e.description ?? "");
@@ -216,7 +235,14 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     })();
   }, [entryId, reloadAttachments, t]);
 
-  const isPickerDisabled = saving || uploading;
+  useEffect(
+    () => () => {
+      invoiceAbortController.current?.abort();
+    },
+    [],
+  );
+
+  const isPickerDisabled = saving || uploading || analyzingInvoice;
   const workshopIds = useMemo(
     () => workshops.map((workshop) => workshop.id),
     [workshops],
@@ -232,7 +258,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }
 
   function addEntry() {
-    setEntries((prev) => [...prev, { title: "", cost: "" }]);
+    setEntries((prev) => [...prev, { title: "", cost: "", category: null }]);
   }
 
   function removeEntry(index: number) {
@@ -242,7 +268,16 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
   function setFormMode(next: FormMode) {
     if (next === "single") {
-      setEntries((prev) => [prev[0] ?? { title: "", cost: "" }]);
+      const first = entries[0] ?? { title: "", cost: "", category: null };
+      setCategory(first.category ?? category);
+      setEntries([first]);
+    } else {
+      setEntries((prev) =>
+        prev.map((entry) => ({
+          ...entry,
+          category: entry.category ?? category,
+        })),
+      );
     }
     setMode(next);
   }
@@ -411,11 +446,18 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }
 
   function applyPreset(preset: ServiceEntryPreset) {
+    hasInvoiceDraft.current = false;
     if (mode !== "single") {
       setFormMode("single");
     }
     setCategory(preset.category);
-    setEntries([{ title: t(`reminderForm.${preset.titleKey}`), cost: "" }]);
+    setEntries([
+      {
+        title: t(`reminderForm.${preset.titleKey}`),
+        cost: "",
+        category: preset.category,
+      },
+    ]);
     setMileage(defaultMileage);
     setServiceDate(new Date().toISOString().slice(0, 10));
     setDescription("");
@@ -437,18 +479,309 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   );
 
   function clearForm() {
+    hasInvoiceDraft.current = false;
     setMode("single");
     resetFieldErrors();
     const today = new Date().toISOString().slice(0, 10);
     setServiceDate(today);
     setMileage(defaultMileage);
     setCategory(null);
-    setEntries([{ title: "", cost: "" }]);
+    setEntries([{ title: "", cost: "", category: null }]);
     setDescription("");
     setWorkshopId(null);
     setWorkshopSnapshot(null);
     setPendingFiles([]);
+    setInvoiceReviewMessage(null);
   }
+
+  const applyInvoiceExtraction = useCallback(
+    (
+      extraction: ServiceInvoiceExtraction,
+      strategy: "combined" | "separate",
+    ) => {
+      const draft = buildServiceInvoiceFormDraft(
+        extraction,
+        strategy,
+        t("entryForm.invoiceCombinedTitle"),
+        currency,
+      );
+      hasInvoiceDraft.current = true;
+      setMode(draft.mode);
+      setCategory(draft.category);
+      setEntries(draft.entries);
+      setDescription(draft.description);
+      setServiceDate(draft.serviceDate ?? "");
+      setMileage(draft.mileage ?? "");
+
+      const matchingWorkshop = draft.workshopName
+        ? workshops.find(
+            (workshop) =>
+              workshop.name.trim().toLocaleLowerCase() ===
+              draft.workshopName?.trim().toLocaleLowerCase(),
+          )
+        : null;
+      setWorkshopId(matchingWorkshop?.id ?? null);
+      setWorkshopSnapshot(draft.workshopName);
+      setPendingFiles([]);
+      resetFieldErrors();
+
+      const uncertainFields = [
+        extraction.serviceDate.status !== "recognized"
+          ? t("entryForm.serviceDate")
+          : null,
+        extraction.mileage.status !== "recognized"
+          ? t("entryForm.mileage")
+          : null,
+        extraction.workshopName.status !== "recognized"
+          ? t("entryForm.workshop")
+          : null,
+        extraction.totalCost.status !== "recognized"
+          ? t("entryForm.invoiceTotalCost")
+          : null,
+        extraction.currency.status !== "recognized"
+          ? t("entryForm.invoiceCurrency")
+          : null,
+        ...extraction.works.flatMap((work, index) => [
+          work.categoryStatus !== "recognized"
+            ? t("entryForm.invoiceWorkField", {
+                index: index + 1,
+                field: t("entryForm.category"),
+              })
+            : null,
+          work.cost.status !== "recognized"
+            ? t("entryForm.invoiceWorkField", {
+                index: index + 1,
+                field: t("entryForm.invoiceCost"),
+              })
+            : null,
+        ]),
+      ].filter((value): value is string => value !== null);
+      setInvoiceReviewMessage(
+        t("entryForm.invoiceReviewMessage", {
+          currency: extraction.currency.value ?? t("entryForm.invoiceCurrencyUnknown"),
+          formCurrency: currency,
+          fields:
+            uncertainFields.length > 0
+              ? uncertainFields.join(", ")
+              : t("entryForm.invoiceNoUncertainFields"),
+        }),
+      );
+    },
+    [currency, resetFieldErrors, t, workshops],
+  );
+
+  const chooseInvoiceStrategy = useCallback(
+    (extraction: ServiceInvoiceExtraction) =>
+      new Promise<"combined" | "separate" | null>((resolve) => {
+        if (extraction.works.length === 1) {
+          resolve("combined");
+          return;
+        }
+        Alert.alert(
+          t("entryForm.invoiceMultipleTitle"),
+          t("entryForm.invoiceMultipleBody", {
+            count: extraction.works.length,
+          }),
+          [
+            {
+              text: t("common.cancel"),
+              style: "cancel",
+              onPress: () => resolve(null),
+            },
+            {
+              text: t("entryForm.invoiceSeparateAction"),
+              onPress: () => resolve("separate"),
+            },
+            {
+              text: t("entryForm.invoiceCombinedAction"),
+              onPress: () => resolve("combined"),
+            },
+          ],
+          { cancelable: false },
+        );
+      }),
+    [t],
+  );
+
+  const confirmInvoiceProcessing = useCallback(
+    () =>
+      new Promise<boolean>((resolve) => {
+        Alert.alert(
+          t("entryForm.invoicePrivacyTitle"),
+          t("entryForm.invoicePrivacyBody"),
+          [
+            {
+              text: t("common.cancel"),
+              style: "cancel",
+              onPress: () => resolve(false),
+            },
+            {
+              text: t("common.continue"),
+              onPress: () => resolve(true),
+            },
+          ],
+          { cancelable: false },
+        );
+      }),
+    [t],
+  );
+
+  const pickInvoiceFile = useCallback(
+    () =>
+      new Promise<{
+        uri: string;
+        name: string;
+        mimeType?: string | null;
+        size?: number | null;
+      } | null>((resolve, reject) => {
+        Alert.alert(
+          t("entryForm.invoiceSourceTitle"),
+          undefined,
+          [
+            {
+              text: t("common.cancel"),
+              style: "cancel",
+              onPress: () => resolve(null),
+            },
+            {
+              text: t("entryForm.invoiceChoosePhoto"),
+              onPress: () => {
+                void ImagePicker.launchImageLibraryAsync({
+                  mediaTypes: ["images"],
+                  quality: 1,
+                })
+                  .then((result) => {
+                    if (result.canceled) {
+                      resolve(null);
+                      return;
+                    }
+                    const asset = result.assets?.[0];
+                    resolve(
+                      asset?.uri
+                        ? {
+                            uri: asset.uri,
+                            name:
+                              asset.fileName ??
+                              asset.uri.split("/").pop() ??
+                              "service-invoice.jpg",
+                            mimeType: asset.mimeType,
+                            size: asset.fileSize,
+                          }
+                        : null,
+                    );
+                  })
+                  .catch(reject);
+              },
+            },
+            {
+              text: t("entryForm.invoiceChooseFile"),
+              onPress: () => {
+                void DocumentPicker.getDocumentAsync({
+                  type: [
+                    "application/pdf",
+                    "image/jpeg",
+                    "image/png",
+                    "image/webp",
+                  ],
+                  copyToCacheDirectory: true,
+                  multiple: false,
+                })
+                  .then((result) => {
+                    if (result.canceled) {
+                      resolve(null);
+                      return;
+                    }
+                    const asset = result.assets?.[0];
+                    resolve(
+                      asset?.uri
+                        ? {
+                            uri: asset.uri,
+                            name: asset.name,
+                            mimeType: asset.mimeType,
+                            size: asset.size,
+                          }
+                        : null,
+                    );
+                  })
+                  .catch(reject);
+              },
+            },
+          ],
+          { cancelable: false },
+        );
+      }),
+    [t],
+  );
+
+  const handleImportInvoice = useCallback(async () => {
+    if (!isPremium) {
+      showPremiumRequiredAlert(t, navigation);
+      return;
+    }
+
+    try {
+      const asset = await pickInvoiceFile();
+      if (!asset) return;
+
+      const mimeType = resolveServiceInvoiceMimeType(asset.mimeType, asset.name);
+      if (!mimeType) {
+        throw new ServiceInvoiceImportError(
+          "INVALID_FILE",
+          t("entryForm.invoiceUnsupportedFile"),
+        );
+      }
+      if (!(await confirmInvoiceProcessing())) return;
+
+      invoiceAbortController.current?.abort();
+      const controller = new AbortController();
+      invoiceAbortController.current = controller;
+      setAnalyzingInvoice(true);
+      const extraction = await analyzeServiceInvoice({
+        vehicleId,
+        fileUri: asset.uri,
+        mimeType,
+        fileSize: asset.size,
+        signal: controller.signal,
+      });
+      const strategy = await chooseInvoiceStrategy(extraction);
+      if (strategy) applyInvoiceExtraction(extraction, strategy);
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      const message =
+        error instanceof ServiceInvoiceImportError &&
+        error.code === "FILE_TOO_LARGE"
+          ? t("entryForm.invoiceFileTooLarge")
+          : error instanceof ServiceInvoiceImportError &&
+              error.code === "INVALID_FILE"
+            ? t("entryForm.invoiceInvalidFile")
+            : error instanceof ServiceInvoiceImportError
+              ? t("entryForm.invoiceAnalysisFailed")
+              : getUserFacingErrorMessage(
+                  error,
+                  t("entryForm.invoiceAnalysisFailed"),
+                );
+      Alert.alert(t("common.error"), message);
+    } finally {
+      setAnalyzingInvoice(false);
+      invoiceAbortController.current = null;
+    }
+  }, [
+    applyInvoiceExtraction,
+    chooseInvoiceStrategy,
+    confirmInvoiceProcessing,
+    isPremium,
+    navigation,
+    pickInvoiceFile,
+    t,
+    vehicleId,
+  ]);
+
+  useEffect(() => {
+    if (!startInvoiceImport || entryId || startedRouteImport.current) return;
+    startedRouteImport.current = true;
+    const timeout = setTimeout(() => void handleImportInvoice(), 0);
+    return () => clearTimeout(timeout);
+  }, [entryId, handleImportInvoice, startInvoiceImport]);
 
   async function pickFromCamera() {
     try {
@@ -566,33 +899,22 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         workshopId != null
           ? (workshops.find((w) => w.id === workshopId)?.name ??
             workshopSnapshot)
-          : null;
-      const basePayload = buildServiceEntryBasePayload(
+          : workshopSnapshot;
+      const payloads = buildServiceEntryPayloads(
         vehicleId,
         formValues,
         workshopName,
       );
+      const firstPayload = payloads[0];
+      if (!firstPayload) throw new Error("Invalid service entry form");
 
       if (entryId) {
-        const first = entries[0];
-        const firstRow = buildServiceEntryRowPayload(first, description);
-        await updateServiceEntry(entryId, {
-          ...basePayload,
-          ...firstRow,
-        });
-        for (let i = 1; i < entries.length; i++) {
-          const row = entries[i];
-          await createServiceEntry({
-            ...basePayload,
-            ...buildServiceEntryRowPayload(row, ""),
-          });
+        await updateServiceEntry(entryId, firstPayload);
+        for (const payload of payloads.slice(1)) {
+          await createServiceEntry(payload);
         }
       } else {
-        const first = entries[0];
-        const created = await createServiceEntry({
-          ...basePayload,
-          ...buildServiceEntryRowPayload(first, isMulti ? "" : description),
-        });
+        const created = await createServiceEntry(firstPayload);
         if (!isMulti && pendingFiles.length) {
           setUploading(true);
           for (const f of pendingFiles) {
@@ -605,12 +927,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
             });
           }
         }
-        for (let i = 1; i < entries.length; i++) {
-          const row = entries[i];
-          await createServiceEntry({
-            ...basePayload,
-            ...buildServiceEntryRowPayload(row, ""),
-          });
+        for (const payload of payloads.slice(1)) {
+          await createServiceEntry(payload);
         }
       }
 
@@ -630,7 +948,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       done={{
         onPress: onSave,
         label: t("common.done"),
-        disabled: saving || uploading,
+        disabled: isPickerDisabled,
         loading: saving || uploading,
       }}
       useHorizontalContentInset={false}
@@ -652,6 +970,38 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         <NativeHeaderScrollView>
           {!entryId ? (
             <>
+              <View style={styles.insetContent}>
+                <Button
+                  variant="outlined"
+                  onPress={() => void handleImportInvoice()}
+                  disabled={saving || uploading}
+                  loading={analyzingInvoice}
+                >
+                  {analyzingInvoice
+                    ? t("entryForm.invoiceAnalyzing")
+                    : t("entryForm.importInvoice")}
+                </Button>
+                <Text
+                  style={[styles.noticeText, { color: theme.colors.muted }]}
+                >
+                  {t("entryForm.importInvoiceHint")}
+                </Text>
+              </View>
+              <View style={{ height: theme.spacing.sm }} />
+
+              {invoiceReviewMessage ? (
+                <>
+                  <Card style={styles.card}>
+                    <View style={styles.invoiceReview}>
+                      <Text style={{ color: theme.colors.fg }}>
+                        {invoiceReviewMessage}
+                      </Text>
+                    </View>
+                  </Card>
+                  <View style={{ height: theme.spacing.sm }} />
+                </>
+              ) : null}
+
               <View style={styles.segmentTabs}>
                 <SegmentTabs<"single" | "multi">
                   variant="secondary"
@@ -686,21 +1036,23 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               label={t("entryForm.serviceDate")}
               value={serviceDate}
               onChange={setServiceDate}
-              disabled={saving || uploading}
+              disabled={isPickerDisabled}
               error={fieldError(fieldErrors.serviceDate)}
             />
 
-            <FormPickerRow<ServiceEntryCategory>
-              icon="pricetag-outline"
-              label={t("entryForm.category")}
-              value={category}
-              options={SERVICE_ENTRY_CATEGORY_OPTIONS}
-              getLabel={(value) => t(`entryForm.categories.${value}` as any)}
-              onChange={setCategory}
-              placeholderLabel={t("entryForm.categoryPlaceholder")}
-              disabled={isPickerDisabled}
-              error={fieldError(fieldErrors.category)}
-            />
+            {!isMulti ? (
+              <FormPickerRow<ServiceEntryCategory>
+                icon="pricetag-outline"
+                label={t("entryForm.category")}
+                value={category}
+                options={SERVICE_ENTRY_CATEGORY_OPTIONS}
+                getLabel={(value) => t(`entryForm.categories.${value}` as any)}
+                onChange={setCategory}
+                placeholderLabel={t("entryForm.categoryPlaceholder")}
+                disabled={isPickerDisabled}
+                error={fieldError(fieldErrors.category)}
+              />
+            ) : null}
 
             <FormPickerRow<string>
               icon="business-outline"
@@ -723,6 +1075,17 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               disabled={isPickerDisabled}
             />
 
+            {invoiceReviewMessage && !workshopId ? (
+              <FormInputRow
+                icon="business-outline"
+                label={t("entryForm.invoiceWorkshop")}
+                value={workshopSnapshot ?? ""}
+                onChangeText={(value) => setWorkshopSnapshot(value || null)}
+                editable={!isPickerDisabled}
+                placeholder={t("entryForm.workshopPlaceholder")}
+              />
+            ) : null}
+
             <FormInputRow
               icon="speedometer-outline"
               label={`${t("entryForm.mileage")} (${distanceUnitLabel})`}
@@ -730,7 +1093,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               onChangeText={setMileage}
               decimal
               keyboardType="decimal-pad"
-              editable={!saving && !uploading}
+              editable={!isPickerDisabled}
               placeholder={t("entryForm.placeholderMileage")}
               error={fieldError(fieldErrors.mileage)}
             />
@@ -743,6 +1106,23 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               {entries.map((row, index) => (
                 <View key={index}>
                   <Card style={styles.card}>
+                    <FormPickerRow<ServiceEntryCategory>
+                      icon="pricetag-outline"
+                      label={t("entryForm.category")}
+                      value={row.category}
+                      options={SERVICE_ENTRY_CATEGORY_OPTIONS}
+                      getLabel={(value) =>
+                        t(`entryForm.categories.${value}` as any)
+                      }
+                      onChange={(value) =>
+                        updateEntry(index, { category: value })
+                      }
+                      placeholderLabel={t("entryForm.categoryPlaceholder")}
+                      disabled={isPickerDisabled}
+                      error={fieldError(
+                        fieldErrors.entryCategories[index] ?? false,
+                      )}
+                    />
                     <FormInputRow
                       icon="document-text-outline"
                       label={t("entryForm.entryTitle")}
@@ -750,7 +1130,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       onChangeText={(text) =>
                         updateEntry(index, { title: text })
                       }
-                      editable={!saving && !uploading}
+                      editable={!isPickerDisabled}
                       placeholder={t("entryForm.placeholderTitle")}
                       error={fieldError(
                         fieldErrors.entryTitles[index] ?? false,
@@ -765,7 +1145,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       }
                       decimal
                       keyboardType="decimal-pad"
-                      editable={!saving && !uploading}
+                      editable={!isPickerDisabled}
                       placeholder={t("entryForm.placeholderCost")}
                       error={fieldError(fieldErrors.entryCosts[index] ?? false)}
                       trailing={
@@ -795,7 +1175,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 <Button
                   onPress={addEntry}
                   variant="ghost"
-                  disabled={saving || uploading}
+                  disabled={isPickerDisabled}
                 >
                   {t("entryForm.addAnotherEntry")}
                 </Button>
@@ -814,7 +1194,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   label={t("entryForm.entryTitle")}
                   value={entries[0]?.title ?? ""}
                   onChangeText={(text) => updateEntry(0, { title: text })}
-                  editable={!saving && !uploading}
+                  editable={!isPickerDisabled}
                   placeholder={t("entryForm.placeholderTitle")}
                   error={fieldError(fieldErrors.entryTitles[0] ?? false)}
                 />
@@ -825,7 +1205,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   onChangeText={(text) => updateEntry(0, { cost: text })}
                   decimal
                   keyboardType="decimal-pad"
-                  editable={!saving && !uploading}
+                  editable={!isPickerDisabled}
                   placeholder={t("entryForm.placeholderCost")}
                   error={fieldError(fieldErrors.entryCosts[0] ?? false)}
                 />
@@ -851,7 +1231,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   <Textarea
                     value={description}
                     onChangeText={setDescription}
-                    editable={!saving && !uploading}
+                    editable={!isPickerDisabled}
                     multiline
                     placeholder={t("entryForm.placeholderDescription")}
                     placeholderTextColor={theme.colors.muted}
@@ -875,7 +1255,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               <View style={styles.insetContent}>
                 <AttachmentSourcePicker
                   label={t("entryForm.addAttachment")}
-                  disabled={saving || uploading}
+                  disabled={isPickerDisabled}
                   handlers={{
                     onCamera: () => void pickFromCamera(),
                     onPhotos: () => void pickFromGallery(),
@@ -989,6 +1369,10 @@ const makeStyles = (theme: any) =>
     },
     card: {
       marginHorizontal: theme.layout.contentPaddingHorizontal,
+    },
+    invoiceReview: {
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md,
     },
     insetContent: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,

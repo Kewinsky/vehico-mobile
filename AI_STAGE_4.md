@@ -75,8 +75,25 @@ zgadywane przez model.
 W trybie osobnych wpisów data, przebieg i warsztat pozostają wspólne dla całej
 wizyty. Każdy szkic ma jednak własny tytuł, koszt i kategorię, którą użytkownik
 może zmienić przed zapisem. Obecny formularz multi używa jednej wspólnej kategorii,
-dlatego Stage 4 rozszerzy stan każdego wiersza o `category` i zapisze kategorię
+dlatego Stage 4 rozszerza stan każdego wiersza o `category` i zapisuje kategorię
 osobno dla każdego utworzonego wpisu.
+
+## Ustalenia implementacyjne
+
+- Obsługiwany jest jeden plik PDF, JPG, PNG lub WebP o rozmiarze do 10 MB.
+- Aplikacja przesyła plik jako base64 bezpośrednio do Edge Function
+  `service-invoice-import`. Endpoint nie używa Storage ani tabel dokumentów.
+- Edge Function wysyła jedno żądanie do Responses API z `store: false`, plikiem
+  wejściowym i ścisłym schematem `service_invoice_extraction_v1`.
+- Koszty są wstawiane do formularza tylko wtedy, gdy wiarygodnie rozpoznana
+  waluta faktury zgadza się z walutą ustawioną w aplikacji. Aplikacja nie wykonuje
+  automatycznego przeliczania walut.
+- Standardowe dane API OpenAI nie są używane do trenowania modeli. Dane mogą być
+  przechowywane do 30 dni na potrzeby monitorowania nadużyć, chyba że projekt ma
+  włączone Zero Data Retention. Użytkownik widzi tę informację i potwierdza
+  wysłanie pliku przed analizą.
+- Szczegóły retencji są opisane w aktualnej dokumentacji OpenAI:
+  <https://developers.openai.com/api/docs/guides/your-data>.
 
 ## Granice Stage 4
 

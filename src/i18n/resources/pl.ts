@@ -419,6 +419,36 @@ export const pl = {
     workshopPlaceholder: "Wybierz",
     categoryPlaceholder: "Wybierz",
     presetsTitle: "Szybkie wpisy",
+    importInvoice: "Importuj fakturę serwisową",
+    importInvoiceHint:
+      "Wybierz jeden plik PDF, JPG, PNG lub WebP do 10 MB. Dokument nie zostanie dodany jako załącznik.",
+    invoiceAnalyzing: "Analizowanie faktury...",
+    invoiceSourceTitle: "Wybierz źródło faktury",
+    invoiceChoosePhoto: "Biblioteka zdjęć",
+    invoiceChooseFile: "Plik PDF lub obraz",
+    invoicePrivacyTitle: "Przeanalizować ten dokument?",
+    invoicePrivacyBody:
+      "Plik zostanie wysłany do backendu Vericar i OpenAI w celu analizy. Vericar go nie zapisuje. Dane API OpenAI nie są używane do trenowania, ale mogą być przechowywane do 30 dni w celu monitorowania nadużyć, chyba że włączono Zero Data Retention.",
+    invoiceUnsupportedFile: "Wybierz plik PDF, JPG, PNG lub WebP.",
+    invoiceInvalidFile: "Nie udało się odczytać wybranego pliku.",
+    invoiceFileTooLarge: "Plik nie może przekraczać 10 MB.",
+    invoiceAnalysisFailed:
+      "Nie udało się przeanalizować faktury. Spróbuj ponownie lub wpisz dane ręcznie.",
+    invoiceMultipleTitle: "Jak zapisać te prace?",
+    invoiceMultipleBody:
+      "Faktura zawiera {{count}} prac. Możesz sprawdzić je jako jeden wpis lub osobne szkice.",
+    invoiceCombinedAction: "Jeden wpis (zalecane)",
+    invoiceSeparateAction: "Osobne szkice",
+    invoiceCombinedTitle: "Faktura serwisowa",
+    invoiceWorkshop: "Warsztat z faktury",
+    invoiceTotalCost: "Koszt całkowity",
+    invoiceCurrency: "Waluta",
+    invoiceCost: "Koszt",
+    invoiceWorkField: "praca {{index}} – {{field}}",
+    invoiceCurrencyUnknown: "nierozpoznana",
+    invoiceNoUncertainFields: "brak",
+    invoiceReviewMessage:
+      "Sprawdź każde pole przed zapisem. Waluta faktury: {{currency}}; waluta formularza: {{formCurrency}}. Koszty są uzupełniane tylko wtedy, gdy rozpoznane waluty są zgodne. Brakujące lub niepewne wartości: {{fields}}.",
   },
   entryDetail: {
     title: "Wpis serwisowy",
@@ -1478,6 +1508,12 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     emptyCsv: "Proszę wkleić dane CSV",
     invalidCsv: "CSV musi zawierać nagłówek i co najmniej jeden wiersz danych.",
     noValidEntries: "Nie znaleziono poprawnych wierszy do importu.",
+    invoice: {
+      title: "Faktura serwisowa",
+      body: "Użyj AI, aby przygotować edytowalne szkice wpisów ze zdjęcia lub PDF.",
+      action: "Wybierz fakturę",
+      premiumAction: "Wybierz fakturę (Premium)",
+    },
     service: {
       subtitle: "Importuj wpisy serwisowe z CSV.",
       csvHint:

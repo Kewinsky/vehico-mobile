@@ -17,6 +17,7 @@ export const SERVICE_ENTRY_CATEGORY_OPTIONS = [
 export type ServiceEntryRowState = {
   title: string;
   cost: string;
+  category: ServiceEntryCategory | null;
 };
 
 export type ServiceEntryFormMode = "single" | "multi";
@@ -35,7 +36,10 @@ export type ServiceEntryFormState = {
 export function canSaveServiceEntry(form: ServiceEntryFormState): boolean {
   return (
     isValidDate(form.serviceDate) &&
-    form.category != null &&
+    form.entries.length > 0 &&
+    (form.mode === "single"
+      ? form.category != null
+      : form.entries.every((entry) => entry.category != null)) &&
     form.entries.every((entry) => entry.title.trim().length > 0) &&
     form.entries.every((entry) => isNonNegativeNumber(entry.cost)) &&
     isNonNegativeNumber(form.mileage)
@@ -45,8 +49,11 @@ export function canSaveServiceEntry(form: ServiceEntryFormState): boolean {
 export function serviceEntryFieldErrors(form: ServiceEntryFormState) {
   return {
     serviceDate: !isValidDate(form.serviceDate),
-    category: form.category == null,
+    category: form.mode === "single" && form.category == null,
     mileage: !isNonNegativeNumber(form.mileage),
+    entryCategories: form.entries.map(
+      (entry) => form.mode === "multi" && entry.category == null,
+    ),
     entryTitles: form.entries.map((entry) => !entry.title.trim()),
     entryCosts: form.entries.map((entry) => !isNonNegativeNumber(entry.cost)),
   };
@@ -60,12 +67,16 @@ export function buildServiceEntryBasePayload(
   if (!canSaveServiceEntry(form)) {
     throw new Error("Invalid service entry form");
   }
+  const category = form.category ?? form.entries[0]?.category;
+  if (!category) {
+    throw new Error("Invalid service entry category");
+  }
 
   return {
     vehicle_id: vehicleId,
     service_date: form.serviceDate.trim(),
     mileage: form.mileage.trim().length ? parseNonNegative(form.mileage) : null,
-    category: form.category!,
+    category,
     workshop_id: form.workshopId || null,
     workshop_snapshot: workshopName,
   };
@@ -80,4 +91,32 @@ export function buildServiceEntryRowPayload(
     description: description.trim(),
     cost: entry.cost.trim().length ? parseNonNegative(entry.cost) : null,
   };
+}
+
+export function buildServiceEntryPayloads(
+  vehicleId: string,
+  form: ServiceEntryFormState,
+  workshopName: string | null,
+) {
+  const basePayload = buildServiceEntryBasePayload(
+    vehicleId,
+    form,
+    workshopName,
+  );
+
+  return form.entries.map((entry) => {
+    const category =
+      form.mode === "multi" ? entry.category : basePayload.category;
+    if (!category) {
+      throw new Error("Invalid service entry category");
+    }
+    return {
+      ...basePayload,
+      ...buildServiceEntryRowPayload(
+        entry,
+        form.mode === "single" ? form.description : "",
+      ),
+      category,
+    };
+  });
 }

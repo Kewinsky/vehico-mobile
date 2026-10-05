@@ -52,29 +52,29 @@ Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej dec
 
 ## 4. Service Invoice Import
 
-- [ ] Ustalić formaty wejściowe oraz limity zdjęć i PDF.
-- [ ] Dodać kafelek importu faktury na istniejącym ekranie importu.
-- [ ] Dodać przycisk importu faktury w formularzu wpisu serwisowego.
-- [ ] Współdzielić jeden przepływ i endpoint między oboma wejściami.
-- [ ] Przesyłać plik w pojedynczym żądaniu bez Supabase Storage i rekordu dokumentu.
-- [ ] Uwierzytelnić użytkownika i sprawdzić własność pojazdu przed analizą.
-- [ ] Analizować tekst i układ dokumentu modelem multimodal vision bez osobnego pipeline'u OCR.
-- [ ] Obsłużyć prace zapisane w tabeli, punktach, po myślnikach i w zwykłym opisie.
-- [ ] Zdefiniować ścisły structured output dla wspólnych danych faktury i listy wykonanych prac.
-- [ ] Rozróżniać wartości rozpoznane od brakujących lub niewiarygodnych.
-- [ ] Sugerować dla każdej rozpoznanej pracy wyłącznie istniejącą kategorię serwisową albo `other`.
-- [ ] Walidować i normalizować daty, walutę, kwoty oraz przebieg poza modelem.
-- [ ] Dla jednej rozpoznanej pracy wypełnić istniejący formularz edytowalnym szkicem.
-- [ ] Dla wielu rozpoznanych prac zapytać o jeden wpis z dokładnym opisem albo osobne szkice.
-- [ ] Rozszerzyć wiersz formularza multi o osobną, edytowalną kategorię.
-- [ ] Zachować wspólne datę, przebieg i warsztat, ale zapisywać kategorię i koszt osobno dla każdego wpisu.
-- [ ] Nie dzielić wspólnego kosztu między wpisy, jeśli faktura nie podaje kosztów pozycji.
-- [ ] Zapisywać wpis lub wpisy dopiero po korekcie i potwierdzeniu użytkownika.
-- [ ] Nie zapisywać pliku w Storage, bazie, logach ani jako załącznika.
-- [ ] Zweryfikować i opisać użytkownikowi zasady przetwarzania oraz retencji pliku po stronie dostawcy modelu.
-- [ ] Dodać testy błędnego formatu, odmowy dostępu, timeoutu i malformed output.
-- [ ] Dodać testy jednej pracy, wielu prac, różnych układów dokumentu, obu trybów zapisu, osobnych kategorii i niepodzielnego kosztu.
-- [ ] Kryterium zakończenia: faktura tworzy poprawialne szkice, dokument nie jest utrwalany, a dane nigdy nie są zapisywane automatycznie.
+- [x] Ustalić formaty wejściowe oraz limity zdjęć i PDF.
+- [x] Dodać kafelek importu faktury na istniejącym ekranie importu.
+- [x] Dodać przycisk importu faktury w formularzu wpisu serwisowego.
+- [x] Współdzielić jeden przepływ i endpoint między oboma wejściami.
+- [x] Przesyłać plik w pojedynczym żądaniu bez Supabase Storage i rekordu dokumentu.
+- [x] Uwierzytelnić użytkownika i sprawdzić własność pojazdu przed analizą.
+- [x] Analizować tekst i układ dokumentu modelem multimodal vision bez osobnego pipeline'u OCR.
+- [x] Obsłużyć prace zapisane w tabeli, punktach, po myślnikach i w zwykłym opisie.
+- [x] Zdefiniować ścisły structured output dla wspólnych danych faktury i listy wykonanych prac.
+- [x] Rozróżniać wartości rozpoznane od brakujących lub niewiarygodnych.
+- [x] Sugerować dla każdej rozpoznanej pracy wyłącznie istniejącą kategorię serwisową albo `other`.
+- [x] Walidować i normalizować daty, walutę, kwoty oraz przebieg poza modelem.
+- [x] Dla jednej rozpoznanej pracy wypełnić istniejący formularz edytowalnym szkicem.
+- [x] Dla wielu rozpoznanych prac zapytać o jeden wpis z dokładnym opisem albo osobne szkice.
+- [x] Rozszerzyć wiersz formularza multi o osobną, edytowalną kategorię.
+- [x] Zachować wspólne datę, przebieg i warsztat, ale zapisywać kategorię i koszt osobno dla każdego wpisu.
+- [x] Nie dzielić wspólnego kosztu między wpisy, jeśli faktura nie podaje kosztów pozycji.
+- [x] Zapisywać wpis lub wpisy dopiero po korekcie i potwierdzeniu użytkownika.
+- [x] Nie zapisywać pliku w Storage, bazie, logach ani jako załącznika.
+- [x] Zweryfikować i opisać użytkownikowi zasady przetwarzania oraz retencji pliku po stronie dostawcy modelu.
+- [x] Dodać testy błędnego formatu, odmowy dostępu, timeoutu i malformed output.
+- [x] Dodać testy jednej pracy, wielu prac, różnych układów dokumentu, obu trybów zapisu, osobnych kategorii i niepodzielnego kosztu.
+- [x] Kryterium zakończenia: faktura tworzy poprawialne szkice, dokument nie jest utrwalany, a dane nigdy nie są zapisywane automatycznie.
 
 ## 5. Fuel Receipt Import
 

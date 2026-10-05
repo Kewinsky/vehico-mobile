@@ -411,6 +411,36 @@ export const en = {
     workshopPlaceholder: "Select",
     categoryPlaceholder: "Select",
     presetsTitle: "Quick entries",
+    importInvoice: "Import service invoice",
+    importInvoiceHint:
+      "Select one PDF, JPG, PNG, or WebP file up to 10 MB. The document will not be added as an attachment.",
+    invoiceAnalyzing: "Analyzing invoice...",
+    invoiceSourceTitle: "Choose invoice source",
+    invoiceChoosePhoto: "Photo library",
+    invoiceChooseFile: "PDF or image file",
+    invoicePrivacyTitle: "Analyze this document?",
+    invoicePrivacyBody:
+      "The file will be sent to the Vericar backend and OpenAI for analysis. Vericar does not store it. OpenAI API data is not used for training, but may be retained for up to 30 days for abuse monitoring unless Zero Data Retention is enabled.",
+    invoiceUnsupportedFile: "Select a PDF, JPG, PNG, or WebP file.",
+    invoiceInvalidFile: "The selected file could not be read.",
+    invoiceFileTooLarge: "The file must not exceed 10 MB.",
+    invoiceAnalysisFailed:
+      "The invoice could not be analyzed. Try again or enter the data manually.",
+    invoiceMultipleTitle: "How should these works be saved?",
+    invoiceMultipleBody:
+      "The invoice contains {{count}} works. You can review them as one entry or as separate drafts.",
+    invoiceCombinedAction: "One entry (recommended)",
+    invoiceSeparateAction: "Separate drafts",
+    invoiceCombinedTitle: "Service invoice",
+    invoiceWorkshop: "Workshop from invoice",
+    invoiceTotalCost: "Total cost",
+    invoiceCurrency: "Currency",
+    invoiceCost: "Cost",
+    invoiceWorkField: "work {{index}} – {{field}}",
+    invoiceCurrencyUnknown: "not recognized",
+    invoiceNoUncertainFields: "none",
+    invoiceReviewMessage:
+      "Review every field before saving. Invoice currency: {{currency}}; form currency: {{formCurrency}}. Costs are filled only when the recognized currencies match. Missing or uncertain values: {{fields}}.",
   },
   entryDetail: {
     title: "Service entry",
@@ -1463,6 +1493,12 @@ Detailed report available at: https://report.vehico.app/report/example`,
     emptyCsv: "Please paste CSV data",
     invalidCsv: "CSV must include a header row and at least one data row.",
     noValidEntries: "No valid rows found to import.",
+    invoice: {
+      title: "Service invoice",
+      body: "Use AI to prepare editable service-entry drafts from a photo or PDF.",
+      action: "Choose invoice",
+      premiumAction: "Choose invoice (Premium)",
+    },
     service: {
       subtitle: "Import service entries from CSV.",
       csvHint:

@@ -38,6 +38,7 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastCaughtError, toastError, toastSuccess } from "../../ui/toast/toast";
 import { Textarea } from "../../ui/components/common/Textarea";
+import { showPremiumRequiredAlert } from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Import">;
 
@@ -350,6 +351,42 @@ export function ImportScreen({ navigation, route }: Props) {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <NativeHeaderScrollView>
           <ContentHeader title={t("import.title")} />
+          <Card style={styles.invoiceCard} withoutDividers>
+            <View style={styles.cardInner}>
+              <View style={styles.rowLeft}>
+                <Ionicons
+                  name="sparkles-outline"
+                  size={20}
+                  color={theme.colors.accent}
+                />
+                <Text style={[styles.label, { color: theme.colors.fg }]}>
+                  {t("import.invoice.title")}
+                </Text>
+              </View>
+              <Text style={[styles.hint, { color: theme.colors.muted }]}>
+                {t("import.invoice.body")}
+              </Text>
+              <View style={{ marginTop: theme.spacing.md }}>
+                <Button
+                  variant="outlined"
+                  onPress={() => {
+                    if (!isPremium) {
+                      showPremiumRequiredAlert(t, navigation);
+                      return;
+                    }
+                    navigation.navigate("ServiceEntryForm", {
+                      vehicleId,
+                      startInvoiceImport: true,
+                    });
+                  }}
+                >
+                  {isPremium
+                    ? t("import.invoice.action")
+                    : t("import.invoice.premiumAction")}
+                </Button>
+              </View>
+            </View>
+          </Card>
           <Card style={styles.cardSpaced}>
             <FormPickerRow<ImportEntryType>
               label={t("import.entryTypeLabel")}
@@ -437,6 +474,9 @@ export function ImportScreen({ navigation, route }: Props) {
 const makeStyles = (theme: any) =>
   StyleSheet.create({
     cardSpaced: {
+      marginBottom: theme.spacing.sm,
+    },
+    invoiceCard: {
       marginBottom: theme.spacing.sm,
     },
     actionsRow: {

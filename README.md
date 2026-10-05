@@ -84,7 +84,7 @@ Display name: **Vericar** · npm/slug/scheme: **vehico** · Current app version:
 
    - Apply `supabase/schema.sql` (or run migrations under `supabase/migrations/`)
    - Configure storage buckets and RLS (included in schema)
-   - Deploy Edge Functions under `supabase/functions/` (`revenuecat-webhook`, `retention-cleanup`, `delete-account`, `generate-marketplace-post`, `vehicle-chat`)
+   - Deploy Edge Functions under `supabase/functions/` (`revenuecat-webhook`, `retention-cleanup`, `delete-account`, `generate-marketplace-post`, `vehicle-chat`, `service-invoice-import`)
    - Optional seed scripts: `supabase/seed_data_pl.sql`, `supabase/seed_data_eng.sql`
 
 5. **Start the development server**
@@ -147,7 +147,7 @@ vehico/
 - Tests use Jest (`jest-expo`); coverage focuses on `src/services`, `src/utils`, and `src/config` (`jest.config.js`).
 - GitHub Actions (`.github/workflows/ci.yml`) on `main` / `develop` and PRs:
   - `npm ci` → typecheck → lint → tests → coverage
-  - On push: deploy Supabase Edge Functions (`revenuecat-webhook`, `retention-cleanup`, `delete-account`, `generate-marketplace-post`, `vehicle-chat`) using environment `PROD` (main) or `DEV` (other)
+  - On push: deploy Supabase Edge Functions (`revenuecat-webhook`, `retention-cleanup`, `delete-account`, `generate-marketplace-post`, `vehicle-chat`, `service-invoice-import`) using environment `PROD` (main) or `DEV` (other)
 
 ## Configuration
 
@@ -228,9 +228,11 @@ Premium users can enable a per-vehicle QR/link. Workshops submit service entries
 
 Configure what to include (history, fuel stats, equipment, formalities, etc.), then generate a public report URL and/or bilingual marketplace copy via the `generate-marketplace-post` Edge Function.
 
-### AI assistant
+### AI assistant and invoice import
 
-In-app menu includes an **AI assistant** placeholder (coming soon); marketplace listing generation already uses server-side generation.
+The in-app AI assistant uses a privacy-filtered vehicle snapshot. Service invoice
+import can prepare editable service-entry drafts from one photo or PDF without
+storing the source document in Vericar.
 
 ## Development
 
