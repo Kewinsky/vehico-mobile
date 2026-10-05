@@ -1,4 +1,4 @@
-# Vericar AI — etap 3: Vehicle & Service Context
+# Vericar AI – etap 3: Vehicle & Service Context
 
 Status: implementacja zakończona 24 września 2026 r.; zdalny smoke test po wdrożeniu pozostaje do wykonania.
 
@@ -65,7 +65,9 @@ Każdy request zawiera odfiltrowany snapshot domenowy dostępny w chmurze dla wy
 
 Źródłowe `id`, `vehicle_id` i `workshop_id` pozostają wyłącznie w backendowych strukturach potrzebnych do autoryzacji, filtrowania oraz zamiany identyfikatora warsztatu na jego nazwę. Nie są częścią serializowanego snapshotu przekazywanego modelowi.
 
-Raporty, ogłoszenia marketplace, zdjęcia, lokalne dokumenty i załączniki są pominięte. Zawartość dokumentów i zdjęć zostanie obsłużona w etapach dokumentów i vision.
+Raporty, ogłoszenia marketplace, zdjęcia, lokalne dokumenty i załączniki są
+pominięte. Wybrane zdjęcie lub PDF faktury będzie później używane wyłącznie do
+utworzenia edytowalnego szkicu wpisu, bez trwałego dostępu czatu do dokumentów.
 
 Do kontekstu trafia maksymalnie 100 najnowszych zatwierdzonych wpisów serwisowych i 100 najnowszych wpisów paliwowych. Pozostałe kolekcje zachowują techniczny limit 500 rekordów, a cały snapshot limit 120 000 znaków. Przekroczenie tych pozostałych bezpieczników zwraca `CONTEXT_TOO_LARGE`.
 
@@ -134,4 +136,6 @@ Nie wdrażamy Edge Function ani nie zmieniamy zdalnych sekretów w ramach lokaln
 - Historia rozmowy nadal istnieje tylko w bieżącej sesji.
 - Rate limiting, monitoring kosztu i produkcyjny kill switch należą do etapu 12.
 
-Etap 4 zaprojektuje zgodę, retencję i bezpieczną synchronizację dokumentów do prywatnego Storage.
+Etap 4 doda import faktury serwisowej do edytowalnego szkicu wpisu. Oryginał
+pozostanie lokalny, a ewentualna kopia użyta do analizy będzie tymczasowa i
+usuwana po zakończeniu przetwarzania.
