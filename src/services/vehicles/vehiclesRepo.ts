@@ -5,6 +5,7 @@ import {
 } from "../push/localFormalityNotifications";
 import { insertMileageAudit } from "../mileage/mileageAuditRepo";
 import { listVehiclePhotos } from "./uploadPhoto";
+import { deleteVehicleDocumentStorage } from "../vehicleDocuments/vehicleDocumentsRepo";
 import type { Vehicle, VehicleType } from "../../types/domain";
 
 function syncFormalityNotifications(vehicle: Vehicle): void {
@@ -143,6 +144,7 @@ export async function syncVehicleMileageIfHigher(
 
 export async function deleteVehicle(vehicleId: string): Promise<void> {
   await cancelVehicleFormalityNotifications(vehicleId);
+  await deleteVehicleDocumentStorage(vehicleId);
 
   // Delete vehicle photo files via Storage API before removing DB rows.
   const photos = await listVehiclePhotos(vehicleId);

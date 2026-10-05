@@ -14,7 +14,7 @@ Display name: **Vericar** · npm/slug/scheme: **vehico** · Current app version:
 - **Workshops** – phonebook plus QR workshop intake (premium) for guest service submissions
 - **Public reports** – shareable vehicle report links (web app)
 - **Marketplace posts** – AI-assisted listing copy (PL/EN) ready to paste on classifieds
-- **Documents & attachments** – local-first files (SQLite + filesystem) tied to vehicles/entries
+- **Documents & attachments** – private cloud vehicle documents with a local cache; local-first service attachments
 - **Data portability** – export/import flows
 - **Premium (RevenueCat)** – Free vs Premium limits, subscriptions and lifetime, entitlement sync
 - **Auth** – email OTP, Apple Sign In, Google; optional Cloudflare Turnstile
@@ -26,7 +26,7 @@ Display name: **Vericar** · npm/slug/scheme: **vehico** · Current app version:
 - **Language**: TypeScript
 - **Navigation**: React Navigation (native stack + native bottom tabs)
 - **Backend**: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
-- **Local data**: expo-sqlite + AsyncStorage (settings, attachments, documents)
+- **Local data**: expo-sqlite + AsyncStorage (settings, attachments, document cache)
 - **Payments**: RevenueCat (`react-native-purchases`)
 - **Observability**: Sentry (`@sentry/react-native`)
 - **i18n**: react-i18next
@@ -188,7 +188,8 @@ Main Postgres tables (see `supabase/schema.sql` + migrations):
 Not primary Supabase tables:
 
 - User preferences (appearance, units, language) – **AsyncStorage** via `UserSettingsProvider`
-- Attachments and vehicle documents – **local-first** (SQLite + filesystem)
+- Vehicle documents – private Supabase Storage with a local filesystem/SQLite cache
+- Service-entry attachments – **local-first** (SQLite + filesystem)
 
 ## Building for Production
 

@@ -31,11 +31,17 @@ export async function deleteAccount(): Promise<void> {
       .in("vehicle_id", vids);
     if (vehiclePhotosError) throw vehiclePhotosError;
 
+    const { data: vehicleDocuments, error: vehicleDocumentsError } = await supabase
+      .from("vehicle_documents")
+      .select("storage_bucket, storage_path")
+      .in("vehicle_id", vids);
+    if (vehicleDocumentsError) throw vehicleDocumentsError;
+
     const vehiclePathsByBucket = new Map<string, string[]>();
-    for (const photo of vehiclePhotos ?? []) {
-      const bucket = photo.storage_bucket as string;
+    for (const file of [...(vehiclePhotos ?? []), ...(vehicleDocuments ?? [])]) {
+      const bucket = file.storage_bucket as string;
       const existing = vehiclePathsByBucket.get(bucket) ?? [];
-      existing.push(photo.storage_path as string);
+      existing.push(file.storage_path as string);
       vehiclePathsByBucket.set(bucket, existing);
     }
 

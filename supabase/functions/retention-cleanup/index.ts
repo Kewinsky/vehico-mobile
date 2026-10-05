@@ -7,7 +7,9 @@
  *
  * Before deleting vehicles:
  * - Removes all objects under `images/<vehicle_id>/` (vehicle photos).
+ * - Removes all objects under `documents/<vehicle_id>/` (private documents).
  * - For each report of that vehicle, removes all objects under `report-photos/<report_id>/`.
+ * - Removes interrupted document uploads after 24 hours.
  *
  * Then deletes vehicle rows – CASCADE removes DB rows (service_entries, reports, photos, …).
  * DB trigger on `photos` may no-op if storage already empty.
@@ -21,6 +23,7 @@ import {
 } from "npm:@supabase/supabase-js@2.49.1";
 
 const RETENTION_DAYS = 90;
+const PENDING_DOCUMENT_RETENTION_HOURS = 24;
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -105,14 +108,25 @@ async function deleteStorageForVehicles(
   admin: SupabaseClient,
   vehicleIds: string[],
   errors: string[],
-): Promise<{ imagesRemoved: number; reportPhotosRemoved: number }> {
+): Promise<{
+  imagesRemoved: number;
+  reportPhotosRemoved: number;
+  documentsRemoved: number;
+}> {
   let imagesRemoved = 0;
   let reportPhotosRemoved = 0;
+  let documentsRemoved = 0;
 
   for (const vehicleId of vehicleIds) {
     imagesRemoved += await deleteStorageTree(
       admin,
       "images",
+      vehicleId,
+      errors,
+    );
+    documentsRemoved += await deleteStorageTree(
+      admin,
+      "documents",
       vehicleId,
       errors,
     );
@@ -138,7 +152,44 @@ async function deleteStorageForVehicles(
     }
   }
 
-  return { imagesRemoved, reportPhotosRemoved };
+  return { imagesRemoved, reportPhotosRemoved, documentsRemoved };
+}
+
+async function deleteStalePendingDocuments(
+  admin: SupabaseClient,
+  errors: string[],
+): Promise<number> {
+  const cutoff = new Date(
+    Date.now() - PENDING_DOCUMENT_RETENTION_HOURS * 60 * 60 * 1000,
+  ).toISOString();
+  const { data, error } = await admin
+    .from("vehicle_documents")
+    .select("id, storage_path")
+    .eq("upload_status", "uploading")
+    .lt("created_at", cutoff);
+  if (error) {
+    errors.push(`stale documents select: ${error.message}`);
+    return 0;
+  }
+  const rows = data ?? [];
+  if (rows.length === 0) return 0;
+
+  const { error: storageError } = await admin.storage
+    .from("documents")
+    .remove(rows.map((row) => row.storage_path as string));
+  if (storageError) {
+    errors.push(`stale documents storage remove: ${storageError.message}`);
+    return 0;
+  }
+  const { error: deleteError } = await admin
+    .from("vehicle_documents")
+    .delete()
+    .in("id", rows.map((row) => row.id as string));
+  if (deleteError) {
+    errors.push(`stale documents metadata delete: ${deleteError.message}`);
+    return 0;
+  }
+  return rows.length;
 }
 
 Deno.serve(async (req) => {
@@ -189,7 +240,12 @@ Deno.serve(async (req) => {
     let totalDeleted = 0;
     let storageImagesRemoved = 0;
     let storageReportPhotosRemoved = 0;
+    let storageDocumentsRemoved = 0;
     const errors: string[] = [];
+    const stalePendingDocumentsDeleted = await deleteStalePendingDocuments(
+      admin,
+      errors,
+    );
 
     for (const row of rows ?? []) {
       const userId = row.user_id as string;
@@ -214,6 +270,7 @@ Deno.serve(async (req) => {
       const st = await deleteStorageForVehicles(admin, ids, errors);
       storageImagesRemoved += st.imagesRemoved;
       storageReportPhotosRemoved += st.reportPhotosRemoved;
+      storageDocumentsRemoved += st.documentsRemoved;
 
       const { error: deleteError } = await admin
         .from("vehicles")
@@ -235,6 +292,8 @@ Deno.serve(async (req) => {
         vehicles_deleted: totalDeleted,
         storage_images_objects_removed: storageImagesRemoved,
         storage_report_photos_objects_removed: storageReportPhotosRemoved,
+        storage_document_objects_removed: storageDocumentsRemoved,
+        stale_pending_documents_deleted: stalePendingDocumentsDeleted,
         errors: errors.length > 0 ? errors : undefined,
       }),
       {

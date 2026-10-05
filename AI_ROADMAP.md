@@ -84,7 +84,7 @@ Streaming odpowiedzi pozostaje poza zakresem MVP. Można wrócić do niego po po
 
 **Rezultat:** czat zna odfiltrowany snapshot danych wybranego pojazdu i użytkownika dostępny w chmurze, lecz nie otrzymuje VIN-u, tablicy rejestracyjnej, pól autoryzacyjnych, raportów, ogłoszeń, nadmiarowych pól tankowań, lokalnych zdjęć, dokumentów, załączników ani aktualnego internetu.
 
-## Etap 4 — dokumenty w chmurze
+## Etap 4 — dokumenty pojazdu w chmurze
 
 Obecne dokumenty są lokalne, dlatego backend nie może ich analizować. Dodajemy:
 
@@ -92,8 +92,10 @@ Obecne dokumenty są lokalne, dlatego backend nie może ich analizować. Dodajem
 - tabelę metadanych dokumentów,
 - RLS i Storage Policies,
 - bezpieczny upload, synchronizację i usuwanie,
-- świadomą zgodę na przetwarzanie przez AI,
+- oddzielenie przechowywania od późniejszego, jawnego wyboru dokumentów dla AI,
 - niedestrukcyjną migrację plików lokalnych.
+
+Załączniki wpisów serwisowych pozostają lokalne w tym etapie.
 
 **Rezultat:** backend może odczytać dokument należący do właściwego użytkownika i pojazdu.
 

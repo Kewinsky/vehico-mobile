@@ -50,14 +50,15 @@ Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej dec
 
 ## 4. Cloud Documents
 
-- [ ] Ustalić zasady zgody, retencji, eksportu i usuwania dokumentów.
-- [ ] Utworzyć prywatny bucket Supabase Storage.
-- [ ] Utworzyć tabelę metadanych dokumentów.
-- [ ] Dodać migrację z RLS, indeksami i Storage Policies.
-- [ ] Dodać upload, pobieranie, synchronizację i usuwanie po stronie klienta.
-- [ ] Pokazywać stan synchronizacji oraz obsłużyć przerwany upload.
-- [ ] Przygotować niedestrukcyjną migrację istniejących plików lokalnych.
-- [ ] Dodać sprzątanie osieroconych rekordów i plików.
+- [x] Ustalić zasady zgody, retencji, eksportu i usuwania dokumentów.
+- [x] Utworzyć prywatny bucket Supabase Storage.
+- [x] Utworzyć tabelę metadanych dokumentów.
+- [x] Dodać migrację z RLS, indeksami i Storage Policies.
+- [x] Dodać upload, pobieranie, synchronizację i usuwanie po stronie klienta.
+- [ ] Egzekwować po stronie backendu limity pojedynczego pliku: PDF do 20 MB i 10 stron, JPG/PNG/WebP do 10 MB i 25 megapikseli.
+- [x] Pokazywać stan synchronizacji oraz obsłużyć przerwany upload.
+- [x] Przygotować niedestrukcyjną migrację istniejących plików lokalnych.
+- [x] Dodać sprzątanie osieroconych rekordów i plików.
 - [ ] Dodać testy RLS, Storage Policies i usuwania konta.
 - [ ] Kryterium zakończenia: backend odczytuje wyłącznie dokument właściciela pojazdu.
 

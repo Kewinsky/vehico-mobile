@@ -28,6 +28,7 @@ import { getFileNameFromItem } from "../../services/storage/openFileUrl";
 import {
   LocalFileNotFoundError,
   openLocalFile,
+  openVehicleDocumentFile,
 } from "../../services/storage/openLocalFile";
 import {
   deleteVehicleDocument,
@@ -85,12 +86,8 @@ export function DocumentsScreen({ route, navigation }: Props) {
   });
 
   async function openVehicleDocument(doc: VehicleDocument) {
-    if (!doc.local_path) {
-      toastError(t("common.error"));
-      return;
-    }
     try {
-      await openLocalFile(doc.local_path);
+      await openVehicleDocumentFile(doc);
     } catch (e: any) {
       toastError(
         e instanceof LocalFileNotFoundError
@@ -168,7 +165,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
     try {
       setUploading(true);
       const result = await DocumentPicker.getDocumentAsync({
-        type: "*/*",
+        type: ["application/pdf", "image/jpeg", "image/png", "image/webp"],
         copyToCacheDirectory: true,
         multiple: false,
       });
@@ -415,7 +412,11 @@ export function DocumentsScreen({ route, navigation }: Props) {
                         i18n.language === "pl" ? "pl-PL" : "en-US",
                         { day: "2-digit", month: "2-digit", year: "numeric" },
                       );
-                      return `${t("documents.added")} ${formattedDate} · ${ext}`;
+                      const syncLabel =
+                        item.upload_status === "uploading"
+                          ? ` · ${t("documents.syncPending")}`
+                          : "";
+                      return `${t("documents.added")} ${formattedDate} · ${ext}${syncLabel}`;
                     })()}
                     onPress={() => void openVehicleDocument(item)}
                   />

@@ -73,6 +73,15 @@ describe("deleteAccount", () => {
       ],
       error: null,
     });
+    const documentsSelect = createPostgrestChain({
+      data: [
+        {
+          storage_bucket: "documents",
+          storage_path: "v1/vehicle-documents/d1.pdf",
+        },
+      ],
+      error: null,
+    });
     // reports list -> [rep1]
     const reportsSelect = createPostgrestChain({
       data: [{ id: "rep1" }],
@@ -86,6 +95,7 @@ describe("deleteAccount", () => {
     supabase.from
       .mockImplementationOnce(() => vehiclesSelect)
       .mockImplementationOnce(() => photosSelect)
+      .mockImplementationOnce(() => documentsSelect)
       .mockImplementationOnce(() => reportsSelect)
       .mockImplementationOnce(() => vehiclesDelete)
       .mockImplementationOnce(() => workshopsDelete);
@@ -114,10 +124,12 @@ describe("deleteAccount", () => {
       "v1/a.jpg",
       "v1/b.jpg",
     ]);
+    expect(mockStorageBucket.remove).toHaveBeenCalledWith([
+      "v1/vehicle-documents/d1.pdf",
+    ]);
 
     // report folder list + remove with prefixed paths
     expect(reportPhotosBucket.list).toHaveBeenCalledWith("rep1");
     expect(reportPhotosBucket.remove).toHaveBeenCalledWith(["rep1/x.jpg"]);
   });
 });
-

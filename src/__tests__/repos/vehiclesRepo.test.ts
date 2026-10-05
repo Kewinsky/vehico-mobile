@@ -12,6 +12,11 @@ import {
   mockStorageBucket,
   supabase,
 } from "../../test/supabaseMock";
+import { deleteVehicleDocumentStorage } from "../../services/vehicleDocuments/vehicleDocumentsRepo";
+
+jest.mock("../../services/vehicleDocuments/vehicleDocumentsRepo", () => ({
+  deleteVehicleDocumentStorage: jest.fn(),
+}));
 
 describe("vehiclesRepo", () => {
   it("listVehicles selects ordered by created_at desc", async () => {
@@ -150,6 +155,7 @@ describe("vehiclesRepo", () => {
 
     await deleteVehicle("v1");
 
+    expect(deleteVehicleDocumentStorage).toHaveBeenCalledWith("v1");
     expect(mockStorageBucket.remove).toHaveBeenCalledWith(["v1/p.jpg"]);
     expect(supabase.from).toHaveBeenCalledWith("vehicles");
   });

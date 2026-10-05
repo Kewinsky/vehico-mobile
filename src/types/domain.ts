@@ -242,7 +242,11 @@ export type VehicleDocument = {
   storage_path: string;
   description: string | null;
   created_at: string;
-  /** When set, file is stored locally (not in Supabase). */
+  original_name?: string;
+  content_type?: string;
+  size_bytes?: number;
+  upload_status?: "uploading" | "ready";
+  /** Local cache path; cloud metadata remains the source of truth after sync. */
   local_path?: string;
 };
 

@@ -16,9 +16,11 @@ export function getVehicleDocumentOpenUrl(doc: {
 
 /** Get filename for display (from local_path). */
 export function getFileNameFromItem(item: {
+  original_name?: string;
   local_path?: string;
   storage_path?: string;
 }): string {
+  if (item.original_name) return item.original_name;
   const path = item.local_path ?? item.storage_path ?? "";
   return path.split("/").slice(-1)[0] ?? "file";
 }

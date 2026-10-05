@@ -41,6 +41,7 @@ export const mockStorageBucket = {
   upload: jest.fn(),
   remove: jest.fn(),
   list: jest.fn(),
+  createSignedUrl: jest.fn(),
   getPublicUrl: jest.fn(() => ({
     data: { publicUrl: "https://example.test/storage-public" },
   })),
@@ -86,6 +87,11 @@ export function resetSupabaseMock() {
   mockStorageBucket.upload.mockReset();
   mockStorageBucket.remove.mockReset();
   mockStorageBucket.list.mockReset();
+  mockStorageBucket.createSignedUrl.mockReset();
+  mockStorageBucket.createSignedUrl.mockResolvedValue({
+    data: { signedUrl: "https://example.test/private-document" },
+    error: null,
+  });
   mockStorageBucket.getPublicUrl.mockReset();
   mockStorageBucket.getPublicUrl.mockImplementation(() => ({
     data: { publicUrl: "https://example.test/storage-public" },

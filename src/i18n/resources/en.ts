@@ -1069,6 +1069,7 @@ Detailed report available at: https://report.vehico.app/report/example`,
     editDescriptionBody: "Enter a description for this document:",
     descriptionUpdated: "Description updated",
     fileNotFound: "The file is no longer on this device.",
+    syncPending: "Waiting for cloud sync",
   },
   fuelCosts: {
     title: "Fuel",

@@ -1084,6 +1084,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     editDescriptionBody: "Wprowadź opis dla tego dokumentu:",
     descriptionUpdated: "Opis zaktualizowany",
     fileNotFound: "Plik nie został znaleziony na urządzeniu.",
+    syncPending: "Oczekuje na synchronizację",
   },
   fuelCosts: {
     title: "Paliwo",
