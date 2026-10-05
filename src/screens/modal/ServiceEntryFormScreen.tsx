@@ -95,7 +95,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { isPremium, workshopsLimit, freePlanWorkshopIds } = useEntitlements();
-  const { vehicleId, entryId, startInvoiceImport } = route.params;
+  const { vehicleId, entryId } = route.params;
   const { distanceUnitLabel } = useUnitDisplay();
   const { settings } = useUserSettings();
   const currency = settings?.currency ?? "PLN";
@@ -128,7 +128,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     null,
   );
   const invoiceAbortController = useRef<AbortController | null>(null);
-  const startedRouteImport = useRef(false);
   const hasInvoiceDraft = useRef(false);
 
   const formValues = useMemo(
@@ -522,7 +521,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         : null;
       setWorkshopId(matchingWorkshop?.id ?? null);
       setWorkshopSnapshot(draft.workshopName);
-      setPendingFiles([]);
       resetFieldErrors();
 
       const uncertainFields = [
@@ -626,103 +624,18 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     [t],
   );
 
-  const pickInvoiceFile = useCallback(
-    () =>
-      new Promise<{
-        uri: string;
-        name: string;
-        mimeType?: string | null;
-        size?: number | null;
-      } | null>((resolve, reject) => {
-        Alert.alert(
-          t("entryForm.invoiceSourceTitle"),
-          undefined,
-          [
-            {
-              text: t("common.cancel"),
-              style: "cancel",
-              onPress: () => resolve(null),
-            },
-            {
-              text: t("entryForm.invoiceChoosePhoto"),
-              onPress: () => {
-                void ImagePicker.launchImageLibraryAsync({
-                  mediaTypes: ["images"],
-                  quality: 1,
-                })
-                  .then((result) => {
-                    if (result.canceled) {
-                      resolve(null);
-                      return;
-                    }
-                    const asset = result.assets?.[0];
-                    resolve(
-                      asset?.uri
-                        ? {
-                            uri: asset.uri,
-                            name:
-                              asset.fileName ??
-                              asset.uri.split("/").pop() ??
-                              "service-invoice.jpg",
-                            mimeType: asset.mimeType,
-                            size: asset.fileSize,
-                          }
-                        : null,
-                    );
-                  })
-                  .catch(reject);
-              },
-            },
-            {
-              text: t("entryForm.invoiceChooseFile"),
-              onPress: () => {
-                void DocumentPicker.getDocumentAsync({
-                  type: [
-                    "application/pdf",
-                    "image/jpeg",
-                    "image/png",
-                    "image/webp",
-                  ],
-                  copyToCacheDirectory: true,
-                  multiple: false,
-                })
-                  .then((result) => {
-                    if (result.canceled) {
-                      resolve(null);
-                      return;
-                    }
-                    const asset = result.assets?.[0];
-                    resolve(
-                      asset?.uri
-                        ? {
-                            uri: asset.uri,
-                            name: asset.name,
-                            mimeType: asset.mimeType,
-                            size: asset.size,
-                          }
-                        : null,
-                    );
-                  })
-                  .catch(reject);
-              },
-            },
-          ],
-          { cancelable: false },
-        );
-      }),
-    [t],
-  );
-
-  const handleImportInvoice = useCallback(async () => {
+  const handleImportDocument = useCallback(async (asset: {
+    uri: string;
+    name: string;
+    mimeType?: string | null;
+    size?: number | null;
+  }) => {
     if (!isPremium) {
       showPremiumRequiredAlert(t, navigation);
       return;
     }
 
     try {
-      const asset = await pickInvoiceFile();
-      if (!asset) return;
-
       const mimeType = resolveServiceInvoiceMimeType(asset.mimeType, asset.name);
       if (!mimeType) {
         throw new ServiceInvoiceImportError(
@@ -744,7 +657,17 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         signal: controller.signal,
       });
       const strategy = await chooseInvoiceStrategy(extraction);
-      if (strategy) applyInvoiceExtraction(extraction, strategy);
+      if (strategy) {
+        applyInvoiceExtraction(extraction, strategy);
+        setPendingFiles((previous) => [
+          ...previous,
+          {
+            uri: asset.uri,
+            mimeType: asset.mimeType,
+            fileName: asset.name,
+          },
+        ]);
+      }
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") return;
       const message =
@@ -771,17 +694,89 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     confirmInvoiceProcessing,
     isPremium,
     navigation,
-    pickInvoiceFile,
     t,
     vehicleId,
   ]);
 
-  useEffect(() => {
-    if (!startInvoiceImport || entryId || startedRouteImport.current) return;
-    startedRouteImport.current = true;
-    const timeout = setTimeout(() => void handleImportInvoice(), 0);
-    return () => clearTimeout(timeout);
-  }, [entryId, handleImportInvoice, startInvoiceImport]);
+  async function importDocumentFromCamera() {
+    if (!isPremium) {
+      showPremiumRequiredAlert(t, navigation);
+      return;
+    }
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        throw new Error(t("attachments.cameraPermissionDenied"));
+      }
+      const result = await ImagePicker.launchCameraAsync({ quality: 0.9 });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await handleImportDocument({
+        uri: asset.uri,
+        name:
+          asset.fileName ??
+          asset.uri.split("/").pop() ??
+          "service-document.jpg",
+        mimeType: asset.mimeType,
+        size: asset.fileSize,
+      });
+    } catch (error) {
+      alertCaughtError(t("common.error"), error, t("common.error"));
+    }
+  }
+
+  async function importDocumentFromGallery() {
+    if (!isPremium) {
+      showPremiumRequiredAlert(t, navigation);
+      return;
+    }
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 1,
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await handleImportDocument({
+        uri: asset.uri,
+        name:
+          asset.fileName ??
+          asset.uri.split("/").pop() ??
+          "service-document.jpg",
+        mimeType: asset.mimeType,
+        size: asset.fileSize,
+      });
+    } catch (error) {
+      alertCaughtError(t("common.error"), error, t("common.error"));
+    }
+  }
+
+  async function importDocumentFromFiles() {
+    if (!isPremium) {
+      showPremiumRequiredAlert(t, navigation);
+      return;
+    }
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["application/pdf", "image/jpeg", "image/png"],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await handleImportDocument({
+        uri: asset.uri,
+        name: asset.name,
+        mimeType: asset.mimeType,
+        size: asset.size,
+      });
+    } catch (error) {
+      alertCaughtError(t("common.error"), error, t("common.error"));
+    }
+  }
 
   async function pickFromCamera() {
     try {
@@ -914,21 +909,23 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           await createServiceEntry(payload);
         }
       } else {
-        const created = await createServiceEntry(firstPayload);
-        if (!isMulti && pendingFiles.length) {
-          setUploading(true);
-          for (const f of pendingFiles) {
-            await checkAndUpload({
-              serviceEntryId: created.id,
-              vehicleId,
-              fileUri: f.uri,
-              mimeType: f.mimeType,
-              fileName: f.fileName,
-            });
-          }
-        }
+        const createdEntries = [await createServiceEntry(firstPayload)];
         for (const payload of payloads.slice(1)) {
-          await createServiceEntry(payload);
+          createdEntries.push(await createServiceEntry(payload));
+        }
+        if (pendingFiles.length) {
+          setUploading(true);
+          for (const created of createdEntries) {
+            for (const file of pendingFiles) {
+              await checkAndUpload({
+                serviceEntryId: created.id,
+                vehicleId,
+                fileUri: file.uri,
+                mimeType: file.mimeType,
+                fileName: file.fileName,
+              });
+            }
+          }
         }
       }
 
@@ -971,16 +968,19 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           {!entryId ? (
             <>
               <View style={styles.insetContent}>
-                <Button
-                  variant="outlined"
-                  onPress={() => void handleImportInvoice()}
-                  disabled={saving || uploading}
-                  loading={analyzingInvoice}
-                >
-                  {analyzingInvoice
-                    ? t("entryForm.invoiceAnalyzing")
-                    : t("entryForm.importInvoice")}
-                </Button>
+                <AttachmentSourcePicker
+                  label={
+                    analyzingInvoice
+                      ? t("entryForm.invoiceAnalyzing")
+                      : t("entryForm.importInvoice")
+                  }
+                  disabled={isPickerDisabled}
+                  handlers={{
+                    onCamera: () => void importDocumentFromCamera(),
+                    onPhotos: () => void importDocumentFromGallery(),
+                    onFiles: () => void importDocumentFromFiles(),
+                  }}
+                />
                 <Text
                   style={[styles.noticeText, { color: theme.colors.muted }]}
                 >
@@ -1182,7 +1182,11 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 <Text
                   style={[styles.noticeText, { color: theme.colors.muted }]}
                 >
-                  {t("entryForm.multiModeInfo")}
+                  {pendingFiles.length > 0
+                    ? t("entryForm.documentWillAttachToEntries", {
+                        count: pendingFiles.length,
+                      })
+                    : t("entryForm.multiModeInfo")}
                 </Text>
               </View>
             </>

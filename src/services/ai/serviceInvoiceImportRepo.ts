@@ -9,8 +9,7 @@ export const MAX_SERVICE_INVOICE_FILE_BYTES = 10 * 1024 * 1024;
 export type ServiceInvoiceMimeType =
   | "application/pdf"
   | "image/jpeg"
-  | "image/png"
-  | "image/webp";
+  | "image/png";
 
 export type ServiceInvoiceFieldStatus =
   | "recognized"
@@ -217,7 +216,7 @@ async function responseError(response: FetchResponse) {
   }
   return new ServiceInvoiceImportError(
     "REQUEST_FAILED",
-    `Invoice import failed with status ${response.status}.`,
+    `Document import failed with status ${response.status}.`,
   );
 }
 
@@ -261,7 +260,7 @@ export function createServiceInvoiceRequester({
       if (signal.aborted) throw error;
       throw new ServiceInvoiceImportError(
         "NETWORK_ERROR",
-        "Could not connect to invoice analysis.",
+        "Could not connect to document analysis.",
       );
     }
 
@@ -273,14 +272,14 @@ export function createServiceInvoiceRequester({
     } catch {
       throw new ServiceInvoiceImportError(
         "INVALID_RESPONSE",
-        "Invoice analysis returned an invalid response.",
+        "Document analysis returned an invalid response.",
       );
     }
     const extraction = parseExtraction(body);
     if (!extraction) {
       throw new ServiceInvoiceImportError(
         "INVALID_RESPONSE",
-        "Invoice analysis returned an invalid response.",
+        "Document analysis returned an invalid response.",
       );
     }
     return extraction;
@@ -296,8 +295,7 @@ export function resolveServiceInvoiceMimeType(
   if (
     normalized === "application/pdf" ||
     normalized === "image/jpeg" ||
-    normalized === "image/png" ||
-    normalized === "image/webp"
+    normalized === "image/png"
   ) {
     return normalized;
   }
@@ -306,7 +304,6 @@ export function resolveServiceInvoiceMimeType(
   if (extension === "pdf") return "application/pdf";
   if (extension === "jpg" || extension === "jpeg") return "image/jpeg";
   if (extension === "png") return "image/png";
-  if (extension === "webp") return "image/webp";
   return null;
 }
 
@@ -335,7 +332,7 @@ export async function analyzeServiceInvoice(input: {
   if (typeof fileSize === "number" && fileSize > MAX_SERVICE_INVOICE_FILE_BYTES) {
     throw new ServiceInvoiceImportError(
       "FILE_TOO_LARGE",
-      "The invoice file is too large.",
+      "The document file is too large.",
     );
   }
 
@@ -347,14 +344,14 @@ export async function analyzeServiceInvoice(input: {
   } catch {
     throw new ServiceInvoiceImportError(
       "INVALID_FILE",
-      "The invoice file could not be read.",
+      "The document file could not be read.",
     );
   }
 
   if (base64.length > Math.ceil(MAX_SERVICE_INVOICE_FILE_BYTES / 3) * 4) {
     throw new ServiceInvoiceImportError(
       "FILE_TOO_LARGE",
-      "The invoice file is too large.",
+      "The document file is too large.",
     );
   }
 

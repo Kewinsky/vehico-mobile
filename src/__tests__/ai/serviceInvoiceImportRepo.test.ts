@@ -85,6 +85,7 @@ describe("serviceInvoiceImportRepo", () => {
     expect(resolveServiceInvoiceMimeType(null, "invoice.PDF")).toBe(
       "application/pdf",
     );
+    expect(resolveServiceInvoiceMimeType("image/webp", "document.webp")).toBeNull();
     expect(resolveServiceInvoiceMimeType(null, "invoice.docx")).toBeNull();
   });
 });

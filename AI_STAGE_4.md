@@ -1,17 +1,13 @@
-# Stage 4 – Service Invoice Import
+# Stage 4 – Service Document Import
 
 ## Cel
 
-Stage 4 ma możliwie prosty cel: użytkownik przekazuje zdjęcie lub PDF faktury,
-a Vericar uzupełnia na tej podstawie szkic wpisu serwisowego. Użytkownik sprawdza
-i poprawia dane przed ich zapisaniem.
+Stage 4 ma możliwie prosty cel: użytkownik przekazuje zdjęcie lub PDF dokumentu
+związanego z serwisem, a Vericar uzupełnia na tej podstawie szkic wpisu
+serwisowego. Może to być między innymi faktura, paragon, raport serwisowy albo
+odręczna notatka. Użytkownik sprawdza i poprawia dane przed ich zapisaniem.
 
-Funkcja jest dostępna w dwóch miejscach:
-
-- jako kafelek na istniejącym ekranie importu,
-- jako przycisk w formularzu dodawania wpisu serwisowego.
-
-Oba wejścia uruchamiają ten sam przepływ i korzystają z tego samego endpointu.
+Funkcja jest dostępna jako przycisk w formularzu dodawania wpisu serwisowego.
 
 ## Przepływ
 
@@ -27,9 +23,11 @@ wybór zdjęcia lub PDF
 → zapis zwykłego wpisu lub wpisów serwisowych
 ```
 
-Dokument nie jest zapisywany w Supabase Storage, bazie danych ani logach. Jest
-przesyłany wyłącznie w ramach żądania potrzebnego do analizy. Edge Function nie
-tworzy jego trwałej kopii, a odpowiedź zawiera tylko wyodrębnione dane.
+Dokument nie jest zapisywany w Supabase Storage, chmurowej bazie danych ani
+logach. Jest przesyłany wyłącznie w ramach żądania potrzebnego do analizy. Edge
+Function nie tworzy jego trwałej kopii, a odpowiedź zawiera tylko wyodrębnione
+dane. Po zatwierdzeniu wpisu aplikacja zapisuje lokalną kopię dokumentu jako jego
+załącznik.
 
 Nie oznacza to, że plik nigdy nie opuszcza urządzenia. Musi zostać przesłany do
 backendu i dostawcy modelu. Warunki przetwarzania i retencji po stronie dostawcy
@@ -41,7 +39,7 @@ Stage 4 korzysta z modelu multimodal vision, a nie z osobnego pipeline'u OCR. Mo
 interpretuje tekst razem z układem wizualnym dokumentu, dlatego prace mogą być
 przedstawione w tabeli, wypunktowaniu, po myślnikach albo jako zwykły opis.
 
-Backend zwraca listę rozpoznanych prac serwisowych oraz wspólne dane faktury:
+Backend zwraca listę rozpoznanych prac serwisowych oraz wspólne dane dokumentu:
 
 - datę usługi,
 - przebieg,
@@ -54,7 +52,7 @@ Backend zwraca listę rozpoznanych prac serwisowych oraz wspólne dane faktury:
 Model nie zwraca identyfikatorów użytkownika, pojazdu ani rekordów bazy. Backend
 waliduje daty, kwoty, walutę, przebieg i kategorie przed pokazaniem wyniku.
 
-## Jedna faktura, jeden lub wiele wpisów
+## Jeden dokument, jeden lub wiele wpisów
 
 Import dokumentu jest zawsze jedną operacją. Wynikiem tej operacji może być jedna
 lub kilka rozpoznanych prac serwisowych.
@@ -68,7 +66,7 @@ aplikacja pyta użytkownika, jak chce je zapisać:
 - **Osobne wpisy:** każda praca otrzymuje osobny szkic i może zostać poprawiona
   przed wspólnym zatwierdzeniem.
 
-Koszt jest dzielony między osobne wpisy tylko wtedy, gdy faktura jednoznacznie
+Koszt jest dzielony między osobne wpisy tylko wtedy, gdy dokument jednoznacznie
 podaje koszt każdej pozycji. Podatki, rabaty oraz nierozdzielone kwoty nie są
 zgadywane przez model.
 
@@ -80,13 +78,14 @@ osobno dla każdego utworzonego wpisu.
 
 ## Ustalenia implementacyjne
 
-- Obsługiwany jest jeden plik PDF, JPG, PNG lub WebP o rozmiarze do 10 MB.
+- Obsługiwany jest jeden plik PDF, JPG lub PNG o rozmiarze do 10 MB. Zdjęcie można
+  wybrać z biblioteki albo zrobić bezpośrednio aparatem.
 - Aplikacja przesyła plik jako base64 bezpośrednio do Edge Function
   `service-invoice-import`. Endpoint nie używa Storage ani tabel dokumentów.
 - Edge Function wysyła jedno żądanie do Responses API z `store: false`, plikiem
   wejściowym i ścisłym schematem `service_invoice_extraction_v1`.
 - Koszty są wstawiane do formularza tylko wtedy, gdy wiarygodnie rozpoznana
-  waluta faktury zgadza się z walutą ustawioną w aplikacji. Aplikacja nie wykonuje
+  waluta dokumentu zgadza się z walutą ustawioną w aplikacji. Aplikacja nie wykonuje
   automatycznego przeliczania walut.
 - Standardowe dane API OpenAI nie są używane do trenowania modeli. Dane mogą być
   przechowywane do 30 dni na potrzeby monitorowania nadużyć, chyba że projekt ma
@@ -98,7 +97,8 @@ osobno dla każdego utworzonego wpisu.
 ## Granice Stage 4
 
 - Brak cloud documents, indeksowania, osobnego pipeline'u OCR, embeddings i RAG.
-- Brak zapisywania lub automatycznego dołączania analizowanego dokumentu.
+- Brak zapisywania analizowanego dokumentu w chmurze. Po zapisaniu wpisu dokument
+  jest dołączany do niego lokalnie.
 - Brak agenta i function calling – jest jeden endpoint i jeden ustalony przepływ.
 - Brak automatycznego zapisu bez podglądu i potwierdzenia użytkownika.
 - Obraz, PDF, tekst dokumentu i odpowiedź modelu są niezaufanym wejściem.
@@ -107,6 +107,6 @@ osobno dla każdego utworzonego wpisu.
 
 ## Kryterium zakończenia
 
-Użytkownik może rozpocząć import z ekranu importu lub formularza serwisu. Czytelna
-faktura tworzy jeden lub kilka poprawialnych szkiców. Dokument nie jest utrwalany
-przez Vericar, a żaden wpis nie jest zapisywany bez jawnego potwierdzenia.
+Użytkownik może rozpocząć import z formularza serwisu. Czytelny dokument tworzy
+jeden lub kilka poprawialnych szkiców. Po zapisaniu dokument jest dostępny
+lokalnie jako załącznik, a żaden wpis nie jest zapisywany bez jawnego potwierdzenia.

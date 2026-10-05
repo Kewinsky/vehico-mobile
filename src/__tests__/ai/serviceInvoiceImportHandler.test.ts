@@ -102,11 +102,6 @@ describe("service-invoice-import handler", () => {
   it.each([
     ["image/jpeg", "invoice.jpg", [0xff, 0xd8, 0xff, 0x00]],
     ["image/png", "invoice.png", [0x89, 0x50, 0x4e, 0x47]],
-    [
-      "image/webp",
-      "invoice.webp",
-      [0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50],
-    ],
   ])("accepts %s as a direct vision input", async (mimeType, fileName, bytes) => {
     const fetch = jest
       .fn<Promise<Response>, Parameters<ModelFetch>>()
@@ -172,6 +167,20 @@ describe("service-invoice-import handler", () => {
 
     const response = await createHandler(fetch)(
       request({ base64: Buffer.from("not a pdf").toString("base64") }),
+    );
+
+    await expectError(response, 400, "UNSUPPORTED_FILE");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("rejects WebP documents", async () => {
+    const fetch = jest.fn<Promise<Response>, Parameters<ModelFetch>>();
+    const webp = Buffer.from([
+      0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50,
+    ]).toString("base64");
+
+    const response = await createHandler(fetch)(
+      request({ mimeType: "image/webp", fileName: "document.webp", base64: webp }),
     );
 
     await expectError(response, 400, "UNSUPPORTED_FILE");

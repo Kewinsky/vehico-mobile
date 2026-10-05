@@ -228,11 +228,12 @@ Premium users can enable a per-vehicle QR/link. Workshops submit service entries
 
 Configure what to include (history, fuel stats, equipment, formalities, etc.), then generate a public report URL and/or bilingual marketplace copy via the `generate-marketplace-post` Edge Function.
 
-### AI assistant and invoice import
+### AI assistant and document import
 
-The in-app AI assistant uses a privacy-filtered vehicle snapshot. Service invoice
-import can prepare editable service-entry drafts from one photo or PDF without
-storing the source document in Vericar.
+The in-app AI assistant uses a privacy-filtered vehicle snapshot. Service document
+import can prepare editable service-entry drafts from one photo or PDF. The source
+is not stored in Vericar cloud storage and is attached locally after the entry is
+saved.
 
 ## Development
 

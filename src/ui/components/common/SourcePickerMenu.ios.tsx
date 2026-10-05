@@ -73,7 +73,12 @@ function GhostMenuTrigger({
   const styles = useMemo(() => makeGhostTriggerStyles(theme), [theme]);
 
   return (
-    <View style={[styles.ghost, disabled && styles.disabled, style]}>
+    <View
+      style={[styles.ghost, disabled && styles.disabled, style]}
+      collapsable={false}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: Boolean(disabled) }}
+    >
       <Text style={styles.text}>{label}</Text>
     </View>
   );
@@ -144,7 +149,10 @@ export function SourcePickerMenu({
               {renderMenuItems(items)}
             </SwiftUIContextMenu.Items>
             <SwiftUIContextMenu.Trigger>
-              <GhostMenuTrigger label={triggerLabel} style={triggerStyle} />
+              <GhostMenuTrigger
+                label={triggerLabel}
+                style={triggerStyle}
+              />
             </SwiftUIContextMenu.Trigger>
           </SwiftUIContextMenu>
         </Host>

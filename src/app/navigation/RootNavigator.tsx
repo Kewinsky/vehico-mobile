@@ -167,11 +167,7 @@ export type AppStackParamList = {
     vehicleId: string;
     sortOption?: "date-newest" | "date-oldest" | "title-az" | "title-za";
   };
-  ServiceEntryForm: {
-    vehicleId: string;
-    entryId?: string;
-    startInvoiceImport?: boolean;
-  };
+  ServiceEntryForm: { vehicleId: string; entryId?: string };
   FuelingEntryForm: { vehicleId: string; entryId?: string };
   ReminderForm: { vehicleId: string; reminderId?: string };
   Wheels: { vehicleId: string };

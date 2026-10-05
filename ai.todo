@@ -50,17 +50,17 @@ Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej dec
 - [x] Dodać testy pustej, błędnej i sprzecznej historii.
 - [x] Kryterium zakończenia: czat odpowiada na podstawie właściwego pojazdu bez wycieku danych.
 
-## 4. Service Invoice Import
+## 4. Service Document Import
 
 - [x] Ustalić formaty wejściowe oraz limity zdjęć i PDF.
-- [x] Dodać kafelek importu faktury na istniejącym ekranie importu.
-- [x] Dodać przycisk importu faktury w formularzu wpisu serwisowego.
-- [x] Współdzielić jeden przepływ i endpoint między oboma wejściami.
+- [x] Udostępnić import dokumentu wyłącznie w formularzu wpisu serwisowego.
+- [x] Dodać przycisk importu dokumentu w formularzu wpisu serwisowego.
+- [x] Obsłużyć import jednym przepływem i endpointem.
 - [x] Przesyłać plik w pojedynczym żądaniu bez Supabase Storage i rekordu dokumentu.
 - [x] Uwierzytelnić użytkownika i sprawdzić własność pojazdu przed analizą.
 - [x] Analizować tekst i układ dokumentu modelem multimodal vision bez osobnego pipeline'u OCR.
 - [x] Obsłużyć prace zapisane w tabeli, punktach, po myślnikach i w zwykłym opisie.
-- [x] Zdefiniować ścisły structured output dla wspólnych danych faktury i listy wykonanych prac.
+- [x] Zdefiniować ścisły structured output dla wspólnych danych dokumentu i listy wykonanych prac.
 - [x] Rozróżniać wartości rozpoznane od brakujących lub niewiarygodnych.
 - [x] Sugerować dla każdej rozpoznanej pracy wyłącznie istniejącą kategorię serwisową albo `other`.
 - [x] Walidować i normalizować daty, walutę, kwoty oraz przebieg poza modelem.
@@ -68,13 +68,13 @@ Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej dec
 - [x] Dla wielu rozpoznanych prac zapytać o jeden wpis z dokładnym opisem albo osobne szkice.
 - [x] Rozszerzyć wiersz formularza multi o osobną, edytowalną kategorię.
 - [x] Zachować wspólne datę, przebieg i warsztat, ale zapisywać kategorię i koszt osobno dla każdego wpisu.
-- [x] Nie dzielić wspólnego kosztu między wpisy, jeśli faktura nie podaje kosztów pozycji.
+- [x] Nie dzielić wspólnego kosztu między wpisy, jeśli dokument nie podaje kosztów pozycji.
 - [x] Zapisywać wpis lub wpisy dopiero po korekcie i potwierdzeniu użytkownika.
-- [x] Nie zapisywać pliku w Storage, bazie, logach ani jako załącznika.
+- [x] Nie zapisywać pliku w Storage, chmurowej bazie ani logach; po zapisaniu wpisu dołączyć lokalną kopię jako załącznik.
 - [x] Zweryfikować i opisać użytkownikowi zasady przetwarzania oraz retencji pliku po stronie dostawcy modelu.
 - [x] Dodać testy błędnego formatu, odmowy dostępu, timeoutu i malformed output.
 - [x] Dodać testy jednej pracy, wielu prac, różnych układów dokumentu, obu trybów zapisu, osobnych kategorii i niepodzielnego kosztu.
-- [x] Kryterium zakończenia: faktura tworzy poprawialne szkice, dokument nie jest utrwalany, a dane nigdy nie są zapisywane automatycznie.
+- [x] Kryterium zakończenia: dokument tworzy poprawialne szkice, jest dołączany lokalnie po zapisie, a dane nigdy nie są zapisywane automatycznie.
 
 ## 5. Fuel Receipt Import
 
