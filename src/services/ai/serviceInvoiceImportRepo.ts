@@ -1,4 +1,5 @@
 import * as FileSystem from "expo-file-system/legacy";
+import * as ImageManipulator from "expo-image-manipulator";
 
 import { ENV } from "../../config/env";
 import type { ServiceEntryCategory } from "../../types/domain";
@@ -10,6 +11,13 @@ export type ServiceInvoiceMimeType =
   | "application/pdf"
   | "image/jpeg"
   | "image/png";
+
+export type ServiceInvoiceSourceMimeType =
+  | ServiceInvoiceMimeType
+  | "image/heic"
+  | "image/heif";
+
+export const SERVICE_DOCUMENT_JPEG_QUALITY = 0.82;
 
 export type ServiceInvoiceFieldStatus =
   | "recognized"
@@ -289,13 +297,15 @@ export function createServiceInvoiceRequester({
 export function resolveServiceInvoiceMimeType(
   mimeType: string | null | undefined,
   fileName: string,
-): ServiceInvoiceMimeType | null {
+): ServiceInvoiceSourceMimeType | null {
   const normalized = mimeType?.toLowerCase();
   if (normalized === "image/jpg") return "image/jpeg";
   if (
     normalized === "application/pdf" ||
     normalized === "image/jpeg" ||
-    normalized === "image/png"
+    normalized === "image/png" ||
+    normalized === "image/heic" ||
+    normalized === "image/heif"
   ) {
     return normalized;
   }
@@ -304,7 +314,98 @@ export function resolveServiceInvoiceMimeType(
   if (extension === "pdf") return "application/pdf";
   if (extension === "jpg" || extension === "jpeg") return "image/jpeg";
   if (extension === "png") return "image/png";
+  if (extension === "heic") return "image/heic";
+  if (extension === "heif") return "image/heif";
   return null;
+}
+
+type PreparedServiceDocument = {
+  fileUri: string;
+  fileSize?: number;
+  mimeType: ServiceInvoiceMimeType;
+  temporary: boolean;
+};
+
+async function deleteTemporaryFile(fileUri: string) {
+  try {
+    await FileSystem.deleteAsync(fileUri, { idempotent: true });
+  } catch {
+    // Temporary cache cleanup must not hide the import result or its error.
+  }
+}
+
+export async function prepareServiceDocumentForAnalysis(input: {
+  fileUri: string;
+  mimeType: ServiceInvoiceSourceMimeType;
+  fileSize?: number | null;
+}): Promise<PreparedServiceDocument> {
+  const info = await FileSystem.getInfoAsync(input.fileUri);
+  if (!info.exists) {
+    throw new ServiceInvoiceImportError("INVALID_FILE", "The file was not found.");
+  }
+  const sourceSize = input.fileSize ?? ("size" in info ? info.size : undefined);
+  if (
+    typeof sourceSize === "number" &&
+    sourceSize > MAX_SERVICE_INVOICE_FILE_BYTES
+  ) {
+    throw new ServiceInvoiceImportError(
+      "FILE_TOO_LARGE",
+      "The document file is too large.",
+    );
+  }
+
+  if (input.mimeType !== "image/heic" && input.mimeType !== "image/heif") {
+    return {
+      fileUri: input.fileUri,
+      fileSize: sourceSize,
+      mimeType: input.mimeType,
+      temporary: false,
+    };
+  }
+
+  let converted: ImageManipulator.ImageResult;
+  try {
+    converted = await ImageManipulator.manipulateAsync(input.fileUri, [], {
+      compress: SERVICE_DOCUMENT_JPEG_QUALITY,
+      format: ImageManipulator.SaveFormat.JPEG,
+    });
+  } catch {
+    throw new ServiceInvoiceImportError(
+      "INVALID_FILE",
+      "The document image could not be converted.",
+    );
+  }
+
+  try {
+    const convertedInfo = await FileSystem.getInfoAsync(converted.uri);
+    if (!convertedInfo.exists) {
+      throw new ServiceInvoiceImportError(
+        "INVALID_FILE",
+        "The converted document file was not found.",
+      );
+    }
+    const convertedSize =
+      "size" in convertedInfo ? convertedInfo.size : undefined;
+    if (
+      typeof convertedSize === "number" &&
+      convertedSize > MAX_SERVICE_INVOICE_FILE_BYTES
+    ) {
+      throw new ServiceInvoiceImportError(
+        "FILE_TOO_LARGE",
+        "The converted document file is too large.",
+      );
+    }
+
+    return {
+      fileUri: converted.uri,
+      fileSize: convertedSize,
+      mimeType: "image/jpeg",
+      temporary: true,
+    };
+  } catch (error) {
+    await deleteTemporaryFile(converted.uri);
+    throw error;
+  }
 }
 
 const requestServiceInvoice = createServiceInvoiceRequester({
@@ -320,45 +421,40 @@ const requestServiceInvoice = createServiceInvoiceRequester({
 export async function analyzeServiceInvoice(input: {
   vehicleId: string;
   fileUri: string;
-  mimeType: ServiceInvoiceMimeType;
+  mimeType: ServiceInvoiceSourceMimeType;
   fileSize?: number | null;
   signal: AbortSignal;
 }) {
-  const info = await FileSystem.getInfoAsync(input.fileUri);
-  if (!info.exists) {
-    throw new ServiceInvoiceImportError("INVALID_FILE", "The file was not found.");
-  }
-  const fileSize = input.fileSize ?? ("size" in info ? info.size : undefined);
-  if (typeof fileSize === "number" && fileSize > MAX_SERVICE_INVOICE_FILE_BYTES) {
-    throw new ServiceInvoiceImportError(
-      "FILE_TOO_LARGE",
-      "The document file is too large.",
-    );
-  }
-
-  let base64: string;
+  const prepared = await prepareServiceDocumentForAnalysis(input);
   try {
-    base64 = await FileSystem.readAsStringAsync(input.fileUri, {
-      encoding: FileSystem.EncodingType.Base64,
+    let base64: string;
+    try {
+      base64 = await FileSystem.readAsStringAsync(prepared.fileUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+    } catch {
+      throw new ServiceInvoiceImportError(
+        "INVALID_FILE",
+        "The document file could not be read.",
+      );
+    }
+
+    if (base64.length > Math.ceil(MAX_SERVICE_INVOICE_FILE_BYTES / 3) * 4) {
+      throw new ServiceInvoiceImportError(
+        "FILE_TOO_LARGE",
+        "The document file is too large.",
+      );
+    }
+
+    return await requestServiceInvoice({
+      vehicleId: input.vehicleId,
+      mimeType: prepared.mimeType,
+      base64,
+      signal: input.signal,
     });
-  } catch {
-    throw new ServiceInvoiceImportError(
-      "INVALID_FILE",
-      "The document file could not be read.",
-    );
+  } finally {
+    if (prepared.temporary) {
+      await deleteTemporaryFile(prepared.fileUri);
+    }
   }
-
-  if (base64.length > Math.ceil(MAX_SERVICE_INVOICE_FILE_BYTES / 3) * 4) {
-    throw new ServiceInvoiceImportError(
-      "FILE_TOO_LARGE",
-      "The document file is too large.",
-    );
-  }
-
-  return requestServiceInvoice({
-    vehicleId: input.vehicleId,
-    mimeType: input.mimeType,
-    base64,
-    signal: input.signal,
-  });
 }

@@ -747,7 +747,13 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     }
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["application/pdf", "image/jpeg", "image/png"],
+        type: [
+          "application/pdf",
+          "image/jpeg",
+          "image/png",
+          "image/heic",
+          "image/heif",
+        ],
         copyToCacheDirectory: true,
         multiple: false,
       });

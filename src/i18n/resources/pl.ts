@@ -424,12 +424,12 @@ export const pl = {
     presetsTitle: "Szybkie wpisy",
     importInvoice: "Importuj dokument",
     importInvoiceHint:
-      "Wybierz jeden plik PDF, JPG lub PNG do 10 MB. Dokument zostanie dołączony lokalnie po zapisaniu.",
+      "Wybierz jeden plik PDF, JPG, JPEG, PNG, HEIC lub HEIF do 10 MB. Dokument zostanie dołączony lokalnie po zapisaniu.",
     invoiceAnalyzing: "Analizowanie dokumentu...",
     invoicePrivacyTitle: "Przeanalizować ten dokument?",
     invoicePrivacyBody:
       "Plik zostanie wysłany do backendu Vericar i OpenAI w celu analizy. Nie jest wysyłany do chmurowego magazynu Vericar. Po zapisaniu lokalna kopia zostanie dołączona do wpisu serwisowego. Dane API OpenAI nie są używane do trenowania, ale mogą być przechowywane do 30 dni w celu monitorowania nadużyć, chyba że włączono Zero Data Retention.",
-    invoiceUnsupportedFile: "Wybierz plik PDF, JPG lub PNG.",
+    invoiceUnsupportedFile: "Wybierz plik PDF, JPG, JPEG, PNG, HEIC lub HEIF.",
     invoiceInvalidFile: "Nie udało się odczytać wybranego pliku.",
     invoiceFileTooLarge: "Plik nie może przekraczać 10 MB.",
     invoiceAnalysisFailed:

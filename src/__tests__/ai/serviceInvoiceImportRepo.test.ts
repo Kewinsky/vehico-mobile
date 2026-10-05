@@ -2,8 +2,23 @@
 
 import {
   createServiceInvoiceRequester,
+  MAX_SERVICE_INVOICE_FILE_BYTES,
+  prepareServiceDocumentForAnalysis,
   resolveServiceInvoiceMimeType,
+  SERVICE_DOCUMENT_JPEG_QUALITY,
 } from "../../services/ai/serviceInvoiceImportRepo";
+import * as FileSystem from "expo-file-system/legacy";
+import * as ImageManipulator from "expo-image-manipulator";
+
+jest.mock("expo-file-system/legacy", () => ({
+  deleteAsync: jest.fn(),
+  getInfoAsync: jest.fn(),
+}));
+
+jest.mock("expo-image-manipulator", () => ({
+  manipulateAsync: jest.fn(),
+  SaveFormat: { JPEG: "jpeg" },
+}));
 
 const EXTRACTION = {
   serviceDate: { value: "2026-09-10", status: "recognized" },
@@ -34,6 +49,10 @@ function requester(fetch: jest.MockedFunction<TestFetch>) {
 }
 
 describe("serviceInvoiceImportRepo", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("sends one authenticated request and returns a validated extraction", async () => {
     const fetch = jest
       .fn<ReturnType<TestFetch>, Parameters<TestFetch>>()
@@ -85,7 +104,91 @@ describe("serviceInvoiceImportRepo", () => {
     expect(resolveServiceInvoiceMimeType(null, "invoice.PDF")).toBe(
       "application/pdf",
     );
-    expect(resolveServiceInvoiceMimeType("image/webp", "document.webp")).toBeNull();
+    expect(resolveServiceInvoiceMimeType("image/heic", "IMG_1234.HEIC")).toBe(
+      "image/heic",
+    );
+    expect(resolveServiceInvoiceMimeType(null, "scan.HEIF")).toBe(
+      "image/heif",
+    );
+    expect(
+      resolveServiceInvoiceMimeType("image/webp", "document.webp"),
+    ).toBeNull();
     expect(resolveServiceInvoiceMimeType(null, "invoice.docx")).toBeNull();
+  });
+
+  it("converts HEIC to a temporary JPEG for analysis", async () => {
+    (FileSystem.getInfoAsync as jest.Mock)
+      .mockResolvedValueOnce({ exists: true, size: 2_000_000 })
+      .mockResolvedValueOnce({ exists: true, size: 900_000 });
+    (ImageManipulator.manipulateAsync as jest.Mock).mockResolvedValue({
+      uri: "file:///cache/converted.jpg",
+      width: 2000,
+      height: 1500,
+    });
+
+    await expect(
+      prepareServiceDocumentForAnalysis({
+        fileUri: "file:///document.heic",
+        mimeType: "image/heic",
+        fileSize: 2_000_000,
+      }),
+    ).resolves.toEqual({
+      fileUri: "file:///cache/converted.jpg",
+      fileSize: 900_000,
+      mimeType: "image/jpeg",
+      temporary: true,
+    });
+
+    expect(ImageManipulator.manipulateAsync).toHaveBeenCalledWith(
+      "file:///document.heic",
+      [],
+      { compress: SERVICE_DOCUMENT_JPEG_QUALITY, format: "jpeg" },
+    );
+  });
+
+  it("keeps supported non-HEIC files unchanged", async () => {
+    (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
+      exists: true,
+      size: 500_000,
+    });
+
+    await expect(
+      prepareServiceDocumentForAnalysis({
+        fileUri: "file:///document.png",
+        mimeType: "image/png",
+      }),
+    ).resolves.toEqual({
+      fileUri: "file:///document.png",
+      fileSize: 500_000,
+      mimeType: "image/png",
+      temporary: false,
+    });
+
+    expect(ImageManipulator.manipulateAsync).not.toHaveBeenCalled();
+  });
+
+  it("rejects and removes an oversized converted image", async () => {
+    (FileSystem.getInfoAsync as jest.Mock)
+      .mockResolvedValueOnce({ exists: true, size: 2_000_000 })
+      .mockResolvedValueOnce({
+        exists: true,
+        size: MAX_SERVICE_INVOICE_FILE_BYTES + 1,
+      });
+    (ImageManipulator.manipulateAsync as jest.Mock).mockResolvedValue({
+      uri: "file:///cache/too-large.jpg",
+      width: 4000,
+      height: 3000,
+    });
+
+    await expect(
+      prepareServiceDocumentForAnalysis({
+        fileUri: "file:///document.heif",
+        mimeType: "image/heif",
+      }),
+    ).rejects.toMatchObject({ code: "FILE_TOO_LARGE" });
+    expect(FileSystem.deleteAsync).toHaveBeenCalledWith(
+      "file:///cache/too-large.jpg",
+      { idempotent: true },
+    );
   });
 });

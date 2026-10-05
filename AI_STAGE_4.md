@@ -78,8 +78,10 @@ osobno dla każdego utworzonego wpisu.
 
 ## Ustalenia implementacyjne
 
-- Obsługiwany jest jeden plik PDF, JPG lub PNG o rozmiarze do 10 MB. Zdjęcie można
-  wybrać z biblioteki albo zrobić bezpośrednio aparatem.
+- Obsługiwany jest jeden plik PDF, JPG, JPEG, PNG, HEIC lub HEIF o rozmiarze do
+  10 MB. Zdjęcie można wybrać z biblioteki albo zrobić bezpośrednio aparatem.
+  HEIC i HEIF są lokalnie konwertowane do tymczasowego JPEG przed analizą, a
+  oryginalny plik pozostaje lokalnym załącznikiem.
 - Aplikacja przesyła plik jako base64 bezpośrednio do Edge Function
   `service-invoice-import`. Endpoint nie używa Storage ani tabel dokumentów.
 - Edge Function wysyła jedno żądanie do Responses API z `store: false`, plikiem

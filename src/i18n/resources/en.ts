@@ -416,12 +416,12 @@ export const en = {
     presetsTitle: "Quick entries",
     importInvoice: "Import document",
     importInvoiceHint:
-      "Select one PDF, JPG, or PNG file up to 10 MB. The document will be attached locally after saving.",
+      "Select one PDF, JPG, JPEG, PNG, HEIC, or HEIF file up to 10 MB. The document will be attached locally after saving.",
     invoiceAnalyzing: "Analyzing document...",
     invoicePrivacyTitle: "Analyze this document?",
     invoicePrivacyBody:
       "The file will be sent to the Vericar backend and OpenAI for analysis. It is not uploaded to Vericar cloud storage. After saving, a local copy is attached to the service entry. OpenAI API data is not used for training, but may be retained for up to 30 days for abuse monitoring unless Zero Data Retention is enabled.",
-    invoiceUnsupportedFile: "Select a PDF, JPG, or PNG file.",
+    invoiceUnsupportedFile: "Select a PDF, JPG, JPEG, PNG, HEIC, or HEIF file.",
     invoiceInvalidFile: "The selected file could not be read.",
     invoiceFileTooLarge: "The file must not exceed 10 MB.",
     invoiceAnalysisFailed:
