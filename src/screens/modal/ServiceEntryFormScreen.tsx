@@ -57,7 +57,7 @@ import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
 import { FormPresetChips } from "../../ui/components/common/FormPresetChips";
-import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
+import { openSourcePickerAlert } from "../../ui/components/common/sourcePickerAlert";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
@@ -778,6 +778,25 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     }
   }
 
+  function openFileSourceAlert(
+    title: string,
+    onCamera: () => void,
+    onPhotos: () => void,
+    onFiles: () => void,
+  ) {
+    if (isPickerDisabled) return;
+    openSourcePickerAlert(
+      [
+        { id: "camera", label: t("attachments.camera"), onPress: onCamera },
+        { id: "photos", label: t("attachments.photos"), onPress: onPhotos },
+        { id: "files", label: t("attachments.files"), onPress: onFiles },
+      ],
+      t("common.cancel"),
+      title,
+      t("attachments.addPickerBody"),
+    );
+  }
+
   async function pickFromCamera() {
     try {
       const perm = await ImagePicker.requestCameraPermissionsAsync();
@@ -968,19 +987,22 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           {!entryId ? (
             <>
               <View style={styles.insetContent}>
-                <AttachmentSourcePicker
-                  label={
-                    analyzingInvoice
-                      ? t("entryForm.invoiceAnalyzing")
-                      : t("entryForm.importInvoice")
-                  }
+                <Button
+                  variant="ghost"
                   disabled={isPickerDisabled}
-                  handlers={{
-                    onCamera: () => void importDocumentFromCamera(),
-                    onPhotos: () => void importDocumentFromGallery(),
-                    onFiles: () => void importDocumentFromFiles(),
-                  }}
-                />
+                  onPress={() =>
+                    openFileSourceAlert(
+                      t("entryForm.importInvoice"),
+                      () => void importDocumentFromCamera(),
+                      () => void importDocumentFromGallery(),
+                      () => void importDocumentFromFiles(),
+                    )
+                  }
+                >
+                  {analyzingInvoice
+                    ? t("entryForm.invoiceAnalyzing")
+                    : t("entryForm.importInvoice")}
+                </Button>
                 <Text
                   style={[styles.noticeText, { color: theme.colors.muted }]}
                 >
@@ -1257,15 +1279,20 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               </View>
               <View style={{ height: theme.spacing.sm }} />
               <View style={styles.insetContent}>
-                <AttachmentSourcePicker
-                  label={t("entryForm.addAttachment")}
+                <Button
+                  variant="ghost"
                   disabled={isPickerDisabled}
-                  handlers={{
-                    onCamera: () => void pickFromCamera(),
-                    onPhotos: () => void pickFromGallery(),
-                    onFiles: () => void pickFromFiles(),
-                  }}
-                />
+                  onPress={() =>
+                    openFileSourceAlert(
+                      t("attachments.addPickerTitle"),
+                      () => void pickFromCamera(),
+                      () => void pickFromGallery(),
+                      () => void pickFromFiles(),
+                    )
+                  }
+                >
+                  {t("entryForm.addAttachment")}
+                </Button>
               </View>
               <View style={{ height: theme.spacing.sm }} />
 
