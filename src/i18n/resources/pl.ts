@@ -428,7 +428,7 @@ export const pl = {
     invoiceAnalyzing: "Analizowanie dokumentu...",
     invoicePrivacyTitle: "Przeanalizować ten dokument?",
     invoicePrivacyBody:
-      "Plik zostanie wysłany do backendu Vericar i OpenAI w celu analizy. Nie jest wysyłany do chmurowego magazynu Vericar. Po zapisaniu lokalna kopia zostanie dołączona do wpisu serwisowego. Dane API OpenAI nie są używane do trenowania, ale mogą być przechowywane do 30 dni w celu monitorowania nadużyć, chyba że włączono Zero Data Retention.",
+      "Dokument zostanie wysłany do analizy przez AI. Vericar nie zapisze go w chmurze, ale dostawca AI może przechowywać go do 30 dni. Lokalna kopia zostanie dołączona po zapisaniu wpisu.",
     invoiceUnsupportedFile: "Wybierz plik PDF, JPG, JPEG, PNG, HEIC lub HEIF.",
     invoiceInvalidFile: "Nie udało się odczytać wybranego pliku.",
     invoiceFileTooLarge: "Plik nie może przekraczać 10 MB.",
