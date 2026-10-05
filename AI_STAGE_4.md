@@ -2,79 +2,94 @@
 
 ## Cel
 
-Użytkownik może wybrać zdjęcie lub PDF faktury serwisowej i otrzymać wypełniony,
-edytowalny szkic istniejącego formularza wpisu serwisowego. AI skraca ręczne
-wprowadzanie danych, ale nie zapisuje wpisu samodzielnie.
+Stage 4 ma możliwie prosty cel: użytkownik przekazuje zdjęcie lub PDF faktury,
+a Vericar uzupełnia na tej podstawie szkic wpisu serwisowego. Użytkownik sprawdza
+i poprawia dane przed ich zapisaniem.
 
-Cloud documents, indeksowanie, embeddings i document RAG nie należą do tego etapu.
-Oryginał pozostaje lokalny, chyba że użytkownik wykorzysta istniejącą funkcję
-lokalnego załącznika.
+Funkcja jest dostępna w dwóch miejscach:
+
+- jako kafelek na istniejącym ekranie importu,
+- jako przycisk w formularzu dodawania wpisu serwisowego.
+
+Oba wejścia uruchamiają ten sam przepływ i korzystają z tego samego endpointu.
 
 ## Przepływ
 
 ```text
-wybór pojazdu i faktury
-→ walidacja typu oraz rozmiaru
-→ uwierzytelnienie i sprawdzenie własności pojazdu
-→ ograniczony czasowo transfer do analizy
-→ ekstrakcja do ścisłego schematu
-→ walidacja i normalizacja poza modelem
-→ edytowalny formularz ze wskazaniem niepewnych pól
-→ korekta i potwierdzenie użytkownika
-→ zapis zwykłego wpisu serwisowego
-→ usunięcie tymczasowej kopii
+wybór zdjęcia lub PDF
+→ sprawdzenie formatu i rozmiaru
+→ pojedyncze żądanie do uwierzytelnionej Edge Function
+→ analiza układu i treści przez model multimodal vision
+→ zwalidowana lista wykonanych prac
+→ jeden szkic albo wybór sposobu zapisu wielu prac
+→ edytowalny formularz lub lista szkiców
+→ potwierdzenie użytkownika
+→ zapis zwykłego wpisu lub wpisów serwisowych
 ```
 
-## Zakres danych
+Dokument nie jest zapisywany w Supabase Storage, bazie danych ani logach. Jest
+przesyłany wyłącznie w ramach żądania potrzebnego do analizy. Edge Function nie
+tworzy jego trwałej kopii, a odpowiedź zawiera tylko wyodrębnione dane.
 
-Model może zaproponować:
+Nie oznacza to, że plik nigdy nie opuszcza urządzenia. Musi zostać przesłany do
+backendu i dostawcy modelu. Warunki przetwarzania i retencji po stronie dostawcy
+muszą być zgodne z konfiguracją usługi i opisane użytkownikowi.
+
+## Analiza multimodalna
+
+Stage 4 korzysta z modelu multimodal vision, a nie z osobnego pipeline'u OCR. Model
+interpretuje tekst razem z układem wizualnym dokumentu, dlatego prace mogą być
+przedstawione w tabeli, wypunktowaniu, po myślnikach albo jako zwykły opis.
+
+Backend zwraca listę rozpoznanych prac serwisowych oraz wspólne dane faktury:
 
 - datę usługi,
 - przebieg,
-- opis wykonanych czynności,
-- części,
-- nazwę warsztatu,
-- koszt i walutę,
-- jedną z kategorii obsługiwanych przez `ServiceEntryCategory`.
+- warsztat,
+- koszt całkowity i walutę,
+- nazwy czynności lub części,
+- sugerowaną kategorię z `ServiceEntryCategory` dla każdej rozpoznanej pracy,
+- informację, których wartości nie udało się wiarygodnie odczytać.
 
-Model nie zwraca identyfikatorów użytkownika, pojazdu ani rekordów bazy. Kategoria
-spoza zamkniętej listy jest mapowana na `other`. Daty, kwoty, waluta i przebieg są
-walidowane deterministycznie przed pokazaniem szkicu.
+Model nie zwraca identyfikatorów użytkownika, pojazdu ani rekordów bazy. Backend
+waliduje daty, kwoty, walutę, przebieg i kategorie przed pokazaniem wyniku.
 
-## Stany pól
+## Jedna faktura, jeden lub wiele wpisów
 
-Każde pole ekstrakcji ma jeden z czterech stanów:
+Import dokumentu jest zawsze jedną operacją. Wynikiem tej operacji może być jedna
+lub kilka rozpoznanych prac serwisowych.
 
-- `recognized` – wartość została rozpoznana i przeszła walidację,
-- `uncertain` – wartość wymaga uwagi użytkownika,
-- `missing` – materiał nie zawiera wystarczających danych,
-- `rejected` – wartość jest niepoprawna lub poza dozwolonym zakresem.
+Jeżeli dokument zawiera jedną pracę, aplikacja otwiera jeden uzupełniony formularz
+wpisu serwisowego. Jeżeli dokument opisuje kilka wykonanych prac lub napraw,
+aplikacja pyta użytkownika, jak chce je zapisać:
 
-Pewność modelu nie zastępuje walidacji. Interfejs musi jasno wskazać pola
-niepewne, brakujące i odrzucone.
+- **Jeden wpis – zalecane:** jedna wizyta serwisowa z kosztem całkowitym, a wszystkie
+  rozpoznane czynności i części trafiają do opisu lub notatek.
+- **Osobne wpisy:** każda praca otrzymuje osobny szkic i może zostać poprawiona
+  przed wspólnym zatwierdzeniem.
 
-## Granice bezpieczeństwa
+Koszt jest dzielony między osobne wpisy tylko wtedy, gdy faktura jednoznacznie
+podaje koszt każdej pozycji. Podatki, rabaty oraz nierozdzielone kwoty nie są
+zgadywane przez model.
 
-- Backend sprawdza sesję i własność pojazdu przed analizą oraz zapisem.
-- Obraz, PDF, tekst OCR i odpowiedź modelu są niezaufanym wejściem.
-- Instrukcje znalezione wewnątrz dokumentu nie mogą zmieniać zadania modelu.
-- Obowiązują limity typu, rozmiaru, stron, czasu, tokenów i częstotliwości.
-- Tymczasowy plik jest usuwany po sukcesie, błędzie, anulowaniu albo po krótkim TTL.
-- Logi nie zawierają obrazu, treści faktury, danych osobowych ani surowej odpowiedzi modelu.
-- Zapis następuje wyłącznie przez istniejący, walidowany przepływ formularza i po
-  jawnym potwierdzeniu użytkownika.
+W trybie osobnych wpisów data, przebieg i warsztat pozostają wspólne dla całej
+wizyty. Każdy szkic ma jednak własny tytuł, koszt i kategorię, którą użytkownik
+może zmienić przed zapisem. Obecny formularz multi używa jednej wspólnej kategorii,
+dlatego Stage 4 rozszerzy stan każdego wiersza o `category` i zapisze kategorię
+osobno dla każdego utworzonego wpisu.
 
-## Poza zakresem
+## Granice Stage 4
 
-- trwała synchronizacja dokumentów między urządzeniami,
-- wyszukiwanie i rozmowa z dokumentami,
-- OCR całego archiwum,
-- embeddings, `pgvector`, chunking i vector search,
-- automatyczny zapis wpisu,
-- pewna diagnoza na podstawie zdjęcia.
+- Brak cloud documents, indeksowania, osobnego pipeline'u OCR, embeddings i RAG.
+- Brak zapisywania lub automatycznego dołączania analizowanego dokumentu.
+- Brak agenta i function calling – jest jeden endpoint i jeden ustalony przepływ.
+- Brak automatycznego zapisu bez podglądu i potwierdzenia użytkownika.
+- Obraz, PDF, tekst dokumentu i odpowiedź modelu są niezaufanym wejściem.
+- Backend sprawdza sesję oraz własność pojazdu niezależnie od modelu.
+- Instrukcje zapisane wewnątrz dokumentu nie mogą zmienić zadania ekstrakcji.
 
 ## Kryterium zakończenia
 
-Reprezentatywna faktura PL lub EN tworzy zwalidowany i poprawialny szkic wpisu.
-Nieczytelny, nieobsługiwany albo złośliwy materiał kończy się bezpiecznym błędem,
-a żadne dane nie są zapisywane bez potwierdzenia użytkownika.
+Użytkownik może rozpocząć import z ekranu importu lub formularza serwisu. Czytelna
+faktura tworzy jeden lub kilka poprawialnych szkiców. Dokument nie jest utrwalany
+przez Vericar, a żaden wpis nie jest zapisywany bez jawnego potwierdzenia.

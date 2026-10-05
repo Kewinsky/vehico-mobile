@@ -32,9 +32,9 @@ konkretnej potrzeby użytkowników.
 - Brakujące albo niepewne pola są widoczne i możliwe do poprawienia.
 - Kategorie, typy paliwa i inne wartości zamknięte są mapowane deterministycznie
   do wartości obsługiwanych przez aplikację.
-- Oryginały pozostają lokalne. Jeśli analiza wymaga transferu do backendu lub
-  dostawcy modelu, plik jest traktowany jako tymczasowy i usuwany po analizie.
-- Model output, obrazy, pliki i tekst z OCR są niezaufanym wejściem.
+- Importowany plik nie jest utrwalany przez Vericar. Jest przesyłany do backendu
+  i dostawcy modelu tylko w ramach żądania potrzebnego do ekstrakcji danych.
+- Model output, obrazy, pliki i treść odczytana przez model są niezaufanym wejściem.
 - Własność pojazdu jest sprawdzana przez backend przed analizą i przed zapisem.
 - AI ma usuwać tarcie z istniejących przepływów, a nie tworzyć osobny system
   dokumentów bez potwierdzonej wartości produktowej.
@@ -76,16 +76,20 @@ tablicy rejestracyjnej, lokalnych plików ani danych innego użytkownika.
 
 ## Etap 4 – Import faktury serwisowej
 
-- wybór zdjęcia lub PDF z istniejącego formularza wpisu serwisowego,
-- bezpieczny, ograniczony czasowo transport pliku do analizy,
-- structured extraction daty, przebiegu, czynności, części, warsztatu i kosztu,
-- sugestia jednej z istniejących kategorii serwisowych,
-- rozróżnienie wartości rozpoznanej, niepewnej i brakującej,
-- wypełnienie edytowalnego formularza zamiast bezpośredniego zapisu,
-- usunięcie tymczasowej kopii po zakończeniu lub nieudanej analizie.
+- kafelek na ekranie importu i przycisk w formularzu wpisu serwisowego,
+- wybór zdjęcia lub PDF bez zapisywania go w Storage albo bazie,
+- jedno uwierzytelnione żądanie analizujące dokument,
+- multimodal vision analizujące tekst razem z tabelami, listami i układem dokumentu,
+- structured extraction daty, przebiegu, warsztatu, kosztu i listy wykonanych prac,
+- sugestia istniejącej kategorii serwisowej osobno dla każdej rozpoznanej pracy,
+- jeden edytowalny szkic, gdy dokument opisuje jedną pracę,
+- wybór jednego wpisu z dokładnym opisem albo osobnych szkiców, gdy faktura
+  zawiera kilka wykonanych prac,
+- osobna, edytowalna kategoria i koszt dla każdego szkicu w trybie multi,
+- zapis wyłącznie po podglądzie i potwierdzeniu użytkownika.
 
-**Rezultat:** faktura tworzy poprawialny szkic wpisu serwisowego, który zostaje
-zapisany dopiero po potwierdzeniu użytkownika.
+**Rezultat:** faktura tworzy jeden lub kilka poprawialnych szkiców bez trwałego
+przechowywania dokumentu i bez automatycznego zapisu.
 
 ## Etap 5 – Import paragonu paliwowego
 

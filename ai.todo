@@ -53,17 +53,28 @@ Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej dec
 ## 4. Service Invoice Import
 
 - [ ] Ustalić formaty wejściowe oraz limity zdjęć i PDF.
-- [ ] Zaprojektować tymczasowy transport pliku bez trwałej synchronizacji dokumentów.
+- [ ] Dodać kafelek importu faktury na istniejącym ekranie importu.
+- [ ] Dodać przycisk importu faktury w formularzu wpisu serwisowego.
+- [ ] Współdzielić jeden przepływ i endpoint między oboma wejściami.
+- [ ] Przesyłać plik w pojedynczym żądaniu bez Supabase Storage i rekordu dokumentu.
 - [ ] Uwierzytelnić użytkownika i sprawdzić własność pojazdu przed analizą.
-- [ ] Zdefiniować ścisły structured output dla daty, przebiegu, czynności, części, warsztatu i kosztu.
-- [ ] Rozróżniać pola rozpoznane, niepewne i brakujące.
-- [ ] Sugerować wyłącznie istniejącą kategorię serwisową albo `other`.
+- [ ] Analizować tekst i układ dokumentu modelem multimodal vision bez osobnego pipeline'u OCR.
+- [ ] Obsłużyć prace zapisane w tabeli, punktach, po myślnikach i w zwykłym opisie.
+- [ ] Zdefiniować ścisły structured output dla wspólnych danych faktury i listy wykonanych prac.
+- [ ] Rozróżniać wartości rozpoznane od brakujących lub niewiarygodnych.
+- [ ] Sugerować dla każdej rozpoznanej pracy wyłącznie istniejącą kategorię serwisową albo `other`.
 - [ ] Walidować i normalizować daty, walutę, kwoty oraz przebieg poza modelem.
-- [ ] Wypełnić istniejący formularz edytowalnym szkicem.
-- [ ] Zapisywać wpis dopiero po korekcie i potwierdzeniu użytkownika.
-- [ ] Usuwać tymczasowy plik po sukcesie, błędzie, anulowaniu i przekroczeniu TTL.
+- [ ] Dla jednej rozpoznanej pracy wypełnić istniejący formularz edytowalnym szkicem.
+- [ ] Dla wielu rozpoznanych prac zapytać o jeden wpis z dokładnym opisem albo osobne szkice.
+- [ ] Rozszerzyć wiersz formularza multi o osobną, edytowalną kategorię.
+- [ ] Zachować wspólne datę, przebieg i warsztat, ale zapisywać kategorię i koszt osobno dla każdego wpisu.
+- [ ] Nie dzielić wspólnego kosztu między wpisy, jeśli faktura nie podaje kosztów pozycji.
+- [ ] Zapisywać wpis lub wpisy dopiero po korekcie i potwierdzeniu użytkownika.
+- [ ] Nie zapisywać pliku w Storage, bazie, logach ani jako załącznika.
+- [ ] Zweryfikować i opisać użytkownikowi zasady przetwarzania oraz retencji pliku po stronie dostawcy modelu.
 - [ ] Dodać testy błędnego formatu, odmowy dostępu, timeoutu i malformed output.
-- [ ] Kryterium zakończenia: faktura tworzy poprawialny szkic i nigdy nie zapisuje danych automatycznie.
+- [ ] Dodać testy jednej pracy, wielu prac, różnych układów dokumentu, obu trybów zapisu, osobnych kategorii i niepodzielnego kosztu.
+- [ ] Kryterium zakończenia: faktura tworzy poprawialne szkice, dokument nie jest utrwalany, a dane nigdy nie są zapisywane automatycznie.
 
 ## 5. Fuel Receipt Import
 
@@ -82,7 +93,7 @@ Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej dec
 
 - [ ] Ujednolicić stany pól: rozpoznane, niepewne, brakujące i odrzucone.
 - [ ] Egzekwować po stronie backendu limity typu, rozmiaru, liczby stron, czasu i tokenów.
-- [ ] Traktować plik, OCR i model output jako niezaufane dane.
+- [ ] Traktować plik, treść odczytaną przez model i model output jako niezaufane dane.
 - [ ] Przetestować złośliwe PDF-y oraz prompt injection zapisane na fakturze lub paragonie.
 - [ ] Dodać rate limiting i budżet kosztowy analiz per użytkownik.
 - [ ] Zapewnić idempotencję i wykrywanie duplikatu po ponowieniu.

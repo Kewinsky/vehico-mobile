@@ -136,6 +136,6 @@ Nie wdrażamy Edge Function ani nie zmieniamy zdalnych sekretów w ramach lokaln
 - Historia rozmowy nadal istnieje tylko w bieżącej sesji.
 - Rate limiting, monitoring kosztu i produkcyjny kill switch należą do etapu 12.
 
-Etap 4 doda import faktury serwisowej do edytowalnego szkicu wpisu. Oryginał
-pozostanie lokalny, a ewentualna kopia użyta do analizy będzie tymczasowa i
-usuwana po zakończeniu przetwarzania.
+Etap 4 doda import faktury serwisowej do jednego lub kilku edytowalnych szkiców.
+Dokument zostanie przesłany wyłącznie w ramach żądania analizy, bez zapisywania go
+w Storage, bazie lub logach Vericara.
