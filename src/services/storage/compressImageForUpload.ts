@@ -1,5 +1,15 @@
 import { Image } from "react-native";
 import * as ImageManipulator from "expo-image-manipulator";
+import * as FileSystem from "expo-file-system/legacy";
+import {
+  MAX_UPLOAD_IMAGE_BYTES,
+  MAX_UPLOAD_IMAGE_MB,
+} from "../../../shared/limits/photoLimits";
+
+export {
+  MAX_UPLOAD_IMAGE_BYTES,
+  MAX_UPLOAD_IMAGE_MB,
+} from "../../../shared/limits/photoLimits";
 
 /** Longest edge after resize – enough for phone UI / reports, cuts multi‑MB camera shots. */
 export const UPLOAD_IMAGE_MAX_EDGE = 1600;
@@ -20,11 +30,27 @@ function getImageSize(uri: string): Promise<{ width: number; height: number }> {
   });
 }
 
+export async function assertImageFileSize(
+  fileUri: string,
+  knownSize?: number | null,
+  errorMessage = `Image must not exceed ${MAX_UPLOAD_IMAGE_MB} MB.`,
+): Promise<void> {
+  let size = knownSize;
+  if (size == null) {
+    const info = await FileSystem.getInfoAsync(fileUri);
+    size = info.exists && "size" in info ? info.size : undefined;
+  }
+  if (typeof size === "number" && size > MAX_UPLOAD_IMAGE_BYTES) {
+    throw new Error(errorMessage);
+  }
+}
+
 /**
  * Resize (if needed) and convert to JPEG before Storage upload.
  * Returns a local file URI ready for `fetchBlob`.
  */
 export async function compressImageForUpload(fileUri: string): Promise<string> {
+  await assertImageFileSize(fileUri);
   const actions: ImageManipulator.Action[] = [];
 
   try {
@@ -45,6 +71,8 @@ export async function compressImageForUpload(fileUri: string): Promise<string> {
     compress: UPLOAD_IMAGE_JPEG_QUALITY,
     format: ImageManipulator.SaveFormat.JPEG,
   });
+
+  await assertImageFileSize(manipulated.uri);
 
   return manipulated.uri;
 }

@@ -38,7 +38,7 @@ import {
   deleteAttachment,
   listAttachments,
   updateAttachmentDisplayName,
-  uploadAttachment,
+  saveAttachmentLocally,
 } from "../../services/attachments/attachmentsRepo";
 import { getFileNameFromItem } from "../../services/storage/openFileUrl";
 import {
@@ -113,7 +113,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   ]);
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [savingAttachment, setSavingAttachment] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [attachmentsLoading, setAttachmentsLoading] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<
@@ -162,19 +162,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
   const { fieldError, validateBeforeSave, resetFieldErrors } =
     useFormFieldErrors(canSave);
-
-  const checkAndUpload = useCallback(
-    async (params: {
-      serviceEntryId: string;
-      vehicleId: string;
-      fileUri: string;
-      mimeType?: string | null;
-      fileName?: string | null;
-    }) => {
-      await uploadAttachment(params);
-    },
-    [],
-  );
 
   const reloadAttachments = useCallback(async (id: string) => {
     setAttachmentsLoading(true);
@@ -241,7 +228,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     [],
   );
 
-  const isPickerDisabled = saving || uploading || analyzingInvoice;
+  const isPickerDisabled = saving || savingAttachment || analyzingInvoice;
   const workshopIds = useMemo(
     () => workshops.map((workshop) => workshop.id),
     [workshops],
@@ -789,8 +776,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
 
       if (entryId) {
-        setUploading(true);
-        await checkAndUpload({
+        setSavingAttachment(true);
+        await saveAttachmentLocally({
           serviceEntryId: entryId,
           vehicleId,
           fileUri: asset.uri,
@@ -811,7 +798,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     } catch (e: any) {
       alertCaughtError(t("common.error"), e, t("common.error"));
     } finally {
-      setUploading(false);
+      setSavingAttachment(false);
     }
   }
 
@@ -826,8 +813,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
 
       if (entryId) {
-        setUploading(true);
-        await checkAndUpload({
+        setSavingAttachment(true);
+        await saveAttachmentLocally({
           serviceEntryId: entryId,
           vehicleId,
           fileUri: asset.uri,
@@ -848,7 +835,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     } catch (e: any) {
       alertCaughtError(t("common.error"), e, t("common.error"));
     } finally {
-      setUploading(false);
+      setSavingAttachment(false);
     }
   }
 
@@ -864,8 +851,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
 
       if (entryId) {
-        setUploading(true);
-        await checkAndUpload({
+        setSavingAttachment(true);
+        await saveAttachmentLocally({
           serviceEntryId: entryId,
           vehicleId,
           fileUri: asset.uri,
@@ -882,7 +869,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     } catch (e: any) {
       alertCaughtError(t("common.error"), e, t("common.error"));
     } finally {
-      setUploading(false);
+      setSavingAttachment(false);
     }
   }
 
@@ -914,10 +901,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           createdEntries.push(await createServiceEntry(payload));
         }
         if (pendingFiles.length) {
-          setUploading(true);
+          setSavingAttachment(true);
           for (const created of createdEntries) {
             for (const file of pendingFiles) {
-              await checkAndUpload({
+              await saveAttachmentLocally({
                 serviceEntryId: created.id,
                 vehicleId,
                 fileUri: file.uri,
@@ -934,7 +921,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       alertCaughtError(t("common.error"), e, t("common.error"));
     } finally {
       setSaving(false);
-      setUploading(false);
+      setSavingAttachment(false);
     }
   }
 
@@ -946,7 +933,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         onPress: onSave,
         label: t("common.done"),
         disabled: isPickerDisabled,
-        loading: saving || uploading,
+        loading: saving || savingAttachment,
       }}
       useHorizontalContentInset={false}
       footer={
@@ -1330,7 +1317,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       <View style={styles.loadingContainer}>
                         <LoadingIndicator />
                       </View>
-                    ) : !uploading && attachments.length === 0 ? (
+                    ) : !savingAttachment && attachments.length === 0 ? (
                       <Text style={[styles.muted, styles.insetContent]}>
                         {t("entryForm.attachmentsEmpty")}
                       </Text>

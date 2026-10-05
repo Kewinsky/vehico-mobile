@@ -10,7 +10,7 @@ import type { AddAttachmentFiltersParams } from "../modal/AddAttachmentFiltersSc
 import type { ServiceEntry } from "../../types/domain";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { listServiceEntries } from "../../services/serviceEntries/serviceEntriesRepo";
-import { uploadAttachment } from "../../services/attachments/attachmentsRepo";
+import { saveAttachmentLocally } from "../../services/attachments/attachmentsRepo";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { SearchBar } from "../../ui/components/common/SearchBar";
@@ -32,7 +32,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
   const [items, setItems] = useState<ServiceEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [savingAttachment, setSavingAttachment] = useState(false);
   const [query, setQuery] = useState("");
   const [sortOption, setSortOption] = useState<
     "date-newest" | "date-oldest" | "title-az" | "title-za"
@@ -73,11 +73,11 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     setSortOption("date-newest");
   }, []);
 
-  async function uploadTo(
+  async function saveToEntry(
     serviceEntryId: string,
     file: { uri: string; mimeType?: string | null; fileName?: string | null },
   ) {
-    await uploadAttachment({
+    await saveAttachmentLocally({
       serviceEntryId,
       vehicleId,
       fileUri: file.uri,
@@ -88,7 +88,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
 
   async function pickFromCamera(serviceEntryId: string) {
     try {
-      setUploading(true);
+      setSavingAttachment(true);
       const perm = await ImagePicker.requestCameraPermissionsAsync();
       if (!perm.granted)
         throw new Error(t("attachments.cameraPermissionDenied"));
@@ -96,7 +96,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-      await uploadTo(serviceEntryId, {
+      await saveToEntry(serviceEntryId, {
         uri: asset.uri,
         mimeType: asset.mimeType,
         fileName: asset.fileName,
@@ -105,13 +105,13 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     } catch (e: any) {
       toastCaughtError(e, t("common.error"));
     } finally {
-      setUploading(false);
+      setSavingAttachment(false);
     }
   }
 
   async function pickFromGallery(serviceEntryId: string) {
     try {
-      setUploading(true);
+      setSavingAttachment(true);
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         quality: 1,
@@ -119,7 +119,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-      await uploadTo(serviceEntryId, {
+      await saveToEntry(serviceEntryId, {
         uri: asset.uri,
         mimeType: asset.mimeType,
         fileName: asset.fileName,
@@ -128,13 +128,13 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     } catch (e: any) {
       toastCaughtError(e, t("common.error"));
     } finally {
-      setUploading(false);
+      setSavingAttachment(false);
     }
   }
 
   async function pickFromFiles(serviceEntryId: string) {
     try {
-      setUploading(true);
+      setSavingAttachment(true);
       const result = await DocumentPicker.getDocumentAsync({
         type: "*/*",
         copyToCacheDirectory: true,
@@ -143,7 +143,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-      await uploadTo(serviceEntryId, {
+      await saveToEntry(serviceEntryId, {
         uri: asset.uri,
         mimeType: asset.mimeType,
         fileName: asset.name,
@@ -152,13 +152,13 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     } catch (e: any) {
       toastCaughtError(e, t("common.error"));
     } finally {
-      setUploading(false);
+      setSavingAttachment(false);
     }
   }
 
   const showAttachmentSourceAlert = useCallback(
     (serviceEntryId: string) => {
-      if (uploading) return;
+      if (savingAttachment) return;
       openAttachmentSourceAlert(
         {
           onCamera: () => void pickFromCamera(serviceEntryId),
@@ -170,7 +170,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     },
     // Pickers are plain functions; including them would churn this callback every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, uploading],
+    [savingAttachment, t],
   );
 
   const filteredItems = useMemo(() => {
@@ -242,11 +242,11 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         onRefresh={() => void load({ refreshing: true })}
         renderItem={({ item }) => (
           <Pressable
-            disabled={uploading}
+            disabled={savingAttachment}
             onPress={() => showAttachmentSourceAlert(item.id)}
             style={({ pressed }) => [
               styles.card,
-              pressed && !uploading ? styles.cardPressed : null,
+              pressed && !savingAttachment ? styles.cardPressed : null,
             ]}
           >
             <Text style={styles.cardTitle}>{item.title}</Text>

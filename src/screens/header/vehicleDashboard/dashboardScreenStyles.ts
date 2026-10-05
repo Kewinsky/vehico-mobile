@@ -188,14 +188,6 @@ export const carouselInlineStyles = {
     left: theme.spacing.md,
     zIndex: 10,
   }),
-  paginationDot: {
-    backgroundColor: "rgba(255,255,255,0.5)",
-    borderRadius: 999,
-  },
-  activePaginationDot: (theme: AppTheme) => ({
-    backgroundColor: theme.colors.accent,
-    borderRadius: 999,
-  }),
   expandButton: (theme: AppTheme) => ({
     position: "absolute" as const,
     bottom: theme.spacing.md,

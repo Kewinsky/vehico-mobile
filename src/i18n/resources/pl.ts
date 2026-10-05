@@ -1,3 +1,5 @@
+import { PREMIUM_TIER_ENTITLEMENT_LIMITS } from "../../../shared/limits/entitlementLimits";
+
 export const pl = {
   common: {
     appName: "{{appName}}",
@@ -27,6 +29,7 @@ export const pl = {
     and: "i",
     clearButton: "Wyczyść",
     chooseOption: "Wybierz",
+    carouselPosition: "Zdjęcie {{current}} z {{total}}",
     selectDate: "Wybierz datę",
   },
   validation: {
@@ -65,7 +68,7 @@ export const pl = {
       "Osiągnięto limit przypomnień. Przejdź na Premium, aby mieć nielimitowane przypomnienia.",
     photoLimitReachedTitle: "Osiągnięto limit zdjęć",
     photoLimitReachedBody:
-      "Osiągnięto limit zdjęć na pojazd. Przejdź na Premium, aby mieć do 40 zdjęć.",
+      `Osiągnięto limit zdjęć na pojazd. Przejdź na Premium, aby mieć do ${PREMIUM_TIER_ENTITLEMENT_LIMITS.photos_per_vehicle_limit} zdjęć.`,
     limitReachedTitle: "Osiągnięto limit",
     limitReachedBody:
       "Osiągnięto limit dla tej funkcji. Przejdź na Premium, aby zyskać więcej.",
@@ -298,7 +301,7 @@ export const pl = {
     addPhoto: "Dodaj zdjęcie",
     changePhoto: "Zmień zdjęcie",
     photos: "Zdjęcia",
-    maxPhotosReached: "Maksymalnie 6 zdjęć",
+    maxPhotosReached: "Maksymalnie {{limit}} zdjęć",
   },
   timeline: {
     addEntry: "Dodaj wpis serwisowy",
@@ -1432,6 +1435,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     cameraPermissionDenied: "Brak dostępu do aparatu",
     galleryPermissionDenied: "Brak dostępu do zdjęć",
     noFileSelected: "Nie wybrano pliku",
+    imageFileTooLarge: "Zdjęcie nie może przekraczać {{limit}} MB.",
     deleteEntryTitle: "Usunąć wpis?",
     deleteEntryBody: "To usunie wpis serwisowy i jego załączniki.",
     editAttachmentNameTitle: "Edytuj nazwę załącznika",
@@ -1664,7 +1668,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     photosCount: "{{count}} / {{limit}} zdjęć",
     photosFromApp: "Zdjęcia z pojazdu",
     addPhotos: "Dodaj zdjęcia",
-    maxPhotosReached: "Maksymalnie 40 zdjęć",
+    maxPhotosReached: "Maksymalnie {{limit}} zdjęcia",
     nextButton: "Dalej",
     summaryTitle: "Podsumowanie raportu",
     summarySubtitle: "Sprawdź, co zostanie zawarte w raporcie.",

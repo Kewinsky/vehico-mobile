@@ -1,3 +1,5 @@
+import { PREMIUM_TIER_ENTITLEMENT_LIMITS } from "../../../shared/limits/entitlementLimits";
+
 export const en = {
   common: {
     appName: "{{appName}}",
@@ -27,6 +29,7 @@ export const en = {
     and: "and",
     clearButton: "Clear",
     chooseOption: "Select",
+    carouselPosition: "Photo {{current}} of {{total}}",
     selectDate: "Select date",
   },
   validation: {
@@ -65,7 +68,7 @@ export const en = {
       "You have reached the limit of {{limit}} reminder(s). Upgrade to Premium for unlimited reminders.",
     photoLimitReachedTitle: "Photo Limit Reached",
     photoLimitReachedBody:
-      "You have reached the limit of {{limit}} photos per vehicle. Upgrade to Premium for up to 40 photos.",
+      `You have reached the limit of {{limit}} photos per vehicle. Upgrade to Premium for up to ${PREMIUM_TIER_ENTITLEMENT_LIMITS.photos_per_vehicle_limit} photos.`,
     limitReachedTitle: "Limit Reached",
     limitReachedBody:
       "You have reached the limit for this feature. Upgrade to Premium for more.",
@@ -291,7 +294,7 @@ export const en = {
     addPhoto: "Add photo",
     changePhoto: "Change photo",
     photos: "Photos",
-    maxPhotosReached: "Maximum 6 photos allowed",
+    maxPhotosReached: "Maximum {{limit}} photos allowed",
   },
   timeline: {
     addEntry: "Add service entry",
@@ -1417,6 +1420,7 @@ Detailed report available at: https://report.vehico.app/report/example`,
     cameraPermissionDenied: "Camera permission denied",
     galleryPermissionDenied: "Photos permission denied",
     noFileSelected: "No file selected",
+    imageFileTooLarge: "The image must not exceed {{limit}} MB.",
     deleteEntryTitle: "Delete entry?",
     deleteEntryBody: "This will remove the service entry and its attachments.",
     editAttachmentNameTitle: "Edit attachment name",
@@ -1647,7 +1651,7 @@ Detailed report available at: https://report.vehico.app/report/example`,
     photosCount: "{{count}} / {{limit}} photos",
     photosFromApp: "Photos from vehicle",
     addPhotos: "Add photos",
-    maxPhotosReached: "Maximum 40 photos allowed",
+    maxPhotosReached: "Maximum {{limit}} photos allowed",
     nextButton: "Next",
     summaryTitle: "Report Summary",
     summarySubtitle: "Review what will be included in the report.",

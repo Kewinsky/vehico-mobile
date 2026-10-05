@@ -118,7 +118,7 @@ describe("EntitlementsProvider (Supabase entitlements + computed limits)", () =>
 
     expect(result.current.isPremium).toBe(true);
     expect(result.current.vehiclesLimit).toBe(999);
-    expect(result.current.photosPerVehicleLimit).toBe(40);
+    expect(result.current.photosPerVehicleLimit).toBe(42);
     expect(result.current.workshopsLimit).toBe(999);
     expect(result.current.remindersLimit).toBe(999);
     // Premium hides free-plan ID lists.
@@ -274,4 +274,3 @@ describe("EntitlementsProvider (Supabase entitlements + computed limits)", () =>
     expect(Purchases.restorePurchases).toHaveBeenCalledTimes(1);
   });
 });
-

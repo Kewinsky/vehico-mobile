@@ -1,7 +1,10 @@
 import { Image } from "react-native";
 import * as ImageManipulator from "expo-image-manipulator";
+import * as FileSystem from "expo-file-system/legacy";
 import {
+  assertImageFileSize,
   compressImageForUpload,
+  MAX_UPLOAD_IMAGE_BYTES,
   UPLOAD_IMAGE_JPEG_QUALITY,
   UPLOAD_IMAGE_MAX_EDGE,
 } from "../../services/storage/compressImageForUpload";
@@ -11,9 +14,17 @@ jest.mock("expo-image-manipulator", () => ({
   SaveFormat: { JPEG: "jpeg" },
 }));
 
+jest.mock("expo-file-system/legacy", () => ({
+  getInfoAsync: jest.fn(),
+}));
+
 describe("compressImageForUpload", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({
+      exists: true,
+      size: 1024,
+    });
     (ImageManipulator.manipulateAsync as jest.Mock).mockResolvedValue({
       uri: "file:///out.jpg",
       width: 1600,
@@ -80,5 +91,30 @@ describe("compressImageForUpload", () => {
       [],
       expect.any(Object),
     );
+  });
+
+  it("rejects an image larger than the upload limit", async () => {
+    await expect(
+      assertImageFileSize(
+        "file:///too-big.jpg",
+        MAX_UPLOAD_IMAGE_BYTES + 1,
+      ),
+    ).rejects.toThrow("Image must not exceed 10 MB");
+  });
+
+  it("rejects an oversized result before upload", async () => {
+    (FileSystem.getInfoAsync as jest.Mock)
+      .mockResolvedValueOnce({ exists: true, size: 1024 })
+      .mockResolvedValueOnce({
+        exists: true,
+        size: MAX_UPLOAD_IMAGE_BYTES + 1,
+      });
+    jest.spyOn(Image, "getSize").mockImplementation((_uri, success) => {
+      success(800, 600);
+    });
+
+    await expect(
+      compressImageForUpload("file:///small-source.jpg"),
+    ).rejects.toThrow("Image must not exceed 10 MB");
   });
 });

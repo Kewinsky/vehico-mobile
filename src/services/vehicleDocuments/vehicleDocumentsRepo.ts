@@ -32,8 +32,8 @@ export async function listVehicleDocuments(
   }));
 }
 
-/** Upload vehicle document to local storage. */
-export async function uploadVehicleDocument(params: {
+/** Save vehicle document to local storage. */
+export async function saveVehicleDocumentLocally(params: {
   vehicleId: string;
   fileUri: string;
   mimeType?: string | null;

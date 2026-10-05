@@ -33,7 +33,7 @@ import {
   deleteVehicleDocument,
   listVehicleDocuments,
   updateVehicleDocument,
-  uploadVehicleDocument,
+  saveVehicleDocumentLocally,
 } from "../../services/vehicleDocuments/vehicleDocumentsRepo";
 import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions";
 import { getUserFacingErrorMessage } from "../../ui/errors/userFacingError";
@@ -53,7 +53,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
   const [vehicleDocs, setVehicleDocs] = useState<VehicleDocument[]>([]);
   const [attachments, setAttachments] = useState<VehicleAttachment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [, setUploading] = useState(false);
+  const [, setSavingDocument] = useState(false);
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"documents" | "attachments">(
     "documents",
@@ -118,7 +118,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
 
   async function pickDocFromCamera() {
     try {
-      setUploading(true);
+      setSavingDocument(true);
       const perm = await ImagePicker.requestCameraPermissionsAsync();
       if (!perm.granted)
         throw new Error(t("attachments.cameraPermissionDenied"));
@@ -126,7 +126,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-      await uploadVehicleDocument({
+      await saveVehicleDocumentLocally({
         vehicleId: route.params.vehicleId,
         fileUri: asset.uri,
         mimeType: asset.mimeType,
@@ -136,13 +136,13 @@ export function DocumentsScreen({ route, navigation }: Props) {
     } catch (e: any) {
       toastCaughtError(e, t("common.error"));
     } finally {
-      setUploading(false);
+      setSavingDocument(false);
     }
   }
 
   async function pickDocFromGallery() {
     try {
-      setUploading(true);
+      setSavingDocument(true);
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         quality: 1,
@@ -150,7 +150,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-      await uploadVehicleDocument({
+      await saveVehicleDocumentLocally({
         vehicleId: route.params.vehicleId,
         fileUri: asset.uri,
         mimeType: asset.mimeType,
@@ -160,13 +160,13 @@ export function DocumentsScreen({ route, navigation }: Props) {
     } catch (e: any) {
       toastCaughtError(e, t("common.error"));
     } finally {
-      setUploading(false);
+      setSavingDocument(false);
     }
   }
 
   async function pickDocFromFiles() {
     try {
-      setUploading(true);
+      setSavingDocument(true);
       const result = await DocumentPicker.getDocumentAsync({
         type: "*/*",
         copyToCacheDirectory: true,
@@ -175,7 +175,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-      await uploadVehicleDocument({
+      await saveVehicleDocumentLocally({
         vehicleId: route.params.vehicleId,
         fileUri: asset.uri,
         mimeType: asset.mimeType,
@@ -185,7 +185,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
     } catch (e: any) {
       toastCaughtError(e, t("common.error"));
     } finally {
-      setUploading(false);
+      setSavingDocument(false);
     }
   }
 

@@ -71,6 +71,10 @@ import { Textarea } from "../../ui/components/common/Textarea";
 import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { formatYmd } from "../../utils/dateYmd";
+import {
+  assertImageFileSize,
+  MAX_UPLOAD_IMAGE_MB,
+} from "../../services/storage/compressImageForUpload";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
 
@@ -255,9 +259,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
   async function pickFromCamera() {
     try {
-      const remainingSlots = 6 - draftPhotos.length;
+      const remainingSlots = photosPerVehicleLimit - draftPhotos.length;
       if (remainingSlots <= 0) {
-        toastError(t("vehicleForm.maxPhotosReached"));
+        toastError(
+          t("vehicleForm.maxPhotosReached", { limit: photosPerVehicleLimit }),
+        );
         return;
       }
       setUploadingPhoto(true);
@@ -268,6 +274,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await assertImageFileSize(
+        asset.uri,
+        asset.fileSize,
+        t("attachments.imageFileTooLarge", { limit: MAX_UPLOAD_IMAGE_MB }),
+      );
       setDraftPhotos((prev) => [
         ...prev,
         {
@@ -290,9 +301,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
   async function pickFromGallery() {
     try {
-      const remainingSlots = 6 - draftPhotos.length;
+      const remainingSlots = photosPerVehicleLimit - draftPhotos.length;
       if (remainingSlots <= 0) {
-        toastError(t("vehicleForm.maxPhotosReached"));
+        toastError(
+          t("vehicleForm.maxPhotosReached", { limit: photosPerVehicleLimit }),
+        );
         return;
       }
       setUploadingPhoto(true);
@@ -306,6 +319,17 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       if (!result.assets || result.assets.length === 0) {
         throw new Error(t("attachments.noFileSelected"));
       }
+      await Promise.all(
+        result.assets.map((asset) =>
+          assertImageFileSize(
+            asset.uri,
+            asset.fileSize,
+            t("attachments.imageFileTooLarge", {
+              limit: MAX_UPLOAD_IMAGE_MB,
+            }),
+          ),
+        ),
+      );
       const newPhotos = result.assets
         .slice(0, remainingSlots)
         .map((asset) => ({
@@ -329,9 +353,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
   async function pickFromFiles() {
     try {
-      const remainingSlots = 6 - draftPhotos.length;
+      const remainingSlots = photosPerVehicleLimit - draftPhotos.length;
       if (remainingSlots <= 0) {
-        toastError(t("vehicleForm.maxPhotosReached"));
+        toastError(
+          t("vehicleForm.maxPhotosReached", { limit: photosPerVehicleLimit }),
+        );
         return;
       }
       setUploadingPhoto(true);
@@ -344,6 +370,17 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       if (!result.assets || result.assets.length === 0) {
         throw new Error(t("attachments.noFileSelected"));
       }
+      await Promise.all(
+        result.assets.map((asset) =>
+          assertImageFileSize(
+            asset.uri,
+            asset.size,
+            t("attachments.imageFileTooLarge", {
+              limit: MAX_UPLOAD_IMAGE_MB,
+            }),
+          ),
+        ),
+      );
       const newPhotos = result.assets
         .slice(0, remainingSlots)
         .map((asset) => ({
@@ -594,7 +631,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     />
                   </View>
                 )}
-                {draftPhotos.length < 6 && (
+                {draftPhotos.length < photosPerVehicleLimit && (
                   <Button
                     variant="ghost"
                     disabled={saving || uploadingPhoto}

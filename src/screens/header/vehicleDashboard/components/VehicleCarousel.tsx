@@ -1,12 +1,12 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import Carousel, { Pagination } from "react-native-reanimated-carousel";
-import { useSharedValue } from "react-native-reanimated";
+import Carousel from "react-native-reanimated-carousel";
 
 import type { AppTheme } from "../../../../ui/theme";
 import { carouselInlineStyles } from "../dashboardScreenStyles";
+import { CarouselPaginationCounter } from "../../../../ui/components/common/CarouselPaginationCounter";
 
 type VehicleCarouselProps = {
   photoUrls: string[];
@@ -23,7 +23,7 @@ export function VehicleCarousel({
   theme,
   onPhotoPress,
 }: VehicleCarouselProps) {
-  const progress = useSharedValue(0);
+  const [activeIndex, setActiveIndex] = useState(0);
   const currentIndexRef = useRef(0);
 
   if (photoUrls.length === 0) return null;
@@ -44,8 +44,14 @@ export function VehicleCarousel({
           width={width}
           height={height}
           onProgressChange={(_, absoluteProgress) => {
-            progress.value = absoluteProgress;
-            currentIndexRef.current = absoluteProgress;
+            const nextIndex =
+              ((Math.round(absoluteProgress) % photoUrls.length) +
+                photoUrls.length) %
+              photoUrls.length;
+            if (currentIndexRef.current !== nextIndex) {
+              currentIndexRef.current = nextIndex;
+              setActiveIndex(nextIndex);
+            }
           }}
           renderItem={({ item: url }) => (
             <View style={{ width: "100%", height: "100%", overflow: "hidden" }}>
@@ -68,12 +74,9 @@ export function VehicleCarousel({
               style={carouselInlineStyles.paginationOverlay(theme)}
               pointerEvents="none"
             >
-              <Pagination.Basic
-                progress={progress}
-                data={photoUrls.map((url) => ({ url }))}
-                dotStyle={carouselInlineStyles.paginationDot}
-                activeDotStyle={carouselInlineStyles.activePaginationDot(theme)}
-                containerStyle={{ gap: 5 }}
+              <CarouselPaginationCounter
+                activeIndex={activeIndex}
+                total={photoUrls.length}
               />
             </View>
             <Pressable

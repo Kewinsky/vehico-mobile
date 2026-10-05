@@ -46,6 +46,10 @@ import {
   listVehicles,
 } from "../../services/vehicles/vehiclesRepo";
 import { uploadVehiclePhoto } from "../../services/vehicles/uploadPhoto";
+import {
+  assertImageFileSize,
+  MAX_UPLOAD_IMAGE_MB,
+} from "../../services/storage/compressImageForUpload";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { supabase } from "../../services/supabase/client";
 import {
@@ -194,6 +198,11 @@ export function OnboardingScreen({ navigation }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await assertImageFileSize(
+        asset.uri,
+        asset.fileSize,
+        t("attachments.imageFileTooLarge", { limit: MAX_UPLOAD_IMAGE_MB }),
+      );
       applyPickedPhoto({
         uri: asset.uri,
         mimeType: asset.mimeType,
@@ -214,6 +223,11 @@ export function OnboardingScreen({ navigation }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await assertImageFileSize(
+        asset.uri,
+        asset.fileSize,
+        t("attachments.imageFileTooLarge", { limit: MAX_UPLOAD_IMAGE_MB }),
+      );
       applyPickedPhoto({
         uri: asset.uri,
         mimeType: asset.mimeType,
@@ -234,6 +248,11 @@ export function OnboardingScreen({ navigation }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await assertImageFileSize(
+        asset.uri,
+        asset.size,
+        t("attachments.imageFileTooLarge", { limit: MAX_UPLOAD_IMAGE_MB }),
+      );
       applyPickedPhoto({
         uri: asset.uri,
         mimeType: asset.mimeType,

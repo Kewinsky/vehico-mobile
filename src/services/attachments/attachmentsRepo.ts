@@ -38,8 +38,8 @@ export async function listAttachments(
   }));
 }
 
-/** Upload attachment to local storage. */
-export async function uploadAttachment(params: {
+/** Save attachment to local storage. */
+export async function saveAttachmentLocally(params: {
   serviceEntryId: string;
   vehicleId: string;
   fileUri: string;
