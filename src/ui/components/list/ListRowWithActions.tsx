@@ -15,8 +15,6 @@ export type ListRowWithActionsProps = {
   muted?: boolean;
   /** When true, the whole card is dimmed (e.g. opacity 0.6 for completed items). */
   dimmed?: boolean;
-  /** Match `Button` row height (single- or two-line content, vertically centered). */
-  compact?: boolean;
 };
 
 export function ListRowWithActions({
@@ -26,7 +24,6 @@ export function ListRowWithActions({
   trailing,
   muted,
   dimmed,
-  compact,
 }: ListRowWithActionsProps) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
@@ -47,7 +44,6 @@ export function ListRowWithActions({
         <Text
           style={[
             styles.subtitle,
-            compact && styles.subtitleCompact,
             { color: subtitleColor },
             muted && styles.subtitleMuted,
           ]}
@@ -61,13 +57,7 @@ export function ListRowWithActions({
   );
 
   return (
-    <View
-      style={[
-        styles.card,
-        compact && styles.cardCompact,
-        dimmed && styles.cardDimmed,
-      ]}
-    >
+    <View style={[styles.card, dimmed && styles.cardDimmed]}>
       <View style={styles.row}>
         {onPress ? (
           <Pressable style={{ flex: 1, minWidth: 0 }} onPress={onPress}>
@@ -88,11 +78,6 @@ const makeStyles = (theme: AppTheme) =>
       borderRadius: theme.radius.xl,
       padding: theme.spacing.md,
       backgroundColor: theme.colors.card,
-    },
-    cardCompact: {
-      height: theme.spacing.lg * 2,
-      justifyContent: "center",
-      paddingVertical: theme.spacing.xs,
     },
     cardDimmed: {
       opacity: 0.6,
@@ -118,9 +103,6 @@ const makeStyles = (theme: AppTheme) =>
     subtitle: {
       fontSize: theme.typography.small,
       marginTop: theme.spacing.xs,
-    },
-    subtitleCompact: {
-      marginTop: 2,
     },
     subtitleMuted: {
       opacity: 0.6,
