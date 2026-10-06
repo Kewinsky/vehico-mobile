@@ -26,7 +26,11 @@ export function AiImportReviewCard({
   return (
     <Card
       withoutDividers
-      style={[styles.card, { backgroundColor }, style]}
+      style={
+        style
+          ? [styles.card, { backgroundColor }, style]
+          : [styles.card, { backgroundColor }]
+      }
     >
       <Text style={[styles.text, { color: theme.colors.fg }]}>{message}</Text>
     </Card>
