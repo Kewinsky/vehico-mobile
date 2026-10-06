@@ -498,7 +498,6 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
                                 | "vehicleForm.fuelTypePetrol"
                                 | "vehicleForm.fuelTypeDiesel"
                                 | "vehicleForm.fuelTypeHybrid"
-                                | "vehicleForm.fuelTypeElectric"
                                 | "vehicleForm.fuelTypeLpg",
                             )
                           : "–"

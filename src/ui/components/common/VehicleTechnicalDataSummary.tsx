@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { Vehicle } from "../../../types/domain";
+import { isFuelType, type Vehicle } from "../../../types/domain";
 import { useUnitDisplay } from "../../../app/hooks/useUnitDisplay";
 import { groupThousands } from "../../../utils/numberFormatting";
 import { ReportSummaryDataRow } from "./ReportSummaryDataRow";
@@ -37,7 +37,7 @@ export function VehicleTechnicalDataSummary({ vehicle }: Props) {
 
     const typeVal = t(`vehicleForm.${vehicle.type}` as const);
     const fuelVal =
-      vehicle.fuel_type != null
+      isFuelType(vehicle.fuel_type)
         ? t(
             `vehicleForm.fuelType${
               vehicle.fuel_type.charAt(0).toUpperCase() +
@@ -46,7 +46,6 @@ export function VehicleTechnicalDataSummary({ vehicle }: Props) {
               | "vehicleForm.fuelTypePetrol"
               | "vehicleForm.fuelTypeDiesel"
               | "vehicleForm.fuelTypeHybrid"
-              | "vehicleForm.fuelTypeElectric"
               | "vehicleForm.fuelTypeLpg",
           )
         : EMPTY_VALUE;

@@ -78,16 +78,16 @@ Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej dec
 
 ## 5. Fuel Receipt Import
 
-- [ ] Zdefiniować structured output dla daty, ilości, ceny jednostkowej, kosztu, rodzaju paliwa i stacji.
-- [ ] Mapować rodzaj paliwa tylko do wartości obsługiwanych przez formularz tankowania.
-- [ ] Zawężać sugestie rodzaju paliwa na podstawie wybranego pojazdu.
-- [ ] Wyliczać brakującą cenę jednostkową lub sumę deterministycznie.
-- [ ] Nie wymyślać przebiegu ani dystansu, jeśli nie występuje na paragonie.
-- [ ] Wypełnić istniejący formularz edytowalnym szkicem.
-- [ ] Zapisywać wpis dopiero po korekcie i potwierdzeniu użytkownika.
-- [ ] Obsłużyć paragony z wieloma produktami i odrzucać pozycje niezwiązane z paliwem.
-- [ ] Dodać testy nieczytelnego paragonu, wielu stawek i brakujących pól.
-- [ ] Kryterium zakończenia: paragon tworzy poprawialny szkic tankowania bez wymyślonych danych.
+- [x] Zdefiniować structured output dla daty, ilości, kosztu, rodzaju paliwa i stacji.
+- [x] Mapować rodzaj paliwa tylko do wartości obsługiwanych przez formularz tankowania lub ustawic `other` jezeli stacja nie zostanie rozpoznana.
+- [x] Zawężać sugestie rodzaju paliwa na podstawie wybranego pojazdu.
+- [x] Przepisywać ilość i koszt dokładnie z paragonu, bez przeliczania jednostek lub walut.
+- [x] Nie ustawiac nigdy dystansu, poniewa to uytkownik musi sam wykonac
+- [x] Wypełnić istniejący formularz edytowalnym szkicem.
+- [x] Zapisywać wpis dopiero po korekcie i potwierdzeniu użytkownika.
+- [x] Obsłużyć paragony z wieloma produktami i odrzucać pozycje niezwiązane z paliwem.
+- [x] Dodać testy nieczytelnego paragonu, wielu stawek i brakujących pól.
+- [x] Kryterium zakończenia: paragon tworzy poprawialny szkic tankowania bez wymyślonych danych.
 
 ## 6. Import Quality & Security
 

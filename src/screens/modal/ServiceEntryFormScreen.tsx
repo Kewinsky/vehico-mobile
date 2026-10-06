@@ -56,6 +56,10 @@ import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
+import {
+  AiImportReviewCard,
+  type AiImportReviewTone,
+} from "../../ui/components/common/AiImportReviewCard";
 import { FormPresetChips } from "../../ui/components/common/FormPresetChips";
 import { openAttachmentSourceAlert } from "../../ui/components/common/sourcePickerAlert";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
@@ -129,9 +133,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [defaultMileage, setDefaultMileage] = useState("");
   const [analyzingInvoice, setAnalyzingInvoice] = useState(false);
   const [invoiceAnalysisProgress, setInvoiceAnalysisProgress] = useState(0);
-  const [invoiceReviewMessage, setInvoiceReviewMessage] = useState<string | null>(
-    null,
-  );
+  const [invoiceReview, setInvoiceReview] = useState<{
+    message: string;
+    tone: AiImportReviewTone;
+  } | null>(null);
   const [invoiceStrategy, setInvoiceStrategy] =
     useState<InvoiceStrategy | null>(null);
   const invoiceAbortController = useRef<AbortController | null>(null);
@@ -467,7 +472,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     hasInvoiceDraft.current = false;
     invoiceExtraction.current = null;
     setInvoiceStrategy(null);
-    setInvoiceReviewMessage(null);
+    setInvoiceReview(null);
     if (mode !== "single") {
       setFormMode("single");
     }
@@ -514,7 +519,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     setWorkshopId(null);
     setWorkshopSnapshot(null);
     setPendingFiles([]);
-    setInvoiceReviewMessage(null);
+    setInvoiceReview(null);
   }
 
   const applyInvoiceExtraction = useCallback(
@@ -571,15 +576,18 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         hasUncertainCost ? t("entryForm.invoiceEntriesCost") : null,
         hasUncertainCategory ? t("entryForm.invoiceEntriesCategory") : null,
       ].filter((value): value is string => value !== null);
-      setInvoiceReviewMessage(
-        t("entryForm.invoiceReviewMessage", {
-          currency: extraction.currency.value ?? t("entryForm.invoiceCurrencyUnknown"),
-          formCurrency: currency,
-          fields:
-            uncertainFields.length > 0
-              ? `• ${uncertainFields.join("\n• ")}`
-              : `• ${t("entryForm.invoiceNoUncertainFields")}`,
-        }),
+      setInvoiceReview(
+        uncertainFields.length > 0
+          ? {
+              tone: "review",
+              message: t("aiImportReview.issuesMessage", {
+                fields: `• ${uncertainFields.join("\n• ")}`,
+              }),
+            }
+          : {
+              tone: "success",
+              message: t("aiImportReview.successMessage"),
+            },
       );
     },
     [currency, resetFieldErrors, t, workshops],
@@ -644,29 +652,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     );
   }, [applyInvoiceExtraction, invoiceStrategy, t]);
 
-  const confirmInvoiceProcessing = useCallback(
-    () =>
-      new Promise<boolean>((resolve) => {
-        Alert.alert(
-          t("entryForm.invoicePrivacyTitle"),
-          t("entryForm.invoicePrivacyBody"),
-          [
-            {
-              text: t("common.cancel"),
-              style: "cancel",
-              onPress: () => resolve(false),
-            },
-            {
-              text: t("common.continue"),
-              onPress: () => resolve(true),
-            },
-          ],
-          { cancelable: false },
-        );
-      }),
-    [t],
-  );
-
   const handleImportDocument = useCallback(async (asset: {
     uri: string;
     name: string;
@@ -686,8 +671,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           t("entryForm.invoiceUnsupportedFile"),
         );
       }
-      if (!(await confirmInvoiceProcessing())) return;
-
       invoiceAbortController.current?.abort();
       const controller = new AbortController();
       invoiceAbortController.current = controller;
@@ -736,7 +719,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }, [
     applyInvoiceExtraction,
     chooseInvoiceStrategy,
-    confirmInvoiceProcessing,
     isPremium,
     navigation,
     t,
@@ -1097,20 +1079,13 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               </View>
               <View style={{ height: theme.spacing.sm }} />
 
-              {invoiceReviewMessage ? (
+              {invoiceReview ? (
                 <>
-                  <Card style={[styles.card, styles.invoiceReviewCard]}>
-                    <View style={styles.invoiceReview}>
-                      <Text
-                        style={[
-                          styles.invoiceReviewText,
-                          { color: theme.colors.fg },
-                        ]}
-                      >
-                        {invoiceReviewMessage}
-                      </Text>
-                    </View>
-                  </Card>
+                  <AiImportReviewCard
+                    message={invoiceReview.message}
+                    tone={invoiceReview.tone}
+                    style={styles.card}
+                  />
                   <View style={{ height: theme.spacing.sm }} />
                 </>
               ) : null}
@@ -1224,7 +1199,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               disabled={isPickerDisabled}
             />
 
-            {invoiceReviewMessage && !workshopId ? (
+            {invoiceReview && !workshopId ? (
               <FormInputRow
                 icon="business-outline"
                 label={t("entryForm.invoiceWorkshop")}
@@ -1527,17 +1502,6 @@ const makeStyles = (theme: any) =>
     },
     card: {
       marginHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    invoiceReview: {
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
-    },
-    invoiceReviewCard: {
-      backgroundColor: `${theme.colors.accent}20`,
-    },
-    invoiceReviewText: {
-      fontSize: theme.typography.body,
-      lineHeight: theme.typography.body + 8,
     },
     invoiceModeRow: {
       minHeight: theme.spacing.xl + theme.spacing.md,

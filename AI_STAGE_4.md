@@ -91,8 +91,8 @@ osobno dla każdego utworzonego wpisu.
   automatycznego przeliczania walut.
 - Standardowe dane API OpenAI nie są używane do trenowania modeli. Dane mogą być
   przechowywane do 30 dni na potrzeby monitorowania nadużyć, chyba że projekt ma
-  włączone Zero Data Retention. Użytkownik widzi tę informację i potwierdza
-  wysłanie pliku przed analizą.
+  włączone Zero Data Retention. Analiza rozpoczyna się od razu po wybraniu pliku,
+  bez dodatkowego potwierdzenia w aplikacji.
 - Szczegóły retencji są opisane w aktualnej dokumentacji OpenAI:
   <https://developers.openai.com/api/docs/guides/your-data>.
 

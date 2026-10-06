@@ -62,3 +62,4 @@ jobs:
           supabase functions deploy generate-marketplace-post --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
           supabase functions deploy vehicle-chat --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
           supabase functions deploy service-invoice-import --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase functions deploy fuel-receipt-import --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}

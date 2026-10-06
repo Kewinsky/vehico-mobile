@@ -32,6 +32,12 @@ export const en = {
     carouselPosition: "Photo {{current}} of {{total}}",
     selectDate: "Select date",
   },
+  aiImportReview: {
+    successMessage:
+      "Data imported successfully.\n\nReview the data before saving.",
+    issuesMessage:
+      "Missing or uncertain data:\n{{fields}}\n\nReview the data before saving.",
+  },
   validation: {
     invalidDate: "Please enter a valid date (YYYY-MM-DD).",
     invalidYear: "Please enter a valid year (1885–{{max}}).",
@@ -67,8 +73,7 @@ export const en = {
     reminderLimitReachedBody:
       "You have reached the limit of {{limit}} reminder(s). Upgrade to Premium for unlimited reminders.",
     photoLimitReachedTitle: "Photo Limit Reached",
-    photoLimitReachedBody:
-      `You have reached the limit of {{limit}} photos per vehicle. Upgrade to Premium for up to ${PREMIUM_TIER_ENTITLEMENT_LIMITS.photos_per_vehicle_limit} photos.`,
+    photoLimitReachedBody: `You have reached the limit of {{limit}} photos per vehicle. Upgrade to Premium for up to ${PREMIUM_TIER_ENTITLEMENT_LIMITS.photos_per_vehicle_limit} photos.`,
     limitReachedTitle: "Limit Reached",
     limitReachedBody:
       "You have reached the limit for this feature. Upgrade to Premium for more.",
@@ -281,7 +286,6 @@ export const en = {
     fuelTypePetrol: "Petrol",
     fuelTypeDiesel: "Diesel",
     fuelTypeHybrid: "Hybrid",
-    fuelTypeElectric: "Electric",
     fuelTypeLpg: "LPG",
     transmissionLabel: "Transmission",
     transmissionManual: "Manual",
@@ -419,9 +423,6 @@ export const en = {
       "Select one PDF, JPG, JPEG, PNG, HEIC, or HEIF file up to 10 MB. The document will be attached locally after saving.",
     invoiceAnalyzing: "Analyzing document...",
     invoiceAnalysisProgressLabel: "Estimated analysis progress",
-    invoicePrivacyTitle: "Analyze this document?",
-    invoicePrivacyBody:
-      "The document will be sent for AI analysis. Vericar will not save it to cloud storage, but the AI provider may retain it for up to 30 days. A local copy will be attached after you save the entry.",
     invoiceUnsupportedFile: "Select a PDF, JPG, JPEG, PNG, HEIC, or HEIF file.",
     invoiceInvalidFile: "The selected file could not be read.",
     invoiceFileTooLarge: "The file must not exceed 10 MB.",
@@ -446,10 +447,6 @@ export const en = {
     invoiceCurrency: "Currency",
     invoiceEntriesCost: "Price (one or more entries)",
     invoiceEntriesCategory: "Category (one or more entries)",
-    invoiceCurrencyUnknown: "not recognized",
-    invoiceNoUncertainFields: "none",
-    invoiceReviewMessage:
-      "Review the data before saving.\n\nDocument currency: {{currency}}\nEntry currency: {{formCurrency}}\n\nCosts are filled only when the currencies match.\n\nMissing or uncertain data:\n{{fields}}",
     documentWillAttachToEntries:
       "Selected documents: {{count}}. They will be attached locally to each entry after saving.",
   },
@@ -638,8 +635,7 @@ export const en = {
       clearDate: "Clear date",
     },
     formalityNotification: {
-      insuranceBefore:
-        "{{vehicle}} – OC expires in {{days}} days ({{date}})",
+      insuranceBefore: "{{vehicle}} – OC expires in {{days}} days ({{date}})",
       insuranceToday: "{{vehicle}} – OC expires today",
       acBefore: "{{vehicle}} – AC expires in {{days}} days ({{date}})",
       acToday: "{{vehicle}} – AC expires today",
@@ -817,10 +813,12 @@ export const en = {
     errorContextTooLarge:
       "The vehicle data is too large to process in a single response.",
     urgency: {
-      monitor: "No immediate action appears necessary based on the available information.",
+      monitor:
+        "No immediate action appears necessary based on the available information.",
       service_soon: "Arrange a vehicle inspection soon.",
       stop_driving: "Do not continue driving.",
-      unknown: "The urgency cannot be determined from the available information.",
+      unknown:
+        "The urgency cannot be determined from the available information.",
     },
     cancelled: "The response was stopped.",
     retry: "Try again",
@@ -1353,6 +1351,20 @@ Detailed report available at: https://report.vehico.app/report/example`,
   fuelingForm: {
     addTitle: "Add fueling",
     editTitle: "Edit fueling",
+    importReceipt: "Import fuel receipt",
+    importReceiptHint: "Take a photo or select a receipt to fill in the form.",
+    receiptAnalyzing: "Analyzing receipt...",
+    receiptAnalysisProgressLabel: "Estimated analysis progress",
+    receiptUnsupportedFile: "Select a JPG, JPEG, PNG, HEIC, or HEIF image.",
+    receiptInvalidFile: "The selected image could not be read.",
+    receiptFileTooLarge: "The image must not exceed 10 MB.",
+    receiptAnalysisFailed:
+      "The receipt could not be analyzed. Try a clearer photo or enter the data manually.",
+    receiptFieldDate: "Date",
+    receiptFieldAmount: "Fuel amount",
+    receiptFieldCost: "Cost",
+    receiptFieldFuelType: "Fuel type",
+    receiptFieldStation: "Gas station",
     date: "Date",
     fuelType: "Fuel",
     fuelPlaceholder: "Select",
@@ -1604,7 +1616,8 @@ Detailed report available at: https://report.vehico.app/report/example`,
     optionInsuranceOc: "OC data",
     optionInsuranceAc: "AC data",
     optionModifications: "Modifications",
-    optionModificationsUnavailable: "No entries with the modifications category.",
+    optionModificationsUnavailable:
+      "No entries with the modifications category.",
     optionInspection: "Inspection data",
     optionNotes: "Notes for {{vehicleTitle}}",
     optionWheels: "Wheel data",

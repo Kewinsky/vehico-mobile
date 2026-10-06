@@ -5,7 +5,12 @@ import {
 } from "../push/localFormalityNotifications";
 import { insertMileageAudit } from "../mileage/mileageAuditRepo";
 import { listVehiclePhotos } from "./uploadPhoto";
-import type { Vehicle, VehicleType } from "../../types/domain";
+import {
+  isFuelType,
+  type FuelType,
+  type Vehicle,
+  type VehicleType,
+} from "../../types/domain";
 
 function syncFormalityNotifications(vehicle: Vehicle): void {
   void rescheduleVehicleFormalityNotifications(vehicle);
@@ -24,7 +29,7 @@ type NewVehicleInput = {
   license_plate?: string | null;
   engine_capacity?: number | null;
   power_hp?: number | null;
-  fuel_type?: "petrol" | "diesel" | "hybrid" | "electric" | "lpg" | null;
+  fuel_type?: FuelType | null;
   transmission?: "manual" | "automatic" | null;
   drive_type?: "FWD" | "RWD" | "AWD" | null;
   notes?: string | null;
@@ -35,6 +40,15 @@ type NewVehicleInput = {
 
 export type UpdateVehicleInput = Partial<NewVehicleInput>;
 
+function normalizeVehicleFuelType(value: unknown): Vehicle {
+  const vehicle = value as Vehicle & { fuel_type?: unknown };
+  if (!("fuel_type" in vehicle)) return vehicle;
+  return {
+    ...vehicle,
+    fuel_type: isFuelType(vehicle.fuel_type) ? vehicle.fuel_type : null,
+  };
+}
+
 export async function listVehicles(): Promise<Vehicle[]> {
   const { data, error } = await supabase
     .from("vehicles")
@@ -42,7 +56,7 @@ export async function listVehicles(): Promise<Vehicle[]> {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return (data ?? []) as Vehicle[];
+  return (data ?? []).map(normalizeVehicleFuelType);
 }
 
 export async function getVehicle(vehicleId: string): Promise<Vehicle> {
@@ -52,7 +66,7 @@ export async function getVehicle(vehicleId: string): Promise<Vehicle> {
     .eq("id", vehicleId)
     .single();
   if (error) throw error;
-  return data as Vehicle;
+  return normalizeVehicleFuelType(data);
 }
 
 export async function createVehicle(input: NewVehicleInput): Promise<Vehicle> {
@@ -76,7 +90,7 @@ export async function createVehicle(input: NewVehicleInput): Promise<Vehicle> {
     p_inspection_valid_until: input.inspection_valid_until ?? null,
   });
   if (error) throw error;
-  const vehicle = data as Vehicle;
+  const vehicle = normalizeVehicleFuelType(data);
   syncFormalityNotifications(vehicle);
   return vehicle;
 }
@@ -92,7 +106,7 @@ export async function updateVehicle(
     .select("*")
     .single();
   if (error) throw error;
-  const vehicle = data as Vehicle;
+  const vehicle = normalizeVehicleFuelType(data);
   syncFormalityNotifications(vehicle);
   return vehicle;
 }

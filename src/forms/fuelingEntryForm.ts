@@ -28,20 +28,33 @@ export type FuelingEntryFormState = {
   gasStation: GasStation | null;
 };
 
-export function canSaveFuelingEntry(form: FuelingEntryFormState): boolean {
+type FuelingEntryValidationOptions = {
+  requireDistance?: boolean;
+};
+
+export function canSaveFuelingEntry(
+  form: FuelingEntryFormState,
+  options: FuelingEntryValidationOptions = {},
+): boolean {
   return (
     isValidDate(form.date) &&
     isPositiveNumber(form.fuelAmount) &&
     isPositiveNumber(form.fuelCost) &&
-    (form.distance.trim() === "" || isPositiveNumber(form.distance))
+    (options.requireDistance
+      ? isPositiveNumber(form.distance)
+      : form.distance.trim() === "" || isPositiveNumber(form.distance))
   );
 }
 
-export function fuelingEntryFieldErrors(form: FuelingEntryFormState) {
+export function fuelingEntryFieldErrors(
+  form: FuelingEntryFormState,
+  options: FuelingEntryValidationOptions = {},
+) {
   return {
     date: !isValidDate(form.date),
-    distance:
-      form.distance.trim() !== "" && !isPositiveNumber(form.distance),
+    distance: options.requireDistance
+      ? !isPositiveNumber(form.distance)
+      : form.distance.trim() !== "" && !isPositiveNumber(form.distance),
     fuelAmount: !isPositiveNumber(form.fuelAmount),
     fuelCost: !isPositiveNumber(form.fuelCost),
   };
@@ -50,8 +63,9 @@ export function fuelingEntryFieldErrors(form: FuelingEntryFormState) {
 export function buildFuelingEntryPayload(
   vehicleId: string,
   form: FuelingEntryFormState,
+  options: FuelingEntryValidationOptions = {},
 ) {
-  if (!canSaveFuelingEntry(form)) {
+  if (!canSaveFuelingEntry(form, options)) {
     throw new Error("Invalid fueling entry form");
   }
 

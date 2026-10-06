@@ -25,12 +25,13 @@ import {
   vehicleFieldErrors,
   type VehicleFormState,
 } from "../../forms/vehicleForm";
-import type {
-  VehiclePhoto,
-  VehicleType,
-  FuelType,
-  TransmissionType,
-  DriveType,
+import {
+  FUEL_TYPES,
+  type DriveType,
+  type FuelType,
+  type TransmissionType,
+  type VehiclePhoto,
+  type VehicleType,
 } from "../../types/domain";
 import {
   createVehicle,
@@ -237,10 +238,7 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
   const { fieldError, validateBeforeSave } = useFormFieldErrors(canSave);
 
-  const fuelTypeOptions = useMemo(
-    () => ["petrol", "diesel", "hybrid", "electric", "lpg"] as const,
-    [],
-  );
+  const fuelTypeOptions = FUEL_TYPES;
 
   const getFuelTypeLabel = useCallback(
     (value: FuelType) =>
@@ -251,7 +249,6 @@ export function VehicleFormScreen({ navigation, route }: Props) {
           | "vehicleForm.fuelTypePetrol"
           | "vehicleForm.fuelTypeDiesel"
           | "vehicleForm.fuelTypeHybrid"
-          | "vehicleForm.fuelTypeElectric"
           | "vehicleForm.fuelTypeLpg",
       ),
     [t],
