@@ -112,7 +112,6 @@ const makeStyles = (theme: any) =>
     valueWrap: {
       flex: 1,
       minWidth: 0,
-      minHeight: 44,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "flex-end",

@@ -89,7 +89,6 @@ const makeStyles = (theme: any) =>
       alignSelf: "center",
     },
     trigger: {
-      minHeight: 44,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "flex-end",
