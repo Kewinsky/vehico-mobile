@@ -90,6 +90,9 @@ import { showPremiumRequiredAlert } from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryForm">;
 
+const DOCUMENT_ANALYSIS_TIMEOUT_MS = 30_000;
+const DOCUMENT_ANALYSIS_MAX_ESTIMATED_PROGRESS = 90;
+
 export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
@@ -124,6 +127,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [workshopSnapshot, setWorkshopSnapshot] = useState<string | null>(null);
   const [defaultMileage, setDefaultMileage] = useState("");
   const [analyzingInvoice, setAnalyzingInvoice] = useState(false);
+  const [invoiceAnalysisProgress, setInvoiceAnalysisProgress] = useState(0);
   const [invoiceReviewMessage, setInvoiceReviewMessage] = useState<string | null>(
     null,
   );
@@ -177,6 +181,30 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     const options = isPremium ? undefined : { freePlanWorkshopIds };
     listWorkshops(options).then(setWorkshops);
   }, [isPremium, workshopsLimit, freePlanWorkshopIds]);
+
+  useEffect(() => {
+    if (!analyzingInvoice) return;
+
+    const startedAt = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      const estimatedProgress = Math.min(
+        DOCUMENT_ANALYSIS_MAX_ESTIMATED_PROGRESS,
+        Math.max(
+          1,
+          Math.round(
+            (elapsed / DOCUMENT_ANALYSIS_TIMEOUT_MS) *
+              DOCUMENT_ANALYSIS_MAX_ESTIMATED_PROGRESS,
+          ),
+        ),
+      );
+      setInvoiceAnalysisProgress((current) =>
+        Math.max(current, estimatedProgress),
+      );
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [analyzingInvoice]);
 
   useEffect(() => {
     if (entryId) return;
@@ -547,8 +575,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           formCurrency: currency,
           fields:
             uncertainFields.length > 0
-              ? uncertainFields.join(", ")
-              : t("entryForm.invoiceNoUncertainFields"),
+              ? `• ${uncertainFields.join("\n• ")}`
+              : `• ${t("entryForm.invoiceNoUncertainFields")}`,
         }),
       );
     },
@@ -635,6 +663,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       invoiceAbortController.current?.abort();
       const controller = new AbortController();
       invoiceAbortController.current = controller;
+      setInvoiceAnalysisProgress(1);
       setAnalyzingInvoice(true);
       const extraction = await analyzeServiceInvoice({
         vehicleId,
@@ -643,6 +672,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         fileSize: asset.size,
         signal: controller.signal,
       });
+      setInvoiceAnalysisProgress(100);
       const strategy = await chooseInvoiceStrategy(extraction);
       if (strategy) {
         applyInvoiceExtraction(extraction, strategy);
@@ -980,11 +1010,62 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     ? t("entryForm.invoiceAnalyzing")
                     : t("entryForm.importInvoice")}
                 </Button>
-                <Text
-                  style={[styles.noticeText, { color: theme.colors.muted }]}
-                >
-                  {t("entryForm.importInvoiceHint")}
-                </Text>
+                {analyzingInvoice ? (
+                  <View
+                    style={styles.analysisProgress}
+                    accessible
+                    accessibilityRole="progressbar"
+                    accessibilityLabel={t(
+                      "entryForm.invoiceAnalysisProgressLabel",
+                    )}
+                    accessibilityValue={{
+                      min: 0,
+                      max: 100,
+                      now: invoiceAnalysisProgress,
+                    }}
+                  >
+                    <View style={styles.analysisProgressHeader}>
+                      <Text
+                        style={[
+                          styles.analysisProgressLabel,
+                          { color: theme.colors.muted },
+                        ]}
+                      >
+                        {t("entryForm.invoiceAnalysisProgressLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.analysisProgressValue,
+                          { color: theme.colors.fg },
+                        ]}
+                      >
+                        {invoiceAnalysisProgress}%
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.analysisProgressTrack,
+                        { backgroundColor: theme.colors.border },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.analysisProgressFill,
+                          {
+                            backgroundColor: theme.colors.accent,
+                            width: `${invoiceAnalysisProgress}%` as `${number}%`,
+                          },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                ) : (
+                  <Text
+                    style={[styles.noticeText, { color: theme.colors.muted }]}
+                  >
+                    {t("entryForm.importInvoiceHint")}
+                  </Text>
+                )}
               </View>
               <View style={{ height: theme.spacing.sm }} />
 
@@ -992,7 +1073,12 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 <>
                   <Card style={styles.card}>
                     <View style={styles.invoiceReview}>
-                      <Text style={{ color: theme.colors.fg }}>
+                      <Text
+                        style={[
+                          styles.invoiceReviewText,
+                          { color: theme.colors.fg },
+                        ]}
+                      >
                         {invoiceReviewMessage}
                       </Text>
                     </View>
@@ -1383,6 +1469,40 @@ const makeStyles = (theme: any) =>
     invoiceReview: {
       paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
+    },
+    invoiceReviewText: {
+      fontSize: theme.typography.body,
+      lineHeight: theme.typography.body + 8,
+    },
+    analysisProgress: {
+      marginTop: theme.spacing.sm,
+      gap: theme.spacing.xs,
+    },
+    analysisProgressHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: theme.spacing.sm,
+    },
+    analysisProgressLabel: {
+      flex: 1,
+      flexShrink: 1,
+      fontSize: theme.typography.small,
+      lineHeight: theme.typography.body + 2,
+    },
+    analysisProgressValue: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.semibold,
+      fontVariant: ["tabular-nums"],
+    },
+    analysisProgressTrack: {
+      height: 6,
+      borderRadius: 999,
+      overflow: "hidden",
+    },
+    analysisProgressFill: {
+      height: "100%",
+      borderRadius: 999,
     },
     insetContent: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,

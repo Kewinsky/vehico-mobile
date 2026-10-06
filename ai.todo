@@ -64,8 +64,8 @@ Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej dec
 - [x] Rozróżniać wartości rozpoznane od brakujących lub niewiarygodnych.
 - [x] Sugerować dla każdej rozpoznanej pracy wyłącznie istniejącą kategorię serwisową albo `other`.
 - [x] Walidować i normalizować daty, walutę, kwoty oraz przebieg poza modelem.
-- [x] Dla jednej rozpoznanej pracy wypełnić istniejący formularz edytowalnym szkicem.
-- [x] Dla wielu rozpoznanych prac zapytać o jeden wpis z dokładnym opisem albo osobne szkice.
+- [x] Dla jednej rozpoznanej pracy wypełnić istniejący formularz edytowalnym wpisem.
+- [x] Dla wielu rozpoznanych prac zapytać o jeden wpis z dokładnym opisem albo osobne wpisy.
 - [x] Rozszerzyć wiersz formularza multi o osobną, edytowalną kategorię.
 - [x] Zachować wspólne datę, przebieg i warsztat, ale zapisywać kategorię i koszt osobno dla każdego wpisu.
 - [x] Nie dzielić wspólnego kosztu między wpisy, jeśli dokument nie podaje kosztów pozycji.
@@ -74,7 +74,7 @@ Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej dec
 - [x] Zweryfikować i opisać użytkownikowi zasady przetwarzania oraz retencji pliku po stronie dostawcy modelu.
 - [x] Dodać testy błędnego formatu, odmowy dostępu, timeoutu i malformed output.
 - [x] Dodać testy jednej pracy, wielu prac, różnych układów dokumentu, obu trybów zapisu, osobnych kategorii i niepodzielnego kosztu.
-- [x] Kryterium zakończenia: dokument tworzy poprawialne szkice, jest dołączany lokalnie po zapisie, a dane nigdy nie są zapisywane automatycznie.
+- [x] Kryterium zakończenia: dokument tworzy poprawialne wpisy, jest dołączany lokalnie po zapisie, a dane nigdy nie są zapisywane automatycznie.
 
 ## 5. Fuel Receipt Import
 

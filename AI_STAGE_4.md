@@ -3,7 +3,7 @@
 ## Cel
 
 Stage 4 ma możliwie prosty cel: użytkownik przekazuje zdjęcie lub PDF dokumentu
-związanego z serwisem, a Vericar uzupełnia na tej podstawie szkic wpisu
+związanego z serwisem, a Vericar uzupełnia na tej podstawie wpis
 serwisowego. Może to być między innymi faktura, paragon, raport serwisowy albo
 odręczna notatka. Użytkownik sprawdza i poprawia dane przed ich zapisaniem.
 
@@ -17,8 +17,8 @@ wybór zdjęcia lub PDF
 → pojedyncze żądanie do uwierzytelnionej Edge Function
 → analiza układu i treści przez model multimodal vision
 → zwalidowana lista wykonanych prac
-→ jeden szkic albo wybór sposobu zapisu wielu prac
-→ edytowalny formularz lub lista szkiców
+→ jeden wpis albo wybór sposobu zapisu wielu prac
+→ edytowalny formularz lub lista wpisów
 → potwierdzenie użytkownika
 → zapis zwykłego wpisu lub wpisów serwisowych
 ```
@@ -63,7 +63,7 @@ aplikacja pyta użytkownika, jak chce je zapisać:
 
 - **Jeden wpis – zalecane:** jedna wizyta serwisowa z kosztem całkowitym, a wszystkie
   rozpoznane czynności i części trafiają do opisu lub notatek.
-- **Osobne wpisy:** każda praca otrzymuje osobny szkic i może zostać poprawiona
+- **Osobne wpisy:** każda praca otrzymuje osobny wpis i może zostać poprawiona
   przed wspólnym zatwierdzeniem.
 
 Koszt jest dzielony między osobne wpisy tylko wtedy, gdy dokument jednoznacznie
@@ -71,7 +71,7 @@ podaje koszt każdej pozycji. Podatki, rabaty oraz nierozdzielone kwoty nie są
 zgadywane przez model.
 
 W trybie osobnych wpisów data, przebieg i warsztat pozostają wspólne dla całej
-wizyty. Każdy szkic ma jednak własny tytuł, koszt i kategorię, którą użytkownik
+wizyty. Każdy wpis ma jednak własny tytuł, koszt i kategorię, którą użytkownik
 może zmienić przed zapisem. Obecny formularz multi używa jednej wspólnej kategorii,
 dlatego Stage 4 rozszerza stan każdego wiersza o `category` i zapisuje kategorię
 osobno dla każdego utworzonego wpisu.
@@ -110,5 +110,5 @@ osobno dla każdego utworzonego wpisu.
 ## Kryterium zakończenia
 
 Użytkownik może rozpocząć import z formularza serwisu. Czytelny dokument tworzy
-jeden lub kilka poprawialnych szkiców. Po zapisaniu dokument jest dostępny
+jeden lub kilka poprawialnych wpisów. Po zapisaniu dokument jest dostępny
 lokalnie jako załącznik, a żaden wpis nie jest zapisywany bez jawnego potwierdzenia.

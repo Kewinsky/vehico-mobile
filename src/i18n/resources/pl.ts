@@ -426,6 +426,7 @@ export const pl = {
     importInvoiceHint:
       "Wybierz jeden plik PDF, JPG, JPEG, PNG, HEIC lub HEIF do 10 MB. Dokument zostanie dołączony lokalnie po zapisaniu.",
     invoiceAnalyzing: "Analizowanie dokumentu...",
+    invoiceAnalysisProgressLabel: "Szacowany postęp analizy",
     invoicePrivacyTitle: "Przeanalizować ten dokument?",
     invoicePrivacyBody:
       "Dokument zostanie wysłany do analizy przez AI. Vericar nie zapisze go w chmurze, ale dostawca AI może przechowywać go do 30 dni. Lokalna kopia zostanie dołączona po zapisaniu wpisu.",
@@ -436,9 +437,9 @@ export const pl = {
       "Nie udało się przeanalizować dokumentu. Spróbuj ponownie lub wpisz dane ręcznie.",
     invoiceMultipleTitle: "Jak zapisać te prace?",
     invoiceMultipleBody:
-      "Dokument zawiera {{count}} prac. Możesz sprawdzić je jako jeden wpis lub osobne szkice.",
+      "Dokument zawiera {{count}} prac. Możesz sprawdzić je jako jeden wpis lub osobne wpisy.",
     invoiceCombinedAction: "Jeden wpis (zalecane)",
-    invoiceSeparateAction: "Osobne szkice",
+    invoiceSeparateAction: "Osobne wpisy",
     invoiceCombinedTitle: "Dokument serwisowy",
     invoiceWorkshop: "Warsztat z dokumentu",
     invoiceTotalCost: "Koszt całkowity",
@@ -448,7 +449,7 @@ export const pl = {
     invoiceCurrencyUnknown: "nierozpoznana",
     invoiceNoUncertainFields: "brak",
     invoiceReviewMessage:
-      "Sprawdź każde pole przed zapisem. Waluta dokumentu: {{currency}}; waluta formularza: {{formCurrency}}. Koszty są uzupełniane tylko wtedy, gdy rozpoznane waluty są zgodne. Brakujące lub niepewne wartości: {{fields}}.",
+      "Sprawdź dane przed zapisaniem.\n\nWaluta dokumentu: {{currency}}\nWaluta wpisu: {{formCurrency}}\n\nKoszty są uzupełniane tylko przy zgodnych walutach.\n\nBrakujące lub niepewne dane:\n{{fields}}",
     documentWillAttachToEntries:
       "Wybrane dokumenty: {{count}}. Zostaną dołączone lokalnie do każdego wpisu po zapisaniu.",
   },

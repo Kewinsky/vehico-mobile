@@ -418,6 +418,7 @@ export const en = {
     importInvoiceHint:
       "Select one PDF, JPG, JPEG, PNG, HEIC, or HEIF file up to 10 MB. The document will be attached locally after saving.",
     invoiceAnalyzing: "Analyzing document...",
+    invoiceAnalysisProgressLabel: "Estimated analysis progress",
     invoicePrivacyTitle: "Analyze this document?",
     invoicePrivacyBody:
       "The document will be sent for AI analysis. Vericar will not save it to cloud storage, but the AI provider may retain it for up to 30 days. A local copy will be attached after you save the entry.",
@@ -428,9 +429,9 @@ export const en = {
       "The document could not be analyzed. Try again or enter the data manually.",
     invoiceMultipleTitle: "How should these works be saved?",
     invoiceMultipleBody:
-      "The document contains {{count}} works. You can review them as one entry or as separate drafts.",
+      "The document contains {{count}} works. You can review them as one entry or as separate entries.",
     invoiceCombinedAction: "One entry (recommended)",
-    invoiceSeparateAction: "Separate drafts",
+    invoiceSeparateAction: "Separate entries",
     invoiceCombinedTitle: "Service document",
     invoiceWorkshop: "Workshop from document",
     invoiceTotalCost: "Total cost",
@@ -440,7 +441,7 @@ export const en = {
     invoiceCurrencyUnknown: "not recognized",
     invoiceNoUncertainFields: "none",
     invoiceReviewMessage:
-      "Review every field before saving. Document currency: {{currency}}; form currency: {{formCurrency}}. Costs are filled only when the recognized currencies match. Missing or uncertain values: {{fields}}.",
+      "Review the data before saving.\n\nDocument currency: {{currency}}\nEntry currency: {{formCurrency}}\n\nCosts are filled only when the currencies match.\n\nMissing or uncertain data:\n{{fields}}",
     documentWillAttachToEntries:
       "Selected documents: {{count}}. They will be attached locally to each entry after saving.",
   },
