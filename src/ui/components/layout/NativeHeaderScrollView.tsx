@@ -17,6 +17,7 @@ export function NativeHeaderScrollView({
   style,
   paddingHorizontal = true,
   keyboardShouldPersistTaps = "handled",
+  keyboardDismissMode = Platform.OS === "ios" ? "interactive" : "on-drag",
   ...rest
 }: NativeHeaderScrollViewProps & { paddingHorizontal?: boolean }) {
   const headerHeight = useHeaderHeight();
@@ -44,6 +45,7 @@ export function NativeHeaderScrollView({
     <AnimatedScrollView
       {...rest}
       ref={formScrollRef}
+      keyboardDismissMode={keyboardDismissMode}
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
       showsVerticalScrollIndicator={false}
       style={[

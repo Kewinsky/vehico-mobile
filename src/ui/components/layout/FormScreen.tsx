@@ -80,9 +80,7 @@ export function FormScreen({
       </TouchableWithoutFeedback>
     </ScrollView>
   ) : (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={{ flex: 1 }}>{children}</View>
-    </TouchableWithoutFeedback>
+    children
   );
 
   const inner = (
