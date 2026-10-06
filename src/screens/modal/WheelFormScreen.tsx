@@ -224,7 +224,7 @@ export function WheelFormScreen({ navigation, route }: Props) {
         )
       }
     >
-      <FormScreen noLayout>
+      <FormScreen noLayout scrollView={false}>
         <NativeHeaderScrollView>
           <Card>
             <FormInputRow

@@ -586,8 +586,10 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       }}
       loading={isEditMode && loading}
     >
-      <FormScreen scrollEnabled={!isDragging && !isTouchingPhotoGrid} noLayout>
-        <NativeHeaderScrollView>
+      <FormScreen noLayout scrollView={false}>
+        <NativeHeaderScrollView
+          scrollEnabled={!isDragging && !isTouchingPhotoGrid}
+        >
           {isEditMode && loading ? (
             <View style={styles.loadingContainer}>
               <LoadingIndicator />

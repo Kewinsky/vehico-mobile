@@ -292,7 +292,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
       right={headerRight}
       paddingHorizontal={false}
     >
-      <FormScreen noLayout>
+      <FormScreen noLayout scrollView={false}>
         <NativeHeaderScrollView
           paddingHorizontal={false}
           contentContainerStyle={styles.scrollContent}

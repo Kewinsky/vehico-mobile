@@ -3,6 +3,10 @@ import { Animated, Platform, ScrollView, type ScrollViewProps } from "react-nati
 import { useHeaderHeight } from "@react-navigation/elements";
 
 import { useTheme } from "../../ThemeProvider";
+import {
+  useFormScreenKeyboardInset,
+  useFormScreenScrollRef,
+} from "./FormScreenContext";
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
@@ -17,6 +21,8 @@ export function NativeHeaderScrollView({
 }: NativeHeaderScrollViewProps & { paddingHorizontal?: boolean }) {
   const headerHeight = useHeaderHeight();
   const { theme } = useTheme();
+  const formScrollRef = useFormScreenScrollRef();
+  const keyboardInset = useFormScreenKeyboardInset();
   const androidHeaderInset = Platform.OS === "android" ? theme.spacing.md : 0;
 
   const baseContentStyle = {
@@ -24,6 +30,9 @@ export function NativeHeaderScrollView({
     paddingHorizontal: paddingHorizontal
       ? theme.layout.contentPaddingHorizontal
       : 0,
+    ...(keyboardInset != null
+      ? { paddingBottom: theme.spacing.lg + keyboardInset }
+      : {}),
   };
 
   const mergedContentStyle =
@@ -34,6 +43,7 @@ export function NativeHeaderScrollView({
   return (
     <AnimatedScrollView
       {...rest}
+      ref={formScrollRef}
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
       showsVerticalScrollIndicator={false}
       style={[

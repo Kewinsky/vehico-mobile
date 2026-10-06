@@ -60,7 +60,7 @@ export function WheelsListFiltersScreen({ navigation, route }: Props) {
         </Button>
       }
     >
-      <FormScreen noLayout>
+      <FormScreen noLayout scrollView={false}>
         <NativeHeaderScrollView>
           <Card>
             <CardRow>

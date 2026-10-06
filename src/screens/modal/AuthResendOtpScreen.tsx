@@ -108,8 +108,8 @@ export function AuthResendOtpScreen({ navigation, route }: Props) {
       background={glowBackground}
     >
       <StatusBar style={statusBarStyle} />
-      <FormScreen noLayout scrollEnabled={false}>
-        <NativeHeaderScrollView>
+      <FormScreen noLayout scrollView={false}>
+        <NativeHeaderScrollView scrollEnabled={false}>
           <View style={styles.container}>
             <View style={styles.iconContainer}>
               <Ionicons

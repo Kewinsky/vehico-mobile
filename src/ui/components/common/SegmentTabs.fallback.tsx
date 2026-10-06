@@ -109,6 +109,7 @@ const makeFallbackStyles = (theme: any, variant: Variant) =>
       flexDirection: "row",
       borderRadius: 999,
       padding: 3,
+      minHeight: 44,
       backgroundColor:
         variant === "secondary" ? theme.colors.card : theme.colors.bg,
     },

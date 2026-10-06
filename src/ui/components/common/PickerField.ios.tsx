@@ -1,10 +1,11 @@
 import { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Host, Picker } from "@expo/ui/swift-ui";
-import { fixedSize } from "@expo/ui/swift-ui/modifiers";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 import { useTheme } from "../../ThemeProvider";
 import { buildMenuPickerState } from "./menuPickerState";
+import { openOptionAlert } from "./openOptionAlert";
 
 type Props<T extends string> = {
   label: string;
@@ -27,7 +28,8 @@ export function PickerField<T extends string>({
   noMarginTop,
   placeholder,
 }: Props<T>) {
-  const { theme, mode: themeMode } = useTheme();
+  const { t } = useTranslation();
+  const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const { pickerOptions, selectedIndex, isValueMuted, handleSelectIndex } =
@@ -42,6 +44,7 @@ export function PickerField<T extends string>({
       [value, options, getLabel, placeholder],
     );
 
+  const displayValue = pickerOptions[selectedIndex] ?? "";
   const valueColor = isValueMuted ? theme.colors.muted : theme.colors.fg;
 
   return (
@@ -50,27 +53,33 @@ export function PickerField<T extends string>({
       pointerEvents={disabled ? "none" : "auto"}
     >
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <View style={[styles.wrap, disabled && styles.disabled]}>
-        <View style={styles.valueWrap}>
-          <Host
-            matchContents={{ horizontal: true, vertical: true }}
-            colorScheme={themeMode === "dark" ? "dark" : "light"}
-            style={styles.nativePickerHost}
-          >
-            <Picker
-              variant="menu"
-              label=""
-              options={pickerOptions}
-              selectedIndex={selectedIndex}
-              color={valueColor}
-              modifiers={[fixedSize({ horizontal: true, vertical: true })]}
-              onOptionSelected={({ nativeEvent }) => {
-                onChange(handleSelectIndex(nativeEvent.index));
-              }}
-            />
-          </Host>
-        </View>
-      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label ? `${label}: ${displayValue}` : displayValue}
+        disabled={disabled}
+        onPress={() =>
+          openOptionAlert({
+            title: label,
+            options: pickerOptions,
+            selectedIndex,
+            onSelect: (index) => onChange(handleSelectIndex(index)),
+            cancelLabel: t("common.cancel"),
+          })
+        }
+        style={({ pressed }) => [
+          styles.wrap,
+          disabled && styles.disabled,
+          pressed && styles.pressed,
+        ]}
+      >
+        <Text
+          style={[styles.valueText, { color: valueColor }]}
+          numberOfLines={1}
+        >
+          {displayValue}
+        </Text>
+        <Ionicons name="chevron-down" size={16} color={valueColor} />
+      </Pressable>
     </View>
   );
 }
@@ -93,21 +102,23 @@ const makeStyles = (theme: any) =>
       borderRadius: theme.radius.xl,
       backgroundColor: theme.colors.card,
       paddingVertical: theme.spacing.md,
-      paddingRight: 0,
-      paddingLeft: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md,
       minHeight: 48,
-      justifyContent: "center",
-    },
-    valueWrap: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "flex-end",
+      gap: theme.spacing.xs,
     },
-    nativePickerHost: {
-      flexShrink: 0,
-      maxWidth: "100%",
+    valueText: {
+      flexShrink: 1,
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+      textAlign: "right",
     },
     disabled: {
       opacity: 0.55,
+    },
+    pressed: {
+      opacity: 0.7,
     },
   });

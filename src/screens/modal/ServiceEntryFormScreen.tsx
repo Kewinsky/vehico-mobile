@@ -1014,7 +1014,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         </View>
       }
     >
-      <FormScreen noLayout>
+      <FormScreen noLayout scrollView={false}>
         <NativeHeaderScrollView>
           {!entryId ? (
             <>
