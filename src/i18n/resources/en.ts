@@ -434,10 +434,10 @@ export const en = {
     invoiceSeparateAction: "Separate entries",
     invoiceCombinedTitle: "Service document",
     invoiceWorkshop: "Workshop from document",
-    invoiceTotalCost: "Total cost",
+    invoiceDate: "Date",
     invoiceCurrency: "Currency",
-    invoiceCost: "Cost",
-    invoiceWorkField: "work {{index}} – {{field}}",
+    invoiceEntriesCost: "Price (one or more entries)",
+    invoiceEntriesCategory: "Category (one or more entries)",
     invoiceCurrencyUnknown: "not recognized",
     invoiceNoUncertainFields: "none",
     invoiceReviewMessage:

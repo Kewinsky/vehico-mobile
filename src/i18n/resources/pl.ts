@@ -442,10 +442,10 @@ export const pl = {
     invoiceSeparateAction: "Osobne wpisy",
     invoiceCombinedTitle: "Dokument serwisowy",
     invoiceWorkshop: "Warsztat z dokumentu",
-    invoiceTotalCost: "Koszt całkowity",
+    invoiceDate: "Data",
     invoiceCurrency: "Waluta",
-    invoiceCost: "Koszt",
-    invoiceWorkField: "praca {{index}} – {{field}}",
+    invoiceEntriesCost: "Cena (jeden lub więcej wpisów)",
+    invoiceEntriesCategory: "Kategoria (jeden lub więcej wpisów)",
     invoiceCurrencyUnknown: "nierozpoznana",
     invoiceNoUncertainFields: "brak",
     invoiceReviewMessage:

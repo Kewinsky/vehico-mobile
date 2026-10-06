@@ -538,9 +538,15 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       setWorkshopSnapshot(draft.workshopName);
       resetFieldErrors();
 
+      const hasUncertainCategory = extraction.works.some(
+        (work) => work.categoryStatus !== "recognized",
+      );
+      const hasUncertainCost =
+        extraction.totalCost.status !== "recognized" ||
+        extraction.works.some((work) => work.cost.status !== "recognized");
       const uncertainFields = [
         extraction.serviceDate.status !== "recognized"
-          ? t("entryForm.serviceDate")
+          ? t("entryForm.invoiceDate")
           : null,
         extraction.mileage.status !== "recognized"
           ? t("entryForm.mileage")
@@ -548,26 +554,11 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         extraction.workshopName.status !== "recognized"
           ? t("entryForm.workshop")
           : null,
-        extraction.totalCost.status !== "recognized"
-          ? t("entryForm.invoiceTotalCost")
-          : null,
         extraction.currency.status !== "recognized"
           ? t("entryForm.invoiceCurrency")
           : null,
-        ...extraction.works.flatMap((work, index) => [
-          work.categoryStatus !== "recognized"
-            ? t("entryForm.invoiceWorkField", {
-                index: index + 1,
-                field: t("entryForm.category"),
-              })
-            : null,
-          work.cost.status !== "recognized"
-            ? t("entryForm.invoiceWorkField", {
-                index: index + 1,
-                field: t("entryForm.invoiceCost"),
-              })
-            : null,
-        ]),
+        hasUncertainCost ? t("entryForm.invoiceEntriesCost") : null,
+        hasUncertainCategory ? t("entryForm.invoiceEntriesCategory") : null,
       ].filter((value): value is string => value !== null);
       setInvoiceReviewMessage(
         t("entryForm.invoiceReviewMessage", {
@@ -1071,7 +1062,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
               {invoiceReviewMessage ? (
                 <>
-                  <Card style={styles.card}>
+                  <Card style={[styles.card, styles.invoiceReviewCard]}>
                     <View style={styles.invoiceReview}>
                       <Text
                         style={[
@@ -1469,6 +1460,9 @@ const makeStyles = (theme: any) =>
     invoiceReview: {
       paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
+    },
+    invoiceReviewCard: {
+      backgroundColor: `${theme.colors.accent}20`,
     },
     invoiceReviewText: {
       fontSize: theme.typography.body,
