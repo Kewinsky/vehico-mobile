@@ -1358,7 +1358,7 @@ Detailed report available at: https://report.vehico.app/report/example`,
     receiptAnalysisFailed:
       "The receipt could not be analyzed. Try a clearer photo or enter the data manually.",
     receiptReviewComplete: "Receipt data was added. Review it before saving.",
-    receiptReviewIssues: "Review these fields:\n\n{{fields}}",
+    receiptReviewIssues: "Review these fields:\n{{fields}}",
     receiptFieldDate: "Date",
     receiptFieldAmount: "Fuel amount",
     receiptFieldCost: "Cost",

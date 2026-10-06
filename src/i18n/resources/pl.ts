@@ -1375,7 +1375,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
       "Nie udało się przeanalizować paragonu. Spróbuj wyraźniejszego zdjęcia lub wpisz dane ręcznie.",
     receiptReviewComplete:
       "Dane z paragonu zostały dodane. Sprawdź je przed zapisem.",
-    receiptReviewIssues: "Sprawdź te pola:\n\n{{fields}}",
+    receiptReviewIssues: "Sprawdź te pola:\n{{fields}}",
     receiptFieldDate: "Data",
     receiptFieldAmount: "Ilość paliwa",
     receiptFieldCost: "Koszt",
