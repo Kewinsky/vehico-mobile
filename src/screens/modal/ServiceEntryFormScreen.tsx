@@ -1434,7 +1434,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     <View style={{ height: theme.spacing.sm }} />
                   )}
                   renderItem={({ item }) => (
-                    <View style={styles.listRowWrap}>
+                    <View>
                       <ExclusiveSwipeable
                         renderRightActions={(progress) =>
                           renderAttachmentRightActions(item, progress)
@@ -1490,7 +1490,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     <View style={{ height: theme.spacing.sm }} />
                   )}
                   renderItem={({ item, index }) => (
-                    <View style={styles.listRowWrap}>
+                    <View>
                       <ExclusiveSwipeable
                         renderRightActions={(progress) =>
                           renderPendingAttachmentRightActions(
@@ -1608,9 +1608,6 @@ const makeStyles = (theme: any) =>
     },
     insetContent: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    listRowWrap: {
-      marginHorizontal: theme.layout.contentPaddingHorizontal,
     },
     footerAction: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
