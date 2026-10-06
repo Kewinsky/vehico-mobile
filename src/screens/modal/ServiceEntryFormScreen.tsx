@@ -89,6 +89,7 @@ import { buildServiceInvoiceFormDraft } from "../../forms/serviceInvoiceDraft";
 import { showPremiumRequiredAlert } from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryForm">;
+type InvoiceStrategy = "combined" | "separate";
 
 const DOCUMENT_ANALYSIS_TIMEOUT_MS = 30_000;
 const DOCUMENT_ANALYSIS_MAX_ESTIMATED_PROGRESS = 90;
@@ -131,7 +132,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [invoiceReviewMessage, setInvoiceReviewMessage] = useState<string | null>(
     null,
   );
+  const [invoiceStrategy, setInvoiceStrategy] =
+    useState<InvoiceStrategy | null>(null);
   const invoiceAbortController = useRef<AbortController | null>(null);
+  const invoiceExtraction = useRef<ServiceInvoiceExtraction | null>(null);
   const hasInvoiceDraft = useRef(false);
 
   const formValues = useMemo(
@@ -461,6 +465,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
   function applyPreset(preset: ServiceEntryPreset) {
     hasInvoiceDraft.current = false;
+    invoiceExtraction.current = null;
+    setInvoiceStrategy(null);
+    setInvoiceReviewMessage(null);
     if (mode !== "single") {
       setFormMode("single");
     }
@@ -494,6 +501,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
   function clearForm() {
     hasInvoiceDraft.current = false;
+    invoiceExtraction.current = null;
+    setInvoiceStrategy(null);
     setMode("single");
     resetFieldErrors();
     const today = new Date().toISOString().slice(0, 10);
@@ -511,7 +520,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const applyInvoiceExtraction = useCallback(
     (
       extraction: ServiceInvoiceExtraction,
-      strategy: "combined" | "separate",
+      strategy: InvoiceStrategy,
     ) => {
       const draft = buildServiceInvoiceFormDraft(
         extraction,
@@ -520,6 +529,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         currency,
       );
       hasInvoiceDraft.current = true;
+      invoiceExtraction.current = extraction;
+      setInvoiceStrategy(strategy);
       setMode(draft.mode);
       setCategory(draft.category);
       setEntries(draft.entries);
@@ -576,7 +587,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
   const chooseInvoiceStrategy = useCallback(
     (extraction: ServiceInvoiceExtraction) =>
-      new Promise<"combined" | "separate" | null>((resolve) => {
+      new Promise<InvoiceStrategy | null>((resolve) => {
         if (extraction.works.length === 1) {
           resolve("combined");
           return;
@@ -606,6 +617,32 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       }),
     [t],
   );
+
+  const changeInvoiceStrategy = useCallback(() => {
+    const extraction = invoiceExtraction.current;
+    if (!extraction || !invoiceStrategy || extraction.works.length < 2) return;
+
+    const nextStrategy: InvoiceStrategy =
+      invoiceStrategy === "combined" ? "separate" : "combined";
+    const nextStrategyLabel = t(
+      nextStrategy === "combined"
+        ? "entryForm.invoiceModeCombined"
+        : "entryForm.invoiceModeSeparate",
+    );
+
+    Alert.alert(
+      t("entryForm.invoiceChangeModeTitle"),
+      t("entryForm.invoiceChangeModeBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: nextStrategyLabel,
+          style: "destructive",
+          onPress: () => applyInvoiceExtraction(extraction, nextStrategy),
+        },
+      ],
+    );
+  }, [applyInvoiceExtraction, invoiceStrategy, t]);
 
   const confirmInvoiceProcessing = useCallback(
     () =>
@@ -1078,20 +1115,56 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 </>
               ) : null}
 
-              <View style={styles.segmentTabs}>
-                <SegmentTabs<"single" | "multi">
-                  variant="secondary"
-                  value={mode}
-                  options={[
-                    { value: "single", label: t("entryForm.modeSingle") },
-                    { value: "multi", label: t("entryForm.modeMulti") },
-                  ]}
-                  onChange={setFormMode}
-                />
-              </View>
+              {invoiceStrategy ? (
+                <Card style={styles.card}>
+                  <View style={styles.invoiceModeRow}>
+                    <View style={styles.invoiceModeCopy}>
+                      <Text style={styles.invoiceModeLabel}>
+                        {t("entryForm.invoiceModeLabel")}
+                      </Text>
+                      <Text style={styles.invoiceModeValue}>
+                        {t(
+                          invoiceStrategy === "combined"
+                            ? "entryForm.invoiceModeCombined"
+                            : "entryForm.invoiceModeSeparate",
+                        )}
+                      </Text>
+                    </View>
+                    {(invoiceExtraction.current?.works.length ?? 0) > 1 ? (
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={t(
+                          "entryForm.invoiceChangeModeAccessibility",
+                        )}
+                        onPress={changeInvoiceStrategy}
+                        style={({ pressed }) => [
+                          styles.invoiceModeAction,
+                          pressed && { opacity: 0.7 },
+                        ]}
+                      >
+                        <Text style={styles.invoiceModeActionText}>
+                          {t("entryForm.invoiceChangeModeAction")}
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                  </View>
+                </Card>
+              ) : (
+                <View style={styles.segmentTabs}>
+                  <SegmentTabs<"single" | "multi">
+                    variant="secondary"
+                    value={mode}
+                    options={[
+                      { value: "single", label: t("entryForm.modeSingle") },
+                      { value: "multi", label: t("entryForm.modeMulti") },
+                    ]}
+                    onChange={setFormMode}
+                  />
+                </View>
+              )}
               <View style={{ height: theme.spacing.sm }} />
 
-              {!isMulti ? (
+              {!isMulti && !invoiceStrategy ? (
                 <FormPresetChips
                   sectionTitle={t("entryForm.presetsTitle")}
                   items={presetChipItems}
@@ -1467,6 +1540,41 @@ const makeStyles = (theme: any) =>
     invoiceReviewText: {
       fontSize: theme.typography.body,
       lineHeight: theme.typography.body + 8,
+    },
+    invoiceModeRow: {
+      minHeight: theme.spacing.xl + theme.spacing.md,
+      paddingVertical: theme.spacing.xs,
+      paddingLeft: theme.spacing.md,
+      paddingRight: theme.spacing.xs,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
+    invoiceModeCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: theme.spacing.xs / 2,
+    },
+    invoiceModeLabel: {
+      color: theme.colors.muted,
+      fontSize: theme.typography.small,
+    },
+    invoiceModeValue: {
+      color: theme.colors.fg,
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.semibold,
+    },
+    invoiceModeAction: {
+      minWidth: theme.spacing.xl * 2,
+      minHeight: 44,
+      paddingHorizontal: theme.spacing.xs,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    invoiceModeActionText: {
+      color: theme.colors.accent,
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
     },
     analysisProgress: {
       marginTop: theme.spacing.sm,
