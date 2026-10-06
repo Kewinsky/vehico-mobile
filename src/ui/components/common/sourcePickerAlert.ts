@@ -1,9 +1,16 @@
 import { Alert, Platform } from "react-native";
+import type { TFunction } from "i18next";
 
 import type {
   SourcePickerMenuActionItem,
   SourcePickerMenuItem,
 } from "./SourcePickerMenu.types";
+
+export type AttachmentSourceAlertHandlers = {
+  onCamera: () => void;
+  onPhotos: () => void;
+  onFiles: () => void;
+};
 
 function isDividerItem(
   item: SourcePickerMenuItem,
@@ -51,5 +58,34 @@ export function openSourcePickerAlert(
       ? buttons
       : [...buttons, { text: cancelLabel, style: "cancel" as const }],
     { cancelable: true },
+  );
+}
+
+export function openAttachmentSourceAlert(
+  handlers: AttachmentSourceAlertHandlers,
+  t: TFunction,
+  title = t("attachments.addPickerTitle"),
+): void {
+  openSourcePickerAlert(
+    [
+      {
+        id: "camera",
+        label: t("attachments.camera"),
+        onPress: handlers.onCamera,
+      },
+      {
+        id: "photos",
+        label: t("attachments.photos"),
+        onPress: handlers.onPhotos,
+      },
+      {
+        id: "files",
+        label: t("attachments.files"),
+        onPress: handlers.onFiles,
+      },
+    ],
+    t("common.cancel"),
+    title,
+    t("attachments.addPickerBody"),
   );
 }

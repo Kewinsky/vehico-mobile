@@ -47,7 +47,8 @@ import {
   reorderVehiclePhotos,
   uploadVehiclePhoto,
 } from "../../services/vehicles/uploadPhoto";
-import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
+import { Button } from "../../ui/components/common/Button";
+import { openAttachmentSourceAlert } from "../../ui/components/common/sourcePickerAlert";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
@@ -70,6 +71,10 @@ import { Textarea } from "../../ui/components/common/Textarea";
 import { DriveTypeIcon } from "../../ui/components/icons/DriveTypeIcon";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { formatYmd } from "../../utils/dateYmd";
+import {
+  assertImageFileSize,
+  MAX_UPLOAD_IMAGE_MB,
+} from "../../services/storage/compressImageForUpload";
 
 type Props = NativeStackScreenProps<AppStackParamList, "VehicleForm">;
 
@@ -254,9 +259,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
   async function pickFromCamera() {
     try {
-      const remainingSlots = 6 - draftPhotos.length;
+      const remainingSlots = photosPerVehicleLimit - draftPhotos.length;
       if (remainingSlots <= 0) {
-        toastError(t("vehicleForm.maxPhotosReached"));
+        toastError(
+          t("vehicleForm.maxPhotosReached", { limit: photosPerVehicleLimit }),
+        );
         return;
       }
       setUploadingPhoto(true);
@@ -267,6 +274,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await assertImageFileSize(
+        asset.uri,
+        asset.fileSize,
+        t("attachments.imageFileTooLarge", { limit: MAX_UPLOAD_IMAGE_MB }),
+      );
       setDraftPhotos((prev) => [
         ...prev,
         {
@@ -289,9 +301,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
   async function pickFromGallery() {
     try {
-      const remainingSlots = 6 - draftPhotos.length;
+      const remainingSlots = photosPerVehicleLimit - draftPhotos.length;
       if (remainingSlots <= 0) {
-        toastError(t("vehicleForm.maxPhotosReached"));
+        toastError(
+          t("vehicleForm.maxPhotosReached", { limit: photosPerVehicleLimit }),
+        );
         return;
       }
       setUploadingPhoto(true);
@@ -305,6 +319,17 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       if (!result.assets || result.assets.length === 0) {
         throw new Error(t("attachments.noFileSelected"));
       }
+      await Promise.all(
+        result.assets.map((asset) =>
+          assertImageFileSize(
+            asset.uri,
+            asset.fileSize,
+            t("attachments.imageFileTooLarge", {
+              limit: MAX_UPLOAD_IMAGE_MB,
+            }),
+          ),
+        ),
+      );
       const newPhotos = result.assets
         .slice(0, remainingSlots)
         .map((asset) => ({
@@ -328,9 +353,11 @@ export function VehicleFormScreen({ navigation, route }: Props) {
 
   async function pickFromFiles() {
     try {
-      const remainingSlots = 6 - draftPhotos.length;
+      const remainingSlots = photosPerVehicleLimit - draftPhotos.length;
       if (remainingSlots <= 0) {
-        toastError(t("vehicleForm.maxPhotosReached"));
+        toastError(
+          t("vehicleForm.maxPhotosReached", { limit: photosPerVehicleLimit }),
+        );
         return;
       }
       setUploadingPhoto(true);
@@ -343,6 +370,17 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       if (!result.assets || result.assets.length === 0) {
         throw new Error(t("attachments.noFileSelected"));
       }
+      await Promise.all(
+        result.assets.map((asset) =>
+          assertImageFileSize(
+            asset.uri,
+            asset.size,
+            t("attachments.imageFileTooLarge", {
+              limit: MAX_UPLOAD_IMAGE_MB,
+            }),
+          ),
+        ),
+      );
       const newPhotos = result.assets
         .slice(0, remainingSlots)
         .map((asset) => ({
@@ -362,6 +400,19 @@ export function VehicleFormScreen({ navigation, route }: Props) {
     } finally {
       setUploadingPhoto(false);
     }
+  }
+
+  function openPhotoSourceAlert() {
+    if (saving || uploadingPhoto) return;
+    openAttachmentSourceAlert(
+      {
+        onCamera: () => void pickFromCamera(),
+        onPhotos: () => void pickFromGallery(),
+        onFiles: () => void pickFromFiles(),
+      },
+      t,
+      t("vehicleForm.addPhoto"),
+    );
   }
 
   function removeDraftPhoto(key: string) {
@@ -535,8 +586,10 @@ export function VehicleFormScreen({ navigation, route }: Props) {
       }}
       loading={isEditMode && loading}
     >
-      <FormScreen scrollEnabled={!isDragging && !isTouchingPhotoGrid} noLayout>
-        <NativeHeaderScrollView>
+      <FormScreen noLayout scrollView={false}>
+        <NativeHeaderScrollView
+          scrollEnabled={!isDragging && !isTouchingPhotoGrid}
+        >
           {isEditMode && loading ? (
             <View style={styles.loadingContainer}>
               <LoadingIndicator />
@@ -580,17 +633,15 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     />
                   </View>
                 )}
-                {draftPhotos.length < 6 && (
-                  <AttachmentSourcePicker
-                    label={t("vehicleForm.addPhoto")}
+                {draftPhotos.length < photosPerVehicleLimit && (
+                  <Button
+                    variant="ghost"
                     disabled={saving || uploadingPhoto}
-                    triggerStyle={{ marginTop: theme.spacing.sm / 2 }}
-                    handlers={{
-                      onCamera: () => void pickFromCamera(),
-                      onPhotos: () => void pickFromGallery(),
-                      onFiles: () => void pickFromFiles(),
-                    }}
-                  />
+                    style={{ marginTop: theme.spacing.sm / 2 }}
+                    onPress={openPhotoSourceAlert}
+                  >
+                    {t("vehicleForm.addPhoto")}
+                  </Button>
                 )}
               </View>
 

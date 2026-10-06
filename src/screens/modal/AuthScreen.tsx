@@ -431,8 +431,8 @@ export function AuthScreen({ navigation }: Props) {
         background={glowBackground}
       >
         <StatusBar style={statusBarStyle} />
-        <FormScreen noLayout scrollEnabled={false}>
-          <NativeHeaderScrollView>
+        <FormScreen noLayout scrollView={false}>
+          <NativeHeaderScrollView scrollEnabled={false}>
             <View style={styles.otpContainer}>
               <View style={styles.iconContainer}>
                 <Ionicons
@@ -517,8 +517,8 @@ export function AuthScreen({ navigation }: Props) {
       background={glowBackground}
     >
       <StatusBar style={statusBarStyle} />
-      <FormScreen noLayout scrollEnabled={false}>
-        <NativeHeaderScrollView>
+      <FormScreen noLayout scrollView={false}>
+        <NativeHeaderScrollView scrollEnabled={false}>
           <View style={styles.brandHeader}>
             <Logo width={72} height={72} />
             <Text

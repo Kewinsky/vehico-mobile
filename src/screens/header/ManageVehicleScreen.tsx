@@ -21,8 +21,7 @@ import {
   FontAwesome5,
 } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import Carousel, { Pagination } from "react-native-reanimated-carousel";
-import { useSharedValue } from "react-native-reanimated";
+import Carousel from "react-native-reanimated-carousel";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { getVehicleTypeMciIcon } from "../../constants/vehicleTypes";
@@ -46,6 +45,7 @@ import { toastCaughtError, toastSuccess } from "../../ui/toast/toast";
 import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { groupThousands } from "../../utils/numberFormatting";
+import { CarouselPaginationCounter } from "../../ui/components/common/CarouselPaginationCounter";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ManageVehicle">;
 
@@ -64,7 +64,7 @@ function VehicleCarousel({
   theme,
   onPhotoPress,
 }: VehicleCarouselProps) {
-  const progress = useSharedValue(0);
+  const [activeIndex, setActiveIndex] = useState(0);
   const currentIndexRef = useRef(0);
 
   if (photoUrls.length === 0) return null;
@@ -85,8 +85,14 @@ function VehicleCarousel({
           width={width}
           height={height}
           onProgressChange={(_, absoluteProgress) => {
-            progress.value = absoluteProgress;
-            currentIndexRef.current = absoluteProgress;
+            const nextIndex =
+              ((Math.round(absoluteProgress) % photoUrls.length) +
+                photoUrls.length) %
+              photoUrls.length;
+            if (currentIndexRef.current !== nextIndex) {
+              currentIndexRef.current = nextIndex;
+              setActiveIndex(nextIndex);
+            }
           }}
           renderItem={({ item: url }) => (
             <View style={{ width: "100%", height: "100%", overflow: "hidden" }}>
@@ -105,29 +111,16 @@ function VehicleCarousel({
         />
         {photoUrls.length > 1 && (
           <>
-            <View
+            <CarouselPaginationCounter
+              activeIndex={activeIndex}
+              total={photoUrls.length}
               style={{
                 position: "absolute",
                 bottom: theme.spacing.md,
                 left: theme.spacing.md,
                 zIndex: 10,
               }}
-              pointerEvents="none"
-            >
-              <Pagination.Basic
-                progress={progress}
-                data={photoUrls.map((url) => ({ url }))}
-                dotStyle={{
-                  backgroundColor: "rgba(255,255,255,0.5)",
-                  borderRadius: 50,
-                }}
-                activeDotStyle={{
-                  backgroundColor: theme.colors.accent,
-                  borderRadius: 50,
-                }}
-                containerStyle={{ gap: 5 }}
-              />
-            </View>
+            />
             <Pressable
               style={{
                 position: "absolute",
@@ -299,7 +292,7 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
       right={headerRight}
       paddingHorizontal={false}
     >
-      <FormScreen noLayout>
+      <FormScreen noLayout scrollView={false}>
         <NativeHeaderScrollView
           paddingHorizontal={false}
           contentContainerStyle={styles.scrollContent}

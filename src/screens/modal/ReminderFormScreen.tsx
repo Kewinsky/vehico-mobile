@@ -377,7 +377,7 @@ export function ReminderFormScreen({ navigation, route }: Props) {
         </View>
       }
     >
-      <FormScreen noLayout>
+      <FormScreen noLayout scrollView={false}>
         <NativeHeaderScrollView>
           {!reminderId ? (
             <FormPresetChips

@@ -14,8 +14,7 @@ import { useIsFocused } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Carousel, { Pagination } from "react-native-reanimated-carousel";
-import { useSharedValue } from "react-native-reanimated";
+import Carousel from "react-native-reanimated-carousel";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import MaskedView from "@react-native-masked-view/masked-view";
@@ -31,6 +30,7 @@ import {
 import { Button } from "../../ui/components/common/Button";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { Glow } from "../../ui/components/dashboard/Glow";
+import { CarouselPaginationCounter } from "../../ui/components/common/CarouselPaginationCounter";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastCaughtError } from "../../ui/toast/toast";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -63,7 +63,7 @@ type VehicleCarouselProps = {
   width: number;
   height: number;
   theme: any;
-  progress: ReturnType<typeof useSharedValue<number>>;
+  onIndexChange: (index: number) => void;
   isLocked?: boolean;
 };
 
@@ -72,9 +72,10 @@ function VehicleCarousel({
   width,
   height,
   theme,
-  progress,
+  onIndexChange,
   isLocked = false,
 }: VehicleCarouselProps) {
+  const currentIndexRef = useRef(0);
   if (photoUrls.length === 0) return null;
 
   // Locked: static first photo – avoids Android carousel still swiping.
@@ -108,7 +109,14 @@ function VehicleCarousel({
           pan.activeOffsetX([-12, 12]).failOffsetY([-15, 15]);
         }}
         onProgressChange={(_offset, absoluteProgress) => {
-          progress.value = absoluteProgress;
+          const nextIndex =
+            ((Math.round(absoluteProgress) % photoUrls.length) +
+              photoUrls.length) %
+            photoUrls.length;
+          if (currentIndexRef.current !== nextIndex) {
+            currentIndexRef.current = nextIndex;
+            onIndexChange(nextIndex);
+          }
         }}
         renderItem={({ item: url }) => (
           <View style={{ width: "100%", height: "100%", overflow: "hidden" }}>
@@ -209,7 +217,7 @@ function VehicleCardImage({
   i18n,
   isLocked = false,
 }: VehicleCardImageProps) {
-  const progress = useSharedValue(0);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   return (
     <>
@@ -253,7 +261,7 @@ function VehicleCardImage({
         width={carouselWidth}
         height={220}
         theme={theme}
-        progress={progress}
+        onIndexChange={setActiveIndex}
         isLocked={isLocked}
       />
       <VehicleImageTextOverlay
@@ -272,18 +280,9 @@ function VehicleCardImage({
           }}
           pointerEvents="none"
         >
-          <Pagination.Basic
-            progress={progress}
-            data={photoUrls.map((url) => ({ url }))}
-            dotStyle={{
-              backgroundColor: "rgba(255,255,255,0.5)",
-              borderRadius: 999,
-            }}
-            activeDotStyle={{
-              backgroundColor: theme.colors.accent,
-              borderRadius: 999,
-            }}
-            containerStyle={{ gap: 5 }}
+          <CarouselPaginationCounter
+            activeIndex={activeIndex}
+            total={photoUrls.length}
           />
         </View>
       )}

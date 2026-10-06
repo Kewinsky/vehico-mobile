@@ -1,3 +1,5 @@
+import { PREMIUM_TIER_ENTITLEMENT_LIMITS } from "../../../shared/limits/entitlementLimits";
+
 export const en = {
   common: {
     appName: "{{appName}}",
@@ -27,6 +29,7 @@ export const en = {
     and: "and",
     clearButton: "Clear",
     chooseOption: "Select",
+    carouselPosition: "Photo {{current}} of {{total}}",
     selectDate: "Select date",
   },
   validation: {
@@ -65,7 +68,7 @@ export const en = {
       "You have reached the limit of {{limit}} reminder(s). Upgrade to Premium for unlimited reminders.",
     photoLimitReachedTitle: "Photo Limit Reached",
     photoLimitReachedBody:
-      "You have reached the limit of {{limit}} photos per vehicle. Upgrade to Premium for up to 40 photos.",
+      `You have reached the limit of {{limit}} photos per vehicle. Upgrade to Premium for up to ${PREMIUM_TIER_ENTITLEMENT_LIMITS.photos_per_vehicle_limit} photos.`,
     limitReachedTitle: "Limit Reached",
     limitReachedBody:
       "You have reached the limit for this feature. Upgrade to Premium for more.",
@@ -291,7 +294,7 @@ export const en = {
     addPhoto: "Add photo",
     changePhoto: "Change photo",
     photos: "Photos",
-    maxPhotosReached: "Maximum 6 photos allowed",
+    maxPhotosReached: "Maximum {{limit}} photos allowed",
   },
   timeline: {
     addEntry: "Add service entry",
@@ -411,6 +414,44 @@ export const en = {
     workshopPlaceholder: "Select",
     categoryPlaceholder: "Select",
     presetsTitle: "Quick entries",
+    importInvoice: "Import document",
+    importInvoiceHint:
+      "Select one PDF, JPG, JPEG, PNG, HEIC, or HEIF file up to 10 MB. The document will be attached locally after saving.",
+    invoiceAnalyzing: "Analyzing document...",
+    invoiceAnalysisProgressLabel: "Estimated analysis progress",
+    invoicePrivacyTitle: "Analyze this document?",
+    invoicePrivacyBody:
+      "The document will be sent for AI analysis. Vericar will not save it to cloud storage, but the AI provider may retain it for up to 30 days. A local copy will be attached after you save the entry.",
+    invoiceUnsupportedFile: "Select a PDF, JPG, JPEG, PNG, HEIC, or HEIF file.",
+    invoiceInvalidFile: "The selected file could not be read.",
+    invoiceFileTooLarge: "The file must not exceed 10 MB.",
+    invoiceAnalysisFailed:
+      "The document could not be analyzed. Try again or enter the data manually.",
+    invoiceMultipleTitle: "How should these works be saved?",
+    invoiceMultipleBody:
+      "The document contains {{count}} works. You can review them as one entry or as separate entries.",
+    invoiceCombinedAction: "One entry (recommended)",
+    invoiceSeparateAction: "Separate entries",
+    invoiceModeLabel: "Save as",
+    invoiceModeCombined: "One entry",
+    invoiceModeSeparate: "Separate entries",
+    invoiceChangeModeAction: "Change",
+    invoiceChangeModeAccessibility: "Change save mode",
+    invoiceChangeModeTitle: "Change how this is saved?",
+    invoiceChangeModeBody:
+      "The form will be filled again with data from the document. Your manual changes will be lost.",
+    invoiceCombinedTitle: "Service document",
+    invoiceWorkshop: "Workshop from document",
+    invoiceDate: "Date",
+    invoiceCurrency: "Currency",
+    invoiceEntriesCost: "Price (one or more entries)",
+    invoiceEntriesCategory: "Category (one or more entries)",
+    invoiceCurrencyUnknown: "not recognized",
+    invoiceNoUncertainFields: "none",
+    invoiceReviewMessage:
+      "Review the data before saving.\n\nDocument currency: {{currency}}\nEntry currency: {{formCurrency}}\n\nCosts are filled only when the currencies match.\n\nMissing or uncertain data:\n{{fields}}",
+    documentWillAttachToEntries:
+      "Selected documents: {{count}}. They will be attached locally to each entry after saving.",
   },
   entryDetail: {
     title: "Service entry",
@@ -1388,6 +1429,7 @@ Detailed report available at: https://report.vehico.app/report/example`,
     cameraPermissionDenied: "Camera permission denied",
     galleryPermissionDenied: "Photos permission denied",
     noFileSelected: "No file selected",
+    imageFileTooLarge: "The image must not exceed {{limit}} MB.",
     deleteEntryTitle: "Delete entry?",
     deleteEntryBody: "This will remove the service entry and its attachments.",
     editAttachmentNameTitle: "Edit attachment name",
@@ -1618,7 +1660,7 @@ Detailed report available at: https://report.vehico.app/report/example`,
     photosCount: "{{count}} / {{limit}} photos",
     photosFromApp: "Photos from vehicle",
     addPhotos: "Add photos",
-    maxPhotosReached: "Maximum 40 photos allowed",
+    maxPhotosReached: "Maximum {{limit}} photos allowed",
     nextButton: "Next",
     summaryTitle: "Report Summary",
     summarySubtitle: "Review what will be included in the report.",

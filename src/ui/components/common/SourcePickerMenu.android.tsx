@@ -49,7 +49,12 @@ export function SourcePickerMenu({
 
   if (triggerLabel) {
     const ghost = (
-      <View style={[styles.ghost, triggerStyle, disabled && styles.disabled]}>
+      <View
+        style={[styles.ghost, triggerStyle, disabled && styles.disabled]}
+        collapsable={false}
+        accessibilityRole="button"
+        accessibilityState={{ disabled }}
+      >
         <Text style={styles.ghostText}>{triggerLabel}</Text>
       </View>
     );

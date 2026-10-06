@@ -63,7 +63,7 @@ export function RemindersFiltersScreen({ navigation, route }: Props) {
         </Button>
       }
     >
-      <FormScreen noLayout>
+      <FormScreen noLayout scrollView={false}>
         <NativeHeaderScrollView>
           <Card>
             <CardRow>

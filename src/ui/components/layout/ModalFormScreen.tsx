@@ -33,8 +33,10 @@ export function ModalFormScreen({
       done={{ onPress: onDone, label: doneLabel, disabled: doneDisabled }}
       footer={footer}
     >
-      <FormScreen noLayout scrollEnabled={scrollEnabled}>
-        <NativeHeaderScrollView>{children}</NativeHeaderScrollView>
+      <FormScreen noLayout scrollView={false}>
+        <NativeHeaderScrollView scrollEnabled={scrollEnabled}>
+          {children}
+        </NativeHeaderScrollView>
       </FormScreen>
     </ModalLayout>
   );

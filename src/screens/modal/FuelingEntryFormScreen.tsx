@@ -182,7 +182,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         )
       }
     >
-      <FormScreen noLayout>
+      <FormScreen noLayout scrollView={false}>
         <NativeHeaderScrollView>
           <Card>
             <FormDateRow

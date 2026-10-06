@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -16,8 +16,7 @@ import * as DocumentPicker from "expo-document-picker";
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
   SERVICE_ENTRY_CATEGORY_OPTIONS,
-  buildServiceEntryBasePayload,
-  buildServiceEntryRowPayload,
+  buildServiceEntryPayloads,
   canSaveServiceEntry,
   serviceEntryFieldErrors,
   type ServiceEntryFormMode,
@@ -39,7 +38,7 @@ import {
   deleteAttachment,
   listAttachments,
   updateAttachmentDisplayName,
-  uploadAttachment,
+  saveAttachmentLocally,
 } from "../../services/attachments/attachmentsRepo";
 import { getFileNameFromItem } from "../../services/storage/openFileUrl";
 import {
@@ -58,7 +57,7 @@ import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
 import { FormPresetChips } from "../../ui/components/common/FormPresetChips";
-import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
+import { openAttachmentSourceAlert } from "../../ui/components/common/sourcePickerAlert";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
@@ -80,15 +79,27 @@ import { ListRowWithActions } from "../../ui/components/list/ListRowWithActions"
 import { SquarePen, Trash2 } from "lucide-react-native";
 import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
+import {
+  analyzeServiceInvoice,
+  resolveServiceInvoiceMimeType,
+  ServiceInvoiceImportError,
+  type ServiceInvoiceExtraction,
+} from "../../services/ai/serviceInvoiceImportRepo";
+import { buildServiceInvoiceFormDraft } from "../../forms/serviceInvoiceDraft";
+import { showPremiumRequiredAlert } from "../../ui/limits/entitlementAlerts";
 
 type Props = NativeStackScreenProps<AppStackParamList, "ServiceEntryForm">;
+type InvoiceStrategy = "combined" | "separate";
+
+const DOCUMENT_ANALYSIS_TIMEOUT_MS = 30_000;
+const DOCUMENT_ANALYSIS_MAX_ESTIMATED_PROGRESS = 90;
 
 export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { isPremium, workshopsLimit, freePlanWorkshopIds } = useEntitlements();
-  const { vehicleId, entryId } = route.params as any;
+  const { vehicleId, entryId } = route.params;
   const { distanceUnitLabel } = useUnitDisplay();
   const { settings } = useUserSettings();
   const currency = settings?.currency ?? "PLN";
@@ -101,10 +112,12 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   );
   const [mileage, setMileage] = useState("");
   const [category, setCategory] = useState<ServiceEntryCategory | null>(null);
-  const [entries, setEntries] = useState<EntryRow[]>([{ title: "", cost: "" }]);
+  const [entries, setEntries] = useState<EntryRow[]>([
+    { title: "", cost: "", category: null },
+  ]);
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [savingAttachment, setSavingAttachment] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [attachmentsLoading, setAttachmentsLoading] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<
@@ -114,6 +127,16 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [workshopId, setWorkshopId] = useState<string | null>(null);
   const [workshopSnapshot, setWorkshopSnapshot] = useState<string | null>(null);
   const [defaultMileage, setDefaultMileage] = useState("");
+  const [analyzingInvoice, setAnalyzingInvoice] = useState(false);
+  const [invoiceAnalysisProgress, setInvoiceAnalysisProgress] = useState(0);
+  const [invoiceReviewMessage, setInvoiceReviewMessage] = useState<string | null>(
+    null,
+  );
+  const [invoiceStrategy, setInvoiceStrategy] =
+    useState<InvoiceStrategy | null>(null);
+  const invoiceAbortController = useRef<AbortController | null>(null);
+  const invoiceExtraction = useRef<ServiceInvoiceExtraction | null>(null);
+  const hasInvoiceDraft = useRef(false);
 
   const formValues = useMemo(
     (): ServiceEntryFormState => ({
@@ -148,19 +171,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const { fieldError, validateBeforeSave, resetFieldErrors } =
     useFormFieldErrors(canSave);
 
-  const checkAndUpload = useCallback(
-    async (params: {
-      serviceEntryId: string;
-      vehicleId: string;
-      fileUri: string;
-      mimeType?: string | null;
-      fileName?: string | null;
-    }) => {
-      await uploadAttachment(params);
-    },
-    [],
-  );
-
   const reloadAttachments = useCallback(async (id: string) => {
     setAttachmentsLoading(true);
     try {
@@ -177,6 +187,30 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }, [isPremium, workshopsLimit, freePlanWorkshopIds]);
 
   useEffect(() => {
+    if (!analyzingInvoice) return;
+
+    const startedAt = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      const estimatedProgress = Math.min(
+        DOCUMENT_ANALYSIS_MAX_ESTIMATED_PROGRESS,
+        Math.max(
+          1,
+          Math.round(
+            (elapsed / DOCUMENT_ANALYSIS_TIMEOUT_MS) *
+              DOCUMENT_ANALYSIS_MAX_ESTIMATED_PROGRESS,
+          ),
+        ),
+      );
+      setInvoiceAnalysisProgress((current) =>
+        Math.max(current, estimatedProgress),
+      );
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [analyzingInvoice]);
+
+  useEffect(() => {
     if (entryId) return;
     void (async () => {
       try {
@@ -184,7 +218,9 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         const mileageValue =
           vehicle.mileage != null ? String(vehicle.mileage) : "";
         setDefaultMileage(mileageValue);
-        setMileage((prev) => (prev.trim().length ? prev : mileageValue));
+        if (!hasInvoiceDraft.current) {
+          setMileage((prev) => (prev.trim().length ? prev : mileageValue));
+        }
       } catch (err: any) {
         toastCaughtError(err, t("common.error"));
       }
@@ -203,6 +239,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           {
             title: e.title,
             cost: e.cost != null ? String(e.cost) : "",
+            category: (e.category as ServiceEntryCategory | null) ?? "other",
           },
         ]);
         setDescription(e.description ?? "");
@@ -216,7 +253,14 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     })();
   }, [entryId, reloadAttachments, t]);
 
-  const isPickerDisabled = saving || uploading;
+  useEffect(
+    () => () => {
+      invoiceAbortController.current?.abort();
+    },
+    [],
+  );
+
+  const isPickerDisabled = saving || savingAttachment || analyzingInvoice;
   const workshopIds = useMemo(
     () => workshops.map((workshop) => workshop.id),
     [workshops],
@@ -232,7 +276,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }
 
   function addEntry() {
-    setEntries((prev) => [...prev, { title: "", cost: "" }]);
+    setEntries((prev) => [...prev, { title: "", cost: "", category: null }]);
   }
 
   function removeEntry(index: number) {
@@ -242,7 +286,16 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
   function setFormMode(next: FormMode) {
     if (next === "single") {
-      setEntries((prev) => [prev[0] ?? { title: "", cost: "" }]);
+      const first = entries[0] ?? { title: "", cost: "", category: null };
+      setCategory(first.category ?? category);
+      setEntries([first]);
+    } else {
+      setEntries((prev) =>
+        prev.map((entry) => ({
+          ...entry,
+          category: entry.category ?? category,
+        })),
+      );
     }
     setMode(next);
   }
@@ -411,11 +464,21 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }
 
   function applyPreset(preset: ServiceEntryPreset) {
+    hasInvoiceDraft.current = false;
+    invoiceExtraction.current = null;
+    setInvoiceStrategy(null);
+    setInvoiceReviewMessage(null);
     if (mode !== "single") {
       setFormMode("single");
     }
     setCategory(preset.category);
-    setEntries([{ title: t(`reminderForm.${preset.titleKey}`), cost: "" }]);
+    setEntries([
+      {
+        title: t(`reminderForm.${preset.titleKey}`),
+        cost: "",
+        category: preset.category,
+      },
+    ]);
     setMileage(defaultMileage);
     setServiceDate(new Date().toISOString().slice(0, 10));
     setDescription("");
@@ -437,17 +500,333 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   );
 
   function clearForm() {
+    hasInvoiceDraft.current = false;
+    invoiceExtraction.current = null;
+    setInvoiceStrategy(null);
     setMode("single");
     resetFieldErrors();
     const today = new Date().toISOString().slice(0, 10);
     setServiceDate(today);
     setMileage(defaultMileage);
     setCategory(null);
-    setEntries([{ title: "", cost: "" }]);
+    setEntries([{ title: "", cost: "", category: null }]);
     setDescription("");
     setWorkshopId(null);
     setWorkshopSnapshot(null);
     setPendingFiles([]);
+    setInvoiceReviewMessage(null);
+  }
+
+  const applyInvoiceExtraction = useCallback(
+    (
+      extraction: ServiceInvoiceExtraction,
+      strategy: InvoiceStrategy,
+    ) => {
+      const draft = buildServiceInvoiceFormDraft(
+        extraction,
+        strategy,
+        t("entryForm.invoiceCombinedTitle"),
+        currency,
+      );
+      hasInvoiceDraft.current = true;
+      invoiceExtraction.current = extraction;
+      setInvoiceStrategy(strategy);
+      setMode(draft.mode);
+      setCategory(draft.category);
+      setEntries(draft.entries);
+      setDescription(draft.description);
+      setServiceDate(draft.serviceDate ?? "");
+      setMileage(draft.mileage ?? "");
+
+      const matchingWorkshop = draft.workshopName
+        ? workshops.find(
+            (workshop) =>
+              workshop.name.trim().toLocaleLowerCase() ===
+              draft.workshopName?.trim().toLocaleLowerCase(),
+          )
+        : null;
+      setWorkshopId(matchingWorkshop?.id ?? null);
+      setWorkshopSnapshot(draft.workshopName);
+      resetFieldErrors();
+
+      const hasUncertainCategory = extraction.works.some(
+        (work) => work.categoryStatus !== "recognized",
+      );
+      const hasUncertainCost =
+        extraction.totalCost.status !== "recognized" ||
+        extraction.works.some((work) => work.cost.status !== "recognized");
+      const uncertainFields = [
+        extraction.serviceDate.status !== "recognized"
+          ? t("entryForm.invoiceDate")
+          : null,
+        extraction.mileage.status !== "recognized"
+          ? t("entryForm.mileage")
+          : null,
+        extraction.workshopName.status !== "recognized"
+          ? t("entryForm.workshop")
+          : null,
+        extraction.currency.status !== "recognized"
+          ? t("entryForm.invoiceCurrency")
+          : null,
+        hasUncertainCost ? t("entryForm.invoiceEntriesCost") : null,
+        hasUncertainCategory ? t("entryForm.invoiceEntriesCategory") : null,
+      ].filter((value): value is string => value !== null);
+      setInvoiceReviewMessage(
+        t("entryForm.invoiceReviewMessage", {
+          currency: extraction.currency.value ?? t("entryForm.invoiceCurrencyUnknown"),
+          formCurrency: currency,
+          fields:
+            uncertainFields.length > 0
+              ? `• ${uncertainFields.join("\n• ")}`
+              : `• ${t("entryForm.invoiceNoUncertainFields")}`,
+        }),
+      );
+    },
+    [currency, resetFieldErrors, t, workshops],
+  );
+
+  const chooseInvoiceStrategy = useCallback(
+    (extraction: ServiceInvoiceExtraction) =>
+      new Promise<InvoiceStrategy | null>((resolve) => {
+        if (extraction.works.length === 1) {
+          resolve("combined");
+          return;
+        }
+        Alert.alert(
+          t("entryForm.invoiceMultipleTitle"),
+          t("entryForm.invoiceMultipleBody", {
+            count: extraction.works.length,
+          }),
+          [
+            {
+              text: t("common.cancel"),
+              style: "cancel",
+              onPress: () => resolve(null),
+            },
+            {
+              text: t("entryForm.invoiceSeparateAction"),
+              onPress: () => resolve("separate"),
+            },
+            {
+              text: t("entryForm.invoiceCombinedAction"),
+              onPress: () => resolve("combined"),
+            },
+          ],
+          { cancelable: false },
+        );
+      }),
+    [t],
+  );
+
+  const changeInvoiceStrategy = useCallback(() => {
+    const extraction = invoiceExtraction.current;
+    if (!extraction || !invoiceStrategy || extraction.works.length < 2) return;
+
+    const nextStrategy: InvoiceStrategy =
+      invoiceStrategy === "combined" ? "separate" : "combined";
+    const nextStrategyLabel = t(
+      nextStrategy === "combined"
+        ? "entryForm.invoiceModeCombined"
+        : "entryForm.invoiceModeSeparate",
+    );
+
+    Alert.alert(
+      t("entryForm.invoiceChangeModeTitle"),
+      t("entryForm.invoiceChangeModeBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: nextStrategyLabel,
+          style: "destructive",
+          onPress: () => applyInvoiceExtraction(extraction, nextStrategy),
+        },
+      ],
+    );
+  }, [applyInvoiceExtraction, invoiceStrategy, t]);
+
+  const confirmInvoiceProcessing = useCallback(
+    () =>
+      new Promise<boolean>((resolve) => {
+        Alert.alert(
+          t("entryForm.invoicePrivacyTitle"),
+          t("entryForm.invoicePrivacyBody"),
+          [
+            {
+              text: t("common.cancel"),
+              style: "cancel",
+              onPress: () => resolve(false),
+            },
+            {
+              text: t("common.continue"),
+              onPress: () => resolve(true),
+            },
+          ],
+          { cancelable: false },
+        );
+      }),
+    [t],
+  );
+
+  const handleImportDocument = useCallback(async (asset: {
+    uri: string;
+    name: string;
+    mimeType?: string | null;
+    size?: number | null;
+  }) => {
+    if (!isPremium) {
+      showPremiumRequiredAlert(t, navigation);
+      return;
+    }
+
+    try {
+      const mimeType = resolveServiceInvoiceMimeType(asset.mimeType, asset.name);
+      if (!mimeType) {
+        throw new ServiceInvoiceImportError(
+          "INVALID_FILE",
+          t("entryForm.invoiceUnsupportedFile"),
+        );
+      }
+      if (!(await confirmInvoiceProcessing())) return;
+
+      invoiceAbortController.current?.abort();
+      const controller = new AbortController();
+      invoiceAbortController.current = controller;
+      setInvoiceAnalysisProgress(1);
+      setAnalyzingInvoice(true);
+      const extraction = await analyzeServiceInvoice({
+        vehicleId,
+        fileUri: asset.uri,
+        mimeType,
+        fileSize: asset.size,
+        signal: controller.signal,
+      });
+      setInvoiceAnalysisProgress(100);
+      const strategy = await chooseInvoiceStrategy(extraction);
+      if (strategy) {
+        applyInvoiceExtraction(extraction, strategy);
+        setPendingFiles((previous) => [
+          ...previous,
+          {
+            uri: asset.uri,
+            mimeType: asset.mimeType,
+            fileName: asset.name,
+          },
+        ]);
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      const message =
+        error instanceof ServiceInvoiceImportError &&
+        error.code === "FILE_TOO_LARGE"
+          ? t("entryForm.invoiceFileTooLarge")
+          : error instanceof ServiceInvoiceImportError &&
+              error.code === "INVALID_FILE"
+            ? t("entryForm.invoiceInvalidFile")
+            : error instanceof ServiceInvoiceImportError
+              ? t("entryForm.invoiceAnalysisFailed")
+              : getUserFacingErrorMessage(
+                  error,
+                  t("entryForm.invoiceAnalysisFailed"),
+                );
+      Alert.alert(t("common.error"), message);
+    } finally {
+      setAnalyzingInvoice(false);
+      invoiceAbortController.current = null;
+    }
+  }, [
+    applyInvoiceExtraction,
+    chooseInvoiceStrategy,
+    confirmInvoiceProcessing,
+    isPremium,
+    navigation,
+    t,
+    vehicleId,
+  ]);
+
+  async function importDocumentFromCamera() {
+    if (!isPremium) {
+      showPremiumRequiredAlert(t, navigation);
+      return;
+    }
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        throw new Error(t("attachments.cameraPermissionDenied"));
+      }
+      const result = await ImagePicker.launchCameraAsync({ quality: 0.9 });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await handleImportDocument({
+        uri: asset.uri,
+        name:
+          asset.fileName ??
+          asset.uri.split("/").pop() ??
+          "service-document.jpg",
+        mimeType: asset.mimeType,
+        size: asset.fileSize,
+      });
+    } catch (error) {
+      alertCaughtError(t("common.error"), error, t("common.error"));
+    }
+  }
+
+  async function importDocumentFromGallery() {
+    if (!isPremium) {
+      showPremiumRequiredAlert(t, navigation);
+      return;
+    }
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 1,
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await handleImportDocument({
+        uri: asset.uri,
+        name:
+          asset.fileName ??
+          asset.uri.split("/").pop() ??
+          "service-document.jpg",
+        mimeType: asset.mimeType,
+        size: asset.fileSize,
+      });
+    } catch (error) {
+      alertCaughtError(t("common.error"), error, t("common.error"));
+    }
+  }
+
+  async function importDocumentFromFiles() {
+    if (!isPremium) {
+      showPremiumRequiredAlert(t, navigation);
+      return;
+    }
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          "application/pdf",
+          "image/jpeg",
+          "image/png",
+          "image/heic",
+          "image/heif",
+        ],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await handleImportDocument({
+        uri: asset.uri,
+        name: asset.name,
+        mimeType: asset.mimeType,
+        size: asset.size,
+      });
+    } catch (error) {
+      alertCaughtError(t("common.error"), error, t("common.error"));
+    }
   }
 
   async function pickFromCamera() {
@@ -461,8 +840,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
 
       if (entryId) {
-        setUploading(true);
-        await checkAndUpload({
+        setSavingAttachment(true);
+        await saveAttachmentLocally({
           serviceEntryId: entryId,
           vehicleId,
           fileUri: asset.uri,
@@ -483,7 +862,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     } catch (e: any) {
       alertCaughtError(t("common.error"), e, t("common.error"));
     } finally {
-      setUploading(false);
+      setSavingAttachment(false);
     }
   }
 
@@ -498,8 +877,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
 
       if (entryId) {
-        setUploading(true);
-        await checkAndUpload({
+        setSavingAttachment(true);
+        await saveAttachmentLocally({
           serviceEntryId: entryId,
           vehicleId,
           fileUri: asset.uri,
@@ -520,7 +899,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     } catch (e: any) {
       alertCaughtError(t("common.error"), e, t("common.error"));
     } finally {
-      setUploading(false);
+      setSavingAttachment(false);
     }
   }
 
@@ -536,8 +915,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
 
       if (entryId) {
-        setUploading(true);
-        await checkAndUpload({
+        setSavingAttachment(true);
+        await saveAttachmentLocally({
           serviceEntryId: entryId,
           vehicleId,
           fileUri: asset.uri,
@@ -554,7 +933,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     } catch (e: any) {
       alertCaughtError(t("common.error"), e, t("common.error"));
     } finally {
-      setUploading(false);
+      setSavingAttachment(false);
     }
   }
 
@@ -566,51 +945,38 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         workshopId != null
           ? (workshops.find((w) => w.id === workshopId)?.name ??
             workshopSnapshot)
-          : null;
-      const basePayload = buildServiceEntryBasePayload(
+          : workshopSnapshot;
+      const payloads = buildServiceEntryPayloads(
         vehicleId,
         formValues,
         workshopName,
       );
+      const firstPayload = payloads[0];
+      if (!firstPayload) throw new Error("Invalid service entry form");
 
       if (entryId) {
-        const first = entries[0];
-        const firstRow = buildServiceEntryRowPayload(first, description);
-        await updateServiceEntry(entryId, {
-          ...basePayload,
-          ...firstRow,
-        });
-        for (let i = 1; i < entries.length; i++) {
-          const row = entries[i];
-          await createServiceEntry({
-            ...basePayload,
-            ...buildServiceEntryRowPayload(row, ""),
-          });
+        await updateServiceEntry(entryId, firstPayload);
+        for (const payload of payloads.slice(1)) {
+          await createServiceEntry(payload);
         }
       } else {
-        const first = entries[0];
-        const created = await createServiceEntry({
-          ...basePayload,
-          ...buildServiceEntryRowPayload(first, isMulti ? "" : description),
-        });
-        if (!isMulti && pendingFiles.length) {
-          setUploading(true);
-          for (const f of pendingFiles) {
-            await checkAndUpload({
-              serviceEntryId: created.id,
-              vehicleId,
-              fileUri: f.uri,
-              mimeType: f.mimeType,
-              fileName: f.fileName,
-            });
-          }
+        const createdEntries = [await createServiceEntry(firstPayload)];
+        for (const payload of payloads.slice(1)) {
+          createdEntries.push(await createServiceEntry(payload));
         }
-        for (let i = 1; i < entries.length; i++) {
-          const row = entries[i];
-          await createServiceEntry({
-            ...basePayload,
-            ...buildServiceEntryRowPayload(row, ""),
-          });
+        if (pendingFiles.length) {
+          setSavingAttachment(true);
+          for (const created of createdEntries) {
+            for (const file of pendingFiles) {
+              await saveAttachmentLocally({
+                serviceEntryId: created.id,
+                vehicleId,
+                fileUri: file.uri,
+                mimeType: file.mimeType,
+                fileName: file.fileName,
+              });
+            }
+          }
         }
       }
 
@@ -619,7 +985,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       alertCaughtError(t("common.error"), e, t("common.error"));
     } finally {
       setSaving(false);
-      setUploading(false);
+      setSavingAttachment(false);
     }
   }
 
@@ -630,8 +996,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       done={{
         onPress: onSave,
         label: t("common.done"),
-        disabled: saving || uploading,
-        loading: saving || uploading,
+        disabled: isPickerDisabled,
+        loading: saving || savingAttachment,
       }}
       useHorizontalContentInset={false}
       footer={
@@ -648,24 +1014,157 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         </View>
       }
     >
-      <FormScreen noLayout>
+      <FormScreen noLayout scrollView={false}>
         <NativeHeaderScrollView>
           {!entryId ? (
             <>
-              <View style={styles.segmentTabs}>
-                <SegmentTabs<"single" | "multi">
-                  variant="secondary"
-                  value={mode}
-                  options={[
-                    { value: "single", label: t("entryForm.modeSingle") },
-                    { value: "multi", label: t("entryForm.modeMulti") },
-                  ]}
-                  onChange={setFormMode}
-                />
+              <View style={styles.insetContent}>
+                <Button
+                  variant="ghost"
+                  disabled={isPickerDisabled}
+                  onPress={() => {
+                    openAttachmentSourceAlert(
+                      {
+                        onCamera: () => void importDocumentFromCamera(),
+                        onPhotos: () => void importDocumentFromGallery(),
+                        onFiles: () => void importDocumentFromFiles(),
+                      },
+                      t,
+                      t("entryForm.importInvoice"),
+                    );
+                  }}
+                >
+                  {analyzingInvoice
+                    ? t("entryForm.invoiceAnalyzing")
+                    : t("entryForm.importInvoice")}
+                </Button>
+                {analyzingInvoice ? (
+                  <View
+                    style={styles.analysisProgress}
+                    accessible
+                    accessibilityRole="progressbar"
+                    accessibilityLabel={t(
+                      "entryForm.invoiceAnalysisProgressLabel",
+                    )}
+                    accessibilityValue={{
+                      min: 0,
+                      max: 100,
+                      now: invoiceAnalysisProgress,
+                    }}
+                  >
+                    <View style={styles.analysisProgressHeader}>
+                      <Text
+                        style={[
+                          styles.analysisProgressLabel,
+                          { color: theme.colors.muted },
+                        ]}
+                      >
+                        {t("entryForm.invoiceAnalysisProgressLabel")}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.analysisProgressValue,
+                          { color: theme.colors.fg },
+                        ]}
+                      >
+                        {invoiceAnalysisProgress}%
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.analysisProgressTrack,
+                        { backgroundColor: theme.colors.border },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.analysisProgressFill,
+                          {
+                            backgroundColor: theme.colors.accent,
+                            width: `${invoiceAnalysisProgress}%` as `${number}%`,
+                          },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                ) : (
+                  <Text
+                    style={[styles.noticeText, { color: theme.colors.muted }]}
+                  >
+                    {t("entryForm.importInvoiceHint")}
+                  </Text>
+                )}
               </View>
               <View style={{ height: theme.spacing.sm }} />
 
-              {!isMulti ? (
+              {invoiceReviewMessage ? (
+                <>
+                  <Card style={[styles.card, styles.invoiceReviewCard]}>
+                    <View style={styles.invoiceReview}>
+                      <Text
+                        style={[
+                          styles.invoiceReviewText,
+                          { color: theme.colors.fg },
+                        ]}
+                      >
+                        {invoiceReviewMessage}
+                      </Text>
+                    </View>
+                  </Card>
+                  <View style={{ height: theme.spacing.sm }} />
+                </>
+              ) : null}
+
+              {invoiceStrategy ? (
+                <Card style={styles.card}>
+                  <View style={styles.invoiceModeRow}>
+                    <View style={styles.invoiceModeCopy}>
+                      <Text style={styles.invoiceModeLabel}>
+                        {t("entryForm.invoiceModeLabel")}
+                      </Text>
+                      <Text style={styles.invoiceModeValue}>
+                        {t(
+                          invoiceStrategy === "combined"
+                            ? "entryForm.invoiceModeCombined"
+                            : "entryForm.invoiceModeSeparate",
+                        )}
+                      </Text>
+                    </View>
+                    {(invoiceExtraction.current?.works.length ?? 0) > 1 ? (
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={t(
+                          "entryForm.invoiceChangeModeAccessibility",
+                        )}
+                        onPress={changeInvoiceStrategy}
+                        style={({ pressed }) => [
+                          styles.invoiceModeAction,
+                          pressed && { opacity: 0.7 },
+                        ]}
+                      >
+                        <Text style={styles.invoiceModeActionText}>
+                          {t("entryForm.invoiceChangeModeAction")}
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                  </View>
+                </Card>
+              ) : (
+                <View style={styles.segmentTabs}>
+                  <SegmentTabs<"single" | "multi">
+                    variant="secondary"
+                    value={mode}
+                    options={[
+                      { value: "single", label: t("entryForm.modeSingle") },
+                      { value: "multi", label: t("entryForm.modeMulti") },
+                    ]}
+                    onChange={setFormMode}
+                  />
+                </View>
+              )}
+              <View style={{ height: theme.spacing.sm }} />
+
+              {!isMulti && !invoiceStrategy ? (
                 <FormPresetChips
                   sectionTitle={t("entryForm.presetsTitle")}
                   items={presetChipItems}
@@ -686,21 +1185,23 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               label={t("entryForm.serviceDate")}
               value={serviceDate}
               onChange={setServiceDate}
-              disabled={saving || uploading}
+              disabled={isPickerDisabled}
               error={fieldError(fieldErrors.serviceDate)}
             />
 
-            <FormPickerRow<ServiceEntryCategory>
-              icon="pricetag-outline"
-              label={t("entryForm.category")}
-              value={category}
-              options={SERVICE_ENTRY_CATEGORY_OPTIONS}
-              getLabel={(value) => t(`entryForm.categories.${value}` as any)}
-              onChange={setCategory}
-              placeholderLabel={t("entryForm.categoryPlaceholder")}
-              disabled={isPickerDisabled}
-              error={fieldError(fieldErrors.category)}
-            />
+            {!isMulti ? (
+              <FormPickerRow<ServiceEntryCategory>
+                icon="pricetag-outline"
+                label={t("entryForm.category")}
+                value={category}
+                options={SERVICE_ENTRY_CATEGORY_OPTIONS}
+                getLabel={(value) => t(`entryForm.categories.${value}` as any)}
+                onChange={setCategory}
+                placeholderLabel={t("entryForm.categoryPlaceholder")}
+                disabled={isPickerDisabled}
+                error={fieldError(fieldErrors.category)}
+              />
+            ) : null}
 
             <FormPickerRow<string>
               icon="business-outline"
@@ -723,6 +1224,17 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               disabled={isPickerDisabled}
             />
 
+            {invoiceReviewMessage && !workshopId ? (
+              <FormInputRow
+                icon="business-outline"
+                label={t("entryForm.invoiceWorkshop")}
+                value={workshopSnapshot ?? ""}
+                onChangeText={(value) => setWorkshopSnapshot(value || null)}
+                editable={!isPickerDisabled}
+                placeholder={t("entryForm.workshopPlaceholder")}
+              />
+            ) : null}
+
             <FormInputRow
               icon="speedometer-outline"
               label={`${t("entryForm.mileage")} (${distanceUnitLabel})`}
@@ -730,7 +1242,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               onChangeText={setMileage}
               decimal
               keyboardType="decimal-pad"
-              editable={!saving && !uploading}
+              editable={!isPickerDisabled}
               placeholder={t("entryForm.placeholderMileage")}
               error={fieldError(fieldErrors.mileage)}
             />
@@ -743,6 +1255,23 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               {entries.map((row, index) => (
                 <View key={index}>
                   <Card style={styles.card}>
+                    <FormPickerRow<ServiceEntryCategory>
+                      icon="pricetag-outline"
+                      label={t("entryForm.category")}
+                      value={row.category}
+                      options={SERVICE_ENTRY_CATEGORY_OPTIONS}
+                      getLabel={(value) =>
+                        t(`entryForm.categories.${value}` as any)
+                      }
+                      onChange={(value) =>
+                        updateEntry(index, { category: value })
+                      }
+                      placeholderLabel={t("entryForm.categoryPlaceholder")}
+                      disabled={isPickerDisabled}
+                      error={fieldError(
+                        fieldErrors.entryCategories[index] ?? false,
+                      )}
+                    />
                     <FormInputRow
                       icon="document-text-outline"
                       label={t("entryForm.entryTitle")}
@@ -750,7 +1279,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       onChangeText={(text) =>
                         updateEntry(index, { title: text })
                       }
-                      editable={!saving && !uploading}
+                      editable={!isPickerDisabled}
                       placeholder={t("entryForm.placeholderTitle")}
                       error={fieldError(
                         fieldErrors.entryTitles[index] ?? false,
@@ -765,7 +1294,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       }
                       decimal
                       keyboardType="decimal-pad"
-                      editable={!saving && !uploading}
+                      editable={!isPickerDisabled}
                       placeholder={t("entryForm.placeholderCost")}
                       error={fieldError(fieldErrors.entryCosts[index] ?? false)}
                       trailing={
@@ -795,14 +1324,18 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 <Button
                   onPress={addEntry}
                   variant="ghost"
-                  disabled={saving || uploading}
+                  disabled={isPickerDisabled}
                 >
                   {t("entryForm.addAnotherEntry")}
                 </Button>
                 <Text
                   style={[styles.noticeText, { color: theme.colors.muted }]}
                 >
-                  {t("entryForm.multiModeInfo")}
+                  {pendingFiles.length > 0
+                    ? t("entryForm.documentWillAttachToEntries", {
+                        count: pendingFiles.length,
+                      })
+                    : t("entryForm.multiModeInfo")}
                 </Text>
               </View>
             </>
@@ -814,7 +1347,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   label={t("entryForm.entryTitle")}
                   value={entries[0]?.title ?? ""}
                   onChangeText={(text) => updateEntry(0, { title: text })}
-                  editable={!saving && !uploading}
+                  editable={!isPickerDisabled}
                   placeholder={t("entryForm.placeholderTitle")}
                   error={fieldError(fieldErrors.entryTitles[0] ?? false)}
                 />
@@ -825,7 +1358,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   onChangeText={(text) => updateEntry(0, { cost: text })}
                   decimal
                   keyboardType="decimal-pad"
-                  editable={!saving && !uploading}
+                  editable={!isPickerDisabled}
                   placeholder={t("entryForm.placeholderCost")}
                   error={fieldError(fieldErrors.entryCosts[0] ?? false)}
                 />
@@ -851,7 +1384,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                   <Textarea
                     value={description}
                     onChangeText={setDescription}
-                    editable={!saving && !uploading}
+                    editable={!isPickerDisabled}
                     multiline
                     placeholder={t("entryForm.placeholderDescription")}
                     placeholderTextColor={theme.colors.muted}
@@ -873,15 +1406,22 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               </View>
               <View style={{ height: theme.spacing.sm }} />
               <View style={styles.insetContent}>
-                <AttachmentSourcePicker
-                  label={t("entryForm.addAttachment")}
-                  disabled={saving || uploading}
-                  handlers={{
-                    onCamera: () => void pickFromCamera(),
-                    onPhotos: () => void pickFromGallery(),
-                    onFiles: () => void pickFromFiles(),
+                <Button
+                  variant="ghost"
+                  disabled={isPickerDisabled}
+                  onPress={() => {
+                    openAttachmentSourceAlert(
+                      {
+                        onCamera: () => void pickFromCamera(),
+                        onPhotos: () => void pickFromGallery(),
+                        onFiles: () => void pickFromFiles(),
+                      },
+                      t,
+                    );
                   }}
-                />
+                >
+                  {t("entryForm.addAttachment")}
+                </Button>
               </View>
               <View style={{ height: theme.spacing.sm }} />
 
@@ -902,7 +1442,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                         rightThreshold={32}
                       >
                         <ListRowWithActions
-                          compact
                           title={
                             item.display_name?.trim() ||
                             t("attachments.attachmentLabel")
@@ -933,7 +1472,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       <View style={styles.loadingContainer}>
                         <LoadingIndicator />
                       </View>
-                    ) : !uploading && attachments.length === 0 ? (
+                    ) : !savingAttachment && attachments.length === 0 ? (
                       <Text style={[styles.muted, styles.insetContent]}>
                         {t("entryForm.attachmentsEmpty")}
                       </Text>
@@ -962,7 +1501,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                         rightThreshold={32}
                       >
                         <ListRowWithActions
-                          compact
                           title={
                             item.fileName?.trim() ||
                             t("attachments.attachmentLabel")
@@ -990,11 +1528,87 @@ const makeStyles = (theme: any) =>
     card: {
       marginHorizontal: theme.layout.contentPaddingHorizontal,
     },
+    invoiceReview: {
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md,
+    },
+    invoiceReviewCard: {
+      backgroundColor: `${theme.colors.accent}20`,
+    },
+    invoiceReviewText: {
+      fontSize: theme.typography.body,
+      lineHeight: theme.typography.body + 8,
+    },
+    invoiceModeRow: {
+      minHeight: theme.spacing.xl + theme.spacing.md,
+      paddingVertical: theme.spacing.xs,
+      paddingLeft: theme.spacing.md,
+      paddingRight: theme.spacing.xs,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
+    invoiceModeCopy: {
+      flex: 1,
+      minWidth: 0,
+      gap: theme.spacing.xs / 2,
+    },
+    invoiceModeLabel: {
+      color: theme.colors.muted,
+      fontSize: theme.typography.small,
+    },
+    invoiceModeValue: {
+      color: theme.colors.fg,
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.semibold,
+    },
+    invoiceModeAction: {
+      minWidth: theme.spacing.xl * 2,
+      minHeight: 44,
+      paddingHorizontal: theme.spacing.xs,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    invoiceModeActionText: {
+      color: theme.colors.accent,
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+    },
+    analysisProgress: {
+      marginTop: theme.spacing.sm,
+      gap: theme.spacing.xs,
+    },
+    analysisProgressHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: theme.spacing.sm,
+    },
+    analysisProgressLabel: {
+      flex: 1,
+      flexShrink: 1,
+      fontSize: theme.typography.small,
+      lineHeight: theme.typography.body + 2,
+    },
+    analysisProgressValue: {
+      fontSize: theme.typography.small,
+      fontWeight: theme.typography.fontWeight.semibold,
+      fontVariant: ["tabular-nums"],
+    },
+    analysisProgressTrack: {
+      height: 6,
+      borderRadius: 999,
+      overflow: "hidden",
+    },
+    analysisProgressFill: {
+      height: "100%",
+      borderRadius: 999,
+    },
     insetContent: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     listRowWrap: {
-      marginHorizontal: theme.layout.contentPaddingHorizontal,
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     footerAction: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,

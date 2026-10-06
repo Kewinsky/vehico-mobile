@@ -29,7 +29,7 @@ import {
   hasEnoughStatsEntries,
 } from "../../types/reportOptions";
 import { Button } from "../../ui/components/common/Button";
-import { AttachmentSourcePicker } from "../../ui/components/common/AttachmentSourcePicker";
+import { openAttachmentSourceAlert } from "../../ui/components/common/sourcePickerAlert";
 import { ReportOptionGroup } from "../../ui/components/common/ReportOptionGroup";
 import {
   getReportGroupMasterState,
@@ -48,8 +48,11 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { getUnitDisplay } from "../../utils/unitGroups";
 import { toastCaughtError, toastError } from "../../ui/toast/toast";
-
-const MAX_PHOTOS = 40;
+import {
+  assertImageFileSize,
+  MAX_UPLOAD_IMAGE_MB,
+} from "../../services/storage/compressImageForUpload";
+import { MAX_PUBLIC_REPORT_PHOTOS } from "../../../shared/limits/photoLimits";
 
 type Props = NativeStackScreenProps<AppStackParamList, "PublicReportConfigure">;
 
@@ -445,16 +448,25 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
     resetAllReportOptions(allReportOptions);
   }
 
-  function addPhotosFromAssets(
+  function showMaxPhotosReached() {
+    toastError(
+      t("publicReport.maxPhotosReached", {
+        limit: MAX_PUBLIC_REPORT_PHOTOS,
+      }),
+    );
+  }
+
+  async function addPhotosFromAssets(
     assets: {
       uri: string;
       mimeType?: string | null;
       fileName?: string | null;
+      fileSize?: number | null;
     }[],
   ) {
-    const remainingSlots = MAX_PHOTOS - totalPhotoCount;
+    const remainingSlots = MAX_PUBLIC_REPORT_PHOTOS - totalPhotoCount;
     if (remainingSlots <= 0) {
-      toastError(t("publicReport.maxPhotosReached"));
+      showMaxPhotosReached();
       return;
     }
     const picked = assets.filter((asset) => asset.uri);
@@ -462,7 +474,17 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       toastError(t("attachments.noFileSelected"));
       return;
     }
-    const newPhotos = picked.slice(0, remainingSlots).map((asset, index) => ({
+    const selected = picked.slice(0, remainingSlots);
+    await Promise.all(
+      selected.map((asset) =>
+        assertImageFileSize(
+          asset.uri,
+          asset.fileSize,
+          t("attachments.imageFileTooLarge", { limit: MAX_UPLOAD_IMAGE_MB }),
+        ),
+      ),
+    );
+    const newPhotos = selected.map((asset, index) => ({
       id: `${Date.now()}-${index}-${Math.random()}`,
       fileUri: asset.uri,
       displayOrder: totalPhotoCount + index,
@@ -474,8 +496,8 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
 
   async function pickFromCamera() {
     try {
-      if (MAX_PHOTOS - totalPhotoCount <= 0) {
-        toastError(t("publicReport.maxPhotosReached"));
+      if (MAX_PUBLIC_REPORT_PHOTOS - totalPhotoCount <= 0) {
+        showMaxPhotosReached();
         return;
       }
       const perm = await ImagePicker.requestCameraPermissionsAsync();
@@ -485,11 +507,12 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
-      addPhotosFromAssets([
+      await addPhotosFromAssets([
         {
           uri: asset.uri,
           mimeType: asset.mimeType,
           fileName: asset.fileName,
+          fileSize: asset.fileSize,
         },
       ]);
     } catch (e: any) {
@@ -499,9 +522,9 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
 
   async function pickFromGallery() {
     try {
-      const remainingSlots = MAX_PHOTOS - totalPhotoCount;
+      const remainingSlots = MAX_PUBLIC_REPORT_PHOTOS - totalPhotoCount;
       if (remainingSlots <= 0) {
-        toastError(t("publicReport.maxPhotosReached"));
+        showMaxPhotosReached();
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -514,11 +537,12 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       if (!result.assets || result.assets.length === 0) {
         throw new Error(t("attachments.noFileSelected"));
       }
-      addPhotosFromAssets(
+      await addPhotosFromAssets(
         result.assets.map((asset) => ({
           uri: asset.uri,
           mimeType: asset.mimeType,
           fileName: asset.fileName,
+          fileSize: asset.fileSize,
         })),
       );
     } catch (e: any) {
@@ -528,9 +552,9 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
 
   async function pickFromFiles() {
     try {
-      const remainingSlots = MAX_PHOTOS - totalPhotoCount;
+      const remainingSlots = MAX_PUBLIC_REPORT_PHOTOS - totalPhotoCount;
       if (remainingSlots <= 0) {
-        toastError(t("publicReport.maxPhotosReached"));
+        showMaxPhotosReached();
         return;
       }
       const result = await DocumentPicker.getDocumentAsync({
@@ -542,16 +566,29 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
       if (!result.assets || result.assets.length === 0) {
         throw new Error(t("attachments.noFileSelected"));
       }
-      addPhotosFromAssets(
+      await addPhotosFromAssets(
         result.assets.map((asset) => ({
           uri: asset.uri,
           mimeType: asset.mimeType,
           fileName: asset.name,
+          fileSize: asset.size,
         })),
       );
     } catch (e: any) {
       toastCaughtError(e, t("common.error"));
     }
+  }
+
+  function openPhotoSourceAlert() {
+    openAttachmentSourceAlert(
+      {
+        onCamera: () => void pickFromCamera(),
+        onPhotos: () => void pickFromGallery(),
+        onFiles: () => void pickFromFiles(),
+      },
+      t,
+      t("publicReport.addPhotos"),
+    );
   }
 
   function removeLocalPhoto(id: string) {
@@ -563,8 +600,8 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
     if (newSet.has(photoId)) {
       newSet.delete(photoId);
     } else {
-      if (totalPhotoCount >= MAX_PHOTOS) {
-        toastError(t("publicReport.maxPhotosReached"));
+      if (totalPhotoCount >= MAX_PUBLIC_REPORT_PHOTOS) {
+        showMaxPhotosReached();
         return;
       }
       newSet.add(photoId);
@@ -937,7 +974,7 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
             <Text style={styles.photosCount}>
               {t("publicReport.photosCount", {
                 count: totalPhotoCount,
-                limit: MAX_PHOTOS,
+                limit: MAX_PUBLIC_REPORT_PHOTOS,
               })}
             </Text>
           </View>
@@ -989,17 +1026,15 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
               onDragRelease={handleDragRelease}
             />
           )}
-          {totalPhotoCount < MAX_PHOTOS && (
+          {totalPhotoCount < MAX_PUBLIC_REPORT_PHOTOS && (
             <View style={styles.addPhotoButtons}>
-              <AttachmentSourcePicker
-                label={t("publicReport.addPhotos")}
-                triggerStyle={styles.addPhotoButton}
-                handlers={{
-                  onCamera: () => void pickFromCamera(),
-                  onPhotos: () => void pickFromGallery(),
-                  onFiles: () => void pickFromFiles(),
-                }}
-              />
+              <Button
+                variant="ghost"
+                style={styles.addPhotoButton}
+                onPress={openPhotoSourceAlert}
+              >
+                {t("publicReport.addPhotos")}
+              </Button>
             </View>
           )}
         </View>

@@ -1,3 +1,5 @@
+import { PREMIUM_TIER_ENTITLEMENT_LIMITS } from "../../../shared/limits/entitlementLimits";
+
 export const pl = {
   common: {
     appName: "{{appName}}",
@@ -27,6 +29,7 @@ export const pl = {
     and: "i",
     clearButton: "Wyczyść",
     chooseOption: "Wybierz",
+    carouselPosition: "Zdjęcie {{current}} z {{total}}",
     selectDate: "Wybierz datę",
   },
   validation: {
@@ -65,7 +68,7 @@ export const pl = {
       "Osiągnięto limit przypomnień. Przejdź na Premium, aby mieć nielimitowane przypomnienia.",
     photoLimitReachedTitle: "Osiągnięto limit zdjęć",
     photoLimitReachedBody:
-      "Osiągnięto limit zdjęć na pojazd. Przejdź na Premium, aby mieć do 40 zdjęć.",
+      `Osiągnięto limit zdjęć na pojazd. Przejdź na Premium, aby mieć do ${PREMIUM_TIER_ENTITLEMENT_LIMITS.photos_per_vehicle_limit} zdjęć.`,
     limitReachedTitle: "Osiągnięto limit",
     limitReachedBody:
       "Osiągnięto limit dla tej funkcji. Przejdź na Premium, aby zyskać więcej.",
@@ -298,7 +301,7 @@ export const pl = {
     addPhoto: "Dodaj zdjęcie",
     changePhoto: "Zmień zdjęcie",
     photos: "Zdjęcia",
-    maxPhotosReached: "Maksymalnie 6 zdjęć",
+    maxPhotosReached: "Maksymalnie {{limit}} zdjęć",
   },
   timeline: {
     addEntry: "Dodaj wpis serwisowy",
@@ -419,6 +422,44 @@ export const pl = {
     workshopPlaceholder: "Wybierz",
     categoryPlaceholder: "Wybierz",
     presetsTitle: "Szybkie wpisy",
+    importInvoice: "Importuj dokument",
+    importInvoiceHint:
+      "Wybierz jeden plik PDF, JPG, JPEG, PNG, HEIC lub HEIF do 10 MB. Dokument zostanie dołączony lokalnie po zapisaniu.",
+    invoiceAnalyzing: "Analizowanie dokumentu...",
+    invoiceAnalysisProgressLabel: "Szacowany postęp analizy",
+    invoicePrivacyTitle: "Przeanalizować ten dokument?",
+    invoicePrivacyBody:
+      "Dokument zostanie wysłany do analizy przez AI. Vericar nie zapisze go w chmurze, ale dostawca AI może przechowywać go do 30 dni. Lokalna kopia zostanie dołączona po zapisaniu wpisu.",
+    invoiceUnsupportedFile: "Wybierz plik PDF, JPG, JPEG, PNG, HEIC lub HEIF.",
+    invoiceInvalidFile: "Nie udało się odczytać wybranego pliku.",
+    invoiceFileTooLarge: "Plik nie może przekraczać 10 MB.",
+    invoiceAnalysisFailed:
+      "Nie udało się przeanalizować dokumentu. Spróbuj ponownie lub wpisz dane ręcznie.",
+    invoiceMultipleTitle: "Jak zapisać te prace?",
+    invoiceMultipleBody:
+      "Dokument zawiera {{count}} prac. Możesz sprawdzić je jako jeden wpis lub osobne wpisy.",
+    invoiceCombinedAction: "Jeden wpis (zalecane)",
+    invoiceSeparateAction: "Osobne wpisy",
+    invoiceModeLabel: "Sposób zapisu",
+    invoiceModeCombined: "Jeden wpis",
+    invoiceModeSeparate: "Osobne wpisy",
+    invoiceChangeModeAction: "Zmień",
+    invoiceChangeModeAccessibility: "Zmień sposób zapisu",
+    invoiceChangeModeTitle: "Zmienić sposób zapisu?",
+    invoiceChangeModeBody:
+      "Formularz zostanie ponownie uzupełniony danymi z dokumentu. Wprowadzone ręcznie zmiany zostaną utracone.",
+    invoiceCombinedTitle: "Dokument serwisowy",
+    invoiceWorkshop: "Warsztat z dokumentu",
+    invoiceDate: "Data",
+    invoiceCurrency: "Waluta",
+    invoiceEntriesCost: "Cena (jeden lub więcej wpisów)",
+    invoiceEntriesCategory: "Kategoria (jeden lub więcej wpisów)",
+    invoiceCurrencyUnknown: "nierozpoznana",
+    invoiceNoUncertainFields: "brak",
+    invoiceReviewMessage:
+      "Sprawdź dane przed zapisaniem.\n\nWaluta dokumentu: {{currency}}\nWaluta wpisu: {{formCurrency}}\n\nKoszty są uzupełniane tylko przy zgodnych walutach.\n\nBrakujące lub niepewne dane:\n{{fields}}",
+    documentWillAttachToEntries:
+      "Wybrane dokumenty: {{count}}. Zostaną dołączone lokalnie do każdego wpisu po zapisaniu.",
   },
   entryDetail: {
     title: "Wpis serwisowy",
@@ -1403,6 +1444,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     cameraPermissionDenied: "Brak dostępu do aparatu",
     galleryPermissionDenied: "Brak dostępu do zdjęć",
     noFileSelected: "Nie wybrano pliku",
+    imageFileTooLarge: "Zdjęcie nie może przekraczać {{limit}} MB.",
     deleteEntryTitle: "Usunąć wpis?",
     deleteEntryBody: "To usunie wpis serwisowy i jego załączniki.",
     editAttachmentNameTitle: "Edytuj nazwę załącznika",
@@ -1635,7 +1677,7 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     photosCount: "{{count}} / {{limit}} zdjęć",
     photosFromApp: "Zdjęcia z pojazdu",
     addPhotos: "Dodaj zdjęcia",
-    maxPhotosReached: "Maksymalnie 40 zdjęć",
+    maxPhotosReached: "Maksymalnie {{limit}} zdjęcia",
     nextButton: "Dalej",
     summaryTitle: "Podsumowanie raportu",
     summarySubtitle: "Sprawdź, co zostanie zawarte w raporcie.",

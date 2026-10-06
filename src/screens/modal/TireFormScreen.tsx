@@ -200,7 +200,7 @@ export function TireFormScreen({ navigation, route }: Props) {
         )
       }
     >
-      <FormScreen noLayout>
+      <FormScreen noLayout scrollView={false}>
         <NativeHeaderScrollView>
           <Card>
             <FormInputRow

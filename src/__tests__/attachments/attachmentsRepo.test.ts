@@ -3,7 +3,7 @@ import {
   listAttachments,
   listVehicleAttachments,
   updateAttachmentDisplayName,
-  uploadAttachment,
+  saveAttachmentLocally,
 } from "../../services/attachments/attachmentsRepo";
 import {
   deleteLocalAttachment,
@@ -73,13 +73,13 @@ describe("attachmentsRepo", () => {
     ]);
   });
 
-  it("uploadAttachment stores local file + db row with inferred metadata", async () => {
+  it("saveAttachmentLocally stores local file + db row with inferred metadata", async () => {
     (inferContentType as jest.Mock).mockReturnValue("image/jpeg");
     (inferExtension as jest.Mock).mockReturnValue("jpg");
     (saveAttachmentFile as jest.Mock).mockResolvedValue("/local/a.jpg");
     (uuid as jest.Mock).mockReturnValue("uuid-1");
 
-    const out = await uploadAttachment({
+    const out = await saveAttachmentLocally({
       serviceEntryId: "se1",
       vehicleId: "v1",
       fileUri: "file:///a",
@@ -147,4 +147,3 @@ describe("attachmentsRepo", () => {
     );
   });
 });
-

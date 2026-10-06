@@ -16,7 +16,10 @@ import {
 
 import { useTheme } from "../../ThemeProvider";
 import { AppLayout } from "./AppLayout";
-import { FormScreenScrollRefContext } from "./FormScreenContext";
+import {
+  FormScreenKeyboardInsetContext,
+  FormScreenScrollRefContext,
+} from "./FormScreenContext";
 
 export { useFormScreenScrollRef } from "./FormScreenContext";
 
@@ -28,6 +31,7 @@ export function FormScreen({
   footer,
   isModal = false,
   noLayout = false,
+  scrollView = true,
 }: PropsWithChildren<{
   padding?: boolean;
   header?: ReactNode;
@@ -38,6 +42,8 @@ export function FormScreen({
   isModal?: boolean;
   /** When true, only render scroll + keyboard (no AppLayout). Use when wrapping with ModalLayout/HeaderLayout. */
   noLayout?: boolean;
+  /** Disable when children provide the screen's ScrollView. */
+  scrollView?: boolean;
 }>) {
   const { theme } = useTheme();
   const internalScrollRef = useRef<ScrollViewInstance | null>(null);
@@ -57,34 +63,37 @@ export function FormScreen({
     };
   }, []);
 
+  const content = scrollView ? (
+    <ScrollView
+      ref={effectiveScrollRef}
+      scrollEnabled={scrollEnabled}
+      nestedScrollEnabled={false}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{
+        flexGrow: 1,
+        paddingBottom: theme.spacing.lg + keyboardHeight / 2,
+      }}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={{ flexGrow: 1, flexShrink: 0 }}>{children}</View>
+      </TouchableWithoutFeedback>
+    </ScrollView>
+  ) : (
+    children
+  );
+
   const inner = (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior="padding"
       keyboardVerticalOffset={0}
     >
-      <FormScreenScrollRefContext.Provider value={effectiveScrollRef}>
-        <View style={{ flex: 1 }}>
-          <ScrollView
-            ref={effectiveScrollRef}
-            scrollEnabled={scrollEnabled}
-            nestedScrollEnabled={false}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-              flexGrow: 1,
-              paddingBottom: theme.spacing.lg + keyboardHeight / 2,
-            }}
-          >
-            <TouchableWithoutFeedback
-              onPress={Keyboard.dismiss}
-              accessible={false}
-            >
-              <View style={{ flexGrow: 1, flexShrink: 0 }}>{children}</View>
-            </TouchableWithoutFeedback>
-          </ScrollView>
-        </View>
-      </FormScreenScrollRefContext.Provider>
+      <FormScreenKeyboardInsetContext.Provider value={keyboardHeight / 2}>
+        <FormScreenScrollRefContext.Provider value={effectiveScrollRef}>
+          <View style={{ flex: 1 }}>{content}</View>
+        </FormScreenScrollRefContext.Provider>
+      </FormScreenKeyboardInsetContext.Provider>
     </KeyboardAvoidingView>
   );
 

@@ -15,6 +15,7 @@ import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import Carousel from "react-native-reanimated-carousel";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CarouselPaginationCounter } from "../../ui/components/common/CarouselPaginationCounter";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { getVehicle } from "../../services/vehicles/vehiclesRepo";
@@ -309,17 +310,24 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
                   )}
                 />
                 {photoCount > 1 && (
-                  <Pressable
-                    style={styles.expandButton}
-                    onPress={() => setFullScreenIndex(photoIndex)}
-                    hitSlop={8}
-                  >
-                    <FontAwesome5
-                      name="expand"
-                      size={16}
-                      color={theme.colors.accent}
+                  <>
+                    <CarouselPaginationCounter
+                      activeIndex={photoIndex}
+                      total={photoCount}
+                      style={styles.paginationCounter}
                     />
-                  </Pressable>
+                    <Pressable
+                      style={styles.expandButton}
+                      onPress={() => setFullScreenIndex(photoIndex)}
+                      hitSlop={8}
+                    >
+                      <FontAwesome5
+                        name="expand"
+                        size={16}
+                        color={theme.colors.accent}
+                      />
+                    </Pressable>
+                  </>
                 )}
               </Pressable>
             </View>
@@ -631,6 +639,12 @@ const makeStyles = (theme: any) =>
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: "rgba(0,0,0,0.5)",
+    },
+    paginationCounter: {
+      position: "absolute",
+      bottom: theme.spacing.md,
+      left: theme.spacing.md,
+      zIndex: 10,
     },
     fullScreenOverlay: {
       flex: 1,

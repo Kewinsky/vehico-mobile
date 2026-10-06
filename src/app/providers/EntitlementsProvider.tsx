@@ -36,6 +36,10 @@ import {
   type PremiumEndingKind,
 } from "../../services/payments/subscriptionStatus";
 import { useAuth } from "./AuthProvider";
+import {
+  FREE_TIER_ENTITLEMENT_LIMITS,
+  PREMIUM_TIER_ENTITLEMENT_LIMITS,
+} from "../../../shared/limits/entitlementLimits";
 
 export type EntitlementPlan = "free" | "premium" | "lifetime";
 
@@ -63,12 +67,6 @@ export type Entitlements = {
   free_plan_wheel_id: string | null;
 };
 
-const PREMIUM_PHOTOS_PER_VEHICLE_LIMIT = 40;
-/** Effective "unlimited" for backend and UI (DB stores 999 for premium). */
-const PREMIUM_UNLIMITED = 999;
-/** Max limits for free plan; clamp DB values so free users never see more even if DB is stale. */
-const FREE_WORKSHOPS_LIMIT = 3;
-const FREE_REMINDERS_LIMIT = 5;
 const IS_REVENUECAT_PLATFORM = true;
 
 /**
@@ -167,12 +165,7 @@ const EntitlementsContext = createContext<EntitlementsContextValue | null>(
 
 const DEFAULT_ENTITLEMENTS: Entitlements = {
   plan: "free",
-  vehicles_limit: 1,
-  photos_per_vehicle_limit: 6,
-  tires_per_vehicle_limit: 1,
-  wheels_per_vehicle_limit: 1,
-  workshops_limit: 3,
-  reminders_limit: 5,
+  ...FREE_TIER_ENTITLEMENT_LIMITS,
   premium_until: null,
   product_id: null,
   free_plan_vehicle_id: null,
@@ -199,12 +192,21 @@ async function fetchEntitlements(): Promise<Entitlements> {
 
   return {
     plan: (data.plan as EntitlementPlan) ?? "free",
-    vehicles_limit: data.vehicles_limit ?? 1,
-    photos_per_vehicle_limit: data.photos_per_vehicle_limit ?? 6,
-    tires_per_vehicle_limit: data.tires_per_vehicle_limit ?? 1,
-    wheels_per_vehicle_limit: data.wheels_per_vehicle_limit ?? 1,
-    workshops_limit: data.workshops_limit ?? 3,
-    reminders_limit: data.reminders_limit ?? 5,
+    vehicles_limit:
+      data.vehicles_limit ?? FREE_TIER_ENTITLEMENT_LIMITS.vehicles_limit,
+    photos_per_vehicle_limit:
+      data.photos_per_vehicle_limit ??
+      FREE_TIER_ENTITLEMENT_LIMITS.photos_per_vehicle_limit,
+    tires_per_vehicle_limit:
+      data.tires_per_vehicle_limit ??
+      FREE_TIER_ENTITLEMENT_LIMITS.tires_per_vehicle_limit,
+    wheels_per_vehicle_limit:
+      data.wheels_per_vehicle_limit ??
+      FREE_TIER_ENTITLEMENT_LIMITS.wheels_per_vehicle_limit,
+    workshops_limit:
+      data.workshops_limit ?? FREE_TIER_ENTITLEMENT_LIMITS.workshops_limit,
+    reminders_limit:
+      data.reminders_limit ?? FREE_TIER_ENTITLEMENT_LIMITS.reminders_limit,
     premium_until: data.premium_until ?? null,
     product_id: data.product_id ?? null,
     free_plan_vehicle_id: data.free_plan_vehicle_id ?? null,
@@ -729,12 +731,15 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
         isPremium: false,
         isRevenueCatPremium: false,
         premiumEntitlement: null,
-        vehiclesLimit: 1,
-        photosPerVehicleLimit: 6,
-        tiresPerVehicleLimit: 1,
-        wheelsPerVehicleLimit: 1,
-        workshopsLimit: 3,
-        remindersLimit: 5,
+        vehiclesLimit: FREE_TIER_ENTITLEMENT_LIMITS.vehicles_limit,
+        photosPerVehicleLimit:
+          FREE_TIER_ENTITLEMENT_LIMITS.photos_per_vehicle_limit,
+        tiresPerVehicleLimit:
+          FREE_TIER_ENTITLEMENT_LIMITS.tires_per_vehicle_limit,
+        wheelsPerVehicleLimit:
+          FREE_TIER_ENTITLEMENT_LIMITS.wheels_per_vehicle_limit,
+        workshopsLimit: FREE_TIER_ENTITLEMENT_LIMITS.workshops_limit,
+        remindersLimit: FREE_TIER_ENTITLEMENT_LIMITS.reminders_limit,
         currentPlanProductId: null,
         freePlanVehicleId: null,
         freePlanWorkshopIds: [],
@@ -824,23 +829,29 @@ export function EntitlementsProvider({ children }: PropsWithChildren) {
       isRevenueCatPremium: premiumEntitlement?.isActive === true,
       premiumEntitlement,
       vehiclesLimit: isPremium
-        ? PREMIUM_UNLIMITED
+        ? PREMIUM_TIER_ENTITLEMENT_LIMITS.vehicles_limit
         : entitlements.vehicles_limit,
       photosPerVehicleLimit: isPremium
-        ? PREMIUM_PHOTOS_PER_VEHICLE_LIMIT
+        ? PREMIUM_TIER_ENTITLEMENT_LIMITS.photos_per_vehicle_limit
         : entitlements.photos_per_vehicle_limit,
       tiresPerVehicleLimit: isPremium
-        ? PREMIUM_UNLIMITED
+        ? PREMIUM_TIER_ENTITLEMENT_LIMITS.tires_per_vehicle_limit
         : entitlements.tires_per_vehicle_limit,
       wheelsPerVehicleLimit: isPremium
-        ? PREMIUM_UNLIMITED
+        ? PREMIUM_TIER_ENTITLEMENT_LIMITS.wheels_per_vehicle_limit
         : entitlements.wheels_per_vehicle_limit,
       workshopsLimit: isPremium
-        ? PREMIUM_UNLIMITED
-        : Math.min(entitlements.workshops_limit, FREE_WORKSHOPS_LIMIT),
+        ? PREMIUM_TIER_ENTITLEMENT_LIMITS.workshops_limit
+        : Math.min(
+            entitlements.workshops_limit,
+            FREE_TIER_ENTITLEMENT_LIMITS.workshops_limit,
+          ),
       remindersLimit: isPremium
-        ? PREMIUM_UNLIMITED
-        : Math.min(entitlements.reminders_limit, FREE_REMINDERS_LIMIT),
+        ? PREMIUM_TIER_ENTITLEMENT_LIMITS.reminders_limit
+        : Math.min(
+            entitlements.reminders_limit,
+            FREE_TIER_ENTITLEMENT_LIMITS.reminders_limit,
+          ),
       currentPlanProductId,
       freePlanVehicleId: entitlements.free_plan_vehicle_id ?? null,
       freePlanWorkshopIds: isPremium

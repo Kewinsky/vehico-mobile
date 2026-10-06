@@ -60,7 +60,8 @@ export function inferContentType(params: {
   const lower = (params.fileName ?? params.uri).toLowerCase();
   if (lower.endsWith(".pdf")) return "application/pdf";
   if (lower.endsWith(".png")) return "image/png";
-  if (lower.endsWith(".webp")) return "image/webp";
+  if (lower.endsWith(".heic")) return "image/heic";
+  if (lower.endsWith(".heif")) return "image/heif";
   if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
   return "application/octet-stream";
 }
@@ -74,9 +75,9 @@ export function inferExtension(params: {
   const dot = lower.lastIndexOf(".");
   if (dot >= 0 && dot < lower.length - 1) return lower.slice(dot + 1);
   if (params.contentType === "image/png") return "png";
-  if (params.contentType === "image/webp") return "webp";
+  if (params.contentType === "image/heic") return "heic";
+  if (params.contentType === "image/heif") return "heif";
   if (params.contentType === "image/jpeg") return "jpg";
   if (params.contentType === "application/pdf") return "pdf";
   return "bin";
 }
-

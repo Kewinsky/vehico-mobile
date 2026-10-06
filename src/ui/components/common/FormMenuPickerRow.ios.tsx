@@ -1,12 +1,12 @@
 import { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Host, Picker } from "@expo/ui/swift-ui";
-import { fixedSize } from "@expo/ui/swift-ui/modifiers";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 import { useTheme } from "../../ThemeProvider";
 import { CardRow } from "./Card";
 import type { FormMenuPickerRowProps } from "./FormMenuPickerRow.types";
+import { openOptionAlert } from "./openOptionAlert";
 
 export type { FormMenuPickerRowProps } from "./FormMenuPickerRow.types";
 
@@ -22,9 +22,11 @@ export function FormMenuPickerRow({
   disabled = false,
   rowStyle,
 }: FormMenuPickerRowProps) {
-  const { theme, mode: themeMode } = useTheme();
+  const { t } = useTranslation();
+  const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const valueColor = isValueMuted ? theme.colors.muted : theme.colors.fg;
+  const displayValue = options[selectedIndex] ?? "";
 
   return (
     <View
@@ -48,25 +50,32 @@ export function FormMenuPickerRow({
               {label}
             </Text>
           </View>
-          <View style={styles.valueWrap}>
-            <Host
-              matchContents={{ horizontal: true, vertical: true }}
-              colorScheme={themeMode === "dark" ? "dark" : "light"}
-              style={styles.nativePickerHost}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${label}: ${displayValue}`}
+            disabled={disabled}
+            onPress={() =>
+              openOptionAlert({
+                title: label,
+                options,
+                selectedIndex,
+                onSelect: onOptionSelected,
+                cancelLabel: t("common.cancel"),
+              })
+            }
+            style={({ pressed }) => [
+              styles.valueWrap,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text
+              style={[styles.valueText, { color: valueColor }]}
+              numberOfLines={1}
             >
-              <Picker
-                variant="menu"
-                label=""
-                options={options}
-                selectedIndex={selectedIndex}
-                color={valueColor}
-                modifiers={[fixedSize({ horizontal: true, vertical: true })]}
-                onOptionSelected={({ nativeEvent }) => {
-                  onOptionSelected(nativeEvent.index);
-                }}
-              />
-            </Host>
-          </View>
+              {displayValue}
+            </Text>
+            <Ionicons name="chevron-down" size={16} color={valueColor} />
+          </Pressable>
         </View>
       </CardRow>
     </View>
@@ -106,9 +115,16 @@ const makeStyles = (theme: any) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "flex-end",
+      gap: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.md,
     },
-    nativePickerHost: {
-      flexShrink: 0,
-      maxWidth: "100%",
+    valueText: {
+      flexShrink: 1,
+      fontSize: theme.typography.body,
+      fontWeight: theme.typography.fontWeight.bold,
+      textAlign: "right",
+    },
+    pressed: {
+      opacity: 0.7,
     },
   });

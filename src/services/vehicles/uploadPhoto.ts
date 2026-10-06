@@ -1,12 +1,11 @@
 import type { VehiclePhoto } from "../../types/domain";
+import { FREE_TIER_ENTITLEMENT_LIMITS } from "../../../shared/limits/entitlementLimits";
 import { supabase } from "../supabase/client";
 import {
   compressImageForUpload,
   UPLOAD_IMAGE_CACHE_CONTROL,
 } from "../storage/compressImageForUpload";
 import { fetchBlob, randomId } from "../storage/uploadUtils";
-
-const DEFAULT_MAX_PHOTOS = 6;
 
 export type ListVehiclePhotosOptions = {
   /** When set (e.g. free plan), return only first N by display_order. */
@@ -66,7 +65,7 @@ export async function listVehiclePhotosForVehicles(
 /**
  * Uploads a photo for a vehicle and returns the VehiclePhoto
  * The photo is stored in: {vehicleId}/{timestamp}-{randomId}.jpg
- * Maximum photos per vehicle is determined by user's plan (default: 6 for free, 40 for premium)
+ * Maximum photos per vehicle is determined by the user's plan.
  * All photos are converted to JPEG format for maximum compatibility
  */
 export async function uploadVehiclePhoto(params: {
@@ -76,7 +75,8 @@ export async function uploadVehiclePhoto(params: {
   fileName?: string | null;
   maxPhotos?: number; // Optional limit override (from entitlements)
 }): Promise<VehiclePhoto> {
-  const maxPhotos = params.maxPhotos ?? DEFAULT_MAX_PHOTOS;
+  const maxPhotos =
+    params.maxPhotos ?? FREE_TIER_ENTITLEMENT_LIMITS.photos_per_vehicle_limit;
   // Check current count
   const existing = await listVehiclePhotos(params.vehicleId);
   if (existing.length >= maxPhotos) {

@@ -103,6 +103,8 @@ describe("inferContentType", () => {
 
   it("infers from uri when no fileName", () => {
     expect(inferContentType({ uri: "file:///photo.JPEG" })).toBe("image/jpeg");
+    expect(inferContentType({ uri: "file:///photo.HEIC" })).toBe("image/heic");
+    expect(inferContentType({ uri: "file:///photo.HEIF" })).toBe("image/heif");
   });
 });
 
@@ -124,5 +126,11 @@ describe("inferExtension", () => {
         contentType: "image/png",
       }),
     ).toBe("png");
+    expect(
+      inferExtension({
+        uri: "file:///noext",
+        contentType: "image/heic",
+      }),
+    ).toBe("heic");
   });
 });

@@ -2,7 +2,7 @@ import {
   deleteVehicleDocument,
   listVehicleDocuments,
   updateVehicleDocument,
-  uploadVehicleDocument,
+  saveVehicleDocumentLocally,
 } from "../../services/vehicleDocuments/vehicleDocumentsRepo";
 import {
   deleteLocalVehicleDocument,
@@ -65,13 +65,13 @@ describe("vehicleDocumentsRepo", () => {
     );
   });
 
-  it("uploadVehicleDocument stores local file + db row", async () => {
+  it("saveVehicleDocumentLocally stores local file + db row", async () => {
     (inferContentType as jest.Mock).mockReturnValue("application/pdf");
     (inferExtension as jest.Mock).mockReturnValue("pdf");
     (saveVehicleDocumentFile as jest.Mock).mockResolvedValue("/local/doc.pdf");
     (uuid as jest.Mock).mockReturnValue("doc-uuid");
 
-    const out = await uploadVehicleDocument({
+    const out = await saveVehicleDocumentLocally({
       vehicleId: "v1",
       fileUri: "file:///doc",
       fileName: "doc.pdf",
@@ -131,4 +131,3 @@ describe("vehicleDocumentsRepo", () => {
     expect(deleteLocalVehicleDocument).toHaveBeenCalledWith("d1");
   });
 });
-

@@ -41,7 +41,7 @@ stable
 parallel safe
 set search_path = public
 as $$
-  select 999, 40, 999, 999, 999, 999;
+  select 999, 42, 999, 999, 999, 999;
 $$;
 
 -- ================
@@ -1519,8 +1519,8 @@ begin
     raise exception 'Access denied';
   end if;
 
-  if jsonb_array_length(p_photos_data) > 40 then
-    raise exception 'Maximum 40 photos per report';
+  if jsonb_array_length(p_photos_data) > 42 then
+    raise exception 'Maximum 42 photos per report';
   end if;
 
   if jsonb_array_length(p_photos_data) = 0 then
