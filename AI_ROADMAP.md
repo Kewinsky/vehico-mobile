@@ -93,8 +93,11 @@ przechowywania dokumentu i bez automatycznego zapisu.
 
 ## Etap 5 – Import paragonu paliwowego
 
-- ekstrakcja daty, ilości paliwa, ceny, łącznego kosztu, rodzaju paliwa i stacji,
-- wyliczanie brakującej ceny jednostkowej lub sumy wyłącznie deterministycznie,
+Status: zaimplementowany. Szczegóły kontraktu i zabezpieczeń opisuje
+`AI_STAGE_5.md`.
+
+- ekstrakcja daty, ilości paliwa, łącznego kosztu, rodzaju paliwa i stacji,
+- przepisywanie wartości dokładnie z paragonu, bez konwersji jednostek i walut,
 - wykorzystanie profilu pojazdu do zawężenia dozwolonych rodzajów paliwa,
 - jawne wymaganie ręcznego podania przebiegu lub dystansu, jeśli paragon go nie
   zawiera,

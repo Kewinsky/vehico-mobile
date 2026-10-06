@@ -74,3 +74,9 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/service-invoice-import/deno.json"
 entrypoint = "./functions/service-invoice-import/index.ts"
+
+[functions.fuel-receipt-import]
+enabled = true
+verify_jwt = false
+import_map = "./functions/fuel-receipt-import/deno.json"
+entrypoint = "./functions/fuel-receipt-import/index.ts"

@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
-import { Alert, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import {
@@ -32,14 +34,33 @@ import { useTheme } from "../../ui/ThemeProvider";
 import { useFormFieldErrors } from "../../app/hooks/useFormFieldErrors";
 import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
+import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { toastCaughtError } from "../../ui/toast/toast";
 import { Droplet, Fuel } from "lucide-react-native";
+import { openAttachmentSourceAlert } from "../../ui/components/common/sourcePickerAlert";
+import { showPremiumRequiredAlert } from "../../ui/limits/entitlementAlerts";
+import {
+  analyzeFuelReceipt,
+  FuelReceiptImportError,
+  resolveFuelReceiptMimeType,
+  type FuelReceiptExtraction,
+} from "../../services/ai/fuelReceiptImportRepo";
+import { buildFuelReceiptFormDraft } from "../../forms/fuelReceiptDraft";
+import {
+  alertCaughtError,
+  getUserFacingErrorMessage,
+} from "../../ui/errors/userFacingError";
 
 type Props = NativeStackScreenProps<AppStackParamList, "FuelingEntryForm">;
+
+const RECEIPT_ANALYSIS_TIMEOUT_MS = 30_000;
+const RECEIPT_ANALYSIS_MAX_ESTIMATED_PROGRESS = 90;
 
 export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const { isPremium } = useEntitlements();
   const { vehicleId, entryId } = route.params;
   const { distanceUnitLabel, fuelUnitShort } = useUnitDisplay();
   const { settings } = useUserSettings();
@@ -53,6 +74,14 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const [fuelType, setFuelType] = useState<FuelGrade | null>(null);
   const [gasStation, setGasStation] = useState<GasStation | null>(null);
   const [saving, setSaving] = useState(false);
+  const [analyzingReceipt, setAnalyzingReceipt] = useState(false);
+  const [receiptAnalysisProgress, setReceiptAnalysisProgress] = useState(0);
+  const [receiptReviewMessage, setReceiptReviewMessage] = useState<string | null>(
+    null,
+  );
+  const [hasReceiptDraft, setHasReceiptDraft] = useState(false);
+  const receiptAbortController = useRef<AbortController | null>(null);
+  const hasReceiptDraftRef = useRef(false);
 
   const formValues = useMemo(
     (): FuelingEntryFormState => ({
@@ -67,11 +96,14 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   );
 
   const fieldErrors = useMemo(
-    () => fuelingEntryFieldErrors(formValues),
-    [formValues],
+    () => fuelingEntryFieldErrors(formValues, { requireDistance: hasReceiptDraft }),
+    [formValues, hasReceiptDraft],
   );
 
-  const canSave = useMemo(() => canSaveFuelingEntry(formValues), [formValues]);
+  const canSave = useMemo(
+    () => canSaveFuelingEntry(formValues, { requireDistance: hasReceiptDraft }),
+    [formValues, hasReceiptDraft],
+  );
 
   const { fieldError, validateBeforeSave, resetFieldErrors } =
     useFormFieldErrors(canSave);
@@ -95,7 +127,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     try {
       const entries = await listFuelingEntries(vehicleId);
       const last = entries[0];
-      if (!last) return;
+      if (!last || hasReceiptDraftRef.current) return;
       if (last.fuel_type != null) {
         setFuelType((prev) => prev ?? last.fuel_type);
       }
@@ -110,6 +142,27 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(
+    () => () => {
+      receiptAbortController.current?.abort();
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!analyzingReceipt) return;
+    const startedAt = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      const next = Math.min(
+        RECEIPT_ANALYSIS_MAX_ESTIMATED_PROGRESS,
+        Math.max(1, Math.round((elapsed / RECEIPT_ANALYSIS_TIMEOUT_MS) * 100)),
+      );
+      setReceiptAnalysisProgress(next);
+    }, 500);
+    return () => clearInterval(interval);
+  }, [analyzingReceipt]);
 
   function confirmDelete() {
     if (!entryId) return;
@@ -142,6 +195,172 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     setFuelCost("");
     setFuelType(null);
     setGasStation(null);
+    setReceiptReviewMessage(null);
+    setHasReceiptDraft(false);
+    hasReceiptDraftRef.current = false;
+  }
+
+  const applyReceiptExtraction = useCallback(
+    (extraction: FuelReceiptExtraction) => {
+      const draft = buildFuelReceiptFormDraft(extraction);
+      if (draft.date) setDate(draft.date);
+      setDistance("");
+      setFuelAmount(draft.fuelAmount ?? "");
+      setFuelCost(draft.fuelCost ?? "");
+      setFuelType(draft.fuelType);
+      setGasStation(draft.gasStation ?? "other");
+      resetFieldErrors();
+      setHasReceiptDraft(true);
+      hasReceiptDraftRef.current = true;
+
+      const issues = [
+        extraction.date.status !== "recognized"
+          ? t("fuelingForm.receiptFieldDate")
+          : null,
+        extraction.fuelAmount.status !== "recognized"
+          ? t("fuelingForm.receiptFieldAmount")
+          : null,
+        extraction.totalCost.status !== "recognized"
+          ? t("fuelingForm.receiptFieldCost")
+          : null,
+        extraction.fuelType.status !== "recognized"
+          ? t("fuelingForm.receiptFieldFuelType")
+          : null,
+        extraction.gasStation.status !== "recognized"
+          ? t("fuelingForm.receiptFieldStation")
+          : null,
+      ].filter((value): value is string => value !== null);
+      setReceiptReviewMessage(
+        issues.length > 0
+          ? t("fuelingForm.receiptReviewIssues", {
+              fields: issues.map((item) => `• ${item}`).join("\n"),
+            })
+          : t("fuelingForm.receiptReviewComplete"),
+      );
+    },
+    [resetFieldErrors, t],
+  );
+
+  const handleImportReceipt = useCallback(async (asset: {
+    uri: string;
+    name: string;
+    mimeType?: string | null;
+    size?: number | null;
+  }) => {
+    if (!isPremium) {
+      showPremiumRequiredAlert(t, navigation);
+      return;
+    }
+    try {
+      const mimeType = resolveFuelReceiptMimeType(asset.mimeType, asset.name);
+      if (!mimeType) {
+        throw new FuelReceiptImportError(
+          "INVALID_FILE",
+          t("fuelingForm.receiptUnsupportedFile"),
+        );
+      }
+      receiptAbortController.current?.abort();
+      const controller = new AbortController();
+      receiptAbortController.current = controller;
+      setReceiptAnalysisProgress(1);
+      setAnalyzingReceipt(true);
+      const extraction = await analyzeFuelReceipt({
+        vehicleId,
+        fileUri: asset.uri,
+        mimeType,
+        fileSize: asset.size,
+        signal: controller.signal,
+      });
+      setReceiptAnalysisProgress(100);
+      applyReceiptExtraction(extraction);
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      const message =
+        error instanceof FuelReceiptImportError &&
+        error.code === "FILE_TOO_LARGE"
+          ? t("fuelingForm.receiptFileTooLarge")
+          : error instanceof FuelReceiptImportError &&
+              error.code === "INVALID_FILE"
+            ? t("fuelingForm.receiptInvalidFile")
+            : error instanceof FuelReceiptImportError
+              ? t("fuelingForm.receiptAnalysisFailed")
+              : getUserFacingErrorMessage(
+                  error,
+                  t("fuelingForm.receiptAnalysisFailed"),
+                );
+      Alert.alert(t("common.error"), message);
+    } finally {
+      setAnalyzingReceipt(false);
+      receiptAbortController.current = null;
+    }
+  }, [
+    applyReceiptExtraction,
+    isPremium,
+    navigation,
+    t,
+    vehicleId,
+  ]);
+
+  async function importReceiptFromCamera() {
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        throw new Error(t("attachments.cameraPermissionDenied"));
+      }
+      const result = await ImagePicker.launchCameraAsync({ quality: 0.9 });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await handleImportReceipt({
+        uri: asset.uri,
+        name: asset.fileName ?? asset.uri.split("/").pop() ?? "fuel-receipt.jpg",
+        mimeType: asset.mimeType,
+        size: asset.fileSize,
+      });
+    } catch (error) {
+      alertCaughtError(t("common.error"), error, t("common.error"));
+    }
+  }
+
+  async function importReceiptFromGallery() {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 1,
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await handleImportReceipt({
+        uri: asset.uri,
+        name: asset.fileName ?? asset.uri.split("/").pop() ?? "fuel-receipt.jpg",
+        mimeType: asset.mimeType,
+        size: asset.fileSize,
+      });
+    } catch (error) {
+      alertCaughtError(t("common.error"), error, t("common.error"));
+    }
+  }
+
+  async function importReceiptFromFiles() {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["image/jpeg", "image/png", "image/heic", "image/heif"],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset?.uri) throw new Error(t("attachments.noFileSelected"));
+      await handleImportReceipt({
+        uri: asset.uri,
+        name: asset.name,
+        mimeType: asset.mimeType,
+        size: asset.size,
+      });
+    } catch (error) {
+      alertCaughtError(t("common.error"), error, t("common.error"));
+    }
   }
 
   async function onSave() {
@@ -149,7 +368,9 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
 
     try {
       setSaving(true);
-      const payload = buildFuelingEntryPayload(vehicleId, formValues);
+      const payload = buildFuelingEntryPayload(vehicleId, formValues, {
+        requireDistance: hasReceiptDraft,
+      });
       if (entryId) await updateFuelingEntry(entryId, payload);
       else await createFuelingEntry(payload);
       navigation.goBack();
@@ -167,7 +388,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       done={{
         onPress: onSave,
         label: t("common.done"),
-        disabled: saving,
+        disabled: saving || analyzingReceipt,
         loading: saving,
       }}
       footer={
@@ -176,7 +397,11 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
             {t("common.delete")}
           </Button>
         ) : (
-          <Button variant="outlined" onPress={clearForm} disabled={saving}>
+          <Button
+            variant="outlined"
+            onPress={clearForm}
+            disabled={saving || analyzingReceipt}
+          >
             {t("common.clearButton")}
           </Button>
         )
@@ -184,13 +409,102 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     >
       <FormScreen noLayout scrollView={false}>
         <NativeHeaderScrollView>
+          {!entryId ? (
+            <>
+              <View style={styles.importSection}>
+                <Button
+                  variant="ghost"
+                  disabled={saving || analyzingReceipt}
+                  onPress={() => {
+                    if (!isPremium) {
+                      showPremiumRequiredAlert(t, navigation);
+                      return;
+                    }
+                    openAttachmentSourceAlert(
+                      {
+                        onCamera: () => void importReceiptFromCamera(),
+                        onPhotos: () => void importReceiptFromGallery(),
+                        onFiles: () => void importReceiptFromFiles(),
+                      },
+                      t,
+                      t("fuelingForm.importReceipt"),
+                    );
+                  }}
+                >
+                  {analyzingReceipt
+                    ? t("fuelingForm.receiptAnalyzing")
+                    : t("fuelingForm.importReceipt")}
+                </Button>
+                {analyzingReceipt ? (
+                  <View
+                    style={styles.analysisProgress}
+                    accessible
+                    accessibilityRole="progressbar"
+                    accessibilityLabel={t(
+                      "fuelingForm.receiptAnalysisProgressLabel",
+                    )}
+                    accessibilityValue={{
+                      min: 0,
+                      max: 100,
+                      now: receiptAnalysisProgress,
+                    }}
+                  >
+                    <View style={styles.analysisProgressHeader}>
+                      <Text style={{ color: theme.colors.muted }}>
+                        {t("fuelingForm.receiptAnalysisProgressLabel")}
+                      </Text>
+                      <Text style={{ color: theme.colors.fg }}>
+                        {receiptAnalysisProgress}%
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.analysisProgressTrack,
+                        { backgroundColor: theme.colors.border },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.analysisProgressFill,
+                          {
+                            backgroundColor: theme.colors.accent,
+                            width: `${receiptAnalysisProgress}%` as `${number}%`,
+                          },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                ) : (
+                  <Text style={[styles.hint, { color: theme.colors.muted }]}>
+                    {t("fuelingForm.importReceiptHint")}
+                  </Text>
+                )}
+              </View>
+              <View style={{ height: theme.spacing.sm }} />
+              {receiptReviewMessage ? (
+                <>
+                  <Card
+                    style={[
+                      styles.reviewCard,
+                      { backgroundColor: `${theme.colors.accent}20` },
+                    ]}
+                  >
+                    <Text style={[styles.reviewText, { color: theme.colors.fg }]}>
+                      {receiptReviewMessage}
+                    </Text>
+                  </Card>
+                  <View style={{ height: theme.spacing.sm }} />
+                </>
+              ) : null}
+            </>
+          ) : null}
           <Card>
             <FormDateRow
               icon="calendar-outline"
               label={t("fuelingForm.date")}
               value={date}
               onChange={setDate}
-              disabled={saving}
+              disabled={saving || analyzingReceipt}
               error={fieldError(fieldErrors.date)}
             />
 
@@ -202,7 +516,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               getLabel={(value) => t(`fuelingForm.fuelTypes.${value}`)}
               onChange={setFuelType}
               placeholderLabel={t("fuelingForm.fuelPlaceholder")}
-              disabled={saving}
+              disabled={saving || analyzingReceipt}
             />
 
             <FormPickerRow<GasStation>
@@ -213,7 +527,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               getLabel={(value) => t(`fuelingForm.stations.${value}`)}
               onChange={setGasStation}
               placeholderLabel={t("fuelingForm.gasStationPlaceholder")}
-              disabled={saving}
+              disabled={saving || analyzingReceipt}
             />
           </Card>
 
@@ -227,7 +541,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               onChangeText={setDistance}
               decimal
               keyboardType="decimal-pad"
-              editable={!saving}
+              editable={!saving && !analyzingReceipt}
               placeholder={t("fuelingForm.placeholderDistance")}
               error={fieldError(fieldErrors.distance)}
             />
@@ -239,7 +553,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               onChangeText={setFuelAmount}
               decimal
               keyboardType="decimal-pad"
-              editable={!saving}
+              editable={!saving && !analyzingReceipt}
               placeholder={t("fuelingForm.placeholderFuelAmount")}
               error={fieldError(fieldErrors.fuelAmount)}
             />
@@ -251,7 +565,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               onChangeText={setFuelCost}
               decimal
               keyboardType="decimal-pad"
-              editable={!saving}
+              editable={!saving && !analyzingReceipt}
               placeholder={t("fuelingForm.placeholderCost")}
               error={fieldError(fieldErrors.fuelCost)}
             />
@@ -261,3 +575,41 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     </ModalLayout>
   );
 }
+
+const makeStyles = (theme: any) =>
+  StyleSheet.create({
+    importSection: {
+      gap: theme.spacing.sm,
+    },
+    hint: {
+      fontSize: theme.typography.caption,
+      lineHeight: theme.typography.caption + 5,
+      paddingHorizontal: theme.spacing.sm,
+    },
+    analysisProgress: {
+      gap: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.sm,
+    },
+    analysisProgressHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    analysisProgressTrack: {
+      height: 6,
+      borderRadius: 3,
+      overflow: "hidden",
+    },
+    analysisProgressFill: {
+      height: "100%",
+      borderRadius: 3,
+    },
+    reviewCard: {
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md,
+    },
+    reviewText: {
+      fontSize: theme.typography.body,
+      lineHeight: theme.typography.body + 8,
+    },
+  });

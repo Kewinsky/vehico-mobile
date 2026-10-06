@@ -64,7 +64,7 @@ create table public.vehicles (
   license_plate text, -- license plate number
   engine_capacity integer, -- in cm³
   power_hp integer, -- horsepower
-  fuel_type text check (fuel_type in ('petrol', 'diesel', 'hybrid', 'electric', 'lpg')),
+  fuel_type text check (fuel_type in ('petrol', 'diesel', 'hybrid', 'lpg')),
   transmission text check (transmission in ('manual', 'automatic')),
   drive_type text check (drive_type in ('FWD', 'RWD', 'AWD')),
   notes text,

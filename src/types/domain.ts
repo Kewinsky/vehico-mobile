@@ -7,7 +7,12 @@ export type VehicleType =
   | "trailer"
   | "other";
 
-export type FuelType = "petrol" | "diesel" | "hybrid" | "electric" | "lpg";
+export const FUEL_TYPES = ["petrol", "diesel", "hybrid", "lpg"] as const;
+export type FuelType = (typeof FUEL_TYPES)[number];
+
+export function isFuelType(value: unknown): value is FuelType {
+  return FUEL_TYPES.includes(value as FuelType);
+}
 export type TransmissionType = "manual" | "automatic";
 export type DriveType = "FWD" | "RWD" | "AWD";
 

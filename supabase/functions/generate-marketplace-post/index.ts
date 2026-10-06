@@ -41,7 +41,7 @@ interface VehicleData {
   initial_mileage?: number | null;
   engine_capacity: number | null;
   power_hp: number | null;
-  fuel_type: "petrol" | "diesel" | "hybrid" | "electric" | "lpg" | null;
+  fuel_type: "petrol" | "diesel" | "hybrid" | "lpg" | null;
   transmission: "manual" | "automatic" | null;
   notes: string | null;
   insurance_valid_until?: string | null;
@@ -101,10 +101,12 @@ function getFuelTypeLabel(fuelType: string | null, lang: "en" | "pl"): string {
     petrol: { en: "Petrol", pl: "Benzyna" },
     diesel: { en: "Diesel", pl: "Diesel" },
     hybrid: { en: "Hybrid", pl: "Hybryda" },
-    electric: { en: "Electric", pl: "Elektryczny" },
     lpg: { en: "LPG", pl: "LPG" },
   };
-  return labels[fuelType]?.[lang] || fuelType;
+  return (
+    labels[fuelType]?.[lang] ||
+    `[${lang === "pl" ? "rodzaj_paliwa" : "fuel_type"}]`
+  );
 }
 
 function getTransmissionLabel(

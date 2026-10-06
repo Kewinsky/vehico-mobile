@@ -31,6 +31,17 @@ describe("fuelingEntryForm", () => {
     );
   });
 
+  it("requires a manual distance for a receipt draft", () => {
+    const form = { ...validForm, distance: "" };
+    expect(canSaveFuelingEntry(form, { requireDistance: true })).toBe(false);
+    expect(
+      fuelingEntryFieldErrors(form, { requireDistance: true }).distance,
+    ).toBe(true);
+    expect(() =>
+      buildFuelingEntryPayload("vehicle-1", form, { requireDistance: true }),
+    ).toThrow("Invalid fueling entry form");
+  });
+
   it("flags too many decimal places", () => {
     const form = { ...validForm, fuelCost: "10,123" };
     expect(canSaveFuelingEntry(form)).toBe(false);

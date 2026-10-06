@@ -67,8 +67,7 @@ export const pl = {
     reminderLimitReachedBody:
       "Osiągnięto limit przypomnień. Przejdź na Premium, aby mieć nielimitowane przypomnienia.",
     photoLimitReachedTitle: "Osiągnięto limit zdjęć",
-    photoLimitReachedBody:
-      `Osiągnięto limit zdjęć na pojazd. Przejdź na Premium, aby mieć do ${PREMIUM_TIER_ENTITLEMENT_LIMITS.photos_per_vehicle_limit} zdjęć.`,
+    photoLimitReachedBody: `Osiągnięto limit zdjęć na pojazd. Przejdź na Premium, aby mieć do ${PREMIUM_TIER_ENTITLEMENT_LIMITS.photos_per_vehicle_limit} zdjęć.`,
     limitReachedTitle: "Osiągnięto limit",
     limitReachedBody:
       "Osiągnięto limit dla tej funkcji. Przejdź na Premium, aby zyskać więcej.",
@@ -109,7 +108,8 @@ export const pl = {
     rateLimitExceeded: "Zbyt wiele prób przy logowaniu",
     rateLimitMessage: "Poczekaj kilka minut przed ponownym wysłaniem kodu.",
     captchaRequired: "Potwierdź weryfikację bezpieczeństwa, aby kontynuować.",
-    captchaFailed: "Weryfikacja bezpieczeństwa nie powiodła się. Spróbuj ponownie.",
+    captchaFailed:
+      "Weryfikacja bezpieczeństwa nie powiodła się. Spróbuj ponownie.",
   },
   onboarding: {
     welcome: {
@@ -288,7 +288,6 @@ export const pl = {
     fuelTypePetrol: "Benzyna",
     fuelTypeDiesel: "Diesel",
     fuelTypeHybrid: "Hybryda",
-    fuelTypeElectric: "Elektryczny",
     fuelTypeLpg: "LPG",
     transmissionLabel: "Skrzynia biegów",
     transmissionManual: "Manualna",
@@ -427,9 +426,6 @@ export const pl = {
       "Wybierz jeden plik PDF, JPG, JPEG, PNG, HEIC lub HEIF do 10 MB. Dokument zostanie dołączony lokalnie po zapisaniu.",
     invoiceAnalyzing: "Analizowanie dokumentu...",
     invoiceAnalysisProgressLabel: "Szacowany postęp analizy",
-    invoicePrivacyTitle: "Przeanalizować ten dokument?",
-    invoicePrivacyBody:
-      "Dokument zostanie wysłany do analizy przez AI. Vericar nie zapisze go w chmurze, ale dostawca AI może przechowywać go do 30 dni. Lokalna kopia zostanie dołączona po zapisaniu wpisu.",
     invoiceUnsupportedFile: "Wybierz plik PDF, JPG, JPEG, PNG, HEIC lub HEIF.",
     invoiceInvalidFile: "Nie udało się odczytać wybranego pliku.",
     invoiceFileTooLarge: "Plik nie może przekraczać 10 MB.",
@@ -454,10 +450,9 @@ export const pl = {
     invoiceCurrency: "Waluta",
     invoiceEntriesCost: "Cena (jeden lub więcej wpisów)",
     invoiceEntriesCategory: "Kategoria (jeden lub więcej wpisów)",
-    invoiceCurrencyUnknown: "nierozpoznana",
     invoiceNoUncertainFields: "brak",
     invoiceReviewMessage:
-      "Sprawdź dane przed zapisaniem.\n\nWaluta dokumentu: {{currency}}\nWaluta wpisu: {{formCurrency}}\n\nKoszty są uzupełniane tylko przy zgodnych walutach.\n\nBrakujące lub niepewne dane:\n{{fields}}",
+      "Sprawdź dane przed zapisaniem.\n\nBrakujące lub niepewne dane:\n{{fields}}",
     documentWillAttachToEntries:
       "Wybrane dokumenty: {{count}}. Zostaną dołączone lokalnie do każdego wpisu po zapisaniu.",
   },
@@ -527,8 +522,7 @@ export const pl = {
       panoramic_roof: "Dach panoramiczny",
       sunroof_electric_glass:
         "Szyberdach szklany – przesuwny i uchylny elektrycznie",
-      sunroof_manual_glass:
-        "Szyberdach szklany – przesuwny i uchylny ręcznie",
+      sunroof_manual_glass: "Szyberdach szklany – przesuwny i uchylny ręcznie",
       sunroof_second_electric_glass:
         "Drugi szyberdach szklany – przesuwny i uchylny el.",
       upholstery_alcantara: "Tapicerka Alcantara",
@@ -649,8 +643,7 @@ export const pl = {
       clearDate: "Wyczyść datę",
     },
     formalityNotification: {
-      insuranceBefore:
-        "{{vehicle}} – OC wygasa za {{days}} dni ({{date}})",
+      insuranceBefore: "{{vehicle}} – OC wygasa za {{days}} dni ({{date}})",
       insuranceToday: "{{vehicle}} – OC wygasa dziś",
       acBefore: "{{vehicle}} – AC wygasa za {{days}} dni ({{date}})",
       acToday: "{{vehicle}} – AC wygasa dziś",
@@ -828,10 +821,12 @@ export const pl = {
     errorContextTooLarge:
       "Dane pojazdu są zbyt obszerne do przetworzenia w jednej odpowiedzi.",
     urgency: {
-      monitor: "Na podstawie dostępnych informacji natychmiastowa interwencja nie wydaje się konieczna.",
+      monitor:
+        "Na podstawie dostępnych informacji natychmiastowa interwencja nie wydaje się konieczna.",
       service_soon: "Umów kontrolę pojazdu w najbliższym czasie.",
       stop_driving: "Nie kontynuuj jazdy.",
-      unknown: "Nie można określić pilności na podstawie dostępnych informacji.",
+      unknown:
+        "Nie można określić pilności na podstawie dostępnych informacji.",
     },
     cancelled: "Odpowiedź została zatrzymana.",
     retry: "Spróbuj ponownie",
@@ -1368,6 +1363,24 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
   fuelingForm: {
     addTitle: "Dodaj tankowanie",
     editTitle: "Edytuj tankowanie",
+    importReceipt: "Importuj paragon",
+    importReceiptHint:
+      "Zrób zdjęcie lub wybierz paragon, aby uzupełnić formularz.",
+    receiptAnalyzing: "Analizowanie paragonu...",
+    receiptAnalysisProgressLabel: "Szacowany postęp analizy",
+    receiptUnsupportedFile: "Wybierz obraz JPG, JPEG, PNG, HEIC lub HEIF.",
+    receiptInvalidFile: "Nie udało się odczytać wybranego obrazu.",
+    receiptFileTooLarge: "Obraz nie może przekraczać 10 MB.",
+    receiptAnalysisFailed:
+      "Nie udało się przeanalizować paragonu. Spróbuj wyraźniejszego zdjęcia lub wpisz dane ręcznie.",
+    receiptReviewComplete:
+      "Dane z paragonu zostały dodane. Sprawdź je przed zapisem.",
+    receiptReviewIssues: "Sprawdź te pola:\n\n{{fields}}",
+    receiptFieldDate: "Data",
+    receiptFieldAmount: "Ilość paliwa",
+    receiptFieldCost: "Koszt",
+    receiptFieldFuelType: "Rodzaj paliwa",
+    receiptFieldStation: "Stacja benzynowa",
     date: "Data",
     fuelType: "Paliwo",
     fuelPlaceholder: "Wybierz",

@@ -26,6 +26,19 @@ describe("vehiclesRepo", () => {
     expect(out).toEqual(rows);
   });
 
+  it("treats a legacy electric fuel type as unsupported", async () => {
+    supabase.from.mockImplementation(() =>
+      createPostgrestChain({
+        data: [{ id: "v1", fuel_type: "electric" }],
+        error: null,
+      }),
+    );
+
+    await expect(listVehicles()).resolves.toEqual([
+      { id: "v1", fuel_type: null },
+    ]);
+  });
+
   it("getVehicle loads single row", async () => {
     const row = { id: "v1", make: "Audi" };
     supabase.from.mockImplementation(() =>

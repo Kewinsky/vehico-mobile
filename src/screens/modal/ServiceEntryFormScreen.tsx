@@ -573,8 +573,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       ].filter((value): value is string => value !== null);
       setInvoiceReviewMessage(
         t("entryForm.invoiceReviewMessage", {
-          currency: extraction.currency.value ?? t("entryForm.invoiceCurrencyUnknown"),
-          formCurrency: currency,
           fields:
             uncertainFields.length > 0
               ? `• ${uncertainFields.join("\n• ")}`
@@ -644,29 +642,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     );
   }, [applyInvoiceExtraction, invoiceStrategy, t]);
 
-  const confirmInvoiceProcessing = useCallback(
-    () =>
-      new Promise<boolean>((resolve) => {
-        Alert.alert(
-          t("entryForm.invoicePrivacyTitle"),
-          t("entryForm.invoicePrivacyBody"),
-          [
-            {
-              text: t("common.cancel"),
-              style: "cancel",
-              onPress: () => resolve(false),
-            },
-            {
-              text: t("common.continue"),
-              onPress: () => resolve(true),
-            },
-          ],
-          { cancelable: false },
-        );
-      }),
-    [t],
-  );
-
   const handleImportDocument = useCallback(async (asset: {
     uri: string;
     name: string;
@@ -686,8 +661,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           t("entryForm.invoiceUnsupportedFile"),
         );
       }
-      if (!(await confirmInvoiceProcessing())) return;
-
       invoiceAbortController.current?.abort();
       const controller = new AbortController();
       invoiceAbortController.current = controller;
@@ -736,7 +709,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   }, [
     applyInvoiceExtraction,
     chooseInvoiceStrategy,
-    confirmInvoiceProcessing,
     isPremium,
     navigation,
     t,
