@@ -32,6 +32,12 @@ export const pl = {
     carouselPosition: "Zdjęcie {{current}} z {{total}}",
     selectDate: "Wybierz datę",
   },
+  aiImportReview: {
+    message:
+      "Sprawdź dane przed zapisaniem.\n\nBrakujące lub niepewne dane:\n{{fields}}",
+    noUncertainFields: "brak",
+    manualDistance: "Wymagane działanie:\n• Wpisz dystans ręcznie.",
+  },
   validation: {
     invalidDate: "Wprowadź poprawną datę (RRRR-MM-DD).",
     invalidYear: "Wprowadź poprawny rok (1885–{{max}}).",
@@ -450,9 +456,6 @@ export const pl = {
     invoiceCurrency: "Waluta",
     invoiceEntriesCost: "Cena (jeden lub więcej wpisów)",
     invoiceEntriesCategory: "Kategoria (jeden lub więcej wpisów)",
-    invoiceNoUncertainFields: "brak",
-    invoiceReviewMessage:
-      "Sprawdź dane przed zapisaniem.\n\nBrakujące lub niepewne dane:\n{{fields}}",
     documentWillAttachToEntries:
       "Wybrane dokumenty: {{count}}. Zostaną dołączone lokalnie do każdego wpisu po zapisaniu.",
   },
@@ -1373,9 +1376,6 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     receiptFileTooLarge: "Obraz nie może przekraczać 10 MB.",
     receiptAnalysisFailed:
       "Nie udało się przeanalizować paragonu. Spróbuj wyraźniejszego zdjęcia lub wpisz dane ręcznie.",
-    receiptReviewComplete:
-      "Dane z paragonu zostały dodane. Sprawdź je przed zapisem.",
-    receiptReviewIssues: "Sprawdź te pola:\n{{fields}}",
     receiptFieldDate: "Data",
     receiptFieldAmount: "Ilość paliwa",
     receiptFieldCost: "Koszt",

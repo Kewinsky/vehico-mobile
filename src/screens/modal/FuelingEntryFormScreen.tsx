@@ -23,10 +23,11 @@ import {
   updateFuelingEntry,
 } from "../../services/fuel/fuelingEntriesRepo";
 import { Button } from "../../ui/components/common/Button";
+import { AiImportReviewCard } from "../../ui/components/common/AiImportReviewCard";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
-import { Card} from "../../ui/components/common/Card";
+import { Card } from "../../ui/components/common/Card";
 import { FormDateRow } from "../../ui/components/common/FormDateRow";
 import { FormInputRow } from "../../ui/components/common/FormInputRow";
 import { FormPickerRow } from "../../ui/components/common/FormPickerRow";
@@ -230,12 +231,14 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
           ? t("fuelingForm.receiptFieldStation")
           : null,
       ].filter((value): value is string => value !== null);
-      setReceiptReviewMessage(
+      const fields =
         issues.length > 0
-          ? t("fuelingForm.receiptReviewIssues", {
-              fields: issues.map((item) => `• ${item}`).join("\n"),
-            })
-          : t("fuelingForm.receiptReviewComplete"),
+          ? `• ${issues.join("\n• ")}`
+          : `• ${t("aiImportReview.noUncertainFields")}`;
+      setReceiptReviewMessage(
+        `${t("aiImportReview.message", { fields })}\n\n${t(
+          "aiImportReview.manualDistance",
+        )}`,
       );
     },
     [resetFieldErrors, t],
@@ -483,16 +486,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
               <View style={{ height: theme.spacing.sm }} />
               {receiptReviewMessage ? (
                 <>
-                  <Card
-                    style={[
-                      styles.reviewCard,
-                      { backgroundColor: `${theme.colors.accent}20` },
-                    ]}
-                  >
-                    <Text style={[styles.reviewText, { color: theme.colors.fg }]}>
-                      {receiptReviewMessage}
-                    </Text>
-                  </Card>
+                  <AiImportReviewCard message={receiptReviewMessage} />
                   <View style={{ height: theme.spacing.sm }} />
                 </>
               ) : null}
@@ -603,13 +597,5 @@ const makeStyles = (theme: any) =>
     analysisProgressFill: {
       height: "100%",
       borderRadius: 3,
-    },
-    reviewCard: {
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
-    },
-    reviewText: {
-      fontSize: theme.typography.body,
-      lineHeight: theme.typography.body + 8,
     },
   });

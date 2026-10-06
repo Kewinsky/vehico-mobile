@@ -56,6 +56,7 @@ import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
+import { AiImportReviewCard } from "../../ui/components/common/AiImportReviewCard";
 import { FormPresetChips } from "../../ui/components/common/FormPresetChips";
 import { openAttachmentSourceAlert } from "../../ui/components/common/sourcePickerAlert";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
@@ -572,11 +573,11 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         hasUncertainCategory ? t("entryForm.invoiceEntriesCategory") : null,
       ].filter((value): value is string => value !== null);
       setInvoiceReviewMessage(
-        t("entryForm.invoiceReviewMessage", {
+        t("aiImportReview.message", {
           fields:
             uncertainFields.length > 0
               ? `• ${uncertainFields.join("\n• ")}`
-              : `• ${t("entryForm.invoiceNoUncertainFields")}`,
+              : `• ${t("aiImportReview.noUncertainFields")}`,
         }),
       );
     },
@@ -1071,18 +1072,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
               {invoiceReviewMessage ? (
                 <>
-                  <Card style={[styles.card, styles.invoiceReviewCard]}>
-                    <View style={styles.invoiceReview}>
-                      <Text
-                        style={[
-                          styles.invoiceReviewText,
-                          { color: theme.colors.fg },
-                        ]}
-                      >
-                        {invoiceReviewMessage}
-                      </Text>
-                    </View>
-                  </Card>
+                  <AiImportReviewCard
+                    message={invoiceReviewMessage}
+                    style={styles.card}
+                  />
                   <View style={{ height: theme.spacing.sm }} />
                 </>
               ) : null}
@@ -1499,17 +1492,6 @@ const makeStyles = (theme: any) =>
     },
     card: {
       marginHorizontal: theme.layout.contentPaddingHorizontal,
-    },
-    invoiceReview: {
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md,
-    },
-    invoiceReviewCard: {
-      backgroundColor: `${theme.colors.accent}20`,
-    },
-    invoiceReviewText: {
-      fontSize: theme.typography.body,
-      lineHeight: theme.typography.body + 8,
     },
     invoiceModeRow: {
       minHeight: theme.spacing.xl + theme.spacing.md,

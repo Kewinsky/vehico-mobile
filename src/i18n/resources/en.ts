@@ -32,6 +32,12 @@ export const en = {
     carouselPosition: "Photo {{current}} of {{total}}",
     selectDate: "Select date",
   },
+  aiImportReview: {
+    message:
+      "Review the data before saving.\n\nMissing or uncertain data:\n{{fields}}",
+    noUncertainFields: "none",
+    manualDistance: "Required action:\n• Enter the distance manually.",
+  },
   validation: {
     invalidDate: "Please enter a valid date (YYYY-MM-DD).",
     invalidYear: "Please enter a valid year (1885–{{max}}).",
@@ -441,9 +447,6 @@ export const en = {
     invoiceCurrency: "Currency",
     invoiceEntriesCost: "Price (one or more entries)",
     invoiceEntriesCategory: "Category (one or more entries)",
-    invoiceNoUncertainFields: "none",
-    invoiceReviewMessage:
-      "Review the data before saving.\n\nMissing or uncertain data:\n{{fields}}",
     documentWillAttachToEntries:
       "Selected documents: {{count}}. They will be attached locally to each entry after saving.",
   },
@@ -1357,8 +1360,6 @@ Detailed report available at: https://report.vehico.app/report/example`,
     receiptFileTooLarge: "The image must not exceed 10 MB.",
     receiptAnalysisFailed:
       "The receipt could not be analyzed. Try a clearer photo or enter the data manually.",
-    receiptReviewComplete: "Receipt data was added. Review it before saving.",
-    receiptReviewIssues: "Review these fields:\n{{fields}}",
     receiptFieldDate: "Date",
     receiptFieldAmount: "Fuel amount",
     receiptFieldCost: "Cost",
