@@ -1434,7 +1434,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     <View style={{ height: theme.spacing.sm }} />
                   )}
                   renderItem={({ item }) => (
-                    <View>
+                    <View style={styles.listRowWrap}>
                       <ExclusiveSwipeable
                         renderRightActions={(progress) =>
                           renderAttachmentRightActions(item, progress)
@@ -1442,7 +1442,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                         rightThreshold={32}
                       >
                         <ListRowWithActions
-                          compact
                           title={
                             item.display_name?.trim() ||
                             t("attachments.attachmentLabel")
@@ -1490,7 +1489,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                     <View style={{ height: theme.spacing.sm }} />
                   )}
                   renderItem={({ item, index }) => (
-                    <View>
+                    <View style={styles.listRowWrap}>
                       <ExclusiveSwipeable
                         renderRightActions={(progress) =>
                           renderPendingAttachmentRightActions(
@@ -1502,7 +1501,6 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                         rightThreshold={32}
                       >
                         <ListRowWithActions
-                          compact
                           title={
                             item.fileName?.trim() ||
                             t("attachments.attachmentLabel")
@@ -1607,6 +1605,9 @@ const makeStyles = (theme: any) =>
       borderRadius: 999,
     },
     insetContent: {
+      paddingHorizontal: theme.layout.contentPaddingHorizontal,
+    },
+    listRowWrap: {
       paddingHorizontal: theme.layout.contentPaddingHorizontal,
     },
     footerAction: {
