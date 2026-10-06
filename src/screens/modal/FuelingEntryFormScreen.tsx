@@ -23,7 +23,10 @@ import {
   updateFuelingEntry,
 } from "../../services/fuel/fuelingEntriesRepo";
 import { Button } from "../../ui/components/common/Button";
-import { AiImportReviewCard } from "../../ui/components/common/AiImportReviewCard";
+import {
+  AiImportReviewCard,
+  type AiImportReviewTone,
+} from "../../ui/components/common/AiImportReviewCard";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
 import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { ModalLayout } from "../../layouts";
@@ -77,9 +80,10 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const [saving, setSaving] = useState(false);
   const [analyzingReceipt, setAnalyzingReceipt] = useState(false);
   const [receiptAnalysisProgress, setReceiptAnalysisProgress] = useState(0);
-  const [receiptReviewMessage, setReceiptReviewMessage] = useState<string | null>(
-    null,
-  );
+  const [receiptReview, setReceiptReview] = useState<{
+    message: string;
+    tone: AiImportReviewTone;
+  } | null>(null);
   const [hasReceiptDraft, setHasReceiptDraft] = useState(false);
   const receiptAbortController = useRef<AbortController | null>(null);
   const hasReceiptDraftRef = useRef(false);
@@ -196,7 +200,7 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     setFuelCost("");
     setFuelType(null);
     setGasStation(null);
-    setReceiptReviewMessage(null);
+    setReceiptReview(null);
     setHasReceiptDraft(false);
     hasReceiptDraftRef.current = false;
   }
@@ -231,14 +235,18 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
           ? t("fuelingForm.receiptFieldStation")
           : null,
       ].filter((value): value is string => value !== null);
-      const fields =
+      setReceiptReview(
         issues.length > 0
-          ? `• ${issues.join("\n• ")}`
-          : `• ${t("aiImportReview.noUncertainFields")}`;
-      setReceiptReviewMessage(
-        `${t("aiImportReview.message", { fields })}\n\n${t(
-          "aiImportReview.manualDistance",
-        )}`,
+          ? {
+              tone: "review",
+              message: t("aiImportReview.issuesMessage", {
+                fields: `• ${issues.join("\n• ")}`,
+              }),
+            }
+          : {
+              tone: "success",
+              message: t("aiImportReview.successMessage"),
+            },
       );
     },
     [resetFieldErrors, t],
@@ -484,9 +492,12 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
                 )}
               </View>
               <View style={{ height: theme.spacing.sm }} />
-              {receiptReviewMessage ? (
+              {receiptReview ? (
                 <>
-                  <AiImportReviewCard message={receiptReviewMessage} />
+                  <AiImportReviewCard
+                    message={receiptReview.message}
+                    tone={receiptReview.tone}
+                  />
                   <View style={{ height: theme.spacing.sm }} />
                 </>
               ) : null}

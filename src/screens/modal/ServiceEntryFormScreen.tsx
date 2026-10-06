@@ -56,7 +56,10 @@ import { useUnitDisplay } from "../../app/hooks/useUnitDisplay";
 import { useUserSettings } from "../../app/providers/UserSettingsProvider";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
 import { Button } from "../../ui/components/common/Button";
-import { AiImportReviewCard } from "../../ui/components/common/AiImportReviewCard";
+import {
+  AiImportReviewCard,
+  type AiImportReviewTone,
+} from "../../ui/components/common/AiImportReviewCard";
 import { FormPresetChips } from "../../ui/components/common/FormPresetChips";
 import { openAttachmentSourceAlert } from "../../ui/components/common/sourcePickerAlert";
 import { FormScreen } from "../../ui/components/layout/FormScreen";
@@ -130,9 +133,10 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const [defaultMileage, setDefaultMileage] = useState("");
   const [analyzingInvoice, setAnalyzingInvoice] = useState(false);
   const [invoiceAnalysisProgress, setInvoiceAnalysisProgress] = useState(0);
-  const [invoiceReviewMessage, setInvoiceReviewMessage] = useState<string | null>(
-    null,
-  );
+  const [invoiceReview, setInvoiceReview] = useState<{
+    message: string;
+    tone: AiImportReviewTone;
+  } | null>(null);
   const [invoiceStrategy, setInvoiceStrategy] =
     useState<InvoiceStrategy | null>(null);
   const invoiceAbortController = useRef<AbortController | null>(null);
@@ -468,7 +472,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     hasInvoiceDraft.current = false;
     invoiceExtraction.current = null;
     setInvoiceStrategy(null);
-    setInvoiceReviewMessage(null);
+    setInvoiceReview(null);
     if (mode !== "single") {
       setFormMode("single");
     }
@@ -515,7 +519,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
     setWorkshopId(null);
     setWorkshopSnapshot(null);
     setPendingFiles([]);
-    setInvoiceReviewMessage(null);
+    setInvoiceReview(null);
   }
 
   const applyInvoiceExtraction = useCallback(
@@ -572,13 +576,18 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         hasUncertainCost ? t("entryForm.invoiceEntriesCost") : null,
         hasUncertainCategory ? t("entryForm.invoiceEntriesCategory") : null,
       ].filter((value): value is string => value !== null);
-      setInvoiceReviewMessage(
-        t("aiImportReview.message", {
-          fields:
-            uncertainFields.length > 0
-              ? `• ${uncertainFields.join("\n• ")}`
-              : `• ${t("aiImportReview.noUncertainFields")}`,
-        }),
+      setInvoiceReview(
+        uncertainFields.length > 0
+          ? {
+              tone: "review",
+              message: t("aiImportReview.issuesMessage", {
+                fields: `• ${uncertainFields.join("\n• ")}`,
+              }),
+            }
+          : {
+              tone: "success",
+              message: t("aiImportReview.successMessage"),
+            },
       );
     },
     [currency, resetFieldErrors, t, workshops],
@@ -1070,10 +1079,11 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               </View>
               <View style={{ height: theme.spacing.sm }} />
 
-              {invoiceReviewMessage ? (
+              {invoiceReview ? (
                 <>
                   <AiImportReviewCard
-                    message={invoiceReviewMessage}
+                    message={invoiceReview.message}
+                    tone={invoiceReview.tone}
                     style={styles.card}
                   />
                   <View style={{ height: theme.spacing.sm }} />
@@ -1189,7 +1199,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
               disabled={isPickerDisabled}
             />
 
-            {invoiceReviewMessage && !workshopId ? (
+            {invoiceReview && !workshopId ? (
               <FormInputRow
                 icon="business-outline"
                 label={t("entryForm.invoiceWorkshop")}

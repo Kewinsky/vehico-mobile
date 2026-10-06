@@ -33,10 +33,10 @@ export const en = {
     selectDate: "Select date",
   },
   aiImportReview: {
-    message:
-      "Review the data before saving.\n\nMissing or uncertain data:\n{{fields}}",
-    noUncertainFields: "none",
-    manualDistance: "Required action:\n• Enter the distance manually.",
+    successMessage:
+      "Data imported successfully.\n\nReview the data before saving.",
+    issuesMessage:
+      "Missing or uncertain data:\n{{fields}}\n\nReview the data before saving.",
   },
   validation: {
     invalidDate: "Please enter a valid date (YYYY-MM-DD).",

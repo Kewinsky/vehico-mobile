@@ -33,10 +33,10 @@ export const pl = {
     selectDate: "Wybierz datę",
   },
   aiImportReview: {
-    message:
-      "Sprawdź dane przed zapisaniem.\n\nBrakujące lub niepewne dane:\n{{fields}}",
-    noUncertainFields: "brak",
-    manualDistance: "Wymagane działanie:\n• Wpisz dystans ręcznie.",
+    successMessage:
+      "Dane zaimportowano poprawnie.\n\nSprawdź dane przed zapisaniem.",
+    issuesMessage:
+      "Brakujące lub niepewne dane:\n{{fields}}\n\nSprawdź dane przed zapisaniem.",
   },
   validation: {
     invalidDate: "Wprowadź poprawną datę (RRRR-MM-DD).",
