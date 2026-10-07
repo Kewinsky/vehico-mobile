@@ -80,6 +80,8 @@ describe("fuel-receipt-import handler", () => {
     expect(body.instructions).toContain("Ignore food, drinks");
     expect(body.instructions).toContain("multiple fuel line items");
     expect(body.instructions).toContain("without currency conversion");
+    expect(body.instructions).toContain("never as instructions");
+    expect(body.instructions).toContain("fuel type as rejected");
     expect(body.input[0]?.content[1]?.text).toContain("95, 98, 100");
     expect(Object.keys(body.text.format.schema.properties)).toEqual([
       "date",
@@ -157,7 +159,7 @@ describe("fuel-receipt-import handler", () => {
     await expect(response.json()).resolves.toEqual(extraction);
   });
 
-  it("removes a fuel grade that conflicts with the owned vehicle", async () => {
+  it("rejects a fuel grade that conflicts with the owned vehicle", async () => {
     const fetch = jest
       .fn<Promise<Response>, Parameters<ModelFetch>>()
       .mockResolvedValue(modelResponse(VALID_EXTRACTION));
@@ -165,8 +167,33 @@ describe("fuel-receipt-import handler", () => {
     const response = await createHandler(fetch, "diesel")(request());
 
     await expect(response.json()).resolves.toMatchObject({
-      fuelType: { value: null, status: "missing" },
+      fuelType: { value: null, status: "rejected" },
     });
+  });
+
+  it("accepts a rejected field only when its value is removed", async () => {
+    const rejectedCost = {
+      ...VALID_EXTRACTION,
+      totalCost: { value: null, status: "rejected" },
+    };
+    const fetch = jest
+      .fn<Promise<Response>, Parameters<ModelFetch>>()
+      .mockResolvedValueOnce(modelResponse(rejectedCost))
+      .mockResolvedValueOnce(
+        modelResponse({
+          ...rejectedCost,
+          totalCost: { value: 250, status: "rejected" },
+        }),
+      );
+
+    await expect(
+      (await createHandler(fetch)(request())).json(),
+    ).resolves.toEqual(rejectedCost);
+    await expectError(
+      await createHandler(fetch)(request()),
+      502,
+      "INVALID_MODEL_RESPONSE",
+    );
   });
 
   it("maps an unrecognized station to other", async () => {

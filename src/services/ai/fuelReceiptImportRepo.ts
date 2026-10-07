@@ -1,5 +1,10 @@
 import * as FileSystem from "expo-file-system/legacy";
 
+import {
+  isAiImportFieldStatus,
+  isAiImportFieldValuePresenceValid,
+  type AiImportFieldStatus,
+} from "../../../shared/ai/importContract";
 import { ENV } from "../../config/env";
 import type { FuelGrade, GasStation } from "../../types/domain";
 import { supabase } from "../supabase/client";
@@ -18,10 +23,7 @@ export type FuelReceiptSourceMimeType = Exclude<
   ServiceInvoiceSourceMimeType,
   "application/pdf"
 >;
-export type FuelReceiptFieldStatus =
-  | "recognized"
-  | "uncertain"
-  | "missing";
+export type FuelReceiptFieldStatus = AiImportFieldStatus;
 export type FuelReceiptField<T> = {
   value: T | null;
   status: FuelReceiptFieldStatus;
@@ -101,11 +103,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isStatus(value: unknown): value is FuelReceiptFieldStatus {
-  return (
-    value === "recognized" ||
-    value === "uncertain" ||
-    value === "missing"
-  );
+  return isAiImportFieldStatus(value);
 }
 
 function parseField<T>(
@@ -116,8 +114,7 @@ function parseField<T>(
     !isRecord(value) ||
     !isStatus(value.status) ||
     (value.value !== null && !isValue(value.value)) ||
-    (value.status === "missing" && value.value !== null) ||
-    (value.status !== "missing" && value.value === null)
+    !isAiImportFieldValuePresenceValid(value.status, value.value)
   ) {
     return null;
   }

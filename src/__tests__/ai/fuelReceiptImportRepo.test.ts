@@ -67,6 +67,25 @@ describe("fuelReceiptImportRepo", () => {
     ).rejects.toMatchObject({ code: "INVALID_RESPONSE" });
   });
 
+  it("accepts rejected fields without values", async () => {
+    const extraction = {
+      ...EXTRACTION,
+      fuelType: { value: null, status: "rejected" },
+    };
+    const fetch = jest
+      .fn<ReturnType<TestFetch>, Parameters<TestFetch>>()
+      .mockResolvedValue(Response.json(extraction));
+
+    await expect(
+      requester(fetch)({
+        vehicleId: "11111111-1111-4111-8111-111111111111",
+        mimeType: "image/jpeg",
+        base64: "/9j/AA==",
+        signal: new AbortController().signal,
+      }),
+    ).resolves.toEqual(extraction);
+  });
+
   it("supports receipt images and rejects PDF and WebP", () => {
     expect(resolveFuelReceiptMimeType("image/jpg", "receipt.jpg")).toBe(
       "image/jpeg",

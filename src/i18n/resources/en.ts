@@ -36,7 +36,7 @@ export const en = {
     successMessage:
       "Data imported successfully.\n\nReview the data before saving.",
     issuesMessage:
-      "Missing or uncertain data:\n{{fields}}\n\nReview the data before saving.",
+      "Missing, uncertain, or rejected data:\n{{fields}}\n\nReview the data before saving.",
   },
   validation: {
     invalidDate: "Please enter a valid date (YYYY-MM-DD).",

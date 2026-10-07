@@ -1,6 +1,11 @@
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImageManipulator from "expo-image-manipulator";
 
+import {
+  isAiImportFieldStatus,
+  isAiImportFieldValuePresenceValid,
+  type AiImportFieldStatus,
+} from "../../../shared/ai/importContract";
 import { ENV } from "../../config/env";
 import type { ServiceEntryCategory } from "../../types/domain";
 import { supabase } from "../supabase/client";
@@ -19,10 +24,7 @@ export type ServiceInvoiceSourceMimeType =
 
 export const SERVICE_DOCUMENT_JPEG_QUALITY = 0.82;
 
-export type ServiceInvoiceFieldStatus =
-  | "recognized"
-  | "uncertain"
-  | "missing";
+export type ServiceInvoiceFieldStatus = AiImportFieldStatus;
 
 export type ServiceInvoiceField<T> = {
   value: T | null;
@@ -111,7 +113,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isStatus(value: unknown): value is ServiceInvoiceFieldStatus {
-  return value === "recognized" || value === "uncertain" || value === "missing";
+  return isAiImportFieldStatus(value);
 }
 
 function parseField<T>(
@@ -122,8 +124,7 @@ function parseField<T>(
     !isRecord(value) ||
     !isStatus(value.status) ||
     (value.value !== null && !isValue(value.value)) ||
-    (value.status === "missing" && value.value !== null) ||
-    (value.status !== "missing" && value.value === null)
+    !isAiImportFieldValuePresenceValid(value.status, value.value)
   ) {
     return null;
   }
@@ -162,7 +163,10 @@ function parseExtraction(value: unknown): ServiceInvoiceExtraction | null {
       work.title.trim().length === 0 ||
       (work.details !== null && typeof work.details !== "string") ||
       !SERVICE_CATEGORIES.includes(work.category as ServiceEntryCategory) ||
-      !isStatus(work.categoryStatus)
+      !isStatus(work.categoryStatus) ||
+      ((work.categoryStatus === "missing" ||
+        work.categoryStatus === "rejected") &&
+        work.category !== "other")
     ) {
       return null;
     }

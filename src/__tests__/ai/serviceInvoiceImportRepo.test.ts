@@ -97,6 +97,50 @@ describe("serviceInvoiceImportRepo", () => {
     ).rejects.toMatchObject({ code: "INVALID_RESPONSE" });
   });
 
+  it("accepts rejected fields without values", async () => {
+    const extraction = {
+      ...EXTRACTION,
+      workshopName: { value: null, status: "rejected" },
+    };
+    const fetch = jest
+      .fn<ReturnType<TestFetch>, Parameters<TestFetch>>()
+      .mockResolvedValue(Response.json(extraction));
+
+    await expect(
+      requester(fetch)({
+        vehicleId: "11111111-1111-4111-8111-111111111111",
+        mimeType: "application/pdf",
+        base64: "JVBERg==",
+        signal: new AbortController().signal,
+      }),
+    ).resolves.toEqual(extraction);
+  });
+
+  it("rejects a non-fallback category marked as rejected", async () => {
+    const extraction = {
+      ...EXTRACTION,
+      works: [
+        {
+          ...EXTRACTION.works[0],
+          category: "repair",
+          categoryStatus: "rejected",
+        },
+      ],
+    };
+    const fetch = jest
+      .fn<ReturnType<TestFetch>, Parameters<TestFetch>>()
+      .mockResolvedValue(Response.json(extraction));
+
+    await expect(
+      requester(fetch)({
+        vehicleId: "11111111-1111-4111-8111-111111111111",
+        mimeType: "application/pdf",
+        base64: "JVBERg==",
+        signal: new AbortController().signal,
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_RESPONSE" });
+  });
+
   it("normalizes supported MIME types and rejects other extensions", () => {
     expect(resolveServiceInvoiceMimeType("image/jpg", "invoice.jpg")).toBe(
       "image/jpeg",

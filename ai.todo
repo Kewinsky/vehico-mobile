@@ -89,18 +89,26 @@ Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej dec
 - [x] Dodać testy nieczytelnego paragonu, wielu stawek i brakujących pól.
 - [x] Kryterium zakończenia: paragon tworzy poprawialny szkic tankowania bez wymyślonych danych.
 
-## 6. Import Quality & Security
+## 6. Quality, Security & Production Hardening
 
-- [ ] Ujednolicić stany pól: rozpoznane, niepewne, brakujące i odrzucone.
+- [x] Ujednolicić stany pól: rozpoznane, niepewne, brakujące i odrzucone.
 - [ ] Egzekwować po stronie backendu limity typu, rozmiaru, liczby stron, czasu i tokenów.
 - [ ] Traktować plik, treść odczytaną przez model i model output jako niezaufane dane.
-- [ ] Przetestować złośliwe PDF-y oraz prompt injection zapisane na fakturze lub paragonie.
+- [ ] Dodać guardrails dla treści diagnostycznych i czerwonych flag.
+- [ ] Przetestować prompt injection z pytań, internetu, plików importu i wyników narzędzi.
 - [ ] Dodać rate limiting i budżet kosztowy analiz per użytkownik.
-- [ ] Zapewnić idempotencję i wykrywanie duplikatu po ponowieniu.
+- [ ] Zapewnić idempotencję operacji zapisujących i wykrywanie duplikatu po ponowieniu.
 - [ ] Przygotować zanonimizowany zestaw faktur i paragonów PL/EN.
 - [ ] Mierzyć poprawność pól, kategorii, odrzuceń i liczbę korekt użytkownika.
-- [ ] Logować wyłącznie bezpieczne metadane, bez obrazów i treści dokumentów.
-- [ ] Kryterium zakończenia: import ma zmierzoną jakość i bezpiecznie odrzuca dane, których nie potrafi wiarygodnie rozpoznać.
+- [ ] Dodać tracing bez rejestrowania treści rozmowy i importowanych materiałów.
+- [ ] Mierzyć tokeny, koszt i czas odpowiedzi.
+- [ ] Dodać dashboard monitoringu błędów, jakości, kosztów i opóźnień.
+- [ ] Wersjonować prompty, modele i konfigurację.
+- [ ] Porównać modele na wspólnym zbiorze ewaluacyjnym.
+- [ ] Dodać ograniczony retry, fallback modelu i circuit breaker.
+- [ ] Dodać feature flag, etapowy rollout i kill switch.
+- [ ] Uruchamiać regresyjne evaluation przed wydaniem.
+- [ ] Kryterium zakończenia: system ma mierzalną jakość, koszt i niezawodność, bezpiecznie odrzuca niewiarygodne dane oraz pozwala na bezpieczny rollback.
 
 ## 7. Web Search with Sources
 
@@ -153,23 +161,7 @@ Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej dec
 - [ ] Dodać ewaluacje stabilności, trafności i bezpieczeństwa rekomendacji.
 - [ ] Kryterium zakończenia: rekomendacje wykorzystują istniejący silnik czatu bez duplikowania logiki.
 
-## 11. Production Hardening
-
-- [ ] Dodać guardrails dla treści diagnostycznych i czerwonych flag.
-- [ ] Przetestować prompt injection z pytań, internetu, plików importu i wyników narzędzi.
-- [ ] Dodać per-user rate limiting oraz budżety kosztowe.
-- [ ] Dodać tracing bez rejestrowania treści rozmowy i importowanych materiałów.
-- [ ] Mierzyć tokeny, koszt i czas odpowiedzi.
-- [ ] Dodać dashboard monitoringu błędów, jakości, kosztów i opóźnień.
-- [ ] Wersjonować prompty, modele i konfigurację.
-- [ ] Porównać modele na wspólnym zbiorze ewaluacyjnym.
-- [ ] Dodać ograniczony retry, fallback modelu i circuit breaker.
-- [ ] Dodać idempotencję operacji zapisujących.
-- [ ] Dodać feature flag, etapowy rollout i kill switch.
-- [ ] Uruchamiać regresyjne evaluation przed wydaniem.
-- [ ] Kryterium zakończenia: system ma mierzalną jakość, koszt i niezawodność oraz bezpieczny rollback.
-
-## 12. Optional Extensions – Deferred
+## 11. Optional Extensions – Deferred
 
 - [ ] Zweryfikować potrzebę trwałej synchronizacji dokumentów badaniami lub danymi użycia.
 - [ ] Rozważyć cloud documents, indeksowanie i document RAG tylko dla potwierdzonego przypadku użycia.

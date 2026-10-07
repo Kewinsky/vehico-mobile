@@ -36,7 +36,7 @@ export const pl = {
     successMessage:
       "Dane zaimportowano poprawnie.\n\nSprawdź dane przed zapisaniem.",
     issuesMessage:
-      "Brakujące lub niepewne dane:\n{{fields}}\n\nSprawdź dane przed zapisaniem.",
+      "Brakujące, niepewne lub odrzucone dane:\n{{fields}}\n\nSprawdź dane przed zapisaniem.",
   },
   validation: {
     invalidDate: "Wprowadź poprawną datę (RRRR-MM-DD).",

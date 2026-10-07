@@ -108,6 +108,9 @@ przebiegu i bez automatycznego zapisu.
 
 ## Etap 6 – Jakość i bezpieczeństwo importu
 
+Status: w trakcie realizacji. Kontrakt i pierwszy fragment zabezpieczeń opisuje
+`AI_STAGE_6.md`.
+
 - wspólny kontrakt stanów: rozpoznane, niepewne, brakujące i odrzucone,
 - limity typu, rozmiaru, liczby stron, czasu, tokenów i częstotliwości analiz,
 - ochrona przed złośliwymi PDF-ami, prompt injection i treścią udającą instrukcje,
