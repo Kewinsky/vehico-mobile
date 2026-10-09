@@ -85,7 +85,7 @@ osobno dla każdego utworzonego wpisu.
 - Aplikacja przesyła plik jako base64 bezpośrednio do Edge Function
   `service-invoice-import`. Endpoint nie używa Storage ani tabel dokumentów.
 - Edge Function wysyła jedno żądanie do Responses API z `store: false`, plikiem
-  wejściowym i ścisłym schematem `service_invoice_extraction_v1`.
+  wejściowym i ścisłym schematem `service_invoice_extraction_v2`.
 - Koszty są wstawiane do formularza tylko wtedy, gdy wiarygodnie rozpoznana
   waluta dokumentu zgadza się z walutą ustawioną w aplikacji. Aplikacja nie wykonuje
   automatycznego przeliczania walut.

@@ -50,12 +50,16 @@ export type ServiceInvoiceImportErrorCode =
   | "AUTH_REQUIRED"
   | "INVALID_FILE"
   | "FILE_TOO_LARGE"
+  | "PDF_TOO_MANY_PAGES"
   | "INVALID_RESPONSE"
   | "NETWORK_ERROR"
   | "REQUEST_FAILED"
   | "MODEL_TIMEOUT"
   | "INVALID_MODEL_RESPONSE"
-  | "MODEL_REQUEST_FAILED";
+  | "MODEL_REQUEST_FAILED"
+  | "FEATURE_DISABLED"
+  | "RATE_LIMITED"
+  | "BUDGET_EXCEEDED";
 
 export class ServiceInvoiceImportError extends Error {
   constructor(
@@ -208,9 +212,16 @@ function parseErrorPayload(value: unknown): ErrorPayload | null {
 
 function serverErrorCode(code: string): ServiceInvoiceImportErrorCode {
   if (code === "FILE_TOO_LARGE") return "FILE_TOO_LARGE";
+  if (code === "PDF_TOO_MANY_PAGES") return "PDF_TOO_MANY_PAGES";
+  if (code === "UNSAFE_FILE" || code === "UNSUPPORTED_FILE") {
+    return "INVALID_FILE";
+  }
   if (code === "MODEL_TIMEOUT") return "MODEL_TIMEOUT";
   if (code === "INVALID_MODEL_RESPONSE") return "INVALID_MODEL_RESPONSE";
   if (code === "MODEL_REQUEST_FAILED") return "MODEL_REQUEST_FAILED";
+  if (code === "FEATURE_DISABLED") return "FEATURE_DISABLED";
+  if (code === "RATE_LIMITED") return "RATE_LIMITED";
+  if (code === "BUDGET_EXCEEDED") return "BUDGET_EXCEEDED";
   return "REQUEST_FAILED";
 }
 

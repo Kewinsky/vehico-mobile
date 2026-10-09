@@ -35,8 +35,9 @@ The structured response contains:
 - fuel grade,
 - gas station.
 
-Every field has a status: `recognized`, `uncertain`, or `missing`. Values are
-copied exactly as read, without currency or unit conversion. Currency and fuel
+Every field has a status: `recognized`, `uncertain`, `missing`, or `rejected`.
+Rejected and missing fields have a null value. Other values are copied exactly
+as read, without currency or unit conversion. Currency and fuel
 unit come only from the user's application settings and are used as form
 labels. Distance is not part of the extraction contract and is always entered
 by the user.

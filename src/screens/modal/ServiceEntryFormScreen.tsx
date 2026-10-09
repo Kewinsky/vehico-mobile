@@ -89,6 +89,15 @@ import {
   ServiceInvoiceImportError,
   type ServiceInvoiceExtraction,
 } from "../../services/ai/serviceInvoiceImportRepo";
+import {
+  aiImportEntryRequestId,
+  createAiImportRequestId,
+} from "../../services/ai/aiImportIdempotency";
+import {
+  countAiImportCorrections,
+  countAiImportStatuses,
+  recordAiImportQuality,
+} from "../../services/ai/aiImportQuality";
 import { buildServiceInvoiceFormDraft } from "../../forms/serviceInvoiceDraft";
 import { showPremiumRequiredAlert } from "../../ui/limits/entitlementAlerts";
 
@@ -142,6 +151,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   const invoiceAbortController = useRef<AbortController | null>(null);
   const invoiceExtraction = useRef<ServiceInvoiceExtraction | null>(null);
   const hasInvoiceDraft = useRef(false);
+  const invoiceSaveRequestId = useRef<string | null>(null);
+  const savedImportAttachmentKeys = useRef(new Set<string>());
 
   const formValues = useMemo(
     (): ServiceEntryFormState => ({
@@ -470,6 +481,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
   function applyPreset(preset: ServiceEntryPreset) {
     hasInvoiceDraft.current = false;
+    invoiceSaveRequestId.current = null;
+    savedImportAttachmentKeys.current.clear();
     invoiceExtraction.current = null;
     setInvoiceStrategy(null);
     setInvoiceReview(null);
@@ -506,6 +519,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
   function clearForm() {
     hasInvoiceDraft.current = false;
+    invoiceSaveRequestId.current = null;
+    savedImportAttachmentKeys.current.clear();
     invoiceExtraction.current = null;
     setInvoiceStrategy(null);
     setMode("single");
@@ -534,6 +549,8 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         currency,
       );
       hasInvoiceDraft.current = true;
+      invoiceSaveRequestId.current = createAiImportRequestId();
+      savedImportAttachmentKeys.current.clear();
       invoiceExtraction.current = extraction;
       setInvoiceStrategy(strategy);
       setMode(draft.mode);
@@ -700,13 +717,23 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
       if (error instanceof Error && error.name === "AbortError") return;
       const message =
         error instanceof ServiceInvoiceImportError &&
-        error.code === "FILE_TOO_LARGE"
+        error.code === "PDF_TOO_MANY_PAGES"
+          ? t("entryForm.invoiceTooManyPages")
+          : error instanceof ServiceInvoiceImportError &&
+              error.code === "FILE_TOO_LARGE"
           ? t("entryForm.invoiceFileTooLarge")
           : error instanceof ServiceInvoiceImportError &&
               error.code === "INVALID_FILE"
             ? t("entryForm.invoiceInvalidFile")
-            : error instanceof ServiceInvoiceImportError
-              ? t("entryForm.invoiceAnalysisFailed")
+            : error instanceof ServiceInvoiceImportError &&
+                (error.code === "RATE_LIMITED" ||
+                  error.code === "BUDGET_EXCEEDED")
+              ? t("aiImportReview.limitReached")
+              : error instanceof ServiceInvoiceImportError &&
+                  error.code === "FEATURE_DISABLED"
+                ? t("aiImportReview.unavailable")
+                : error instanceof ServiceInvoiceImportError
+                  ? t("entryForm.invoiceAnalysisFailed")
               : getUserFacingErrorMessage(
                   error,
                   t("entryForm.invoiceAnalysisFailed"),
@@ -942,14 +969,33 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
           await createServiceEntry(payload);
         }
       } else {
-        const createdEntries = [await createServiceEntry(firstPayload)];
-        for (const payload of payloads.slice(1)) {
-          createdEntries.push(await createServiceEntry(payload));
+        const importRequestId = hasInvoiceDraft.current
+          ? (invoiceSaveRequestId.current ??= createAiImportRequestId())
+          : null;
+        const createdEntries = [
+          await createServiceEntry(firstPayload, {
+            idempotencyKey: importRequestId
+              ? aiImportEntryRequestId(importRequestId, 0)
+              : undefined,
+          }),
+        ];
+        for (const [index, payload] of payloads.slice(1).entries()) {
+          createdEntries.push(
+            await createServiceEntry(payload, {
+              idempotencyKey: importRequestId
+                ? aiImportEntryRequestId(importRequestId, index + 1)
+                : undefined,
+            }),
+          );
         }
         if (pendingFiles.length) {
           setSavingAttachment(true);
           for (const created of createdEntries) {
             for (const file of pendingFiles) {
+              const attachmentKey = `${created.id}:${file.uri}`;
+              if (savedImportAttachmentKeys.current.has(attachmentKey)) {
+                continue;
+              }
               await saveAttachmentLocally({
                 serviceEntryId: created.id,
                 vehicleId,
@@ -957,8 +1003,69 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                 mimeType: file.mimeType,
                 fileName: file.fileName,
               });
+              savedImportAttachmentKeys.current.add(attachmentKey);
             }
           }
+        }
+        const extraction = invoiceExtraction.current;
+        if (importRequestId && extraction && invoiceStrategy) {
+          const baseline = buildServiceInvoiceFormDraft(
+            extraction,
+            invoiceStrategy,
+            t("entryForm.invoiceCombinedTitle"),
+            currency,
+          );
+          const baselineCategories = [
+            baseline.category,
+            ...baseline.entries.map((entry) => entry.category),
+          ];
+          const finalCategories = [
+            formValues.category,
+            ...formValues.entries.map((entry) => entry.category),
+          ];
+          await recordAiImportQuality({
+            feature: "service_invoice_import",
+            requestId: importRequestId,
+            statusCounts: countAiImportStatuses([
+              extraction.serviceDate.status,
+              extraction.mileage.status,
+              extraction.workshopName.status,
+              extraction.totalCost.status,
+              extraction.currency.status,
+              ...extraction.works.flatMap((work) => [
+                work.categoryStatus,
+                work.cost.status,
+              ]),
+            ]),
+            correctionCount: countAiImportCorrections(
+              [
+                baseline.serviceDate,
+                baseline.mileage,
+                baseline.workshopName,
+                baseline.description,
+                ...baseline.entries.flatMap((entry) => [
+                  entry.title,
+                  entry.cost,
+                  entry.category,
+                ]),
+              ],
+              [
+                formValues.serviceDate,
+                formValues.mileage,
+                workshopName,
+                formValues.description,
+                ...formValues.entries.flatMap((entry) => [
+                  entry.title,
+                  entry.cost,
+                  entry.category,
+                ]),
+              ],
+            ),
+            categoryCorrectionCount: countAiImportCorrections(
+              baselineCategories,
+              finalCategories,
+            ),
+          });
         }
       }
 

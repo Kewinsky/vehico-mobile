@@ -1,8 +1,25 @@
 # Vericar AI — testy modeli i kontekstu
 
-> Prompt produkcyjny został rozszerzony do `SYSTEM_PROMPT_V3` w etapie 3. Przed wdrożeniem należy powtórzyć przypadki T01–T10 z nowym promptem oraz wykonać przypadki kontekstowe C01–C06 opisane na końcu dokumentu. Poniższe historyczne wyniki dotyczą promptu etapu 1.
+> Prompt produkcyjny został rozszerzony do `SYSTEM_PROMPT_V4` w etapie 6. Przed wdrożeniem należy powtórzyć przypadki T01–T10 oraz C01–C06 z aktualnym promptem. Poniższe historyczne wyniki dotyczą promptu etapu 1.
 
 Ten plik zawiera stały zestaw 10 przypadków testowych oraz wyniki porównania modeli `gpt-5.6-luna` i `gpt-5.6-terra`.
+
+## Ewaluacje importu dokumentów
+
+Etap 6 dodaje osobny zestaw `ai-evals/imports/cases.json` dla faktur serwisowych
+i paragonów PL/EN. Zestaw nie zawiera dokumentów klientów ani danych osobowych.
+Mierzy statusy i wartości pól, kategorie, odrzucenia oraz liczbę korekt.
+
+Wyniki modeli porównuje polecenie:
+
+```bash
+npm run eval:ai-imports -- --predictions result-model-a.json,result-model-b.json
+```
+
+Każdy plik wynikowy zawiera nazwę modelu i tablicę `cases` z polami
+zindeksowanymi tymi samymi ścieżkami co dataset. Polecenie zwraca kod błędu, gdy
+wynik nie spełnia progów zapisanych w zestawie. Szczegóły operacyjne opisuje
+`AI_OPERATIONS.md`.
 
 ## Dlaczego i jak robimy evale
 
@@ -519,7 +536,7 @@ Testy znajdują się w `src/__tests__/ai/vehicleChatHandler.test.ts`. Wynik z 12
 
 ## Etap 3 — evale kontekstu pojazdu
 
-Status: przypadki zdefiniowane, oczekują na uruchomienie po wdrożeniu `SYSTEM_PROMPT_V3`.
+Status: przypadki zdefiniowane, oczekują na uruchomienie z `SYSTEM_PROMPT_V4`.
 
 Każdy przypadek należy wykonać z tym samym pojazdem testowym i osobną sesją. Oprócz kryteriów T01–T10 odpowiedź modelu przechodzi tylko wtedy, gdy wskazuje pozycje rekordów obecnych w przekazanym `service_history`. Backend deterministycznie odrzuca pozycje spoza tablicy, po czym usuwa cytowania z publicznej odpowiedzi API. Eval sprawdza wewnętrzny structured output modelu; użytkownik widzi wyłącznie naturalną odpowiedź.
 

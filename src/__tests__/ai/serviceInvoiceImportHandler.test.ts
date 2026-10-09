@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 import { createServiceInvoiceImportHandler } from "../../../supabase/functions/service-invoice-import/handler";
+import { readAiRuntimeSettings } from "../../../supabase/functions/_shared/aiRuntime";
 
 const USER_ID = "user-1";
 const VEHICLE_ID = "11111111-1111-4111-8111-111111111111";
@@ -26,7 +27,9 @@ const VALID_EXTRACTION = {
 type ModelFetch = (input: string, init: RequestInit) => Promise<Response>;
 
 function pdfBase64(contents = "invoice") {
-  return Buffer.from(`%PDF-${contents}`).toString("base64");
+  return Buffer.from(
+    `%PDF-1.7\n1 0 obj <</Type /Page /Contents (${contents})>> endobj\n%%EOF`,
+  ).toString("base64");
 }
 
 function request(overrides: Record<string, unknown> = {}) {
@@ -43,9 +46,14 @@ function request(overrides: Record<string, unknown> = {}) {
   });
 }
 
-function modelResponse(output: unknown, status = "completed") {
+function modelResponse(
+  output: unknown,
+  status = "completed",
+  usage?: { input_tokens: number; output_tokens: number; total_tokens: number },
+) {
   return Response.json({
     status,
+    ...(usage ? { usage } : {}),
     output: [
       { content: [{ type: "output_text", text: JSON.stringify(output) }] },
     ],
@@ -100,6 +108,80 @@ describe("service-invoice-import handler", () => {
     expect(body.instructions).toContain('Mark a field as "rejected"');
   });
 
+  it("records only safe token, cost, version, and latency metadata", async () => {
+    const fetch = jest
+      .fn<Promise<Response>, Parameters<ModelFetch>>()
+      .mockResolvedValue(
+        modelResponse(VALID_EXTRACTION, "completed", {
+          input_tokens: 1000,
+          output_tokens: 200,
+          total_tokens: 1200,
+        }),
+      );
+    const recordTrace = jest.fn();
+    const traceSettings = readAiRuntimeSettings(
+      "service_invoice_import",
+      (name) => {
+        if (name.endsWith("INPUT_USD_PER_MILLION_TOKENS")) return "2";
+        if (name.endsWith("OUTPUT_USD_PER_MILLION_TOKENS")) return "8";
+        return undefined;
+      },
+    );
+    const handler = createServiceInvoiceImportHandler({
+      getOpenAiApiKey: () => "test-key",
+      authenticateUser: async () => USER_ID,
+      hasPremiumAccess: async () => true,
+      vehicleBelongsToUser: async () => true,
+      traceSettings,
+      recordTrace,
+      fetch,
+    });
+
+    await handler(request({ base64: pdfBase64("private invoice text") }));
+
+    expect(recordTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        feature: "service_invoice_import",
+        promptVersion: "service_invoice_v2",
+        schemaVersion: "service_invoice_extraction_v2",
+        inputTokens: 1000,
+        outputTokens: 200,
+        estimatedCostUsdMicros: 3600,
+        outcome: "success",
+      }),
+    );
+    expect(JSON.stringify(recordTrace.mock.calls)).not.toContain(
+      "private invoice text",
+    );
+  });
+
+  it("uses a configured fallback once after a retryable provider error", async () => {
+    const fetch = jest
+      .fn<Promise<Response>, Parameters<ModelFetch>>()
+      .mockResolvedValueOnce(new Response("busy", { status: 429 }))
+      .mockResolvedValueOnce(modelResponse(VALID_EXTRACTION));
+    const handler = createServiceInvoiceImportHandler({
+      getOpenAiApiKey: () => "test-key",
+      authenticateUser: async () => USER_ID,
+      hasPremiumAccess: async () => true,
+      vehicleBelongsToUser: async () => true,
+      modelSettings: {
+        primaryModel: "primary-model",
+        fallbackModel: "fallback-model",
+      },
+      fetch,
+    });
+
+    expect((await handler(request())).status).toBe(200);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1].body))).toMatchObject({
+      model: "primary-model",
+    });
+    expect(JSON.parse(String(fetch.mock.calls[1]?.[1].body))).toMatchObject({
+      model: "fallback-model",
+    });
+  });
+
   it.each([
     ["image/jpeg", "invoice.jpg", [0xff, 0xd8, 0xff, 0x00]],
     ["image/png", "invoice.png", [0x89, 0x50, 0x4e, 0x47]],
@@ -144,6 +226,30 @@ describe("service-invoice-import handler", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it("enforces the per-user analysis budget before calling the model", async () => {
+    const fetch = jest.fn<Promise<Response>, Parameters<ModelFetch>>();
+    const authorizeRequest = jest.fn(async () => ({
+      allowed: false as const,
+      reason: "rate_limited" as const,
+      retryAfterSeconds: 120,
+    }));
+    const handler = createServiceInvoiceImportHandler({
+      getOpenAiApiKey: () => "test-key",
+      authenticateUser: async () => USER_ID,
+      hasPremiumAccess: async () => true,
+      vehicleBelongsToUser: async () => true,
+      authorizeRequest,
+      fetch,
+    });
+
+    const response = await handler(request());
+
+    await expectError(response, 429, "RATE_LIMITED");
+    expect(response.headers.get("Retry-After")).toBe("120");
+    expect(authorizeRequest).toHaveBeenCalledWith({ userId: USER_ID });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it("rejects access to a vehicle not owned by the user", async () => {
     const fetch = jest.fn<Promise<Response>, Parameters<ModelFetch>>();
     const vehicleBelongsToUser = jest.fn(async () => false);
@@ -185,6 +291,32 @@ describe("service-invoice-import handler", () => {
     );
 
     await expectError(response, 400, "UNSUPPORTED_FILE");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("rejects active and oversized PDFs before calling the model", async () => {
+    const fetch = jest.fn<Promise<Response>, Parameters<ModelFetch>>();
+
+    await expectError(
+      await createHandler(fetch)(
+        request({
+          base64: pdfBase64("/OpenAction <</S /JavaScript>>"),
+        }),
+      ),
+      400,
+      "UNSAFE_FILE",
+    );
+    await expectError(
+      await createHandler(fetch)(
+        request({
+          base64: Buffer.from(
+            "%PDF-1.7\n1 0 obj <</Type /Pages /Count 11>> endobj\n%%EOF",
+          ).toString("base64"),
+        }),
+      ),
+      413,
+      "PDF_TOO_MANY_PAGES",
+    );
     expect(fetch).not.toHaveBeenCalled();
   });
 

@@ -11,6 +11,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
+    "eval:ai-imports": "node scripts/evaluate-ai-imports.mjs",
     "lint": "expo lint",
     "lint:fix": "expo lint --fix",
     "android": "expo run:android"

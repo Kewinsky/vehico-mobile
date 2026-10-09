@@ -39,14 +39,31 @@ export async function listServiceEntries(
 
 export async function createServiceEntry(
   input: NewServiceEntryInput,
+  options?: { idempotencyKey?: string },
 ): Promise<ServiceEntry> {
+  const insert = options?.idempotencyKey
+    ? { ...input, client_request_id: options.idempotencyKey }
+    : input;
   const { data, error } = await supabase
     .from("service_entries")
-    .insert(input)
+    .insert(insert)
     .select("*")
     .single();
-  if (error) throw error;
-  const entry = data as ServiceEntry;
+  let entry: ServiceEntry;
+  if (error && options?.idempotencyKey && error.code === "23505") {
+    const { data: existing, error: lookupError } = await supabase
+      .from("service_entries")
+      .select("*")
+      .eq("vehicle_id", input.vehicle_id)
+      .eq("client_request_id", options.idempotencyKey)
+      .maybeSingle();
+    if (lookupError) throw lookupError;
+    if (!existing) throw error;
+    entry = existing as ServiceEntry;
+  } else {
+    if (error) throw error;
+    entry = data as ServiceEntry;
+  }
   await syncVehicleMileageIfHigher(
     input.vehicle_id,
     input.mileage,

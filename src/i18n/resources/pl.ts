@@ -37,6 +37,8 @@ export const pl = {
       "Dane zaimportowano poprawnie.\n\nSprawdź dane przed zapisaniem.",
     issuesMessage:
       "Brakujące, niepewne lub odrzucone dane:\n{{fields}}\n\nSprawdź dane przed zapisaniem.",
+    limitReached: "Limit analiz AI został osiągnięty. Spróbuj ponownie później.",
+    unavailable: "Import AI jest teraz niedostępny. Spróbuj ponownie później.",
   },
   validation: {
     invalidDate: "Wprowadź poprawną datę (RRRR-MM-DD).",
@@ -435,6 +437,7 @@ export const pl = {
     invoiceUnsupportedFile: "Wybierz plik PDF, JPG, JPEG, PNG, HEIC lub HEIF.",
     invoiceInvalidFile: "Nie udało się odczytać wybranego pliku.",
     invoiceFileTooLarge: "Plik nie może przekraczać 10 MB.",
+    invoiceTooManyPages: "PDF może zawierać maksymalnie 10 stron.",
     invoiceAnalysisFailed:
       "Nie udało się przeanalizować dokumentu. Spróbuj ponownie lub wpisz dane ręcznie.",
     invoiceMultipleTitle: "Jak zapisać te prace?",

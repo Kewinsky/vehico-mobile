@@ -108,6 +108,28 @@ describe("fuel-receipt-import handler", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it("enforces the per-user analysis budget before calling the model", async () => {
+    const fetch = jest.fn<Promise<Response>, Parameters<ModelFetch>>();
+    const handler = createFuelReceiptImportHandler({
+      getOpenAiApiKey: () => "test-key",
+      authenticateUser: async () => USER_ID,
+      hasPremiumAccess: async () => true,
+      getOwnedVehicleFuelType: async () => ({ fuelType: "petrol" }),
+      authorizeRequest: async () => ({
+        allowed: false,
+        reason: "budget_exceeded",
+        retryAfterSeconds: 3600,
+      }),
+      fetch,
+    });
+
+    const response = await handler(request());
+
+    await expectError(response, 429, "BUDGET_EXCEEDED");
+    expect(response.headers.get("Retry-After")).toBe("3600");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it("rejects a receipt for a vehicle not owned by the user", async () => {
     const fetch = jest.fn<Promise<Response>, Parameters<ModelFetch>>();
     const handler = createFuelReceiptImportHandler({

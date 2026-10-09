@@ -37,6 +37,8 @@ export const en = {
       "Data imported successfully.\n\nReview the data before saving.",
     issuesMessage:
       "Missing, uncertain, or rejected data:\n{{fields}}\n\nReview the data before saving.",
+    limitReached: "The AI analysis limit has been reached. Try again later.",
+    unavailable: "AI import is currently unavailable. Try again later.",
   },
   validation: {
     invalidDate: "Please enter a valid date (YYYY-MM-DD).",
@@ -426,6 +428,7 @@ export const en = {
     invoiceUnsupportedFile: "Select a PDF, JPG, JPEG, PNG, HEIC, or HEIF file.",
     invoiceInvalidFile: "The selected file could not be read.",
     invoiceFileTooLarge: "The file must not exceed 10 MB.",
+    invoiceTooManyPages: "A PDF can contain at most 10 pages.",
     invoiceAnalysisFailed:
       "The document could not be analyzed. Try again or enter the data manually.",
     invoiceMultipleTitle: "How should these works be saved?",

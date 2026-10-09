@@ -52,6 +52,47 @@ describe("fuelingEntriesRepo", () => {
     expect(out).toEqual(row);
   });
 
+  it("returns an existing AI import entry after a duplicate retry", async () => {
+    const duplicate = createPostgrestChain({
+      data: null,
+      error: { code: "23505" },
+    });
+    const existing = {
+      id: "f1",
+      vehicle_id: "v1",
+      date: "2025-05-01",
+      distance: 400,
+      fuel_amount: 40,
+      fuel_cost: 200,
+    };
+    const lookup = createPostgrestChain({ data: existing, error: null });
+    supabase.from
+      .mockImplementationOnce(() => duplicate)
+      .mockImplementationOnce(() => lookup);
+
+    await expect(
+      createFuelingEntry(
+        {
+          vehicle_id: "v1",
+          date: "2025-05-01",
+          distance: 400,
+          fuel_amount: 40,
+          fuel_cost: 200,
+          fuel_type: null,
+          gas_station: null,
+        },
+        { idempotencyKey: "ai_request_123456" },
+      ),
+    ).resolves.toEqual(existing);
+    expect(duplicate.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ client_request_id: "ai_request_123456" }),
+    );
+    expect(lookup.eq).toHaveBeenCalledWith(
+      "client_request_id",
+      "ai_request_123456",
+    );
+  });
+
   it("updateFuelingEntry throws when RLS blocks update", async () => {
     supabase.from.mockImplementation(() =>
       createPostgrestChain({ data: null, error: null }),

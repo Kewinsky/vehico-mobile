@@ -34,9 +34,8 @@ describe("serviceEntriesRepo", () => {
 
   it("createServiceEntry inserts row", async () => {
     const row = { id: "se1", title: "Oil" };
-    supabase.from.mockImplementation(() =>
-      createPostgrestChain({ data: row, error: null }),
-    );
+    const chain = createPostgrestChain({ data: row, error: null });
+    supabase.from.mockImplementation(() => chain);
 
     const out = await createServiceEntry({
       vehicle_id: "v1",
@@ -49,10 +48,47 @@ describe("serviceEntriesRepo", () => {
     });
 
     expect(out).toEqual(row);
+    expect(chain.insert).toHaveBeenCalledWith(
+      expect.not.objectContaining({ client_request_id: expect.anything() }),
+    );
     expect(syncVehicleMileageIfHigher).toHaveBeenCalledWith(
       "v1",
       1000,
       "2025-05-01",
+    );
+  });
+
+  it("returns an existing AI import entry after a duplicate retry", async () => {
+    const duplicate = createPostgrestChain({
+      data: null,
+      error: { code: "23505" },
+    });
+    const existing = { id: "se1", title: "Oil" };
+    const lookup = createPostgrestChain({ data: existing, error: null });
+    supabase.from
+      .mockImplementationOnce(() => duplicate)
+      .mockImplementationOnce(() => lookup);
+
+    await expect(
+      createServiceEntry(
+        {
+          vehicle_id: "v1",
+          service_date: "2025-05-01",
+          mileage: 1000,
+          category: "oil_change",
+          title: "Oil",
+          description: "",
+          cost: null,
+        },
+        { idempotencyKey: "ai_request_123456:0" },
+      ),
+    ).resolves.toEqual(existing);
+    expect(duplicate.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ client_request_id: "ai_request_123456:0" }),
+    );
+    expect(lookup.eq).toHaveBeenCalledWith(
+      "client_request_id",
+      "ai_request_123456:0",
     );
   });
 

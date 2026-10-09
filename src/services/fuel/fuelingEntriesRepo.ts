@@ -25,8 +25,29 @@ export async function getFuelingEntry(id: string): Promise<FuelingEntry> {
   return data as FuelingEntry;
 }
 
-export async function createFuelingEntry(input: NewFuelingEntry): Promise<FuelingEntry> {
-  const { data, error } = await supabase.from('fueling_entries').insert(input).select('*').single();
+export async function createFuelingEntry(
+  input: NewFuelingEntry,
+  options?: { idempotencyKey?: string },
+): Promise<FuelingEntry> {
+  const insert = options?.idempotencyKey
+    ? { ...input, client_request_id: options.idempotencyKey }
+    : input;
+  const { data, error } = await supabase
+    .from('fueling_entries')
+    .insert(insert)
+    .select('*')
+    .single();
+  if (error && options?.idempotencyKey && error.code === '23505') {
+    const { data: existing, error: lookupError } = await supabase
+      .from('fueling_entries')
+      .select('*')
+      .eq('vehicle_id', input.vehicle_id)
+      .eq('client_request_id', options.idempotencyKey)
+      .maybeSingle();
+    if (lookupError) throw lookupError;
+    if (!existing) throw error;
+    return existing as FuelingEntry;
+  }
   if (error) throw error;
   return data as FuelingEntry;
 }
@@ -52,4 +73,3 @@ export async function deleteFuelingEntry(id: string): Promise<void> {
   const { error } = await supabase.from('fueling_entries').delete().eq('id', id);
   if (error) throw error;
 }
-

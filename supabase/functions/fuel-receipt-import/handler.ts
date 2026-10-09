@@ -4,12 +4,22 @@ import {
   isAiImportFieldValuePresenceValid,
   type AiImportFieldStatus,
 } from "../../../shared/ai/importContract.ts";
+import {
+  AI_RUNTIME_CONTRACTS,
+  AiCircuitBreaker,
+  buildAiSafeTrace,
+  executeAiModelRequest,
+  type AiFeatureAccess,
+  type AiSafeTrace,
+  type AiRuntimeSettings,
+} from "../_shared/aiRuntime.ts";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
-const MAX_OUTPUT_TOKENS = 1200;
-const MODEL_TIMEOUT_MS = 30_000;
+const RUNTIME_CONTRACT = AI_RUNTIME_CONTRACTS.fuel_receipt_import;
+const MAX_OUTPUT_TOKENS = RUNTIME_CONTRACT.maxOutputTokens;
+const MODEL_TIMEOUT_MS = RUNTIME_CONTRACT.timeoutMs;
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
-const MODEL = "gpt-5.6-luna";
+const MODEL = RUNTIME_CONTRACT.defaultModel;
 
 const SUPPORTED_MIME_TYPES = ["image/jpeg", "image/png"] as const;
 const FUEL_GRADES = ["95", "98", "100", "on", "lpg"] as const;
@@ -109,6 +119,9 @@ type ErrorCode =
   | "AUTH_REQUIRED"
   | "PREMIUM_REQUIRED"
   | "AUTHORIZATION_FAILED"
+  | "FEATURE_DISABLED"
+  | "RATE_LIMITED"
+  | "BUDGET_EXCEEDED"
   | "INVALID_JSON"
   | "INVALID_REQUEST"
   | "UNSUPPORTED_FILE"
@@ -129,6 +142,11 @@ export interface FuelReceiptImportDependencies {
     userId: string;
     vehicleId: string;
   }) => Promise<{ fuelType: VehicleFuelType | null } | null>;
+  authorizeRequest?: (input: { userId: string }) => Promise<AiFeatureAccess>;
+  modelSettings?: Pick<AiRuntimeSettings, "primaryModel" | "fallbackModel">;
+  circuitBreaker?: AiCircuitBreaker;
+  traceSettings?: AiRuntimeSettings;
+  recordTrace?: (trace: AiSafeTrace) => void;
   fetch: ModelFetch;
 }
 
@@ -144,6 +162,29 @@ const BASE64_PATTERN = /^[A-Za-z0-9+/]+={0,2}$/;
 
 function errorResponse(status: number, code: ErrorCode, message: string) {
   return Response.json({ error: { code, message } }, { status });
+}
+
+function accessErrorResponse(access: Exclude<AiFeatureAccess, { allowed: true }>) {
+  const disabled = access.reason === "disabled" || access.reason === "rollout";
+  const code = disabled
+    ? "FEATURE_DISABLED"
+    : access.reason === "budget_exceeded"
+      ? "BUDGET_EXCEEDED"
+      : "RATE_LIMITED";
+  const headers = access.retryAfterSeconds === undefined
+    ? undefined
+    : { "Retry-After": String(access.retryAfterSeconds) };
+  return Response.json(
+    {
+      error: {
+        code,
+        message: disabled
+          ? "Receipt import is currently unavailable."
+          : "The receipt analysis limit has been reached.",
+      },
+    },
+    { status: disabled ? 503 : 429, headers },
+  );
 }
 
 function decodedByteLength(base64: string): number {
@@ -322,11 +363,12 @@ function parseModelResponse(value: unknown) {
 function modelRequestBody(
   request: FuelReceiptRequest,
   allowedGrades: readonly FuelGrade[],
+  model = MODEL,
 ) {
   const gradeInstruction =
     allowedGrades.length > 0 ? allowedGrades.join(", ") : "none";
   return JSON.stringify({
-    model: MODEL,
+    model,
     instructions: SYSTEM_PROMPT_V2,
     input: [
       {
@@ -347,7 +389,7 @@ function modelRequestBody(
     text: {
       format: {
         type: "json_schema",
-        name: "fuel_receipt_extraction_v2",
+        name: RUNTIME_CONTRACT.schemaVersion,
         strict: true,
         schema: FUEL_RECEIPT_SCHEMA,
       },
@@ -357,18 +399,16 @@ function modelRequestBody(
   });
 }
 
-function isTimeoutError(error: unknown) {
-  return (
-    error instanceof Error &&
-    (error.name === "TimeoutError" || error.name === "AbortError")
-  );
-}
-
 export function createFuelReceiptImportHandler({
   getOpenAiApiKey,
   authenticateUser,
   hasPremiumAccess,
   getOwnedVehicleFuelType,
+  authorizeRequest,
+  modelSettings = { primaryModel: MODEL, fallbackModel: null },
+  circuitBreaker = new AiCircuitBreaker(),
+  traceSettings,
+  recordTrace,
   fetch: fetchModel,
 }: FuelReceiptImportDependencies) {
   return async function handleFuelReceiptImport(req: Request): Promise<Response> {
@@ -419,6 +459,20 @@ export function createFuelReceiptImportHandler({
       return errorResponse(404, "VEHICLE_NOT_FOUND", "Vehicle was not found.");
     }
 
+    if (authorizeRequest) {
+      let access: AiFeatureAccess;
+      try {
+        access = await authorizeRequest({ userId });
+      } catch {
+        return errorResponse(
+          503,
+          "AUTHORIZATION_FAILED",
+          "Receipt analysis limits could not be verified.",
+        );
+      }
+      if (!access.allowed) return accessErrorResponse(access);
+    }
+
     const apiKey = getOpenAiApiKey();
     if (!apiKey) {
       return errorResponse(
@@ -429,43 +483,100 @@ export function createFuelReceiptImportHandler({
     }
 
     const grades = allowedFuelGrades(vehicle.fuelType);
-    let modelResponse: Response;
-    try {
-      modelResponse = await fetchModel(OPENAI_RESPONSES_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: modelRequestBody(parsedRequest, grades),
-        signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
-      });
-    } catch (error) {
+    const traceId = crypto.randomUUID();
+    const traceStartedAt = Date.now();
+    const execution = await executeAiModelRequest({
+      feature: "fuel_receipt_import",
+      settings: modelSettings,
+      apiKey,
+      url: OPENAI_RESPONSES_URL,
+      signal: AbortSignal.any([
+        req.signal,
+        AbortSignal.timeout(MODEL_TIMEOUT_MS),
+      ]),
+      fetch: fetchModel,
+      buildBody: (model) => modelRequestBody(parsedRequest, grades, model),
+      circuitBreaker,
+    });
+    if (!execution.ok) {
+      if (traceSettings && recordTrace) {
+        recordTrace(buildAiSafeTrace({
+          traceId,
+          feature: "fuel_receipt_import",
+          settings: traceSettings,
+          model: modelSettings.primaryModel,
+          fallbackUsed: false,
+          attemptCount: execution.attemptCount,
+          outcome: "error",
+          errorCode: execution.reason,
+          durationMs: Date.now() - traceStartedAt,
+        }));
+      }
       return errorResponse(
-        isTimeoutError(error) ? 504 : 502,
-        isTimeoutError(error) ? "MODEL_TIMEOUT" : "MODEL_REQUEST_FAILED",
-        isTimeoutError(error)
+        execution.reason === "timeout"
+          ? 504
+          : execution.reason === "circuit_open"
+            ? 503
+            : 502,
+        execution.reason === "timeout"
+          ? "MODEL_TIMEOUT"
+          : "MODEL_REQUEST_FAILED",
+        execution.reason === "timeout"
           ? "Receipt analysis timed out."
           : "Receipt analysis could not be completed.",
       );
     }
-    if (!modelResponse.ok) {
-      return errorResponse(
-        502,
-        "MODEL_REQUEST_FAILED",
-        "Receipt analysis could not be completed.",
-      );
-    }
+    const modelResponse = execution.response;
 
     let modelBody: unknown;
     try {
       modelBody = await modelResponse.json();
     } catch {
+      if (traceSettings && recordTrace) {
+        recordTrace(buildAiSafeTrace({
+          traceId,
+          feature: "fuel_receipt_import",
+          settings: traceSettings,
+          model: execution.model,
+          fallbackUsed: execution.fallbackUsed,
+          attemptCount: execution.attemptCount,
+          outcome: "error",
+          errorCode: "INVALID_MODEL_RESPONSE",
+          durationMs: Date.now() - traceStartedAt,
+        }));
+      }
       return errorResponse(502, "INVALID_MODEL_RESPONSE", "Receipt analysis returned invalid data.");
     }
     const extraction = parseModelResponse(modelBody);
     if (!extraction) {
+      if (traceSettings && recordTrace) {
+        recordTrace(buildAiSafeTrace({
+          traceId,
+          feature: "fuel_receipt_import",
+          settings: traceSettings,
+          model: execution.model,
+          fallbackUsed: execution.fallbackUsed,
+          attemptCount: execution.attemptCount,
+          outcome: "rejected",
+          errorCode: "INVALID_MODEL_RESPONSE",
+          durationMs: Date.now() - traceStartedAt,
+          responseBody: modelBody,
+        }));
+      }
       return errorResponse(502, "INVALID_MODEL_RESPONSE", "Receipt analysis returned invalid data.");
+    }
+    if (traceSettings && recordTrace) {
+      recordTrace(buildAiSafeTrace({
+        traceId,
+        feature: "fuel_receipt_import",
+        settings: traceSettings,
+        model: execution.model,
+        fallbackUsed: execution.fallbackUsed,
+        attemptCount: execution.attemptCount,
+        outcome: "success",
+        durationMs: Date.now() - traceStartedAt,
+        responseBody: modelBody,
+      }));
     }
     return Response.json(normalizeExtraction(extraction, grades));
   };

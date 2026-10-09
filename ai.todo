@@ -92,21 +92,23 @@ Streaming odpowiedzi świadomie pozostaje poza zakresem MVP i wymaga osobnej dec
 ## 6. Quality, Security & Production Hardening
 
 - [x] Ujednolicić stany pól: rozpoznane, niepewne, brakujące i odrzucone.
-- [ ] Egzekwować po stronie backendu limity typu, rozmiaru, liczby stron, czasu i tokenów.
-- [ ] Traktować plik, treść odczytaną przez model i model output jako niezaufane dane.
-- [ ] Dodać guardrails dla treści diagnostycznych i czerwonych flag.
-- [ ] Przetestować prompt injection z pytań, internetu, plików importu i wyników narzędzi.
-- [ ] Dodać rate limiting i budżet kosztowy analiz per użytkownik.
-- [ ] Zapewnić idempotencję operacji zapisujących i wykrywanie duplikatu po ponowieniu.
-- [ ] Przygotować zanonimizowany zestaw faktur i paragonów PL/EN.
-- [ ] Mierzyć poprawność pól, kategorii, odrzuceń i liczbę korekt użytkownika.
-- [ ] Dodać tracing bez rejestrowania treści rozmowy i importowanych materiałów.
-- [ ] Mierzyć tokeny, koszt i czas odpowiedzi.
+- [x] Egzekwować po stronie backendu limity typu, rozmiaru, liczby stron, czasu i tokenów.
+- [x] Traktować plik, treść odczytaną przez model i model output jako niezaufane dane.
+- [x] Dodać guardrails dla treści diagnostycznych i czerwonych flag.
+- [x] Przetestować prompt injection z pytań i plików importu.
+- [ ] Przetestować prompt injection z internetu i wyników narzędzi po wdrożeniu etapów 7–8.
+- [x] Dodać rate limiting i budżet kosztowy analiz per użytkownik.
+- [x] Zapewnić idempotencję operacji zapisujących i wykrywanie duplikatu po ponowieniu.
+- [x] Przygotować zanonimizowany zestaw przypadków faktur i paragonów PL/EN.
+- [x] Mierzyć poprawność pól, kategorii, odrzuceń i liczbę korekt użytkownika.
+- [x] Dodać tracing bez rejestrowania treści rozmowy i importowanych materiałów.
+- [x] Mierzyć tokeny, szacowany koszt i czas odpowiedzi.
 - [ ] Dodać dashboard monitoringu błędów, jakości, kosztów i opóźnień.
-- [ ] Wersjonować prompty, modele i konfigurację.
+- [x] Przygotować zapytania i instrukcję konfiguracji dashboardu.
+- [x] Wersjonować prompty, modele i konfigurację.
 - [ ] Porównać modele na wspólnym zbiorze ewaluacyjnym.
-- [ ] Dodać ograniczony retry, fallback modelu i circuit breaker.
-- [ ] Dodać feature flag, etapowy rollout i kill switch.
+- [x] Dodać ograniczony retry, fallback modelu i circuit breaker.
+- [x] Dodać feature flag, etapowy rollout i kill switch.
 - [ ] Uruchamiać regresyjne evaluation przed wydaniem.
 - [ ] Kryterium zakończenia: system ma mierzalną jakość, koszt i niezawodność, bezpiecznie odrzuca niewiarygodne dane oraz pozwala na bezpieczny rollback.
 

@@ -116,6 +116,13 @@ create table public.service_entries (
   submitted_workshop_name text,
   submitted_workshop_phone text,
   reviewed_at timestamptz,
+  client_request_id text check (
+    client_request_id is null
+    or (
+      length(client_request_id) between 16 and 120
+      and client_request_id ~ '^[A-Za-z0-9:_-]+$'
+    )
+  ),
   created_at timestamptz not null default now(),
   constraint service_entries_workshop_name_when_workshop check (
     source <> 'workshop'
@@ -131,6 +138,9 @@ create index service_entries_service_date_idx on public.service_entries(service_
 create index service_entries_workshop_id_idx on public.service_entries(workshop_id);
 create index service_entries_vehicle_status_idx on public.service_entries(vehicle_id, status);
 create index service_entries_vehicle_source_idx on public.service_entries(vehicle_id, source);
+create unique index service_entries_vehicle_client_request_uidx
+  on public.service_entries (vehicle_id, client_request_id)
+  where client_request_id is not null;
 alter table public.service_entries add column if not exists workshop_snapshot text;
 
 -- Manual odometer updates from vehicle profile (audit for mileage-over-time chart)
@@ -175,11 +185,21 @@ create table public.fueling_entries (
   fuel_cost numeric not null,
   fuel_type text check (fuel_type is null or fuel_type in ('95', '98', '100', 'on', 'lpg')),
   gas_station text check (gas_station is null or gas_station in ('orlen', 'bp', 'shell', 'circle_k', 'mol', 'moya', 'other')),
+  client_request_id text check (
+    client_request_id is null
+    or (
+      length(client_request_id) between 16 and 120
+      and client_request_id ~ '^[A-Za-z0-9:_-]+$'
+    )
+  ),
   created_at timestamptz not null default now()
 );
 
 create index fueling_entries_vehicle_id_idx on public.fueling_entries(vehicle_id);
 create index fueling_entries_date_idx on public.fueling_entries(date desc);
+create unique index fueling_entries_vehicle_client_request_uidx
+  on public.fueling_entries (vehicle_id, client_request_id)
+  where client_request_id is not null;
 
 -- Reminders (date and/or mileage; optional recurrence)
 create table public.reminders (
@@ -2614,3 +2634,258 @@ grant select, update on table public.entitlements to service_role;
 
 -- Rate-limit table is RPC-only (security definer); no client access.
 revoke all on table public.workshop_intake_rate_limits from anon, authenticated;
+
+-- ================
+-- AI runtime limits
+-- ================
+
+create table public.ai_usage_limits (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  feature text not null check (feature in (
+    'vehicle_chat',
+    'service_invoice_import',
+    'fuel_receipt_import'
+  )),
+  hour_started_at timestamptz not null default date_trunc('hour', now()),
+  hour_request_count integer not null default 0 check (hour_request_count >= 0),
+  day_started_at timestamptz not null default date_trunc('day', now()),
+  day_request_count integer not null default 0 check (day_request_count >= 0),
+  day_reserved_output_tokens bigint not null default 0 check (day_reserved_output_tokens >= 0),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, feature)
+);
+
+alter table public.ai_usage_limits enable row level security;
+revoke all on table public.ai_usage_limits from anon, authenticated;
+
+create or replace function public.consume_ai_request_budget(
+  p_feature text,
+  p_reserved_output_tokens integer
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_now timestamptz := now();
+  v_limit public.ai_usage_limits;
+  v_hour_limit integer;
+  v_day_limit integer;
+  v_day_token_limit integer;
+  v_retry_after integer;
+begin
+  if v_user_id is null then
+    raise exception 'authentication_required' using errcode = 'P0001';
+  end if;
+  if p_reserved_output_tokens is null
+     or p_reserved_output_tokens < 1
+     or p_reserved_output_tokens > 10000 then
+    raise exception 'invalid_token_reservation' using errcode = '22023';
+  end if;
+
+  case p_feature
+    when 'vehicle_chat' then
+      v_hour_limit := 30; v_day_limit := 100; v_day_token_limit := 120000;
+    when 'service_invoice_import' then
+      v_hour_limit := 10; v_day_limit := 25; v_day_token_limit := 60000;
+    when 'fuel_receipt_import' then
+      v_hour_limit := 15; v_day_limit := 40; v_day_token_limit := 48000;
+    else
+      raise exception 'invalid_ai_feature' using errcode = '22023';
+  end case;
+
+  insert into public.ai_usage_limits (user_id, feature)
+  values (v_user_id, p_feature)
+  on conflict (user_id, feature) do nothing;
+  select * into v_limit from public.ai_usage_limits
+  where user_id = v_user_id and feature = p_feature for update;
+
+  if v_limit.hour_started_at < date_trunc('hour', v_now) then
+    v_limit.hour_started_at := date_trunc('hour', v_now);
+    v_limit.hour_request_count := 0;
+  end if;
+  if v_limit.day_started_at < date_trunc('day', v_now) then
+    v_limit.day_started_at := date_trunc('day', v_now);
+    v_limit.day_request_count := 0;
+    v_limit.day_reserved_output_tokens := 0;
+  end if;
+
+  if v_limit.hour_request_count >= v_hour_limit then
+    v_retry_after := greatest(1, ceil(extract(epoch from (
+      v_limit.hour_started_at + interval '1 hour' - v_now
+    )))::integer);
+    return jsonb_build_object('allowed', false, 'reason', 'rate_limited',
+      'retryAfterSeconds', v_retry_after);
+  end if;
+  if v_limit.day_request_count >= v_day_limit then
+    v_retry_after := greatest(1, ceil(extract(epoch from (
+      v_limit.day_started_at + interval '1 day' - v_now
+    )))::integer);
+    return jsonb_build_object('allowed', false, 'reason', 'rate_limited',
+      'retryAfterSeconds', v_retry_after);
+  end if;
+  if v_limit.day_reserved_output_tokens + p_reserved_output_tokens
+     > v_day_token_limit then
+    v_retry_after := greatest(1, ceil(extract(epoch from (
+      v_limit.day_started_at + interval '1 day' - v_now
+    )))::integer);
+    return jsonb_build_object('allowed', false, 'reason', 'budget_exceeded',
+      'retryAfterSeconds', v_retry_after);
+  end if;
+
+  update public.ai_usage_limits set
+    hour_started_at = v_limit.hour_started_at,
+    hour_request_count = v_limit.hour_request_count + 1,
+    day_started_at = v_limit.day_started_at,
+    day_request_count = v_limit.day_request_count + 1,
+    day_reserved_output_tokens =
+      v_limit.day_reserved_output_tokens + p_reserved_output_tokens,
+    updated_at = v_now
+  where user_id = v_user_id and feature = p_feature;
+  return jsonb_build_object('allowed', true, 'reason', null,
+    'retryAfterSeconds', null);
+end;
+$$;
+
+revoke all on function public.consume_ai_request_budget(text, integer) from public;
+grant execute on function public.consume_ai_request_budget(text, integer) to authenticated;
+
+-- Content-free import quality metrics. See the incremental migration for the
+-- matching validation and aggregation RPC.
+create table public.ai_import_quality_events (
+  request_id text primary key check (
+    length(request_id) between 16 and 120
+    and request_id ~ '^[A-Za-z0-9:_-]+$'
+  ),
+  feature text not null check (feature in (
+    'service_invoice_import', 'fuel_receipt_import'
+  )),
+  created_at timestamptz not null default now()
+);
+
+create table public.ai_import_quality_daily (
+  metric_date date not null,
+  feature text not null check (feature in (
+    'service_invoice_import', 'fuel_receipt_import'
+  )),
+  prompt_version text not null,
+  schema_version text not null,
+  completed_imports bigint not null default 0,
+  recognized_fields bigint not null default 0,
+  uncertain_fields bigint not null default 0,
+  missing_fields bigint not null default 0,
+  rejected_fields bigint not null default 0,
+  correction_count bigint not null default 0,
+  category_correction_count bigint not null default 0,
+  updated_at timestamptz not null default now(),
+  primary key (metric_date, feature, prompt_version, schema_version)
+);
+
+alter table public.ai_import_quality_events enable row level security;
+alter table public.ai_import_quality_daily enable row level security;
+revoke all on table public.ai_import_quality_events from anon, authenticated;
+revoke all on table public.ai_import_quality_daily from anon, authenticated;
+
+create or replace function public.record_ai_import_quality(
+  p_feature text,
+  p_request_id text,
+  p_recognized_fields integer,
+  p_uncertain_fields integer,
+  p_missing_fields integer,
+  p_rejected_fields integer,
+  p_correction_count integer,
+  p_category_correction_count integer
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_prompt_version text;
+  v_schema_version text;
+  v_inserted integer;
+begin
+  if v_user_id is null then
+    raise exception 'authentication_required' using errcode = 'P0001';
+  end if;
+  if p_request_id is null
+     or length(p_request_id) not between 16 and 120
+     or p_request_id !~ '^[A-Za-z0-9:_-]+$' then
+    raise exception 'invalid_request_id' using errcode = '22023';
+  end if;
+  if p_feature = 'service_invoice_import' then
+    v_prompt_version := 'service_invoice_v2';
+    v_schema_version := 'service_invoice_extraction_v2';
+  elsif p_feature = 'fuel_receipt_import' then
+    v_prompt_version := 'fuel_receipt_v2';
+    v_schema_version := 'fuel_receipt_extraction_v2';
+  else
+    raise exception 'invalid_ai_feature' using errcode = '22023';
+  end if;
+  if num_nonnulls(
+       p_recognized_fields,
+       p_uncertain_fields,
+       p_missing_fields,
+       p_rejected_fields,
+       p_correction_count,
+       p_category_correction_count
+     ) <> 6
+     or p_recognized_fields not between 0 and 100
+     or p_uncertain_fields not between 0 and 100
+     or p_missing_fields not between 0 and 100
+     or p_rejected_fields not between 0 and 100
+     or p_correction_count not between 0 and 100
+     or p_category_correction_count not between 0 and 100
+     or p_recognized_fields + p_uncertain_fields + p_missing_fields
+        + p_rejected_fields not between 1 and 100 then
+    raise exception 'invalid_metric_counts' using errcode = '22023';
+  end if;
+
+  insert into public.ai_import_quality_events (request_id, feature)
+  values (p_request_id, p_feature)
+  on conflict (request_id) do nothing;
+  get diagnostics v_inserted = row_count;
+  if v_inserted = 0 then
+    return jsonb_build_object('recorded', false, 'duplicate', true);
+  end if;
+
+  insert into public.ai_import_quality_daily (
+    metric_date, feature, prompt_version, schema_version, completed_imports,
+    recognized_fields, uncertain_fields, missing_fields, rejected_fields,
+    correction_count, category_correction_count
+  ) values (
+    current_date, p_feature, v_prompt_version, v_schema_version, 1,
+    p_recognized_fields, p_uncertain_fields, p_missing_fields,
+    p_rejected_fields, p_correction_count, p_category_correction_count
+  )
+  on conflict (metric_date, feature, prompt_version, schema_version)
+  do update set
+    completed_imports = public.ai_import_quality_daily.completed_imports + 1,
+    recognized_fields = public.ai_import_quality_daily.recognized_fields
+      + excluded.recognized_fields,
+    uncertain_fields = public.ai_import_quality_daily.uncertain_fields
+      + excluded.uncertain_fields,
+    missing_fields = public.ai_import_quality_daily.missing_fields
+      + excluded.missing_fields,
+    rejected_fields = public.ai_import_quality_daily.rejected_fields
+      + excluded.rejected_fields,
+    correction_count = public.ai_import_quality_daily.correction_count
+      + excluded.correction_count,
+    category_correction_count =
+      public.ai_import_quality_daily.category_correction_count
+      + excluded.category_correction_count,
+    updated_at = now();
+  return jsonb_build_object('recorded', true, 'duplicate', false);
+end;
+$$;
+
+revoke all on function public.record_ai_import_quality(
+  text, text, integer, integer, integer, integer, integer, integer
+) from public;
+grant execute on function public.record_ai_import_quality(
+  text, text, integer, integer, integer, integer, integer, integer
+) to authenticated;

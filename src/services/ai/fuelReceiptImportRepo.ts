@@ -45,7 +45,10 @@ export type FuelReceiptImportErrorCode =
   | "REQUEST_FAILED"
   | "MODEL_TIMEOUT"
   | "INVALID_MODEL_RESPONSE"
-  | "MODEL_REQUEST_FAILED";
+  | "MODEL_REQUEST_FAILED"
+  | "FEATURE_DISABLED"
+  | "RATE_LIMITED"
+  | "BUDGET_EXCEEDED";
 
 export class FuelReceiptImportError extends Error {
   constructor(
@@ -160,9 +163,13 @@ function parseExtraction(value: unknown): FuelReceiptExtraction | null {
 
 function serverErrorCode(code: string): FuelReceiptImportErrorCode {
   if (code === "FILE_TOO_LARGE") return "FILE_TOO_LARGE";
+  if (code === "UNSUPPORTED_FILE") return "INVALID_FILE";
   if (code === "MODEL_TIMEOUT") return "MODEL_TIMEOUT";
   if (code === "INVALID_MODEL_RESPONSE") return "INVALID_MODEL_RESPONSE";
   if (code === "MODEL_REQUEST_FAILED") return "MODEL_REQUEST_FAILED";
+  if (code === "FEATURE_DISABLED") return "FEATURE_DISABLED";
+  if (code === "RATE_LIMITED") return "RATE_LIMITED";
+  if (code === "BUDGET_EXCEEDED") return "BUDGET_EXCEEDED";
   return "REQUEST_FAILED";
 }
 
@@ -281,7 +288,10 @@ export async function analyzeFuelReceipt(input: {
     prepared = await prepareServiceDocumentForAnalysis(input);
   } catch (error) {
     if (error instanceof ServiceInvoiceImportError) {
-      throw new FuelReceiptImportError(error.code, error.message);
+      throw new FuelReceiptImportError(
+        error.code === "FILE_TOO_LARGE" ? "FILE_TOO_LARGE" : "INVALID_FILE",
+        error.message,
+      );
     }
     throw error;
   }

@@ -4,13 +4,27 @@ import {
   isAiImportFieldValuePresenceValid,
   type AiImportFieldStatus,
 } from "../../../shared/ai/importContract.ts";
+import {
+  inspectPdfSecurity,
+  MAX_SERVICE_PDF_PAGES,
+} from "../_shared/aiFileSecurity.ts";
+import {
+  AI_RUNTIME_CONTRACTS,
+  AiCircuitBreaker,
+  buildAiSafeTrace,
+  executeAiModelRequest,
+  type AiFeatureAccess,
+  type AiSafeTrace,
+  type AiRuntimeSettings,
+} from "../_shared/aiRuntime.ts";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_WORK_ITEMS = 20;
-const MAX_OUTPUT_TOKENS = 2400;
-const MODEL_TIMEOUT_MS = 30_000;
+const RUNTIME_CONTRACT = AI_RUNTIME_CONTRACTS.service_invoice_import;
+const MAX_OUTPUT_TOKENS = RUNTIME_CONTRACT.maxOutputTokens;
+const MODEL_TIMEOUT_MS = RUNTIME_CONTRACT.timeoutMs;
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
-const MODEL = "gpt-5.6-luna";
+const MODEL = RUNTIME_CONTRACT.defaultModel;
 
 const SUPPORTED_MIME_TYPES = [
   "application/pdf",
@@ -152,9 +166,14 @@ type ErrorCode =
   | "AUTH_REQUIRED"
   | "PREMIUM_REQUIRED"
   | "AUTHORIZATION_FAILED"
+  | "FEATURE_DISABLED"
+  | "RATE_LIMITED"
+  | "BUDGET_EXCEEDED"
   | "INVALID_JSON"
   | "INVALID_REQUEST"
   | "UNSUPPORTED_FILE"
+  | "UNSAFE_FILE"
+  | "PDF_TOO_MANY_PAGES"
   | "FILE_TOO_LARGE"
   | "VEHICLE_NOT_FOUND"
   | "SERVER_MISCONFIGURATION"
@@ -172,6 +191,11 @@ export interface ServiceInvoiceImportDependencies {
     userId: string;
     vehicleId: string;
   }) => Promise<boolean>;
+  authorizeRequest?: (input: { userId: string }) => Promise<AiFeatureAccess>;
+  modelSettings?: Pick<AiRuntimeSettings, "primaryModel" | "fallbackModel">;
+  circuitBreaker?: AiCircuitBreaker;
+  traceSettings?: AiRuntimeSettings;
+  recordTrace?: (trace: AiSafeTrace) => void;
   fetch: ModelFetch;
 }
 
@@ -187,6 +211,29 @@ const BASE64_PATTERN = /^[A-Za-z0-9+/]+={0,2}$/;
 
 function errorResponse(status: number, code: ErrorCode, message: string) {
   return Response.json({ error: { code, message } }, { status });
+}
+
+function accessErrorResponse(access: Exclude<AiFeatureAccess, { allowed: true }>) {
+  const disabled = access.reason === "disabled" || access.reason === "rollout";
+  const code = disabled
+    ? "FEATURE_DISABLED"
+    : access.reason === "budget_exceeded"
+      ? "BUDGET_EXCEEDED"
+      : "RATE_LIMITED";
+  const headers = access.retryAfterSeconds === undefined
+    ? undefined
+    : { "Retry-After": String(access.retryAfterSeconds) };
+  return Response.json(
+    {
+      error: {
+        code,
+        message: disabled
+          ? "Document import is currently unavailable."
+          : "The document analysis limit has been reached.",
+      },
+    },
+    { status: disabled ? 503 : 429, headers },
+  );
 }
 
 function isSupportedMimeType(value: unknown): value is SupportedMimeType {
@@ -244,6 +291,14 @@ function parseRequest(value: unknown): ServiceInvoiceRequest | ErrorCode {
   if (!isSupportedMimeType(mimeType)) return "UNSUPPORTED_FILE";
   if (decodedByteLength(base64) > MAX_FILE_BYTES) return "FILE_TOO_LARGE";
   if (!hasExpectedSignature(base64, mimeType)) return "UNSUPPORTED_FILE";
+  if (mimeType === "application/pdf") {
+    const inspection = inspectPdfSecurity(base64);
+    if (!inspection.safe) {
+      return inspection.reason === "too_many_pages"
+        ? "PDF_TOO_MANY_PAGES"
+        : "UNSAFE_FILE";
+    }
+  }
 
   return {
     vehicleId: vehicleId.toLowerCase(),
@@ -383,7 +438,7 @@ function parseModelResponse(value: unknown) {
   }
 }
 
-function modelRequestBody(request: ServiceInvoiceRequest) {
+function modelRequestBody(request: ServiceInvoiceRequest, model = MODEL) {
   const dataUrl = `data:${request.mimeType};base64,${request.base64}`;
   const fileContent =
     request.mimeType === "application/pdf"
@@ -396,7 +451,7 @@ function modelRequestBody(request: ServiceInvoiceRequest) {
       : { type: "input_image", image_url: dataUrl, detail: "high" };
 
   return JSON.stringify({
-    model: MODEL,
+    model,
     instructions: SYSTEM_PROMPT_V2,
     input: [
       {
@@ -413,7 +468,7 @@ function modelRequestBody(request: ServiceInvoiceRequest) {
     text: {
       format: {
         type: "json_schema",
-        name: "service_invoice_extraction_v2",
+        name: RUNTIME_CONTRACT.schemaVersion,
         strict: true,
         schema: SERVICE_INVOICE_SCHEMA,
       },
@@ -423,18 +478,16 @@ function modelRequestBody(request: ServiceInvoiceRequest) {
   });
 }
 
-function isTimeoutError(error: unknown) {
-  return (
-    error instanceof Error &&
-    (error.name === "TimeoutError" || error.name === "AbortError")
-  );
-}
-
 export function createServiceInvoiceImportHandler({
   getOpenAiApiKey,
   authenticateUser,
   hasPremiumAccess,
   vehicleBelongsToUser,
+  authorizeRequest,
+  modelSettings = { primaryModel: MODEL, fallbackModel: null },
+  circuitBreaker = new AiCircuitBreaker(),
+  traceSettings,
+  recordTrace,
   fetch: fetchModel,
 }: ServiceInvoiceImportDependencies) {
   return async function handleServiceInvoiceImport(req: Request): Promise<Response> {
@@ -470,7 +523,11 @@ export function createServiceInvoiceImportHandler({
 
     const parsedRequest = parseRequest(body);
     if (typeof parsedRequest === "string") {
-      const status = parsedRequest === "FILE_TOO_LARGE" ? 413 : 400;
+      const status =
+        parsedRequest === "FILE_TOO_LARGE" ||
+          parsedRequest === "PDF_TOO_MANY_PAGES"
+          ? 413
+          : 400;
       return errorResponse(status, parsedRequest, "The selected file is not supported.");
     }
 
@@ -491,6 +548,20 @@ export function createServiceInvoiceImportHandler({
       return errorResponse(404, "VEHICLE_NOT_FOUND", "Vehicle was not found.");
     }
 
+    if (authorizeRequest) {
+      let access: AiFeatureAccess;
+      try {
+        access = await authorizeRequest({ userId });
+      } catch {
+        return errorResponse(
+          503,
+          "AUTHORIZATION_FAILED",
+          "Document analysis limits could not be verified.",
+        );
+      }
+      if (!access.allowed) return accessErrorResponse(access);
+    }
+
     const apiKey = getOpenAiApiKey();
     if (!apiKey) {
       return errorResponse(
@@ -500,48 +571,63 @@ export function createServiceInvoiceImportHandler({
       );
     }
 
-    let modelResponse: Response;
-    try {
-      modelResponse = await fetchModel(OPENAI_RESPONSES_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: modelRequestBody(parsedRequest),
-        signal: AbortSignal.any([
-          req.signal,
-          AbortSignal.timeout(MODEL_TIMEOUT_MS),
-        ]),
-      });
-    } catch (error) {
-      if (isTimeoutError(error)) {
+    const traceId = crypto.randomUUID();
+    const traceStartedAt = Date.now();
+    const execution = await executeAiModelRequest({
+      feature: "service_invoice_import",
+      settings: modelSettings,
+      apiKey,
+      url: OPENAI_RESPONSES_URL,
+      signal: AbortSignal.any([
+        req.signal,
+        AbortSignal.timeout(MODEL_TIMEOUT_MS),
+      ]),
+      fetch: fetchModel,
+      buildBody: (model) => modelRequestBody(parsedRequest, model),
+      circuitBreaker,
+    });
+    if (!execution.ok) {
+      if (traceSettings && recordTrace) {
+        recordTrace(buildAiSafeTrace({
+          traceId,
+          feature: "service_invoice_import",
+          settings: traceSettings,
+          model: modelSettings.primaryModel,
+          fallbackUsed: false,
+          attemptCount: execution.attemptCount,
+          outcome: "error",
+          errorCode: execution.reason,
+          durationMs: Date.now() - traceStartedAt,
+        }));
+      }
+      if (execution.reason === "timeout") {
         return errorResponse(504, "MODEL_TIMEOUT", "Document analysis timed out.");
       }
-      console.error("OpenAI document request failed before receiving a response");
       return errorResponse(
-        502,
+        execution.reason === "circuit_open" ? 503 : 502,
         "MODEL_REQUEST_FAILED",
         "Document analysis is temporarily unavailable.",
       );
     }
-
-    if (!modelResponse.ok) {
-      console.error("OpenAI document request failed", {
-        status: modelResponse.status,
-        requestId: modelResponse.headers.get("x-request-id"),
-      });
-      return errorResponse(
-        502,
-        "MODEL_REQUEST_FAILED",
-        "Document analysis is temporarily unavailable.",
-      );
-    }
+    const modelResponse = execution.response;
 
     let responseBody: unknown;
     try {
       responseBody = await modelResponse.json();
     } catch {
+      if (traceSettings && recordTrace) {
+        recordTrace(buildAiSafeTrace({
+          traceId,
+          feature: "service_invoice_import",
+          settings: traceSettings,
+          model: execution.model,
+          fallbackUsed: execution.fallbackUsed,
+          attemptCount: execution.attemptCount,
+          outcome: "error",
+          errorCode: "INVALID_MODEL_RESPONSE",
+          durationMs: Date.now() - traceStartedAt,
+        }));
+      }
       return errorResponse(
         502,
         "INVALID_MODEL_RESPONSE",
@@ -551,6 +637,20 @@ export function createServiceInvoiceImportHandler({
 
     const extraction = parseModelResponse(responseBody);
     if (!extraction) {
+      if (traceSettings && recordTrace) {
+        recordTrace(buildAiSafeTrace({
+          traceId,
+          feature: "service_invoice_import",
+          settings: traceSettings,
+          model: execution.model,
+          fallbackUsed: execution.fallbackUsed,
+          attemptCount: execution.attemptCount,
+          outcome: "rejected",
+          errorCode: "INVALID_MODEL_RESPONSE",
+          durationMs: Date.now() - traceStartedAt,
+          responseBody,
+        }));
+      }
       return errorResponse(
         502,
         "INVALID_MODEL_RESPONSE",
@@ -558,8 +658,22 @@ export function createServiceInvoiceImportHandler({
       );
     }
 
+    if (traceSettings && recordTrace) {
+      recordTrace(buildAiSafeTrace({
+        traceId,
+        feature: "service_invoice_import",
+        settings: traceSettings,
+        model: execution.model,
+        fallbackUsed: execution.fallbackUsed,
+        attemptCount: execution.attemptCount,
+        outcome: "success",
+        durationMs: Date.now() - traceStartedAt,
+        responseBody,
+      }));
+    }
+
     return Response.json(extraction);
   };
 }
 
-export { MAX_FILE_BYTES, SUPPORTED_MIME_TYPES };
+export { MAX_FILE_BYTES, MAX_SERVICE_PDF_PAGES, SUPPORTED_MIME_TYPES };

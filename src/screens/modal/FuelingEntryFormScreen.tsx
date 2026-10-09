@@ -49,6 +49,12 @@ import {
   resolveFuelReceiptMimeType,
   type FuelReceiptExtraction,
 } from "../../services/ai/fuelReceiptImportRepo";
+import { createAiImportRequestId } from "../../services/ai/aiImportIdempotency";
+import {
+  countAiImportCorrections,
+  countAiImportStatuses,
+  recordAiImportQuality,
+} from "../../services/ai/aiImportQuality";
 import { buildFuelReceiptFormDraft } from "../../forms/fuelReceiptDraft";
 import {
   alertCaughtError,
@@ -87,6 +93,8 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
   const [hasReceiptDraft, setHasReceiptDraft] = useState(false);
   const receiptAbortController = useRef<AbortController | null>(null);
   const hasReceiptDraftRef = useRef(false);
+  const receiptSaveRequestId = useRef<string | null>(null);
+  const receiptExtraction = useRef<FuelReceiptExtraction | null>(null);
 
   const formValues = useMemo(
     (): FuelingEntryFormState => ({
@@ -203,6 +211,8 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
     setReceiptReview(null);
     setHasReceiptDraft(false);
     hasReceiptDraftRef.current = false;
+    receiptSaveRequestId.current = null;
+    receiptExtraction.current = null;
   }
 
   const applyReceiptExtraction = useCallback(
@@ -217,6 +227,8 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
       resetFieldErrors();
       setHasReceiptDraft(true);
       hasReceiptDraftRef.current = true;
+      receiptSaveRequestId.current = createAiImportRequestId();
+      receiptExtraction.current = extraction;
 
       const issues = [
         extraction.date.status !== "recognized"
@@ -293,8 +305,15 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
           : error instanceof FuelReceiptImportError &&
               error.code === "INVALID_FILE"
             ? t("fuelingForm.receiptInvalidFile")
-            : error instanceof FuelReceiptImportError
-              ? t("fuelingForm.receiptAnalysisFailed")
+            : error instanceof FuelReceiptImportError &&
+                (error.code === "RATE_LIMITED" ||
+                  error.code === "BUDGET_EXCEEDED")
+              ? t("aiImportReview.limitReached")
+              : error instanceof FuelReceiptImportError &&
+                  error.code === "FEATURE_DISABLED"
+                ? t("aiImportReview.unavailable")
+                : error instanceof FuelReceiptImportError
+                  ? t("fuelingForm.receiptAnalysisFailed")
               : getUserFacingErrorMessage(
                   error,
                   t("fuelingForm.receiptAnalysisFailed"),
@@ -383,7 +402,38 @@ export function FuelingEntryFormScreen({ navigation, route }: Props) {
         requireDistance: hasReceiptDraft,
       });
       if (entryId) await updateFuelingEntry(entryId, payload);
-      else await createFuelingEntry(payload);
+      else {
+        const idempotencyKey = hasReceiptDraftRef.current
+          ? (receiptSaveRequestId.current ??= createAiImportRequestId())
+          : undefined;
+        await createFuelingEntry(payload, { idempotencyKey });
+        const extraction = receiptExtraction.current;
+        if (idempotencyKey && extraction) {
+          const baseline = buildFuelReceiptFormDraft(extraction);
+          await recordAiImportQuality({
+            feature: "fuel_receipt_import",
+            requestId: idempotencyKey,
+            statusCounts: countAiImportStatuses([
+              extraction.date.status,
+              extraction.fuelAmount.status,
+              extraction.totalCost.status,
+              extraction.fuelType.status,
+              extraction.gasStation.status,
+            ]),
+            correctionCount: countAiImportCorrections(
+              [
+                baseline.date,
+                baseline.fuelAmount,
+                baseline.fuelCost,
+                baseline.fuelType,
+                baseline.gasStation,
+              ],
+              [date, fuelAmount, fuelCost, fuelType, gasStation],
+            ),
+            categoryCorrectionCount: 0,
+          });
+        }
+      }
       navigation.goBack();
     } catch (e: any) {
       toastCaughtError(e, t("common.error"));

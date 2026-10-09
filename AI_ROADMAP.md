@@ -106,10 +106,10 @@ Status: zaimplementowany. Szczegóły kontraktu i zabezpieczeń opisuje
 **Rezultat:** czytelny paragon tworzy szkic tankowania bez wymyślania brakującego
 przebiegu i bez automatycznego zapisu.
 
-## Etap 6 – Jakość i bezpieczeństwo importu
+## Etap 6 – Jakość, bezpieczeństwo i production hardening
 
-Status: w trakcie realizacji. Kontrakt i pierwszy fragment zabezpieczeń opisuje
-`AI_STAGE_6.md`.
+Status: implementacja lokalna gotowa do weryfikacji środowiskowej. Szczegóły i
+pozostałe działania operacyjne opisuje `AI_STAGE_6.md`.
 
 - wspólny kontrakt stanów: rozpoznane, niepewne, brakujące i odrzucone,
 - limity typu, rozmiaru, liczby stron, czasu, tokenów i częstotliwości analiz,
@@ -117,10 +117,17 @@ Status: w trakcie realizacji. Kontrakt i pierwszy fragment zabezpieczeń opisuje
 - idempotencja i ochrona przed utworzeniem duplikatu po ponowieniu,
 - anonimizowany zestaw ewaluacyjny dla faktur i paragonów PL/EN,
 - pomiar poprawności pól, kategorii, odrzuceń i liczby korekt użytkownika,
-- obserwowalność bez logowania dokumentów, paragonów i danych osobowych.
+- guardrails dla treści diagnostycznych i czerwonych flag,
+- rate limiting, budżety kosztowe, timeouty i kontrolowane retry,
+- tracing oraz bezpieczne logowanie metadanych,
+- monitoring jakości, błędów, kosztu i opóźnienia,
+- wersjonowanie promptów, modeli i konfiguracji,
+- porównywanie modeli, fallback i circuit breaker,
+- feature flags, etapowy rollout, kill switch i regresyjne evaluation.
 
-**Rezultat:** import ma zmierzoną jakość, kontrolowany koszt i bezpiecznie obsługuje
-typowe błędy oraz nieczytelne materiały.
+**Rezultat:** funkcje AI mają mierzalną jakość, koszt i niezawodność, import
+bezpiecznie obsługuje niewiarygodne materiały, a system pozwala na kontrolowany
+rollout i rollback.
 
 ## Etap 7 – Web search ze źródłami
 
@@ -166,19 +173,7 @@ autonomii.
 **Rezultat:** Vericar wskazuje obszary wymagające uwagi, ale użytkownik zachowuje
 kontrolę nad decyzjami.
 
-## Etap 11 – Production hardening
-
-- guardrails i testy bezpieczeństwa,
-- rate limiting, budżety kosztowe, timeouty i kontrolowane retry,
-- tracing oraz bezpieczne logowanie metadanych,
-- monitoring jakości, błędów, kosztu i opóźnienia,
-- porównywanie modeli, fallback, circuit breaker, feature flag i kill switch,
-- regresyjne evaluation przed wydaniem.
-
-**Rezultat:** funkcje AI mają mierzalną jakość, koszt i niezawodność oraz bezpieczny
-rollback.
-
-## Etap 12 – Opcjonalne rozszerzenia
+## Etap 11 – Opcjonalne rozszerzenia
 
 Tylko po potwierdzeniu potrzeby produktowej można rozważyć:
 
@@ -198,5 +193,5 @@ warunkiem ukończenia aktywnej roadmapy.
 - Etapy 4–6: multimodal AI, vision, ekstrakcja strukturalna i evaluation.
 - Etap 7: web search, cytowania i prompt injection protection.
 - Etapy 8–9: tool calling, function calling, context engineering, memory i agent loop.
-- Etapy 1–11: guardrails, AI security, observability, koszt i reliability patterns.
+- Etapy 1–10: guardrails, AI security, observability, koszt i reliability patterns.
 - Embeddings, vector databases, RAG, reranking i MCP pozostają świadomie opcjonalne.

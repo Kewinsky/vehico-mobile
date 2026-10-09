@@ -62,6 +62,9 @@ function errorKind(error: unknown): AssistantMessage["errorKind"] {
       return "invalidResponse";
     case "MODEL_REQUEST_FAILED":
     case "NETWORK_ERROR":
+    case "FEATURE_DISABLED":
+    case "RATE_LIMITED":
+    case "BUDGET_EXCEEDED":
       return "unavailable";
     case "CONTEXT_TOO_LARGE":
       return "contextTooLarge";

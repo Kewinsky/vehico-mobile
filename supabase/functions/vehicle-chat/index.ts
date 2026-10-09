@@ -6,9 +6,20 @@ import {
   MAX_CONTEXT_ROWS_PER_COLLECTION,
   MAX_RECENT_SERVICE_AND_FUEL_ROWS,
 } from "./handler.ts";
+import {
+  authorizeAiRequest,
+  logAiSafeTrace,
+  parseAiBudgetAccess,
+  readAiRuntimeSettings,
+  sharedAiCircuitBreaker,
+} from "../_shared/aiRuntime.ts";
 
 export default {
   fetch: withSupabase({ auth: "user" }, async (req, ctx) => {
+    const runtimeSettings = readAiRuntimeSettings(
+      "vehicle_chat",
+      (name) => Deno.env.get(name),
+    );
     const handler = createVehicleChatHandler({
       getOpenAiApiKey: () => Deno.env.get("OPENAI_API_KEY"),
       authenticateUser: async () => {
@@ -138,6 +149,29 @@ export default {
           workshops: workshopsResult.data ?? [],
         };
       },
+      authorizeRequest: async ({ userId }) =>
+        authorizeAiRequest({
+          userId,
+          feature: "vehicle_chat",
+          settings: runtimeSettings,
+          consumeBudget: async (reservedOutputTokens) => {
+            const { data, error } = await ctx.supabase.rpc(
+              "consume_ai_request_budget",
+              {
+                p_feature: "vehicle_chat",
+                p_reserved_output_tokens: reservedOutputTokens,
+              },
+            );
+            if (error) throw error;
+            const access = parseAiBudgetAccess(data);
+            if (!access) throw new Error("Invalid AI budget response");
+            return access;
+          },
+        }),
+      modelSettings: runtimeSettings,
+      circuitBreaker: sharedAiCircuitBreaker,
+      traceSettings: runtimeSettings,
+      recordTrace: logAiSafeTrace,
       fetch,
     });
 

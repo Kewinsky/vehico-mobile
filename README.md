@@ -235,6 +235,9 @@ import can prepare editable service-entry drafts from one photo or PDF. The sour
 is not stored in Vericar cloud storage and is attached locally after the entry is
 saved.
 
+Runtime limits, feature flags, quality evaluations, monitoring queries and the
+AI rollback procedure are documented in [`AI_OPERATIONS.md`](AI_OPERATIONS.md).
+
 ## Development
 
 - TypeScript strict mode, functional components/hooks

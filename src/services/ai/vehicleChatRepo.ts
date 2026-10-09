@@ -29,7 +29,10 @@ export type VehicleChatErrorCode =
   | "MODEL_TIMEOUT"
   | "INVALID_MODEL_RESPONSE"
   | "MODEL_REQUEST_FAILED"
-  | "CONTEXT_TOO_LARGE";
+  | "CONTEXT_TOO_LARGE"
+  | "FEATURE_DISABLED"
+  | "RATE_LIMITED"
+  | "BUDGET_EXCEEDED";
 
 export class VehicleChatError extends Error {
   constructor(
@@ -138,7 +141,10 @@ function isVehicleChatErrorCode(value: string): value is VehicleChatErrorCode {
     value === "MODEL_TIMEOUT" ||
     value === "INVALID_MODEL_RESPONSE" ||
     value === "MODEL_REQUEST_FAILED" ||
-    value === "CONTEXT_TOO_LARGE"
+    value === "CONTEXT_TOO_LARGE" ||
+    value === "FEATURE_DISABLED" ||
+    value === "RATE_LIMITED" ||
+    value === "BUDGET_EXCEEDED"
   );
 }
 

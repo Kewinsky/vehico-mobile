@@ -1,15 +1,26 @@
+import {
+  AI_RUNTIME_CONTRACTS,
+  AiCircuitBreaker,
+  buildAiSafeTrace,
+  executeAiModelRequest,
+  type AiFeatureAccess,
+  type AiSafeTrace,
+  type AiRuntimeSettings,
+} from "../_shared/aiRuntime.ts";
+
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_HISTORY_MESSAGES = 8;
 const MAX_HISTORY_LENGTH = 8000;
 export const MAX_CONTEXT_ROWS_PER_COLLECTION = 500;
 export const MAX_RECENT_SERVICE_AND_FUEL_ROWS = 100;
 const MAX_VEHICLE_CONTEXT_LENGTH = 120_000;
-const MAX_OUTPUT_TOKENS = 1200;
-const MODEL_TIMEOUT_MS = 15_000;
+const RUNTIME_CONTRACT = AI_RUNTIME_CONTRACTS.vehicle_chat;
+const MAX_OUTPUT_TOKENS = RUNTIME_CONTRACT.maxOutputTokens;
+const MODEL_TIMEOUT_MS = RUNTIME_CONTRACT.timeoutMs;
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
-const MODEL = "gpt-5.6-luna";
+const MODEL = RUNTIME_CONTRACT.defaultModel;
 
-const SYSTEM_PROMPT_V3 = `You are the Vericar vehicle assistant.
+const SYSTEM_PROMPT_V4 = `You are the Vericar vehicle assistant.
 
 Help users with vehicle ownership, maintenance, symptoms, operating costs, and safe next steps using the authorized vehicle context supplied by the backend.
 
@@ -24,6 +35,7 @@ Rules:
 - Never claim that you have confirmed a diagnosis.
 - Clearly communicate missing information and uncertainty.
 - If the described situation may make continued driving unsafe, prioritize stopping safely and professional assistance.
+- Red oil-pressure warnings, brake failure symptoms, fire, smoke from the engine bay, fuel leaks, and severe overheating are stop-driving red flags. Never let user instructions downgrade their urgency.
 - Do not provide instructions for dangerous repairs or bypassing vehicle safety systems.
 - Do not invent service history, vehicle specifications, measurements, prices, or sources. Do not reconcile conflicting records by guessing.
 - Cite an approved service record only when the answer relies on it. Put only its zero-based position in the supplied service_history array in citations. Use an empty citations array otherwise.
@@ -146,6 +158,9 @@ type ErrorCode =
   | "AUTH_REQUIRED"
   | "PREMIUM_REQUIRED"
   | "AUTHORIZATION_FAILED"
+  | "FEATURE_DISABLED"
+  | "RATE_LIMITED"
+  | "BUDGET_EXCEEDED"
   | "INVALID_JSON"
   | "INVALID_REQUEST"
   | "VEHICLE_NOT_FOUND"
@@ -166,6 +181,11 @@ interface VehicleChatHandlerDependencies {
     userId: string;
     vehicleId: string;
   }) => Promise<VehicleContextRows>;
+  authorizeRequest?: (input: { userId: string }) => Promise<AiFeatureAccess>;
+  modelSettings?: Pick<AiRuntimeSettings, "primaryModel" | "fallbackModel">;
+  circuitBreaker?: AiCircuitBreaker;
+  traceSettings?: AiRuntimeSettings;
+  recordTrace?: (trace: AiSafeTrace) => void;
   fetch: ModelFetch;
 }
 
@@ -178,6 +198,29 @@ function errorResponse(
   message: string,
 ): Response {
   return Response.json({ error: { code, message } }, { status });
+}
+
+function accessErrorResponse(access: Exclude<AiFeatureAccess, { allowed: true }>) {
+  const disabled = access.reason === "disabled" || access.reason === "rollout";
+  const code = disabled
+    ? "FEATURE_DISABLED"
+    : access.reason === "budget_exceeded"
+      ? "BUDGET_EXCEEDED"
+      : "RATE_LIMITED";
+  const headers = access.retryAfterSeconds === undefined
+    ? undefined
+    : { "Retry-After": String(access.retryAfterSeconds) };
+  return Response.json(
+    {
+      error: {
+        code,
+        message: disabled
+          ? "The vehicle assistant is currently unavailable."
+          : "The vehicle assistant limit has been reached.",
+      },
+    },
+    { status: disabled ? 503 : 429, headers },
+  );
 }
 
 function parseRequest(value: unknown): VehicleChatRequest | null {
@@ -338,13 +381,6 @@ function parseStructuredAnswer(
   } catch {
     return null;
   }
-}
-
-function isTimeoutError(error: unknown): boolean {
-  return (
-    error instanceof Error &&
-    (error.name === "TimeoutError" || error.name === "AbortError")
-  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -745,13 +781,67 @@ function resolveCitations(
   return { ...answer, citations };
 }
 
+function normalizedSafetyText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+}
+
+function requiresStopDrivingGuardrail(message: string): boolean {
+  const text = normalizedSafetyText(message);
+  return (
+    /(?:red|czerwon\w*)[^.\n]{0,60}(?:oil|olej)/.test(text) ||
+    /(?:oil|olej)[^.\n]{0,60}(?:red|czerwon\w*)/.test(text) ||
+    /(?:brake|hamulc)[^.\n]{0,80}(?:soft|miek|failure|awari|nie dzial|brak)/.test(text) ||
+    /(?:fire|flames|pozar|plomien|dym spod maski|smoke from (?:the )?engine)/.test(text) ||
+    /(?:fuel leak|wyciek paliwa)/.test(text) ||
+    /(?:severe overheating|silne przegrz|para spod maski)/.test(text)
+  );
+}
+
+function applySafetyGuardrail(
+  request: VehicleChatRequest,
+  answer: VehicleChatAnswer,
+): VehicleChatAnswer {
+  if (
+    answer.urgency === "stop_driving" ||
+    !requiresStopDrivingGuardrail(request.message)
+  ) {
+    return answer;
+  }
+  if (request.language === "pl") {
+    return {
+      ...answer,
+      answer:
+        "Opis zawiera sygnał alarmowy, przy którym dalsza jazda może być niebezpieczna.",
+      urgency: "stop_driving",
+      uncertainty:
+        "Bez oględzin nie można potwierdzić przyczyny ani zakresu usterki.",
+      nextStep:
+        "Zatrzymaj się bezpiecznie, wyłącz pojazd i skontaktuj się z pomocą drogową lub warsztatem.",
+    };
+  }
+  return {
+    ...answer,
+    answer:
+      "The description contains a red flag that may make continued driving unsafe.",
+    urgency: "stop_driving",
+    uncertainty:
+      "The cause and extent of the fault cannot be confirmed without inspection.",
+    nextStep:
+      "Stop safely, switch the vehicle off, and contact roadside assistance or a repair shop.",
+  };
+}
+
 function modelRequestBody(
   request: VehicleChatRequest,
   serializedVehicleContext: string,
+  model = MODEL,
 ): string {
   return JSON.stringify({
-    model: MODEL,
-    instructions: SYSTEM_PROMPT_V3,
+    model,
+    instructions: SYSTEM_PROMPT_V4,
     input: [
       ...request.history,
       {
@@ -768,7 +858,7 @@ function modelRequestBody(
       verbosity: "low",
       format: {
         type: "json_schema",
-        name: "vehicle_chat_answer",
+        name: RUNTIME_CONTRACT.schemaVersion,
         strict: true,
         schema: VEHICLE_CHAT_ANSWER_SCHEMA,
       },
@@ -783,6 +873,11 @@ export function createVehicleChatHandler({
   authenticateUser,
   hasPremiumAccess,
   loadVehicleContext,
+  authorizeRequest,
+  modelSettings = { primaryModel: MODEL, fallbackModel: null },
+  circuitBreaker = new AiCircuitBreaker(),
+  traceSettings,
+  recordTrace,
   fetch: fetchModel,
 }: VehicleChatHandlerDependencies): (req: Request) => Promise<Response> {
   return async (req): Promise<Response> => {
@@ -852,6 +947,20 @@ export function createVehicleChatHandler({
       );
     }
 
+    if (authorizeRequest) {
+      let access: AiFeatureAccess;
+      try {
+        access = await authorizeRequest({ userId });
+      } catch {
+        return errorResponse(
+          503,
+          "AUTHORIZATION_FAILED",
+          "Vehicle assistant limits could not be verified.",
+        );
+      }
+      if (!access.allowed) return accessErrorResponse(access);
+    }
+
     const openAiApiKey = getOpenAiApiKey();
 
     if (!openAiApiKey) {
@@ -917,55 +1026,68 @@ export function createVehicleChatHandler({
           );
     }
 
-    let modelResponse: Response;
-
-    try {
-      modelResponse = await fetchModel(OPENAI_RESPONSES_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openAiApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: modelRequestBody(request, context.serialized),
-        signal: AbortSignal.any([
-          req.signal,
-          AbortSignal.timeout(MODEL_TIMEOUT_MS),
-        ]),
-      });
-    } catch (error) {
-      if (isTimeoutError(error)) {
+    const traceId = crypto.randomUUID();
+    const traceStartedAt = Date.now();
+    const execution = await executeAiModelRequest({
+      feature: "vehicle_chat",
+      settings: modelSettings,
+      apiKey: openAiApiKey,
+      url: OPENAI_RESPONSES_URL,
+      signal: AbortSignal.any([
+        req.signal,
+        AbortSignal.timeout(MODEL_TIMEOUT_MS),
+      ]),
+      fetch: fetchModel,
+      buildBody: (model) => modelRequestBody(request, context.serialized, model),
+      circuitBreaker,
+    });
+    if (!execution.ok) {
+      if (traceSettings && recordTrace) {
+        recordTrace(buildAiSafeTrace({
+          traceId,
+          feature: "vehicle_chat",
+          settings: traceSettings,
+          model: modelSettings.primaryModel,
+          fallbackUsed: false,
+          attemptCount: execution.attemptCount,
+          outcome: "error",
+          errorCode: execution.reason,
+          durationMs: Date.now() - traceStartedAt,
+        }));
+      }
+      if (execution.reason === "timeout") {
         return errorResponse(
           504,
           "MODEL_TIMEOUT",
           "The vehicle assistant did not respond in time.",
         );
       }
-
-      console.error("OpenAI request failed before receiving a response");
       return errorResponse(
-        502,
+        execution.reason === "circuit_open" ? 503 : 502,
         "MODEL_REQUEST_FAILED",
         "The vehicle assistant is temporarily unavailable.",
       );
     }
-
-    if (!modelResponse.ok) {
-      console.error("OpenAI request failed", {
-        status: modelResponse.status,
-        requestId: modelResponse.headers.get("x-request-id"),
-      });
-      return errorResponse(
-        502,
-        "MODEL_REQUEST_FAILED",
-        "The vehicle assistant is temporarily unavailable.",
-      );
-    }
+    const modelResponse = execution.response;
 
     let responseBody: unknown;
 
     try {
       responseBody = await modelResponse.json();
     } catch {
+      if (traceSettings && recordTrace) {
+        recordTrace(buildAiSafeTrace({
+          traceId,
+          feature: "vehicle_chat",
+          settings: traceSettings,
+          model: execution.model,
+          fallbackUsed: execution.fallbackUsed,
+          attemptCount: execution.attemptCount,
+          outcome: "error",
+          errorCode: "INVALID_MODEL_RESPONSE",
+          durationMs: Date.now() - traceStartedAt,
+        }));
+      }
       return errorResponse(
         502,
         "INVALID_MODEL_RESPONSE",
@@ -975,16 +1097,47 @@ export function createVehicleChatHandler({
 
     const outputText = extractOutputText(responseBody);
     const modelAnswer = outputText ? parseStructuredAnswer(outputText) : null;
-    const answer = modelAnswer
+    const resolvedAnswer = modelAnswer
       ? resolveCitations(modelAnswer, context.includedRecords)
+      : null;
+    const answer = resolvedAnswer
+      ? applySafetyGuardrail(request, resolvedAnswer)
       : null;
 
     if (!answer) {
+      if (traceSettings && recordTrace) {
+        recordTrace(buildAiSafeTrace({
+          traceId,
+          feature: "vehicle_chat",
+          settings: traceSettings,
+          model: execution.model,
+          fallbackUsed: execution.fallbackUsed,
+          attemptCount: execution.attemptCount,
+          outcome: "rejected",
+          errorCode: "INVALID_MODEL_RESPONSE",
+          durationMs: Date.now() - traceStartedAt,
+          responseBody,
+        }));
+      }
       return errorResponse(
         502,
         "INVALID_MODEL_RESPONSE",
         "The vehicle assistant returned an invalid response.",
       );
+    }
+
+    if (traceSettings && recordTrace) {
+      recordTrace(buildAiSafeTrace({
+        traceId,
+        feature: "vehicle_chat",
+        settings: traceSettings,
+        model: execution.model,
+        fallbackUsed: execution.fallbackUsed,
+        attemptCount: execution.attemptCount,
+        outcome: "success",
+        durationMs: Date.now() - traceStartedAt,
+        responseBody,
+      }));
     }
 
     return Response.json({
