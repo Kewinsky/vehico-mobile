@@ -3,6 +3,16 @@
  * Shared functions for consistent date formatting across the app
  */
 
+import type { TFunction } from "i18next";
+
+export function formatEstimatedTime(days: number, t: TFunction): string {
+  if (!Number.isFinite(days)) return "–";
+  if (days > 31) {
+    return t("common.durationMonthsShort", { count: Math.round(days / 30) });
+  }
+  return t("common.durationDaysShort", { count: days });
+}
+
 /**
  * Formats ISO date string to YYYY-MM-DD format (for forms/API, not for display)
  * @param iso ISO date string (e.g., "2024-01-15T10:30:00Z")

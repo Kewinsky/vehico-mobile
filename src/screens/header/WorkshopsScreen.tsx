@@ -7,7 +7,10 @@ import { useTranslation } from "react-i18next";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { Workshop, WorkshopType } from "../../types/domain";
-import { listWorkshops } from "../../services/workshops/workshopsRepo";
+import {
+  deleteWorkshop,
+  listWorkshops,
+} from "../../services/workshops/workshopsRepo";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
@@ -111,6 +114,26 @@ export function WorkshopsScreen({ navigation }: Props) {
     navigation.navigate("WorkshopForm", {});
   }, [isPremium, items.length, navigation, t, workshopsLimit]);
 
+  function confirmDelete(workshop: Workshop) {
+    Alert.alert(t("workshops.deleteTitle"), t("workshops.deleteBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteWorkshop(workshop.id);
+            setItems((current) =>
+              current.filter((item) => item.id !== workshop.id),
+            );
+          } catch (error) {
+            toastCaughtError(error, t("common.error"));
+          }
+        },
+      },
+    ]);
+  }
+
   const filterMenuItems = useMemo(
     (): SourcePickerMenuItem[] => [
       {
@@ -201,6 +224,8 @@ export function WorkshopsScreen({ navigation }: Props) {
             workshop={item}
             callLabel={t("workshops.call")}
             navigateLabel={t("workshops.navigate")}
+            deleteLabel={t("common.delete")}
+            onDelete={() => confirmDelete(item)}
             onPress={() =>
               navigation.navigate("WorkshopForm", { workshopId: item.id })
             }

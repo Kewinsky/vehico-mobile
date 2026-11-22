@@ -9,6 +9,7 @@ import { useUnitDisplay } from "../../../app/hooks/useUnitDisplay";
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
 import { groupThousands } from "../../../utils/numberFormatting";
+import { formatEstimatedTime } from "../../../utils/dateFormatting";
 
 type ReminderItemProps = {
   title: string;
@@ -45,7 +46,7 @@ export function ReminderItem({
   onToggleDone,
   onDelete,
 }: ReminderItemProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { distanceUnitLabel } = useUnitDisplay();
   const styles = makeStyles(theme);
@@ -104,7 +105,7 @@ export function ReminderItem({
       ? `${groupThousands(mileageRemaining, 0, i18n.language)} ${distanceUnitLabel}`
       : "–";
   const estimatedTimeText =
-    dateRemainingDays != null ? `${dateRemainingDays}d` : "–";
+    dateRemainingDays != null ? formatEstimatedTime(dateRemainingDays, t) : "–";
 
   const content = (
     <View style={styles.card}>

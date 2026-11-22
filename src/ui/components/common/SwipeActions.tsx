@@ -39,7 +39,8 @@ function getRevealRange(revealIndex: number, actionCount: number) {
   }
 
   const window = 1 - SWIPE_ACTION_DELAY - SWIPE_ACTION_STAGGER;
-  const start = SWIPE_ACTION_DELAY + revealIndex * SWIPE_ACTION_STAGGER;
+  const stagger = SWIPE_ACTION_STAGGER / (actionCount - 1);
+  const start = SWIPE_ACTION_DELAY + revealIndex * stagger;
   const end = Math.min(1, start + window);
   return { start, end };
 }

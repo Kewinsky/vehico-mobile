@@ -31,6 +31,8 @@ export const pl = {
     chooseOption: "Wybierz",
     carouselPosition: "Zdjęcie {{current}} z {{total}}",
     selectDate: "Wybierz datę",
+    durationDaysShort: "{{count}}d",
+    durationMonthsShort: "{{count}}mies.",
   },
   aiImportReview: {
     successMessage:
@@ -624,8 +626,8 @@ export const pl = {
       titleDueSoon: "Wymiana oleju wkrótce",
       titleNoRecord: "Brak zapisanej wymiany oleju",
       remainingBoth:
-        "Pozostało ok. <bold>{{days}} dni</bold> lub <bold>{{km}} km</bold> do terminu.",
-      remainingDays: "Pozostało ok. <bold>{{days}} dni</bold> do terminu.",
+        "Pozostało ok. <bold>{{time}}</bold> lub <bold>{{km}} km</bold> do terminu.",
+      remainingDays: "Pozostało ok. <bold>{{time}}</bold> do terminu.",
       remainingKm: "Pozostało ok. <bold>{{km}} km</bold> do terminu.",
       lastChangeDate: "Ostatnia wymiana: <bold>{{date}}</bold>",
       lastChangeMileage: "przy <bold>{{mileage}}</bold>",

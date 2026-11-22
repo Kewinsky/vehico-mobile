@@ -65,7 +65,10 @@ import { RichCalloutText } from "../../../ui/components/dashboard/RichCalloutTex
 import { useScreenFocusReload } from "../../../app/useScreenFocusReload";
 import { isNonNegativeNumber, isValidDate } from "../../../utils/validation";
 import { formatRelativeTimePast } from "../../../utils/formatRelativeTimePast";
-import { formatShortDisplayDate } from "../../../utils/dateFormatting";
+import {
+  formatEstimatedTime,
+  formatShortDisplayDate,
+} from "../../../utils/dateFormatting";
 import {
   getDaysUntilDate,
   getMileageStaleYmd,
@@ -682,14 +685,14 @@ export function useVehicleDashboardState({
         description = createElement(RichCalloutText, {
           i18nKey: "dashboard.oilBanner.remainingBoth",
           values: {
-            days: remainingDays,
+            time: formatEstimatedTime(remainingDays, t),
             km: groupThousands(remainingKm, 0, i18n.language),
           },
         });
       } else if (remainingDays != null && !isOverdue) {
         description = createElement(RichCalloutText, {
           i18nKey: "dashboard.oilBanner.remainingDays",
-          values: { days: remainingDays },
+          values: { time: formatEstimatedTime(remainingDays, t) },
         });
       } else if (remainingKm != null && !isOverdue) {
         description = createElement(RichCalloutText, {

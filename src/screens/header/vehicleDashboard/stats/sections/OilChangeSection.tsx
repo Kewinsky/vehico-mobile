@@ -4,6 +4,7 @@ import { CircleHelp } from "lucide-react-native";
 import { DashboardSectionHeader } from "../../components/DashboardSectionHeader";
 import { StatTile } from "../components/StatTile";
 import type { StatisticsPanelProps } from "../types";
+import { formatEstimatedTime } from "../../../../../utils/dateFormatting";
 
 export function OilChangeSection({
   styles,
@@ -103,7 +104,7 @@ export function OilChangeSection({
               <Text
                 style={[styles.oilLifeMainValue, { color: theme.colors.fg }]}
               >
-                {`${oilLife.remainingDays}d`}
+                {formatEstimatedTime(oilLife.remainingDays, t)}
               </Text>
             </View>
             <View style={styles.oilLifeTopCell}>
@@ -115,7 +116,7 @@ export function OilChangeSection({
               >
                 {oilLife.remainingKm != null
                   ? `${groupThousands(oilLife.remainingKm, 0, i18n.language)} ${distanceUnitLabel}`
-                  : `${oilLife.remainingDays}d`}
+                  : formatEstimatedTime(oilLife.remainingDays, t)}
               </Text>
             </View>
           </View>

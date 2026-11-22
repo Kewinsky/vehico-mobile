@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Navigation, Phone } from "lucide-react-native";
+import { Navigation, Phone, Trash2 } from "lucide-react-native";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../common/SwipeActions";
@@ -12,7 +12,9 @@ type WorkshopItemProps = {
   workshop: Workshop;
   callLabel: string;
   navigateLabel: string;
+  deleteLabel: string;
   onPress?: () => void;
+  onDelete?: () => void;
 };
 
 const WORKSHOP_ICON_BACKGROUND: Record<WorkshopType, string> = {
@@ -59,7 +61,9 @@ export function WorkshopItem({
   workshop,
   callLabel,
   navigateLabel,
+  deleteLabel,
   onPress,
+  onDelete,
 }: WorkshopItemProps) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
@@ -153,9 +157,19 @@ export function WorkshopItem({
     content
   );
 
-  if (!canCall && !canNavigate) return rowContent;
+  if (!canCall && !canNavigate && !onDelete) return rowContent;
 
   const swipeActions = [
+    ...(onDelete
+      ? [
+          {
+            onPress: onDelete,
+            color: theme.colors.danger,
+            icon: <Trash2 size={20} color="#000000" />,
+            accessibilityLabel: deleteLabel,
+          },
+        ]
+      : []),
     ...(canNavigate
       ? [
           {
