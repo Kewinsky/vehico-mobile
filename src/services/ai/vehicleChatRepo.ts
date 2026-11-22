@@ -100,9 +100,9 @@ function parseAnswer(value: unknown): VehicleChatAnswer | null {
       urgency !== "stop_driving" &&
       urgency !== "unknown") ||
     typeof uncertainty !== "string" ||
-    uncertainty.trim().length === 0 ||
     typeof nextStep !== "string" ||
-    nextStep.trim().length === 0
+    ((urgency === "service_soon" || urgency === "stop_driving") &&
+      (uncertainty.trim().length === 0 || nextStep.trim().length === 0))
   ) {
     return null;
   }
