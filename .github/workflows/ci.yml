@@ -56,10 +56,10 @@ jobs:
           version: latest
       - name: Deploy edge functions
         run: |
-          supabase functions deploy revenuecat-webhook --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-          supabase functions deploy retention-cleanup --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-          supabase functions deploy delete-account --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-          supabase functions deploy generate-marketplace-post --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-          supabase functions deploy vehicle-chat --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-          supabase functions deploy service-invoice-import --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-          supabase functions deploy fuel-receipt-import --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase functions deploy revenuecat-webhook --remote=${{ secrets.SUPABASE_PROJECT_REF }} --yes
+          supabase functions deploy retention-cleanup --remote=${{ secrets.SUPABASE_PROJECT_REF }} --yes
+          supabase functions deploy delete-account --remote=${{ secrets.SUPABASE_PROJECT_REF }} --yes
+          supabase functions deploy generate-marketplace-post --remote=${{ secrets.SUPABASE_PROJECT_REF }} --yes
+          supabase functions deploy vehicle-chat --remote=${{ secrets.SUPABASE_PROJECT_REF }} --yes
+          supabase functions deploy service-invoice-import --remote=${{ secrets.SUPABASE_PROJECT_REF }} --yes
+          supabase functions deploy fuel-receipt-import --remote=${{ secrets.SUPABASE_PROJECT_REF }} --yes
