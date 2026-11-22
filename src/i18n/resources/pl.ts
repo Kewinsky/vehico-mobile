@@ -31,8 +31,11 @@ export const pl = {
     chooseOption: "Wybierz",
     carouselPosition: "Zdjęcie {{current}} z {{total}}",
     selectDate: "Wybierz datę",
-    durationDaysShort: "{{count}}d",
-    durationMonthsShort: "{{count}}mies.",
+    durationDaysShort_one: "{{count}} dzień",
+    durationDaysShort_few: "{{count}} dni",
+    durationDaysShort_many: "{{count}} dni",
+    durationDaysShort_other: "{{count}} dni",
+    durationMonthsShort: "{{count}} mies.",
   },
   aiImportReview: {
     successMessage:
