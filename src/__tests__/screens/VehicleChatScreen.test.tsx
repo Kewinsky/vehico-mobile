@@ -61,8 +61,6 @@ const ANSWER = {
 const DISPLAYED_ANSWER = [
   "Do not continue driving.",
   ANSWER.answer,
-  ANSWER.uncertainty,
-  ANSWER.nextStep,
 ].join("\n\n");
 
 const mockedRequestVehicleChat = jest.mocked(requestVehicleChat);
@@ -167,6 +165,28 @@ describe("VehicleChatScreen", () => {
     await waitFor(() => expect(screen.getByText(DISPLAYED_ANSWER)).toBeTruthy());
   });
 
+  it.each(["monitor", "unknown", "service_soon"] as const)(
+    "shows only the natural answer for %s without fixed sentences or metadata",
+    async (urgency) => {
+      const reply = "Hi! How can I help with your Scirocco?";
+      mockedRequestVehicleChat.mockResolvedValue({ ...ANSWER, urgency, answer: reply });
+      const screen = renderScreen();
+
+      fireEvent.changeText(
+        screen.getByLabelText("Message to the AI assistant"),
+        "hello",
+      );
+      fireEvent.press(screen.getByLabelText("Send message"));
+
+      await waitFor(() => expect(screen.getByText(reply)).toBeTruthy());
+      expect(screen.queryByText(ANSWER.uncertainty, { exact: false })).toBeNull();
+      expect(screen.queryByText(ANSWER.nextStep, { exact: false })).toBeNull();
+      expect(
+        screen.queryByText(i18n.t(`vehicleChat.urgency.${urgency}`), { exact: false }),
+      ).toBeNull();
+    },
+  );
+
   it("shows deterministic safety guidance when the model fields conflict", async () => {
     mockedRequestVehicleChat.mockResolvedValue({
       ...ANSWER,
@@ -186,8 +206,6 @@ describe("VehicleChatScreen", () => {
           [
             "Do not continue driving.",
             "You may continue driving.",
-            ANSWER.uncertainty,
-            ANSWER.nextStep,
           ].join("\n\n"),
         ),
       ).toBeTruthy(),

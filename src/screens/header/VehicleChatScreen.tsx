@@ -164,12 +164,13 @@ export function VehicleChatScreen({ navigation, route }: Props) {
         history,
         signal: controller.signal,
       });
-      const visibleAnswer = [
-        t(`vehicleChat.urgency.${answer.urgency}`),
-        answer.answer,
-        answer.uncertainty,
-        answer.nextStep,
-      ].join("\n\n");
+      let visibleAnswer = answer.answer;
+      if (answer.urgency === "stop_driving") {
+        visibleAnswer = [
+          t("vehicleChat.urgency.stop_driving"),
+          answer.answer,
+        ].join("\n\n");
+      }
 
       setMessages((current) =>
         current.map((message) =>

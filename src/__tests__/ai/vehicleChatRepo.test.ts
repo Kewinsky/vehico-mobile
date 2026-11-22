@@ -70,6 +70,25 @@ describe("vehicleChatRepo", () => {
     expect(requestBody.stream).toBeUndefined();
   });
 
+  it.each(["monitor", "unknown", "service_soon", "stop_driving"] as const)(
+    "accepts %s answers without extra uncertainty or next-step text",
+    async (urgency) => {
+      const answer = { ...ANSWER, urgency, uncertainty: "", nextStep: "" };
+      const fetch = jest
+        .fn<ReturnType<TestFetch>, Parameters<TestFetch>>()
+        .mockResolvedValue(Response.json(answer));
+
+      await expect(
+        createRequester(fetch)({
+          vehicleId: "11111111-1111-4111-8111-111111111111",
+          message: "hello",
+          language: "en",
+          signal: new AbortController().signal,
+        }),
+      ).resolves.toEqual(answer);
+    },
+  );
+
   it("requires a signed-in session before making a request", async () => {
     const fetch = jest.fn<ReturnType<TestFetch>, Parameters<TestFetch>>();
     const request = createVehicleChatRequester({

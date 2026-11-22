@@ -37,6 +37,11 @@ Request zawiera identyfikator wybranego pojazdu, język odpowiedzi i ograniczon�
 
 Publiczna odpowiedź zachowuje zwalidowane pola bezpieczeństwa z etapu 2:
 
+Pola `uncertainty` i `nextStep` pozostają w kontrakcie jako tekstowe metadane,
+ale mogą być puste przy dowolnym `urgency`. UI nie dopisuje ich do odpowiedzi.
+Wymagana jest aktualizacja klienta: starsze wydania odrzucają puste metadane
+i automatycznie składają odpowiedź ze stałych tekstów oraz pól modelu.
+
 ```json
 {
   "answer": "...",
@@ -46,7 +51,7 @@ Publiczna odpowiedź zachowuje zwalidowane pola bezpieczeństwa z etapu 2:
 }
 ```
 
-Model zwraca backendowi ustrukturyzowane pola `urgency`, `uncertainty`, `nextStep` oraz pozycje cytowanych wpisów w tablicy `service_history`. Backend waliduje cały structured output i zwraca aplikacji pola bezpieczeństwa, ale zatrzymuje zweryfikowane cytowania wewnątrz backendu. Aplikacja składa `urgency`, `answer`, `uncertainty` i `nextStep` w jeden naturalny dymek. Zdanie wynikające z `urgency` znajduje się jako pierwsze, dlatego krytyczna instrukcja `stop_driving` nie zależy wyłącznie od zgodności tekstu `answer` z promptem. Bazowe UUID nie trafiają do modelu ani publicznej odpowiedzi.
+`SYSTEM_PROMPT_V4` wymaga pełnej, naturalnej wypowiedzi w `answer`, razem z niepewnością i bezpiecznym kolejnym krokiem, gdy są istotne. Nie narzuca liczby zdań ani obowiązkowych zastrzeżeń przy powitaniu. Aplikacja pokazuje `answer` bez dopisywania metadanych i stałych tekstów dla `monitor`, `unknown` oraz `service_soon`. Tylko `stop_driving` dodaje przed odpowiedzią deterministyczny komunikat o zaprzestaniu jazdy. Backend nadal waliduje cytowania wewnętrznie; bazowe UUID nie trafiają do modelu ani publicznej odpowiedzi.
 
 Odpowiedzi mają limit 1200 tokenów. Zwykła odpowiedź pozostaje krótka, natomiast na wyraźną prośbę o wiele rekordów model może zwrócić dłuższą listę. Każdy rekord ma znaleźć się w osobnym punkcie listy, zamiast w jednym zdaniu rozdzielonym przecinkami.
 
@@ -78,7 +83,7 @@ Kontekst jawnie opisuje pochodzenie danych:
 - brak dedykowanych, zweryfikowanych pól dokładnej wersji i kodu silnika; wartości zapisane w notatkach pozostają jawnie danymi użytkownika;
 - regresję przebiegu w historii albo przebieg profilu niższy od wpisu serwisowego jako konflikt, którego model nie może rozwiązać przez zgadywanie.
 
-`SYSTEM_PROMPT_V3` traktuje teksty zapisane w profilu i historii jako niezaufane dane. Nie mogą one nadpisywać instrukcji systemowych.
+`SYSTEM_PROMPT_V4` traktuje teksty zapisane w profilu i historii jako niezaufane dane. Nie mogą one nadpisywać instrukcji systemowych.
 
 ## Obsługa błędów
 
@@ -110,7 +115,7 @@ Testy deterministyczne obejmują:
 - jawny błąd po przekroczeniu pozostałych limitów kontekstu;
 - wewnętrzną walidację cytowań, brak ich w publicznej odpowiedzi i odrzucenie cytowania spoza przekazanego kontekstu;
 - przekazanie `vehicleId` i języka przez klienta mobilnego;
-- publiczną odpowiedź API zawierającą komplet pól bezpieczeństwa oraz ich deterministyczne wyświetlenie w jednym naturalnym dymku, także przy sprzecznym `answer` i `urgency`.
+- odpowiedź na powitanie z pustymi metadanymi, brak automatycznych dopisków w UI i deterministyczne ostrzeżenie tylko dla `stop_driving`, także przy sprzecznym `answer` i `urgency`.
 
 Polecenia:
 
@@ -126,7 +131,7 @@ npm run lint
 2. Wyślij identyczne pytanie dla pojazdu bez historii; odpowiedź nie może wymyślić wpisu.
 3. Spróbuj wywołać endpoint z `vehicleId` użytkownika B; oczekiwany jest `404 VEHICLE_NOT_FOUND`, bez requestu do OpenAI.
 4. Dodaj wpis `pending`; nie może pojawić się w kontekście modelu ani odpowiedzi.
-5. Powtórz T01–T10 i C01–C06 z `AI_EVALS.md` dla `SYSTEM_PROMPT_V3`.
+5. Powtórz T01–T10, C01–C06 i N01–N04 z `AI_EVALS.md` dla `SYSTEM_PROMPT_V4`.
 
 Nie wdrażamy Edge Function ani nie zmieniamy zdalnych sekretów w ramach lokalnej implementacji.
 

@@ -9,7 +9,7 @@ const MODEL_TIMEOUT_MS = 15_000;
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const MODEL = "gpt-5.6-luna";
 
-const SYSTEM_PROMPT_V3 = `You are the Vericar vehicle assistant.
+const SYSTEM_PROMPT_V4 = `You are the Vericar vehicle assistant.
 
 Help users with vehicle ownership, maintenance, symptoms, operating costs, and safe next steps using the authorized vehicle context supplied by the backend.
 
@@ -22,25 +22,26 @@ Rules:
 - Exact vehicle variant and engine code have no dedicated verified fields. If they appear only in user notes, attribute them to those notes and do not present them as independently verified.
 - You do not have access to local photos, attachments, documents, live measurements, or current internet sources.
 - Never claim that you have confirmed a diagnosis.
+- Communicate missing information and uncertainty when they matter to the user's question.
 - If the described situation may make continued driving unsafe, prioritize stopping safely and professional assistance.
 - Do not provide instructions for dangerous repairs or bypassing vehicle safety systems.
 - Do not invent service history, vehicle specifications, measurements, prices, or sources. Do not reconcile conflicting records by guessing.
 - Cite an approved service record only when the answer relies on it. Put only its zero-based position in the supplied service_history array in citations. Use an empty citations array otherwise.
 - Answer in the language specified by the user.
-- The answer is the whole message the user reads in ordinary conversation. Write it as a natural reply to what they just said.
-- A greeting, thanks, or a question that does not describe a problem gets a normal reply. Do not assess urgency, missing information, or a next step in that reply.
-- Do not add a stock sentence that immediate action is unnecessary.
+- Write answer as the complete, natural reply the user reads, including any relevant uncertainty or safe next step.
+- Match the length and tone to the conversation. A greeting or thanks can get a brief, friendly reply. Do not turn every exchange into a safety assessment.
+- Do not add stock disclaimers, an assessment that no action is needed, or a next step when they do not help answer the user's message.
 - Never use the em dash character (U+2014). Use commas, parentheses, colons, or the regular hyphen-minus character instead.
 - When the user asks for multiple records, format them as a readable bullet list with one record per line. Never join multiple records into one comma-separated sentence.
-- Match the length to the message. A greeting can be one or two sentences. A practical answer is usually 2–5 short sentences. Lists may contain as many items as needed.
+- The application shows answer without appending uncertainty or nextStep. Those fields are optional supporting metadata; use empty strings when there is nothing useful to add. Never rely on them to convey information missing from answer.
 
 Urgency meanings:
-- monitor: the message does not call for service or a safety action, including greetings and ordinary questions. Set uncertainty and nextStep to empty strings. The app shows only the answer.
+- monitor: no service or safety action is called for, including greetings and ordinary questions. This is metadata, not a sentence to add to answer.
 - service_soon: inspection or service should be arranged soon.
 - stop_driving: continuing to drive may be unsafe or may cause serious damage.
-- unknown: the user described a situation, but there is not enough information to judge safety. Explain what is missing inside the answer. Set uncertainty and nextStep to empty strings.
+- unknown: the user described a situation, but there is not enough information to assess urgency.
 
-Use service_soon or stop_driving only when the described situation calls for arranging service or stopping. Then uncertainty states what cannot be confirmed, and nextStep is one clear action. The app shows those fields only in that case, so do not repeat them inside the answer.`;
+Use service_soon or stop_driving only when the described situation calls for arranging service or stopping.`;
 
 const VEHICLE_CHAT_ANSWER_SCHEMA = {
   type: "object",
@@ -274,9 +275,7 @@ function parseVehicleChatAnswer(value: unknown): ModelVehicleChatAnswer | null {
         Number.isInteger(citation) &&
         citation >= 0,
     ) ||
-    answer.trim().length === 0 ||
-    ((urgency === "service_soon" || urgency === "stop_driving") &&
-      (uncertainty.trim().length === 0 || nextStep.trim().length === 0))
+    answer.trim().length === 0
   ) {
     return null;
   }
@@ -658,10 +657,11 @@ function buildVehicleContext(
     collections[key] = projected;
   }
   const workshopNames = new Map<string, string>();
-  if (!Array.isArray(rows.workshops ?? [])) {
+  const workshops = rows.workshops ?? [];
+  if (!Array.isArray(workshops)) {
     return { ok: false, reason: "invalid" };
   }
-  for (const workshop of rows.workshops ?? []) {
+  for (const workshop of workshops) {
     if (!isRecord(workshop)) return { ok: false, reason: "invalid" };
     if (typeof workshop.id === "string" && typeof workshop.name === "string") {
       workshopNames.set(workshop.id, workshop.name);
@@ -750,7 +750,7 @@ function modelRequestBody(
 ): string {
   return JSON.stringify({
     model: MODEL,
-    instructions: SYSTEM_PROMPT_V3,
+    instructions: SYSTEM_PROMPT_V4,
     input: [
       ...request.history,
       {
@@ -965,6 +965,10 @@ export function createVehicleChatHandler({
     try {
       responseBody = await modelResponse.json();
     } catch {
+      console.error("OpenAI response rejected", {
+        reason: "invalid_json",
+        requestId: modelResponse.headers.get("x-request-id"),
+      });
       return errorResponse(
         502,
         "INVALID_MODEL_RESPONSE",
@@ -979,6 +983,28 @@ export function createVehicleChatHandler({
       : null;
 
     if (!answer) {
+      let reason = "invalid_citations";
+      if (!outputText) {
+        reason = "missing_output_text";
+      } else if (!modelAnswer) {
+        reason = "invalid_structured_answer";
+      }
+
+      const incomplete =
+        isRecord(responseBody) && responseBody.status === "incomplete";
+      const incompleteDetails = isRecord(responseBody)
+        ? responseBody.incomplete_details
+        : null;
+      const outputTokenLimitReached =
+        incomplete &&
+        isRecord(incompleteDetails) &&
+        incompleteDetails.reason === "max_output_tokens";
+      console.error("OpenAI response rejected", {
+        reason,
+        incomplete,
+        outputTokenLimitReached,
+        requestId: modelResponse.headers.get("x-request-id"),
+      });
       return errorResponse(
         502,
         "INVALID_MODEL_RESPONSE",

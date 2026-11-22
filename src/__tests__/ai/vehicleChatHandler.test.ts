@@ -171,6 +171,54 @@ describe("vehicle-chat handler", () => {
     );
   });
 
+  it("accepts a natural greeting without unnecessary supporting metadata", async () => {
+    const greeting = {
+      answer: "Hello! How can I help with your vehicle?",
+      urgency: "monitor",
+      uncertainty: "",
+      nextStep: "",
+    };
+    const fetchModel = jest
+      .fn<Promise<Response>, Parameters<ModelFetch>>()
+      .mockResolvedValue(modelResponse({ ...greeting, citations: [] }));
+
+    const response = await createHandler(fetchModel)(
+      request(JSON.stringify({ message: "hello", language: "en" })),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(greeting);
+    const body = JSON.parse(String(fetchModel.mock.calls[0]?.[1].body)) as {
+      instructions: string;
+    };
+    expect(body.instructions).toContain(
+      "Write answer as the complete, natural reply",
+    );
+    expect(body.instructions).toContain(
+      "Do not add stock disclaimers",
+    );
+  });
+
+  it.each(["monitor", "unknown", "service_soon", "stop_driving"])(
+    "accepts empty supporting metadata for %s",
+    async (urgency) => {
+      for (const field of ["uncertainty", "nextStep"]) {
+        const fetchModel = jest
+          .fn<Promise<Response>, Parameters<ModelFetch>>()
+          .mockResolvedValue(
+            modelResponse({ ...VALID_ANSWER, urgency, [field]: "  " }),
+          );
+
+        const response = await createHandler(fetchModel)(
+          request(JSON.stringify({ message: "hello", language: "en" })),
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toMatchObject({ [field]: "" });
+      }
+    },
+  );
+
   it("requires an authenticated user before checking access or loading context", async () => {
     const fetchModel = jest.fn<Promise<Response>, Parameters<ModelFetch>>();
     const hasPremiumAccess = jest.fn(async () => true);
@@ -712,4 +760,47 @@ describe("vehicle-chat handler", () => {
 
     await expectError(response, 502, "INVALID_MODEL_RESPONSE");
   });
+
+  it.each([
+    ["invalid_json", false, false],
+    ["missing_output_text", true, true],
+    ["invalid_structured_answer", false, false],
+    ["invalid_citations", false, false],
+  ])(
+    "logs safe diagnostics for %s without conversation or vehicle data",
+    async (reason, incomplete, outputTokenLimitReached) => {
+      let providerResponse: Response;
+      if (reason === "invalid_json") {
+        providerResponse = new Response("private provider response");
+      } else if (reason === "missing_output_text") {
+        providerResponse = Response.json({
+          status: "incomplete",
+          incomplete_details: { reason: "max_output_tokens" },
+          output: [],
+        });
+      } else if (reason === "invalid_structured_answer") {
+        providerResponse = modelResponse({ ...VALID_ANSWER, urgency: "maybe" });
+      } else {
+        providerResponse = modelResponse({ ...VALID_ANSWER, citations: [1] });
+      }
+      providerResponse.headers.set("x-request-id", "request-id");
+      const fetchModel = jest
+        .fn<Promise<Response>, Parameters<ModelFetch>>()
+        .mockResolvedValue(providerResponse);
+
+      const response = await createHandler(fetchModel)(
+        request(JSON.stringify({ message: "private message", language: "en" })),
+      );
+
+      await expectError(response, 502, "INVALID_MODEL_RESPONSE");
+      const metadata = { reason, requestId: "request-id" };
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith(
+        "OpenAI response rejected",
+        reason === "invalid_json"
+          ? metadata
+          : { ...metadata, incomplete, outputTokenLimitReached },
+      );
+    },
+  );
 });
