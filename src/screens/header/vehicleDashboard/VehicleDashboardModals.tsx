@@ -47,7 +47,6 @@ export function VehicleDashboardModals() {
     formalityOverlay,
     setFormalityOverlay,
     handleOpenPublicReportInBrowser,
-    handleCopyPublicReportLink,
     saveFormalitiesDate,
   } = useVehicleDashboard();
 
@@ -91,29 +90,6 @@ export function VehicleDashboardModals() {
                   <BrandedQrCode value={publicReportUrl} size={220} />
                 </View>
                 <View style={styles.qrModalActions}>
-                  <Button
-                    variant="ghost"
-                    onPress={() => void handleCopyPublicReportLink()}
-                    style={
-                      Platform.OS === "ios"
-                        ? undefined
-                        : { backgroundColor: theme.colors.bg }
-                    }
-                  >
-                    <Ionicons
-                      name="copy-outline"
-                      size={18}
-                      color={theme.colors.fg}
-                    />
-                    <Text
-                      style={[
-                        styles.qrShareButtonText,
-                        { color: theme.colors.fg },
-                      ]}
-                    >
-                      {t("share.copyLink")}
-                    </Text>
-                  </Button>
                   <FormShareLink
                     item={publicReportUrl}
                     subject={
@@ -127,15 +103,7 @@ export function VehicleDashboardModals() {
                         : "",
                     })}
                   >
-                    <View
-                      style={[
-                        styles.qrShareButton,
-                        Platform.OS === "ios" && {
-                          backgroundColor: "transparent",
-                          paddingVertical: 0,
-                        },
-                      ]}
-                    >
+                    <View style={styles.qrShareButton}>
                       <Ionicons
                         name="share-outline"
                         size={18}
@@ -154,11 +122,7 @@ export function VehicleDashboardModals() {
                   <Button
                     variant="ghost"
                     onPress={() => void handleOpenPublicReportInBrowser()}
-                    style={
-                      Platform.OS === "ios"
-                        ? undefined
-                        : { backgroundColor: theme.colors.bg }
-                    }
+                    style={{ backgroundColor: theme.colors.bg }}
                   >
                     <Ionicons
                       name="globe-outline"

@@ -10,7 +10,6 @@ import { Alert, Linking, Text } from "react-native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import * as Clipboard from "expo-clipboard";
 
 import type { AppStackParamList } from "../../../app/navigation/RootNavigator";
 import type {
@@ -530,16 +529,6 @@ export function useVehicleDashboardState({
     }
   }
 
-  async function handleCopyPublicReportLink() {
-    if (!publicReportUrl) return;
-    try {
-      await Clipboard.setStringAsync(publicReportUrl);
-      toastSuccess(t("share.linkCopied"));
-    } catch (e: any) {
-      toastCaughtError(e, t("common.error"));
-    }
-  }
-
   function handleShowPublicReportQr() {
     if (!publicReportUrl) return;
     setIsPublicQrVisible(true);
@@ -992,7 +981,6 @@ export function useVehicleDashboardState({
     load,
     handleSharePress,
     handleOpenPublicReportInBrowser,
-    handleCopyPublicReportLink,
     handleShowPublicReportQr,
     handleManageVehicle,
     handleSectionOrderPress,
