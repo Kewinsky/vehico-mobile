@@ -47,6 +47,7 @@ export function VehicleDashboardModals() {
     formalityOverlay,
     setFormalityOverlay,
     handleOpenPublicReportInBrowser,
+    handleCopyPublicReportLink,
     saveFormalitiesDate,
   } = useVehicleDashboard();
 
@@ -90,6 +91,25 @@ export function VehicleDashboardModals() {
                   <BrandedQrCode value={publicReportUrl} size={220} />
                 </View>
                 <View style={styles.qrModalActions}>
+                  <Button
+                    variant="ghost"
+                    onPress={() => void handleCopyPublicReportLink()}
+                    style={{ backgroundColor: theme.colors.bg }}
+                  >
+                    <Ionicons
+                      name="copy-outline"
+                      size={18}
+                      color={theme.colors.fg}
+                    />
+                    <Text
+                      style={[
+                        styles.qrShareButtonText,
+                        { color: theme.colors.fg },
+                      ]}
+                    >
+                      {t("share.copyLink")}
+                    </Text>
+                  </Button>
                   <FormShareLink
                     item={publicReportUrl}
                     subject={

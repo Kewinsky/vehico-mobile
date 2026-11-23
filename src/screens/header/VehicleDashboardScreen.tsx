@@ -158,7 +158,7 @@ function VehicleDashboardTabs({
           rippleColor={`${theme.colors.accent}22`}
           screenOptions={{
             lazy: true,
-            sceneStyle: { backgroundColor: "transparent" },
+            sceneStyle: { backgroundColor: theme.colors.bg },
           }}
         >
           <Tab.Screen
