@@ -22,7 +22,7 @@ Display name: **Vericar** · npm/slug/scheme: **vehico** · Current app version:
 
 ## Tech Stack
 
-- **Framework**: React Native (0.86) + Expo (~57), New Architecture
+- **Framework**: React Native (0.88) + Expo (~58), New Architecture
 - **Language**: TypeScript
 - **Navigation**: React Navigation (native stack + native bottom tabs)
 - **Backend**: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
@@ -34,7 +34,7 @@ Display name: **Vericar** · npm/slug/scheme: **vehico** · Current app version:
 
 ## Prerequisites
 
-- Node.js 20.19.4+ or 22.13.0+ (CI uses Node 22)
+- Node.js 22.13.0+ on the Node 22 line, or a supported newer even-numbered release (CI uses Node 22)
 - npm
 - Expo CLI / EAS CLI for device builds
 - iOS Simulator and/or Android emulator (or physical device with dev client)
@@ -200,33 +200,48 @@ eas build --platform android
 eas submit --platform ios   # when ready
 ```
 
-Local native release (after prebuild):
+Local native release (after migrating any existing native project as described below):
 
 ```bash
-npx expo prebuild --clean
+npx expo prebuild --no-clean
 npx expo run:ios --configuration Release
 npx expo run:android --variant release
 ```
 
 Ensure production env includes Supabase, reports URL, and RevenueCat keys.
 
-The app uses Expo SDK 57.0.33, React Native 0.86.3, and React 19.2.3. iOS 16.4+
+The app uses Expo SDK 58.0.26, React Native 0.88.1, and React 19.3.0. iOS 16.4+
 is required. The production iOS EAS profile pins `macos-tahoe-26.6-xcode-27.0`
 to build with the iOS 27 SDK. For local release builds, select Xcode 27 as well.
 
-SDK 57 keeps the legacy iOS app lifecycle by default, so `expo-build-properties`
-explicitly enables `ios.enableSceneSupport` in `app.json`. This requires
-`expo >=57.0.23` and `expo-build-properties >=57.0.23`. It generates the scene
-manifest and starts React Native through Expo's scene delegate, addressing
-`UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption` at launch.
+SDK 58 generates `SceneDelegate.swift` and the scene manifest by default and
+starts React Native through Expo's scene delegate. No `enableSceneSupport`
+option or custom scene plugin is needed.
 Build a new native app after upgrading; an update to JavaScript alone is not
 enough. Before release, verify cold start, sign-in links, notifications, native
 menus, camera/document selection, local SQLite data, and purchases on a device.
 
-The existing Sentry 8 integration, TypeScript 5.9, and ESLint config 10 are kept
-outside Expo's version alignment. The i18n packages still require TypeScript 5,
-and lint keeps the existing rule set; this SDK upgrade does not enable the
-additional React Compiler lint rules from ESLint config 57.
+`ios.deploymentTarget` is explicitly set to `16.4`. Expo's autolinking installer
+raises resource bundle deployment targets to match their owning Pod targets.
+There is no local Podfile patch plugin. When upgrading an existing native
+project, compare it with the SDK 58 template: the app delegate no longer creates
+the window, and the generated scene delegate and manifest must be included in
+the Xcode target. `prebuild --no-clean` preserves existing startup files; it does
+not migrate them to the new template. Before archiving, migrate those files
+manually using the template, or back up local native changes and regenerate the
+native project from SDK 58. A fresh EAS build without uploaded native directories
+uses the new template automatically. After migrating existing native files,
+sync configuration and install Pods:
+
+```bash
+npx expo prebuild --platform ios --no-clean --no-install
+cd ios
+pod install
+```
+
+TypeScript is aligned with SDK 58. ESLint config 10 keeps the existing rule set
+outside Expo's version alignment; this SDK upgrade does not enable the
+additional React Compiler lint rules from newer ESLint configs.
 
 See [Expo build images](https://docs.expo.dev/build-reference/infrastructure/)
 and [Expo scene lifecycle guidance](https://github.com/expo/fyi/blob/main/ios-scene-lifecycle.md).

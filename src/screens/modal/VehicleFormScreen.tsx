@@ -12,7 +12,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
-import { DraggableGrid } from "react-native-draggable-grid";
+import Sortable from "react-native-sortables";
 
 import {
   isMotorcycleVehicleType,
@@ -616,16 +616,17 @@ export function VehicleFormScreen({ navigation, route }: Props) {
                     onTouchEnd={() => setIsTouchingPhotoGrid(false)}
                     onTouchCancel={() => setIsTouchingPhotoGrid(false)}
                   >
-                    <DraggableGrid
-                      numColumns={3}
-                      renderItem={renderPhotoItem}
+                    <Sortable.Grid
+                      columns={3}
+                      keyExtractor={(item) => item.key}
+                      renderItem={({ item }) => renderPhotoItem(item)}
                       data={draftPhotos}
-                      style={styles.photoGrid}
+                      overflow="hidden"
                       onDragStart={() => setIsDragging(true)}
-                      onDragRelease={(data) => {
+                      onDragEnd={({ data }) => {
                         setIsDragging(false);
                         setIsTouchingPhotoGrid(false);
-                        setDraftPhotos(data as DraftPhotoItem[]);
+                        setDraftPhotos(data);
                       }}
                     />
                   </View>
@@ -1067,10 +1068,6 @@ const makeStyles = (theme: any) =>
       gap: theme.spacing.sm,
     },
     photoGridContainer: {
-      overflow: "hidden",
-    },
-    photoGrid: {
-      flex: 0,
       overflow: "hidden",
     },
     photoCard: {

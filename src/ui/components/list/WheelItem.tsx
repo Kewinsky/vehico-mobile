@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Trash2, Undo2, Weight } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
-import type Swipeable from "react-native-gesture-handler/Swipeable";
+import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
 import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../common/SwipeActions";
 import { useTranslation } from "react-i18next";
@@ -31,7 +31,7 @@ export function WheelItem({
   const styles = makeStyles(theme);
   const [expanded, setExpanded] = useState(false);
   const chevronAnim = useRef(new Animated.Value(0)).current;
-  const swipeableRef = useRef<Swipeable | null>(null);
+  const swipeableRef = useRef<SwipeableMethods | null>(null);
 
   useEffect(() => {
     Animated.timing(chevronAnim, {

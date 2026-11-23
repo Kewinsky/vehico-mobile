@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import Carousel from "react-native-reanimated-carousel";
+import { Carousel } from "react-native-reanimated-carousel";
 
 import type { AppTheme } from "../../../../ui/theme";
 import { carouselInlineStyles } from "../dashboardScreenStyles";
@@ -38,12 +38,10 @@ export function VehicleCarousel({
       <View style={{ position: "relative", width, height }}>
         <Carousel
           loop
-          snapEnabled
-          pagingEnabled
           data={photoUrls}
-          width={width}
-          height={height}
-          onProgressChange={(_, absoluteProgress) => {
+          itemSize={width}
+          style={{ width, height }}
+          onProgressChange={(absoluteProgress) => {
             const nextIndex =
               ((Math.round(absoluteProgress) % photoUrls.length) +
                 photoUrls.length) %

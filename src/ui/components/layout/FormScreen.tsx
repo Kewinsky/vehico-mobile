@@ -5,7 +5,7 @@ import {
   type PropsWithChildren,
   type ReactNode,
 } from "react";
-import type { ScrollView as ScrollViewInstance } from "react-native";
+import type { ScrollViewInstance } from "react-native";
 import {
   Keyboard,
   KeyboardAvoidingView,

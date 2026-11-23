@@ -14,10 +14,10 @@ import { useIsFocused } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Carousel from "react-native-reanimated-carousel";
+import { Carousel } from "react-native-reanimated-carousel";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import MaskedView from "@react-native-masked-view/masked-view";
+import MaskedView from "@expo/ui/community/masked-view";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { Vehicle } from "../../types/domain";
@@ -100,15 +100,13 @@ function VehicleCarousel({
     <View style={{ position: "relative", width, height, overflow: "hidden" }}>
       <Carousel
         loop={true}
-        snapEnabled={true}
-        pagingEnabled={true}
         data={photoUrls}
-        width={width}
-        height={height}
+        itemSize={width}
+        style={{ width, height }}
         onConfigurePanGesture={(pan) => {
           pan.activeOffsetX([-12, 12]).failOffsetY([-15, 15]);
         }}
-        onProgressChange={(_offset, absoluteProgress) => {
+        onProgressChange={(absoluteProgress) => {
           const nextIndex =
             ((Math.round(absoluteProgress) % photoUrls.length) +
               photoUrls.length) %

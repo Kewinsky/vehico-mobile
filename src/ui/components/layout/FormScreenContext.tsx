@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { ScrollView as ScrollViewInstance } from "react-native";
+import type { ScrollViewInstance } from "react-native";
 
 const FormScreenScrollRefContext =
   createContext<React.RefObject<ScrollViewInstance | null> | null>(null);

@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Trash2, Undo2 } from "lucide-react-native";
-import type Swipeable from "react-native-gesture-handler/Swipeable";
+import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
 import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../common/SwipeActions";
 import { useTranslation } from "react-i18next";
@@ -28,7 +28,7 @@ export function TiresItem({
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = makeStyles(theme);
-  const swipeableRef = useRef<Swipeable | null>(null);
+  const swipeableRef = useRef<SwipeableMethods | null>(null);
   const subtitle = (() => {
     const dims = formatTireDimensions(
       tire.width_mm,

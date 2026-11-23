@@ -4,15 +4,17 @@ import {
   useCallback,
   useContext,
   useRef,
-  type ComponentProps,
   type ReactNode,
   type RefObject,
 } from "react";
-import Swipeable from "react-native-gesture-handler/Swipeable";
+import Swipeable, {
+  type SwipeableMethods,
+  type SwipeableProps,
+} from "react-native-gesture-handler/ReanimatedSwipeable";
 
 type ExclusiveSwipeContextValue = {
-  onWillOpen: (ref: RefObject<Swipeable | null>) => void;
-  onDidClose: (ref: RefObject<Swipeable | null>) => void;
+  onWillOpen: (ref: RefObject<SwipeableMethods | null>) => void;
+  onDidClose: (ref: RefObject<SwipeableMethods | null>) => void;
 };
 
 const ExclusiveSwipeContext = createContext<ExclusiveSwipeContextValue | null>(
@@ -20,9 +22,9 @@ const ExclusiveSwipeContext = createContext<ExclusiveSwipeContextValue | null>(
 );
 
 export function ExclusiveSwipeProvider({ children }: { children: ReactNode }) {
-  const openRef = useRef<RefObject<Swipeable | null> | null>(null);
+  const openRef = useRef<RefObject<SwipeableMethods | null> | null>(null);
 
-  const onWillOpen = useCallback((ref: RefObject<Swipeable | null>) => {
+  const onWillOpen = useCallback((ref: RefObject<SwipeableMethods | null>) => {
     const previous = openRef.current;
     if (previous && previous !== ref && previous.current) {
       previous.current.close();
@@ -30,7 +32,7 @@ export function ExclusiveSwipeProvider({ children }: { children: ReactNode }) {
     openRef.current = ref;
   }, []);
 
-  const onDidClose = useCallback((ref: RefObject<Swipeable | null>) => {
+  const onDidClose = useCallback((ref: RefObject<SwipeableMethods | null>) => {
     if (openRef.current === ref) {
       openRef.current = null;
     }
@@ -55,17 +57,17 @@ function useExclusiveSwipeContext(): ExclusiveSwipeContextValue {
 }
 
 export const ExclusiveSwipeable = forwardRef<
-  Swipeable,
-  ComponentProps<typeof Swipeable>
+  SwipeableMethods,
+  SwipeableProps
 >(function ExclusiveSwipeable(
   { onSwipeableWillOpen, onSwipeableClose, ...props },
   forwardedRef,
 ) {
-  const localRef = useRef<Swipeable | null>(null);
+  const localRef = useRef<SwipeableMethods | null>(null);
   const { onWillOpen, onDidClose } = useExclusiveSwipeContext();
 
   const setRef = useCallback(
-    (instance: Swipeable | null) => {
+    (instance: SwipeableMethods | null) => {
       localRef.current = instance;
       if (typeof forwardedRef === "function") {
         forwardedRef(instance);
@@ -84,9 +86,9 @@ export const ExclusiveSwipeable = forwardRef<
         onWillOpen(localRef);
         onSwipeableWillOpen?.(direction);
       }}
-      onSwipeableClose={(direction, swipeable) => {
+      onSwipeableClose={(direction) => {
         onDidClose(localRef);
-        onSwipeableClose?.(direction, swipeable);
+        onSwipeableClose?.(direction);
       }}
     />
   );

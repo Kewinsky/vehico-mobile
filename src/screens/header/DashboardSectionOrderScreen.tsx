@@ -9,7 +9,7 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useTranslation } from "react-i18next";
-import { DraggableGrid } from "react-native-draggable-grid";
+import Sortable from "react-native-sortables";
 import { GripVertical } from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -194,17 +194,17 @@ export function DashboardSectionOrderScreen({ navigation }: Props) {
           onChange={setPanel}
         />
 
-        <View style={[styles.listWrap, { height: gridHeight }]}>
-          <DraggableGrid
+        <View style={[styles.listWrap, { width: rowWidth, height: gridHeight }]}>
+          <Sortable.Grid
             key={panel}
-            numColumns={1}
-            itemHeight={itemHeight}
-            delayLongPress={120}
-            style={{ width: rowWidth, height: gridHeight, flex: 0 }}
+            columns={1}
+            rowGap={rowGap}
+            dragActivationDelay={120}
             data={rows}
-            renderItem={renderRow}
-            onDragRelease={(data) => {
-              setRows(data as SectionRow[]);
+            keyExtractor={(item) => item.key}
+            renderItem={({ item }) => renderRow(item)}
+            onDragEnd={({ data }) => {
+              setRows(data);
             }}
           />
         </View>

@@ -5,7 +5,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { useTranslation } from "react-i18next";
-import { DraggableGrid } from "react-native-draggable-grid";
+import Sortable from "react-native-sortables";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
@@ -1018,12 +1018,13 @@ export function PublicReportConfigureScreen({ navigation, route }: Props) {
             </>
           )}
           {allPhotos.length > 0 && (
-            <DraggableGrid
-              numColumns={3}
-              renderItem={renderPhotoItem}
+            <Sortable.Grid
+              columns={3}
+              keyExtractor={(item) => item.key}
+              renderItem={({ item }) => renderPhotoItem(item)}
               data={allPhotos}
               onDragStart={() => setIsDragging(true)}
-              onDragRelease={handleDragRelease}
+              onDragEnd={({ data }) => handleDragRelease(data)}
             />
           )}
           {totalPhotoCount < MAX_PUBLIC_REPORT_PHOTOS && (

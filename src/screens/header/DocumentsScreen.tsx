@@ -1,4 +1,5 @@
-import { Alert, Animated, StyleSheet, View } from "react-native";
+import type { SharedValue } from "react-native-reanimated";
+import { Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HeaderIconButton } from "../../ui/components/layout/HeaderIconButton";
 import { useTranslation } from "react-i18next";
@@ -321,7 +322,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
 
   function renderDocumentRightActions(
     item: VehicleDocument,
-    progress: Animated.AnimatedInterpolation<number>,
+    progress: SharedValue<number>,
   ) {
     return (
       <SwipeActionsRow
@@ -344,7 +345,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
 
   function renderAttachmentRightActions(
     item: Attachment,
-    progress: Animated.AnimatedInterpolation<number>,
+    progress: SharedValue<number>,
   ) {
     return (
       <SwipeActionsRow

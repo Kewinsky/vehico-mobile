@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  type TextInputInstance,
   type TextInputProps,
   type ViewStyle,
 } from "react-native";
@@ -44,7 +45,7 @@ export function FormInputRow({
 }: FormInputRowProps) {
   const { theme, mode } = useTheme();
   const styles = makeStyles(theme);
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const isEditable = editable !== false;
   const isOtp = variant === "otp";
   const hasValue = value != null && String(value).length > 0;

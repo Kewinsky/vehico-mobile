@@ -21,7 +21,7 @@ import {
   FontAwesome5,
 } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import Carousel from "react-native-reanimated-carousel";
+import { Carousel } from "react-native-reanimated-carousel";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { getVehicleTypeMciIcon } from "../../constants/vehicleTypes";
@@ -79,12 +79,10 @@ function VehicleCarousel({
       <View style={{ position: "relative", width, height }}>
         <Carousel
           loop={true}
-          snapEnabled={true}
-          pagingEnabled={true}
           data={photoUrls}
-          width={width}
-          height={height}
-          onProgressChange={(_, absoluteProgress) => {
+          itemSize={width}
+          style={{ width, height }}
+          onProgressChange={(absoluteProgress) => {
             const nextIndex =
               ((Math.round(absoluteProgress) % photoUrls.length) +
                 photoUrls.length) %

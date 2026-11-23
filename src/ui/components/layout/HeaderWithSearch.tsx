@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, TextInput, View, type TextInputInstance } from "react-native";
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -38,7 +38,7 @@ export function HeaderWithSearch({
   const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [searchBarVisible, setSearchBarVisible] = useState(false);
-  const searchInputRef = useRef<TextInput>(null);
+  const searchInputRef = useRef<TextInputInstance>(null);
   const expandProgress = useSharedValue(0);
 
   const openSearch = useCallback(() => {

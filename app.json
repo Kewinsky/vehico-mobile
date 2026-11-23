@@ -7,6 +7,7 @@
     "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "deploymentTarget": "16.4",
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "icon": "./assets/app-icon.png",
@@ -38,14 +39,6 @@
       "versionCode": 12
     },
     "plugins": [
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "enableSceneSupport": true
-          }
-        }
-      ],
       [
         "expo-localization",
         {

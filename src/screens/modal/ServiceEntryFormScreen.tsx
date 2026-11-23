@@ -1,7 +1,7 @@
+import type { SharedValue } from "react-native-reanimated";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
-  Animated,
   FlatList,
   Pressable,
   StyleSheet,
@@ -402,7 +402,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
 
   function renderAttachmentRightActions(
     item: Attachment,
-    progress: Animated.AnimatedInterpolation<number>,
+    progress: SharedValue<number>,
   ) {
     return (
       <SwipeActionsRow
@@ -426,7 +426,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
   function renderPendingAttachmentRightActions(
     index: number,
     item: { uri: string; mimeType?: string | null; fileName?: string | null },
-    progress: Animated.AnimatedInterpolation<number>,
+    progress: SharedValue<number>,
   ) {
     return (
       <SwipeActionsRow
@@ -1451,7 +1451,7 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
                       <Text style={[styles.muted, styles.insetContent]}>
                         {t("entryForm.attachmentsEmpty")}
                       </Text>
-                    ) : null
+                    ) : undefined
                   }
                 />
               ) : (

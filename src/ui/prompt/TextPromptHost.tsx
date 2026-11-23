@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  type TextInputInstance,
   View,
   type KeyboardTypeOptions,
 } from "react-native";
@@ -58,7 +59,7 @@ export function TextPromptHost() {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [request, setRequest] = useState<TextPromptRequest | null>(null);
   const [value, setValue] = useState("");
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
 
   useEffect(() => subscribeTextPrompt(setRequest), []);
 

@@ -1,12 +1,17 @@
 import { useMemo, type ReactNode } from "react";
 import {
-  Animated,
   Pressable,
   StyleSheet,
   View,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  type SharedValue,
+} from "react-native-reanimated";
 
 import { useTheme } from "../../ThemeProvider";
 import type { AppTheme } from "../../theme";
@@ -22,7 +27,7 @@ export type SwipeActionConfig = {
 };
 
 type SwipeActionProps = {
-  progress: Animated.AnimatedInterpolation<number>;
+  progress: SharedValue<number>;
   /** 0 = revealed first (closest to the swiped edge). */
   revealIndex: number;
   actionCount: number;
@@ -60,21 +65,18 @@ export function SwipeAction({
   children,
 }: SwipeActionProps) {
   const { start, end } = getRevealRange(revealIndex, actionCount);
-  const inputRange = [start, end];
-
-  const opacity = progress.interpolate({
-    inputRange,
-    outputRange: [0, 1],
-    extrapolate: "clamp",
-  });
-  const scale = progress.interpolate({
-    inputRange,
-    outputRange: [0, 1],
-    extrapolate: "clamp",
+  const animatedStyle = useAnimatedStyle(() => {
+    const visibility = interpolate(
+      progress.value,
+      [start, end],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+    return { opacity: visibility, transform: [{ scale: visibility }] };
   });
 
   return (
-    <Animated.View style={{ opacity, transform: [{ scale }] }}>
+    <Animated.View style={animatedStyle}>
       <Pressable
         onPress={onPress}
         accessibilityLabel={accessibilityLabel}
@@ -87,7 +89,7 @@ export function SwipeAction({
 }
 
 type SwipeActionsRowProps = {
-  progress: Animated.AnimatedInterpolation<number>;
+  progress: SharedValue<number>;
   /** Left-to-right; the rightmost action is revealed first on swipe. */
   actions: SwipeActionConfig[];
   style?: StyleProp<ViewStyle>;

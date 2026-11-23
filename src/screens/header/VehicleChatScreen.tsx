@@ -398,7 +398,7 @@ export function VehicleChatScreen({ navigation, route }: Props) {
                 styles={styles}
                 t={t}
               />
-            ) : null
+            ) : undefined
           }
         />
       </HeaderLayout>

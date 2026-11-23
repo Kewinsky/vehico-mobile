@@ -13,7 +13,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import Carousel from "react-native-reanimated-carousel";
+import { Carousel } from "react-native-reanimated-carousel";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CarouselPaginationCounter } from "../../ui/components/common/CarouselPaginationCounter";
 
@@ -284,15 +284,16 @@ export function PublicReportSummaryScreen({ navigation, route }: Props) {
               >
                 <Carousel
                   loop={true}
-                  snapEnabled={true}
-                  pagingEnabled={true}
                   data={allPhotoUrls}
-                  width={photosCarouselWidth || windowWidth}
-                  height={220}
+                  itemSize={photosCarouselWidth || windowWidth}
+                  style={{
+                    width: photosCarouselWidth || windowWidth,
+                    height: 220,
+                  }}
                   onConfigurePanGesture={(pan) => {
                     pan.activeOffsetX([-12, 12]).failOffsetY([-15, 15]);
                   }}
-                  onProgressChange={(_, absoluteProgress) => {
+                  onProgressChange={(absoluteProgress) => {
                     const rounded = Math.round(absoluteProgress);
                     const normalized =
                       ((rounded % photoCount) + photoCount) % photoCount;

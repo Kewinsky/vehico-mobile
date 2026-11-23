@@ -1,5 +1,6 @@
+import type { SharedValue } from "react-native-reanimated";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { Alert, Animated, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { SquarePen, Trash2 } from "lucide-react-native";
@@ -146,7 +147,7 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
 
   function renderRightActions(
     item: MarketplacePost,
-    progress: Animated.AnimatedInterpolation<number>,
+    progress: SharedValue<number>,
   ) {
     return (
       <SwipeActionsRow

@@ -6,6 +6,11 @@ module.exports = defineConfig([
   expoConfig,
   {
     ignores: ["dist/*", "supabase/**"],
+    settings: {
+      "import/resolver": {
+        typescript: {},
+      },
+    },
   },
   {
     files: [
