@@ -1,6 +1,6 @@
 import { nativeHeaderMenu } from "../../ui/components/layout/nativeHeaderItems";
 import type { SharedValue } from "react-native-reanimated";
-import { Alert, StyleSheet, View } from "react-native";
+import { Platform, Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HeaderIconButton } from "../../ui/components/layout/HeaderIconButton";
 import { useTranslation } from "react-i18next";
@@ -362,8 +362,15 @@ export function DocumentsScreen({ route, navigation }: Props) {
     );
   }
 
+  const search = {
+    value: query,
+    onChangeText: setQuery,
+    placeholder: t("common.search"),
+  };
+
   return (
     <HeaderContentScreen
+      search={search}
       contentInsetAdjustmentBehavior="automatic"
       loading={loading}
       onBack={() => navigation.goBack()}
@@ -373,11 +380,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
       ]}
       title={t("dashboard.tiles.docsTitle")}
     >
-      <SearchBar
-        value={query}
-        onChangeText={setQuery}
-        placeholder={t("common.search", { defaultValue: "Search" })}
-      />
+      {Platform.OS !== "ios" ? <SearchBar {...search} /> : null}
       <View style={styles.tabsWrap}>
         <SegmentTabs<"documents" | "attachments">
           value={activeTab}

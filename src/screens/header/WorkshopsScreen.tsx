@@ -1,6 +1,6 @@
 import { nativeHeaderButton, nativeHeaderMenu } from "../../ui/components/layout/nativeHeaderItems";
 import { useCallback, useMemo, useState } from "react";
-import { Alert, View } from "react-native";
+import { Platform, Alert, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HeaderIconButton } from "../../ui/components/layout/HeaderIconButton";
 import { Plus, RefreshCcw, SlidersHorizontal } from "lucide-react-native";
@@ -201,8 +201,15 @@ export function WorkshopsScreen({ navigation }: Props) {
     ],
   );
 
+  const search = {
+    value: query,
+    onChangeText: setQuery,
+    placeholder: t("common.search"),
+  };
+
   return (
     <HeaderLayout
+      search={search}
       loading={loading}
       onBack={() => navigation.goBack()}
       right={headerRight}
@@ -230,11 +237,7 @@ export function WorkshopsScreen({ navigation }: Props) {
         listHeaderComponent={
           <>
             <ContentHeader title={t("workshops.title")} />
-            <SearchBar
-              value={query}
-              onChangeText={setQuery}
-              placeholder={t("common.search", { defaultValue: "Search" })}
-            />
+            {Platform.OS !== "ios" ? <SearchBar {...search} /> : null}
           </>
         }
         keyExtractor={(item) => item.id}

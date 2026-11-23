@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Platform, Pressable, StyleSheet, Text } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -219,8 +219,15 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     [hasActiveFilters, openFilters, resetFilters],
   );
 
+  const search = {
+    value: query,
+    onChangeText: setQuery,
+    placeholder: t("common.search"),
+  };
+
   return (
     <HeaderLayout
+      search={search}
       loading={loading}
       onBack={() => navigation.goBack()}
       actions={headerActions}
@@ -231,11 +238,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
         listHeaderComponent={
           <>
             <ContentHeader title={t("documents.addAttachment")} />
-            <SearchBar
-              value={query}
-              onChangeText={setQuery}
-              placeholder={t("common.search", { defaultValue: "Search" })}
-            />
+            {Platform.OS !== "ios" ? <SearchBar {...search} /> : null}
           </>
         }
         keyExtractor={(x) => x.id}

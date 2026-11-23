@@ -295,6 +295,7 @@ export function VehicleEquipmentScreen({ navigation, route }: Props) {
       ]}
     >
       <NativeHeaderScrollView
+        automaticallyAdjustKeyboardInsets
         contentContainerStyle={{
           paddingBottom: insets.bottom + theme.spacing.xl,
         }}

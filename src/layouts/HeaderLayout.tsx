@@ -1,6 +1,9 @@
 import type { PropsWithChildren, ReactNode } from "react";
+import { Platform } from "react-native";
 
 import { AppLayout } from "../ui/components/layout/AppLayout";
+import { SearchBar } from "../ui/components/common/SearchBar";
+import type { SearchBarProps } from "../ui/components/common/SearchBar.types";
 import {
   useNativeHeaderAsAppNavbar,
   type AppNavbarProps,
@@ -14,6 +17,7 @@ export type HeaderLayoutProps = PropsWithChildren<
     footer?: ReactNode;
     background?: ReactNode;
     paddingHorizontal?: boolean;
+    search?: SearchBarProps;
   }
 >;
 
@@ -26,6 +30,7 @@ export function HeaderLayout(props: HeaderLayoutProps) {
     footer,
     background,
     paddingHorizontal = true,
+    search,
     ...navbarProps
   } = props;
 
@@ -35,16 +40,19 @@ export function HeaderLayout(props: HeaderLayoutProps) {
   });
 
   return (
-    <AppLayout
-      loading={loading}
-      ready={ready}
-      minLoadingMs={minLoadingMs}
-      useNativeHeader
-      footer={footer}
-      background={background}
-      useHorizontalContentInset={paddingHorizontal}
-    >
-      {children}
-    </AppLayout>
+    <>
+      {Platform.OS === "ios" && search ? <SearchBar {...search} /> : null}
+      <AppLayout
+        loading={loading}
+        ready={ready}
+        minLoadingMs={minLoadingMs}
+        useNativeHeader
+        footer={footer}
+        background={background}
+        useHorizontalContentInset={paddingHorizontal}
+      >
+        {children}
+      </AppLayout>
+    </>
   );
 }

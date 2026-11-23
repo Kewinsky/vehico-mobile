@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { Alert, View } from "react-native";
+import { Platform, Alert, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { ClipboardCheck } from "lucide-react-native";
@@ -300,8 +300,15 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     [t],
   );
 
+  const search = {
+    value: query,
+    onChangeText: setQuery,
+    placeholder: t("common.search"),
+  };
+
   return (
     <HeaderLayout
+      search={search}
       loading={loading}
       onBack={() => navigation.goBack()}
       actions={headerActions}
@@ -338,11 +345,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
                   ]}
                 />
               ) : null}
-              <SearchBar
-                value={query}
-                onChangeText={setQuery}
-                placeholder={t("common.search", { defaultValue: "Search" })}
-              />
+              {Platform.OS !== "ios" ? <SearchBar {...search} /> : null}
             </>
           }
           groupByMonth={sortByDate}

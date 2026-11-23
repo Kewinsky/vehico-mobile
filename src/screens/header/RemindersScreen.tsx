@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useCallback, useMemo, useState } from "react";
-import { Alert, View } from "react-native";
+import { Platform, Alert, View } from "react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
@@ -209,8 +209,15 @@ export function RemindersScreen({ route, navigation }: Props) {
     [onAddReminderPress],
   );
 
+  const search = {
+    value: query,
+    onChangeText: setQuery,
+    placeholder: t("common.search"),
+  };
+
   return (
     <HeaderLayout
+      search={search}
       loading={loading}
       onBack={() => navigation.goBack()}
       actions={headerActions}
@@ -221,11 +228,7 @@ export function RemindersScreen({ route, navigation }: Props) {
         listHeaderComponent={
           <>
             <ContentHeader title={t("dashboard.tiles.remindersTitle")} />
-            <SearchBar
-              value={query}
-              onChangeText={setQuery}
-              placeholder={t("common.search", { defaultValue: "Search" })}
-            />
+            {Platform.OS !== "ios" ? <SearchBar {...search} /> : null}
             <View style={{ marginBottom: 12 }}>
               <SegmentTabs<"upcoming" | "overdue" | "completed">
                 value={activeTab}

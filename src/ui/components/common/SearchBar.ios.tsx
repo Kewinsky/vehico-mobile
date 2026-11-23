@@ -31,6 +31,7 @@ export function SearchBar({ value, onChangeText, placeholder }: SearchBarProps) 
         ref: searchRef,
         placeholder: searchPlaceholder,
         placement: "stacked",
+        allowToolbarIntegration: false,
         hideWhenScrolling: false,
         hideNavigationBar: false,
         obscureBackground: false,
