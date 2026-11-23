@@ -1,3 +1,4 @@
+import { nativeHeaderMenu } from "../../ui/components/layout/nativeHeaderItems";
 import type { SharedValue } from "react-native-reanimated";
 import { Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -367,6 +368,9 @@ export function DocumentsScreen({ route, navigation }: Props) {
       loading={loading}
       onBack={() => navigation.goBack()}
       right={headerRight}
+      nativeRightItems={[
+        nativeHeaderMenu(t("common.add"), "plus", documentsAddMenuItems),
+      ]}
       title={t("dashboard.tiles.docsTitle")}
     >
       <SearchBar

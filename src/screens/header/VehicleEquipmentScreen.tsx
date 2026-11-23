@@ -1,3 +1,4 @@
+import { nativeHeaderButton } from "../../ui/components/layout/nativeHeaderItems";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
   Alert,
@@ -281,7 +282,18 @@ export function VehicleEquipmentScreen({ navigation, route }: Props) {
   );
 
   return (
-    <HeaderLayout onBack={() => navigation.goBack()} right={headerRight}>
+    <HeaderLayout
+      onBack={() => navigation.goBack()}
+      right={headerRight}
+      nativeRightItems={[
+        nativeHeaderButton(
+          saving ? t("common.saving") : t("common.save"),
+          "checkmark",
+          () => void onSave(),
+          { disabled: !isDirty || saving, variant: "done" },
+        ),
+      ]}
+    >
       <NativeHeaderScrollView
         contentContainerStyle={{
           paddingBottom: insets.bottom + theme.spacing.xl,

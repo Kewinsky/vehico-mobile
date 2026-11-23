@@ -1,3 +1,4 @@
+import { nativeHeaderButton, nativeHeaderMenu } from "../../ui/components/layout/nativeHeaderItems";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -205,6 +206,23 @@ export function WorkshopsScreen({ navigation }: Props) {
       loading={loading}
       onBack={() => navigation.goBack()}
       right={headerRight}
+      nativeRightItems={[
+        ...(hasActiveFilters
+          ? [
+              nativeHeaderButton(
+                t("common.resetFilters"),
+                "arrow.counterclockwise",
+                resetFilters,
+              ),
+            ]
+          : []),
+        nativeHeaderMenu(
+          t("common.filter"),
+          "line.3.horizontal.decrease",
+          filterMenuItems,
+        ),
+        nativeHeaderButton(t("common.add"), "plus", onAddWorkshopPress),
+      ]}
     >
       <CustomFlatList<Workshop>
         contentInsetAdjustmentBehavior="automatic"

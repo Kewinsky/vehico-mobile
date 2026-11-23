@@ -1,3 +1,4 @@
+import { nativeHeaderMenu } from "../../ui/components/layout/nativeHeaderItems";
 import { useCallback, useRef, useState, type ReactNode } from "react";
 import {
   Alert,
@@ -288,6 +289,28 @@ export function ManageVehicleScreen({ navigation, route }: Props) {
     <HeaderLayout
       onBack={() => navigation.goBack()}
       right={headerRight}
+      nativeRightItems={
+        vehicle
+          ? [
+              nativeHeaderMenu(t("common.moreActions"), "ellipsis", [
+                {
+                  id: "edit",
+                  label: t("common.edit"),
+                  systemImage: "pencil",
+                  onPress: () => navigation.navigate("VehicleForm", { vehicleId }),
+                },
+                { id: "divider", type: "divider" },
+                {
+                  id: "delete",
+                  label: t("common.delete"),
+                  systemImage: "trash",
+                  role: "destructive",
+                  onPress: onDeleteVehicle,
+                },
+              ]),
+            ]
+          : []
+      }
       paddingHorizontal={false}
     >
       <FormScreen noLayout scrollView={false}>

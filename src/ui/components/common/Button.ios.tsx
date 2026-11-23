@@ -48,16 +48,17 @@ export function Button({
     nativeStyle = "bordered";
     buttonTint = color ?? theme.colors.accent;
   }
+  const contentColor = isProminent ? "#000000" : buttonTint;
 
   let content: ReactElement;
   if (loading) {
-    content = <ProgressView />;
+    content = <ProgressView modifiers={[tint(contentColor)]} />;
   } else if (typeof children === "string" || typeof children === "number") {
     content = (
       <Text
         modifiers={[
           font({ textStyle: "body", weight: "semibold" }),
-          ...(!isProminent ? [foregroundStyle(buttonTint)] : []),
+          foregroundStyle(contentColor),
         ]}
       >
         {String(children)}
@@ -96,6 +97,7 @@ export function Button({
         <HStack
           spacing={theme.spacing.xs}
           modifiers={[
+            foregroundStyle(contentColor),
             frame({ maxWidth: Infinity }),
             contentShape(shapes.rectangle()),
           ]}

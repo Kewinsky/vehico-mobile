@@ -1,3 +1,4 @@
+import { nativeHeaderButton } from "../../ui/components/layout/nativeHeaderItems";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
@@ -171,7 +172,18 @@ export function DashboardSectionOrderScreen({ navigation }: Props) {
   );
 
   return (
-    <HeaderLayout onBack={() => navigation.goBack()} right={headerRight}>
+    <HeaderLayout
+      onBack={() => navigation.goBack()}
+      right={headerRight}
+      nativeRightItems={[
+        nativeHeaderButton(
+          saving ? t("common.saving") : t("common.save"),
+          "checkmark",
+          () => void onSave(),
+          { disabled: !isDirty || saving, variant: "done" },
+        ),
+      ]}
+    >
       <View style={[styles.content, { paddingTop: headerHeight }]}>
         <ContentHeader
           title={t("dashboard.sectionOrder.title")}

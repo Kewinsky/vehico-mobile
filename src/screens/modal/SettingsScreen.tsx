@@ -1,3 +1,4 @@
+import { nativeHeaderMenu } from "../../ui/components/layout/nativeHeaderItems";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Linking from "expo-linking";
@@ -243,6 +244,9 @@ export function SettingsScreen({ navigation }: Props) {
         label: t("common.cancel"),
       }}
       right={headerRight}
+      nativeRightItems={[
+        nativeHeaderMenu(t("settings.moreActions"), "ellipsis", headerMenuItems, deletingAccount),
+      ]}
       useNativeHeaderScrollView
     >
       <View style={styles.container}>

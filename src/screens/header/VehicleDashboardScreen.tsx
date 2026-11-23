@@ -1,3 +1,4 @@
+import { nativeHeaderButton, nativeHeaderMenu } from "../../ui/components/layout/nativeHeaderItems";
 import { useEffect, useMemo, useState } from "react";
 import { Platform, View } from "react-native";
 import { createNativeBottomTabNavigator } from "@bottom-tabs/react-navigation";
@@ -143,6 +144,11 @@ function VehicleDashboardTabs({
       backIcon={<Warehouse size={20} color={theme.colors.accent} />}
       showShopIcon={!isPremium}
       right={headerRight}
+      backSystemImage="house"
+      nativeRightItems={[
+        nativeHeaderMenu(t("common.moreActions"), "ellipsis", actionsMenuItems),
+        nativeHeaderButton(t("common.settings"), "gearshape", () => navigation.navigate("Settings")),
+      ]}
       paddingHorizontal={false}
     >
       {androidTabIconsReady ? (

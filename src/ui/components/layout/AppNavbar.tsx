@@ -1,8 +1,14 @@
 import type { ReactNode } from "react";
 import { useLayoutEffect, useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type {
+  NativeStackHeaderItem,
+  NativeStackNavigationProp,
+} from "@react-navigation/native-stack";
+import type { SFSymbol } from "sf-symbols-typescript";
+import { nativeHeaderButton } from "./nativeHeaderItems";
 import { HeaderIconButton } from "./HeaderIconButton";
 import {
   ChevronLeft,
@@ -36,7 +42,11 @@ export type AppNavbarProps = {
   onBack?: () => void;
   /** When set with `onBack`, replaces the default chevron in the native header. */
   backIcon?: ReactNode;
+  backSystemImage?: SFSymbol;
+  /** Preserve a custom back handler instead of popping the native stack. */
+  backBehavior?: "native" | "custom";
   right?: ReactNode;
+  nativeRightItems?: NativeStackHeaderItem[];
   title?: string;
   showProfileAvatar?: boolean;
   showShopIcon?: boolean;
@@ -47,13 +57,17 @@ export type AppNavbarProps = {
 export function useNativeHeaderAsAppNavbar({
   onBack,
   backIcon,
+  backSystemImage,
+  backBehavior = "native",
   right,
+  nativeRightItems,
   title,
   showProfileAvatar,
   showShopIcon,
   actions,
 }: AppNavbarProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const headerIconSize = 20;
   const { user } = useAuth();
   const route = useRoute();
@@ -129,6 +143,84 @@ export function useNativeHeaderAsAppNavbar({
   }, [actions, headerIconSize, theme.colors.accent, theme.spacing.sm]);
 
   useLayoutEffect(() => {
+    if (Platform.OS === "ios") {
+      const items: NativeStackHeaderItem[] = [];
+      if (showShopIcon) {
+        items.push(
+          nativeHeaderButton(t("shop.title"), "crown", () => navigation.navigate("Shop")),
+        );
+        if (showProfileAvatar && user) {
+          items.push(
+            nativeHeaderButton(t("common.settings"), "gearshape", () => navigation.navigate("Settings")),
+          );
+        }
+      }
+      if (nativeRightItems !== undefined) {
+        items.push(...nativeRightItems);
+      } else if (right != null) {
+        items.push({ type: "custom", element: <>{right}</> });
+      } else if (!showShopIcon && showInitials) {
+        items.push(
+          nativeHeaderButton(t("common.settings"), "gearshape", () => navigation.navigate("Settings")),
+        );
+      }
+      for (const action of actions ?? []) {
+        if (action.type === "add") {
+          items.push(nativeHeaderButton(t("common.add"), "plus", action.onPress));
+        } else if (action.type === "filterReset") {
+          items.push(
+            nativeHeaderButton(t("common.resetFilters"), "arrow.counterclockwise", action.onPress),
+          );
+        } else {
+          items.push(
+            nativeHeaderButton(t("common.filter"), "line.3.horizontal.decrease", action.onPress),
+          );
+        }
+      }
+
+      const systemBack =
+        !!onBack &&
+        !backSystemImage &&
+        backBehavior === "native" &&
+        navigation.canGoBack();
+      const leftItems: NativeStackHeaderItem[] = [];
+      if (onBack && !systemBack) {
+        leftItems.push(
+          nativeHeaderButton(
+            backSystemImage ? t("vehicles.title") : t("common.back"),
+            backSystemImage ?? "chevron.left",
+            onBack,
+          ),
+        );
+      }
+
+      navigation.setOptions({
+        headerTitle: title ?? "",
+        headerBackVisible: systemBack,
+        headerBackButtonDisplayMode: "minimal",
+        headerTintColor: theme.colors.accent,
+        headerTransparent: true,
+        headerLeft: undefined,
+        headerRight: undefined,
+        unstable_headerLeftItems: systemBack ? undefined : () => leftItems,
+        unstable_headerRightItems: () =>
+          items.map((item) => {
+            if (item.type === "button" || item.type === "menu") {
+              return { ...item, tintColor: item.tintColor ?? theme.colors.accent };
+            }
+            return item;
+          }),
+        headerStyle: { backgroundColor: "transparent" },
+        headerTitleStyle: {
+          color: theme.colors.fg,
+          fontWeight: theme.typography.fontWeight.bold,
+          fontSize: theme.typography.title,
+        },
+        headerShadowVisible: false,
+      });
+      return;
+    }
+
     const rightContent = showShopIcon ? (
       <View
         style={{
@@ -230,6 +322,11 @@ export function useNativeHeaderAsAppNavbar({
     showInitials,
     hideProfileAvatar,
     actionsContent,
+    actions,
+    backBehavior,
+    backSystemImage,
+    nativeRightItems,
+    t,
   ]);
 }
 
