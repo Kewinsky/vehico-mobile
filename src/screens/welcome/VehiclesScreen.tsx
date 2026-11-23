@@ -238,7 +238,7 @@ function VehicleCardImage({
           <BlurView
             intensity={60}
             tint="dark"
-            experimentalBlurMethod={
+            blurMethod={
               Platform.OS === "android" ? "dimezisBlurView" : undefined
             }
             style={StyleSheet.absoluteFill}
@@ -682,7 +682,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
                             <BlurView
                               intensity={60}
                               tint="dark"
-                              experimentalBlurMethod={
+                              blurMethod={
                                 Platform.OS === "android"
                                   ? "dimezisBlurView"
                                   : undefined
@@ -787,7 +787,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       justifyContent: "flex-end",
     },
     vehicleImageTintMask: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     vehicleImageContent: {
       padding: theme.spacing.md,

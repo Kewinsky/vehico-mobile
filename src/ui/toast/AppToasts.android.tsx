@@ -137,7 +137,7 @@ export function AppToasts() {
 const makeStyles = (theme: any, mode: "light" | "dark") =>
   StyleSheet.create({
     root: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       justifyContent: "flex-end",
       alignItems: "center",
       zIndex: 9999,

@@ -2,7 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, StyleSheet, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Host, HStack, Image, Text as SwiftUIText } from "@expo/ui/swift-ui";
-import { frame, glassEffect, padding } from "@expo/ui/swift-ui/modifiers";
+import {
+  fixedSize,
+  font,
+  foregroundStyle,
+  frame,
+  glassEffect,
+  padding,
+} from "@expo/ui/swift-ui/modifiers";
 import type { SFSymbol } from "sf-symbols-typescript";
 
 import { useTheme } from "../ThemeProvider";
@@ -119,7 +126,6 @@ export function AppToasts() {
             <HStack
               spacing={10}
               alignment="center"
-              fixedSize={false}
               modifiers={[
                 padding({ horizontal: 16, vertical: 12 }),
                 frame({ maxWidth: toastWidth }),
@@ -133,14 +139,14 @@ export function AppToasts() {
                 systemName={TOAST_SYMBOLS[toast.type]}
                 color={iconTint}
                 size={20}
-                fixedSize
+                modifiers={[fixedSize()]}
               />
               <SwiftUIText
-                fixedSize={false}
-                frame={{ maxWidth: toastTextMaxWidth }}
-                color={theme.colors.fg}
-                size={15}
-                weight="medium"
+                modifiers={[
+                  frame({ maxWidth: toastTextMaxWidth }),
+                  foregroundStyle(theme.colors.fg),
+                  font({ size: 15, weight: "medium" }),
+                ]}
               >
                 {toastMessage(toast)}
               </SwiftUIText>
@@ -154,7 +160,7 @@ export function AppToasts() {
 
 const styles = StyleSheet.create({
   root: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "flex-end",
     alignItems: "center",
     zIndex: 9999,

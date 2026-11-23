@@ -1,6 +1,5 @@
 import { Children, isValidElement, useMemo, type ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Button, ContextMenu } from "@expo/ui/jetpack-compose";
 
 import { useTheme } from "../../ThemeProvider";
 import {
@@ -75,27 +74,11 @@ export function SourcePickerMenu({
   }
 
   return (
-    <View style={styles.surface}>
-      <ContextMenu style={styles.menu} color={theme.colors.card}>
-        <ContextMenu.Items>{menuItems}</ContextMenu.Items>
-        <ContextMenu.Trigger>
-          {/* Native Compose button: Material ripple + opens the menu */}
-          <Button
-            variant="borderless"
-            style={styles.hit}
-            elementColors={{
-              containerColor: "#00000000",
-              contentColor: theme.colors.accent,
-            }}
-          >
-            {""}
-          </Button>
-        </ContextMenu.Trigger>
-      </ContextMenu>
-      <View style={styles.iconOverlay} pointerEvents="none">
-        {icon}
-      </View>
-    </View>
+    <ComposeMenu
+      items={menuItems}
+      trigger={<View style={styles.surface}>{icon}</View>}
+      menuColor={theme.colors.card}
+    />
   );
 }
 
@@ -120,20 +103,6 @@ function makeStyles(theme: {
       justifyContent: "center",
       overflow: "hidden",
       elevation: 2,
-    },
-    menu: {
-      ...StyleSheet.absoluteFillObject,
-    },
-    hit: {
-      width: BUTTON_SIZE,
-      height: BUTTON_SIZE,
-      minWidth: BUTTON_SIZE,
-      minHeight: BUTTON_SIZE,
-    },
-    iconOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      alignItems: "center",
-      justifyContent: "center",
     },
     ghost: {
       height: theme.spacing.lg * 2,

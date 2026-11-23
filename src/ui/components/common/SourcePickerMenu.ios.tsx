@@ -9,7 +9,8 @@ import {
 import {
   Host,
   Button as SwiftUIButton,
-  ContextMenu as SwiftUIContextMenu,
+  Menu as SwiftUIMenu,
+  RNHostView,
   Divider,
 } from "@expo/ui/swift-ui";
 
@@ -92,16 +93,13 @@ function renderMenuItems(items: SourcePickerMenuItem[]) {
 
     if (item.items?.length) {
       return (
-        <SwiftUIContextMenu key={item.id} activationMethod="singlePress">
-          <SwiftUIContextMenu.Items>
-            {renderMenuItems(item.items)}
-          </SwiftUIContextMenu.Items>
-          <SwiftUIContextMenu.Trigger>
-            <SwiftUIButton systemImage={item.systemImage}>
-              {item.label}
-            </SwiftUIButton>
-          </SwiftUIContextMenu.Trigger>
-        </SwiftUIContextMenu>
+        <SwiftUIMenu
+          key={item.id}
+          label={item.label}
+          systemImage={item.systemImage}
+        >
+          {renderMenuItems(item.items)}
+        </SwiftUIMenu>
       );
     }
 
@@ -111,9 +109,8 @@ function renderMenuItems(items: SourcePickerMenuItem[]) {
         systemImage={item.systemImage}
         role={item.role}
         onPress={item.onPress}
-      >
-        {item.label}
-      </SwiftUIButton>
+        label={item.label}
+      />
     );
   });
 }
@@ -141,20 +138,22 @@ export function SourcePickerMenu({
     return (
       <View style={{ alignSelf: "stretch", width: "100%" }}>
         <Host
-          matchContents
+          matchContents={{ vertical: true }}
+          style={{ width: "100%" }}
           colorScheme={themeMode === "dark" ? "dark" : "light"}
         >
-          <SwiftUIContextMenu activationMethod="singlePress">
-            <SwiftUIContextMenu.Items>
-              {renderMenuItems(items)}
-            </SwiftUIContextMenu.Items>
-            <SwiftUIContextMenu.Trigger>
-              <GhostMenuTrigger
-                label={triggerLabel}
-                style={triggerStyle}
-              />
-            </SwiftUIContextMenu.Trigger>
-          </SwiftUIContextMenu>
+          <SwiftUIMenu
+            label={
+              <RNHostView matchContents={{ vertical: true }}>
+                <GhostMenuTrigger
+                  label={triggerLabel}
+                  style={triggerStyle}
+                />
+              </RNHostView>
+            }
+          >
+            {renderMenuItems(items)}
+          </SwiftUIMenu>
         </Host>
       </View>
     );
@@ -166,12 +165,15 @@ export function SourcePickerMenu({
 
   return (
     <Host matchContents colorScheme={themeMode === "dark" ? "dark" : "light"}>
-      <SwiftUIContextMenu activationMethod="singlePress">
-        <SwiftUIContextMenu.Items>
-          {renderMenuItems(items)}
-        </SwiftUIContextMenu.Items>
-        <SwiftUIContextMenu.Trigger>{children}</SwiftUIContextMenu.Trigger>
-      </SwiftUIContextMenu>
+      <SwiftUIMenu
+        label={
+          <RNHostView matchContents>
+            <View>{children}</View>
+          </RNHostView>
+        }
+      >
+        {renderMenuItems(items)}
+      </SwiftUIMenu>
     </Host>
   );
 }

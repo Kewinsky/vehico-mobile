@@ -5,10 +5,6 @@ import {
   getUserFacingErrorMessage,
 } from "../../ui/errors/userFacingError";
 
-jest.mock("react-native", () => ({
-  Alert: { alert: jest.fn() },
-}));
-
 const fallback = "Something went wrong";
 
 describe("getUserFacingErrorMessage", () => {
@@ -44,6 +40,11 @@ describe("getUserFacingErrorMessage", () => {
 describe("alertCaughtError", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it("shows sanitized message in Alert.alert", () => {

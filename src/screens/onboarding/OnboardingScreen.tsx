@@ -1163,7 +1163,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       zIndex: 2,
     },
     photoMenuCenterOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     photoPlaceholderTitle: {
       marginTop: theme.spacing.md,
@@ -1180,7 +1180,7 @@ const makeStyles = (theme: any, insets: { bottom: number }) =>
       justifyContent: "center",
     },
     photo: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     detailsCard: {
       borderRadius: theme.radius.xl,

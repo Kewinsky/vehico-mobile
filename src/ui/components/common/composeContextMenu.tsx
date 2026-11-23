@@ -1,12 +1,28 @@
-import type { ComponentProps, ReactElement, ReactNode } from "react";
-import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
-import { Button, ContextMenu } from "@expo/ui/jetpack-compose";
+import {
+  cloneElement,
+  useState,
+  type ComponentProps,
+  type ReactElement,
+  type ReactNode,
+} from "react";
+import {
+  Pressable,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  Text as ComposeText,
+} from "@expo/ui/jetpack-compose";
 
 import type { AppTheme } from "../../theme";
 import { useTheme } from "../../ThemeProvider";
 import type { SourcePickerMenuItem } from "./SourcePickerMenu.types";
 
-type ComposeMenuElement = ReactElement<ComponentProps<typeof Button>>;
+type ComposeMenuElement = ReactElement<ComponentProps<typeof DropdownMenuItem>>;
 
 function isDividerItem(
   item: SourcePickerMenuItem,
@@ -16,9 +32,7 @@ function isDividerItem(
 
 function menuItemColors(theme: AppTheme, destructive = false) {
   return {
-    contentColor: destructive ? theme.colors.danger : theme.colors.fg,
-    // Transparent so the DropdownMenu container color shows through.
-    containerColor: "#00000000",
+    textColor: destructive ? theme.colors.danger : theme.colors.fg,
   };
 }
 
@@ -31,8 +45,7 @@ export function renderComposeSourcePickerItems(
   for (const item of items) {
     if (isDividerItem(item)) continue;
 
-    // Android ContextMenu has no real nested menu: Submenu becomes a section
-    // title + divider (awkward for Documents "+" etc.). Flatten instead.
+    // Android dropdown menus have no nested menu: flatten submenus instead.
     if (item.items?.length) {
       elements.push(...renderComposeSourcePickerItems(item.items, theme));
       continue;
@@ -41,14 +54,15 @@ export function renderComposeSourcePickerItems(
     const destructive = item.role === "destructive";
 
     elements.push(
-      <Button
+      <DropdownMenuItem
         key={item.id}
-        variant="borderless"
-        onPress={item.onPress}
+        onClick={item.onPress}
         elementColors={menuItemColors(theme, destructive)}
       >
-        {item.label}
-      </Button>,
+        <DropdownMenuItem.Text>
+          <ComposeText>{item.label}</ComposeText>
+        </DropdownMenuItem.Text>
+      </DropdownMenuItem>,
     );
   }
 
@@ -63,11 +77,6 @@ type ComposeMenuProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-/**
- * Compose ContextMenu cannot render RN children as its trigger on Android,
- * so the visible trigger is plain RN content and an invisible full-size
- * ContextMenu layer on top of it receives the tap.
- */
 export function ComposeMenu({
   items,
   trigger,
@@ -76,7 +85,9 @@ export function ComposeMenu({
   style,
 }: ComposeMenuProps) {
   const { theme, mode } = useTheme();
+  const [expanded, setExpanded] = useState(false);
   const resolvedMenuColor = menuColor ?? theme.colors.card;
+  const menuItems = Array.isArray(items) ? items : [items];
 
   if (disabled) {
     return <>{trigger}</>;
@@ -84,16 +95,31 @@ export function ComposeMenu({
 
   return (
     <View style={[styles.host, style]}>
-      <View pointerEvents="none">{trigger}</View>
-      <View style={styles.menuLayer}>
-        {/* Remount on theme so native DropdownMenu item colors refresh. */}
-        <ContextMenu key={mode} style={styles.menu} color={resolvedMenuColor}>
-          <ContextMenu.Items>{items}</ContextMenu.Items>
-          <ContextMenu.Trigger>
-            <View style={styles.tapTarget} />
-          </ContextMenu.Trigger>
-        </ContextMenu>
-      </View>
+      <DropdownMenu
+        key={mode}
+        style={styles.menuLayer}
+        color={resolvedMenuColor}
+        expanded={expanded}
+        onDismissRequest={() => setExpanded(false)}
+      >
+        <DropdownMenu.Items>
+          {menuItems.map((item) =>
+            cloneElement(item, {
+              onClick: () => {
+                setExpanded(false);
+                item.props.onClick?.();
+              },
+            }),
+          )}
+        </DropdownMenu.Items>
+      </DropdownMenu>
+      <Pressable
+        onPress={() => setExpanded(true)}
+        accessibilityRole="button"
+        hitSlop={4}
+      >
+        <View pointerEvents="none">{trigger}</View>
+      </Pressable>
     </View>
   );
 }
@@ -120,14 +146,15 @@ export function ComposeOptionMenu({
     <ComposeMenu
       style={[styles.stretch, style]}
       items={options.map((option, index) => (
-        <Button
+        <DropdownMenuItem
           key={`${option}-${index}`}
-          variant="borderless"
-          onPress={() => onSelect(index)}
+          onClick={() => onSelect(index)}
           elementColors={colors}
         >
-          {option}
-        </Button>
+          <DropdownMenuItem.Text>
+            <ComposeText>{option}</ComposeText>
+          </DropdownMenuItem.Text>
+        </DropdownMenuItem>
       ))}
       {...rest}
     />
@@ -143,13 +170,6 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   menuLayer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1,
-  },
-  menu: {
-    flex: 1,
-  },
-  tapTarget: {
-    flex: 1,
+    ...StyleSheet.absoluteFill,
   },
 });

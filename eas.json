@@ -13,6 +13,9 @@
     },
     "production": {
       "autoIncrement": false,
+      "ios": {
+        "image": "macos-tahoe-26.6-xcode-27.0"
+      },
       "env": {
         "EXPO_PUBLIC_APP_ENV": "production"
       }

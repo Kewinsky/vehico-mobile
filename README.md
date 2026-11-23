@@ -22,7 +22,7 @@ Display name: **Vericar** · npm/slug/scheme: **vehico** · Current app version:
 
 ## Tech Stack
 
-- **Framework**: React Native (0.81) + Expo (~54), New Architecture enabled
+- **Framework**: React Native (0.86) + Expo (~57), New Architecture
 - **Language**: TypeScript
 - **Navigation**: React Navigation (native stack + native bottom tabs)
 - **Backend**: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
@@ -34,7 +34,7 @@ Display name: **Vericar** · npm/slug/scheme: **vehico** · Current app version:
 
 ## Prerequisites
 
-- Node.js 20+ (CI uses Node 20)
+- Node.js 20.19.4+ or 22.13.0+ (CI uses Node 22)
 - npm
 - Expo CLI / EAS CLI for device builds
 - iOS Simulator and/or Android emulator (or physical device with dev client)
@@ -209,6 +209,27 @@ npx expo run:android --variant release
 ```
 
 Ensure production env includes Supabase, reports URL, and RevenueCat keys.
+
+The app uses Expo SDK 57.0.33, React Native 0.86.3, and React 19.2.3. iOS 16.4+
+is required. The production iOS EAS profile pins `macos-tahoe-26.6-xcode-27.0`
+to build with the iOS 27 SDK. For local release builds, select Xcode 27 as well.
+
+SDK 57 keeps the legacy iOS app lifecycle by default, so `expo-build-properties`
+explicitly enables `ios.enableSceneSupport` in `app.json`. This requires
+`expo >=57.0.23` and `expo-build-properties >=57.0.23`. It generates the scene
+manifest and starts React Native through Expo's scene delegate, addressing
+`UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption` at launch.
+Build a new native app after upgrading; an update to JavaScript alone is not
+enough. Before release, verify cold start, sign-in links, notifications, native
+menus, camera/document selection, local SQLite data, and purchases on a device.
+
+The existing Sentry 8 integration, TypeScript 5.9, and ESLint config 10 are kept
+outside Expo's version alignment. The i18n packages still require TypeScript 5,
+and lint keeps the existing rule set; this SDK upgrade does not enable the
+additional React Compiler lint rules from ESLint config 57.
+
+See [Expo build images](https://docs.expo.dev/build-reference/infrastructure/)
+and [Expo scene lifecycle guidance](https://github.com/expo/fyi/blob/main/ios-scene-lifecycle.md).
 
 ### Premium free trial (store intro offer)
 

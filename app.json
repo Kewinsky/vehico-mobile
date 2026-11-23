@@ -6,16 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-light.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff",
-      "dark": {
-        "image": "./assets/splash-dark.png",
-        "backgroundColor": "#000000"
-      }
-    },
     "ios": {
       "supportsTablet": true,
       "usesAppleSignIn": true,
@@ -48,6 +38,14 @@
       "versionCode": 12
     },
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
+      ],
       [
         "expo-localization",
         {

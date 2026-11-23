@@ -2,7 +2,7 @@
 
 ## Project context
 
-Vericar is a proprietary React Native application for vehicle ownership. It uses Expo SDK 54, React Native 0.81, React 19, strict TypeScript, React Navigation, Supabase, RevenueCat, Sentry, `react-i18next`, SQLite, and AsyncStorage. The Expo New Architecture is enabled.
+Vericar is a proprietary React Native application for vehicle ownership. It uses Expo SDK 57, React Native 0.86, React 19.2, strict TypeScript, React Navigation, Supabase, RevenueCat, Sentry, `react-i18next`, SQLite, and AsyncStorage. React Native uses the New Architecture. The `expo-build-properties` plugin enables the iOS scene lifecycle required by Xcode 27 builds.
 
 Before making changes, read the relevant implementation, nearby tests, and configuration. `README.md` describes the product and setup. For AI work, also read `AI_ROADMAP.md`, `ai.todo`, the relevant `AI_STAGE_*.md`, and `AI_EVALS.md` when model quality is involved.
 

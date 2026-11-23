@@ -177,7 +177,7 @@ const makeStyles = (theme: {
       paddingHorizontal: theme.spacing.lg,
     },
     backdrop: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: "rgba(0,0,0,0.45)",
     },
     dialog: {
