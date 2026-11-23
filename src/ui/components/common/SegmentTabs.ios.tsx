@@ -16,7 +16,6 @@ export function SegmentTabs<T extends string>({
   value,
   options,
   onChange,
-  size = "md",
 }: SegmentTabsProps<T>) {
   const { theme, mode } = useTheme();
 
@@ -32,7 +31,7 @@ export function SegmentTabs<T extends string>({
         onSelectionChange={onChange}
         modifiers={[
           pickerStyle("segmented"),
-          controlSize(size === "sm" ? "regular" : "large"),
+          controlSize("large"),
           tint(theme.colors.accent),
           frame({ minHeight: 44 }),
         ]}

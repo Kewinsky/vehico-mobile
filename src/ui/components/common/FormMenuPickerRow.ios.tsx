@@ -122,6 +122,6 @@ const makeStyles = (theme: AppTheme) =>
       flex: 1,
       minWidth: 0,
       minHeight: 44,
-      paddingHorizontal: theme.spacing.md,
+      marginHorizontal: theme.spacing.md,
     },
   });

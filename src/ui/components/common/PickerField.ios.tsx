@@ -7,6 +7,7 @@ import {
   disabled as disabledModifier,
   frame,
   labelsHidden,
+  padding,
   pickerStyle,
   tag,
   tint,
@@ -69,6 +70,7 @@ export function PickerField<T extends string>({
             disabledModifier(disabled || pickerOptions.length === 0),
             accessibilityLabel(label || displayValue),
             frame({ minHeight: 44 }),
+            padding({ horizontal: theme.spacing.md }),
           ]}
         >
           {pickerOptions.map((option, index) => (
@@ -99,7 +101,6 @@ const makeStyles = (theme: AppTheme) =>
     wrap: {
       borderRadius: theme.radius.xl,
       backgroundColor: theme.colors.card,
-      paddingHorizontal: theme.spacing.md,
       minHeight: 48,
     },
     disabled: {
