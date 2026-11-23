@@ -21,6 +21,7 @@ export function SegmentTabs<T extends string>({
 
   return (
     <Host
+      ignoreSafeArea="all"
       matchContents={{ vertical: true }}
       colorScheme={mode}
       style={{ width: "100%", minHeight: 44 }}

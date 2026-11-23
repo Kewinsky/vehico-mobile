@@ -59,6 +59,7 @@ export function FormMenuPickerRow({
             </Text>
           </View>
           <Host
+            ignoreSafeArea="all"
             matchContents={{ vertical: true }}
             colorScheme={mode}
             alignment="trailing"

@@ -49,6 +49,7 @@ export function FormInlineMenuPicker<T extends string>({
       ]}
     >
       <Host
+        ignoreSafeArea="all"
         matchContents
         colorScheme={mode}
         alignment="trailing"

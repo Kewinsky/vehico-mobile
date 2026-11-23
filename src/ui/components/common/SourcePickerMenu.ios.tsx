@@ -138,6 +138,7 @@ export function SourcePickerMenu({
     return (
       <View style={{ alignSelf: "stretch", width: "100%" }}>
         <Host
+          ignoreSafeArea="all"
           matchContents={{ vertical: true }}
           style={{ width: "100%" }}
           colorScheme={themeMode === "dark" ? "dark" : "light"}
@@ -164,7 +165,11 @@ export function SourcePickerMenu({
   }
 
   return (
-    <Host matchContents colorScheme={themeMode === "dark" ? "dark" : "light"}>
+    <Host
+      ignoreSafeArea="all"
+      matchContents
+      colorScheme={themeMode === "dark" ? "dark" : "light"}
+    >
       <SwiftUIMenu
         label={
           <RNHostView matchContents>

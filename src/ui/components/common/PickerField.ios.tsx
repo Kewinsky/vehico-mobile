@@ -53,6 +53,7 @@ export function PickerField<T extends string>({
     >
       {label ? <Text style={styles.label}>{label}</Text> : null}
       <Host
+        ignoreSafeArea="all"
         matchContents={{ vertical: true }}
         colorScheme={mode}
         alignment="trailing"

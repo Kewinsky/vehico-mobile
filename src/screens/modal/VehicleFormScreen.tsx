@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
-  Dimensions,
   Pressable,
   StyleSheet,
   Text,
@@ -1071,12 +1070,7 @@ const makeStyles = (theme: any) =>
       overflow: "hidden",
     },
     photoCard: {
-      width:
-        (Dimensions.get("window").width -
-          theme.spacing.md * 2 -
-          theme.spacing.sm * 2) /
-        3,
-      aspectRatio: 1,
+      margin: theme.spacing.xs,
       borderRadius: theme.radius.md,
       overflow: "hidden",
       backgroundColor: theme.colors.card,
@@ -1090,7 +1084,7 @@ const makeStyles = (theme: any) =>
     photoImageContainer: {
       position: "relative",
       width: "100%",
-      height: "100%",
+      aspectRatio: 1,
     },
     photoImage: {
       width: "100%",
