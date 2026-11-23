@@ -3,12 +3,9 @@ import { StyleSheet, TextInput, View } from "react-native";
 import { Search } from "lucide-react-native";
 
 import { useTheme } from "../../ThemeProvider";
+import type { SearchBarProps } from "./SearchBar.types";
 
-export type SearchBarProps = {
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder?: string;
-};
+export type { SearchBarProps } from "./SearchBar.types";
 
 export function SearchBar({
   value,

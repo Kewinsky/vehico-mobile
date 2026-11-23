@@ -25,9 +25,11 @@ export function NativeHeaderScrollView({
   const formScrollRef = useFormScreenScrollRef();
   const keyboardInset = useFormScreenKeyboardInset();
   const androidHeaderInset = Platform.OS === "android" ? theme.spacing.md : 0;
+  const automaticInsets =
+    Platform.OS === "ios" && rest.contentInsetAdjustmentBehavior === "automatic";
 
   const baseContentStyle = {
-    paddingTop: headerHeight + androidHeaderInset,
+    paddingTop: automaticInsets ? 0 : headerHeight + androidHeaderInset,
     paddingHorizontal: paddingHorizontal
       ? theme.layout.contentPaddingHorizontal
       : 0,

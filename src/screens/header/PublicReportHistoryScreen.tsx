@@ -152,14 +152,14 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
         progress={progress}
         actions={[
           {
-            onPress: () => handleEditTitle(item),
-            color: theme.colors.accent,
-            icon: <SquarePen size={22} color="#000000" />,
-          },
-          {
             onPress: () => confirmDeleteReport(item),
             color: theme.colors.danger,
             icon: <Trash2 size={22} color="#000000" />,
+          },
+          {
+            onPress: () => handleEditTitle(item),
+            color: theme.colors.accent,
+            icon: <SquarePen size={22} color="#000000" />,
           },
         ]}
       />

@@ -1,4 +1,3 @@
-import type { PropsWithChildren } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -8,16 +7,7 @@ import {
 } from "react-native";
 
 import { useTheme } from "../../ThemeProvider";
-
-type ButtonProps = PropsWithChildren<{
-  onPress: () => void;
-  disabled?: boolean;
-  variant?: "primary" | "ghost" | "destructive" | "outlined";
-  /** Primary/outlined fill and border; defaults to theme accent. */
-  color?: string;
-  loading?: boolean;
-  style?: any;
-}>;
+import type { ButtonProps } from "./Button.types";
 
 export function Button({
   onPress,

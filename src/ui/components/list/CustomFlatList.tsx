@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { FlatList, FlatListProps, StyleSheet, View } from "react-native";
+import { FlatList, FlatListProps, Platform, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 
@@ -77,9 +77,13 @@ export function CustomFlatList<T>({
   const isGrouped = groupByMonth && getMonthYearKey;
 
   const listStyle = [styles.list];
+  const automaticInsets =
+    Platform.OS === "ios" && rest.contentInsetAdjustmentBehavior === "automatic";
   const contentStyle = [
     styles.listContent,
-    headerHeight > 0 ? { paddingTop: headerHeight } : null,
+    automaticInsets
+      ? { paddingTop: 0, paddingBottom: 0 }
+      : { paddingTop: headerHeight },
     contentContainerStyle,
   ];
 

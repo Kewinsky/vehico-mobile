@@ -1,20 +1,21 @@
 import { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useTranslation } from "react-i18next";
+import { StyleSheet, View } from "react-native";
+import { Host, Picker, Text } from "@expo/ui/swift-ui";
+import {
+  accessibilityLabel,
+  buttonStyle,
+  disabled as disabledModifier,
+  frame,
+  labelsHidden,
+  pickerStyle,
+  tag,
+  tint,
+} from "@expo/ui/swift-ui/modifiers";
 
 import { useTheme } from "../../ThemeProvider";
 import { buildMenuPickerState } from "./menuPickerState";
-import { openOptionAlert } from "./openOptionAlert";
-
-type Props<T extends string> = {
-  value: T;
-  options: readonly T[];
-  getLabel: (value: T) => string;
-  onChange: (value: T) => void;
-  disabled?: boolean;
-  centered?: boolean;
-};
+import type { AppTheme } from "../../theme";
+import type { FormInlineMenuPickerProps } from "./FormInlineMenuPicker.types";
 
 export function FormInlineMenuPicker<T extends string>({
   value,
@@ -23,9 +24,8 @@ export function FormInlineMenuPicker<T extends string>({
   onChange,
   disabled = false,
   centered = false,
-}: Props<T>) {
-  const { t } = useTranslation();
-  const { theme } = useTheme();
+}: FormInlineMenuPickerProps<T>) {
+  const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const { pickerOptions, selectedIndex, handleSelectIndex } = useMemo(
@@ -48,36 +48,41 @@ export function FormInlineMenuPicker<T extends string>({
         disabled && styles.disabled,
       ]}
     >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={displayValue}
-        disabled={disabled}
-        onPress={() =>
-          openOptionAlert({
-            options: pickerOptions,
-            selectedIndex,
-            onSelect: (index) => {
-              const next = handleSelectIndex(index);
-              if (next) onChange(next);
-            },
-            cancelLabel: t("common.cancel"),
-          })
-        }
-        style={({ pressed }) => [
-          styles.trigger,
-          pressed && styles.pressed,
-        ]}
+      <Host
+        matchContents
+        colorScheme={mode}
+        alignment="trailing"
+        style={{ minHeight: 44 }}
       >
-        <Text style={styles.valueText} numberOfLines={1}>
-          {displayValue}
-        </Text>
-        <Ionicons name="chevron-down" size={16} color={theme.colors.fg} />
-      </Pressable>
+        <Picker
+          label={displayValue}
+          selection={selectedIndex}
+          onSelectionChange={(index) => {
+            const next = handleSelectIndex(index);
+            if (next !== null) onChange(next);
+          }}
+          modifiers={[
+            pickerStyle("menu"),
+            labelsHidden(),
+            buttonStyle("glass"),
+            tint(theme.colors.fg),
+            disabledModifier(disabled),
+            accessibilityLabel(displayValue),
+            frame({ minHeight: 44 }),
+          ]}
+        >
+          {pickerOptions.map((option, index) => (
+            <Text key={index} modifiers={[tag(index)]}>
+              {option}
+            </Text>
+          ))}
+        </Picker>
+      </Host>
     </View>
   );
 }
 
-const makeStyles = (theme: any) =>
+const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     wrap: {
       flexShrink: 0,
@@ -88,25 +93,7 @@ const makeStyles = (theme: any) =>
       marginLeft: 0,
       alignSelf: "center",
     },
-    trigger: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      gap: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.sm,
-      borderRadius: theme.radius.lg,
-      backgroundColor: theme.colors.card,
-    },
-    valueText: {
-      flexShrink: 1,
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-      color: theme.colors.fg,
-    },
     disabled: {
       opacity: 0.55,
-    },
-    pressed: {
-      opacity: 0.7,
     },
   });

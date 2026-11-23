@@ -226,6 +226,7 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       actions={headerActions}
     >
       <CustomFlatList<ServiceEntry>
+        contentInsetAdjustmentBehavior="automatic"
         data={filteredItems}
         listHeaderComponent={
           <>

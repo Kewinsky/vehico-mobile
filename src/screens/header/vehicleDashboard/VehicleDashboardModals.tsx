@@ -94,7 +94,11 @@ export function VehicleDashboardModals() {
                   <Button
                     variant="ghost"
                     onPress={() => void handleCopyPublicReportLink()}
-                    style={{ backgroundColor: theme.colors.bg }}
+                    style={
+                      Platform.OS === "ios"
+                        ? undefined
+                        : { backgroundColor: theme.colors.bg }
+                    }
                   >
                     <Ionicons
                       name="copy-outline"
@@ -123,7 +127,15 @@ export function VehicleDashboardModals() {
                         : "",
                     })}
                   >
-                    <View style={styles.qrShareButton}>
+                    <View
+                      style={[
+                        styles.qrShareButton,
+                        Platform.OS === "ios" && {
+                          backgroundColor: "transparent",
+                          paddingVertical: 0,
+                        },
+                      ]}
+                    >
                       <Ionicons
                         name="share-outline"
                         size={18}
@@ -142,7 +154,11 @@ export function VehicleDashboardModals() {
                   <Button
                     variant="ghost"
                     onPress={() => void handleOpenPublicReportInBrowser()}
-                    style={{ backgroundColor: theme.colors.bg }}
+                    style={
+                      Platform.OS === "ios"
+                        ? undefined
+                        : { backgroundColor: theme.colors.bg }
+                    }
                   >
                     <Ionicons
                       name="globe-outline"

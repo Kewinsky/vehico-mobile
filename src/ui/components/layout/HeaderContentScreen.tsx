@@ -2,7 +2,10 @@ import type { PropsWithChildren, ReactNode } from "react";
 
 import { HeaderLayout } from "../../../layouts";
 import type { HeaderLayoutProps } from "../../../layouts/HeaderLayout";
-import { NativeHeaderScrollView } from "./NativeHeaderScrollView";
+import {
+  NativeHeaderScrollView,
+  type NativeHeaderScrollViewProps,
+} from "./NativeHeaderScrollView";
 import { ContentHeader } from "./ContentHeader";
 
 export type HeaderContentScreenProps = PropsWithChildren<
@@ -15,6 +18,7 @@ export type HeaderContentScreenProps = PropsWithChildren<
     footer?: ReactNode;
     /** Control vertical scrolling (passed to NativeHeaderScrollView). */
     scrollEnabled?: boolean;
+    contentInsetAdjustmentBehavior?: NativeHeaderScrollViewProps["contentInsetAdjustmentBehavior"];
   }
 >;
 
@@ -24,11 +28,15 @@ export function HeaderContentScreen({
   children,
   footer,
   scrollEnabled,
+  contentInsetAdjustmentBehavior,
   ...headerLayoutProps
 }: HeaderContentScreenProps) {
   return (
     <HeaderLayout {...headerLayoutProps} footer={footer}>
-      <NativeHeaderScrollView scrollEnabled={scrollEnabled}>
+      <NativeHeaderScrollView
+        scrollEnabled={scrollEnabled}
+        contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
+      >
         <ContentHeader title={title} subtitle={subtitle} />
         {children}
       </NativeHeaderScrollView>

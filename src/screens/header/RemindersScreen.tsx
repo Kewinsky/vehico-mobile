@@ -216,6 +216,7 @@ export function RemindersScreen({ route, navigation }: Props) {
       actions={headerActions}
     >
       <CustomFlatList<Reminder>
+        contentInsetAdjustmentBehavior="automatic"
         data={filteredRemindersList}
         listHeaderComponent={
           <>

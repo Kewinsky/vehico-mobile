@@ -308,6 +308,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     >
       <View style={{ flex: 1 }}>
         <CustomFlatList<(typeof timelineRows)[number]>
+          contentInsetAdjustmentBehavior="automatic"
           data={timelineRows}
           listHeaderComponent={
             <>

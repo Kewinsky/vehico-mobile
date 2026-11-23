@@ -207,6 +207,7 @@ export function WorkshopsScreen({ navigation }: Props) {
       right={headerRight}
     >
       <CustomFlatList<Workshop>
+        contentInsetAdjustmentBehavior="automatic"
         data={filtered}
         listHeaderComponent={
           <>

@@ -409,14 +409,14 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         progress={progress}
         actions={[
           {
-            onPress: () => handleEditAttachmentName(item),
-            color: theme.colors.accent,
-            icon: <SquarePen size={20} color="#000000" />,
-          },
-          {
             onPress: () => confirmDeleteAttachment(item),
             color: theme.colors.danger,
             icon: <Trash2 size={20} color="#000000" />,
+          },
+          {
+            onPress: () => handleEditAttachmentName(item),
+            color: theme.colors.accent,
+            icon: <SquarePen size={20} color="#000000" />,
           },
         ]}
       />
@@ -433,16 +433,16 @@ export function ServiceEntryFormScreen({ navigation, route }: Props) {
         progress={progress}
         actions={[
           {
-            onPress: () => handleEditPendingFileName(index, item.fileName),
-            color: theme.colors.accent,
-            icon: <SquarePen size={20} color="#000000" />,
-          },
-          {
             onPress: () => {
               setPendingFiles((prev) => prev.filter((_, i) => i !== index));
             },
             color: theme.colors.danger,
             icon: <Trash2 size={20} color="#000000" />,
+          },
+          {
+            onPress: () => handleEditPendingFileName(index, item.fileName),
+            color: theme.colors.accent,
+            icon: <SquarePen size={20} color="#000000" />,
           },
         ]}
       />

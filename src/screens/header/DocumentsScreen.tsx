@@ -329,14 +329,14 @@ export function DocumentsScreen({ route, navigation }: Props) {
         progress={progress}
         actions={[
           {
-            onPress: () => void editDocumentDescription(item),
-            color: theme.colors.accent,
-            icon: <SquarePen size={22} color="#000000" />,
-          },
-          {
             onPress: () => confirmDeleteVehicleDoc(item),
             color: theme.colors.danger,
             icon: <Trash2 size={22} color="#000000" />,
+          },
+          {
+            onPress: () => void editDocumentDescription(item),
+            color: theme.colors.accent,
+            icon: <SquarePen size={22} color="#000000" />,
           },
         ]}
       />
@@ -363,6 +363,7 @@ export function DocumentsScreen({ route, navigation }: Props) {
 
   return (
     <HeaderContentScreen
+      contentInsetAdjustmentBehavior="automatic"
       loading={loading}
       onBack={() => navigation.goBack()}
       right={headerRight}

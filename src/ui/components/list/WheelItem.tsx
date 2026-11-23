@@ -178,6 +178,15 @@ export function WheelItem({
   if (!onToggleInUse && !onDelete) return baseContent;
 
   const swipeActions = [
+    ...(onDelete
+      ? [
+          {
+            onPress: onDelete,
+            color: theme.colors.danger,
+            icon: <Trash2 size={20} color="#000000" />,
+          },
+        ]
+      : []),
     ...(onToggleInUse
       ? [
           {
@@ -193,15 +202,6 @@ export function WheelItem({
             ) : (
               <Ionicons name="checkmark" size={24} color="#000000" />
             ),
-          },
-        ]
-      : []),
-    ...(onDelete
-      ? [
-          {
-            onPress: onDelete,
-            color: theme.colors.danger,
-            icon: <Trash2 size={20} color="#000000" />,
           },
         ]
       : []),

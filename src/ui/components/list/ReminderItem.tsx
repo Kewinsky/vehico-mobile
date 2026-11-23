@@ -170,6 +170,15 @@ export function ReminderItem({
   if (!onToggleDone && !onDelete) return baseContent;
 
   const swipeActions = [
+    ...(onDelete
+      ? [
+          {
+            onPress: onDelete,
+            color: theme.colors.danger,
+            icon: <Trash2 size={20} color="#000000" />,
+          },
+        ]
+      : []),
     ...(onToggleDone
       ? [
           {
@@ -180,15 +189,6 @@ export function ReminderItem({
             ) : (
               <Ionicons name="checkmark" size={24} color="#000000" />
             ),
-          },
-        ]
-      : []),
-    ...(onDelete
-      ? [
-          {
-            onPress: onDelete,
-            color: theme.colors.danger,
-            icon: <Trash2 size={20} color="#000000" />,
           },
         ]
       : []),

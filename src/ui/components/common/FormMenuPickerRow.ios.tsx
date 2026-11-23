@@ -1,12 +1,22 @@
 import { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useTranslation } from "react-i18next";
+import { Host, Picker, Text as SwiftUIText } from "@expo/ui/swift-ui";
+import {
+  accessibilityLabel,
+  buttonStyle,
+  disabled as disabledModifier,
+  frame,
+  labelsHidden,
+  pickerStyle,
+  tag,
+  tint,
+} from "@expo/ui/swift-ui/modifiers";
 
 import { useTheme } from "../../ThemeProvider";
 import { CardRow } from "./Card";
 import type { FormMenuPickerRowProps } from "./FormMenuPickerRow.types";
-import { openOptionAlert } from "./openOptionAlert";
+import type { AppTheme } from "../../theme";
 
 export type { FormMenuPickerRowProps } from "./FormMenuPickerRow.types";
 
@@ -22,11 +32,9 @@ export function FormMenuPickerRow({
   disabled = false,
   rowStyle,
 }: FormMenuPickerRowProps) {
-  const { t } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const valueColor = isValueMuted ? theme.colors.muted : theme.colors.fg;
-  const displayValue = options[selectedIndex] ?? "";
 
   return (
     <View
@@ -50,39 +58,40 @@ export function FormMenuPickerRow({
               {label}
             </Text>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`${label}: ${displayValue}`}
-            disabled={disabled}
-            onPress={() =>
-              openOptionAlert({
-                title: label,
-                options,
-                selectedIndex,
-                onSelect: onOptionSelected,
-                cancelLabel: t("common.cancel"),
-              })
-            }
-            style={({ pressed }) => [
-              styles.valueWrap,
-              pressed && styles.pressed,
-            ]}
+          <Host
+            matchContents={{ vertical: true }}
+            colorScheme={mode}
+            alignment="trailing"
+            style={styles.valueWrap}
           >
-            <Text
-              style={[styles.valueText, { color: valueColor }]}
-              numberOfLines={1}
+            <Picker
+              label={label}
+              selection={selectedIndex}
+              onSelectionChange={onOptionSelected}
+              modifiers={[
+                pickerStyle("menu"),
+                labelsHidden(),
+                buttonStyle("glass"),
+                tint(valueColor),
+                disabledModifier(disabled || options.length === 0),
+                accessibilityLabel(label),
+                frame({ minHeight: 44 }),
+              ]}
             >
-              {displayValue}
-            </Text>
-            <Ionicons name="chevron-down" size={16} color={valueColor} />
-          </Pressable>
+              {options.map((option, index) => (
+                <SwiftUIText key={index} modifiers={[tag(index)]}>
+                  {option}
+                </SwiftUIText>
+              ))}
+            </Picker>
+          </Host>
         </View>
       </CardRow>
     </View>
   );
 }
 
-const makeStyles = (theme: any) =>
+const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     disabled: {
       opacity: 0.55,
@@ -112,19 +121,7 @@ const makeStyles = (theme: any) =>
     valueWrap: {
       flex: 1,
       minWidth: 0,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      gap: theme.spacing.xs,
+      minHeight: 44,
       paddingHorizontal: theme.spacing.md,
-    },
-    valueText: {
-      flexShrink: 1,
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-      textAlign: "right",
-    },
-    pressed: {
-      opacity: 0.7,
     },
   });

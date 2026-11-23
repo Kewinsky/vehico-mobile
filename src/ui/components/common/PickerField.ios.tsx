@@ -1,22 +1,21 @@
 import { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useTranslation } from "react-i18next";
+import { StyleSheet, Text, View } from "react-native";
+import { Host, Picker, Text as SwiftUIText } from "@expo/ui/swift-ui";
+import {
+  accessibilityLabel,
+  buttonStyle,
+  disabled as disabledModifier,
+  frame,
+  labelsHidden,
+  pickerStyle,
+  tag,
+  tint,
+} from "@expo/ui/swift-ui/modifiers";
 
 import { useTheme } from "../../ThemeProvider";
 import { buildMenuPickerState } from "./menuPickerState";
-import { openOptionAlert } from "./openOptionAlert";
-
-type Props<T extends string> = {
-  label: string;
-  value: T | null;
-  options: readonly T[];
-  getLabel: (value: T) => string;
-  onChange: (value: T | null) => void;
-  disabled?: boolean;
-  noMarginTop?: boolean;
-  placeholder?: string;
-};
+import type { AppTheme } from "../../theme";
+import type { PickerFieldProps } from "./PickerField.types";
 
 export function PickerField<T extends string>({
   label,
@@ -27,9 +26,8 @@ export function PickerField<T extends string>({
   disabled,
   noMarginTop,
   placeholder,
-}: Props<T>) {
-  const { t } = useTranslation();
-  const { theme } = useTheme();
+}: PickerFieldProps<T>) {
+  const { theme, mode } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const { pickerOptions, selectedIndex, isValueMuted, handleSelectIndex } =
@@ -53,38 +51,38 @@ export function PickerField<T extends string>({
       pointerEvents={disabled ? "none" : "auto"}
     >
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={label ? `${label}: ${displayValue}` : displayValue}
-        disabled={disabled}
-        onPress={() =>
-          openOptionAlert({
-            title: label,
-            options: pickerOptions,
-            selectedIndex,
-            onSelect: (index) => onChange(handleSelectIndex(index)),
-            cancelLabel: t("common.cancel"),
-          })
-        }
-        style={({ pressed }) => [
-          styles.wrap,
-          disabled && styles.disabled,
-          pressed && styles.pressed,
-        ]}
+      <Host
+        matchContents={{ vertical: true }}
+        colorScheme={mode}
+        alignment="trailing"
+        style={[styles.wrap, disabled && styles.disabled]}
       >
-        <Text
-          style={[styles.valueText, { color: valueColor }]}
-          numberOfLines={1}
+        <Picker
+          label={label || displayValue}
+          selection={selectedIndex}
+          onSelectionChange={(index) => onChange(handleSelectIndex(index))}
+          modifiers={[
+            pickerStyle("menu"),
+            labelsHidden(),
+            buttonStyle("glass"),
+            tint(valueColor),
+            disabledModifier(disabled || pickerOptions.length === 0),
+            accessibilityLabel(label || displayValue),
+            frame({ minHeight: 44 }),
+          ]}
         >
-          {displayValue}
-        </Text>
-        <Ionicons name="chevron-down" size={16} color={valueColor} />
-      </Pressable>
+          {pickerOptions.map((option, index) => (
+            <SwiftUIText key={index} modifiers={[tag(index)]}>
+              {option}
+            </SwiftUIText>
+          ))}
+        </Picker>
+      </Host>
     </View>
   );
 }
 
-const makeStyles = (theme: any) =>
+const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     field: {
       marginTop: theme.spacing.sm,
@@ -101,24 +99,10 @@ const makeStyles = (theme: any) =>
     wrap: {
       borderRadius: theme.radius.xl,
       backgroundColor: theme.colors.card,
-      paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
       minHeight: 48,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      gap: theme.spacing.xs,
-    },
-    valueText: {
-      flexShrink: 1,
-      fontSize: theme.typography.body,
-      fontWeight: theme.typography.fontWeight.bold,
-      textAlign: "right",
     },
     disabled: {
       opacity: 0.55,
-    },
-    pressed: {
-      opacity: 0.7,
     },
   });
