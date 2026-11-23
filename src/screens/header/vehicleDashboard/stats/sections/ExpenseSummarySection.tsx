@@ -101,6 +101,7 @@ export function ExpenseSummarySection({
               <Fuel size={18} color={breakdownStyles.fuelColor} />
             </View>
             <ExpenseAmount
+              key={theme.colors.muted}
               amount={fuelSharePct}
               formatted={fmtPct(fuelSharePct)}
               textStyle={[
@@ -121,6 +122,7 @@ export function ExpenseSummarySection({
           </Text>
           <View style={styles.expenseSummaryBreakdownValueRow}>
             <ExpenseAmount
+              key={theme.colors.fg}
               amount={totals.fuelCost}
               formatted={fuelMain}
               textStyle={[
@@ -158,6 +160,7 @@ export function ExpenseSummarySection({
               <Wrench size={18} color={breakdownStyles.serviceColor} />
             </View>
             <ExpenseAmount
+              key={theme.colors.muted}
               amount={serviceSharePct}
               formatted={fmtPct(serviceSharePct)}
               textStyle={[
@@ -178,6 +181,7 @@ export function ExpenseSummarySection({
           </Text>
           <View style={styles.expenseSummaryBreakdownValueRow}>
             <ExpenseAmount
+              key={theme.colors.fg}
               amount={totals.serviceCost}
               formatted={serviceMain}
               textStyle={[

@@ -61,6 +61,7 @@ export function StatTile({
           {valueMainRollingValue != null ? (
             <View style={styles.tileRollingNumberWrap}>
               <AnimatedRollingNumber
+                key={theme.colors.fg}
                 value={valueMainRollingValue}
                 formattedText={valueMain}
                 spinningAnimationConfig={{ duration: 420 }}
@@ -136,6 +137,7 @@ export function StatTile({
         {valueMainRollingValue != null ? (
           <View style={styles.tileRollingNumberWrap}>
             <AnimatedRollingNumber
+              key={theme.colors.fg}
               value={valueMainRollingValue}
               formattedText={valueMain}
               spinningAnimationConfig={{ duration: 420 }}
