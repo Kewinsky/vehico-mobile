@@ -1,11 +1,10 @@
-import type { SharedValue } from "react-native-reanimated";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { Platform, Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { SquarePen, Trash2 } from "lucide-react-native";
-import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
-import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
+import { SwipeableListRow } from "../../ui/components/list/SwipeableListRow";
+import type { ListRowAction } from "../../ui/components/list/SwipeableListRow.types";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { MarketplacePost, Vehicle } from "../../types/domain";
@@ -145,40 +144,39 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
     });
   }
 
-  function renderRightActions(
-    item: MarketplacePost,
-    progress: SharedValue<number>,
-  ) {
-    return (
-      <SwipeActionsRow
-        progress={progress}
-        actions={[
-          {
-            onPress: () => confirmDeletePost(item),
-            color: theme.colors.danger,
-            icon: <Trash2 size={22} color="#000000" />,
-          },
-          {
-            onPress: () => handleEditTitle(item),
-            color: theme.colors.accent,
-            icon: <SquarePen size={22} color="#000000" />,
-          },
-        ]}
-      />
-    );
+  function getActions(item: MarketplacePost): ListRowAction[] {
+    return [
+      {
+        onPress: () => confirmDeletePost(item),
+        systemImage: "trash",
+        accessibilityLabel: t("common.delete"),
+        color: theme.colors.danger,
+        icon: <Trash2 size={22} color="#000000" />,
+      },
+      {
+        onPress: () => handleEditTitle(item),
+        systemImage: "square.and.pencil",
+        accessibilityLabel: t("common.edit"),
+        color: theme.colors.accent,
+        icon: <SquarePen size={22} color="#000000" />,
+      },
+    ];
   }
 
   return (
     <HeaderLayout
+      title={t("marketplace.historyTitle")}
+      largeTitle={Platform.OS === "ios"}
       loading={loading}
       onBack={() => navigation.goBack()}
     >
       <View style={styles.listWrap}>
         <CustomFlatList
+          nativeRows
           data={posts}
-          listHeaderComponent={
+          listHeaderComponent={Platform.OS === "ios" ? null : (
             <ContentHeader title={t("marketplace.historyTitle")} />
-          }
+          )}
           keyExtractor={(item: MarketplacePost) => item.id}
           refreshing={refreshing}
           onRefresh={handleRefresh}
@@ -186,18 +184,13 @@ export function MarketplacePostHistoryScreen({ navigation, route }: Props) {
             <EmptyState body={t("marketplace.noSavedPosts")} />
           }
           renderItem={({ item }) => (
-            <ExclusiveSwipeable
-              renderRightActions={(progress) =>
-                renderRightActions(item, progress)
-              }
-              rightThreshold={32}
-            >
+            <SwipeableListRow actions={getActions(item)}>
               <ListRowWithActions
                 title={item.title || t("marketplace.defaultTitle")}
                 subtitle={`${t("marketplace.generatedOn")} ${formatShortDisplayDate(item.created_at, i18n.language)}`}
                 onPress={() => handlePostPress(item)}
               />
-            </ExclusiveSwipeable>
+            </SwipeableListRow>
           )}
           ItemSeparatorComponent={() => (
             <View style={{ height: theme.spacing.sm }} />

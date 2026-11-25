@@ -218,7 +218,6 @@ export function WorkshopsScreen({ navigation }: Props) {
     <HeaderLayout
       title={t("workshops.title")}
       largeTitle={Platform.OS === "ios"}
-      paddingHorizontal={Platform.OS !== "ios"}
       search={search}
       loading={loading}
       onBack={() => navigation.goBack()}

@@ -1,5 +1,4 @@
 import { nativeHeaderMenu } from "../../ui/components/layout/nativeHeaderItems";
-import type { SharedValue } from "react-native-reanimated";
 import { Platform, Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HeaderIconButton } from "../../ui/components/layout/HeaderIconButton";
@@ -7,12 +6,14 @@ import { useTranslation } from "react-i18next";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { useCallback, useMemo, useState } from "react";
-import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
-import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
+import { SwipeableListRow } from "../../ui/components/list/SwipeableListRow";
+import type { ListRowAction } from "../../ui/components/list/SwipeableListRow.types";
+import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
+import { ContentHeader } from "../../ui/components/layout/ContentHeader";
 import { Plus, SquarePen, Trash2 } from "lucide-react-native";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
-import { HeaderContentScreen } from "../../ui/components/layout/HeaderContentScreen";
+import { HeaderLayout } from "../../layouts";
 import { SearchBar } from "../../ui/components/common/SearchBar";
 import { SegmentTabs } from "../../ui/components/common/SegmentTabs";
 import { EmptyState } from "../../ui/components/common/EmptyState";
@@ -321,57 +322,67 @@ export function DocumentsScreen({ route, navigation }: Props) {
     );
   }
 
-  function renderDocumentRightActions(
-    item: VehicleDocument,
-    progress: SharedValue<number>,
-  ) {
-    return (
-      <SwipeActionsRow
-        progress={progress}
-        actions={[
-          {
-            onPress: () => confirmDeleteVehicleDoc(item),
-            color: theme.colors.danger,
-            icon: <Trash2 size={22} color="#000000" />,
-          },
-          {
-            onPress: () => void editDocumentDescription(item),
-            color: theme.colors.accent,
-            icon: <SquarePen size={22} color="#000000" />,
-          },
-        ]}
-      />
-    );
+  function getDocumentActions(item: VehicleDocument): ListRowAction[] {
+    return [
+      {
+        onPress: () => confirmDeleteVehicleDoc(item),
+        color: theme.colors.danger,
+        icon: <Trash2 size={22} color="#000000" />,
+        systemImage: "trash",
+        accessibilityLabel: t("common.delete"),
+      },
+      {
+        onPress: () => void editDocumentDescription(item),
+        color: theme.colors.accent,
+        icon: <SquarePen size={22} color="#000000" />,
+        systemImage: "square.and.pencil",
+        accessibilityLabel: t("common.edit"),
+      },
+    ];
   }
 
-  function renderAttachmentRightActions(
-    item: Attachment,
-    progress: SharedValue<number>,
-  ) {
-    return (
-      <SwipeActionsRow
-        progress={progress}
-        actions={[
-          {
-            onPress: () => confirmDeleteAttachment(item),
-            color: theme.colors.danger,
-            icon: <Trash2 size={22} color="#000000" />,
-          },
-        ]}
-      />
-    );
+  function getAttachmentActions(item: Attachment): ListRowAction[] {
+    return [{
+      onPress: () => confirmDeleteAttachment(item),
+      color: theme.colors.danger,
+      icon: <Trash2 size={22} color="#000000" />,
+      systemImage: "trash",
+      accessibilityLabel: t("common.delete"),
+    }];
   }
+
+  function getSubtitle(item: VehicleDocument | Attachment) {
+    const fileName = getFileNameFromItem(item);
+    const ext = fileName.split(".").pop()?.toUpperCase() || "FILE";
+    const formattedDate = new Date(item.created_at).toLocaleDateString(
+      i18n.language === "pl" ? "pl-PL" : "en-US",
+      { day: "2-digit", month: "2-digit", year: "numeric" },
+    );
+    return `${t("documents.added")} ${formattedDate} · ${ext}`;
+  }
+
+  const normalizedQuery = query.trim().toLowerCase();
+  type DocumentRow =
+    | { kind: "document"; item: VehicleDocument }
+    | { kind: "attachment"; item: VehicleAttachment };
+  const rows: DocumentRow[] = activeTab === "documents"
+    ? vehicleDocs
+      .filter((item) => (item.description ?? "").toLowerCase().includes(normalizedQuery))
+      .map((item) => ({ kind: "document", item }))
+    : attachments
+      .filter((item) => (item.serviceEntryTitle ?? "").toLowerCase().includes(normalizedQuery))
+      .map((item) => ({ kind: "attachment", item }));
 
   const search = {
     value: query,
     onChangeText: setQuery,
     placeholder: t("common.search"),
+    placement: "automatic" as const,
   };
 
   return (
-    <HeaderContentScreen
+    <HeaderLayout
       search={search}
-      contentInsetAdjustmentBehavior="automatic"
       loading={loading}
       onBack={() => navigation.goBack()}
       right={headerRight}
@@ -379,117 +390,62 @@ export function DocumentsScreen({ route, navigation }: Props) {
         nativeHeaderMenu(t("common.add"), "plus", documentsAddMenuItems),
       ]}
       title={t("dashboard.tiles.docsTitle")}
+      largeTitle={Platform.OS === "ios"}
     >
-      {Platform.OS !== "ios" ? <SearchBar {...search} /> : null}
-      <View style={styles.tabsWrap}>
-        <SegmentTabs<"documents" | "attachments">
-          value={activeTab}
-          options={[
-            { value: "documents", label: t("documents.vehicleDocuments") },
-            {
-              value: "attachments",
-              label: t("documents.serviceAttachments"),
-            },
-          ]}
-          onChange={setActiveTab}
-          variant="secondary"
-        />
-      </View>
-
-      {activeTab === "documents" ? (
-        <>
-          {vehicleDocs
-            .filter((d) => {
-              const q = query.trim().toLowerCase();
-              if (!q.length) return true;
-              const description = d.description || "";
-              return description.toLowerCase().includes(q);
-            })
-            .map((item) => (
-              <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
-                <ExclusiveSwipeable
-                  renderRightActions={(progress) =>
-                    renderDocumentRightActions(item, progress)
-                  }
-                  rightThreshold={32}
-                >
-                  <ListRowWithActions
-                    title={item.description || t("documents.documentLabel")}
-                    subtitle={(() => {
-                      const fileName = getFileNameFromItem(item);
-                      const ext =
-                        fileName.split(".").pop()?.toUpperCase() || "FILE";
-                      const date = new Date(item.created_at);
-                      const formattedDate = date.toLocaleDateString(
-                        i18n.language === "pl" ? "pl-PL" : "en-US",
-                        { day: "2-digit", month: "2-digit", year: "numeric" },
-                      );
-                      return `${t("documents.added")} ${formattedDate} · ${ext}`;
-                    })()}
-                    onPress={() => void openVehicleDocument(item)}
-                  />
-                </ExclusiveSwipeable>
-              </View>
-            ))}
-          {vehicleDocs.filter((d) => {
-            const q = query.trim().toLowerCase();
-            if (!q.length) return true;
-            const description = d.description || "";
-            return description.toLowerCase().includes(q);
-          }).length === 0 ? (
-            <EmptyState body={t("documents.noVehicleDocuments")} />
-          ) : null}
-        </>
-      ) : (
-        <>
-          {attachments
-            .filter((a) => {
-              const q = query.trim().toLowerCase();
-              if (!q.length) return true;
-              const title = a.serviceEntryTitle || "";
-              return title.toLowerCase().includes(q);
-            })
-            .map((item) => (
-              <View key={item.id} style={{ marginBottom: theme.spacing.sm }}>
-                <ExclusiveSwipeable
-                  renderRightActions={(progress) =>
-                    renderAttachmentRightActions(item, progress)
-                  }
-                  rightThreshold={32}
-                >
-                  <ListRowWithActions
-                    title={
-                      item.serviceEntryTitle
-                        ? item.serviceEntryTitle
-                        : t("documents.attachmentLabel")
-                    }
-                    subtitle={(() => {
-                      const fileName = getFileNameFromItem(item);
-                      const ext =
-                        fileName.split(".").pop()?.toUpperCase() || "FILE";
-                      const date = new Date(item.created_at);
-                      const formattedDate = date.toLocaleDateString(
-                        i18n.language === "pl" ? "pl-PL" : "en-US",
-                        { day: "2-digit", month: "2-digit", year: "numeric" },
-                      );
-                      return `${t("documents.added")} ${formattedDate} · ${ext}`;
-                    })()}
-                    onPress={() => void openAttachment(item)}
-                  />
-                </ExclusiveSwipeable>
-              </View>
-            ))}
-          {attachments.filter((a) => {
-            const q = query.trim().toLowerCase();
-            if (!q.length) return true;
-            const title = a.serviceEntryTitle || "";
-            return title.toLowerCase().includes(q);
-          }).length === 0 ? (
-            <EmptyState body={t("documents.noAttachments")} />
-          ) : null}
-        </>
-      )}
-    </HeaderContentScreen>
+      <CustomFlatList
+        nativeRows
+        data={rows}
+        keyExtractor={(row) => `${row.kind}:${row.item.id}`}
+        listHeaderComponent={
+          <>
+            {Platform.OS !== "ios" ? (
+              <>
+                <ContentHeader title={t("dashboard.tiles.docsTitle")} />
+                <SearchBar {...search} />
+              </>
+            ) : null}
+            <View style={styles.tabsWrap}>
+              <SegmentTabs<"documents" | "attachments">
+                value={activeTab}
+                options={[
+                  { value: "documents", label: t("documents.vehicleDocuments") },
+                  { value: "attachments", label: t("documents.serviceAttachments") },
+                ]}
+                onChange={setActiveTab}
+                variant="secondary"
+              />
+            </View>
+          </>
+        }
+        renderItem={({ item: row }) => {
+          if (row.kind === "document") {
+            const item = row.item;
+            return (
+              <SwipeableListRow actions={getDocumentActions(item)}>
+                <ListRowWithActions
+                  title={item.description || t("documents.documentLabel")}
+                  subtitle={getSubtitle(item)}
+                  onPress={() => void openVehicleDocument(item)}
+                />
+              </SwipeableListRow>
+            );
+          }
+          const item = row.item;
+          return (
+            <SwipeableListRow actions={getAttachmentActions(item)}>
+              <ListRowWithActions
+                title={item.serviceEntryTitle || t("documents.attachmentLabel")}
+                subtitle={getSubtitle(item)}
+                onPress={() => void openAttachment(item)}
+              />
+            </SwipeableListRow>
+          );
+        }}
+        ListEmptyComponent={
+          <EmptyState body={t(activeTab === "documents" ? "documents.noVehicleDocuments" : "documents.noAttachments")} />
+        }
+      />
+    </HeaderLayout>
   );
 }
 

@@ -223,10 +223,13 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
     value: query,
     onChangeText: setQuery,
     placeholder: t("common.search"),
+    placement: "automatic" as const,
   };
 
   return (
     <HeaderLayout
+      title={t("documents.addAttachment")}
+      largeTitle={Platform.OS === "ios"}
       search={search}
       loading={loading}
       onBack={() => navigation.goBack()}
@@ -235,15 +238,15 @@ export function AddAttachmentScreen({ navigation, route }: Props) {
       <CustomFlatList<ServiceEntry>
         contentInsetAdjustmentBehavior="automatic"
         data={filteredItems}
-        listHeaderComponent={
+        listHeaderComponent={Platform.OS === "ios" ? null : (
           <>
             <ContentHeader title={t("documents.addAttachment")} />
-            {Platform.OS !== "ios" ? <SearchBar {...search} /> : null}
+            <SearchBar {...search} />
           </>
-        }
+        )}
         keyExtractor={(x) => x.id}
         refreshing={refreshing}
-        onRefresh={() => void load({ refreshing: true })}
+        onRefresh={() => load({ refreshing: true })}
         renderItem={({ item }) => (
           <Pressable
             disabled={savingAttachment}

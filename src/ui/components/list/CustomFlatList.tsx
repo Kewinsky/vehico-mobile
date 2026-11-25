@@ -6,49 +6,10 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { useTheme } from "../../ThemeProvider";
 import { MonthYearSeparator } from "./MonthYearSeparator";
 
-export type CustomFlatListRow<T> =
-  | { type: "separator"; monthYear: string; monthYearKey: string }
-  | { type: "item"; item: T };
+import type { CustomFlatListProps, CustomFlatListRow } from "./CustomFlatList.types";
+import { buildGrouped } from "./listGrouping";
 
-type CustomFlatListProps<T> = Omit<
-  FlatListProps<T>,
-  "data" | "renderItem" | "keyExtractor" | "ListHeaderComponent"
-> & {
-  data: T[];
-  renderItem: (info: { item: T }) => React.ReactElement | null;
-  keyExtractor: (item: T) => string;
-  /** Optional header above the list (e.g. when list is inside Screen with title/filter, leave undefined). */
-  listHeaderComponent?: React.ReactNode;
-  /** When true, inserts month/year separator rows and uses getMonthYearKey to group. */
-  groupByMonth?: boolean;
-  /** Required when groupByMonth is true. Return "" or "future" to skip separator for that item. */
-  getMonthYearKey?: (item: T) => string;
-};
-
-function buildGrouped<T>(
-  data: T[],
-  getMonthYearKey: (item: T) => string,
-): CustomFlatListRow<T>[] {
-  const grouped: CustomFlatListRow<T>[] = [];
-  let currentMonthYear: string | null = null;
-
-  for (const item of data) {
-    const key = getMonthYearKey(item);
-    const showSeparator = key && key !== "future" && key !== currentMonthYear;
-    if (showSeparator) {
-      currentMonthYear = key;
-      grouped.push({
-        type: "separator",
-        monthYear: key,
-        monthYearKey: key,
-      });
-    } else if (key && key !== "future") {
-      currentMonthYear = key;
-    }
-    grouped.push({ type: "item", item });
-  }
-  return grouped;
-}
+export type { CustomFlatListRow } from "./CustomFlatList.types";
 
 export function CustomFlatList<T>({
   data,
@@ -60,6 +21,7 @@ export function CustomFlatList<T>({
   contentContainerStyle,
   style,
   ListEmptyComponent,
+  nativeRows: _nativeRows,
   ...rest
 }: CustomFlatListProps<T>) {
   const { theme } = useTheme();

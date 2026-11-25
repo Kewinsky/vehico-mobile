@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Trash2, Undo2 } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
-import { SwipeActionsRow } from "../common/SwipeActions";
+import { SwipeableListRow } from "./SwipeableListRow";
+import type { ListRowAction } from "./SwipeableListRow.types";
 import { useTranslation } from "react-i18next";
 
 import { useUnitDisplay } from "../../../app/hooks/useUnitDisplay";
@@ -167,42 +167,39 @@ export function ReminderItem({
     content
   );
 
-  if (!onToggleDone && !onDelete) return baseContent;
-
-  const swipeActions = [
+  const swipeActions: ListRowAction[] = [
     ...(onDelete
       ? [
-          {
-            onPress: onDelete,
-            color: theme.colors.danger,
-            icon: <Trash2 size={20} color="#000000" />,
-          },
-        ]
+        {
+          onPress: onDelete,
+          systemImage: "trash",
+          accessibilityLabel: t("common.delete"),
+          color: theme.colors.danger,
+          icon: <Trash2 size={20} color="#000000" />,
+        } satisfies ListRowAction,
+      ]
       : []),
     ...(onToggleDone
       ? [
-          {
-            onPress: onToggleDone,
-            color: done ? theme.colors.muted : theme.colors.accent,
-            icon: done ? (
-              <Undo2 size={22} color="#000000" />
-            ) : (
-              <Ionicons name="checkmark" size={24} color="#000000" />
-            ),
-          },
-        ]
+        {
+          onPress: onToggleDone,
+          systemImage: done ? "arrow.uturn.backward" : "checkmark",
+          accessibilityLabel: t(done ? "reminderDetail.markActive" : "reminderDetail.markDone"),
+          color: done ? theme.colors.muted : theme.colors.accent,
+          icon: done ? (
+            <Undo2 size={22} color="#000000" />
+          ) : (
+            <Ionicons name="checkmark" size={24} color="#000000" />
+          ),
+        } satisfies ListRowAction,
+      ]
       : []),
   ];
 
   return (
-    <ExclusiveSwipeable
-      rightThreshold={32}
-      renderRightActions={(progress) => (
-        <SwipeActionsRow progress={progress} actions={swipeActions} />
-      )}
-    >
+    <SwipeableListRow actions={swipeActions}>
       {baseContent}
-    </ExclusiveSwipeable>
+    </SwipeableListRow>
   );
 }
 

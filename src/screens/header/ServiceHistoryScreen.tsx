@@ -304,10 +304,13 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     value: query,
     onChangeText: setQuery,
     placeholder: t("common.search"),
+    placement: "automatic" as const,
   };
 
   return (
     <HeaderLayout
+      title={t("dashboard.tiles.serviceTitle")}
+      largeTitle={Platform.OS === "ios"}
       search={search}
       loading={loading}
       onBack={() => navigation.goBack()}
@@ -315,11 +318,12 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
     >
       <View style={{ flex: 1 }}>
         <CustomFlatList<(typeof timelineRows)[number]>
+          nativeRows
           contentInsetAdjustmentBehavior="automatic"
           data={timelineRows}
-          listHeaderComponent={
+          listHeaderComponent={Platform.OS === "ios" && pendingCount === 0 ? null : (
             <>
-              <ContentHeader title={t("dashboard.tiles.serviceTitle")} />
+              {Platform.OS !== "ios" ? <ContentHeader title={t("dashboard.tiles.serviceTitle")} /> : null}
               {pendingCount > 0 ? (
                 <DashboardCalloutCard
                   accentColor={theme.colors.accent}
@@ -347,7 +351,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
               ) : null}
               {Platform.OS !== "ios" ? <SearchBar {...search} /> : null}
             </>
-          }
+          )}
           groupByMonth={sortByDate}
           getMonthYearKey={getMonthYearKey}
           keyExtractor={(e) => `${e.kind}:${e.id}`}
@@ -357,14 +361,14 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
             const badge =
               e.source === "workshop"
                 ? t("serviceHistory.workshopBadge", {
-                    name:
-                      e.submitted_workshop_name ||
-                      (e.workshop_id
-                        ? workshopsById[e.workshop_id]?.name
-                        : null) ||
-                      e.workshop_snapshot ||
-                      "",
-                  })
+                  name:
+                    e.submitted_workshop_name ||
+                    (e.workshop_id
+                      ? workshopsById[e.workshop_id]?.name
+                      : null) ||
+                    e.workshop_snapshot ||
+                    "",
+                })
                 : null;
             return (
               <ServiceItem
@@ -390,7 +394,7 @@ export function ServiceHistoryScreen({ navigation, route }: Props) {
             <EmptyState body={t("timeline.noServiceEntries")} />
           }
           refreshing={refreshing}
-          onRefresh={() => void load({ refreshing: true })}
+          onRefresh={() => load({ refreshing: true })}
         />
       </View>
     </HeaderLayout>

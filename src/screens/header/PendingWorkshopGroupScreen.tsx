@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
+  Platform,
   Linking,
   Pressable,
   StyleSheet,
@@ -10,7 +11,6 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { Phone } from "lucide-react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { ServiceEntry, ServiceEntryCategory } from "../../types/domain";
@@ -23,9 +23,8 @@ import { workshopGroupKey } from "../../services/workshopIntake/pendingWorkshopG
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
-import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
+import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import { Button } from "../../ui/components/common/Button";
-import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { ServiceItem } from "../../ui/components/list/ServiceItem";
 import { ServiceCategoryIcon } from "../../ui/components/service/ServiceCategoryIcon";
@@ -39,7 +38,6 @@ type Props = NativeStackScreenProps<AppStackParamList, "PendingWorkshopGroup">;
 export function PendingWorkshopGroupScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId, workshopKey, workshopName } = route.params;
 
@@ -205,67 +203,67 @@ export function PendingWorkshopGroupScreen({ navigation, route }: Props) {
 
   return (
     <HeaderLayout
+      title={workshopName}
+      largeTitle={Platform.OS === "ios"}
       loading={loading}
       onBack={() => navigation.goBack()}
       footer={!loading && items.length > 0 ? footer : undefined}
     >
-      <NativeHeaderScrollView
-        contentContainerStyle={{
-          paddingBottom: insets.bottom + theme.spacing.xl,
+      <CustomFlatList
+        data={items}
+        keyExtractor={(entry) => entry.id}
+        listHeaderComponent={
+          <>
+            {Platform.OS === "ios" ? (
+              <Text style={{ color: theme.colors.muted, marginBottom: theme.spacing.md }}>
+                {t("pendingWorkshop.groupSubtitle")}
+              </Text>
+            ) : (
+              <ContentHeader
+                title={workshopName}
+                subtitle={t("pendingWorkshop.groupSubtitle")}
+              />
+            )}
+            {workshopPhone ? (
+              <Pressable
+                onPress={() => handleCallWorkshop(workshopPhone)}
+                accessibilityRole="button"
+                style={styles.phoneRow}
+              >
+                <Phone size={16} color={theme.colors.accent} />
+                <Text style={styles.phoneText}>{workshopPhone}</Text>
+              </Pressable>
+            ) : null}
+          </>
+        }
+        ListEmptyComponent={<EmptyState body={t("pendingWorkshop.empty")} />}
+        renderItem={({ item: entry }) => {
+          const cat = (entry.category ?? "other") as ServiceEntryCategory;
+          const selected = selectedIds.has(entry.id);
+          return (
+            <View
+              style={[
+                styles.itemWrap,
+                {
+                  borderColor: selected
+                    ? theme.colors.accent
+                    : "transparent",
+                },
+              ]}
+            >
+              <ServiceItem
+                title={entry.title}
+                date={entry.service_date}
+                mileage={entry.mileage}
+                hideCost
+                icon={<ServiceCategoryIcon category={cat} />}
+                iconBackgroundColor={SERVICE_CATEGORY_ICON_BACKGROUND[cat]}
+                onPress={() => toggleSelected(entry.id)}
+              />
+            </View>
+          );
         }}
-      >
-        <ContentHeader
-          title={workshopName}
-          subtitle={t("pendingWorkshop.groupSubtitle")}
-        />
-
-        {workshopPhone ? (
-          <Pressable
-            onPress={() => handleCallWorkshop(workshopPhone)}
-            accessibilityRole="button"
-            style={styles.phoneRow}
-          >
-            <Phone size={16} color={theme.colors.accent} />
-            <Text style={styles.phoneText}>{workshopPhone}</Text>
-          </Pressable>
-        ) : null}
-
-        {loading ? (
-          <LoadingIndicator />
-        ) : items.length === 0 ? (
-          <EmptyState body={t("pendingWorkshop.empty")} />
-        ) : (
-          <View style={styles.list}>
-            {items.map((entry) => {
-              const cat = (entry.category ?? "other") as ServiceEntryCategory;
-              const selected = selectedIds.has(entry.id);
-              return (
-                <View
-                  key={entry.id}
-                  style={[
-                    styles.itemWrap,
-                    {
-                      borderColor: selected
-                        ? theme.colors.accent
-                        : "transparent",
-                    },
-                  ]}
-                >
-                  <ServiceItem
-                    title={entry.title}
-                    date={entry.service_date}
-                    mileage={entry.mileage}
-                    hideCost
-                    icon={<ServiceCategoryIcon category={cat} />}
-                    iconBackgroundColor={SERVICE_CATEGORY_ICON_BACKGROUND[cat]}
-                    onPress={() => toggleSelected(entry.id)}
-                  />
-                </View>
-              );
-            })}
-          </View>
-        )}
-      </NativeHeaderScrollView>
+      />
     </HeaderLayout>
   );
 }

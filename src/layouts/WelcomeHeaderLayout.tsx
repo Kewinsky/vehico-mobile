@@ -18,6 +18,7 @@ import { useAuth } from "../app/providers/AuthProvider";
 
 export type WelcomeHeaderLayoutProps = PropsWithChildren<{
   title: string;
+  largeTitle?: boolean;
   showProfileAvatar?: boolean;
   showShopIcon?: boolean;
   right?: ReactNode;
@@ -31,6 +32,7 @@ export type WelcomeHeaderLayoutProps = PropsWithChildren<{
 export function WelcomeHeaderLayout({
   children,
   title,
+  largeTitle = false,
   showProfileAvatar = false,
   showShopIcon = false,
   right,
@@ -109,7 +111,7 @@ export function WelcomeHeaderLayout({
       nativeItems.push({ type: "custom", element: <>{right}</> });
     }
     navigation.setOptions({
-      headerTitle: () => (
+      headerTitle: Platform.OS === "ios" && largeTitle ? title : () => (
         <View
           style={{
             flex: 1,
@@ -130,6 +132,8 @@ export function WelcomeHeaderLayout({
         </View>
       ),
       headerTitleAlign: "left",
+      headerLargeTitleEnabled: Platform.OS === "ios" && largeTitle,
+      headerLargeTitleStyle: { color: theme.colors.fg },
       headerBackVisible: false,
       headerTransparent: true,
       headerRight: rightContent ? () => rightContent : undefined,
@@ -148,6 +152,7 @@ export function WelcomeHeaderLayout({
   }, [
     navigation,
     title,
+    largeTitle,
     rightContent,
     theme.colors.bg,
     theme.colors.fg,
