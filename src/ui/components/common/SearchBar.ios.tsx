@@ -10,7 +10,12 @@ import type { SearchBarProps } from "./SearchBar.types";
 
 export type { SearchBarProps } from "./SearchBar.types";
 
-export function SearchBar({ value, onChangeText, placeholder }: SearchBarProps) {
+export function SearchBar({
+  value,
+  onChangeText,
+  placeholder,
+  placement = "stacked",
+}: SearchBarProps) {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -30,8 +35,8 @@ export function SearchBar({ value, onChangeText, placeholder }: SearchBarProps) 
       headerSearchBarOptions: {
         ref: searchRef,
         placeholder: searchPlaceholder,
-        placement: "stacked",
-        allowToolbarIntegration: false,
+        placement,
+        allowToolbarIntegration: placement === "automatic",
         hideWhenScrolling: false,
         hideNavigationBar: false,
         obscureBackground: false,
@@ -49,6 +54,7 @@ export function SearchBar({ value, onChangeText, placeholder }: SearchBarProps) 
   }, [
     navigation,
     onChangeText,
+    placement,
     searchPlaceholder,
     syncText,
     theme.colors.accent,

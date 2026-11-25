@@ -36,7 +36,7 @@ export function HeaderLayout(props: HeaderLayoutProps) {
 
   useNativeHeaderAsAppNavbar({
     ...navbarProps,
-    title: undefined,
+    title: navbarProps.largeTitle ? navbarProps.title : undefined,
   });
 
   return (

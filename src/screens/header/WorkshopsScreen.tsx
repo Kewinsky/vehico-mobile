@@ -14,15 +14,12 @@ import {
 } from "../../services/workshops/workshopsRepo";
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts";
-import { ContentHeader } from "../../ui/components/layout/ContentHeader";
-import { SearchBar } from "../../ui/components/common/SearchBar";
+import type { SearchBarProps } from "../../ui/components/common/SearchBar.types";
 import {
   SourcePickerMenu,
   type SourcePickerMenuItem,
 } from "../../ui/components/common/SourcePickerMenu";
-import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
-import { EmptyState } from "../../ui/components/common/EmptyState";
-import { WorkshopItem } from "../../ui/components/list/WorkshopItem";
+import { WorkshopsList } from "../../ui/components/list/WorkshopsList";
 import { useTheme } from "../../ui/ThemeProvider";
 import { toastCaughtError } from "../../ui/toast/toast";
 import { useEntitlements } from "../../app/providers/EntitlementsProvider";
@@ -115,25 +112,34 @@ export function WorkshopsScreen({ navigation }: Props) {
     navigation.navigate("WorkshopForm", {});
   }, [isPremium, items.length, navigation, t, workshopsLimit]);
 
-  function confirmDelete(workshop: Workshop) {
-    Alert.alert(t("workshops.deleteTitle"), t("workshops.deleteBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("common.delete"),
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteWorkshop(workshop.id);
-            setItems((current) =>
-              current.filter((item) => item.id !== workshop.id),
-            );
-          } catch (error) {
-            toastCaughtError(error, t("common.error"));
-          }
+  const confirmDelete = useCallback(
+    (workshop: Workshop) => {
+      Alert.alert(t("workshops.deleteTitle"), t("workshops.deleteBody"), [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteWorkshop(workshop.id);
+              setItems((current) =>
+                current.filter((item) => item.id !== workshop.id),
+              );
+            } catch (error) {
+              toastCaughtError(error, t("common.error"));
+            }
+          },
         },
-      },
-    ]);
-  }
+      ]);
+    },
+    [t],
+  );
+
+  const openWorkshop = useCallback(
+    (workshop: Workshop) =>
+      navigation.navigate("WorkshopForm", { workshopId: workshop.id }),
+    [navigation],
+  );
 
   const filterMenuItems = useMemo(
     (): SourcePickerMenuItem[] => [
@@ -201,14 +207,18 @@ export function WorkshopsScreen({ navigation }: Props) {
     ],
   );
 
-  const search = {
+  const search: SearchBarProps = {
     value: query,
     onChangeText: setQuery,
     placeholder: t("common.search"),
+    placement: "automatic",
   };
 
   return (
     <HeaderLayout
+      title={t("workshops.title")}
+      largeTitle={Platform.OS === "ios"}
+      paddingHorizontal={Platform.OS !== "ios"}
       search={search}
       loading={loading}
       onBack={() => navigation.goBack()}
@@ -231,29 +241,11 @@ export function WorkshopsScreen({ navigation }: Props) {
         nativeHeaderButton(t("common.add"), "plus", onAddWorkshopPress),
       ]}
     >
-      <CustomFlatList<Workshop>
-        contentInsetAdjustmentBehavior="automatic"
-        data={filtered}
-        listHeaderComponent={
-          <>
-            <ContentHeader title={t("workshops.title")} />
-            {Platform.OS !== "ios" ? <SearchBar {...search} /> : null}
-          </>
-        }
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <WorkshopItem
-            workshop={item}
-            callLabel={t("workshops.call")}
-            navigateLabel={t("workshops.navigate")}
-            deleteLabel={t("common.delete")}
-            onDelete={() => confirmDelete(item)}
-            onPress={() =>
-              navigation.navigate("WorkshopForm", { workshopId: item.id })
-            }
-          />
-        )}
-        ListEmptyComponent={<EmptyState body={t("workshops.noWorkshops")} />}
+      <WorkshopsList
+        workshops={filtered}
+        search={search}
+        onPress={openWorkshop}
+        onDelete={confirmDelete}
       />
     </HeaderLayout>
   );

@@ -1,11 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Navigation, Phone, Trash2 } from "lucide-react-native";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
 import { SwipeActionsRow } from "../common/SwipeActions";
 
 import type { Workshop, WorkshopType } from "../../../types/domain";
+import {
+  callWorkshop,
+  navigateToWorkshop,
+} from "../../../services/workshops/workshopContactActions";
 import { useTheme } from "../../ThemeProvider";
+import { toastCaughtError } from "../../toast/toast";
 import type { AppTheme } from "../../theme";
 
 type WorkshopItemProps = {
@@ -66,46 +72,15 @@ export function WorkshopItem({
   onDelete,
 }: WorkshopItemProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = makeStyles(theme);
   const phoneTrimmed = workshop.phone_number?.trim() ?? "";
   const addressTrimmed = workshop.address?.trim() ?? "";
   const canCall = phoneTrimmed.length > 0;
   const canNavigate = addressTrimmed.length > 0;
 
-  async function placeCall() {
-    if (!canCall) return;
-    const telHref = `tel:${phoneTrimmed.replace(/[^\d+#*;,.]/g, "")}`;
-    try {
-      await Linking.openURL(telHref);
-      return;
-    } catch {
-      const canOpen = await Linking.canOpenURL(telHref);
-      if (canOpen) {
-        await Linking.openURL(telHref);
-      }
-    }
-  }
-
-  async function openNavigation() {
-    if (!canNavigate) return;
-    const encodedAddress = encodeURIComponent(addressTrimmed);
-    const nativeUrls = [
-      `comgooglemaps://?q=${encodedAddress}`,
-      `maps://?q=${encodedAddress}`,
-    ];
-    const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-
-    for (const url of nativeUrls) {
-      try {
-        await Linking.openURL(url);
-        return;
-      } catch {
-        // Try the next navigation handler.
-      }
-    }
-
-    await Linking.openURL(fallbackUrl);
-  }
+  const reportContactError = (error: unknown) =>
+    toastCaughtError(error, t("common.error"));
 
   const content = (
     <View style={styles.card}>
@@ -173,7 +148,8 @@ export function WorkshopItem({
     ...(canNavigate
       ? [
           {
-            onPress: () => void openNavigation(),
+            onPress: () =>
+              void navigateToWorkshop(addressTrimmed).catch(reportContactError),
             color: theme.colors.muted,
             icon: <Navigation size={20} color="#000000" />,
             accessibilityLabel: navigateLabel,
@@ -183,7 +159,8 @@ export function WorkshopItem({
     ...(canCall
       ? [
           {
-            onPress: () => void placeCall(),
+            onPress: () =>
+              void callWorkshop(phoneTrimmed).catch(reportContactError),
             color: theme.colors.accent,
             icon: <Phone size={20} color="#000000" />,
             accessibilityLabel: callLabel,
