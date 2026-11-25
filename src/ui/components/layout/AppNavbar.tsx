@@ -48,7 +48,6 @@ export type AppNavbarProps = {
   right?: ReactNode;
   nativeRightItems?: NativeStackHeaderItem[];
   title?: string;
-  largeTitle?: boolean;
   showProfileAvatar?: boolean;
   showShopIcon?: boolean;
   /** Common header actions (filter, add, etc.) rendered on the right side. */
@@ -63,7 +62,6 @@ export function useNativeHeaderAsAppNavbar({
   right,
   nativeRightItems,
   title,
-  largeTitle = false,
   showProfileAvatar,
   showShopIcon,
   actions,
@@ -198,8 +196,6 @@ export function useNativeHeaderAsAppNavbar({
 
       navigation.setOptions({
         headerTitle: title ?? "",
-        headerLargeTitleEnabled: largeTitle,
-        headerLargeTitleStyle: { color: theme.colors.fg },
         headerBackVisible: systemBack,
         headerBackButtonDisplayMode: "minimal",
         headerTintColor: theme.colors.accent,
@@ -320,7 +316,6 @@ export function useNativeHeaderAsAppNavbar({
     backIcon,
     right,
     title,
-    largeTitle,
     showProfileAvatar,
     showShopIcon,
     user,
