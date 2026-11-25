@@ -1,10 +1,11 @@
+import type { SharedValue } from "react-native-reanimated";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { Platform, Alert, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { SquarePen, Trash2 } from "lucide-react-native";
-import { SwipeableListRow } from "../../ui/components/list/SwipeableListRow";
-import type { ListRowAction } from "../../ui/components/list/SwipeableListRow.types";
+import { ExclusiveSwipeable } from "../../ui/components/common/ExclusiveSwipeable";
+import { SwipeActionsRow } from "../../ui/components/common/SwipeActions";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { PublicReportSnapshot, Vehicle } from "../../types/domain";
@@ -142,51 +143,54 @@ export function PublicReportHistoryScreen({ navigation, route }: Props) {
     }
   }
 
-  function getActions(item: PublicReportSnapshot): ListRowAction[] {
-    return [
-      {
-        onPress: () => confirmDeleteReport(item),
-        systemImage: "trash",
-        accessibilityLabel: t("common.delete"),
-        color: theme.colors.danger,
-        icon: <Trash2 size={22} color="#000000" />,
-      },
-      {
-        onPress: () => handleEditTitle(item),
-        systemImage: "square.and.pencil",
-        accessibilityLabel: t("common.edit"),
-        color: theme.colors.accent,
-        icon: <SquarePen size={22} color="#000000" />,
-      },
-    ];
+  function renderRightActions(
+    item: PublicReportSnapshot,
+    progress: SharedValue<number>,
+  ) {
+    return (
+      <SwipeActionsRow
+        progress={progress}
+        actions={[
+          {
+            onPress: () => confirmDeleteReport(item),
+            color: theme.colors.danger,
+            icon: <Trash2 size={22} color="#000000" />,
+          },
+          {
+            onPress: () => handleEditTitle(item),
+            color: theme.colors.accent,
+            icon: <SquarePen size={22} color="#000000" />,
+          },
+        ]}
+      />
+    );
   }
 
   return (
-    <HeaderLayout
-      title={t("share.historyTitle")}
-      largeTitle={Platform.OS === "ios"}
-      loading={loading}
-      onBack={() => navigation.goBack()}
-    >
+    <HeaderLayout loading={loading} onBack={() => navigation.goBack()}>
       <View style={styles.listWrap}>
         <CustomFlatList
-          nativeRows
           data={reports}
-          listHeaderComponent={Platform.OS === "ios" ? null : (
+          listHeaderComponent={
             <ContentHeader title={t("share.historyTitle")} />
-          )}
+          }
           keyExtractor={(item: PublicReportSnapshot) => item.id}
           refreshing={refreshing}
           onRefresh={handleRefresh}
           ListEmptyComponent={<EmptyState body={t("share.noReports")} />}
           renderItem={({ item }) => (
-            <SwipeableListRow actions={getActions(item)}>
+            <ExclusiveSwipeable
+              renderRightActions={(progress) =>
+                renderRightActions(item, progress)
+              }
+              rightThreshold={32}
+            >
               <ListRowWithActions
                 title={item.title || t("publicReport.defaultTitle")}
                 subtitle={`${t("share.generatedOn")} ${formatShortDisplayDate(item.created_at, i18n.language)}`}
                 onPress={() => handleReportPress(item)}
               />
-            </SwipeableListRow>
+            </ExclusiveSwipeable>
           )}
           ItemSeparatorComponent={() => (
             <View style={{ height: theme.spacing.sm }} />

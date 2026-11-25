@@ -18,7 +18,7 @@ import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { FuelItem } from "../../ui/components/list/FuelItem";
 import type { HeaderAction } from "../../ui/components/layout/AppNavbar";
-import { Platform, Alert } from "react-native";
+import { Alert } from "react-native";
 
 type Props = NativeStackScreenProps<AppStackParamList, "Fuel">;
 
@@ -195,20 +195,17 @@ export function FuelScreen({ route, navigation }: Props) {
 
   return (
     <HeaderLayout
-      title={t("dashboard.tiles.fuelTitle")}
-      largeTitle={Platform.OS === "ios"}
       loading={loading}
       onBack={() => navigation.goBack()}
       actions={headerActions}
     >
       <CustomFlatList<FuelingEntry>
-        nativeRows
         data={filteredFuelingList}
-        listHeaderComponent={Platform.OS === "ios" ? null : (
+        listHeaderComponent={
           <>
             <ContentHeader title={t("dashboard.tiles.fuelTitle")} />
           </>
-        )}
+        }
         groupByMonth
         getMonthYearKey={getMonthYearKey}
         keyExtractor={(item) => item.id}

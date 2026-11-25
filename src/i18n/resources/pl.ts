@@ -1250,8 +1250,6 @@ Szczegółowy raport: https://report.vehico.app/report/example`,
     },
   },
   wheels: {
-    markInUse: "Oznacz jako używane",
-    unmarkInUse: "Oznacz jako nieużywane",
     title: "Koła",
     currentlyFitted: "W użyciu",
     addTire: "Dodaj opony",

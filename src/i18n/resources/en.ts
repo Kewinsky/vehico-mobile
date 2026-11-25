@@ -1233,8 +1233,6 @@ Detailed report available at: https://report.vehico.app/report/example`,
     },
   },
   wheels: {
-    markInUse: "Mark as in use",
-    unmarkInUse: "Mark as not in use",
     title: "Wheels",
     currentlyFitted: "In use",
     addTire: "Add tires",

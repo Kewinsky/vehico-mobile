@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Trash2 } from "lucide-react-native";
-import { SwipeableListRow } from "./SwipeableListRow";
+import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
+import { SwipeActionsRow } from "../common/SwipeActions";
 import { useTranslation } from "react-i18next";
 
 import { useUnitDisplay } from "../../../app/hooks/useUnitDisplay";
@@ -69,7 +70,7 @@ export function FuelItem({
   onPress,
   onDelete,
 }: FuelItemProps) {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const { theme } = useTheme();
   const { unitGroup, consumptionUnitLine } = useUnitDisplay();
   const styles = makeStyles(theme);
@@ -138,18 +139,26 @@ export function FuelItem({
     content
   );
 
+  if (!onDelete) return baseContent;
+
   return (
-    <SwipeableListRow
-      actions={onDelete ? [{
-        onPress: onDelete,
-        systemImage: "trash",
-        accessibilityLabel: t("common.delete"),
-        color: theme.colors.danger,
-        icon: <Trash2 size={20} color="#000000" />,
-      }] : []}
+    <ExclusiveSwipeable
+      rightThreshold={32}
+      renderRightActions={(progress) => (
+        <SwipeActionsRow
+          progress={progress}
+          actions={[
+            {
+              onPress: onDelete,
+              color: theme.colors.danger,
+              icon: <Trash2 size={20} color="#000000" />,
+            },
+          ]}
+        />
+      )}
     >
       {baseContent}
-    </SwipeableListRow>
+    </ExclusiveSwipeable>
   );
 }
 

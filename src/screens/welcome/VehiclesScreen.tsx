@@ -216,13 +216,9 @@ function VehicleCardImage({
   isLocked = false,
 }: VehicleCardImageProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [availableWidth, setAvailableWidth] = useState(carouselWidth);
 
   return (
-    <View
-      style={{ flex: 1 }}
-      onLayout={(event) => setAvailableWidth(event.nativeEvent.layout.width)}
-    >
+    <>
       {isLocked && (
         <View
           style={{
@@ -260,7 +256,7 @@ function VehicleCardImage({
       )}
       <VehicleCarousel
         photoUrls={photoUrls}
-        width={availableWidth}
+        width={carouselWidth}
         height={220}
         theme={theme}
         onIndexChange={setActiveIndex}
@@ -288,7 +284,7 @@ function VehicleCardImage({
           />
         </View>
       )}
-    </View>
+    </>
   );
 }
 
@@ -591,7 +587,6 @@ export function VehiclesScreen({ navigation, route }: Props) {
 
   return (
     <WelcomeHeaderLayout
-      largeTitle
       title={headerTitle}
       showProfileAvatar
       showShopIcon={!isPremium || showPremiumEndingBanner || isTrial}
@@ -617,7 +612,7 @@ export function VehiclesScreen({ navigation, route }: Props) {
         data={sortedItems}
         keyExtractor={(v) => v.id}
         refreshing={refreshing}
-        onRefresh={() => load({ refreshing: true })}
+        onRefresh={() => void load({ refreshing: true })}
         nestedScrollEnabled={true}
         contentContainerStyle={listContentStyle}
         listHeaderComponent={

@@ -3,8 +3,8 @@ import { Trash2, Undo2, Weight } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
-import { SwipeableListRow } from "./SwipeableListRow";
-import type { ListRowAction } from "./SwipeableListRow.types";
+import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
+import { SwipeActionsRow } from "../common/SwipeActions";
 import { useTranslation } from "react-i18next";
 
 import type { VehicleWheel } from "../../../types/domain";
@@ -175,44 +175,48 @@ export function WheelItem({
     content
   );
 
-  const swipeActions: ListRowAction[] = [
+  if (!onToggleInUse && !onDelete) return baseContent;
+
+  const swipeActions = [
     ...(onDelete
       ? [
-        {
-          onPress: onDelete,
-          systemImage: "trash",
-          accessibilityLabel: t("common.delete"),
-          color: theme.colors.danger,
-          icon: <Trash2 size={20} color="#000000" />,
-        } satisfies ListRowAction,
-      ]
+          {
+            onPress: onDelete,
+            color: theme.colors.danger,
+            icon: <Trash2 size={20} color="#000000" />,
+          },
+        ]
       : []),
     ...(onToggleInUse
       ? [
-        {
-          onPress: () => {
-            swipeableRef.current?.close();
-            onToggleInUse();
+          {
+            onPress: () => {
+              swipeableRef.current?.close();
+              onToggleInUse();
+            },
+            color: wheel.is_currently_fitted
+              ? theme.colors.muted
+              : theme.colors.accent,
+            icon: wheel.is_currently_fitted ? (
+              <Undo2 size={22} color="#000000" />
+            ) : (
+              <Ionicons name="checkmark" size={24} color="#000000" />
+            ),
           },
-          systemImage: wheel.is_currently_fitted ? "arrow.uturn.backward" : "checkmark",
-          accessibilityLabel: t(wheel.is_currently_fitted ? "wheels.unmarkInUse" : "wheels.markInUse"),
-          color: wheel.is_currently_fitted
-            ? theme.colors.muted
-            : theme.colors.accent,
-          icon: wheel.is_currently_fitted ? (
-            <Undo2 size={22} color="#000000" />
-          ) : (
-            <Ionicons name="checkmark" size={24} color="#000000" />
-          ),
-        } satisfies ListRowAction,
-      ]
+        ]
       : []),
   ];
 
   return (
-    <SwipeableListRow actions={swipeActions} swipeableRef={swipeableRef}>
+    <ExclusiveSwipeable
+      ref={swipeableRef}
+      rightThreshold={32}
+      renderRightActions={(progress) => (
+        <SwipeActionsRow progress={progress} actions={swipeActions} />
+      )}
+    >
       {baseContent}
-    </SwipeableListRow>
+    </ExclusiveSwipeable>
   );
 }
 

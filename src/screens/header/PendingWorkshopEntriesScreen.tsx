@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { AppStackParamList } from "../../app/navigation/RootNavigator";
 import type { ServiceEntry } from "../../types/domain";
@@ -14,8 +15,9 @@ import {
 import { useScreenFocusReload } from "../../app/useScreenFocusReload";
 import { HeaderLayout } from "../../layouts/HeaderLayout";
 import { ContentHeader } from "../../ui/components/layout/ContentHeader";
-import { CustomFlatList } from "../../ui/components/list/CustomFlatList";
+import { NativeHeaderScrollView } from "../../ui/components/layout/NativeHeaderScrollView";
 import { Card } from "../../ui/components/common/Card";
+import { LoadingIndicator } from "../../ui/components/common/LoadingIndicator";
 import { EmptyState } from "../../ui/components/common/EmptyState";
 import { useTheme } from "../../ui/ThemeProvider";
 import type { AppTheme } from "../../ui/theme";
@@ -30,6 +32,7 @@ type Props = NativeStackScreenProps<
 export function PendingWorkshopEntriesScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { vehicleId } = route.params;
 
@@ -70,56 +73,54 @@ export function PendingWorkshopEntriesScreen({ navigation, route }: Props) {
   );
 
   return (
-    <HeaderLayout
-      title={t("pendingWorkshop.title")}
-      largeTitle={Platform.OS === "ios"}
-      loading={loading}
-      onBack={() => navigation.goBack()}
-    >
-      <CustomFlatList
-        data={groups}
-        keyExtractor={(group) => group.key}
-        listHeaderComponent={
-          Platform.OS === "ios" ? (
-            <Text style={{ color: theme.colors.muted, marginBottom: theme.spacing.md }}>
-              {t("pendingWorkshop.subtitle")}
-            </Text>
-          ) : (
-            <ContentHeader
-              title={t("pendingWorkshop.title")}
-              subtitle={t("pendingWorkshop.subtitle")}
-            />
-          )
-        }
-        ListEmptyComponent={<EmptyState body={t("pendingWorkshop.empty")} />}
-        renderItem={({ item: group }) => {
-          const submittedAt = latestSubmittedAt(group.entries);
-          return (
-            <Pressable
-              onPress={() => handleOpenGroup(group)}
-              accessibilityRole="button"
-            >
-              <Card withoutDividers style={styles.card}>
-                <View style={styles.row}>
-                  <View style={styles.textBlock}>
-                    <Text style={styles.name} numberOfLines={2}>
-                      {group.name}
-                    </Text>
-                    <Text style={styles.meta}>
-                      {t("pendingWorkshop.submittedAt", {
-                        date: formatShortDisplayDate(
-                          submittedAt,
-                          i18n.language,
-                        ),
-                      })}
-                    </Text>
-                  </View>
-                </View>
-              </Card>
-            </Pressable>
-          );
+    <HeaderLayout loading={loading} onBack={() => navigation.goBack()}>
+      <NativeHeaderScrollView
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + theme.spacing.xl,
         }}
-      />
+      >
+        <ContentHeader
+          title={t("pendingWorkshop.title")}
+          subtitle={t("pendingWorkshop.subtitle")}
+        />
+
+        {loading ? (
+          <LoadingIndicator />
+        ) : groups.length === 0 ? (
+          <EmptyState body={t("pendingWorkshop.empty")} />
+        ) : (
+          <View style={styles.list}>
+            {groups.map((group) => {
+              const submittedAt = latestSubmittedAt(group.entries);
+              return (
+                <Pressable
+                  key={group.key}
+                  onPress={() => handleOpenGroup(group)}
+                  accessibilityRole="button"
+                >
+                  <Card withoutDividers style={styles.card}>
+                    <View style={styles.row}>
+                      <View style={styles.textBlock}>
+                        <Text style={styles.name} numberOfLines={2}>
+                          {group.name}
+                        </Text>
+                        <Text style={styles.meta}>
+                          {t("pendingWorkshop.submittedAt", {
+                            date: formatShortDisplayDate(
+                              submittedAt,
+                              i18n.language,
+                            ),
+                          })}
+                        </Text>
+                      </View>
+                    </View>
+                  </Card>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+      </NativeHeaderScrollView>
     </HeaderLayout>
   );
 }

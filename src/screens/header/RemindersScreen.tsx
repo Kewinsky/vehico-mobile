@@ -213,25 +213,21 @@ export function RemindersScreen({ route, navigation }: Props) {
     value: query,
     onChangeText: setQuery,
     placeholder: t("common.search"),
-    placement: "automatic" as const,
   };
 
   return (
     <HeaderLayout
-      title={t("dashboard.tiles.remindersTitle")}
-      largeTitle={Platform.OS === "ios"}
       search={search}
       loading={loading}
       onBack={() => navigation.goBack()}
       actions={headerActions}
     >
       <CustomFlatList<Reminder>
-        nativeRows
         contentInsetAdjustmentBehavior="automatic"
         data={filteredRemindersList}
         listHeaderComponent={
           <>
-            {Platform.OS !== "ios" ? <ContentHeader title={t("dashboard.tiles.remindersTitle")} /> : null}
+            <ContentHeader title={t("dashboard.tiles.remindersTitle")} />
             {Platform.OS !== "ios" ? <SearchBar {...search} /> : null}
             <View style={{ marginBottom: 12 }}>
               <SegmentTabs<"upcoming" | "overdue" | "completed">
@@ -284,7 +280,7 @@ export function RemindersScreen({ route, navigation }: Props) {
         }}
         ListEmptyComponent={<EmptyState body={t("reminders.noItems")} />}
         refreshing={refreshing}
-        onRefresh={() => load({ refreshing: true })}
+        onRefresh={() => void load({ refreshing: true })}
       />
     </HeaderLayout>
   );

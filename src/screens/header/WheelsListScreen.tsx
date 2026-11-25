@@ -1,4 +1,4 @@
-import { Platform, Alert, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 import { useCallback, useMemo, useState } from "react";
@@ -164,21 +164,18 @@ export function WheelsListScreen({ route, navigation }: Props) {
 
   return (
     <HeaderLayout
-      title={t("wheels.rimsSection")}
-      largeTitle={Platform.OS === "ios"}
       loading={loading}
       onBack={() => navigation.goBack()}
       actions={headerActions}
     >
       <View style={styles.listWrap}>
         <CustomFlatList
-          nativeRows
           data={filteredWheels}
-          listHeaderComponent={Platform.OS === "ios" ? null : (
+          listHeaderComponent={
             <>
               <ContentHeader title={t("wheels.rimsSection")} />
             </>
-          )}
+          }
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <WheelItem

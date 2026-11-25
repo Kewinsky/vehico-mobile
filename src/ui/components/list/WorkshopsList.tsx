@@ -1,4 +1,3 @@
-import { Platform } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { ContentHeader } from "../layout/ContentHeader";
@@ -18,15 +17,14 @@ export function WorkshopsList({
 
   return (
     <CustomFlatList
-      nativeRows
       contentInsetAdjustmentBehavior="automatic"
       data={workshops}
-      listHeaderComponent={Platform.OS === "ios" ? null : (
+      listHeaderComponent={
         <>
           <ContentHeader title={t("workshops.title")} />
           <SearchBar {...search} />
         </>
-      )}
+      }
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <WorkshopItem

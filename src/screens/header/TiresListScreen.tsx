@@ -1,5 +1,5 @@
 import { nativeHeaderButton, nativeHeaderMenu } from "../../ui/components/layout/nativeHeaderItems";
-import { Platform, Alert, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HeaderIconButton } from "../../ui/components/layout/HeaderIconButton";
 import { Plus, RefreshCcw, SlidersHorizontal } from "lucide-react-native";
@@ -229,20 +229,18 @@ export function TiresListScreen({ route, navigation }: Props) {
 
   return (
     <HeaderLayout
-      title={t("wheels.tiresSection")}
-      largeTitle={Platform.OS === "ios"}
       loading={loading}
       onBack={() => navigation.goBack()}
       right={headerRight}
       nativeRightItems={[
         ...(hasActiveFilters
           ? [
-            nativeHeaderButton(
-              t("common.resetFilters"),
-              "arrow.counterclockwise",
-              resetFilters,
-            ),
-          ]
+              nativeHeaderButton(
+                t("common.resetFilters"),
+                "arrow.counterclockwise",
+                resetFilters,
+              ),
+            ]
           : []),
         nativeHeaderMenu(
           t("common.filter"),
@@ -254,11 +252,10 @@ export function TiresListScreen({ route, navigation }: Props) {
     >
       <View style={styles.listWrap}>
         <CustomFlatList
-          nativeRows
           data={filteredTires}
-          listHeaderComponent={Platform.OS === "ios" ? null : (
+          listHeaderComponent={
             <ContentHeader title={t("wheels.tiresSection")} />
-          )}
+          }
           keyExtractor={(item: VehicleTire) => item.id}
           renderItem={({ item }) => (
             <TiresItem

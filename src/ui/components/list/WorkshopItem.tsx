@@ -2,8 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Navigation, Phone, Trash2 } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { SwipeableListRow } from "./SwipeableListRow";
-import type { ListRowAction } from "./SwipeableListRow.types";
+import { ExclusiveSwipeable } from "../common/ExclusiveSwipeable";
+import { SwipeActionsRow } from "../common/SwipeActions";
 
 import type { Workshop, WorkshopType } from "../../../types/domain";
 import {
@@ -132,48 +132,52 @@ export function WorkshopItem({
     content
   );
 
-  const swipeActions: ListRowAction[] = [
+  if (!canCall && !canNavigate && !onDelete) return rowContent;
+
+  const swipeActions = [
     ...(onDelete
       ? [
-        {
-          onPress: onDelete,
-          color: theme.colors.danger,
-          icon: <Trash2 size={20} color="#000000" />,
-          systemImage: "trash",
-          accessibilityLabel: deleteLabel,
-        } satisfies ListRowAction,
-      ]
+          {
+            onPress: onDelete,
+            color: theme.colors.danger,
+            icon: <Trash2 size={20} color="#000000" />,
+            accessibilityLabel: deleteLabel,
+          },
+        ]
       : []),
     ...(canNavigate
       ? [
-        {
-          onPress: () =>
-            void navigateToWorkshop(addressTrimmed).catch(reportContactError),
-          color: theme.colors.muted,
-          icon: <Navigation size={20} color="#000000" />,
-          systemImage: "location",
-          accessibilityLabel: navigateLabel,
-        } satisfies ListRowAction,
-      ]
+          {
+            onPress: () =>
+              void navigateToWorkshop(addressTrimmed).catch(reportContactError),
+            color: theme.colors.muted,
+            icon: <Navigation size={20} color="#000000" />,
+            accessibilityLabel: navigateLabel,
+          },
+        ]
       : []),
     ...(canCall
       ? [
-        {
-          onPress: () =>
-            void callWorkshop(phoneTrimmed).catch(reportContactError),
-          color: theme.colors.accent,
-          icon: <Phone size={20} color="#000000" />,
-          systemImage: "phone",
-          accessibilityLabel: callLabel,
-        } satisfies ListRowAction,
-      ]
+          {
+            onPress: () =>
+              void callWorkshop(phoneTrimmed).catch(reportContactError),
+            color: theme.colors.accent,
+            icon: <Phone size={20} color="#000000" />,
+            accessibilityLabel: callLabel,
+          },
+        ]
       : []),
   ];
 
   return (
-    <SwipeableListRow actions={swipeActions}>
+    <ExclusiveSwipeable
+      renderRightActions={(progress) => (
+        <SwipeActionsRow progress={progress} actions={swipeActions} />
+      )}
+      rightThreshold={32}
+    >
       {rowContent}
-    </SwipeableListRow>
+    </ExclusiveSwipeable>
   );
 }
 
